@@ -189,7 +189,9 @@ class Game extends EventEmitter {
         this.initialiseTokens(this.cardDataGetter.tokenData);
 
         /** @type {import('../Interfaces').IClientUIProperties} */
-        this.clientUIProperties = {};
+        this.clientUIProperties = {
+            damageDealt: []
+        };
 
         this.registerGlobalRulesListeners();
 
@@ -1696,6 +1698,10 @@ class Game extends EventEmitter {
         } finally {
             this.#experimental.undo = false;
         }
+    }
+
+    resetClientEvents() {
+        this.clientUIProperties.damageDealt = [];
     }
 
     /**
