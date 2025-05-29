@@ -478,6 +478,24 @@ const mockCards = [
         unique: false,
         internalName: 'shatterpoint'
     }),
+    buildMockCard({
+        title: 'Ahsoka Tano',
+        subtitle: 'Fighting For Peace',
+        power: 5,
+        hp: 6,
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['leader'],
+        traits: ['force', 'fringe'],
+        setId: {
+            set: 'LOF',
+            number: 3
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'ahsoka-tano#fighting-for-peace'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
