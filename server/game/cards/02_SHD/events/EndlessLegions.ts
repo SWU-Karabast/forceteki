@@ -37,7 +37,6 @@ export default class EndlessLegions extends EventCard {
             title: 'Play a revelead unit for free',
             targetResolver: {
                 activePromptTitle: 'Choose a unit to play for free',
-                cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
                 ignoreHiddenZoneRule: true,

@@ -18,7 +18,6 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
             targetResolver: {
                 activePromptTitle: 'Choose a Capital Ship',
                 cardCondition: (card) => card.hasSomeTrait(Trait.CapitalShip),
-                cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({

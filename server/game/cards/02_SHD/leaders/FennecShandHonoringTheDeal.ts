@@ -18,7 +18,6 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
             cannotTargetFirst: true,
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
-                cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous({
@@ -39,7 +38,6 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
             title: 'Play a unit that costs 4 or less from your hand. Give it ambush for this phase',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
-                cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous({

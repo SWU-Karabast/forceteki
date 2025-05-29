@@ -18,7 +18,6 @@ export default class PalpatinesReturn extends EventCard {
                 mode: TargetMode.Single,
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,
-                cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.target.hasSomeTrait(Trait.Force),
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({

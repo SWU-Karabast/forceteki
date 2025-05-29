@@ -17,7 +17,6 @@ export default class GalacticAmbition extends EventCard {
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                cardTypeFilter: CardType.BasicUnit,
                 cardCondition: (card) => !card.hasSomeAspect(Aspect.Heroism),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                     adjustCost: { costAdjustType: CostAdjustType.Free },

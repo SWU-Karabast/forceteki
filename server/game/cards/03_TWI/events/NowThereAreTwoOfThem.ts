@@ -18,7 +18,6 @@ export default class NowThereAreTwoOfThem extends EventCard {
                 condition: (context) => context.player.getArenaUnits().length === 1,
                 onTrue: AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Play a non-Vehicle unit from your hand that shared a Trait with the unit you control. It costs 5 less.',
-                    cardTypeFilter: CardType.BasicUnit,
                     zoneFilter: ZoneName.Hand,
                     cardCondition: (card, context) =>
                         !card.hasSomeTrait(Trait.Vehicle) &&

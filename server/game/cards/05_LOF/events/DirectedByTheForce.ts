@@ -16,7 +16,6 @@ export default class DirectedByTheForce extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.theForceIsWithYou(),
                 AbilityHelper.immediateEffects.selectCard({
-                    cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     optional: true,

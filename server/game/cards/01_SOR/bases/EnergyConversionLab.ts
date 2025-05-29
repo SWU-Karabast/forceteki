@@ -16,7 +16,6 @@ export default class EnergyConversionLab extends BaseCard {
             title: 'Play a unit that costs 6 or less from your hand. Give it ambush for this phase',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 6,
-                cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous({

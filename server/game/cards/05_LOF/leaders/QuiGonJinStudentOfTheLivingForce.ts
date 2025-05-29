@@ -27,7 +27,6 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: `Play a non-Villainy unit that costs ${ifYouDoContext.target.cost} or less`,
                 targetResolver: {
-                    cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     cardCondition: (card) => card.isUnit() && !card.hasSomeAspect(Aspect.Villainy) && card.cost < ifYouDoContext.target.cost,
@@ -56,7 +55,6 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: `Play a non-Villainy unit that costs ${ifYouDoContext.target.cost} or less`,
                 targetResolver: {
-                    cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     cardCondition: (card) => card.isUnit() && !card.hasSomeAspect(Aspect.Villainy) && card.cost < ifYouDoContext.target.cost,

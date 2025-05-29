@@ -25,7 +25,6 @@ export default class ShienFlurry extends EventCard {
             title: 'Play a Force unit from your hand. It gains Ambush for this phase. The next time it would be dealt damage this phase prevent 2 of that damage',
             cannotTargetFirst: true,
             targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Force),

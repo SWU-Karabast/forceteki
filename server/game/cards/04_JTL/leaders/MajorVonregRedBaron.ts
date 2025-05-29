@@ -24,7 +24,6 @@ export default class MajorVonregRedBaron extends LeaderUnitCard {
             title: 'Play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle),
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
