@@ -14,6 +14,7 @@ export default class Restock extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Choose up to 4 cards in a discard pile. Put them on the bottom of their owner\'s deck in a random order',
+            cannotTargetFirst: true,
             targetResolver: {
                 mode: TargetMode.UpTo,
                 numCards: 4,

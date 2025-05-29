@@ -86,7 +86,7 @@ describe('Coordinate keyword', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.wingLeader);
                 context.player2.passAction();
-                context.anakinSkywalker.exhausted = false;
+                context.readyCard(context.anakinSkywalker);
 
                 expect(context.cloneHeavyGunner.getPower()).toBe(3);
                 context.player1.clickCard(context.anakinSkywalker);
@@ -97,7 +97,7 @@ describe('Coordinate keyword', function() {
                 // turn Coordinate offline again
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(context.wingLeader);
-                context.anakinSkywalker.exhausted = false;
+                context.readyCard(context.anakinSkywalker);
 
                 expect(context.cloneHeavyGunner.getPower()).toBe(1);
                 context.player1.clickCard(context.anakinSkywalker);
@@ -147,7 +147,7 @@ describe('Coordinate keyword', function() {
 
                 // confirm Coordinate online and working normally
                 expect(context.cloneHeavyGunner.getPower()).toBe(3);
-                context.anakinSkywalker.exhausted = false;
+                context.readyCard(context.anakinSkywalker);
                 context.player1.clickCard(context.anakinSkywalker);
                 context.player1.clickCard(context.p2Base);
 
@@ -155,6 +155,82 @@ describe('Coordinate keyword', function() {
                 expect(context.player1.handSize).toBe(2);
                 expect(context.wampa).toBeInZone('hand');
                 expect(context.atst).toBeInZone('hand');
+            });
+
+            it('is stolen by an opponent who has 3 or more units excluding the stolen unit, its Coordinate ability should be active', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
+                        groundArena: ['pyke-sentinel'],
+                        spaceArena: ['wing-leader'],
+                        resources: 8
+                    },
+                    player2: {
+                        groundArena: [{ card: 'plo-koon#kohtoyah', damage: 1 }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
+                context.player1.clickCard(context.ploKoon);
+
+                context.player2.passAction();
+                context.player1.clickCard(context.ploKoon);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(6);
+            });
+
+            it('is stolen by an opponent who has 3 or more units including the stolen unit, its Coordinate ability should be active', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
+                        groundArena: ['pyke-sentinel'],
+                        resources: 8
+                    },
+                    player2: {
+                        groundArena: [{ card: 'plo-koon#kohtoyah', damage: 1 }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
+                context.player1.clickCard(context.ploKoon);
+
+                context.player2.passAction();
+                context.player1.clickCard(context.ploKoon);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(6);
+            });
+
+            it('is stolen by an opponent who has less than 3 units, but the original controller has 3 or more, its Coordinate ability should not be active', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
+                        resources: 8
+                    },
+                    player2: {
+                        groundArena: [{ card: 'plo-koon#kohtoyah', damage: 1 }],
+                        spaceArena: ['wing-leader', 'concord-dawn-interceptors', 'alliance-xwing'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
+                context.player1.clickCard(context.ploKoon);
+
+                context.player2.passAction();
+                context.player1.clickCard(context.ploKoon);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(3);
             });
         });
     });

@@ -32,7 +32,7 @@ describe('Electrostaff', function() {
                 context.player1.clickCard(context.cargoJuggernaut);
                 expect(context.battlefieldMarine.damage).toBe(4);
                 expect(context.cargoJuggernaut.damage).toBe(5);
-                context.battlefieldMarine.damage = 0;
+                context.setDamage(context.battlefieldMarine, 0);
 
                 // resourceful pursuers attack battlefield marine, battlefield marine should take 1 damage less
                 context.player2.clickCard(context.resourcefulPursuers);

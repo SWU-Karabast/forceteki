@@ -1,43 +1,50 @@
-import type { IKeywordProperties } from '../../Interfaces';
+import type { IKeywordProperties, KeywordNameOrProperties } from '../../Interfaces';
+import type { Card } from '../card/Card';
 import type { PlayType } from '../Constants';
 import { Aspect, KeywordName } from '../Constants';
 import * as Contract from '../utils/Contract';
+import * as Helpers from '../utils/Helpers';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { BountyKeywordInstance, KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
 import type { PlayCardAction } from './PlayCardAction';
 
-export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, cardName: string, pilotText: string): KeywordInstance[] {
+export function parseKeywords(
+    card: Card,
+    expectedKeywordsRaw: string[],
+    cardText: string,
+    pilotText: string
+): KeywordInstance[] {
     const expectedKeywords = EnumHelpers.checkConvertToEnum(expectedKeywordsRaw, KeywordName);
 
     const keywords: KeywordInstance[] = [];
 
     for (const keywordName of expectedKeywords) {
         if (isNumericType[keywordName]) {
-            const keywordValueOrNull = parseNumericKeywordValueIfEnabled(keywordName, cardText, cardName);
+            const keywordValueOrNull = parseNumericKeywordValueIfEnabled(keywordName, cardText, card.internalName);
             if (keywordValueOrNull != null) {
-                keywords.push(new KeywordWithNumericValue(keywordName, keywordValueOrNull));
+                keywords.push(new KeywordWithNumericValue(keywordName, card, keywordValueOrNull));
             }
         } else if (keywordName === KeywordName.Piloting) {
-            const pilotingValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Piloting, pilotText, cardName);
+            const pilotingValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Piloting, pilotText, card);
             if (pilotingValuesOrNull != null) {
                 keywords.push(pilotingValuesOrNull);
             }
         } else if (keywordName === KeywordName.Smuggle) {
-            const smuggleValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Smuggle, cardText, cardName);
+            const smuggleValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Smuggle, cardText, card);
             if (smuggleValuesOrNull != null) {
                 keywords.push(smuggleValuesOrNull);
             }
         } else if (keywordName === KeywordName.Bounty) {
-            if (isKeywordEnabled(keywordName, cardText, cardName)) {
-                keywords.push(new BountyKeywordInstance(keywordName));
+            if (isKeywordEnabled(keywordName, cardText, card.internalName)) {
+                keywords.push(new BountyKeywordInstance(keywordName, card));
             }
         } else if (keywordName === KeywordName.Coordinate) {
-            if (isKeywordEnabled(keywordName, cardText, cardName)) {
-                keywords.push(new KeywordWithAbilityDefinition(keywordName));
+            if (isKeywordEnabled(keywordName, cardText, card.internalName)) {
+                keywords.push(new KeywordWithAbilityDefinition(keywordName, card));
             }
         } else { // default case is a keyword with no params
-            if (isKeywordEnabled(keywordName, cardText, cardName)) {
-                keywords.push(new KeywordInstance(keywordName));
+            if (isKeywordEnabled(keywordName, cardText, card.internalName)) {
+                keywords.push(new KeywordInstance(keywordName, card));
             }
         }
     }
@@ -45,27 +52,30 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
     return keywords;
 }
 
-// "Gain Coordinate" and "gain Exploit" are not yet implemented
-export function keywordFromProperties(properties: IKeywordProperties) {
+export function keywordFromProperties(properties: IKeywordProperties, card: Card) {
     switch (properties.keyword) {
         case KeywordName.Restore:
         case KeywordName.Raid:
-            return new KeywordWithNumericValue(properties.keyword, properties.amount);
+            return new KeywordWithNumericValue(properties.keyword, card, properties.amount);
 
         case KeywordName.Bounty:
-            return new BountyKeywordInstance(properties.keyword, properties.ability);
+            return new BountyKeywordInstance(properties.keyword, card, properties.ability);
 
         // TODO: Do we need Piloting here?
         case KeywordName.Smuggle:
-            return new KeywordWithCostValues(properties.keyword, properties.cost, properties.aspects, false);
+            return new KeywordWithCostValues(properties.keyword, card, properties.cost, properties.aspects, false);
+
+        case KeywordName.Coordinate:
+            return new KeywordWithAbilityDefinition(properties.keyword, card, properties.ability);
 
         case KeywordName.Ambush:
         case KeywordName.Grit:
+        case KeywordName.Hidden:
         case KeywordName.Overwhelm:
         case KeywordName.Saboteur:
         case KeywordName.Sentinel:
         case KeywordName.Shielded:
-            return new KeywordInstance(properties.keyword);
+            return new KeywordInstance(properties.keyword, card);
 
         default:
             throw new Error(`Keyword '${(properties as any).keyword}' is not implemented yet`);
@@ -78,10 +88,28 @@ export const isNumericType: Record<KeywordName, boolean> = {
     [KeywordName.Coordinate]: false,
     [KeywordName.Exploit]: true,
     [KeywordName.Grit]: false,
+    [KeywordName.Hidden]: false,
     [KeywordName.Overwhelm]: false,
     [KeywordName.Piloting]: false,
     [KeywordName.Raid]: true,
     [KeywordName.Restore]: true,
+    [KeywordName.Saboteur]: false,
+    [KeywordName.Sentinel]: false,
+    [KeywordName.Shielded]: false,
+    [KeywordName.Smuggle]: false
+};
+
+export const hasWhileInPlayAbility: Record<KeywordName, boolean> = {
+    [KeywordName.Ambush]: false,
+    [KeywordName.Bounty]: false,
+    [KeywordName.Coordinate]: true,
+    [KeywordName.Exploit]: false,
+    [KeywordName.Grit]: false,
+    [KeywordName.Hidden]: true,
+    [KeywordName.Overwhelm]: false,
+    [KeywordName.Piloting]: false,
+    [KeywordName.Raid]: false,
+    [KeywordName.Restore]: false,
     [KeywordName.Saboteur]: false,
     [KeywordName.Sentinel]: false,
     [KeywordName.Shielded]: false,
@@ -143,7 +171,7 @@ function parseNumericKeywordValueIfEnabled(keyword: KeywordName, cardText: strin
  *
  * @returns null if the keyword is not enabled, or the numeric value if enabled
  */
-function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: string, cardName: string): KeywordWithCostValues {
+function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: string, card: Card): KeywordWithCostValues {
     const regex = getRegexForKeyword(keyword);
     const matchIter = cardText.matchAll(regex);
 
@@ -154,16 +182,21 @@ function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: str
     }
 
     if (matchIter.next().done !== true) {
-        throw new Error(`Expected to match at most one instance of enabled keyword ${keyword} in card ${cardName}, but found multiple`);
+        throw new Error(`Expected to match at most one instance of enabled keyword ${keyword} in card ${card.internalName}, but found multiple`);
     }
 
     const cost = Number(match.value[1]);
     const aspectString = match.value[2];
-    const aspects = EnumHelpers.checkConvertToEnum(aspectString.toLowerCase().split(' '), Aspect);
+
+    let aspects: Aspect[] = [];
+    if (aspectString && aspectString.length > 0) {
+        aspects = EnumHelpers.checkConvertToEnum(aspectString.toLowerCase().split(' '), Aspect);
+    }
+
     const additionalCosts = match.value[3] !== undefined;
 
     // regex capture group will be keyword value with costs
-    return new KeywordWithCostValues(keyword, cost, aspects, additionalCosts);
+    return new KeywordWithCostValues(keyword, card, cost, aspects, additionalCosts);
 }
 
 function getRegexForKeyword(keyword: KeywordName) {
@@ -183,10 +216,12 @@ function getRegexForKeyword(keyword: KeywordName) {
             return /(?:^|(?:\n))Exploit ([\d]+)/g;
         case KeywordName.Grit:
             return /(?:^|(?:\n))Grit/g;
+        case KeywordName.Hidden:
+            return /(?:^|(?:\n))Hidden/g;
         case KeywordName.Overwhelm:
             return /(?:^|(?:\n))Overwhelm/g;
         case KeywordName.Piloting:
-            return /Piloting\s\[\s*(\d+)\s+resource(?:s)?(?:,\s*|\s+)([\w\s]+)\]/g;
+            return /Piloting\s\[\s*(\d+)\s+resource(?:s)?\s*([\w\s]*)\]/g;
         case KeywordName.Raid:
             return /(?:^|(?:\n))Raid ([\d]+)/g;
         case KeywordName.Restore:
@@ -227,4 +262,16 @@ export function getCheapestPlayAction<TAbility extends PlayCardAction>(playType:
     }
 
     return cheapestAction;
+}
+
+export function keywordDescription(keyword: KeywordNameOrProperties): string {
+    if (typeof keyword === 'string') {
+        return Helpers.capitalize(keyword);
+    }
+
+    if ('amount' in keyword) {
+        return `${Helpers.capitalize(keyword.keyword)} ${keyword.amount}`;
+    }
+
+    return Helpers.capitalize(keyword.keyword);
 }

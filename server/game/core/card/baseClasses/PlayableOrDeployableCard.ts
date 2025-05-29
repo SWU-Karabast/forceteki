@@ -1,24 +1,26 @@
-import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
+import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
+import type { IConstantAbilityProps, IOngoingEffectGenerator, NumericKeywordName } from '../../../Interfaces';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import type { IAlternatePlayActionProperties, IPlayCardActionProperties, IPlayCardActionPropertiesBase, PlayCardAction } from '../../ability/PlayCardAction';
-import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
+import type { ICardState } from '../Card';
 import { Card } from '../Card';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
 // required for mixins to be based on this class
-export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
+export type PlayableOrDeployableCardConstructor<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> = new (...args: any[]) => PlayableOrDeployableCard<T>;
 
 export interface IDecreaseCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
@@ -32,7 +34,7 @@ export interface IIgnoreAllAspectPenaltiesProps<TSource extends Card = Card> ext
 
 export interface IIgnoreSpecificAspectPenaltyProps<TSource extends Card = Card> extends Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
-    ignoredAspects: Aspect | Aspect[];
+    ignoredAspect: Aspect;
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
 
@@ -52,26 +54,28 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
     buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
 }
 
+export interface IPlayableOrDeployableCardState extends ICardState {
+    exhausted: boolean | null;
+}
+
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
-    private _exhausted?: boolean = null;
-
+export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> extends Card<T> {
     public get exhausted(): boolean {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        return this._exhausted;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        return this.state.exhausted;
     }
 
     public set exhausted(val: boolean) {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = val;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = val;
     }
 
     // see Card constructor for list of expected args
-    public constructor(owner: Player, cardData: any) {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
 
         // this class is for all card types other than Base
@@ -93,20 +97,23 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         let playCardActions: PlayCardAction[] = [];
 
         if (this.zoneName === ZoneName.Hand) {
-            let playActions = this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
-            // TODO: update this once we suppport Piloting from discard
+            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides));
             if (this.hasSomeKeyword(KeywordName.Piloting)) {
-                playActions = playActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+                playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
             }
-            return playActions;
         }
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             playCardActions = this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
         }
 
-        if (this.zoneName === ZoneName.Discard && this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
-            playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+        if (this.zoneName === ZoneName.Discard) {
+            if (this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
+                playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+                if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                    playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+                }
+            }
         }
 
         return playCardActions;
@@ -124,12 +131,18 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             `Attempting to get "play from out of play" actions for card ${this.internalName} in invalid zone: ${this.zoneName}`
         );
 
-        return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+        let playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+
+        if (this.hasSomeKeyword(KeywordName.Piloting)) {
+            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+        }
+
+        return playCardActions;
     }
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         // add this card's Exploit amount onto any that come from the property overrides
-        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
+        const exploitValue = this.getNumericKeywordTotal(KeywordName.Exploit);
         const propertyOverridesWithExploit = Helpers.mergeNumericProperty(propertyOverrides, 'exploitValue', exploitValue);
 
         let defaultPlayAction: PlayCardAction = null;
@@ -183,13 +196,13 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     }
 
     public exhaust() {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = true;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = true;
     }
 
     public ready() {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = false;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = false;
     }
 
     public override canBeExhausted(): this is IPlayableOrDeployableCard {
@@ -198,11 +211,16 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     public override getSummary(activePlayer: Player) {
         return { ...super.getSummary(activePlayer),
-            exhausted: this._exhausted };
+            exhausted: this.state.exhausted };
+    }
+
+    public override getCardState(): any {
+        return { ...super.getCardState(),
+            exhausted: this.state.exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {
-        this._exhausted = enabledStatus ? true : null;
+        this.state.exhausted = enabledStatus ? true : null;
     }
 
     /**
@@ -210,12 +228,20 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
      * for this card and adds up the total of their effect values.
      * @returns value of the total effect if enabled, `null` if the effect is not present
      */
-    public getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null {
+    public getNumericKeywordTotal(keywordName: NumericKeywordName): number | null {
         let keywordValueTotal = 0;
 
         for (const keyword of this.keywords.filter((keyword) => keyword.name === keywordName)) {
             Contract.assertTrue(keyword instanceof KeywordWithNumericValue);
             keywordValueTotal += keyword.value;
+        }
+
+        const multipliers = this.getOngoingEffectValues(EffectName.MultiplyNumericKeyword)
+            .filter((value) => value.keyword === keywordName)
+            .map((value) => value.multiplier);
+
+        for (const multiplier of multipliers) {
+            keywordValueTotal *= multiplier;
         }
 
         return keywordValueTotal > 0 ? keywordValueTotal : null;
@@ -230,13 +256,15 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
      * controller's resource zone.
      *
      * If `newController` is the same as the current controller, nothing happens.
+     *
+     * @returns true if the controller was changed, false if it was the same
      */
-    public takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource = null) {
+    public takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource = null): boolean {
         if (newController === this.controller) {
-            return;
+            return false;
         }
 
-        this._controller = newController;
+        this.controller = newController;
 
         const moveDestination = moveTo || this.zone.name;
 
@@ -245,24 +273,29 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             `Attempting to take control of card ${this.internalName} for player ${newController.name} in invalid zone: ${moveDestination}`
         );
 
-        // if we're changing controller and staying in the arena, just tell the arena to update our controller. no move needed
-        if (moveDestination === this.zoneName && (this.zone.name === ZoneName.GroundArena || this.zone.name === ZoneName.SpaceArena)) {
-            this.zone.updateController(this);
-
-            // register this transition with the engine so it can do uniqueness check if needed
-            this.registerMove(this.zone.name);
+        // if we're changing controller and staying in play, tell the arena to update our controller
+        if (this.zone.name === ZoneName.GroundArena || this.zone.name === ZoneName.SpaceArena) {
+            // if we're staying in the same arena, no move needed
+            if (moveDestination === this.zoneName) {
+                // register this transition with the engine so it can do uniqueness check if needed
+                this.registerMove(this.zone.name);
+            } else {
+                this.moveTo(moveDestination);
+            }
         } else {
             this.moveTo(moveDestination);
         }
 
         // update the context of all constant abilities so they are aware of the new controller
-        for (const constantAbility of this.constantAbilities) {
+        for (const constantAbility of this.getConstantAbilities()) {
             if (constantAbility.registeredEffects) {
                 for (const effect of constantAbility.registeredEffects) {
                     effect.refreshContext();
                 }
             }
         }
+
+        return true;
     }
 
     /** Create constant ability props on the card that decreases its cost under the given condition */
@@ -297,12 +330,12 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     /** Create constant ability props on the card that decreases its cost under the given condition */
     protected generateIgnoreSpecificAspectPenaltiesAbilityProps(properties: IIgnoreSpecificAspectPenaltyProps<this>): IConstantAbilityProps {
-        const { title, ignoredAspects, condition, ...otherProps } = properties;
+        const { title, ignoredAspect, condition, ...otherProps } = properties;
 
         const costAdjusterProps: ICostAdjusterProperties = {
             ...this.buildCostAdjusterGenericProperties(),
             costAdjustType: CostAdjustType.IgnoreSpecificAspects,
-            ignoredAspects: ignoredAspects,
+            ignoredAspect: ignoredAspect,
             ...otherProps
         };
 

@@ -34,10 +34,10 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.battlefieldMarine.damage = 0;
-                    context.mandalorianWarrior.damage = 0;
-                    context.fleetLieutenant.damage = 0;
-                    context.volunteerSoldier.damage = 0;
+                    context.setDamage(context.battlefieldMarine, 0);
+                    context.setDamage(context.mandalorianWarrior, 0);
+                    context.setDamage(context.fleetLieutenant, 0);
+                    context.setDamage(context.volunteerSoldier, 0);
                 };
 
                 // CASE 1: Trigger Jango's ability from combat damage
@@ -278,7 +278,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 // CASE 12: A friendly unit dealing damage to another friendly unit does not trigger Jango's ability
 
                 context.nextPhase();
-                context.grogu.damage = 0;
+                context.setDamage(context.grogu, 0);
 
                 // Use Pershing's ability
                 context.player1.clickCard(context.doctorPershing);
@@ -371,11 +371,11 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                     if (context.mandalorianWarrior.zone !== 'groundArena') {
                         context.mandalorianWarrior.moveTo('groundArena');
                     }
-                    context.battlefieldMarine.damage = 0;
-                    context.mandalorianWarrior.damage = 0;
-                    context.fleetLieutenant.damage = 0;
-                    context.volunteerSoldier.damage = 0;
-                    context.jangoFett.damage = 0;
+                    context.setDamage(context.battlefieldMarine, 0);
+                    context.setDamage(context.mandalorianWarrior, 0);
+                    context.setDamage(context.fleetLieutenant, 0);
+                    context.setDamage(context.volunteerSoldier, 0);
+                    context.setDamage(context.jangoFett, 0);
                 };
 
                 // CASE 1: Trigger Jango's ability from combat damage
@@ -629,7 +629,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 // CASE 10: A friendly unit dealing damage to another friendly unit does not trigger Jango's ability
 
                 context.moveToNextActionPhase();
-                context.grogu.damage = 0;
+                context.setDamage(context.grogu, 0);
 
                 // Use Pershing's ability
                 context.player1.clickCard(context.doctorPershing);
@@ -641,6 +641,69 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.player1).not.toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
                 expect(context.grogu.exhausted).toBeFalse();
                 expect(context.grogu.damage).toBe(1);
+            });
+        });
+
+        describe('Jango Fett\'s deployed leader ability', function() {
+            it('should trigger correctly on multiple targets based on the selected target from the trigger window', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: {
+                            card: 'jango-fett#concealing-the-conspiracy',
+                            deployed: true
+                        },
+                        hand: ['war-juggernaut']
+                    },
+                    player2: {
+                        leader: {
+                            card: 'admiral-piett#commanding-the-armada',
+                            deployed: true
+                        },
+                        groundArena: ['pantoran-starship-thief', 'captain-tarkin#full-forward-assault'],
+                        spaceArena: ['quasar-tie-carrier']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.warJuggernaut);
+                context.player1.clickCard(context.pantoranStarshipThief);
+                context.player1.clickCard(context.captainTarkin);
+                context.player1.clickCard(context.quasarTieCarrier);
+                context.player1.clickCard(context.admiralPiett);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Exhaust the damaged enemy unit: Pantoran Starship Thief',
+                    'Exhaust the damaged enemy unit: Admiral Piett',
+                    'Exhaust the damaged enemy unit: Captain Tarkin',
+                    'Exhaust the damaged enemy unit: Quasar TIE Carrier'
+                ]);
+
+                context.player1.clickPrompt('Exhaust the damaged enemy unit: Captain Tarkin');
+                context.player1.clickPrompt('Trigger');
+                expect(context.captainTarkin.exhausted).toBeTrue();
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Exhaust the damaged enemy unit: Pantoran Starship Thief',
+                    'Exhaust the damaged enemy unit: Admiral Piett',
+                    'Exhaust the damaged enemy unit: Quasar TIE Carrier'
+                ]);
+                context.player1.clickPrompt('Exhaust the damaged enemy unit: Pantoran Starship Thief');
+                context.player1.clickPrompt('Trigger');
+                expect(context.pantoranStarshipThief.exhausted).toBeTrue();
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Exhaust the damaged enemy unit: Admiral Piett',
+                    'Exhaust the damaged enemy unit: Quasar TIE Carrier'
+                ]);
+                context.player1.clickPrompt('Exhaust the damaged enemy unit: Quasar TIE Carrier');
+                context.player1.clickPrompt('Trigger');
+                expect(context.quasarTieCarrier.exhausted).toBeTrue();
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.admiralPiett.exhausted).toBeTrue();
             });
         });
     });

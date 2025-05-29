@@ -9,19 +9,27 @@ import { cardCannot } from './CardCannot';
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
 import { addExploit, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-import type { KeywordName } from '../core/Constants';
+import type { KeywordName, Trait } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
-import type { IAbilityPropsWithType, IKeywordProperties, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
+import type { IAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
-import * as KeywordHelpers from '../core/ability/KeywordHelpers';
-import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
+import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
-import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
 import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import { playerCannot } from './PlayerCannot';
 import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotLimitModifier';
+import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
+import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl/PlayFromDiscardProperties';
+import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
+import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
+import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
+import StatsModifierWrapper from '../core/ongoingEffect/effectImpl/StatsModifierWrapper';
+import { OngoingEffectValueWrapper } from '../core/ongoingEffect/effectImpl/OngoingEffectValueWrapper';
+import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/NumericKeywordMultiplier';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -31,9 +39,9 @@ import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotL
 
 export = {
     assignIndirectDamageDealtToOpponents: () => OngoingEffectBuilder.player.static(EffectName.AssignIndirectDamageDealtToOpponents),
+    assignIndirectDamageDealtByUnit: () => OngoingEffectBuilder.card.static(EffectName.AssignIndirectDamageDealtByUnit),
     // Card effects
     // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
-    // addTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.AddTrait, trait),
     // additionalTriggerCostForCard: (func) => OngoingEffectBuilder.card.static(EffectName.AdditionalTriggerCost, func),
     // attachmentCardCondition: (func) => OngoingEffectBuilder.card.static(EffectName.AttachmentCardCondition, func),
     // attachmentFactionRestriction: (factions) =>
@@ -64,7 +72,9 @@ export = {
     //        unapply: () => true
     //    }),
 
-    canPlayFromDiscard: () => OngoingEffectBuilder.card.static(EffectName.CanPlayFromDiscard),
+    canAttackMultipleUnitsSimultaneously: (effectImpl: CanAttackMultipleUnitsSimultaneously) => OngoingEffectBuilder.card.static(EffectName.CanAttackMultipleUnitsSimultaneously, effectImpl),
+    canPlayFromDiscard: (properties: PlayFromDiscardProperties = {}) => OngoingEffectBuilder.card
+        .static(EffectName.CanPlayFromDiscard, properties),
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>
@@ -104,20 +114,20 @@ export = {
     gainAbility: (properties: IAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(properties)),
     // TODO BUG: if multiple cards gain keywords from the same effect and one of them is blanked, they will all be blanked
-    gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<IKeywordProperties>) => {
+    gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<KeywordNameOrProperties>) => {
         switch (typeof keywordOrKeywordProperties) {
-            case 'string':
-                return OngoingEffectBuilder.card.static(EffectName.GainKeyword,
-                    KeywordHelpers.keywordFromProperties({ keyword: keywordOrKeywordProperties }));
             case 'function':
                 return OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword,
-                    (target, context) => KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties(target, context)));
+                    (target, context) => new GainKeyword(keywordOrKeywordProperties(target, context)));
             default:
-                return OngoingEffectBuilder.card.static(EffectName.GainKeyword,
-                    KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties));
+                return OngoingEffectBuilder.card.static(EffectName.GainKeyword, new GainKeyword(keywordOrKeywordProperties));
         }
     },
-    loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, new LoseKeyword(keyword)),
+    gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
+        OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context) => new GainKeyword(calculate(target, context))),
+    multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
+    loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
+    loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),
@@ -141,14 +151,28 @@ export = {
     // increaseLimitOnPrintedAbilities: (abilities) =>
     //     OngoingEffectBuilder.card.static(EffectName.IncreaseLimitOnPrintedAbilities, abilities),
     // loseAllNonKeywordAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseAllNonKeywordAbilities),
-    // loseTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
+    gainTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.GainTrait, trait),
+    loseTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
     // modifyBaseMilitarySkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
     // modifyBasePoliticalSkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
+    modifyIndirectDamage: (modifier: IndirectDamageModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyIndirectDamage, modifier),
     modifyPilotingLimit: (modifier: PilotLimitModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyPilotLimit, modifier),
-    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) =>
-        OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
+    modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyStartingHandSize, modifier),
+    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) => {
+        switch (typeof modifier) {
+            case 'function':
+                return OngoingEffectBuilder.card.dynamic(EffectName.ModifyStats, modifier);
+            default:
+                return OngoingEffectBuilder.card.static(
+                    EffectName.ModifyStats,
+                    new OngoingEffectValueWrapper(modifier, { format: 'give {0}', args: [StatsModifierWrapper.statsModifierDescription(modifier)] })
+                );
+        }
+    },
+    noMulligan: () => OngoingEffectBuilder.card.static(EffectName.NoMulligan),
+    mustAttack: (properties: MustAttackProperties = {}) => OngoingEffectBuilder.card.static(EffectName.MustAttack, properties),
     // modifyMilitarySkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
     // switchAttachmentSkillModifiers,
     // modifyMilitarySkillMultiplier: (value) =>
@@ -188,7 +212,7 @@ export = {
     // participatesFromHome: (properties) => OngoingEffectBuilder.card.static(EffectName.ParticipatesFromHome, properties),
     // unlessActionCost: (properties) => OngoingEffectBuilder.card.static(EffectName.UnlessActionCost, properties),
     // // Player effects
-    // additionalAction: (amount = 1) => OngoingEffectBuilder.player.static(EffectName.AdditionalAction, amount),
+    additionalAction: () => OngoingEffectBuilder.player.static(EffectName.AdditionalAction),
     // additionalCardPlayed: (amount = 1) => OngoingEffectBuilder.player.flexible(EffectName.AdditionalCardPlayed, amount),
     // additionalCharactersInConflict: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.AdditionalCharactersInConflict, amount),
@@ -238,6 +262,7 @@ export = {
     //     }),
     increaseCost: (properties: Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Increase, ...properties }),
     forFree: (properties: Omit<IForFreeCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Free, ...properties }),
+    modifyPayStageCost: (properties: Omit<IModifyPayStageCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.ModifyPayStage, ...properties }),
     ignoreAllAspectPenalties: (properties: Omit<IIgnoreAllAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreAllAspects, ...properties }),
     ignoreSpecificAspectPenalties: (properties: Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreSpecificAspects, ...properties }),
     ignorePilotingPilotLimit: () => OngoingEffectBuilder.card.static(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit),

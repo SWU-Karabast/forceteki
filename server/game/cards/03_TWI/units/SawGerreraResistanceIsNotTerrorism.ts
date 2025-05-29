@@ -15,10 +15,9 @@ export default class SawGerreraResistanceIsNotTerrorism extends NonLeaderUnitCar
             title: 'If your base has 15 or more damage on it, deal 1 damage to each enemy ground unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.base.damage >= 15,
-                onFalse: AbilityHelper.immediateEffects.noAction(),
                 onTrue: AbilityHelper.immediateEffects.damage((context) => ({
                     amount: 1,
-                    target: context.player.opponent.getUnitsInPlay(ZoneName.GroundArena)
+                    target: context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena })
                 }))
             })
         });

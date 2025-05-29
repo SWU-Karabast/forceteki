@@ -14,8 +14,9 @@ export default class BobaFettAnyMethodsNecessary extends LeaderUnitCard {
         this.addPilotDeploy();
 
         this.addTriggeredAbility({
-            title: 'Exhaust this leader',
+            title: 'Exhaust this leader to deal 1 indirect damage to a player',
             optional: true,
+            collectiveTrigger: true,
             when: {
                 onDamageDealt: (event, context) => event.damageSource.player === context.player && event.type !== DamageType.Combat && event.type !== DamageType.Overwhelm,
             },

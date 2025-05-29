@@ -7,7 +7,7 @@ import * as GameSystemLibrary from '../../gameSystems/GameSystemLibrary';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class RestoreAbility extends TriggeredAbility {
-    public override readonly keyword: KeywordName | null = KeywordName.Restore;
+    public readonly keyword: KeywordName = KeywordName.Restore;
 
     public static buildRestoreAbilityProperties<TSource extends Card = Card>(restoreAmount: number): ITriggeredAbilityProps<TSource> {
         return {

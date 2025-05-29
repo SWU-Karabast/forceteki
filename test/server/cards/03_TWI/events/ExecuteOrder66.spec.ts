@@ -5,7 +5,7 @@ describe('Execute Order 66\'s ability', function () {
                 phase: 'action',
                 player1: {
                     hand: ['execute-order-66'],
-                    groundArena: ['obiwan-kenobi#following-fate', 'battlefield-marine'],
+                    groundArena: ['obiwan-kenobi#following-fate', 'battlefield-marine', { card: 'shaak-ti#unity-wins-wars', upgrades: ['shield'] }],
                     spaceArena: ['padawan-starfighter'],
                 },
                 player2: {
@@ -22,6 +22,7 @@ describe('Execute Order 66\'s ability', function () {
             expect(context.lukeSkywalker.damage).toBe(6);
             expect(context.battlefieldMarine.damage).toBe(0);
             expect(context.miningGuildTieFighter.damage).toBe(0);
+            expect(context.shaakTi).toHaveExactUpgradeNames([]);
             const cloneTroopers = context.player1.findCardsByName('clone-trooper');
             expect(cloneTroopers.length).toBe(2);
             expect(cloneTroopers.every((trooper) => trooper.exhausted)).toBe(true);
@@ -79,6 +80,8 @@ describe('Execute Order 66\'s ability', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.executeOrder66);
+            context.player1.clickPrompt('Play anyway');
+            expect(context.executeOrder66).toBeInZone('discard', context.player1);
             expect(context.battlefieldMarine).toBeInZone('groundArena');
             expect(context.miningGuildTieFighter).toBeInZone('spaceArena');
             expect(context.player2).toBeActivePlayer();

@@ -21,6 +21,7 @@ export class GameEvent {
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
+    private replacementEventsGenerator?: () => any[] = null;
     private _preResolutionEffect = null;
     private replacementEvents: any[] = [];
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
@@ -140,6 +141,27 @@ export class GameEvent {
         this.resolutionStatus = EventResolutionStatus.REPLACED;
     }
 
+    /**
+     * Sets the replacement events generator function for this event. When the event is resolved,
+     * the generator function will be called to generate any potential replacement events.
+     *
+     * This is generally used by game systems to set replacement events to handle specific game rules.
+     * For example, the `TakeControlOfUnitSystem` uses this to ensure that a leader unit never changes control,
+     * but is defeated instead.
+     *
+     * To create a replacement effect for a card ability (like the Shield token), use the `addReplacementEffectAbility`
+     * method on the card instead.
+     */
+    public setReplacementEventsGenerator(generator: (event) => any[]) {
+        Contract.assertIsNullLike(this.replacementEventsGenerator, 'Attempting to set replacementEventGenerator but it already has a value');
+
+        this.replacementEventsGenerator = () => generator(this);
+    }
+
+    public generateReplacementEvents(): any[] {
+        return this.replacementEventsGenerator ? this.replacementEventsGenerator() : [];
+    }
+
     public setContingentEventsGenerator(generator: (event) => any[]) {
         Contract.assertIsNullLike(this.contingentEventsGenerator, 'Attempting to set contingentEventsGenerator but it already has a value');
 
@@ -192,5 +214,26 @@ export class GameEvent {
             return this._context.event.replacementEvents.find((e: any) => e === this);
         }
         return undefined;
+    }
+
+    /**
+     * Returns the event or its replacement effect events that are resolved.
+     *
+     * If the event is not resolved, it returns an empty array.
+     * If the event is resolved, it returns only itself.
+     * If the event has been replaced, it returns all replacement effect events that are resolved.
+     *
+     * @returns {GameEvent[]} An array of resolved events.
+     */
+    public get resolvedEvents(): GameEvent[] {
+        if (!this.isResolvedOrReplacementResolved) {
+            return [];
+        }
+
+        if (this.isResolved) {
+            return [this];
+        }
+
+        return this.replacementEvents.flatMap((event) => event.resolvedEvents);
     }
 }

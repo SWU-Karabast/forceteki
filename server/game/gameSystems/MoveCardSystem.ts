@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MoveZoneDestination } from '../core/Constants';
-import { AbilityRestriction } from '../core/Constants';
+import { AbilityRestriction, EffectName, RelativePlayer } from '../core/Constants';
 import {
     CardType,
     DeckZoneDestination,
@@ -12,8 +12,11 @@ import {
 } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers.js';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
+import type { AttachedUpgradeOverrideHandler } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 /**
  * Properties for moving a card within the game.
@@ -28,12 +31,12 @@ import * as Contract from '../core/utils/Contract';
  * @property shuffleMovedCards - Indicates whether all targets should be shuffled before added into the destination.
  */
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Exclude<MoveZoneDestination, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
+    destination: Exclude<MoveZoneDestination, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
     shuffle?: boolean;
     shuffleMovedCards?: boolean;
+    attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler;
 }
 
-// TODO: since there are already some more specific for moving to arena, hand, etc., what's the remaining use case for this? and can we rename it to be more specific?
 export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IMoveCardProperties> {
     public override readonly name = 'move';
     protected override readonly eventName = EventName.OnCardMoved;
@@ -44,7 +47,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         shuffle: false,
     };
 
-    public eventHandler(event: any, additionalProperties = {}): void {
+    public eventHandler(event: any): void {
         const card = event.card as Card;
         Contract.assertTrue(card.canBeExhausted());
 
@@ -69,36 +72,67 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return this.getEffectMessage(context);
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
+    public override getEffectMessage(context: TContext, additionalProperties: Partial<IMoveCardProperties> = {}): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
+
+        let destination: FormatMessage = { format: 'their {0}', args: [properties.destination] };
+        if (properties.destination === ZoneName.Hand || EnumHelpers.isDeckMoveZone(properties.destination)) {
+            if (new Set(Helpers.asArray(properties.target).map((card) => card.owner)).size === 1) {
+                const getDestination = (owner: string | FormatMessage): FormatMessage => {
+                    if (EnumHelpers.isDeckMoveZone(properties.destination)) {
+                        if (properties.shuffle) {
+                            return { format: '{0} deck', args: [owner] };
+                        }
+                        return { format: 'the {0} of {1} deck', args: [properties.destination === DeckZoneDestination.DeckBottom ? 'bottom' : 'top', owner] };
+                    }
+                    return { format: '{0} {1}', args: [owner, properties.destination] };
+                };
+
+                if (Helpers.asArray(properties.target)[0].owner === context.player) {
+                    destination = getDestination('their');
+                } else {
+                    destination = getDestination({ format: '{0}\'s', args: [Helpers.asArray(properties.target)[0].owner] });
+                }
+            } else {
+                destination = { format: 'their owner {0}', args: [properties.destination] };
+            }
+        }
+
         if (properties.destination === ZoneName.Hand) {
+            let target: Card | Card[] | string | FormatMessage = properties.target;
             if (Helpers.asArray(properties.target).some((card) => card.zoneName === ZoneName.Resource)) {
                 const targets = Helpers.asArray(properties.target);
-                return ['return {0} to their hand', [targets.length > 1 ? `${targets.length} resources` : 'a resource']];
+                target = ChatHelpers.pluralize(targets.length, 'a resource', 'resources');
             }
-            return ['return {0} to their hand', [properties.target]];
+            return [`${ChatHelpers.verb(properties, 'return', 'returning')} {0} to {1}`, [target, destination]];
         } else if (EnumHelpers.isDeckMoveZone(properties.destination)) {
             if (properties.shuffle) {
-                return ['shuffle {0} into their deck', [properties.target]];
+                return [`${ChatHelpers.verb(properties, 'shuffle', 'shuffling')} {0} into {1}`, [properties.target, destination]];
             }
-            return ['move {0} to the {1} of their deck', [properties.target, properties.destination === DeckZoneDestination.DeckBottom ? 'bottom' : 'top']];
+            const targets = Helpers.asArray(properties.target);
+            let target: Card | Card[] | string | FormatMessage = properties.target;
+            if (targets.some((target) => EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self))) {
+                target = ChatHelpers.pluralize(targets.length, 'a card', 'cards');
+            }
+            return [`${ChatHelpers.verb(properties, 'move', 'moving')} {0} to {1}`, [target, destination]];
         }
         return [
-            'move {0} to ' + (properties.destination === DeckZoneDestination.DeckBottom ? 'the bottom of ' : '') + 'their {1}',
+            `${ChatHelpers.verb(properties, 'move', 'moving')} {0} to {1}`,
             [properties.target, properties.destination]
         ];
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IMoveCardProperties>): void {
         super.updateEvent(event, card, context, additionalProperties);
+        const { attachedUpgradeOverrideHandler } = this.generatePropertiesFromContext(context, additionalProperties);
 
         // Check if the card is leaving play
         if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
-            this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
+            this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties, attachedUpgradeOverrideHandler);
         }
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IMoveCardProperties>): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
@@ -106,26 +140,33 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         event.shuffle = properties.shuffle;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IMoveCardProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         const { destination } = properties;
 
+        Contract.assertNotNullLike(destination);
+
         if (card.isToken()) {
-            Contract.assertTrue(destination !== ZoneName.Base, `${destination} is not a valid zone for a token card`);
+            if (destination === ZoneName.Base) {
+                return false;
+            }
         } else {
+            // Used below. Units with leaders attached need to be considered basic units (tokens with leaders attached are handled above)
+            const isUnitWithLeaderAttached = card.isUnit() && card.hasOngoingEffect(EffectName.IsLeader);
+
             // Ensure that we have a valid destination and that the card can be moved there
-            Contract.assertTrue(
-                destination && context.player.isLegalZoneForCardType(card.type, destination),
-                `${destination} is not a valid zone for ${card.type}`
-            );
+            if (!context.player.isLegalZoneForCardType(isUnitWithLeaderAttached ? CardType.BasicUnit : card.type, destination)) {
+                return false;
+            }
         }
 
         // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
         if (destination === ZoneName.Hand) {
-            Contract.assertTrue(
-                [ZoneName.Discard, ZoneName.Resource].includes(card.zoneName) || EnumHelpers.isArena(card.zoneName),
-                `Cannot use MoveCardSystem to return a card to hand from ${card.zoneName}`
-            );
+            if (
+                !([ZoneName.Discard, ZoneName.Resource].includes(card.zoneName)) && !EnumHelpers.isArena(card.zoneName)
+            ) {
+                return false;
+            }
 
             if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.ReturnToHand, context)) {
                 return false;
@@ -133,7 +174,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         }
 
         // Call the super implementation
-        return super.canAffect(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
     protected override processTargets(target: Card | Card[], context: TContext) {

@@ -1,11 +1,11 @@
 import type { ISelectTargetResolver, IChoicesInterface } from '../../../TargetInterfaces';
-import type PlayerOrCardAbility from '../PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
 import type { AbilityContext } from '../AbilityContext';
 import { TargetResolver } from './TargetResolver';
 import type { GameSystem } from '../../gameSystem/GameSystem';
 import { SelectChoice } from './SelectChoice';
 import { Stage } from '../../Constants';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
 export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<AbilityContext>> {
@@ -59,7 +59,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         return [];
     }
 
-    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
+    protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const choices = Object.keys(this.getChoices(context));
         let legalChoices = choices.filter((key) => this.isChoiceLegal(key, context));
 
@@ -116,8 +116,8 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         return this.properties.showUnresolvable || this.isChoiceLegal(context.selects[this.name].choice, context);
     }
 
-    protected override hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean {
+    protected override hasTargetsChosenByPlayerInternal(context: AbilityContext, player: Player = context.player) {
         const actions = Object.values(this.getChoices(context)).filter((value) => typeof value !== 'function');
-        return actions.some((action) => action.hasTargetsChosenByInitiatingPlayer(context));
+        return actions.some((action) => action.hasTargetsChosenByPlayer(context, player));
     }
 }

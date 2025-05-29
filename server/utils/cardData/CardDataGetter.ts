@@ -1,5 +1,5 @@
 import type { TokenName } from '../../game/core/Constants';
-import { TokenUnitName, TokenUpgradeName } from '../../game/core/Constants';
+import { TokenCardName, TokenUnitName, TokenUpgradeName } from '../../game/core/Constants';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ICardDataJson, ICardMap, ICardMapEntry, ICardMapJson } from './CardDataInterfaces';
 
@@ -72,7 +72,7 @@ export abstract class CardDataGetter {
         return this.getCardInternalAsync(relativePath);
     }
 
-    protected static async getTokenCardsDataAsync(getCardAsync: (string) => Promise<ICardDataJson>): Promise<ITokenCardsData> {
+    protected static async getTokenCardsDataAsync(getCardAsync: (id: string) => Promise<ICardDataJson>): Promise<ITokenCardsData> {
         return {
             [TokenUnitName.BattleDroid]: await getCardAsync('battle-droid'),
             [TokenUnitName.CloneTrooper]: await getCardAsync('clone-trooper'),
@@ -80,10 +80,11 @@ export abstract class CardDataGetter {
             [TokenUnitName.XWing]: await getCardAsync('xwing'),
             [TokenUpgradeName.Experience]: await getCardAsync('experience'),
             [TokenUpgradeName.Shield]: await getCardAsync('shield'),
+            [TokenCardName.Force]: await getCardAsync('the-force'),
         };
     }
 
-    protected static getTokenCardsDataSync(getCard: (string) => ICardDataJson): ITokenCardsData {
+    protected static getTokenCardsDataSync(getCard: (id: string) => ICardDataJson): ITokenCardsData {
         return {
             [TokenUnitName.BattleDroid]: getCard('battle-droid'),
             [TokenUnitName.CloneTrooper]: getCard('clone-trooper'),
@@ -91,6 +92,7 @@ export abstract class CardDataGetter {
             [TokenUnitName.XWing]: getCard('xwing'),
             [TokenUpgradeName.Experience]: getCard('experience'),
             [TokenUpgradeName.Shield]: getCard('shield'),
+            [TokenCardName.Force]: getCard('the-force'),
         };
     }
 

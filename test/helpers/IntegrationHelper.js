@@ -34,7 +34,8 @@ global.integration = function (definitions) {
          * @type {SwuTestContextRef}
          */
         const contextRef = {
-            context: null, setupTestAsync: async function (options) {
+            context: null,
+            setupTestAsync: async function (options) {
                 await this.context.setupTestAsync(options);
             }
         };
@@ -53,22 +54,37 @@ global.integration = function (definitions) {
                 { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } }
             );
 
+            /** @type {SwuTestContext} */
             const newContext = {};
+            this.contextRef = contextRef;
             contextRef.context = newContext;
 
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
             gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
 
+            /**
+             *
+             * @param {SwuSetupTestOptions} options
+             */
             const setupGameStateWrapperAsync = async (options) => {
-                await gameStateBuilder.setupGameStateAsync(newContext, options);
-                gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
+                // If this isn't an Undo Test, or this is an Undo Test that has the setup within the undoIt call rather than a beforeEach, run the setup.
+                if (!newContext.isUndoTest || newContext.snapshotId) {
+                    await gameStateBuilder.setupGameStateAsync(newContext, options);
+                    gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
+                    newContext.hasSetupGame = true;
+                    if (newContext.isUndoTest) {
+                        newContext.snapshotId = newContext.game.enableUndo(() => {
+                            return newContext.game.takeSnapshot();
+                        });
+                    }
+                }
             };
 
             this.setupTestAsync = newContext.setupTestAsync = setupGameStateWrapperAsync;
 
             // used only for the "import all cards" test
             contextRef.buildImportAllCardsTools = () => ({
-                deckBuilder: new DeckBuilder(),
+                deckBuilder: new DeckBuilder(gameStateBuilder.cardDataGetter),
                 implementedCardsCtors: cards,
                 unimplementedCardCtor: CardHelpers.createUnimplementedCard
             });
@@ -90,7 +106,12 @@ global.integration = function (definitions) {
                 return;
             }
 
-            if (context.game.currentPhase !== 'action' || context.allowTestToEndWithOpenPrompt) {
+            if (
+                context.game.currentPhase === 'action' && context.ignoreUnresolvedActionPhasePrompts ||
+                context.game.currentPhase === 'regroup' && !context.requireResolvedRegroupPhasePrompts ||
+                context.game.currentPhase === 'setup' || // Unresolved setup phase prompts are always ignored
+                context.game.currentPhase === null
+            ) {
                 return;
             }
 
@@ -105,11 +126,49 @@ global.integration = function (definitions) {
                 let activePromptsText = playersWithUnresolvedPrompts.map((player) =>
                     `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`
                 ).join('');
-
-                throw new TestSetupError(`The test ended with an unresolved prompt for one or both players. Unresolved prompts:\n${activePromptsText}`);
+                throw new TestSetupError(`The test ended with an unresolved prompt in ${context.game.currentPhase} phase for one or both players. Unresolved prompts:\n${activePromptsText}`);
+            }
+            try {
+                context.game.captureGameState('testrun');
+            } catch (error) {
+                throw new TestSetupError('Failed to correctly serialize post-test game state', { error: { message: error.message, stack: error.stack } });
             }
         });
 
         definitions(contextRef);
     });
+};
+
+const jit = it;
+global.undoIt = function(expectation, assertion, timeout) {
+    jit(expectation + ' (with Undo)', async function() {
+        /** @type {SwuTestContext} */
+        const context = this.contextRef.context;
+        context.isUndoTest = true;
+
+        // If the game setup was in a beforeEach before this was called, take a snapshot.
+        if (context.hasSetupGame) {
+            context.snapshotId = context.game.enableUndo(() => {
+                return context.game.takeSnapshot();
+            });
+        }
+
+        if (context.snapshotId === -1) {
+            throw new Error('Snapshot ID invalid');
+        }
+
+        await assertion();
+        if (context.snapshotId == null) {
+            // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
+            return;
+        }
+        const rolledBack = context.game.enableUndo(() => {
+            return context.game.rollbackToSnapshot(context.snapshotId);
+        });
+        if (!rolledBack) {
+            // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
+            return;
+        }
+        await assertion();
+    }, timeout);
 };

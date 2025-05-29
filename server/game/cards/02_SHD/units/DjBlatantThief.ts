@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { PlayType, RelativePlayer } from '../../../core/Constants';
+import { RelativePlayer } from '../../../core/Constants';
 
 export default class DjBlatantThief extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,9 +14,7 @@ export default class DjBlatantThief extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Take control of an enemy resource. When this unit leaves play, that resource\'s owner takes control of it.',
             when: {
-                onCardPlayed: (event, context) =>
-                    event.card === context.source &&
-                    event.playType === PlayType.Smuggle
+                whenPlayedUsingSmuggle: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.sequential((sequentialContext) => [
                 AbilityHelper.immediateEffects.takeControlOfResource((context) => ({ target: context.player })),
@@ -24,11 +22,11 @@ export default class DjBlatantThief extends NonLeaderUnitCard {
                     title: 'Return the stolen resource to its owner',
                     // we use a context handler here to force evaluation of the target's exhausted state to happen when the delayed effect resolves,
                     // instead of when it's created
-                    target: sequentialContext.events[0].card,
+                    target: sequentialContext.events[0]?.card,
                     immediateEffect: AbilityHelper.immediateEffects.resourceCard((_context) => ({
                         targetPlayer: RelativePlayer.Opponent,
-                        target: sequentialContext.events[0].card,
-                        readyResource: !sequentialContext.events[0].card.exhausted
+                        target: sequentialContext.events[0]?.card,
+                        readyResource: !sequentialContext.events[0]?.card.exhausted
                     }))
                 }))
             ])

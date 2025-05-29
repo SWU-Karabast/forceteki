@@ -19,10 +19,10 @@ export default class ANewAdventure extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             then: (thenContext) => ({
-                title: `Play ${thenContext.target.title} for free`,
+                title: `Play ${thenContext.target?.title} for free`,
                 optional: true,
                 // TODO: Update this to use a GameSystem that lets the opponent play a card
-                canBeTriggeredBy: EnumHelpers.asRelativePlayer(thenContext.player, thenContext.target.controller),
+                canBeTriggeredBy: EnumHelpers.asRelativePlayer(thenContext.player, thenContext.target?.controller),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                     target: thenContext.target,
                     adjustCost: {

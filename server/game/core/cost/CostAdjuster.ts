@@ -1,22 +1,32 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
-import type { Aspect, CardTypeFilter, PlayType } from '../Constants';
-import { WildcardCardType } from '../Constants';
+import type { Aspect, CardTypeFilter } from '../Constants';
+import { CardType, PlayType, WildcardCardType } from '../Constants';
 import type Game from '../Game';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import * as Contract from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type { ICostResult } from './ICost';
-import type { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import * as EnumHelpers from '../utils/EnumHelpers';
+import type { ResourceCost } from '../../costs/ResourceCost';
 
 export enum CostAdjustType {
     Increase = 'increase',
     Decrease = 'decrease',
     Free = 'free',
     IgnoreAllAspects = 'ignoreAllAspects',
-    IgnoreSpecificAspects = 'ignoreSpecificAspect'
+    IgnoreSpecificAspects = 'ignoreSpecificAspect',
+    ModifyPayStage = 'modifyPayStage'
+}
+
+/**
+ * Technically there are two stages of the cost step in SWU: calculating and paying.
+ * Almost all cost adjustments happen at the calculate stage, but some (like Starhawk) happen at the pay stage.
+ */
+export enum CostStage {
+    Calculate = 'calculate',
+    Pay = 'pay'
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
@@ -28,14 +38,14 @@ export interface ICostAdjusterPropertiesBase {
     /** The type of cost adjustment */
     costAdjustType: CostAdjustType;
 
-    /** The number of cost reductions permitted */
+    /** The number of cost reductions permitted. Defaults to unlimited. */
     limit?: IAbilityLimit;
-
-    /** @deprecated (not yet tested) Which playType this reduction is active for */
-    playingTypes?: PlayType;
 
     /** Conditional card matching for things like aspects, traits, etc. */
     match?: (card: Card, adjusterSource: Card) => boolean;
+
+    /** Whether the cost adjuster should adjust activation costs for abilities. Defaults to false. */
+    matchAbilityCosts?: boolean;
 
     /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
     attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext) => boolean;
@@ -59,80 +69,102 @@ export interface IIgnoreAllAspectsCostAdjusterProperties extends ICostAdjusterPr
 export interface IIgnoreSpecificAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.IgnoreSpecificAspects;
 
-    /** The aspects to ignore the cost of */
-    ignoredAspects: Aspect | Aspect[];
+    /** The aspect to ignore the cost of */
+    ignoredAspect: Aspect;
+}
+
+export interface IModifyPayStageCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.ModifyPayStage;
+
+    /** The amount to adjust the cost by */
+    amount?: number | ((card: Card, player: Player, context: AbilityContext, currentAmount: number) => number);
 }
 
 export type ICostAdjusterProperties =
   | IIgnoreAllAspectsCostAdjusterProperties
   | IIncreaseOrDecreaseCostAdjusterProperties
   | IForFreeCostAdjusterProperties
-  | IIgnoreSpecificAspectsCostAdjusterProperties;
+  | IIgnoreSpecificAspectsCostAdjusterProperties
+  | IModifyPayStageCostAdjusterProperties;
+
+export interface ICanAdjustProperties {
+    attachTarget?: Card;
+    penaltyAspect?: Aspect;
+    costStage?: CostStage;
+    isAbilityCost?: boolean;
+}
 
 export class CostAdjuster {
     public readonly costAdjustType: CostAdjustType;
-    public readonly ignoredAspects: Aspect | Aspect[];
-    private amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
-    private match?: (card: Card, adjusterSource: Card) => boolean;
-    private cardTypeFilter?: CardTypeFilter;
-    private attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
-    private limit?: IAbilityLimit;
-    private playingTypes?: PlayType[];
+    public readonly ignoredAspect: Aspect;
+    private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext, currentAmount?: number) => number);
+    private readonly match?: (card: Card, adjusterSource: Card) => boolean;
+    private readonly cardTypeFilter?: CardTypeFilter;
+    private readonly attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
+    private readonly limit?: IAbilityLimit;
+    private readonly costStage: CostStage;
+    private readonly matchAbilityCosts: boolean;
 
     public constructor(
-        private game: Game,
+        protected game: Game,
         protected source: Card,
         properties: ICostAdjusterProperties
     ) {
         this.costAdjustType = properties.costAdjustType;
-        if (properties.costAdjustType === CostAdjustType.Increase || properties.costAdjustType === CostAdjustType.Decrease) {
+        if (properties.costAdjustType === CostAdjustType.Increase ||
+          properties.costAdjustType === CostAdjustType.Decrease ||
+          properties.costAdjustType === CostAdjustType.ModifyPayStage) {
             this.amount = properties.amount || 1;
         }
 
         if (properties.costAdjustType === CostAdjustType.IgnoreSpecificAspects) {
-            if (Array.isArray(properties.ignoredAspects)) {
-                Contract.assertTrue(properties.ignoredAspects.length > 0, 'Ignored Aspect array is empty');
+            if (Array.isArray(properties.ignoredAspect)) {
+                Contract.assertTrue(properties.ignoredAspect.length > 0, 'Ignored Aspect array is empty');
             }
-            this.ignoredAspects = properties.ignoredAspects;
+            this.ignoredAspect = properties.ignoredAspect;
         }
 
         this.match = properties.match;
         this.cardTypeFilter = properties.cardTypeFilter ?? WildcardCardType.Any;
         this.attachTargetCondition = properties.attachTargetCondition;
 
-        this.playingTypes =
-            properties.playingTypes &&
-            (Array.isArray(properties.playingTypes) ? properties.playingTypes : [properties.playingTypes]);
-
         this.limit = properties.limit;
         if (this.limit) {
             this.limit.registerEvents(game);
         }
+
+        this.matchAbilityCosts = !!properties.matchAbilityCosts;
     }
 
     public isExploit(): this is ExploitCostAdjuster {
         return false;
     }
 
-    public canAdjust(playingType: PlayType, card: Card, context: AbilityContext, attachTarget?: Card, ignoredAspects?: Aspect): boolean {
+    public canAdjust(card: Card, context: AbilityContext, adjustParams?: ICanAdjustProperties): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
-        } else if (this.playingTypes && !this.playingTypes.includes(playingType)) {
-            return false;
-        } else if (this.ignoredAspects && this.ignoredAspects !== ignoredAspects) {
+        } else if (this.ignoredAspect && this.ignoredAspect !== adjustParams?.penaltyAspect) {
             return false;
         }
 
-        return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) &&
+        if (adjustParams?.isAbilityCost && !this.matchAbilityCosts) {
+            return false;
+        }
+
+        const cardType = context.playType === PlayType.Piloting ? CardType.NonLeaderUnitUpgrade : card.type;
+
+        return EnumHelpers.cardTypeMatches(cardType, this.cardTypeFilter) &&
           this.checkMatch(card) &&
-          this.checkAttachTargetCondition(context, attachTarget);
+          this.checkAttachTargetCondition(context, adjustParams?.attachTarget);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public queueGenerateEventGameSteps(events: any[], context: AbilityContext, resourceCost: PlayCardResourceCost, result?: ICostResult): void {}
+    public queueGenerateEventGameSteps(events: any[], context: AbilityContext, resourceCost: ResourceCost, result?: ICostResult): void {}
 
-    public getAmount(card: Card, player: Player, context: AbilityContext): number {
-        return typeof this.amount === 'function' ? this.amount(card, player, context) : this.amount;
+    public getAmount(card: Card, player: Player, context: AbilityContext, currentAmount: number = null): number {
+        Contract.assertFalse(this.costAdjustType === CostAdjustType.ModifyPayStage && currentAmount === null, 'currentAmount must be provided for ModifyPayStage cost adjusters');
+
+        return typeof this.amount === 'function' ? this.amount(card, player, context, currentAmount) : this.amount;
     }
 
     public markUsed(): void {

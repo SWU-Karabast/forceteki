@@ -14,10 +14,10 @@ export default class ConsolidationOfPower extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Choose any number of friendly units. You may play a unit from your hand if its cost is less than or equal to the combined power of the chosen units for free. Then, defeat the chosen units.',
-            optional: true,
             targetResolvers: {
                 friendlyUnits: {
                     mode: TargetMode.Unlimited,
+                    canChooseNoCards: true,
                     cardTypeFilter: WildcardCardType.Unit,
                     zoneFilter: WildcardZoneName.AnyArena,
                     controller: RelativePlayer.Self,

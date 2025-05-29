@@ -1,8 +1,8 @@
 describe('Tarfful, Kashyyyk Chieftain', function() {
     integration(function(contextRef) {
         describe('Tarfful\'s ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('when a wookie unit is damaged that unit deals that much damage to an enemy ground unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['tarfful#kashyyyk-chieftain', 'liberated-slaves', 'isb-agent'],
@@ -16,9 +16,7 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
                 });
-            });
 
-            it('when a wookie unit is damaged that unit deals that much damage to an enemy ground unit', function () {
                 const { context } = contextRef;
 
                 // Scenario 1: a friendly wookie unit attacks
@@ -49,7 +47,7 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                 expect(context.player2).toBeActivePlayer();
 
                 // Scenario 4: a friendly non-wookie unit is attacked
-                context.wroshyrTreeTender.damage = 0;
+                context.setDamage(context.wroshyrTreeTender, 0);
                 context.player2.clickCard(context.wroshyrTreeTender);
                 context.player2.clickCard(context.isbAgent);
 
@@ -80,6 +78,28 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
 
                 // TODO: Add test with TWI Maul unit dealing damage to multiple friendly wookiee at the same time
                 // TODO: Add test where Tarfful is defeated and another friendly wookiee unit is damaged at the same time (for example, using TWI Maul unit)
+            });
+
+            it('deals no damage if a friendly wookiee unit is dealt no damage because of a shield', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['tarfful#kashyyyk-chieftain', { card: 'liberated-slaves', upgrades: ['shield'] }, 'isb-agent'],
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'volunteer-soldier', 'wroshyr-tree-tender', 'atst'],
+                        spaceArena: ['cartel-spacer'],
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.liberatedSlaves);
+
+                expect(context.liberatedSlaves).toHaveExactUpgradeNames([]);
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });

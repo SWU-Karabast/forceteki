@@ -16,7 +16,7 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
         this.addTriggeredAbility({
             title: 'Search the top 8 cards of your deck for a Droid unit, reveal it, and draw it. If it costs 2 or less, you may play it for free.',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
+                whenPlayed: true,
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
@@ -25,7 +25,7 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.drawSpecificCard(),
                     AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => context.selectedPromptCards[0].cost <= 2,
+                        condition: (context) => context.selectedPromptCards[0].hasCost() && context.selectedPromptCards[0].cost <= 2,
                         onTrue: AbilityHelper.immediateEffects.lookAtAndChooseOption((context) => {
                             const drawnDroid = context.selectedPromptCards[0];
                             return {
@@ -45,7 +45,6 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
                                 ]
                             };
                         }),
-                        onFalse: AbilityHelper.immediateEffects.noAction(),
                     })
                 ])
             }),

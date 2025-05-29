@@ -1,4 +1,11 @@
-type MsgArg = string | { name: string } | { getShortSummary: () => string };
+import type { GameObject } from '../GameObject';
+import * as ChatHelpers from './ChatHelpers';
+
+type MsgArg = string | FormatMessage | GameObject | MsgArg[] | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
+export interface FormatMessage {
+    format: string;
+    args: MsgArg[];
+}
 
 type MessageText = string | (string | number)[];
 
@@ -7,6 +14,12 @@ export class GameChat {
         date: Date;
         message: MessageText | { alert: { type: string; message: string | string[] } };
     }[] = [];
+
+    private readonly pushUpdate: () => void;
+
+    public constructor(pushUpdate: () => void) {
+        this.pushUpdate = pushUpdate;
+    }
 
     public addChatMessage(player: any, message: any): void {
         const playerArg = {
@@ -26,6 +39,7 @@ export class GameChat {
     public addAlert(type: string, message: string, ...args: MsgArg[]): void {
         const formattedMessage = this.formatMessage(message, args);
         this.messages.push({ date: new Date(), message: { alert: { type: type, message: formattedMessage } } });
+        this.pushUpdate();
     }
 
     public formatMessage(format: string, args: MsgArg[]): string | string[] {
@@ -37,17 +51,19 @@ export class GameChat {
         return fragments.reduce((output, fragment) => {
             const argMatch = fragment.match(/\{(\d+)\}/);
             if (argMatch && args) {
-                const arg = args[argMatch[1]];
-                if (arg || arg === 0) {
-                    if (arg.message) {
+                const arg: MsgArg = args[argMatch[1]];
+                if (arg) {
+                    if (typeof arg === 'object' && 'message' in arg && arg.message) {
                         return output.concat(arg.message);
                     } else if (Array.isArray(arg)) {
                         if (typeof arg[0] === 'string' && arg[0].includes('{')) {
                             return output.concat(this.formatMessage(arg[0], arg.slice(1)));
                         }
                         return output.concat(this.formatArray(arg));
-                    } else if (arg.getShortSummary) {
+                    } else if (typeof arg === 'object' && 'getShortSummary' in arg && arg.getShortSummary) {
                         return output.concat(arg.getShortSummary());
+                    } else if (typeof arg === 'object' && 'format' in arg && 'args' in arg) {
+                        return output.concat(this.formatMessage(arg.format, arg.args));
                     }
                     return output.concat(arg);
                 }
@@ -65,18 +81,13 @@ export class GameChat {
     }
 
     private formatArray(array: MsgArg[]): string | string[] {
+        array = array.filter((arg) => !Array.isArray(arg) || arg.length > 0);
+
         if (array.length === 0) {
             return [];
         }
 
-        const format =
-            array.length === 1
-                ? '{0}'
-                : array.length === 2
-                    ? '{0} and {1}'
-                    : Array.from({ length: array.length - 1 })
-                        .map((_, idx) => `{${idx}}`)
-                        .join(', ') + `, and {${array.length - 1}}`;
+        const format = ChatHelpers.formatWithLength(array.length);
 
         return this.formatMessage(format, array);
     }

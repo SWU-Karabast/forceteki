@@ -22,7 +22,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             },
             ifYouDo: (ifYouDoContext) => {
-                const friendlyArena = ifYouDoContext.target.zoneName;
+                const friendlyArena = ifYouDoContext.events[0].lastKnownInformation?.arena ?? ifYouDoContext.target.zoneName;
                 return {
                     title: `Deal 1 damage to an enemy unit in the ${friendlyArena} arena`,
                     targetResolver: {
@@ -43,10 +43,10 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
 
         this.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
-            title: 'You may deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.',
+            title: 'Deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.',
             optional: true,
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -54,7 +54,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             },
             ifYouDo: (ifYouDoContext) => {
-                const friendlyArena = ifYouDoContext.target.zoneName;
+                const friendlyArena = ifYouDoContext.events[0].lastKnownInformation?.arena ?? ifYouDoContext.target.zoneName;
                 return {
                     title: `Deal 1 damage to an enemy unit in the ${friendlyArena} arena`,
                     targetResolver: {

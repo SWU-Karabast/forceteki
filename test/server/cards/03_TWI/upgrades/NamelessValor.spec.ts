@@ -9,7 +9,8 @@ describe('Nameless Valor', function() {
                     leader: { card: 'jyn-erso#resisting-oppression', deployed: true },
                 },
                 player2: {
-                    groundArena: ['coruscant-guard']
+                    groundArena: ['coruscant-guard'],
+                    spaceArena: ['tie-fighter', 'xwing']
                 }
             });
             const { context } = contextRef;
@@ -17,11 +18,11 @@ describe('Nameless Valor', function() {
             // attach upgrade only to token unit.
             context.player1.clickCard(context.namelessValor);
             const battleDroids = context.player1.findCardsByName('battle-droid');
-            expect(context.player1).toBeAbleToSelectExactly([battleDroids[0]]);
+            expect(context.player1).toBeAbleToSelectExactly([battleDroids[0], context.tieFighter, context.xwing]);
             context.player1.clickCard(battleDroids[0]);
 
             // next step setup
-            battleDroids[0].exhausted = false;
+            context.readyCard(battleDroids[0]);
             context.player2.passAction();
 
             // token gains overwhelm

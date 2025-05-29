@@ -26,6 +26,8 @@ class GameStateBuilder {
             'nextPhase',
             'selectInitiativePlayer',
             'setDamage',
+            'readyCard',
+            'exhaustCard',
             'skipSetupPhase',
             'startGameAsync'
         ];
@@ -178,6 +180,15 @@ class GameStateBuilder {
         context.player1.setDeck(drawDeck1, ['outsideTheGame']);
         context.player2.setDeck(drawDeck2, ['outsideTheGame']);
 
+        // Force Token
+        if (options.player1.hasForceToken) {
+            context.player1.setHasTheForce(true);
+        }
+
+        if (options.player2.hasForceToken) {
+            context.player2.setHasTheForce(true);
+        }
+
         // add named cards to context for easy reference (allows us to do "context.<cardName>")
         // note that if cards map to the same property name (i.e., same title), then they won't be added
         const cardNamesAsProperties = this.convertNonDuplicateCardNamesToProperties(
@@ -230,13 +241,16 @@ class GameStateBuilder {
             'leader',
             'base',
             'deck',
-            'resource'
+            'resource',
+            'hasForceToken'
         ];
         // list of approved property names for setup phase
         const setupPhase = [
             'leader',
             'deck',
-            'base'
+            'base',
+            'hand',
+            'hasInitiative'
         ];
 
         // Check for unknown properties
@@ -255,7 +269,8 @@ class GameStateBuilder {
             'player2',
             'phase',
             'phaseTransitionHandler',
-            'autoSingleTarget'
+            'autoSingleTarget',
+            'testUndo'
         ];
 
         // Check for unknown properties
@@ -273,7 +288,7 @@ class GameStateBuilder {
     convertNonDuplicateCardNamesToProperties(players, cardNames, controlSwapped = []) {
         let mapToPropertyNamesWithCards = (cardNames, player) => cardNames.map((cardName) =>
             this.internalNameToPropertyNames(cardName).map((propertyName) => {
-                const isControlSwapped = controlSwapped.filter((card) => card.card === cardName && card.ownerAndController !== player.player.nameField);
+                const isControlSwapped = controlSwapped.filter((card) => card.card === cardName && card.ownerAndController !== player.player.name);
                 return {
                     propertyName: propertyName,
                     cardObj: (isControlSwapped.length > 0) ? player.findCardByName(cardName, 'any', 'opponent') : player.findCardByName(cardName)

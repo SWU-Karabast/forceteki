@@ -21,14 +21,13 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'Deal 1 damage to a unit and 1 damage to a base',
-            cost: [AbilityHelper.costs.abilityResourceCost(1), AbilityHelper.costs.exhaustSelf()],
+            cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolvers: {
                 unit: {
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.conditional({
                         condition: (context) => this.villainyCardPlayedThisPhase(context),
                         onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
                     })
                 },
                 base: {
@@ -36,7 +35,6 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
                     immediateEffect: AbilityHelper.immediateEffects.conditional({
                         condition: (context) => this.villainyCardPlayedThisPhase(context),
                         onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
                     })
                 }
             }

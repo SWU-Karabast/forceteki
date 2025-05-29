@@ -1,5 +1,5 @@
 import type Game from './Game';
-import type Player from './Player';
+import type { Player } from './Player';
 import type { Card } from './card/Card';
 import type { IStep } from './gameSteps/IStep';
 import type { IStatefulPromptResults } from './gameSteps/PromptInterfaces';
@@ -16,6 +16,10 @@ export class GamePipeline {
 
     public get length(): number {
         return this.pipeline.length;
+    }
+
+    public get currentStep() {
+        return this.pipeline[0];
     }
 
     public initialise(steps: StepItem[]): void {
@@ -85,6 +89,11 @@ export class GamePipeline {
         }
 
         this.pipeline.shift();
+    }
+
+    // HACK: This intended to be used by undo *only*.
+    public clearSteps() {
+        this.pipeline.length = 0;
     }
 
     public handleCardClicked(player: Player, card: Card) {

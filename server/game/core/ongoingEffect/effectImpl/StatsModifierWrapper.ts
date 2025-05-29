@@ -21,25 +21,22 @@ export default class StatsModifierWrapper {
         this.type = type;
     }
 
-    public static getEffectName(effect) {
+    public static getEffectName(effect: IOngoingCardEffect) {
         if (effect && effect.context && effect.context.source) {
-            return effect.context.source.name;
+            return effect.context.source.title;
         }
         return 'Unknown';
     }
 
-    public static getEffectType(effect) {
+    public static getEffectType(effect: IOngoingCardEffect): CardType | undefined {
         if (effect && effect.context && effect.context.source) {
-            return effect.context.source.type;
+            return this.getCardType(effect.context.source);
         }
-        return;
+        return undefined;
     }
 
-    public static getCardType(card) {
-        if (card) {
-            return card.type;
-        }
-        return;
+    public static getCardType(card: Card) {
+        return card.type;
     }
 
     public static fromEffect(effect: IOngoingCardEffect, card: Card, overrides = false, name = `${this.getEffectName(effect)}`) {
@@ -49,7 +46,7 @@ export default class StatsModifierWrapper {
             modifier,
             name,
             overrides,
-            this.getEffectType(effect)
+            this.getEffectType(effect) ?? this.getCardType(card)
         );
     }
 
@@ -59,13 +56,41 @@ export default class StatsModifierWrapper {
 
         const description = card.isUpgrade() ? `${card.name} bonus` : `${card.name} base`;
 
-        return new this({
-            hp: card.isUpgrade() ? card.printedUpgradeHp : card.printedHp,
-            power: card.isUpgrade() ? card.printedUpgradePower : card.printedPower
-        },
-        description,
-        overrides,
-        this.getCardType(card)
+        let hp: number;
+        let power: number;
+        if (card.isUpgrade()) {
+            if (card.printedUpgradeHp == null && card.printedUpgradePower == null) {
+                hp = 0;
+                power = 0;
+            } else {
+                Contract.assertTrue(
+                    card.printedUpgradeHp != null && card.printedUpgradePower != null,
+                    `Found incomplete printed upgrade stats. hp: ${card.printedUpgradeHp}, power: ${card.printedUpgradePower}`
+                );
+
+                hp = card.printedUpgradeHp;
+                power = card.printedUpgradePower;
+            }
+        } else {
+            hp = card.printedHp;
+            power = card.printedPower;
+        }
+
+        return new this(
+            { hp, power },
+            description,
+            overrides,
+            this.getCardType(card)
         );
+    }
+
+    public static statsModifierDescription(modifier: StatsModifier): string {
+        const locale: Intl.LocalesArgument = 'en';
+        const options: Intl.NumberFormatOptions = {
+            signDisplay: 'always',
+        };
+        // Ensure that we show -0 if one of the values is zero and other is negative (e.g. -2/-0 instead of -2/+0)
+        const zero = (modifier.power < 0 && modifier.hp <= 0) || (modifier.power <= 0 && modifier.hp < 0) ? -0 : 0;
+        return (modifier.power || zero).toLocaleString(locale, options) + '/' + (modifier.hp || zero).toLocaleString(locale, options);
     }
 }

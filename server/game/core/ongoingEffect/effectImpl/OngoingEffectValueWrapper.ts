@@ -1,10 +1,11 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
+import type { FormatMessage } from '../../chat/GameChat';
 
 export class OngoingEffectValueWrapper<TValue> {
-    public value: TValue;
+    private value: TValue;
     public context?: AbilityContext;
 
-    public constructor(value: TValue) {
+    public constructor(value: TValue, public effectDescription?: FormatMessage) {
         // @ts-expect-error
         this.value = value == null ? true : value;
     }
@@ -15,10 +16,6 @@ export class OngoingEffectValueWrapper<TValue> {
 
     public getValue(): TValue {
         return this.value;
-    }
-
-    public recalculate(): boolean {
-        return false;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

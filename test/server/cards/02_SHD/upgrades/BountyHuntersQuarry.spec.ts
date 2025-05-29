@@ -1,6 +1,7 @@
-describe('Bounty hunter\'s quarry', function () {
+
+describe('Bounty Hunter\'s Quarry', function () {
     integration(function (contextRef) {
-        describe('Bounty hunter\'s quarry bounty ability', function () {
+        describe('Bounty Hunter\'s Quarry bounty ability', function () {
             const prompt = 'Collect Bounty: Search the top 5 cards of your deck, or 10 cards instead if this unit is unique, for a unit that costs 3 or less and play it for free.';
 
             it('should prompt to choose a unit with a cost of 3 or less from the top 5 cards or top 10 cards (if unit is unique) and play it for free', async function () {
@@ -44,7 +45,7 @@ describe('Bounty hunter\'s quarry', function () {
                 expect(context.infernoFour).toBeInBottomOfDeck(context.player1, 4);
                 expect(context.protector).toBeInBottomOfDeck(context.player1, 4);
 
-                context.wampa.exhausted = false;
+                context.readyCard(context.wampa);
                 context.player2.passAction();
 
                 // CASE 2: Defeating a unique unit should allow the player to search the top 10 cards of their deck
@@ -75,6 +76,79 @@ describe('Bounty hunter\'s quarry', function () {
 
                 // unit should be free
                 expect(context.player1.exhaustedResourceCount).toBe(0);
+            });
+
+            it('works if the bounty is collected during the regroup phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['scout-bike-pursuer', 'atst'],
+                        groundArena: ['wampa'],
+                        deck: [
+                            'sabine-wren#explosives-artist',
+                            'battlefield-marine',
+                            'waylay',
+                            'protector',
+                            'inferno-four#unforgetting',
+                            'devotion',
+                            'consular-security-force',
+                            'echo-base-defender',
+                            'cloudrider',
+                            'resupply',
+                            'superlaser-technician',
+                            'takedown'
+                        ],
+                        resources: 3
+                    },
+                    player2: {
+                        spaceArena: [
+                            {
+                                card: 'fireball#an-explosion-with-wings',
+                                damage: 2,
+                                upgrades: ['bounty-hunters-quarry']
+                            }
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+                context.requireResolvedRegroupPhasePrompts = true;
+
+                context.moveToRegroupPhase();
+
+                // Fireball is defeated, triggering the bounty
+                expect(context.player1).toHavePrompt(`Trigger the ability '${prompt}' or pass`);
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [
+                        context.battlefieldMarine,
+                        context.sabineWren,
+                        context.infernoFour,
+                        context.echoBaseDefender,
+                        context.cloudrider,
+                    ],
+                    invalid: [
+                        context.devotion,
+                        context.waylay,
+                        context.protector,
+                        context.consularSecurityForce,
+                        context.resupply
+                    ]
+                });
+
+                // Play Echo Base Defender for free
+                context.player1.clickCardInDisplayCardPrompt(context.echoBaseDefender);
+                expect(context.echoBaseDefender).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+
+                // Pass on resourcing
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+
+                // Check that the last two cards in the deck before collecting the bounty are now in hand
+                expect(context.superlaserTechnician).toBeInZone('hand');
+                expect(context.takedown).toBeInZone('hand');
             });
         });
     });

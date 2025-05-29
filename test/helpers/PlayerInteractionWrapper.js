@@ -1,6 +1,7 @@
 const { ZoneName, DeckZoneDestination, DeployType } = require('../../server/game/core/Constants.js');
 const Game = require('../../server/game/core/Game.js');
-const Player = require('../../server/game/core/Player.js');
+const { Card } = require('../../server/game/core/card/Card.js');
+const { Player } = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const TestSetupError = require('./TestSetupError.js');
@@ -214,7 +215,7 @@ class PlayerInteractionWrapper {
                 throw new TestSetupError('You must provide a card name');
             }
 
-            const opponentControlled = options.hasOwnProperty('owner') && options.owner !== this.player.nameField;
+            const opponentControlled = options.hasOwnProperty('owner') && options.owner !== this.player.name;
 
             var card;
             if (Util.isTokenUnit(options.card)) {
@@ -280,7 +281,7 @@ class PlayerInteractionWrapper {
     setCapturedUnits(card, capturedUnits, prevZones = 'any') {
         for (const capturedUnit of capturedUnits) {
             const capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
-            const side = (capturedUnit.hasOwnProperty('owner') && capturedUnit.owner === this.player.nameField) ? 'self' : 'opponent';
+            const side = (capturedUnit.hasOwnProperty('owner') && capturedUnit.owner === this.player.name) ? 'self' : 'opponent';
             let capturedUnitCard;
             if (Util.isTokenUnit(capturedUnitName)) {
                 throw new TestSetupError(`Attempting to add token unit ${capturedUnitName} to ${card}`);
@@ -299,6 +300,12 @@ class PlayerInteractionWrapper {
                 break;
             case 'clone-trooper':
                 tokenClassName = 'cloneTrooper';
+                break;
+            case 'tie-fighter':
+                tokenClassName = 'tieFighter';
+                break;
+            case 'xwing':
+                tokenClassName = 'xwing';
                 break;
             case 'experience':
             case 'shield':
@@ -358,7 +365,7 @@ class PlayerInteractionWrapper {
             const name = typeof resource === 'string' ? resource : resource.card;
             var card = this.findCardByName(name, prevZones);
             this.moveCard(card, 'resource');
-            card.exhausted = false;
+            card.exhausted = typeof resource === 'string' ? false : resource.exhausted;
         });
         Util.refreshGameState(this.game);
     }
@@ -366,7 +373,7 @@ class PlayerInteractionWrapper {
     attachOpponentOwnedUpgrades(opponentOwnedUpgrades = []) {
         for (const upgrade of opponentOwnedUpgrades) {
             const upgradeCard = this.findCardByName(upgrade.card, 'any', 'opponent');
-            const attachedCardAlsoOpponentControlled = upgrade.hasOwnProperty('attachedToOwner') && upgrade.attachedToOwner !== this.player.nameField;
+            const attachedCardAlsoOpponentControlled = upgrade.hasOwnProperty('attachedToOwner') && upgrade.attachedToOwner !== this.player.name;
             const attachTo = attachedCardAlsoOpponentControlled ? this.findCardByName(upgrade.attachedTo, 'any', 'opponent') : this.findCardByName(upgrade.attachedTo);
             upgradeCard.attachTo(attachTo);
         }
@@ -409,6 +416,10 @@ class PlayerInteractionWrapper {
 
     get hasInitiative() {
         return this.game.initiativePlayer != null && this.game.initiativePlayer.id === this.player.id;
+    }
+
+    get hasTheForce() {
+        return this.player.hasTheForce;
     }
 
     get actionPhaseActivePlayer() {
@@ -473,7 +484,7 @@ class PlayerInteractionWrapper {
      * Filters all of a player's cards using the name and zone of a card
      * @param {String} names - the names of the cards
      * @param {String[]|String} [zones = 'any'] - zones in which to look for. 'provinces' = 'province 1', 'province 2', etc.
-     * @param {?String} side - set to 'opponent' to search in opponent's cards
+     * @param {String?} side - set to 'opponent' to search in opponent's cards
      */
     filterCardsByName(names, zones = 'any', side) {
         // So that function can accept either lists or single zones
@@ -501,13 +512,16 @@ class PlayerInteractionWrapper {
      *   Filters cards by given condition
      *   @param {function(card: DrawCard)} condition - card matching function
      *   @param {String} [side] - set to 'opponent' to search in opponent's cards
+     *   @returns {any[]}
      */
     filterCards(condition, side) {
-        var player = this.player;
+        let player = this.player;
         if (side === 'opponent') {
             player = this.opponent;
         }
-        return player.decklist.allCards.filter(condition);
+        return player.decklist.allCards.map(
+            (x) => this.game.getCard(x)
+        ).filter(condition);
     }
 
     exhaustResources(number) {
@@ -533,7 +547,9 @@ class PlayerInteractionWrapper {
         return (
             !!currentPrompt &&
             (menuTitle && menuTitle.toLowerCase() === title.toLowerCase()) ||
-            (promptTitle && promptTitle.toLowerCase() === title.toLowerCase())
+            (menuTitle && (menuTitle.replace('(because you are choosing from a hidden zone you may choose nothing)', '').trim()
+                .toLowerCase() === title.toLowerCase())) ||
+                (promptTitle && promptTitle.toLowerCase() === title.toLowerCase())
         );
     }
 
@@ -662,6 +678,12 @@ class PlayerInteractionWrapper {
             card = this.findCardByName(card, zone, side);
         }
 
+        if (expectChange && !this.currentActionTargets.includes(card)) {
+            throw new TestSetupError(
+                `Couldn't click on '${card.internalName}' for ${this.player.name}. The card is not selectable!`
+            );
+        }
+
         let beforeClick = null;
         if (expectChange) {
             beforeClick = Util.getPlayerPromptState(this.player);
@@ -720,8 +742,9 @@ class PlayerInteractionWrapper {
      */
     moveCard(card, targetZone, searchZones = 'any') {
         // TODO: Check that space units can not be added to ground arena and vice versa
-        if (typeof card === 'string') {
-            card = this.mixedListToCardList([card], searchZones)[0];
+        if (!(card instanceof Card)) {
+            const cardName = typeof card === 'string' ? card : card.card;
+            card = this.mixedListToCardList([cardName], searchZones)[0];
         }
         card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
         this.game.continue();
@@ -760,6 +783,39 @@ class PlayerInteractionWrapper {
         if (this.game.currentActionWindow) {
             this.game.currentActionWindow.activePlayer = this.player;
         }
+        Util.refreshGameState(this.game);
+    }
+
+    /**
+     * Sets the Force Token state for the player
+     * @param {Boolean} hasForce - true if the player should have the Force Token
+     */
+    setHasTheForce(hasForce = true) {
+        if (hasForce) {
+            if (this.player.hasTheForce) {
+                throw new TestSetupError(`Attempting to give Force Token to ${this.player.name}, but they already have it.`);
+            }
+
+            const forceTokens = this.player.outsideTheGameZone
+                .getCards({ condition: (card) => card.isForceToken() });
+
+            if (forceTokens.length === 0) {
+                throw new TestSetupError(`Failed to find a Force Token for ${this.player.name}`);
+            }
+
+            forceTokens[0].moveTo(ZoneName.Base);
+        } else {
+            if (!this.player.hasTheForce) {
+                throw new TestSetupError(`Attempting to remove Force Token from ${this.player.name}, but they don't have it.`);
+            }
+            const forceToken = this.player.baseZone.forceToken;
+
+            if (!forceToken) {
+                throw new TestSetupError(`Failed to find a Force Token for ${this.player.name}`);
+            }
+
+            forceToken.moveTo(ZoneName.OutsideTheGame);
+        }
     }
 
     playAttachment(attachment, target) {
@@ -773,6 +829,7 @@ class PlayerInteractionWrapper {
 
     readyResources(number) {
         this.player.readyResources(number);
+        Util.refreshGameState(this.game);
     }
 
     playCharacterFromHand(card, fate = 0) {

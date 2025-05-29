@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect } from '../../../core/Constants';
+import { Aspect, CardType } from '../../../core/Constants';
 
 export default class ColonelYularenIsbDirector extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,8 +15,8 @@ export default class ColonelYularenIsbDirector extends NonLeaderUnitCard {
             title: 'Heal 1 damage from your base',
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.isUnit() &&
-                    event.card.controller === context.player &&
+                    event.cardTypeWhenInPlay === CardType.BasicUnit &&
+                    event.player === context.player &&
                     event.card.hasSomeAspect(Aspect.Command)
             },
             immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({

@@ -24,7 +24,6 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: () => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({}),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
                 onTrue: AbilityHelper.immediateEffects.draw({ amount: 1 })
             }),
             then: {
@@ -60,7 +59,7 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
                     controller: RelativePlayer.Opponent,
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                    cardCondition: (card) => card.cost <= ifYouDoContext.events[0].card.printedCost,
+                    cardCondition: (card) => card.hasCost() && card.cost <= ifYouDoContext.events[0].card.printedCost,
                     immediateEffect: AbilityHelper.immediateEffects.defeat()
                 }
             })

@@ -33,14 +33,14 @@ describe('Alliance Dispatcher', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
 
                 context.player2.passAction();
-                context.allianceDispatcher.exhausted = false;
+                context.readyCard(context.allianceDispatcher);
 
                 // should be able to select and play a unit that costs exactly 1 more than ready resources
                 context.player1.setResourceCount(2);
                 context.player1.clickCard(context.allianceDispatcher);
                 context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
                 expect(context.player1).toBeAbleToSelectExactly([context.consortiumStarviper]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.consortiumStarviper);
                 expect(context.consortiumStarviper).toBeInZone('spaceArena');
                 expect(context.player1.exhaustedResourceCount).toBe(2);
@@ -52,7 +52,7 @@ describe('Alliance Dispatcher', function() {
 
                 context.player1.clickCard(context.allianceDispatcher);
                 context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
                 expect(context.allianceDispatcher.exhausted).toBe(true);
 
                 context.player2.passAction();
@@ -61,6 +61,26 @@ describe('Alliance Dispatcher', function() {
                 expect(context.swoopRacer).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(3);
             });
+        });
+
+        it('should not be able to play a unit as a Pilot for a discount', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['alliance-dispatcher'],
+                    leader: 'fennec-shand#honoring-the-deal',
+                    hand: ['han-solo#has-his-moments'],
+                    spaceArena: ['cartel-turncoat']
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.allianceDispatcher);
+            context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
+            context.player1.clickCard(context.hanSolo);
+            expect(context.allianceDispatcher.exhausted).toBe(true);
+            expect(context.hanSolo).toBeInZone('groundArena');
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

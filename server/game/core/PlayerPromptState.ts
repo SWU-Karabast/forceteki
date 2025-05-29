@@ -1,7 +1,6 @@
 import type { Card } from './card/Card';
-import type { PromptType } from './Constants';
-import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData, SelectCardMode } from './gameSteps/PromptInterfaces';
-import type Player from './Player';
+import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData, PromptType, SelectCardMode } from './gameSteps/PromptInterfaces';
+import type { Player } from './Player';
 
 export interface IPlayerPromptStateProperties {
     buttons?: IButton[];
@@ -16,6 +15,10 @@ export interface IPlayerPromptStateProperties {
     dropdownListOptions?: string[];
     displayCards?: IDisplayCard[];
     perCardButtons?: IButton[];
+    isOpponentEffect?: boolean;
+
+    // not included in the state passed to the FE
+    attackTargetingHighlightAttacker?: Card;
 }
 
 export class PlayerPromptState {
@@ -30,6 +33,10 @@ export class PlayerPromptState {
     public dropdownListOptions: string[] = [];
     public displayCards: IDisplayCard[] = [];
     public perCardButtons: IButton[] = [];
+    public isOpponentEffect = null;
+
+    // not included in the state passed to the FE
+    public attackTargetingHighlightAttacker?: Card = null;
 
     private _selectableCards: Card[] = [];
     private _selectedCards?: Card[] = [];
@@ -72,6 +79,10 @@ export class PlayerPromptState {
         this.buttons = prompt.buttons ?? [];
         this.displayCards = prompt.displayCards ?? [];
         this.perCardButtons = prompt.perCardButtons ?? [];
+        this.isOpponentEffect = prompt.isOpponentEffect;
+
+        // not included in the state passed to the FE
+        this.attackTargetingHighlightAttacker = prompt.attackTargetingHighlightAttacker;
     }
 
     public cancelPrompt() {
@@ -110,7 +121,9 @@ export class PlayerPromptState {
             promptUuid: this.promptUuid,
             promptType: this.promptType,
             displayCards: this.displayCards,
-            perCardButtons: this.perCardButtons
+            perCardButtons: this.perCardButtons,
+            isOpponentEffect: this.isOpponentEffect
+            // attackTargetingHighlightAttacker is explicitly not included, it's not for passing to the FE
         };
     }
 }

@@ -1,7 +1,7 @@
 import type { Attack } from './core/attack/Attack';
 import type { Card } from './core/card/Card';
 import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
-import type Player from './core/Player';
+import type { Player } from './core/Player';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -18,20 +18,21 @@ export enum DamageSourceType {
 export enum DefeatSourceType {
     Ability = 'ability',
     Attack = 'attack',
-    FrameworkEffect = 'frameworkEffect', // TODO: this is a workaround until we get the comp 3.0 rules
+    NonCombatDamage = 'nonCombatDamage',
+    FrameworkEffect = 'frameworkEffect',
     UniqueRule = 'uniqueRule'
 }
 
 export interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
     type: DamageSourceType.Attack | DefeatSourceType.Attack;
     attack: Attack;
-    damageDealtBy: IUnitCard;
+    damageDealtBy: IUnitCard[];
     isOverwhelmDamage: boolean;
     event: any;
 }
 
 export interface IDamagedOrDefeatedByAbility extends IDamageOrDefeatSourceBase {
-    type: DamageSourceType.Ability | DefeatSourceType.Ability;
+    type: DamageSourceType.Ability | DefeatSourceType.Ability | DefeatSourceType.NonCombatDamage;
     card: Card;
     // TODO: We should eventually make this non-optional when we can update all the
     //       existing code and guarantee that it's always set.

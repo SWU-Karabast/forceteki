@@ -1,34 +1,37 @@
-import type Player from '../Player';
+import type { Player } from '../Player';
 import { Card } from './Card';
 import { CardType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import { WithDamage } from './propertyMixins/Damage';
-import { ActionAbility } from '../ability/ActionAbility';
+import type { ActionAbility } from '../ability/ActionAbility';
 import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import { EpicActionLimit } from '../ability/AbilityLimit';
 import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import type TriggeredAbility from '../ability/TriggeredAbility';
+import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
+import { WithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
+import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import { EpicActionAbility } from '../../abilities/EpicActionAbility';
 
-const BaseCardParent = WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card))));
+const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
-export interface IBaseCard extends ICardWithDamageProperty, ICardWithTriggeredAbilities {
+export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities, ICardWithTriggeredAbilities {
     get epicActionSpent(): boolean;
 }
 
 /** A Base card (as in, the card you put in your base zone) */
 export class BaseCard extends BaseCardParent implements IBaseCard {
-    private _epicActionAbility: ActionAbility;
+    private _epicActionAbility?: EpicActionAbility;
 
     public get epicActionSpent() {
         Contract.assertNotNullLike(this._epicActionAbility, `Attempting to check if epic action for card ${this.internalName} is spent, but no epic action ability is set`);
         return this.epicActionSpentInternal();
     }
 
-    public constructor(owner: Player, cardData: any) {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Base);
     }
@@ -56,6 +59,10 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return true;
     }
 
+    protected override addActionAbility(properties: IActionAbilityProps<this>) {
+        return super.addActionAbility(properties);
+    }
+
     protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
         const ability = super.addConstantAbility(properties);
         ability.registeredEffects = this.addEffectToEngine(ability);
@@ -71,11 +78,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     protected setEpicActionAbility(properties: IEpicActionProps<this>): void {
         Contract.assertIsNullLike(this._epicActionAbility, 'Epic action ability already set');
 
-        const propertiesWithLimit: IActionAbilityProps<this> = Object.assign(properties, {
-            limit: new EpicActionLimit()
-        });
-
-        this._epicActionAbility = new ActionAbility(this.game, this, propertiesWithLimit);
+        this._epicActionAbility = new EpicActionAbility(this.game, this, properties);
     }
 
     private epicActionSpentInternal(): boolean {
@@ -85,7 +88,8 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     public override getSummary(activePlayer: Player) {
         return {
             ...super.getSummary(activePlayer),
-            epicActionSpent: this.epicActionSpentInternal()
+            epicActionSpent: this.epicActionSpentInternal(),
+            isDefender: this.isDefending(),
         };
     }
 }

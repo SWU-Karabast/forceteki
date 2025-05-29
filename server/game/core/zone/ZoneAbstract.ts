@@ -1,9 +1,11 @@
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
 import type { Aspect, CardTypeFilter, KeywordName, ZoneName, MoveZoneDestination, Trait, WildcardZoneName, RelativePlayerFilter } from '../Constants';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type Game from '../Game';
 import * as EnumHelpers from '../utils/EnumHelpers';
+import type { IGameObjectBaseState } from '../GameObjectBase';
+import { GameObjectBase } from '../GameObjectBase';
 
 /**
  * Collection of filters for searching cards in a zone.
@@ -31,7 +33,7 @@ export interface IAddRemoveZone {
 /**
  * Base class for all Zone types. Defines some common properties and methods.
  */
-export abstract class ZoneAbstract<TCard extends Card> {
+export abstract class ZoneAbstract<TCard extends Card = Card, TState extends IGameObjectBaseState = IGameObjectBaseState> extends GameObjectBase<TState> {
     public readonly owner: Player | Game;
 
     /** Set of players that this zone is hidden for. If `null`, not hidden for any player. */
@@ -45,8 +47,9 @@ export abstract class ZoneAbstract<TCard extends Card> {
         return this.getCards();
     }
 
-    public constructor(owner: Player | Game) {
-        this.owner = owner;
+    public constructor(game: Game, owner?: Player) {
+        super(game);
+        this.owner = owner ?? game;
     }
 
     /** Get the cards from this zone with an optional filter */
@@ -85,7 +88,7 @@ export abstract class ZoneAbstract<TCard extends Card> {
         Contract.assertTrue(!zone || zone === this.name, `Attempting to move ${card.internalName} to ${this} with incorrect zone parameter: ${zone}`);
     }
 
-    public toString() {
+    public override toString() {
         return ('game' in this.owner ? `${this.owner.name}:` : '') + this.name;
     }
 }

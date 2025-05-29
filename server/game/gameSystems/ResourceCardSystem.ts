@@ -25,7 +25,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         readyResource: false
     };
 
-    public eventHandler(event: any, additionalProperties = {}): void {
+    public eventHandler(event: any): void {
         // TODO: remove this completely if determined we don't need card snapshots
         // event.cardStateWhenMoved = card.createSnapshot();
 
@@ -40,9 +40,9 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         }
     }
 
-    public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: any): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
-        const card = Array.isArray(properties.target) ? properties.target[0] as Card : properties.target as Card;
+    public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: Partial<IResourceCardProperties>): void {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const card = Array.isArray(properties.target) ? properties.target[0] : properties.target;
 
         if (properties.readyResource) {
             event.setContingentEventsGenerator((event) => {
@@ -59,23 +59,29 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IResourceCardProperties;
-        const card = Array.isArray(properties.target) ? properties.target[0] as Card : properties.target as Card;
+        const card = Array.isArray(properties.target) ? properties.target[0] : properties.target;
 
-        const destinationController = properties.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
-        return [
-            'move a card to {0}\'s resources',
-            [destinationController.name]
-        ];
+        if (properties.targetPlayer === RelativePlayer.Self) {
+            if (card === context.source) {
+                return ['move {0} to their resources', [card]];
+            }
+            return ['move a card to their resources', []];
+        }
+
+        if (card === context.source) {
+            return ['move {0} to {1}\'s resources', [card, card.controller.opponent]];
+        }
+        return ['move a card to {0}\'s resources', [card.controller.opponent]];
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IResourceCardProperties>): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
         event.resourceControllingPlayer = this.getResourceControllingPlayer(properties, context);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IResourceCardProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { targetPlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
 
         const resourceControllingPlayer = this.getResourceControllingPlayer({ targetPlayer }, context);
@@ -96,7 +102,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     private getResourceControllingPlayer(properties: IResourceCardProperties, context: TContext) {

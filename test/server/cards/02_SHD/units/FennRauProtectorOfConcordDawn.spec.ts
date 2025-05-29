@@ -19,11 +19,12 @@ describe('Fenn Rau Protector of Concord Dawn\'s ability', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.fennRau);
+            expect(context.player1).toHavePrompt('Choose an upgrade');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.academyTraining,
                 context.jediLightsaber,
             ]);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.jediLightsaber);
             context.player1.clickCard(context.fennRau);
             expect(context.player1.readyResourceCount).toBe(2);

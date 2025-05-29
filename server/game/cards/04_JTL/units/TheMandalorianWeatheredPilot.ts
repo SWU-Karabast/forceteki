@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, PlayType, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { AbilityType, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class TheMandalorianWeatheredPilot extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -27,7 +27,7 @@ export default class TheMandalorianWeatheredPilot extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Exhaust an enemy unit in this arena',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source && event.playType === PlayType.Piloting
+                whenPlayed: true,
             },
             targetResolver: {
                 mode: TargetMode.Single,

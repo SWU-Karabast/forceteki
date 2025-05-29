@@ -20,7 +20,7 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
                 cardCondition: (card, context) => card.hasSomeTrait(Trait.Underworld) && card !== context.source,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     // don't bother triggering the ability if we're attacking a base
-                    condition: (context) => !context.event.attack.target.isBase(),
+                    condition: (context) => context.event.attack.targetIsUnit(),
                     onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect((maulContext) => ({
                         target: maulContext.source,
                         effect: AbilityHelper.ongoingEffects.gainAbility({
@@ -42,7 +42,6 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
                             }
                         })
                     })),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
         });

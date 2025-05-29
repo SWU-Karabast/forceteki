@@ -1,10 +1,16 @@
 import type { ZoneFilter } from '../Constants';
-import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
+import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, PlayType } from '../Constants';
 import * as Contract from '../utils/Contract';
-import CardAbilityStep from './CardAbilityStep';
 import * as AbilityLimit from './AbilityLimit';
+import * as Helpers from '../utils/Helpers';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
+import type Game from '../Game';
+import type { FormatMessage } from '../chat/GameChat';
+import type { GameSystem } from '../gameSystem/GameSystem';
+import * as ChatHelpers from '../chat/ChatHelpers';
+import { CardAbilityStep } from './CardAbilityStep';
+import type { AbilityContext } from './AbilityContext';
 
 export abstract class CardAbility extends CardAbilityStep {
     public readonly abilityIdentifier: string;
@@ -12,14 +18,13 @@ export abstract class CardAbility extends CardAbilityStep {
     public readonly zoneFilter: ZoneFilter | ZoneFilter[];
     public readonly printedAbility: boolean;
 
-    public constructor(game, card, properties, type = AbilityType.Action) {
+    public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
 
         this.limit = properties.limit || AbilityLimit.unlimited();
         this.limit.registerEvents(game);
         this.limit.ability = this;
 
-        this.title = properties.title;
         this.printedAbility = properties.printedAbility ?? true;
         this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
@@ -71,10 +76,6 @@ export abstract class CardAbility extends CardAbilityStep {
             return 'player';
         }
 
-        if (this.card.isBlank() && this.printedAbility) {
-            return 'blank';
-        }
-
         if (
             (this.isActivatedAbility() && !this.card.canTriggerAbilities(context, ignoredRequirements)) ||
             (this.card.isEvent() && !this.card.canPlay(context, context.playType))
@@ -93,8 +94,8 @@ export abstract class CardAbility extends CardAbilityStep {
         return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
     }
 
-    public getAdjustedCost(context) {
-        const resourceCost = this.getCosts(context).find((cost) => cost.getAdjustedCost);
+    public getAdjustedCost(context: AbilityContext) {
+        const resourceCost = this.getCosts(context).find((cost) => cost.isResourceCost());
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
@@ -117,70 +118,53 @@ export abstract class CardAbility extends CardAbilityStep {
     }
 
     public override displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
-        if (
-            context.source.isEvent() &&
-            context.source.zoneName !== ZoneName.Discard
-        ) {
-            this.game.addMessage(
-                '{0} plays {1} from {2} {3}',
-                context.player,
-                context.source,
-                context.source.controller === context.player ? 'their' : 'their opponent\'s',
-                this.getZoneMessage(context.source.zoneName, context)
-            );
-        }
-
-        if (this.properties.message) {
-            let messageArgs = this.properties.messageArgs;
+        if ('message' in this.properties && this.properties.message) {
+            let messageArgs = 'messageArgs' in this.properties ? this.properties.messageArgs : [];
             if (typeof messageArgs === 'function') {
                 messageArgs = messageArgs(context);
             }
             if (!Array.isArray(messageArgs)) {
                 messageArgs = [messageArgs];
             }
-            this.game.addMessage(this.properties.message, ...messageArgs);
+            this.game.addMessage(this.properties.message, ...(messageArgs as any[]));
             return;
         }
 
         const gainAbilitySource = context.ability && context.ability.gainAbilitySource;
 
-        const gainedAbility = gainAbilitySource ? '\'s gained ability from ' : '';
-        let messageArgs = [context.player, ' ' + messageVerb + ' ', context.source, gainedAbility, gainAbilitySource];
-        const costMessages = this.getCosts(context)
-            .map((cost) => {
-                if (cost.getCostMessage && cost.getCostMessage(context)) {
-                    let card = context.costs[cost.getActionName(context)];
-                    if (card && card.isFacedown && card.isFacedown()) {
-                        card = 'a facedown card';
-                    }
-                    let [format, args] = ['ERROR - MISSING COST MESSAGE', [' ', ' ']];
-                    [format, args] = cost.getCostMessage(context);
-                    return { message: this.game.gameChat.formatMessage(format, [card].concat(args)) };
-                }
-                return null;
-            })
-            .filter((obj) => obj);
+        const messageArgs = [context.player, ` ${messageVerb} `, context.source];
+        if (gainAbilitySource) {
+            if (gainAbilitySource !== context.source) {
+                messageArgs.push('\'s gained ability from ', gainAbilitySource);
+            }
+        } else if (messageVerb === 'plays' && context.playType === PlayType.Smuggle) {
+            messageArgs.push(' using Smuggle');
+        }
+        const costMessages = this.getCostsMessages(context);
 
         if (costMessages.length > 0) {
             // ,
             messageArgs.push(', ');
             // paying 3 honor
             messageArgs.push(costMessages);
-        } else {
-            messageArgs = messageArgs.concat(['', '']);
         }
 
         let effectMessage = this.properties.effect;
         let effectArgs = [];
         let extraArgs = null;
         if (!effectMessage) {
-            const gameActions = this.getGameSystems(context).filter((gameSystem) => gameSystem.hasLegalTarget(context));
-            if (gameActions.length > 0) {
-                // effects with multiple game actions really need their own effect message
+            const gameActions: GameSystem[] = this.getGameSystems(context).filter((gameSystem: GameSystem) => gameSystem.hasLegalTarget(context));
+            if (gameActions.length === 1) {
                 [effectMessage, extraArgs] = gameActions[0].getEffectMessage(context);
+            } else if (gameActions.length > 1) {
+                effectMessage = ChatHelpers.formatWithLength(gameActions.length, 'to ');
+                extraArgs = gameActions.map((gameAction): FormatMessage => {
+                    const [message, args] = gameAction.getEffectMessage(context);
+                    return { format: message, args: Helpers.asArray(args) };
+                });
             }
         } else {
-            effectArgs.push(context.target || context.ring || context.source);
+            effectArgs.push(context.target || context.source);
             extraArgs = this.properties.effectArgs;
         }
 
@@ -197,7 +181,7 @@ export abstract class CardAbility extends CardAbilityStep {
             // discard Stoic Gunso
             messageArgs.push({ message: this.game.gameChat.formatMessage(effectMessage, effectArgs) });
         }
-        this.game.addMessage('{0}{1}{2}{3}{4}{5}{6}{7}{8}', ...messageArgs);
+        this.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }
 
     public override isActivatedAbility() {

@@ -26,13 +26,14 @@ describe('Captain Phasma, Chrome Dome', function() {
                 // No First Order card played by controller but 1 in play and 1 played by the opponent; ability should not trigger
                 context.player1.clickCard(context.captainPhasma);
                 context.player1.clickPrompt('If you played a First Order card this phase, deal 1 damage to a base');
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.captainPhasma.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(0);
 
                 // Play First Order Card
-                context.captainPhasma.exhausted = false;
+                context.readyCard(context.captainPhasma);
                 context.player2.passAction();
                 context.player1.clickCard(context.kylosTieSilencer);
                 context.player2.passAction();
@@ -76,7 +77,7 @@ describe('Captain Phasma, Chrome Dome', function() {
 
                 // Damage to a unit (optional)
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit. If you do, deal 1 damage to a base');
                 context.player1.clickCard(context.brightHope);
 
                 // Damage to a base (not optional)
@@ -92,12 +93,12 @@ describe('Captain Phasma, Chrome Dome', function() {
 
                 // Restart board state
                 context.player2.passAction();
-                context.captainPhasma.exhausted = false;
+                context.readyCard(context.captainPhasma);
 
                 context.player1.clickCard(context.captainPhasma);
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit. If you do, deal 1 damage to a base');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();

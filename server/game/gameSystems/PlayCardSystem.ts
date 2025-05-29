@@ -4,7 +4,9 @@ import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetS
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers';
+import { KeywordName, WildcardCardType } from '../core/Constants';
 import { CardType, PlayType, MetaEventName } from '../core/Constants';
 import type { PlayCardAction } from '../core/ability/PlayCardAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
@@ -18,6 +20,9 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     optional?: boolean;
     entersReady?: boolean;
     playType?: PlayType;
+
+    /** This should be used to specify a card-type play restriction (i.e. Sneak Attack or Fine Addition) */
+    playAsType?: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
     adjustCost?: ICostAdjusterProperties;
     nested?: boolean;
     canPlayFromAnyZone?: boolean;
@@ -34,7 +39,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override readonly eventName = MetaEventName.PlayCard;
     protected override readonly targetTypeFilter = [CardType.BasicUnit, CardType.BasicUpgrade, CardType.Event];
     protected override readonly defaultProperties: IPlayCardProperties = {
-        ignoredRequirements: [],
+        ignoredRequirements: ['phase'],
         optional: false,
         entersReady: false,
         playType: PlayType.PlayFromHand,
@@ -42,7 +47,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         canPlayFromAnyZone: false,
     };
 
-    public eventHandler(event, additionalProperties): void {
+    public eventHandler(event): void {
         const availablePlayCardAbilities = event.playCardAbilities as PlayCardAction[];
 
         if (availablePlayCardAbilities.length === 1) {
@@ -62,7 +67,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     private resolvePlayCardAbility(ability: PlayCardAction, event: any) {
         const newContext = ability.createContext(event.player);
 
-        event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional, false));
+        event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional, false, null, event.ignoredRequirements));
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -70,21 +75,36 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return ['play {0}', [properties.target]];
     }
 
-    protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
         event.playCardAbilities = this.generateLegalPlayCardAbilities(target, properties, context);
         event.optional = properties.optional ?? context.ability.optional;
+        event.ignoredRequirements = properties.ignoredRequirements ?? [];
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): boolean {
         if (!card.isPlayable()) {
             return false;
         }
+
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (!super.canAffect(card, context)) {
+
+        if (properties.playAsType != null) {
+            if (properties.playAsType === WildcardCardType.Upgrade && card.isUnit()) {
+                if (!card.hasSomeKeyword(KeywordName.Piloting)) {
+                    return false;
+                }
+            } else {
+                if (!EnumHelpers.cardTypeMatches(card.type, properties.playAsType)) {
+                    return false;
+                }
+            }
+        }
+
+        if (!super.canAffectInternal(card, context)) {
             return false;
         }
 
@@ -110,8 +130,28 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         // filter out actions that don't match the expected playType or aren't legal in the current play context (e.g. can't be paid for)
         return availableCardPlayActions.filter((action) => {
             const newContext = action.createContext(context.player);
-            return action.playType === properties.playType && action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
+            return this.checkActionPlayType(properties.playType, action.playType) && this.checkActionPlayAsType(card, action.playType, properties.playAsType, action) &&
+              action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
         });
+    }
+
+    private checkActionPlayType(playType: PlayType, actionPlayType: PlayType): boolean {
+        if (playType === actionPlayType) {
+            return true;
+        } else if (playType !== PlayType.Smuggle && actionPlayType === PlayType.Piloting) {
+            return true;
+        }
+        return false;
+    }
+
+    private checkActionPlayAsType(card: Card, playType: PlayType, playAsType: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event | null, action: PlayCardAction): boolean {
+        if (playAsType == null) {
+            return true;
+        }
+        if (EnumHelpers.cardTypeMatches(action.getCardTypeWhenInPlay(card, playType), playAsType)) {
+            return true;
+        }
+        return false;
     }
 
     private buildPlayActionProperties(card: Card, properties: IPlayCardProperties, context: TContext, action: PlayCardAction = null) {
@@ -123,6 +163,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return {
             card,
             playType: properties.playType,
+            playAsType: properties.playAsType,
             triggerHandlingMode: properties.nested ? TriggerHandlingMode.ResolvesTriggers : TriggerHandlingMode.PassesTriggersToParentWindow,
             costAdjusters,
             entersReady: properties.entersReady,

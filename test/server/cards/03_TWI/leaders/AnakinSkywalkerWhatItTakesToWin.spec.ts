@@ -59,7 +59,33 @@ describe('Anakin Skywalker, What It Takes To Win', function () {
                 context.player1.clickCard(context.moistureFarmer);
                 expect(context.player1).toHavePrompt('player2 has won the game!');
                 expect(context.player2).toHavePrompt('player2 has won the game!');
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
+            });
+
+            it('should buff attack against both targets if attacker can attack multiple targets', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'anakin-skywalker#what-it-takes-to-win',
+                        groundArena: ['darth-maul#revenge-at-last'],
+                        resources: 5
+                    },
+                    player2: {
+                        groundArena: [{ card: 'moisture-farmer', upgrades: ['resilient', 'resilient'] }, { card: 'cantina-braggart', upgrades: ['resilient', 'resilient'] }],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Use Anakin and have Moisture Farmer attack - the game should end before Restore resolves
+                context.player1.clickCard(context.anakinSkywalker);
+                context.player1.clickCard(context.darthMaul);
+                context.player1.clickCard(context.moistureFarmer);
+                context.player1.clickCard(context.cantinaBraggart);
+                context.player1.clickPrompt('Done');
+
+                expect(context.moistureFarmer.damage).toBe(7);
+                expect(context.cantinaBraggart.damage).toBe(7);
             });
         });
 

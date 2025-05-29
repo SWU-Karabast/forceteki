@@ -17,6 +17,7 @@ describe('Shadow Collective Camp', function () {
 
             const { context } = contextRef;
             context.player2.clickCard(context.nalaSe);
+            context.player2.clickPrompt('Deploy Nala Se');
             expect(context.player2.handSize).toBe(1);
 
             context.player1.clickCard(context.battlefieldMarine);

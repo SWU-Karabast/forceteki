@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, PlayType, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { AbilityType, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class FriskVanguardLoudmouth extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -15,9 +15,7 @@ export default class FriskVanguardLoudmouth extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Defeat an upgrade that costs 2 or less',
             when: {
-                onCardPlayed: (event, context) =>
-                    event.card === context.source &&
-                    event.playType === PlayType.Piloting
+                whenPlayed: true,
             },
             optional: true,
             targetResolver: {

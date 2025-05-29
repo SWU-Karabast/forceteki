@@ -87,7 +87,9 @@ describe('Bombing Run', function() {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.bombingRun);
+                    context.player1.clickPrompt('Play anyway');
 
+                    expect(context.bombingRun).toBeInZone('discard', context.player1);
                     expect(context.player2).toBeActivePlayer();
                 });
             });

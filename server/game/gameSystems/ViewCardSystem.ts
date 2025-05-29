@@ -4,13 +4,13 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
 
 export enum ViewCardInteractMode {
     ViewOnly = 'viewOnly',
-    SelectSingle = 'selectSingle',
+    SelectCards = 'selectSingle',
     PerCardButtons = 'perCardButtons'
 }
 
@@ -26,6 +26,8 @@ interface IViewCardPropertiesBase extends ICardTargetSystemProperties {
     message?: string | ((context) => string);
     messageArgs?: (cards: any) => any[];
 
+    activePromptTitle?: string;
+
     /** The player who is viewing or revealing the card. */
     player?: Player;
 
@@ -40,13 +42,15 @@ export interface IViewCardOnlyProperties extends IViewCardPropertiesBase {
     interactMode: ViewCardInteractMode.ViewOnly;
 }
 
-export interface IViewCardAndSelectSingleProperties<TContext extends AbilityContext = AbilityContext> extends IViewCardPropertiesBase {
-    interactMode: ViewCardInteractMode.SelectSingle;
-    canChooseNothing?: boolean;
+export interface IViewAndSelectCardsProperties<TContext extends AbilityContext = AbilityContext> extends IViewCardPropertiesBase {
+    interactMode: ViewCardInteractMode.SelectCards;
+    canChooseFewer?: boolean;
     immediateEffect?: GameSystem<TContext>;
 
     /** Used for filtering selection based on things like trait, type, etc. */
     cardCondition?: (card: Card, context: TContext) => boolean;
+
+    maxCards?: number;
 }
 
 export interface IViewCardWithPerCardButtonsProperties extends IViewCardPropertiesBase {
@@ -54,10 +58,10 @@ export interface IViewCardWithPerCardButtonsProperties extends IViewCardProperti
     perCardButtons: IPerCardButton[];
 }
 
-export type IViewCardProperties = IViewCardOnlyProperties | IViewCardAndSelectSingleProperties | IViewCardWithPerCardButtonsProperties;
+export type IViewCardProperties = IViewCardOnlyProperties | IViewAndSelectCardsProperties | IViewCardWithPerCardButtonsProperties;
 
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IViewCardProperties = IViewCardProperties> extends CardTargetSystem<TContext, TProperties> {
-    public override eventHandler(event, _additionalProperties = {}): void {
+    public override eventHandler(event): void {
         const context = event.context;
         context.game.addMessage(this.getMessage(event.message, context), ...event.messageArgs);
 
@@ -66,10 +70,10 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         }
     }
 
-    protected abstract getChatMessage(useDisplayPrompt: boolean): string;
+    protected abstract getChatMessage(useDisplayPrompt: boolean, context: TContext, additionalProperties: Partial<TProperties>): string;
     protected abstract getPromptedPlayer(properties: IViewCardProperties, context: TContext): Player;
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         const cards = Helpers.asArray(target).filter((card) => this.canAffect(card, context));
         if (cards.length === 0) {
@@ -98,7 +102,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         Contract.assertFalse(!useDisplayPrompt && properties.interactMode !== ViewCardInteractMode.ViewOnly, 'Cannot disable display prompt for non-basic view card prompts');
 
         event.cards = cards;
-        event.message = this.getChatMessage(useDisplayPrompt);
+        event.message = this.getChatMessage(useDisplayPrompt, context, additionalProperties);
         event.messageArgs = this.getMessageArgs(event, context, additionalProperties);
         event.displayTextByCardUuid = properties.displayTextByCardUuid;
         event.promptHandler = useDisplayPrompt ? this.buildPromptHandler(cards, properties, context) : null;
@@ -110,8 +114,8 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         switch (properties.interactMode) {
             case ViewCardInteractMode.ViewOnly:
                 return this.buildViewOnlyPrompt(promptedPlayer, cards, properties, context);
-            case ViewCardInteractMode.SelectSingle:
-                return this.buildSelectSingleCardPrompt(promptedPlayer, cards, properties, context);
+            case ViewCardInteractMode.SelectCards:
+                return this.buildSelectCardsPrompt(promptedPlayer, cards, properties, context);
             case ViewCardInteractMode.PerCardButtons:
                 return this.buildPerCardButtonsPrompt(promptedPlayer, cards, properties, context);
             default:
@@ -123,6 +127,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         return () => context.game.promptDisplayCardsBasic(
             promptedPlayer,
             {
+                activePromptTitle: properties.activePromptTitle,
                 displayCards: cards,
                 source: context.source,
                 displayTextByCardUuid: properties.displayTextByCardUuid
@@ -130,12 +135,12 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         );
     }
 
-    private buildSelectSingleCardPrompt(promptedPlayer: Player, cards: Card[], properties: IViewCardAndSelectSingleProperties, context: TContext) {
+    private buildSelectCardsPrompt(promptedPlayer: Player, cards: Card[], properties: IViewAndSelectCardsProperties, context: TContext) {
         const selectedCardsHandler = (selectedCards: Card[]) => {
             context.selectedPromptCards = selectedCards;
 
             const gameSystem = properties.immediateEffect;
-            if (gameSystem) {
+            if (gameSystem && selectedCards.length > 0) {
                 const events = [];
                 gameSystem.setDefaultTargetFn(() => selectedCards);
                 gameSystem.queueGenerateEventGameSteps(events, context);
@@ -151,10 +156,11 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         return () => context.game.promptDisplayCardsForSelection(
             promptedPlayer,
             {
+                activePromptTitle: properties.activePromptTitle,
                 source: context.source,
                 displayCards: cards,
-                maxCards: 1,
-                canChooseNothing: properties.canChooseNothing ?? true,
+                maxCards: properties.maxCards ?? 1,
+                canChooseFewer: properties.canChooseFewer ?? true,
                 selectedCardsHandler,
                 validCardCondition: (card: Card) =>
                     cardCondition(card, context) &&
@@ -196,7 +202,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         return () => context.game.promptDisplayCardsWithButtons(
             promptedPlayer,
             {
-                activePromptTitle: 'Select card to move to the top or bottom of the deck',
+                activePromptTitle: properties.activePromptTitle,
                 source: context.source,
                 displayCards: cards,
                 perCardButtons: buttonDefinitions,

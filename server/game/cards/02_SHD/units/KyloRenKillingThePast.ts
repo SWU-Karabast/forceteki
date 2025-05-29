@@ -1,4 +1,4 @@
-import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { Aspect, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
@@ -13,8 +13,8 @@ export default class KyloRenKillingThePast extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addIgnoreSpecificAspectPenaltyAbility({
             title: 'If you control Rey, ignore the Villainy aspect when playing this',
-            ignoredAspects: Aspect.Villainy,
-            condition: (context) => context.player.controlsLeaderOrUnitWithTitle('Rey')
+            ignoredAspect: Aspect.Villainy,
+            condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Rey')
         });
 
         this.addOnAttackAbility({
@@ -28,7 +28,6 @@ export default class KyloRenKillingThePast extends NonLeaderUnitCard {
                     }),
                     AbilityHelper.immediateEffects.conditional({
                         condition: (context) => context.target.aspects.includes(Aspect.Villainy),
-                        onTrue: AbilityHelper.immediateEffects.noAction(),
                         onFalse: AbilityHelper.immediateEffects.giveExperience()
                     })
                 ])

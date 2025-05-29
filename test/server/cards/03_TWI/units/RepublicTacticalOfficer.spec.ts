@@ -25,7 +25,7 @@ describe('Republic Tactical Officer', function() {
 
             // do a second attack to confirm that the +2 bonus has expired
             context.player2.passAction();
-            context.admiralYularen.exhausted = false;
+            context.readyCard(context.admiralYularen);
             context.setDamage(context.sundariPeacekeeper, 0);
             context.setDamage(context.admiralYularen, 0);
 

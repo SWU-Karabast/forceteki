@@ -22,6 +22,9 @@ describe('No Glory, Only Results', function() {
 
             // Choose Superlaser Technician and defeat it
             context.player1.clickCard(context.superlaserTechnician);
+            expect(context.getChatLogs(1)).toEqual([
+                'player1 plays No Glory, Only Results to take control of Superlaser Technician',
+            ]);
             context.player1.clickPrompt('Trigger');
             expect(context.superlaserTechnician).toBeInZone('resource', context.player1);
 
@@ -92,6 +95,26 @@ describe('No Glory, Only Results', function() {
             expect(context.supremeLeaderSnoke).toBeInZone('discard');
             expect(context.blackSunStarfighter).toBeInZone('discard');
             expect(context.superlaserTechnician).toBeInZone('resource');
+        });
+
+        it('can be played without a valid target', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results'],
+                },
+                player2: {
+                    leader: { card: 'grand-admiral-thrawn#how-unfortunate', deployed: true },
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickPrompt('Play anyway');
+
+            expect(context.noGloryOnlyResults).toBeInZone('discard');
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

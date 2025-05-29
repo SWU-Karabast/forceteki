@@ -21,11 +21,13 @@
         "noImplicitOverride": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
-        "noImplicitThis": true
+        "noImplicitThis": true,
+        "resolveJsonModule": true
     },
     // "include": ["server/jigoku/**/*"],
     "include": [
-        "server/**/*"
+        "server/**/*",
+        "server/**/*.json"
     ],
     // "include": ["server/**/*"],
     "exclude": [

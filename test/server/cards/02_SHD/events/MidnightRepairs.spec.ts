@@ -22,7 +22,6 @@ describe('Midnight Repairs', function () {
 
                 context.player1.clickCard(context.midnightRepairs);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.sabineWren, context.wampa, context.imperialInterceptor]);
-                expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.pykeSentinel, 2],
                     [context.cartelSpacer, 2],
@@ -60,7 +59,7 @@ describe('Midnight Repairs', function () {
 
                 context.player1.clickCard(context.midnightRepairs);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.sabineWren, context.wampa, context.imperialInterceptor]);
-                context.player1.clickPrompt('Choose no targets');
+                context.player1.setDistributeHealingPromptState(new Map([]));
 
                 expect(context.pykeSentinel.damage).toBe(1);
                 expect(context.cartelSpacer.damage).toBe(0);
@@ -90,7 +89,7 @@ describe('Midnight Repairs', function () {
                 context.player1.clickCard(context.midnightRepairs);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
 
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
         });
     });

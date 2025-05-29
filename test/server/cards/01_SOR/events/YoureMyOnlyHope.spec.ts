@@ -93,10 +93,58 @@ describe('You\'re My Only Hope', function() {
 
                 expect(context.player1.deck.length).toEqual(0);
                 context.player1.clickCard(context.youreMyOnlyHope);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.youreMyOnlyHope).toBeInZone('discard', context.player1);
 
                 expect(context.player2).toBeActivePlayer();
             });
+        });
+
+        it('can play a unit with Piloting as an upgrade', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['youre-my-only-hope'],
+                    deck: ['dagger-squadron-pilot'],
+                    spaceArena: ['cartel-turncoat']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.youreMyOnlyHope);
+
+            expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daggerSquadronPilot]);
+            expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 5 less', 'Leave on top']);
+
+            context.player1.clickDisplayCardPromptButton(context.daggerSquadronPilot.uuid, 'play-discount');
+            expect(context.player1).toHaveExactPromptButtons(['Play Dagger Squadron Pilot', 'Play Dagger Squadron Pilot with Piloting']);
+            context.player1.clickPrompt('Play Dagger Squadron Pilot with Piloting');
+            context.player1.clickCard(context.cartelTurncoat);
+            expect(context.daggerSquadronPilot).toBeAttachedTo(context.cartelTurncoat);
+        });
+
+        it('can play a unit with Piloting as a unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['youre-my-only-hope'],
+                    deck: ['dagger-squadron-pilot'],
+                    spaceArena: ['cartel-turncoat']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.youreMyOnlyHope);
+
+            expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daggerSquadronPilot]);
+            expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 5 less', 'Leave on top']);
+
+            context.player1.clickDisplayCardPromptButton(context.daggerSquadronPilot.uuid, 'play-discount');
+            expect(context.player1).toHaveExactPromptButtons(['Play Dagger Squadron Pilot', 'Play Dagger Squadron Pilot with Piloting']);
+            context.player1.clickPrompt('Play Dagger Squadron Pilot');
+            expect(context.daggerSquadronPilot).toBeInZone('groundArena');
         });
     });
 });

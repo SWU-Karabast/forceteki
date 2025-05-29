@@ -40,7 +40,7 @@ export class FrameworkDefeatCardSystem<TContext extends AbilityContext = Ability
     }
 
     // fully override the base canAffect method since nothing can interrupt defeat due to framework effect
-    public override canAffect(card: Card): boolean {
+    public override canAffectInternal(card: Card): boolean {
         return card.canBeInPlay() && card.isInPlay();
     }
 

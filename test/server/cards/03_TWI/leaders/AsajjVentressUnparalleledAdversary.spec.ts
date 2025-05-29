@@ -73,7 +73,7 @@ describe('Asajj Ventress, Unparalleled Adversary', function () {
                 const { context } = contextRef;
 
                 function reset() {
-                    context.asajjVentress.exhausted = false;
+                    context.readyCard(context.asajjVentress);
                     context.setDamage(context.asajjVentress, 0);
                     context.player2.passAction();
                 }

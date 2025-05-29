@@ -5,6 +5,7 @@ import { EventName, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
 
 export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties {
@@ -21,18 +22,15 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
 
     // event handler doesn't do anything since the tokens were generated in updateEvent
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(event, additionalProperties = {}): void { }
+    public override eventHandler(event): void { }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
 
-        if (properties.amount === 1) {
-            return ['attach a {0} to {1}', [this.getTokenType(), properties.target]];
-        }
-        return ['attach {0} {1}s to {2}', [properties.amount, this.getTokenType(), properties.target]];
+        return ['attach {0} to {1}', [ChatHelpers.pluralize(properties.amount, `a ${this.getTokenType()}`, `${this.getTokenType()}s`), properties.target]];
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
         Contract.assertNotNullLike(context);
@@ -47,12 +45,16 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     protected abstract getTokenType(): TokenUpgradeName;
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected generateToken(context: TContext) {
+        return context.game.generateToken(context.player, this.getTokenType());
+    }
+
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties>): void {
         super.updateEvent(event, card, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -61,7 +63,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
         event.generatedTokens = [];
         for (let i = 0; i < properties.amount; i++) {
-            event.generatedTokens.push(context.game.generateToken(context.player, this.getTokenType()));
+            event.generatedTokens.push(this.generateToken(context));
         }
 
         // add contingent events for attaching the generated upgrade token(s)
@@ -83,7 +85,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         });
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IGiveTokenUpgradeProperties>): void {
         Contract.assertTrue(card.isUnit());
         Contract.assertTrue(card.isInPlay());
 

@@ -19,7 +19,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Exhaust Boba Fett',
+            title: 'Exhaust Boba Fett to ready a resource',
             when: {
                 onCardLeavesPlay: (event, context) =>
                     event.card.isUnit() && event.card.controller !== context.player
@@ -28,7 +28,6 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
                 condition: context.player.exhaustedResourceCount > 0,
                 onTrue: AbilityHelper.immediateEffects.exhaust(),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })),
             ifYouDo: {
                 title: 'Ready a resource',
@@ -51,8 +50,6 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
                     return opponentHasUnitsThatLeftPlayThisPhase && playerHasResourcesToReady;
                 },
                 onTrue: AbilityHelper.immediateEffects.readyResources({ amount: 2 }),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
-
             })
         });
     }

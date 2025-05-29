@@ -4,7 +4,8 @@ import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ResourcePrompt } from '../prompts/ResourcePrompt';
 import { MulliganPrompt } from '../prompts/MulliganPrompt';
-import { PhaseName, PromptType } from '../../Constants';
+import { PhaseName } from '../../Constants';
+import { PromptType } from '../PromptInterfaces';
 
 export class SetupPhase extends Phase {
     public constructor(game: Game) {
@@ -45,7 +46,7 @@ export class SetupPhase extends Phase {
         // TODO: convert these to use systems
         for (const player of this.game.getPlayers()) {
             player.shuffleDeck();
-            player.drawCardsToHand(6);
+            player.drawCardsToHand(player.getStartingHandSize());
         }
     }
 }

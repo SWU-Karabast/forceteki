@@ -1,11 +1,10 @@
 import type { Card } from '../../card/Card';
 import type Game from '../../Game';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { AllPlayerPrompt } from './AllPlayerPrompt';
-import { PromptType } from '../../Constants';
-import { SelectCardMode } from '../PromptInterfaces';
+import { PromptType, SelectCardMode } from '../PromptInterfaces';
 
 export class ResourcePrompt extends AllPlayerPrompt {
     protected selectedCards = new Map<string, Card[]>();
@@ -97,7 +96,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         };
     }
 
-    public override menuCommand(player, arg): boolean {
+    public override menuCommand(player: Player, arg: string): boolean {
         if (arg === 'done') {
             if (this.completionCondition(player)) {
                 return false;
@@ -117,7 +116,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
             for (const card of this.selectedCards[player.name]) {
                 player.resourceCard(card, false);
             }
-            this.game.addMessage('{0} has resourced {1} cards from hand', player, this.selectedCards[player.name].length);
+            this.game.addMessage('{0} has resourced {1} {2} from hand', player, this.selectedCards[player.name].length, this.selectedCards[player.name].length === 1 ? 'card' : 'cards');
         } else {
             this.game.addMessage('{0} has not resourced any cards', player);
         }

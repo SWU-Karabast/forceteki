@@ -21,13 +21,12 @@ export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'If a friendly unit attacked this phase, create a Clone Trooper token.',
-            cost: [AbilityHelper.costs.abilityResourceCost(2), AbilityHelper.costs.exhaustSelf()],
+            cost: [AbilityHelper.costs.abilityActivationResourceCost(2), AbilityHelper.costs.exhaustSelf()],
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({
                     controller: context.player
                 }),
                 onTrue: AbilityHelper.immediateEffects.createCloneTrooper(),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

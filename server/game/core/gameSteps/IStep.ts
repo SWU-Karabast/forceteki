@@ -1,6 +1,6 @@
 import type { GamePipeline } from '../GamePipeline';
 import type { Card } from '../card/Card';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { IStatefulPromptResults } from './PromptInterfaces';
 
 export interface IStep {
@@ -13,6 +13,8 @@ export interface IStep {
     queueStep?(step: IStep): void;
     cancelStep?(): void;
     isComplete?(): boolean;
+    takeSnapshot?(): number;
+    rollbackToSnapshot?(snapshotId: number | null): void;
 
     /**
      * Resolve the pipeline step

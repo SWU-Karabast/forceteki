@@ -21,7 +21,7 @@ describe('Lom Pyke, Dealer in Truths', function() {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.lomPyke.exhausted = false;
+                    context.readyCard(context.lomPyke);
                     context.player2.passAction();
                 };
 
@@ -139,7 +139,7 @@ describe('Lom Pyke, Dealer in Truths', function() {
 
                 context.player1.clickCard(context.lomPyke);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHavePassAbilityPrompt('Give a Shield token to an enemy unit');
+                expect(context.player1).toHavePassAbilityPrompt('Give a Shield token to an enemy unit. If you do, give a Shield token to a friendly unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.p2Base.damage).toBe(4);

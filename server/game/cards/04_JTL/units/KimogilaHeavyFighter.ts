@@ -21,7 +21,7 @@ export default class KimogilaHeavyFighter extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Deal 3 indirect damage to a player',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
+                whenPlayed: true,
             },
             targetResolver: {
                 mode: TargetMode.Player,

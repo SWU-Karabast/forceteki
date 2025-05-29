@@ -14,8 +14,8 @@ export default class PreVizslaPowerHungry extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Pay the cost of an upgrade attached to another non-Vehicle unit',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                whenPlayed: true,
+                onAttack: true,
             },
             optional: true,
             targetResolver: {

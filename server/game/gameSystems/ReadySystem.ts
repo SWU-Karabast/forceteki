@@ -22,14 +22,14 @@ export class ReadySystem<TContext extends AbilityContext = AbilityContext> exten
         event.card.ready();
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        if (!super.canAffect(card, context)) {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IReadySystemProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        if (!super.canAffectInternal(card, context)) {
             return false;
         }
 
         const { isCost } = this.generatePropertiesFromContext(context);
 
-        // can safely cast here b/c the type was checked in super.canAffect
+        // can safely cast here b/c the type was checked in super.canAffectInternal
         if ((isCost || mustChangeGameState !== GameStateChangeRequired.None) && !(card as ICardWithExhaustProperty).exhausted) {
             return false;
         }

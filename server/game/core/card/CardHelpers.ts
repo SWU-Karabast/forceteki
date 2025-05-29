@@ -1,5 +1,5 @@
 import { CardType } from '../Constants';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import { BaseCard } from './BaseCard';
 import { Card } from './Card';
@@ -8,14 +8,15 @@ import { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import { UpgradeCard } from './UpgradeCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
+import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
 
 /**
  * Create a default implementation for a card from cardData by calling the appropriate
  * derived class constructor based on the card type
  */
-export function createUnimplementedCard(owner: Player, cardData: any): Card {
-    Contract.assertNotNullLike(cardData.types);
+export function createUnimplementedCard(owner: Player, cardData: ICardDataJson): Card {
+    Contract.assertNotNullLike(cardData?.types);
     const cardType = Card.buildTypeFromPrinted(cardData.types);
 
     switch (cardType) {

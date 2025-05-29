@@ -12,8 +12,8 @@ export default class AdmiralAckbarItsATrap extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
-            title: 'Exhaust a non-leader unit',
-            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityResourceCost(1)],
+            title: 'Exhaust a non-leader unit. If you do, its controller creates an X-Wing token',
+            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
@@ -27,7 +27,7 @@ export default class AdmiralAckbarItsATrap extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addOnAttackAbility({
-            title: 'Exhaust a non-leader unit',
+            title: 'Exhaust a non-leader unit. If you do, its controller creates an X-Wing token',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

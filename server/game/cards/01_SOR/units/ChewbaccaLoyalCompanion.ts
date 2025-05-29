@@ -13,7 +13,7 @@ export default class ChewbaccaLoyalCompanion extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Ready Chewbacca',
             when: {
-                onAttackDeclared: (event, context) => event.attack.target === this
+                onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source)
             },
             immediateEffect: AbilityHelper.immediateEffects.ready()
         });

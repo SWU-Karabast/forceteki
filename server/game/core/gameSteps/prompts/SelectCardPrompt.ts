@@ -1,10 +1,10 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import type { Card } from '../../card/Card';
-import type BaseCardSelector from '../../cardSelector/BaseCardSelector';
-import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
+import type { BaseCardSelector } from '../../cardSelector/BaseCardSelector';
 import type Game from '../../Game';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
+import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import type { ISelectCardPromptProperties } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
@@ -62,7 +62,7 @@ export class SelectCardPrompt extends UiPrompt {
     private readonly onlyMustSelectMayBeChosen: boolean = false;
     private readonly promptTitle: string;
     private readonly properties: ISelectCardPromptProperties;
-    private readonly selector: BaseCardSelector;
+    private readonly selector: BaseCardSelector<AbilityContext>;
     private readonly source: OngoingEffectSource;
 
     private previouslySelectedCards?: Card[];
@@ -96,7 +96,8 @@ export class SelectCardPrompt extends UiPrompt {
         }
         this.hideIfNoLegalTargets = !!properties.hideIfNoLegalTargets;
 
-        this.selector = properties.selector || CardSelectorFactory.create(this.properties);
+        Contract.assertNotNullLike(properties.selector);
+        this.selector = properties.selector;
 
         this.selectedCards = [];
         if (properties.mustSelect && properties.mustSelect.length > 0) {
@@ -134,7 +135,7 @@ export class SelectCardPrompt extends UiPrompt {
     }
 
     public override continue() {
-        if (this.hideIfNoLegalTargets && this.selector.optional && !this.selector.hasEnoughTargets(this.context, this.choosingPlayer)) {
+        if (this.hideIfNoLegalTargets && this.selector.optional && !this.selector.hasEnoughTargets(this.context)) {
             this.complete();
         }
 
@@ -154,11 +155,15 @@ export class SelectCardPrompt extends UiPrompt {
         return player === this.choosingPlayer;
     }
 
-    public override activePrompt() {
+    public override activePrompt(): IPlayerPromptStateProperties {
         let buttons = this.properties.buttons;
-        if (!this.selector.automaticFireOnSelect(this.context) && this.selector.hasEnoughSelected(this.selectedCards, this.context) || this.selector.optional) {
+        if (!this.selector.automaticFireOnSelect(this.context) || this.selector.optional) {
             if (buttons.every((button) => button.arg !== 'done')) {
-                buttons = [{ text: 'Done', arg: 'done' }].concat(buttons);
+                if (this.selector.optional && this.selectedCards.length === 0) {
+                    buttons = [{ text: 'Choose nothing', arg: 'done' }].concat(buttons);
+                } else if (this.selector.optional || this.selector.hasEnoughSelected(this.selectedCards, this.context)) {
+                    buttons = [{ text: 'Done', arg: 'done' }].concat(buttons);
+                }
             }
         }
 
@@ -168,7 +173,9 @@ export class SelectCardPrompt extends UiPrompt {
             menuTitle: this.properties.activePromptTitle || this.selector.defaultActivePromptTitle(this.context),
             buttons: buttons,
             promptTitle: this.promptTitle,
-            promptUuid: this.uuid
+            promptUuid: this.uuid,
+            isOpponentEffect: this.properties.isOpponentEffect,
+            attackTargetingHighlightAttacker: this.properties.attackTargetingHighlightAttacker,
         };
     }
 
@@ -204,12 +211,12 @@ export class SelectCardPrompt extends UiPrompt {
         }
 
         return (
-            this.selector.canTarget(card, this.context, this.choosingPlayer, this.selectedCards) &&
+            this.selector.canTarget(card, this.context, this.selectedCards) &&
             !this.selector.wouldExceedLimit(this.selectedCards, card)
         );
     }
 
-    private selectCard(card) {
+    private selectCard(card: Card) {
         if (this.selector.hasReachedLimit(this.selectedCards, this.context) && !this.selectedCards.includes(card)) {
             return false;
         } else if (this.cannotUnselectMustSelect && this.properties.mustSelect.includes(card)) {

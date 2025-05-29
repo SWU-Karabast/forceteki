@@ -34,7 +34,7 @@ export class AttackFlow extends BaseStepWithPipeline {
 
     private declareAttack() {
         this.attack.attacker.setActiveAttack(this.attack);
-        this.attack.target.setActiveAttack(this.attack);
+        this.attack.getAllTargets().forEach((target) => target.setActiveAttack(this.attack));
 
         this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, this.context, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
     }
@@ -50,53 +50,77 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private dealDamage(): void {
-        if (!this.attack.isAttackerInPlay()) {
-            this.context.game.addMessage('The attack does not resolve because the attacker is no longer in play');
+        if (!this.attack.isAttackerLegal()) {
+            this.context.game.addMessage('The attack does not resolve because the attacker is no longer valid');
             return;
         }
 
-        let overwhelmDamageOnly = false;
-        if (!this.attack.isAttackTargetLegal()) {
-            if (!this.attack.hasOverwhelm()) {
-                this.context.game.addMessage('The attack does not resolve because the defender is no longer in play');
-                return;
-            }
+        const legalTargets = this.attack.getLegalTargets();
 
-            // if the defender is no longer in play but the attack has overwhelm, all damage is considered overwhelm damage and dealt to the base (SWU 5.7.G)
-            overwhelmDamageOnly = true;
+        if (legalTargets.length === 0) {
+            this.context.game.addMessage('The attack does not resolve because there is no longer a legal target');
+            return;
         }
 
-        const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
-        if (overwhelmDamageOnly) {
-            new DamageSystem({
-                type: DamageType.Overwhelm,
-                amount: this.attack.getAttackerTotalPower(),
-                sourceAttack: this.attack
-            }).resolve(this.attack.target.controller.base, this.context);
-        } else if (attackerDealsDamageBeforeDefender) {
-            this.context.game.openEventWindow(this.createAttackerDamageEvent());
-            this.context.game.queueSimpleStep(() => {
-                if (!this.attack.target.isBase() && this.attack.target.isInPlay()) {
-                    this.context.game.openEventWindow(this.createDefenderDamageEvent());
-                }
-            }, 'check and queue event for defender damage');
-        } else {
-            // normal attack
-            const damageEvents = [this.createAttackerDamageEvent()];
-            if (!this.attack.target.isBase()) {
-                damageEvents.push(this.createDefenderDamageEvent());
+        const inPlayTargets = [];
+        let directOverwhelmDamage = 0;
+
+        // Handle any targets that left play
+        for (const target of legalTargets) {
+            if (target.isBase() || target.isInPlay()) {
+                // Do nothing - normal attacks
+                inPlayTargets.push(target);
+            } else if (this.attack.hasOverwhelm()) {
+                // This target is no longer in play
+                directOverwhelmDamage += this.attack.getAttackerTotalPower();
             }
+        }
+
+        const damageEvents = [];
+
+        // TSTODO: This will need to be updated to account for attacking units owned by different opponents
+        const targetControllerBase = legalTargets[0].controller.base;
+
+        if (directOverwhelmDamage > 0) {
+            damageEvents.push(new DamageSystem({
+                type: DamageType.Overwhelm,
+                amount: directOverwhelmDamage,
+                sourceAttack: this.attack,
+                target: targetControllerBase
+            }).generateEvent(this.context));
+        }
+
+        if (inPlayTargets.length > 0) {
+            const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
+
+            const attackerDamageEvents = inPlayTargets.map((target) => this.createAttackerDamageEvent(target));
+            damageEvents.push(...attackerDamageEvents);
+
+            if (attackerDealsDamageBeforeDefender) {
+                this.context.game.openEventWindow(damageEvents);
+                this.context.game.queueSimpleStep(() => {
+                    if (legalTargets.some((target) => !target.isBase() && target.isInPlay())) {
+                        this.context.game.openEventWindow(this.createDefenderDamageEvent());
+                    }
+                }, 'check and queue event for defender damage');
+            } else {
+                // normal attack
+                if (inPlayTargets.some((target) => !target.isBase())) {
+                    damageEvents.push(this.createDefenderDamageEvent());
+                }
+                this.context.game.openEventWindow(damageEvents);
+            }
+        } else if (directOverwhelmDamage > 0) {
             this.context.game.openEventWindow(damageEvents);
         }
     }
 
-    private createAttackerDamageEvent(): GameEvent {
-        // event for damage dealt to target by attacker
+    private createAttackerDamageEvent(target: IAttackableCard): GameEvent {
         const attackerDamageEvent = new DamageSystem({
             type: DamageType.Combat,
             amount: this.attack.getAttackerTotalPower(),
             sourceAttack: this.attack,
-            target: this.attack.target
+            target: target
         }).generateEvent(this.context);
 
         if (this.attack.hasOverwhelm()) {
@@ -139,11 +163,12 @@ export class AttackFlow extends BaseStepWithPipeline {
     private cleanUpAttack() {
         this.game.currentAttack = this.attack.previousAttack;
         this.checkUnsetActiveAttack(this.attack.attacker);
-        this.checkUnsetActiveAttack(this.attack.target);
+        this.attack.getAllTargets().forEach((target) => this.checkUnsetActiveAttack(target));
     }
 
     private checkUnsetActiveAttack(card: IAttackableCard) {
-        if (EnumHelpers.isArena(card.zoneName) || card.isBase()) {
+        // isUnit() check needed for pilots that may have become attached during the attack
+        if ((EnumHelpers.isArena(card.zoneName) && card.isUnit()) || card.isBase()) {
             card.unsetActiveAttack();
         }
     }

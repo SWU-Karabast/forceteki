@@ -7,12 +7,16 @@ import { GiveShieldSystem } from '../../gameSystems/GiveShieldSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class ShieldedAbility extends TriggeredAbility {
-    public override readonly keyword: KeywordName | null = KeywordName.Shielded;
+    public readonly keyword: KeywordName = KeywordName.Shielded;
 
     public static buildShieldedAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {
             title: 'Shielded',
-            when: { onUnitEntersPlay: (event, context) => event.card === context.source },
+            when: {
+                onCardPlayed: (event, context) => event.card === context.source,
+                onLeaderDeployed: (event, context) => event.card === context.source,
+                onUnitEntersPlay: (event, context) => event.card === context.source && context.source.isToken()
+            },
             immediateEffect: new GiveShieldSystem({}),
             zoneFilter: WildcardZoneName.AnyArena
         };

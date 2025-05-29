@@ -72,7 +72,7 @@ export class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.setParentEventWindow(), 'setParentEventWindow'),
             new SimpleStep(this.game, () => this.checkEventCondition(), 'checkEventCondition'),
             new SimpleStep(this.game, () => this.openReplacementEffectWindow(), 'openReplacementEffectWindow'),
-            new SimpleStep(this.game, () => this.generateContingentEvents(), 'generateContingentEvents'),
+            new SimpleStep(this.game, () => this.generateContingentEventsAndReplacementWindow(), 'generateContingentEventsAndReplacementWindow'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.resolveEvents(), 'resolveEvents'),
             new SimpleStep(this.game, () => this.checkUniqueRule(), 'checkUniqueRule'),
@@ -156,6 +156,12 @@ export class EventWindow extends BaseStepWithPipeline {
             return;
         }
 
+        // Some effects may generate their own replacement events due to game rules (e.g. if a leader unit would
+        // change control, it is defeated instead). We need to pick those up here and add them to the event window.
+        const replacementEvents = this.events.flatMap((event) => event.generateReplacementEvents());
+        replacementEvents.forEach((event) => this.addEvent(event));
+
+        // This will pick up explicit replacement effects like the ones directly triggered by card abilities
         const replacementEffectWindow = new ReplacementEffectWindow(this.game, this);
         replacementEffectWindow.emitEvents();
         this.queueStep(replacementEffectWindow);
@@ -166,12 +172,17 @@ export class EventWindow extends BaseStepWithPipeline {
      * but will be resolved after it in order. The main use case for this is upgrades being
      * defeated at the same time as the parent card holding them.
      */
-    private generateContingentEvents() {
+    private generateContingentEventsAndReplacementWindow() {
         let contingentEvents = [];
         this._events.forEach((event) => {
             contingentEvents = contingentEvents.concat(event.generateContingentEvents());
         });
         contingentEvents.forEach((event) => this.addEvent(event));
+
+        const replacementEffectWindow = new ReplacementEffectWindow(this.game);
+        replacementEffectWindow.addTriggeringEvents(contingentEvents);
+        replacementEffectWindow.emitEvents();
+        this.queueStep(replacementEffectWindow);
     }
 
     private preResolutionEffects() {
@@ -219,7 +230,7 @@ export class EventWindow extends BaseStepWithPipeline {
 
         // trigger again here to catch any events for cards that entered play during event resolution
         if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {
-            this._triggeredAbilityWindow.emitEvents();
+            this._triggeredAbilityWindow.emitEvents(this.resolvedEvents);
         }
     }
 

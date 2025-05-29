@@ -60,6 +60,7 @@ describe('MaKlounkee', function() {
             const { context } = contextRef;
 
             context.player1.clickCard('ma-klounkee');
+            context.player1.clickPrompt('Play anyway');
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });
 

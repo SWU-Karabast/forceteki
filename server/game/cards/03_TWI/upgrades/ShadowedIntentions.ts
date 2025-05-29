@@ -1,6 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { AbilityRestriction } from '../../../core/Constants';
+import { ZoneName } from '../../../core/Constants';
+import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class ShadowedIntentions extends UpgradeCard {
     protected override getImplementationId() {
@@ -11,22 +11,21 @@ export default class ShadowedIntentions extends UpgradeCard {
     }
 
     protected override setupCardAbilities() {
-        this.addConstantAbilityTargetingAttached({
+        this.addReplacementEffectAbilityTargetingAttached({
             title: 'This unit can\'t be captured, defeated, or returned to its owner\'s hand by enemy card abilities',
-            ongoingEffect: [
-                AbilityHelper.ongoingEffects.cardCannot({
-                    cannot: AbilityRestriction.BeCaptured,
-                    restrictedActionCondition: (context) => context.ability.controller !== this.controller,
-                }),
-                AbilityHelper.ongoingEffects.cardCannot({
-                    cannot: AbilityRestriction.BeDefeated,
-                    restrictedActionCondition: (context) => context.ability.controller !== this.controller,
-                }),
-                AbilityHelper.ongoingEffects.cardCannot({
-                    cannot: AbilityRestriction.ReturnToHand,
-                    restrictedActionCondition: (context) => context.ability.controller !== this.controller,
-                }),
-            ]
+            when: {
+                onCardCaptured: (event, context) =>
+                    event.card === context.source &&
+                    event.context.player !== context.player,
+                onCardDefeated: (event, context) =>
+                    event.card === context.source &&
+                    event.defeatSource.type === DefeatSourceType.Ability &&
+                    event.defeatSource.player !== context.player,
+                onCardMoved: (event, context) =>
+                    event.card === context.source &&
+                    event.destination === ZoneName.Hand &&
+                    event.context.player !== context.player
+            }
         });
     }
 }

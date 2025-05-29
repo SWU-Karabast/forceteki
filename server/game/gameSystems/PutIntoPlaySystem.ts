@@ -9,7 +9,7 @@ import {
 } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { Card } from '../core/card/Card';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
@@ -30,7 +30,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         entersReady: false
     };
 
-    public eventHandler(event, additionalProperties = {}): void {
+    public eventHandler(event): void {
         if (event.newController && event.newController !== event.card.controller) {
             event.card.takeControl(event.newController, event.card.defaultArena);
         } else {
@@ -49,10 +49,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         return ['put {0} into play', [target]];
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffectInternal(card: Card, context: TContext): boolean {
         const contextCopy = context.copy({ source: card });
         const player = this.getPutIntoPlayPlayer(contextCopy, card);
-        if (!super.canAffect(card, context)) {
+        if (!super.canAffectInternal(card, context)) {
             return false;
         } else if (!card.canBeInPlay() || card.isInPlay()) {
             return false;
@@ -69,7 +69,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         return true;
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<IPutIntoPlayProperties>): void {
         // TODO:rename this class and all related classes / methods as PutUnitIntoPlay
         const { controller, overrideZone, entersReady } = this.generatePropertiesFromContext(
             context,

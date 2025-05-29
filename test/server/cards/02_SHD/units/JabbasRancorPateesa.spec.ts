@@ -51,13 +51,13 @@ describe('Jabba\'s Rancor, Pateesa', function () {
 
                 // should choose another friendly ground unit
                 expect(context.player1).toBeAbleToSelectExactly([context.jabbaTheHutt, context.hylobonEnforcer]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.jabbaTheHutt);
 
                 // should choose an enemy ground unit
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.partisanInsurgent]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.wampa);
 
@@ -65,7 +65,7 @@ describe('Jabba\'s Rancor, Pateesa', function () {
                 expect(context.jabbaTheHutt.damage).toBe(3);
                 expect(context.wampa.damage).toBe(3);
 
-                context.jabbasRancor.exhausted = false;
+                context.readyCard(context.jabbasRancor);
                 context.player2.passAction();
 
                 // attack with jabba's rancor, ability should repeat
@@ -98,7 +98,7 @@ describe('Jabba\'s Rancor, Pateesa', function () {
 
                 // choose another friendly ground unit
                 expect(context.player1).toBeAbleToSelectExactly([context.jabbaTheHutt, context.hylobonEnforcer]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).not.toHavePassAbilityButton();
 
                 context.player1.clickCard(context.jabbaTheHutt);
@@ -122,7 +122,7 @@ describe('Jabba\'s Rancor, Pateesa', function () {
 
                 // choose an enemy ground unit
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.partisanInsurgent]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).not.toHavePassAbilityButton();
 
                 context.player1.clickCard(context.wampa);

@@ -14,13 +14,13 @@ export default class FettsFiresprayFearedSilhouette extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Deal 1 indirect damage to a player. If you control Boba Fett, deal 2 indirect damage instead',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
-                onCardPlayed: (event, context) => event.card === context.source
+                onAttack: true,
+                whenPlayed: true,
             },
             targetResolver: {
                 mode: TargetMode.Player,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.controlsLeaderOrUnitWithTitle('Boba Fett'),
+                    condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Boba Fett'),
                     onTrue: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 2 }),
                     onFalse: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 1 }),
                 })

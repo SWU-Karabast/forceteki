@@ -6,9 +6,10 @@ import { EventName, DeckZoneDestination } from '../core/Constants';
 import { LookAtSystem } from './LookAtSystem';
 import { MoveCardSystem } from './MoveCardSystem';
 import * as Contract from '../core/utils/Contract';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import { ViewCardInteractMode } from './ViewCardSystem';
 
 export interface ILookMoveDeckCardsTopOrBottomProperties extends IPlayerTargetSystemProperties {
@@ -58,7 +59,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         return [context.player];
     }
 
-    public override canAffect(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
+    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: Partial<ILookMoveDeckCardsTopOrBottomProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
         let nonAraTarget: Player;
 
         if (Array.isArray(target)) {
@@ -77,7 +78,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
             return false;
         }
 
-        return super.canAffect(target, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
     }
 
     // Helper method for pushing the move card event into the events array.
@@ -97,20 +98,26 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         }
 
         // create a new card event
-        const moveCardEvent = new MoveCardSystem({
+        const moveGameSystem = new MoveCardSystem({
             destination: bottom ? DeckZoneDestination.DeckBottom : DeckZoneDestination.DeckTop,
             target: card
-        }).generateEvent(context);
+        });
+        const moveCardEvent = moveGameSystem.generateEvent(context);
+        const [effectMessage, effectArgs] = moveGameSystem.getEffectMessage(context);
+        context.game.addMessage('{0} chooses to {1}', context.player, [effectMessage, ...effectArgs]);
         events.push(moveCardEvent);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        const message =
-            properties.amount > 0
-                ? `look at the top ${properties.amount === 1 ? 'card' : `${properties.amount} cards`} of your deck. 
-                ${properties.amount === 1 ? 'You may put it on the bottom of your deck'
-                    : 'Put any number of them on the bottom of your deck and the rest on top in any order'}` : '';
-        return [message, []];
+
+        if (properties.amount === 0) {
+            return ['', []];
+        }
+
+        return ['look at the top {0} of their deck and they {1}', [
+            ChatHelpers.pluralize(properties.amount, 'card', 'cards'),
+            properties.amount === 1 ? 'may put it on the bottom of their deck' : 'put any number of them on the bottom of their deck and the rest on top in any order',
+        ]];
     }
 }

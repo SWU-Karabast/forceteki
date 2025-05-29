@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { CardType } from '../../../core/Constants';
 
 export default class MasAmeddaViceChair extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -11,11 +12,11 @@ export default class MasAmeddaViceChair extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addTriggeredAbility({
-            title: 'Exhaust this unit',
+            title: 'Exhaust this unit to search the top 4 cards of your deck for a unit, reveal it, and draw it',
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.isUnit() &&
-                    event.card.controller === context.player &&
+                    event.cardTypeWhenInPlay === CardType.BasicUnit &&
+                    event.player === context.player &&
                     event.card !== context.source
             },
             optional: true,

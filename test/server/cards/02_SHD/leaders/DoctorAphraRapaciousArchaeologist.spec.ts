@@ -29,11 +29,12 @@ describe('Doctor Aphra, Rapacious Archaeologist', function () {
                 });
 
                 const { context } = contextRef;
-                context.game.setRandomSeed('12345');
+                context.game.setRandomSeed('54321');
                 const milleniumFalconPieceOfJunk = context.player1.findCardByName('millennium-falcon#piece-of-junk', 'discard');
                 const milleniumFalconLandosPride = context.player1.findCardByName('millennium-falcon#landos-pride', 'discard');
 
                 context.player1.clickCard(context.doctorAphraRapaciousArchaeologist);
+                context.player1.clickPrompt('Deploy Doctor Aphra');
 
                 expect(context.doctorAphraRapaciousArchaeologist).toBeInZone('groundArena', context.player1);
                 expect(context.doctorAphraRapaciousArchaeologist.getPower()).toBe(5);
@@ -54,9 +55,9 @@ describe('Doctor Aphra, Rapacious Archaeologist', function () {
                 // After the selection, one "random" card is returned to the hand and Doctor Aphra loses the +3/+0 bonus because there are no longer 5 different cost cards in the discard
                 context.player1.clickPrompt('Done');
 
-                expect(context.devotion).toBeInZone('discard', context.player1);
+                expect(context.devotion).toBeInZone('hand', context.player1);
                 expect(context.warzoneLieutenant).toBeInZone('discard', context.player1);
-                expect(milleniumFalconPieceOfJunk).toBeInZone('hand', context.player1);
+                expect(milleniumFalconPieceOfJunk).toBeInZone('discard', context.player1);
                 expect(context.doctorAphraRapaciousArchaeologist.getPower()).toBe(2);
                 expect(context.doctorAphraRapaciousArchaeologist.getHp()).toBe(5);
             });
@@ -73,6 +74,7 @@ describe('Doctor Aphra, Rapacious Archaeologist', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.doctorAphraRapaciousArchaeologist);
+                context.player1.clickPrompt('Deploy Doctor Aphra');
 
                 expect(context.doctorAphraRapaciousArchaeologist).toBeInZone('groundArena', context.player1);
                 expect(context.doctorAphraRapaciousArchaeologist.getPower()).toBe(2);

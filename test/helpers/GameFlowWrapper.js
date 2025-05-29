@@ -26,7 +26,10 @@ class GameFlowWrapper {
                 Settings.getUserWithDefaultsSet(player1Info),
                 Settings.getUserWithDefaultsSet(player2Info),
             ],
-            cardDataGetter
+            cardDataGetter,
+            pushUpdate: () => true,
+            buildSafeTimeout: () => undefined,
+            userTimeoutDisconnect: () => undefined,
         };
 
         this.game = new Game(details, { router });
@@ -220,6 +223,16 @@ class GameFlowWrapper {
             card.removeDamage(-damageDiff, {});
         }
 
+        Util.refreshGameState(this.game);
+    }
+
+    exhaustCard(card) {
+        card.exhaust();
+        Util.refreshGameState(this.game);
+    }
+
+    readyCard(card) {
+        card.ready();
         Util.refreshGameState(this.game);
     }
 

@@ -36,7 +36,7 @@ describe('Reprocess\' ability', function () {
                 context.atst,
                 context.wampa,
             ]);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickCard(context.echoBaseDefender);
             context.player1.clickCard(context.specforceSoldier);
@@ -97,7 +97,7 @@ describe('Reprocess\' ability', function () {
                 context.atst,
                 context.wampa,
             ]);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickCard(context.echoBaseDefender);
             context.player1.clickCard(context.specforceSoldier);
@@ -140,9 +140,11 @@ describe('Reprocess\' ability', function () {
 
             const [firstReprocess, secondReprocess] = context.player1.findCardsByName('reprocess');
             context.player1.clickCard(firstReprocess);
+            context.player1.clickPrompt('Play anyway');
             expect(context.player2).toBeActivePlayer();
             expect(context.restock).toBeInZone('discard');
             expect(context.resupply).toBeInZone('discard');
+            expect(firstReprocess).toBeInZone('discard');
             let battleDroids = context.player1.findCardsByName('battle-droid');
             expect(battleDroids.length).toBe(0);
 
@@ -153,8 +155,8 @@ describe('Reprocess\' ability', function () {
 
             context.player1.clickCard(secondReprocess);
             expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel]);
-            expect(context.player1).toHaveChooseNoTargetButton();
-            context.player1.clickPrompt('Choose no target');
+            expect(context.player1).toHaveChooseNothingButton();
+            context.player1.clickPrompt('Choose nothing');
             expect(context.pykeSentinel).toBeInZone('discard');
             battleDroids = context.player1.findCardsByName('battle-droid');
             expect(battleDroids.length).toBe(0);

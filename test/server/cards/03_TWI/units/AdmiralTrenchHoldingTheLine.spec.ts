@@ -25,7 +25,7 @@ describe('Admiral Trench, Holding the Line', function () {
             context.player2.clickCard(context.admiralTrenchHoldingTheLine);
             expect(context.player2).toHavePrompt('Return up to 3 units that were defeated this phase from your discard pile to your hand.');
             expect(context.player2).toBeAbleToSelectExactly([context.firstLegionSnowtrooper, context.maul, context.fifthBrother, context.imperialInterceptor]);
-            expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose no target']);
+            expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose nothing']);
 
             context.player2.clickCard(context.firstLegionSnowtrooper);
             context.player2.clickCard(context.maul);
@@ -48,14 +48,14 @@ describe('Admiral Trench, Holding the Line', function () {
             context.player2.clickCard(context.admiralTrenchHoldingTheLine);
             context.player2.clickPrompt('Trigger exploit');
 
-            expect(context.player2).toHavePrompt('Select 1 cards to exploit');
+            expect(context.player2).toHavePrompt('Select a unit to exploit');
 
             context.player2.clickCard(context.firstLegionSnowtrooper);
             context.player2.clickPrompt('Done');
 
             expect(context.player2).toHavePrompt('Return up to 3 units that were defeated this phase from your discard pile to your hand.');
             expect(context.player2).toBeAbleToSelectExactly([context.firstLegionSnowtrooper]);
-            expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose no target']);
+            expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose nothing']);
 
             context.player2.clickCard(context.firstLegionSnowtrooper);
             context.player2.clickPrompt('Done');

@@ -15,8 +15,8 @@ export default class ShuttleST149UnderKrennicsAuthority extends NonLeaderUnitCar
             title: 'Take control of a token upgrade on a unit and attach it to a different eligible unit.',
             optional: true,
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
-                onCardDefeated: (event, context) => event.card === context.source,
+                whenPlayed: true,
+                whenDefeated: true,
             },
             targetResolvers: {
                 chooseUpgrade: {

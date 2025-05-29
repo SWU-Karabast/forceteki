@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { RelativePlayer, TargetMode, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
 
 export default class PrivateManufacturing extends EventCard {
     protected override getImplementationId() {
@@ -16,14 +16,14 @@ export default class PrivateManufacturing extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.draw({ amount: 2 }),
                 AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.isTokenUnit()).length > 0,
-                    onTrue: AbilityHelper.immediateEffects.noAction(),
+                    condition: (context) => context.player.hasSomeArenaUnit({ condition: (card) => card.isTokenUnit() }),
                     onFalse: AbilityHelper.immediateEffects.selectCard({
                         activePromptTitle: 'Select 2 cards',
                         mode: TargetMode.Exactly,
-                        player: RelativePlayer.Self,
+                        controller: RelativePlayer.Self,
                         zoneFilter: ZoneName.Hand,
                         numCards: 2,
+                        effect: 'choose 2 cards to move to the bottom of their deck',
                         innerSystem: AbilityHelper.immediateEffects.moveToBottomOfDeck()
                     })
                 })

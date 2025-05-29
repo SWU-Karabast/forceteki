@@ -32,7 +32,7 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                 context.player1.clickCard(context.watTambor);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.admiralYularen]);
                 expect(context.player1).not.toHavePassAbilityButton();
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // give +2/+2 to battlefield marine
                 context.player1.clickCard(context.battlefieldMarine);
@@ -54,6 +54,7 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                 expect(context.battlefieldMarine.getHp()).toBe(3);
 
                 context.player1.clickCard(context.watTambor);
+                context.player1.clickPrompt('Use it anyway');
 
                 // no friendly unit has died this phase, nothing happen
                 expect(context.player2).toBeActivePlayer();
@@ -86,7 +87,7 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                 context.player1.clickCard(context.watTambor);
                 context.player1.clickCard(context.allianceDispatcher);
                 expect(context.player2).toBeActivePlayer();
-                context.watTambor.exhausted = false;
+                context.readyCard(context.watTambor);
 
                 // yularen kill our guardian of the whills
                 context.player2.clickCard(context.admiralYularen);

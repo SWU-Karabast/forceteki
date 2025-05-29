@@ -9,7 +9,12 @@ const parsedEnv = z
         GAME_NODE_HOST: z.string(),
         GAME_NODE_NAME: z.string(),
         GAME_NODE_SOCKET_IO_PORT: z.coerce.number().int(),
-        SECRET: z.string()
+        AWS_REGION: z.string().optional(),
+        AWS_ACCESS_KEY_ID: z.string().optional(),
+        AWS_SECRET_ACCESS_KEY: z.string().optional(),
+        NEXTAUTH_SECRET: z.string().optional(),
+        DISCORD_BUG_REPORT_WEBHOOK_URL: z.string().optional(),
+        ADDITIONAL_CORS_ORIGINS: z.string().optional()
     })
     .safeParse(process.env);
 
@@ -42,6 +47,15 @@ if (!parsedEnv.success) {
     throw Error(`Failed to initialize environment variables: ${(parsedEnv as any).error.message}`);
 }
 
+const defaultOrigins = ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'];
+
+export const corsOrigins = parsedEnv.data.ADDITIONAL_CORS_ORIGINS
+    ? [
+        ...defaultOrigins,
+        ...parsedEnv.data.ADDITIONAL_CORS_ORIGINS.split(',').filter((origin) => origin.trim() !== '')
+    ]
+    : defaultOrigins;
+
 // export const captchaKey = parsedEnv.data.CAPTCHA_KEY;
 // export const cookieLifetime = parsedEnv.data.COOKIE_LIFETIME;
 // export const dbPath = parsedEnv.data.DB_PATH;
@@ -60,5 +74,9 @@ export const gameNodeSocketIoPort = parsedEnv.data.GAME_NODE_SOCKET_IO_PORT;
 // export const lobbyPort = parsedEnv.data.LOBBY_PORT;
 // export const maxGames = parsedEnv.data.MAX_GAMES;
 // export const mqUrl = parsedEnv.data.MQ_URL;
-export const secret = parsedEnv.data.SECRET;
+export const DISCORD_BUG_REPORT_WEBHOOK_URL = parsedEnv.data.DISCORD_BUG_REPORT_WEBHOOK_URL;
 // export const sentryDsn = parsedEnv.data.SENTRY_DSN;
+export const AWS_REGION = parsedEnv.data.AWS_REGION;
+export const AWS_ACCESS_KEY_ID = parsedEnv.data.AWS_ACCESS_KEY_ID;
+export const AWS_SECRET_ACCESS_KEY = parsedEnv.data.AWS_SECRET_ACCESS_KEY;
+export const NEXTAUTH_SECRET = parsedEnv.data.NEXTAUTH_SECRET;

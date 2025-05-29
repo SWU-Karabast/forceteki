@@ -29,6 +29,7 @@ describe('Lando Calrissian With Impeccable Taste', function () {
             // Proceeds to defeat resource
             expect(context.player1).toHavePrompt('Defeat a resource you own and control');
             expect(context.player1).toBeAbleToSelectExactly([context.aggression, context.protector, context.sparkOfRebellion, context.zoriiBliss, context.liberatedSlaves]);
+            expect(context.player1).not.toHaveChooseNothingButton();
 
             // Defeat a resource
             context.player1.clickCard(context.aggression);
@@ -100,7 +101,7 @@ describe('Lando Calrissian With Impeccable Taste', function () {
             expect(context.player1).toBeAbleToSelectExactly([context.zoriiBliss, context.dj]);
 
             // Choose to not play a card
-            context.player1.clickPrompt('Choose no target');
+            context.player1.clickPrompt('Choose nothing');
 
             // Still requires to defeat a resource
             expect(context.player1).toHavePrompt('Defeat a resource you own and control');

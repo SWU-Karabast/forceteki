@@ -16,9 +16,9 @@ describe('Embo, Stoic and Resolute', function () {
                 const { context } = contextRef;
 
                 function reset(resetDamage = true) {
-                    context.embo.exhausted = false;
+                    context.readyCard(context.embo);
                     if (resetDamage) {
-                        context.embo.damage = 0;
+                        context.setDamage(context.embo, 0);
                     }
                     context.player2.passAction();
                 }
@@ -27,7 +27,6 @@ describe('Embo, Stoic and Resolute', function () {
                 context.player1.clickCard(context.embo);
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1).toBeAbleToSelectExactly([context.embo, context.escortSkiff, context.consularSecurityForce, context.swoopRacer, context.greenSquadronAwing, context.superlaserTechnician]);
-                expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.escortSkiff, 2],
                 ]));
@@ -50,7 +49,6 @@ describe('Embo, Stoic and Resolute', function () {
                 context.player1.clickCard(context.superlaserTechnician);
                 context.player2.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.embo, context.escortSkiff, context.consularSecurityForce, context.swoopRacer, context.greenSquadronAwing]);
-                expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.escortSkiff, 2],
                 ]));
@@ -95,7 +93,6 @@ describe('Embo, Stoic and Resolute', function () {
                 ]));
 
                 expect(context.player1).toBeAbleToSelectExactly([context.embo]);
-                expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.embo, 2],
                 ]));

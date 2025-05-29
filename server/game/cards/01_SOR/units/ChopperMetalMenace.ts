@@ -16,20 +16,19 @@ export default class ChopperMetalMenace extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                     amount: 1,
-                    target: context.source.activeAttack.target.controller
+                    target: context.source.activeAttack.getDefendingPlayer(),
                 })),
                 AbilityHelper.immediateEffects.conditional((context) => ({
                     // There will be one event for the discard system overall plus one per card, so we need to ensure at least two exist
                     condition: context.events.length < 2 ? false : context.events[0].card.isEvent(),
-                    onTrue: AbilityHelper.immediateEffects.exhaustResources({ amount: 1, target: context.source.activeAttack.target.controller }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
+                    onTrue: AbilityHelper.immediateEffects.exhaustResources({ amount: 1, target: context.source.activeAttack.getDefendingPlayer() }),
                 }))
             ])
         });
 
         this.addConstantAbility({
             title: 'While you control another Spectre unit, Chopper gains Raid 1',
-            condition: (context) => context.player.getOtherUnitsInPlayWithTrait(context.source, Trait.Spectre).length > 0,
+            condition: (context) => context.player.hasSomeArenaUnit({ otherThan: context.source, trait: Trait.Spectre }),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })
         });
     }

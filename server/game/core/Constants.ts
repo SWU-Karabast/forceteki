@@ -18,6 +18,12 @@ export enum DeckZoneDestination {
     DeckBottom = 'deckBottom'
 }
 
+export enum SnapshotType {
+    Player = 'player',
+    Phase = 'phase',
+    Round = 'round'
+}
+
 /**
  * Helper type used when a passed ZoneName represents a move destination.
  * Used to account for moving to top or bottom of deck.
@@ -66,11 +72,12 @@ export enum EffectName {
     AdditionalActionAfterWindowCompleted = 'additionalActionsAfterWindowCompleted',
     AdditionalPlayCost = 'additionalPlaycost',
     AdditionalTriggerCost = 'additionalTriggercost',
-    AddTrait = 'addTrait',
     AssignIndirectDamageDealtToOpponents = 'assignIndirectDamageDealtToOpponents',
+    AssignIndirectDamageDealtByUnit = 'assignIndirectDamageDealtByUnit',
     Blank = 'blank',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
+    CanAttackMultipleUnitsSimultaneously = 'canAttackMultipleUnitsSimultaneously',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
     CanBePlayedWithPilotingIgnoringPilotLimit = 'canBePlayedWithPilotingIgnoringPilotLimit',
     CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
@@ -83,19 +90,26 @@ export enum EffectName {
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
+    GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
     ModifyHp = 'modifyHp',
+    ModifyIndirectDamage = 'modifyIndirectDamage',
     ModifyPilotLimit = 'modifyPilotLimit',
+    ModifyStartingHandSize = 'modifyStartingHandSize',
     ModifyPower = 'modifyPower',
     ModifyStats = 'modifyStats',
+    MultiplyNumericKeyword = 'multiplyNumericKeyword',
+    MustAttack = 'mustAttack',
     MustBeChosen = 'mustBeChosen',
+    NoMulligan = 'noMulligan',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
     SuppressEffects = 'suppressEffects',
     TakeControl = 'takeControl',
+    TokenUnitsEnterPlayReady = 'tokenUnitsEnterPlayReady',
     UnlessActionCost = 'unlessActionCost',
     UpgradeHpModifier = 'upgradeHpModifier',
     UpgradePowerModifier = 'upgradePowerModifier',
@@ -134,6 +148,13 @@ export enum WildcardRelativePlayer {
 
 export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
+export enum StandardTriggeredAbilityType {
+    OnAttack = 'onAttack',
+    WhenDefeated = 'whenDefeated',
+    WhenPlayed = 'whenPlayed',
+    WhenPlayedUsingSmuggle = 'whenPlayedUsingSmuggle',
+}
+
 export enum TargetMode {
     AutoSingle = 'autoSingle',
     // TODO: add 'Between'
@@ -171,7 +192,8 @@ export enum CardType {
     LeaderUpgrade = 'leaderUpgrade',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
-    UnitUpgrade = 'unitUpgrade',
+    TokenCard = 'tokenCard',
+    NonLeaderUnitUpgrade = 'nonLeaderUnitUpgrade',
 }
 
 export enum WildcardCardType {
@@ -187,6 +209,8 @@ export enum WildcardCardType {
 
     /** Any upgrade type, including token upgrades */
     Upgrade = 'upgrade',
+
+    UnitUpgrade = 'unitUpgrade',
 }
 
 export type CardTypeFilter = CardType | WildcardCardType;
@@ -203,12 +227,17 @@ export enum TokenUnitName {
     TIEFighter = 'tieFighter',
 }
 
-export type TokenName = TokenUpgradeName | TokenUnitName;
+export enum TokenCardName {
+    Force = 'the-force'
+}
+
+export type TokenName = TokenUpgradeName | TokenUnitName | TokenCardName;
 
 // TODO: start removing these if they aren't used
 export enum EventName {
     OnAbilityResolved = 'onAbilityResolved',
     OnAbilityResolverInitiated = 'onAbilityResolverInitiated',
+    OnActionTaken = 'onActionTaken',
     OnAddTokenToCard = 'onAddTokenToCard',
     OnAttackCompleted = 'onAttackCompleted',
     OnAttackDamageResolved = 'onAttackDamageResolved',
@@ -238,8 +267,9 @@ export enum EventName {
     OnDiscardFromDeck = 'onDiscardFromDeck',
     OnEffectApplied = 'onEffectApplied',
     OnEntireHandDiscarded = 'onEntireHandDiscarded',
-    onExhaustResources = 'onExhaustResources',
-    onExploitUnits = 'onExploitUnits',
+    OnExhaustResources = 'onExhaustResources',
+    OnExploitUnits = 'onExploitUnits',
+    OnForceUsed = 'onForceUsed',
     OnIndirectDamageDealtToPlayer = 'onIndirectDamageDealtToPlayer',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
@@ -264,6 +294,8 @@ export enum EventName {
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
     OnUpgradeUnattached = 'onUpgradeUnattached',
+    OnUseWhenDefeated = 'onUseWhenDefeated',
+    OnUseWhenPlayed = 'onUseWhenPlayed',
 }
 
 /**
@@ -283,6 +315,7 @@ export enum MetaEventName {
     InitiateAttack = 'initiateAttack',
     GameLost = 'gameLost',
     NoAction = 'noAction',
+    Optional = 'optional',
     PayCardPrintedCost = 'payCardPrintedCost',
     PlayCard = 'playCard',
     ReplacementEffect = 'replacementEffect',
@@ -316,6 +349,7 @@ export enum KeywordName {
     Coordinate = 'coordinate',
     Exploit = 'exploit',
     Grit = 'grit',
+    Hidden = 'hidden',
     Overwhelm = 'overwhelm',
     Raid = 'raid',
     Restore = 'restore',
@@ -325,15 +359,6 @@ export enum KeywordName {
     Shielded = 'shielded',
     Smuggle = 'smuggle',
 }
-
-/** List of keywords that don't have any additional parameters */
-export type NonParameterKeywordName =
-  | KeywordName.Ambush
-  | KeywordName.Grit
-  | KeywordName.Overwhelm
-  | KeywordName.Saboteur
-  | KeywordName.Sentinel
-  | KeywordName.Shielded;
 
 export enum Trait {
     Armor = 'armor',
@@ -345,6 +370,7 @@ export enum Trait {
     Creature = 'creature',
     Disaster = 'disaster',
     Droid = 'droid',
+    Ewok = 'ewok',
     Fighter = 'fighter',
     FirstOrder = 'first order',
     Force = 'force',
@@ -367,6 +393,7 @@ export enum Trait {
     Naboo = 'naboo',
     NewRepublic = 'new republic',
     Night = 'night',
+    Nihil = 'nihil',
     Official = 'official',
     Pilot = 'pilot',
     Plan = 'plan',
@@ -438,11 +465,13 @@ export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
     CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
     CardsDrawnThisPhase = 'cardsDrawnThisPhase',
+    CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
     CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
-    UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
-    CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
     DamageDealtThisPhase = 'damageDealtThisPhase',
+    ForceUsedThisPhase = 'forceUsedThisPhase',
+    LeadersDeployedThisPhase = 'leadersDeployedThisPhase',
+    UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     UnitsHealedThisPhase = 'unitsHealedThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
@@ -472,17 +501,15 @@ export enum GameStateChangeRequired {
     MustFullyResolve = 'mustFullyResolve',
 }
 
-export enum PromptType {
-    Initiative = 'initiative',
-    Resource = 'resource',
-    ActionWindow = 'actionWindow',
-    DisplayCards = 'displayCards',
-    DistributeAmongTargets = 'distributeAmongTargets',
-}
-
 export enum SubStepCheck {
     None = 'none',
     /** ifYouDoNot is a special case which needs to ignore SubStep checks, but then and ifYouDo will do this check. */
     ThenIfYouDo = 'thenIfYouDo',
     All = 'all'
+}
+
+export enum AlertType {
+    Notification = 'notification',
+    Warning = 'warning',
+    Danger = 'danger',
 }

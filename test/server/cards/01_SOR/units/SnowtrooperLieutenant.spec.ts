@@ -43,7 +43,7 @@ describe('Snowtrooper Lieutenant', function() {
 
                 // do a second attack to confirm that the +2 bonus has expired
                 context.player2.passAction();
-                context.admiralPiett.exhausted = false;
+                context.readyCard(context.admiralPiett);
                 context.player1.clickCard(context.admiralPiett);
                 context.player1.clickCard(context.sundariPeacekeeper);
 

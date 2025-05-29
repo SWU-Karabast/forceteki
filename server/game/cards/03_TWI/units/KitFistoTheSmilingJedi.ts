@@ -16,7 +16,7 @@ export default class KitFistoTheSmilingJedi extends NonLeaderUnitCard {
             title: 'Deal 3 damage to a ground unit',
             optional: true,
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,

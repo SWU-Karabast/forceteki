@@ -12,13 +12,17 @@ enum SwuSet {
     SOR = 'sor',
     SHD = 'shd',
     TWI = 'twi',
-    JTL = 'jtl'
+    JTL = 'jtl',
+    LOF = 'lof'
 }
 
-const legalSets = [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI];
+const legalSets = [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI, SwuSet.JTL];
 
 const bannedCards = new Map([
-    ['4626028465', 'boba-fett#collecting-the-bounty']
+    ['4626028465', 'boba-fett#collecting-the-bounty'],
+    ['4002861992', 'dj#blatant-thief'],
+    ['5696041568', 'triple-dark-raid'],
+    ['9155536481', 'jango-fett#concealing-the-conspiracy']
 ]);
 
 const maxCopiesOfCards = new Map([
@@ -38,6 +42,7 @@ interface ICardCheckData {
     banned: boolean;
     implemented: boolean;
     minDeckSizeModifier?: number;
+    maxCopiesOfCardOverride?: number;
 }
 
 export class DeckValidator {
@@ -69,7 +74,8 @@ export class DeckValidator {
                 set: EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0],
                 banned: bannedCards.has(cardData.id),
                 implemented: !Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id),
-                minDeckSizeModifier: minDeckSizeModifier.get(cardData.id)
+                minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
+                maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
             };
 
             this.cardData.set(cardData.id, cardCheckData);
@@ -253,10 +259,7 @@ export class DeckValidator {
     }
 
     protected checkMaxCopiesOfCard(card: ISwuDbCardEntry, cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
-        let maxCount = 3;
-        if (maxCopiesOfCards.has(card.id)) {
-            maxCount = maxCopiesOfCards.get(card.id);
-        }
+        const maxCount = cardData.maxCopiesOfCardOverride ?? 3;
 
         if (card.count > maxCount) {
             failures[DeckValidationFailureReason.TooManyCopiesOfCard].push({

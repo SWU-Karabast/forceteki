@@ -13,7 +13,7 @@ export default class CrosshairFollowingOrders extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addActionAbility({
             title: 'Get +1/+0 for this phase',
-            cost: AbilityHelper.costs.abilityResourceCost(2),
+            cost: AbilityHelper.costs.abilityActivationResourceCost(2),
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                 effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
             })

@@ -29,7 +29,7 @@ describe('Mister Bones, I Performed Violence', function () {
 
             // reset
             context.setDamage(context.p2Base, 0);
-            context.misterBones.exhausted = false;
+            context.readyCard(context.misterBones);
 
             context.player2.passAction();
 

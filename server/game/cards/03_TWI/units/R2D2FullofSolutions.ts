@@ -24,6 +24,7 @@ export default class R2D2FullofSolutions extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                     searchCount: 3,
                     selectCount: 1,
+                    revealSelected: false,
                     selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
                 })
             }

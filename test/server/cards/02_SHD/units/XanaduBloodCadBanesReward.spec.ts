@@ -37,7 +37,7 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
                 expect(context.cantinaBraggart.exhausted).toBeTrue();
                 expect(context.cartelSpacer).toBeInZone('hand');
 
-                context.xanaduBlood.exhausted = false;
+                context.readyCard(context.xanaduBlood);
                 context.player2.passAction();
 
                 // attack with xanadu blood
@@ -57,7 +57,7 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
                 expect(context.player2.exhaustedResourceCount).toBe(1);
                 expect(context.syndicateLackeys).toBeInZone('hand');
 
-                context.xanaduBlood.exhausted = false;
+                context.readyCard(context.xanaduBlood);
                 context.player2.passAction();
 
                 // attack with xanadu blood
@@ -65,7 +65,7 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
                 context.player1.clickCard(context.p2Base);
 
                 // only 1 underworld unit, prompt is a bit different
-                expect(context.player1).toHavePassAbilityPrompt('Return another friendly non-leader Underworld unit to its owner’s hand');
+                expect(context.player1).toHavePassAbilityPrompt('Return another friendly non-leader Underworld unit to its owner’s hand. If you do, exhaust an enemy unit or resource');
 
                 // pass, nothing happen
                 context.player1.passAction();

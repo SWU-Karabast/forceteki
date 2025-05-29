@@ -25,6 +25,8 @@ describe('First Light, Headquarters of the Crimson Dawn', function() {
                 context.player1.clickCard(context.wampa);
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.firstLight).toBeInZone('spaceArena');
+                expect(context.getChatLogs(2)).not.toContain('player1 uses First Light to deal 4 damage to Wampa');
+                expect(context.getChatLogs(2)).toContain('player1 plays First Light using Smuggle, dealing 4 damage to Wampa');
 
                 // check damage and grit
                 expect(context.wampa.damage).toBe(4);

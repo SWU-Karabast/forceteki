@@ -26,7 +26,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         changePlayer: false,
     };
 
-    public eventHandler(event: any, additionalProperties = {}): void {
+    public eventHandler(event: any, additionalProperties: Partial<IDrawSpecificCardProperties> = {}): void {
         const context = event.context;
         const card = event.card;
         // TODO: remove this completely if determined we don't need card snapshots
@@ -49,30 +49,14 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         }
     }
 
-    public override getCostMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IDrawSpecificCardProperties;
-        return ['shuffling {0} into their deck', [properties.target]];
-    }
-
     public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IDrawSpecificCardProperties;
-        const destinationController = Array.isArray(properties.target)
-            ? properties.changePlayer
-                ? properties.target[0].controller.opponent
-                : properties.target[0].controller
-            : properties.changePlayer
-                ? properties.target.controller.opponent
-                : properties.target.controller;
-        if (properties.shuffle) {
-            return ['shuffle {0} into {1}\'s hand', [properties.target, destinationController]];
-        }
         return [
-            'move {0} to {1}\'s hand',
-            [properties.target, destinationController]
+            '{0} draws a card',
+            [context.player]
         ];
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IDrawSpecificCardProperties> = {}): boolean {
         const { changePlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IDrawSpecificCardProperties;
         return (
             (!changePlayer ||
@@ -80,11 +64,11 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
                 !card.anotherUniqueInPlay(context.player))) &&
                 (context.player.isLegalZoneForCardType(card.type, ZoneName.Hand)) &&
                 !EnumHelpers.isArena(card.zoneName) &&
-                super.canAffect(card, context)
+                super.canAffectInternal(card, context)
         );
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: any = {}): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<IDrawSpecificCardProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context) as IDrawSpecificCardProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         // add amount and player to have same properties than drawn event from DrawSystem

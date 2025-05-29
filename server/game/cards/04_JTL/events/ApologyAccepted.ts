@@ -20,6 +20,7 @@ export default class ApologyAccepted extends EventCard {
             },
             then: {
                 title: 'Give 2 Experience tokens to a unit',
+                optional: true,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.giveExperience({ amount: 2 })

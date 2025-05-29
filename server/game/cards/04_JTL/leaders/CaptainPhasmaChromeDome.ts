@@ -27,7 +27,6 @@ export default class CaptainPhasmaChromeDome extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => this.firstOrderCardPlayedThisPhase(context),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
         });
@@ -35,14 +34,13 @@ export default class CaptainPhasmaChromeDome extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addOnAttackAbility({
-            title: 'Deal 1 damage to a unit',
+            title: 'Deal 1 damage to a unit. If you do, deal 1 damage to a base',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => this.firstOrderCardPlayedThisPhase(context),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 }),
             },
             ifYouDo: {

@@ -1,19 +1,26 @@
+import type { IGameObjectState } from '../GameObject';
 import { GameObject } from '../GameObject.js';
-
+import * as Helpers from '../utils/Helpers.js';
 import { Duration, WildcardZoneName } from '../Constants.js';
 import type { OngoingEffect } from './OngoingEffect';
+import type Game from '../Game';
+import type { IOngoingEffectFactory } from '../../Interfaces';
 
 // This class is inherited by Card and also represents Framework effects
 
-export class OngoingEffectSource extends GameObject {
-    public constructor(game, name = 'Framework effect') {
+// Here mostly as a placeholder.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IOngoingEffectSourceState extends IGameObjectState { }
+
+export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingEffectSourceState> extends GameObject<T> {
+    public constructor(game: Game, name = 'Framework effect') {
         super(game, name);
     }
 
     /**
      * Applies an effect which persists.
      */
-    public persistent(propertyFactory) {
+    public persistent(propertyFactory: () => IOngoingEffectFactory) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.Persistent, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -21,7 +28,7 @@ export class OngoingEffectSource extends GameObject {
     /**
      * Applies an effect which lasts until the end of the attack.
      */
-    public untilEndOfAttack(propertyFactory) {
+    public untilEndOfAttack(propertyFactory: () => IOngoingEffectFactory) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfAttack, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -29,7 +36,7 @@ export class OngoingEffectSource extends GameObject {
     /**
      * Applies an effect which lasts until the end of the phase.
      */
-    public untilEndOfPhase(propertyFactory) {
+    public untilEndOfPhase(propertyFactory: () => IOngoingEffectFactory) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfPhase, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -37,7 +44,7 @@ export class OngoingEffectSource extends GameObject {
     /**
      * Applies an effect which lasts until the end of the round.
      */
-    public untilEndOfRound(propertyFactory) {
+    public untilEndOfRound(propertyFactory: () => IOngoingEffectFactory) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfRound, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -45,7 +52,7 @@ export class OngoingEffectSource extends GameObject {
     /**
      * Applies an effect which lasts while the source card of the effect is in play.
      */
-    public whileSourceInPlay(propertyFactory) {
+    public whileSourceInPlay(propertyFactory: () => IOngoingEffectFactory) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.WhileSourceInPlay, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -54,7 +61,7 @@ export class OngoingEffectSource extends GameObject {
     /**
      * Applies a 'lasting effect' (SWU 7.7.3) which lasts until an event contained in the `until` property for the effect has occurred.
      */
-    public lastingEffect(propertyFactory) {
+    public lastingEffect(propertyFactory: () => IOngoingEffectFactory) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.Custom, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -64,7 +71,7 @@ export class OngoingEffectSource extends GameObject {
      * @param {Object} properties properties for the effect(s), see {@link OngoingEffect}
      * @returns the effect(s) that were added to the engine
      */
-    public addEffectToEngine(properties): OngoingEffect[] {
+    public addEffectToEngine(properties: IOngoingEffectFactory): OngoingEffect[] {
         const { ongoingEffect, ...propertiesWithoutEffect } = properties;
 
         if (Array.isArray(ongoingEffect)) {
@@ -73,8 +80,8 @@ export class OngoingEffectSource extends GameObject {
         return [this.game.ongoingEffectEngine.add(ongoingEffect(this.game, this, propertiesWithoutEffect))];
     }
 
-    public removeEffectFromEngine(effectArray) {
-        this.game.ongoingEffectEngine.unapplyAndRemove((effect) => effectArray.includes(effect));
+    public removeEffectFromEngine(effects: OngoingEffect | OngoingEffect[]) {
+        this.game.ongoingEffectEngine.unapplyAndRemove((effect) => Helpers.asArray(effects).includes(effect));
     }
 
     public removeLastingEffects() {

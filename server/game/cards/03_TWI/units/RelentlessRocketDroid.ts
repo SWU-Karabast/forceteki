@@ -13,7 +13,7 @@ export default class RelentlessRocketDroid extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'While you control another Trooper unit, this unit gets +2/+0.',
-            condition: (context) => context.player.getOtherUnitsInPlayWithTrait(context.source, Trait.Trooper).length > 0,
+            condition: (context) => context.player.hasSomeArenaUnit({ otherThan: context.source, trait: Trait.Trooper }),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
         });
     }

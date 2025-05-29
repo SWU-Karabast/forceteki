@@ -41,7 +41,7 @@ describe('Saboteur keyword', function() {
                 context.player1.clickCard(context.resourcefulPursuers);
 
 
-                context.resourcefulPursuers.exhausted = false;
+                context.readyCard(context.resourcefulPursuers);
                 context.player2.passAction();
 
                 // see if everything goes normally

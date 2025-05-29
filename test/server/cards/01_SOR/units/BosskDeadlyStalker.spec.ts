@@ -1,8 +1,8 @@
 describe('Bossk, Deadly Stalker', function () {
     integration(function (contextRef) {
         describe('Bossk\'s ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('should deal 2 damage to a unit when controller plays events', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['smugglers-aid', 'tactical-advantage'],
@@ -13,9 +13,7 @@ describe('Bossk, Deadly Stalker', function () {
                         spaceArena: ['green-squadron-awing'],
                     }
                 });
-            });
 
-            it('should deal 2 damage to a unit when controller plays events', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.smugglersAid);
@@ -41,6 +39,23 @@ describe('Bossk, Deadly Stalker', function () {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.greenSquadronAwing.damage).toBe(2);
                 expect(context.greenSquadronAwing.isUpgraded()).toBeFalse();
+            });
+
+            it('should not trigger off of the event card that played him', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['now-there-are-two-of-them', 'bossk#deadly-stalker'],
+                        groundArena: ['boba-fett#disintegrator'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.nowThereAreTwoOfThem);
+                context.player1.clickCard(context.bossk);
+
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

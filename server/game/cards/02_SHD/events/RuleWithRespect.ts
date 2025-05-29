@@ -28,7 +28,7 @@ export default class RuleWithRespect extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.capture((context) => ({
                     captor: context.target,
                     target: this.attacksThisPhaseWatcher.getAttackersInPlay((attack) =>
-                        attack.target.isBase() &&
+                        attack.targets.some((target) => target.isBase()) &&
                         attack.defendingPlayer === context.player &&
                         attack.attackingPlayer !== context.player &&
                         attack.attacker.controller !== context.player)

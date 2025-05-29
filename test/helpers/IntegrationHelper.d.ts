@@ -1,3 +1,4 @@
+type ISerializedGameState = import('../../server/game/Interfaces').ISerializedGameState;
 type PhaseName = import('../../server/game/core/Constants').PhaseName;
 type IBaseCard = import('../../server/game/core/card/BaseCard').IBaseCard;
 type ILeaderCard = import('../../server/game/core/card/propertyMixins/LeaderProperties').ILeaderCard;
@@ -13,7 +14,9 @@ declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void)
 
 interface SwuTestContextRef {
     context: SwuTestContext;
+    snapshotId?: number;
     setupTestAsync: (options?: SwuSetupTestOptions) => Promise;
+
     buildImportAllCardsTools: () => {
         deckBuilder: DeckBuilder;
         implementedCardsCtors: Map<string, new (owner: Player, cardData: any) => Card>;
@@ -34,8 +37,10 @@ interface SwuTestContext {
     p1Leader: ILeaderCard;
     p2Base: IBaseCard;
     p2Leader: ILeaderCard;
+    snapshotId?: number;
 
-    allowTestToEndWithOpenPrompt: boolean;
+    ignoreUnresolvedActionPhasePrompts: boolean;
+    requireResolvedRegroupPhasePrompts: boolean;
 
     advancePhases(endphase);
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];
@@ -49,6 +54,8 @@ interface SwuTestContext {
     nextPhase();
     selectInitiativePlayer(player: PlayerInteractionWrapper);
     setDamage(card: CardWithDamageProperty, amount: number);
+    exhaustCard(card: ICardWithExhaustProperty);
+    readyCard(card: ICardWithExhaustProperty);
     skipSetupPhase();
     startGameAsync(): Promise;
 
@@ -61,24 +68,10 @@ interface PlayerInfo {
     username: string;
 }
 
-interface SwuSetupTestOptions {
-    phase?: string;
-    player1?: SwuPlayerSetupOptions;
-    player2?: SwuPlayerSetupOptions;
+interface SwuSetupTestOptions extends ISerializedGameState {
     autoSingleTarget?: boolean;
     phaseTransitionHandler?: (phase: PhaseName) => void;
-
-    [field: string]: any;
-}
-
-interface SwuPlayerSetupOptions {
-    groundArena?: any[];
-    spaceArena?: any[];
-    hand?: any[];
-    discard?: any[];
-    leader?: any;
-    base?: any;
-    hasInitiative?: boolean;
+    testUndo?: boolean;
 
     [field: string]: any;
 }
@@ -100,7 +93,7 @@ declare namespace jasmine {
         toHaveDisabledPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expecteds: string[]): boolean;
         toHavePassAbilityButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHavePassAttackButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
-        toHaveChooseNoTargetButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
+        toHaveChooseNothingButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHaveClaimInitiativeAbilityButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toBeAbleToSelect<T extends PlayerInteractionWrapper>(this: Matchers<T>, card: any): boolean;
         toBeAbleToSelectAllOf<T extends PlayerInteractionWrapper>(this: Matchers<T>, cards: any[]): boolean;
@@ -116,6 +109,7 @@ declare namespace jasmine {
         toBeInZone(zone, player?: PlayerInteractionWrapper): boolean;
         toAllBeInZone(zone, player?: PlayerInteractionWrapper): boolean;
         toBeCapturedBy(card: any): boolean;
+        toBeAttachedTo(card: any): boolean;
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
@@ -127,3 +121,12 @@ declare namespace jasmine {
         toHaveExactDisabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
     }
 }
+
+/**
+ * Define a single spec. A spec should contain one or more expectations that test the state of the code.
+ * A spec whose expectations all succeed will be passing and a spec with any failures will fail.
+ * @param expectation Textual description of what this spec is checking
+ * @param assertion Function that contains the code of your test. If not provided the test will be pending.
+ * @param timeout Custom timeout for an async spec.
+ */
+declare function undoIt(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number): void;

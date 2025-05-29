@@ -28,6 +28,9 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.p1Base.damage).toBe(8);
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
+                expect(context.getChatLogs(1)).toContain(
+                    'player1 uses Chancellor Palpatine, exhausting Chancellor Palpatine to draw a card, then to heal 2 damage from Echo Base, and then to flip Chancellor Palpatine'
+                );
 
                 context.moveToNextActionPhase();
 
@@ -42,6 +45,9 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 const cloneTroopers = context.player1.findCardsByName('clone-trooper');
                 expect(cloneTroopers.length).toBe(1);
                 expect(cloneTroopers[0]).toBeInZone('groundArena');
+                expect(context.getChatLogs(1)).toContain(
+                    'player1 uses Darth Sidious, exhausting Darth Sidious to create a Clone Trooper, then to deal 2 damage to Administrator\'s Tower, and then to flip Darth Sidious'
+                );
 
                 // Move to next phase and enable Palpatine hero flip
                 context.moveToNextActionPhase();
@@ -77,6 +83,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
 
                 // Check that Palpatine did not flip
                 context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.chancellorPalpatine.onStartingSide).toBe(true);
             });
@@ -98,6 +105,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
 
                 // Ensure no effect besides exhaustion
                 context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(10);
                 expect(context.player1.hand.length).toBe(0);
@@ -112,6 +120,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
 
                 // Ensure no effect besides exhaustion
                 context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(10);
 
@@ -125,6 +134,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
 
                 // Ensure no effect besides exhaustion
                 context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(10);
                 expect(context.player1.hand.length).toBe(5);
@@ -210,11 +220,45 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 context.player1.clickCard(context.superlaserTechnician);
                 expect(context.player1.readyResourceCount).toBe(readyResources - 7);
             });
+
+            it('Chancellor Palpatine should NOT count as a Separatist leader when on starting side', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'chancellor-palpatine#playing-both-sides' },
+                        hand: ['invincible#naval-adversary'],
+                        base: 'chopper-base'
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.invincible);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.exhaustedResourceCount).toBe(8); // Base cost 6 (not 5) plus 2 for Villainy penalty
+            });
         });
 
         describe('Chancellor Palpatine\'s leader ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('back-side does nothing if no Villainy card was played', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'chancellor-palpatine#playing-both-sides', flipped: true }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.chancellorPalpatine.onStartingSide).toBe(false);
+                context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
+                expect(context.chancellorPalpatine.exhausted).toBe(true);
+            });
+
+            it('back-side is not enabled by opponent playing a Villainy card nor by a friendly Heroism unit dying', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'chancellor-palpatine#playing-both-sides', flipped: true },
@@ -226,18 +270,8 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                         hand: ['vanquish', 'takedown', 'waylay', 'power-of-the-dark-side']
                     }
                 });
-            });
-
-            it('back-side does nothing if no Villainy card was played', function () {
                 const { context } = contextRef;
 
-                expect(context.chancellorPalpatine.onStartingSide).toBe(false);
-                context.player1.clickCard(context.chancellorPalpatine);
-                expect(context.chancellorPalpatine.exhausted).toBe(true);
-            });
-
-            it('back-side is not enabled by opponent playing a Villainy card nor by a friendly Heroism unit dying', function () {
-                const { context } = contextRef;
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
 
                 context.player1.passAction();
@@ -245,10 +279,29 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(0);
+            });
+
+            it('Darth Sidious should count as a Separatist leader when flipped', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'chancellor-palpatine#playing-both-sides', flipped: true },
+                        hand: ['invincible#naval-adversary'],
+                        base: 'chopper-base'
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.invincible);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.exhaustedResourceCount).toBe(5);
             });
         });
     });

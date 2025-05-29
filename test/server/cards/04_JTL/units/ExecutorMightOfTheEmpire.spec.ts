@@ -27,7 +27,7 @@ describe('Executor, Might of the Empire', function () {
             expectTieFighters(context.player1, 3);
 
             context.player2.passAction();
-            context.executor.ready();
+            context.readyCard(context.executor);
             context.player1.clickCard(context.executor);
             context.player1.clickCard(context.tieBomber);
 

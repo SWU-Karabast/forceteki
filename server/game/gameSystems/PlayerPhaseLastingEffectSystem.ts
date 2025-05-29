@@ -13,7 +13,6 @@ export type IPlayerPhaseLastingEffectProperties = Omit<IPlayerLastingEffectPrope
 export class PlayerPhaseLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends PlayerLastingEffectSystem<TContext> {
     public override readonly name = 'applyPlayerPhaseLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
-    public override readonly effectDescription = 'apply an effect to {0} for the phase';
     protected override readonly defaultProperties: IPlayerLastingEffectProperties = {
         targetPlayer: null,
         duration: null,

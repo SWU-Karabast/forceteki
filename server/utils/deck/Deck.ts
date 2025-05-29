@@ -1,5 +1,5 @@
 import type { Card } from '../../game/core/card/Card';
-import type Player from '../../game/core/Player';
+import type { Player } from '../../game/core/Player';
 import * as CardHelpers from '../../game/core/card/CardHelpers';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ISwuDbCardEntry, ISwuDbDecklist, IDecklistInternal, IInternalCardEntry } from './DeckInterfaces';
@@ -9,6 +9,17 @@ import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import type { ILeaderCard } from '../../game/core/card/propertyMixins/LeaderProperties';
 import { cards } from '../../game/cards/Index';
+import type { GameObjectRef } from '../../game/core/GameObjectBase';
+
+export interface IDeckList {
+    deckCards: GameObjectRef<IPlayableCard>[];
+    outOfPlayCards: any[];
+    outsideTheGameCards: GameObjectRef<Card>[];
+    tokens: GameObjectRef<ITokenCard>[];
+    base: GameObjectRef<IBaseCard> | undefined;
+    leader: GameObjectRef<ILeaderCard> | undefined;
+    allCards: GameObjectRef<Card>[];
+}
 
 export class Deck {
     private static buildDecklistEntry(cardId: string, count: number, cardDataGetter: CardDataGetter): IInternalCardEntry {
@@ -23,6 +34,7 @@ export class Deck {
 
     public readonly base: IInternalCardEntry;
     public readonly leader: IInternalCardEntry;
+    public readonly id?: string;
 
     private readonly cardDataGetter: CardDataGetter;
 
@@ -32,7 +44,7 @@ export class Deck {
     public constructor(decklist: ISwuDbDecklist | IDecklistInternal, cardDataGetter: CardDataGetter) {
         this.base = Deck.buildDecklistEntry(decklist.base.id, 1, cardDataGetter);
         this.leader = Deck.buildDecklistEntry(decklist.leader.id, 1, cardDataGetter);
-
+        this.id = decklist.deckID;
         const sideboard = decklist.sideboard ?? [];
 
         const allCardIds = new Set(
@@ -92,15 +104,15 @@ export class Deck {
         };
     }
 
-    public async buildCardsAsync(player: Player, cardDataGetter: CardDataGetter) {
-        const result = {
-            deckCards: [] as IPlayableCard[],
+    public async buildCardsAsync(player: Player, cardDataGetter: CardDataGetter): Promise<IDeckList> {
+        const result: IDeckList = {
+            deckCards: [],
             outOfPlayCards: [],
-            outsideTheGameCards: [] as Card[],
-            tokens: [] as ITokenCard[],
-            base: undefined as IBaseCard | undefined,
-            leader: undefined as ILeaderCard | undefined,
-            allCards: [] as Card[]
+            outsideTheGameCards: [],
+            tokens: [],
+            base: undefined,
+            leader: undefined,
+            allCards: []
         };
 
         // TODO: get all card data at once to reduce async calls
@@ -110,20 +122,20 @@ export class Deck {
             const cardCopies = await this.buildCardsFromSetCodeAsync(cardSetCode, player, cardDataGetter, count);
 
             for (const cardCopy of cardCopies) {
-                Contract.assertTrue(cardCopy.isPlayable());
-                result.deckCards.push(cardCopy);
+                Contract.assertTrue(cardCopy.isPlayable(), `Card ${cardCopy.internalName} cannot be in the deck`);
+                result.deckCards.push(cardCopy.getRef());
             }
         }
 
         // base
         const baseCard = (await this.buildCardsFromSetCodeAsync(this.base.id, player, cardDataGetter, 1))[0];
         Contract.assertTrue(baseCard.isBase());
-        result.base = baseCard;
+        result.base = baseCard.getRef();
 
         // leader
         const leaderCard = (await this.buildCardsFromSetCodeAsync(this.leader.id, player, cardDataGetter, 1))[0];
         Contract.assertTrue(leaderCard.isLeader());
-        result.leader = leaderCard;
+        result.leader = leaderCard.getRef();
 
         result.allCards.push(...result.deckCards);
         result.allCards.push(result.base);
@@ -157,7 +169,7 @@ export class Deck {
 
         // TODO: use Object.freeze() to make card data immutable
         const cardData = await cardDataGetter.getCardBySetCodeAsync(setCode);
-        const generatedCards = [];
+        const generatedCards: Card[] = [];
 
         for (let i = 0; i < count; i++) {
             const CardConstructor = cards.get(cardData.id) ?? CardHelpers.createUnimplementedCard;

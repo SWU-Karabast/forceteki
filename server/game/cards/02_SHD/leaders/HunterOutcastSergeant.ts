@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, ZoneName } from '../../../core/Constants';
 import type { ICardTargetResolver } from '../../../TargetInterfaces';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 
@@ -15,7 +15,7 @@ export default class HunterOutcastSergeant extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'Reveal a resource you control. If it shares a name with a friendly unique unit, return the resource to its owner’s hand and put the top card of your deck into play as a resource',
-            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityResourceCost(1)],
+            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: this.hunterAbility()
         });
     }
@@ -34,10 +34,9 @@ export default class HunterOutcastSergeant extends LeaderUnitCard {
             controller: RelativePlayer.Self,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
-                    context.player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.unique)
+                    context.player.getArenaUnits({ condition: (card) => card.unique })
                         .map((unit) => unit.title)
                         .includes(context.target?.title),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
                 onTrue: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.returnToHand(),
                     AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.player.getTopCardOfDeck() }))

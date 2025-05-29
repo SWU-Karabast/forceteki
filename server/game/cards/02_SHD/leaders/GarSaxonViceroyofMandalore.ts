@@ -31,7 +31,7 @@ export default class GarSaxonViceroyofMandalore extends LeaderUnitCard {
                     title: 'Return an upgrade that was attached to this unit to its owner\'s hand',
                     optional: true,
                     when: {
-                        onCardDefeated: (event, context) => event.card === context.source
+                        whenDefeated: true
                     },
                     targetResolver: {
                         zoneFilter: ZoneName.Discard,

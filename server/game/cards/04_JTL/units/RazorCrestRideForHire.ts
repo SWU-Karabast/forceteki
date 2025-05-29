@@ -14,11 +14,7 @@ export default class RazorCrestRideForHire extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Return a non-leader unit that costs 2 or less or an exhausted non-leader unit that costs 4 or less to its owner\'s hand',
             when: {
-                onCardPlayed: (event, context) =>
-                    event.card.controller === context.player &&
-                    event.card.isUpgrade() &&
-                    event.card.hasSomeTrait(Trait.Pilot) &&
-                    event.attachTarget === context.source
+                onUpgradeAttached: (event, context) => event.parentCard === context.source && event.upgradeCard.hasSomeTrait(Trait.Pilot)
             },
             optional: true,
             targetResolver: {

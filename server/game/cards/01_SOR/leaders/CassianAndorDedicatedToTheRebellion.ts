@@ -20,7 +20,7 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'If you\'ve dealt 3 or more damage to an enemy base this phase, draw a card.',
-            cost: [AbilityHelper.costs.abilityResourceCost(1), AbilityHelper.costs.exhaustSelf()],
+            cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {
                     const damageDealtToBase = this.damageDealtThisPhaseWatcher.getDamageDealtByPlayer(
@@ -31,14 +31,14 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
                     return damageDealtToBase >= 3;
                 },
                 onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }
 
     protected override setupLeaderUnitSideAbilities() {
         this.addTriggeredAbility({
-            title: 'When you deal damage to an enemy base: You may draw a card. Use this ability only once each round.',
+            title: 'Draw a card',
+            collectiveTrigger: true,
             when: {
                 onDamageDealt: (event, context) =>
                     event.card.isBase() &&

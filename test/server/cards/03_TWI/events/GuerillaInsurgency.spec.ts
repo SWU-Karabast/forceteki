@@ -1,4 +1,4 @@
-describe('GuerillaI nsurgency', function() {
+describe('Guerilla Insurgency', function() {
     integration(function(contextRef) {
         describe('Guerilla Insurgency\'s ability -', function() {
             it('should defeat a friendly and enemy resource, make players to discard 2 cards and deal damage 4 to each ground unit', async function() {
@@ -28,18 +28,18 @@ describe('GuerillaI nsurgency', function() {
 
                 expect(context.player1).toHavePrompt('Defeat a resource you control');
                 expect(context.player1).toBeAbleToSelectExactly([context.cunning, context.aggression, context.sparkOfRebellion, context.protector, context.atst, context.battlefieldMarine, context.tielnFighter, context.deathTrooper, context.bloodSport, context.dropIn, context.helloThere]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Each player defeats a resource
                 context.player1.clickCard(context.cunning);
 
                 expect(context.player2).toHavePrompt('Defeat a resource you control');
                 expect(context.player2).toBeAbleToSelectExactly([context.confiscate, context.restock, context.breakingIn]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 context.player2.clickCard(context.confiscate);
 
                 // Each player discards 2 cards
-                expect(context.player1).toHavePrompt('Choose 2 cards to discard');
+                expect(context.player1).toHavePrompt('Choose 2 cards to discard for Guerilla Insurgency\'s effect');
                 expect(context.player1).toBeAbleToSelectExactly(['grim-resolve', 'in-pursuit', 'droid-deployment']);
                 context.player1.clickCard('grim-resolve');
                 expect(context.player1).not.toHavePrompt('Done');
@@ -47,7 +47,7 @@ describe('GuerillaI nsurgency', function() {
                 context.player1.clickCardNonChecking('droid-deployment');
                 context.player1.clickPrompt('Done');
 
-                expect(context.player2).toHavePrompt('Choose 2 cards to discard');
+                expect(context.player2).toHavePrompt('Choose 2 cards to discard for Guerilla Insurgency\'s effect');
                 expect(context.player2).toBeAbleToSelectExactly(['force-choke', 'pillage']);
                 context.player2.clickCard('force-choke');
                 context.player2.clickCard('pillage');
@@ -69,6 +69,10 @@ describe('GuerillaI nsurgency', function() {
                 expect(context.wampa.damage).toBe(4);
                 expect(context.seventhSister.damage).toBe(4);
                 expect(context.corellianFreighter.damage).toBe(0); // Space unit should not be affected
+
+                expect(context.getChatLogs(7)).toContain(
+                    'player1 plays Guerilla Insurgency to make player1 defeat a resource, to make player2 defeat a resource, to make player1 and player2 discard 2 cards, and to deal 4 damage to Wampa and Seventh Sister'
+                );
             });
         });
     });

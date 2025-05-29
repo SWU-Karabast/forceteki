@@ -14,9 +14,8 @@ export default class ItsATrap extends EventCard {
         this.setEventAbility({
             title: 'If an opponent controls more space units than you, ready each space unit you control',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.getUnitsInPlay(ZoneName.SpaceArena).length < context.player.opponent.getUnitsInPlay(ZoneName.SpaceArena).length,
-                onTrue: AbilityHelper.immediateEffects.ready((context) => ({ target: context.player.getUnitsInPlay(ZoneName.SpaceArena) })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
+                condition: (context) => context.player.getArenaUnits({ arena: ZoneName.SpaceArena }).length < context.player.opponent.getArenaUnits({ arena: ZoneName.SpaceArena }).length,
+                onTrue: AbilityHelper.immediateEffects.ready((context) => ({ target: context.player.getArenaUnits({ arena: ZoneName.SpaceArena }) })),
             })
         });
     }

@@ -2,6 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { AbilityRestriction, CardType, DamageType, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as Helpers from '../core/utils/Helpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import type { Attack } from '../core/attack/Attack';
@@ -118,7 +119,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         return event.sourceEventForExcessDamage.availableExcessDamage;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
         if (
             properties.type === DamageType.Overwhelm && 'contingentSourceEvent' in properties &&
@@ -159,10 +160,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             }
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties) {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties>) {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
@@ -199,24 +200,22 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         Contract.assertTrue(context.source.isUnit());
         Contract.assertNotNullLike(card);
 
-        let damageDealtBy: IUnitCard;
+        let damageDealtBy: IUnitCard[];
 
         if (properties.source) {
-            Contract.assertTrue(properties.source.isUnit());
-            damageDealtBy = properties.source;
+            const sourceArray = Helpers.asArray(properties.source);
+            Contract.assertTrue(sourceArray.every((source) => source.isUnit()));
+            damageDealtBy = sourceArray;
         } else if (event.isOverwhelmDamage) {
-            damageDealtBy = properties.sourceAttack.attacker;
+            damageDealtBy = [properties.sourceAttack.attacker];
         } else {
-            switch (card) {
-                case properties.sourceAttack.attacker:
-                    Contract.assertTrue(properties.sourceAttack.target.isUnit());
-                    damageDealtBy = properties.sourceAttack.target;
-                    break;
-                case properties.sourceAttack.target:
-                    damageDealtBy = properties.sourceAttack.attacker;
-                    break;
-                default:
-                    Contract.fail(`Combat damage is being dealt to card ${card.internalName} but it is not involved in the attack`);
+            if (card === properties.sourceAttack.attacker) {
+                Contract.assertTrue(properties.sourceAttack.getAllTargets().some((target) => target.isUnit()));
+                damageDealtBy = properties.sourceAttack.getAllTargets().filter((target) => target.isUnit()) as IUnitCard[];
+            } else if (properties.sourceAttack.getAllTargets().some((target) => target === card)) {
+                damageDealtBy = [properties.sourceAttack.attacker];
+            } else {
+                Contract.fail(`Combat damage is being dealt to card ${card.internalName} but it is not involved in the attack`);
             }
         }
 
@@ -248,7 +247,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             type: DamageSourceType.Attack,
             attack: properties.sourceAttack,
             player: context.player,
-            damageDealtBy: properties.sourceAttack.attacker,
+            damageDealtBy: [properties.sourceAttack.attacker],
             isOverwhelmDamage: true,
             event
         };
@@ -290,12 +289,44 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
     }
 
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
+
+        if (!card.isBase()) {
+            this.addLastKnownInformationToEvent(event, card);
+        }
+    }
+
+    public override getCostMessage(context: TContext): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context);
+
+        if (properties.type === DamageType.Ability) {
+            return ['dealing {0} damage to {1}', [Helpers.derive(properties.amount, properties.target), properties.target]];
+        }
+
+        return super.getCostMessage(context);
+    }
+
     // TODO: might need to refactor getEffectMessage generally so that it has access to the event, doesn't really work for some of the damage scenarios currently
-    // public override getEffectMessage(context: TContext): [string, any[]] {
-    //     const properties = this.generatePropertiesFromContext(context);
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<TProperties>): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-    //     const damageTypeStr = isCombatDamage ? ' combat' : '';
+        let amountStr = '';
+        if ('amount' in properties && typeof properties.amount === 'number') {
+            amountStr = `${properties.amount} `;
+        }
 
-    //     return ['deal {0}{1} damage to {2}', [amount, damageTypeStr, target]];
-    // }
+        let damageTypeStr = '';
+        if (properties.type === DamageType.Combat) {
+            damageTypeStr = 'combat ';
+        } else if ('isIndirect' in properties && properties.isIndirect) {
+            damageTypeStr = 'indirect ';
+        } else if ('isUnpreventable' in properties && properties.isUnpreventable) {
+            damageTypeStr = 'unpreventable ';
+        } else if (properties.type === DamageType.Overwhelm) {
+            damageTypeStr = 'overwhelm ';
+        }
+
+        return [`deal ${amountStr}${damageTypeStr}damage to {0}`, [properties.target]];
+    }
 }

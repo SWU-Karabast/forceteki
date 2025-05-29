@@ -17,6 +17,10 @@ describe('Shuttle Tyridium, Fly Casual', function () {
             // Should give an experience token since the discarded card has an odd cost
             context.player1.clickCard(context.shuttleTydiriumFlyCasual);
             context.player1.clickCard(context.player2.base);
+
+            expect(context.player1).toHavePassAbilityPrompt('You may give an Experience token to another unit');
+            context.player1.clickPrompt('Trigger');
+
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.atst]);
             context.player1.clickCard(context.battlefieldMarine);
 
@@ -25,7 +29,7 @@ describe('Shuttle Tyridium, Fly Casual', function () {
             expect(context.player2).toBeActivePlayer();
 
             // Restore game board
-            context.shuttleTydiriumFlyCasual.exhausted = false;
+            context.readyCard(context.shuttleTydiriumFlyCasual);
             context.player2.passAction();
             context.player1.clickCard(context.shuttleTydiriumFlyCasual);
             context.player1.clickCard(context.player2.base);
@@ -35,7 +39,7 @@ describe('Shuttle Tyridium, Fly Casual', function () {
             expect(context.player2).toBeActivePlayer();
 
             // Empty deck
-            context.shuttleTydiriumFlyCasual.exhausted = false;
+            context.readyCard(context.shuttleTydiriumFlyCasual);
             context.player2.passAction();
 
             // No card discarded so ability should not be triggered

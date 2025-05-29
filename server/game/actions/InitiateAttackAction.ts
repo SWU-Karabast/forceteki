@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
-import PlayerAction from '../core/ability/PlayerAction.js';
-import { AbilityRestriction, WildcardZoneName } from '../core/Constants.js';
+import { PlayerAction } from '../core/ability/PlayerAction.js';
+import { AbilityRestriction, TargetMode, WildcardZoneName } from '../core/Constants.js';
 import * as EnumHelpers from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
 import type { Card } from '../core/card/Card';
@@ -9,6 +9,7 @@ import { AttackStepsSystem } from '../gameSystems/AttackStepsSystem.js';
 import { GameSystemCost } from '../core/cost/GameSystemCost.js';
 import { ExhaustSystem } from '../gameSystems/ExhaustSystem.js';
 import type Game from '../core/Game.js';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties.js';
 
 interface IInitiateAttackProperties extends IAttackProperties {
     allowExhaustedAttacker?: boolean;
@@ -19,7 +20,7 @@ interface IInitiateAttackProperties extends IAttackProperties {
  * Calls {@link AttackStepsSystem} to resolve the attack.
  *
  * Default behaviors can be overridden by passing in an {@link IInitiateAttackProperties} object.
- * See {@link GameSystemLibrary.attack} for using it in abilities.
+ * See {@link GameSystemLibrary.initiateAttack} for using it in abilities.
  */
 export class InitiateAttackAction extends PlayerAction {
     public constructor(game: Game, card: Card, private attackProperties?: IInitiateAttackProperties) {
@@ -28,8 +29,14 @@ export class InitiateAttackAction extends PlayerAction {
             : exhaustSelf();
 
         super(game, card, 'Attack', [exhaustCost], {
+            mode: TargetMode.BetweenVariable,
+            minNumCardsFunc: () => 1,
+            maxNumCardsFunc: (context: AbilityContext) => (context.source as IUnitCard).getMaxUnitAttackLimit(),
+            useSingleSelectModeFunc: (attacker: IUnitCard, possibleTargets: Card[]) => attacker.getMaxUnitAttackLimit() === 1 || possibleTargets.length === 1 || possibleTargets.some((card) => card.isBase()) && possibleTargets.filter((card) => card.isUnit()).length === 1,
+            multiSelectCardCondition: (card: Card, selectedCards: Card[]) => (card.isBase() ? selectedCards.length === 0 : !selectedCards.some((card) => card.isBase())),
             immediateEffect: new AttackStepsSystem(Object.assign({}, attackProperties, { attacker: card })),
             zoneFilter: WildcardZoneName.AnyAttackable,
+            attackTargetingHighlightAttacker: card,
             activePromptTitle: 'Choose a target for attack'
         });
     }

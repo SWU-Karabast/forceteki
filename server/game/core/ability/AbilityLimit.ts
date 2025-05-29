@@ -1,6 +1,6 @@
 import type EventEmitter from 'events';
 import { EventName } from '../Constants';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { CardAbility } from './CardAbility';
 
 export interface IAbilityLimit {
@@ -13,6 +13,7 @@ export interface IAbilityLimit {
     reset(): void;
     registerEvents(eventEmitter: EventEmitter): void;
     unregisterEvents(eventEmitter: EventEmitter): void;
+    isEpicActionLimit(): this is EpicActionLimit;
 }
 
 export class UnlimitedAbilityLimit implements IAbilityLimit {
@@ -49,6 +50,10 @@ export class UnlimitedAbilityLimit implements IAbilityLimit {
 
     public currentForPlayer(player: Player) {
         return this.useCount.get(this.getKey(player.name)) ?? 0;
+    }
+
+    public isEpicActionLimit(): this is EpicActionLimit {
+        return false;
     }
 
     private getKey(player: string): string {
@@ -95,6 +100,10 @@ export class PerGameAbilityLimit implements IAbilityLimit {
 
     public currentForPlayer(player: Player) {
         return this.useCount.get(this.getKey(player.name)) ?? 0;
+    }
+
+    public isEpicActionLimit(): this is EpicActionLimit {
+        return false;
     }
 
     private getKey(player: string): string {
@@ -145,6 +154,10 @@ export class EpicActionLimit extends PerGameAbilityLimit {
 
     public override clone() {
         return new EpicActionLimit();
+    }
+
+    public override isEpicActionLimit(): this is EpicActionLimit {
+        return true;
     }
 
     // this prevents the limit from being reset when a leader is defeated

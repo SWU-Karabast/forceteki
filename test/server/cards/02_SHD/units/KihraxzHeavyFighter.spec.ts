@@ -21,9 +21,9 @@ describe('Kihraxz Heavy Fighter', function () {
                     if (context.kihraxzHeavyFighter.zoneName === 'discard') {
                         context.player1.moveCard(context.kihraxzHeavyFighter, 'spaceArena');
                     }
-                    context.kihraxzHeavyFighter.exhausted = false;
-                    context.pykeSentinel.exhausted = true;
-                    context.devastatorInescapable.damage = 0;
+                    context.readyCard(context.kihraxzHeavyFighter);
+                    context.exhaustCard(context.pykeSentinel);
+                    context.setDamage(context.devastatorInescapable, 0);
                     if (passAction) {
                         context.player2.passAction();
                     }

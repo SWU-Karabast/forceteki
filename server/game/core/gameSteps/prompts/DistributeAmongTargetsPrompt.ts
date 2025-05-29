@@ -1,12 +1,11 @@
 import type Game from '../../Game';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import type { Card } from '../../card/Card';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptMapResults, IStatefulPromptResults } from '../PromptInterfaces';
-import { StatefulPromptType } from '../PromptInterfaces';
+import { PromptType, StatefulPromptType } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
-import { PromptType } from '../../Constants';
 
 /**
  * Prompt for distributing healing or damage among target cards.
@@ -60,15 +59,13 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         const promptData: IDistributeAmongTargetsPromptData = {
             type: this.properties.type,
             amount: this.properties.amount,
-            isIndirectDamange: this.properties.type === StatefulPromptType.DistributeIndirectDamage,
+            isIndirectDamage: this.properties.type === StatefulPromptType.DistributeIndirectDamage,
             canDistributeLess: this.properties.canDistributeLess,
             maxTargets: this.properties.maxTargets,
+            canChooseNoTargets: this.properties.canChooseNoTargets
         };
 
         const buttons = [{ text: 'Done', arg: 'done', command: 'statefulPromptResults' }];
-        if (this.properties.canChooseNoTargets) {
-            buttons.push({ text: 'Choose no targets', arg: 'noTargets', command: '' });
-        }
 
         this._activePrompt = {
             menuTitle,
@@ -78,6 +75,11 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             promptUuid: this.uuid,
             promptType: PromptType.DistributeAmongTargets
         };
+    }
+
+    protected override startActionTimer(player: Player): void {
+        // due to a bug that clears the prompts when the timer message appears, we're extending the timer during this prompt for now
+        player.actionTimer.start(120);
     }
 
     protected override highlightSelectableCards(): void {
@@ -99,11 +101,6 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
 
     public override menuCommand(player: Player, arg: string, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
-
-        if (arg === 'noTargets') {
-            this.complete();
-            return true;
-        }
 
         Contract.fail(`Unexpected menu command: '${arg}'`);
     }
@@ -136,6 +133,15 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
 
         const distributedValues = Array.from(results.valueDistribution.values());
         const distributedSum = distributedValues.reduce((sum, curr) => sum + curr, 0);
+
+        if (distributedSum === 0) {
+            Contract.assertTrue(
+                this.properties.canChooseNoTargets,
+                `Illegal prompt results for '${this._activePrompt.menuTitle}', no targets were selected and prompt requires targets`
+            );
+
+            return;
+        }
 
         Contract.assertNonEmpty(
             distributedValues,

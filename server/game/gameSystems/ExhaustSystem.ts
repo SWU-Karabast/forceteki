@@ -18,14 +18,14 @@ export class ExhaustSystem<TContext extends AbilityContext = AbilityContext> ext
         event.card.exhaust();
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        if (!super.canAffect(card, context, additionalProperties, mustChangeGameState)) {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IExhaustSystemProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        if (!super.canAffectInternal(card, context, additionalProperties, mustChangeGameState)) {
             return false;
         }
 
         const { isCost } = this.generatePropertiesFromContext(context);
 
-        // can safely cast here b/c the type was checked in super.canAffect
+        // can safely cast here b/c the type was checked in super.canAffectInternal
         if ((isCost || mustChangeGameState !== GameStateChangeRequired.None) && (card as ICardWithExhaustProperty).exhausted) {
             return false;
         }

@@ -22,7 +22,7 @@ describe('BB-8, Happy Beeps', function () {
                 context.player1.clickPrompt('Play BB-8 with Piloting');
                 context.player1.clickCard(context.atst);
 
-                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to ready a Resistance unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.roseTico, context.blackOne]);
@@ -39,7 +39,7 @@ describe('BB-8, Happy Beeps', function () {
                 context.player1.clickPrompt('Play BB-8 with Piloting');
                 context.player1.clickCard(context.atst);
 
-                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to ready a Resistance unit');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.poeDameron.exhausted).toBeTrue();

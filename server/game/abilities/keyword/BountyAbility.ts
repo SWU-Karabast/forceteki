@@ -1,3 +1,4 @@
+import type { AbilityContext } from '../../core/ability/AbilityContext';
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
 import type { IUnitCard } from '../../core/card/propertyMixins/UnitProperties';
@@ -17,7 +18,7 @@ export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'canBeT
  * This event is emitted regardless of whether the bounty's actual effects will change game state.
  */
 export class BountyAbility extends TriggeredAbility {
-    public override readonly keyword: KeywordName | null = KeywordName.Bounty;
+    public readonly keyword: KeywordName = KeywordName.Bounty;
 
     private readonly bountyProperties: IResolvedBountyProperties;
 
@@ -26,7 +27,7 @@ export class BountyAbility extends TriggeredAbility {
         card: Card,
         properties: Omit<ITriggeredAbilityBaseProps, 'canBeTriggeredBy'>,
     ) {
-        Contract.assertTrue(card.isUnit());
+        Contract.assertTrue(card.isUnit() || card.isDeployableLeader());
 
         const { title, optional } = properties;
 
@@ -56,7 +57,7 @@ export class BountyAbility extends TriggeredAbility {
         return true;
     }
 
-    public override queueEventsForSystems(context: any) {
+    public override queueEventsForSystems(context: AbilityContext) {
         super.queueEventsForSystems(context);
 
         const bountyEvent = new GameEvent(

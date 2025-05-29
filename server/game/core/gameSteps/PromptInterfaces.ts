@@ -1,10 +1,10 @@
 import type { ISetId } from '../../Interfaces';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
-import type BaseCardSelector from '../cardSelector/BaseCardSelector';
+import type { BaseCardSelector } from '../cardSelector/BaseCardSelector';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
-import type Player from '../Player';
+import type { Player } from '../Player';
 
 export enum DisplayCardSelectionState {
     Selectable = 'selectable',
@@ -12,6 +12,15 @@ export enum DisplayCardSelectionState {
     Unselectable = 'unselectable',
     Invalid = 'invalid',
     ViewOnly = 'viewOnly'
+}
+
+export enum PromptType {
+    Initiative = 'initiative',
+    Resource = 'resource',
+    ActionWindow = 'actionWindow',
+    DisplayCards = 'displayCards',
+    DistributeAmongTargets = 'distributeAmongTargets',
+    TriggerWindow = 'triggerWindow',
 }
 
 export interface IButton {
@@ -70,8 +79,9 @@ export interface IDistributeAmongTargetsPromptProperties extends IPromptProperti
 export interface IDistributeAmongTargetsPromptData {
     type: DistributePromptType;
     amount: number;
-    isIndirectDamange: boolean;
+    isIndirectDamage: boolean;
     canDistributeLess: boolean;
+    canChooseNoTargets: boolean;
     maxTargets?: number;
 }
 
@@ -90,6 +100,7 @@ export interface IDistributeAmongTargetsPromptMapResults {
 
 export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     source: string | OngoingEffectSource;
+    isOpponentEffect: boolean;
 
     availableCards?: Card[];
     buttons?: IButton[];
@@ -100,10 +111,11 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     mustSelect?: Card[];
     onCancel?: (player: Player) => void;
     onMenuCommand?: (arg: string) => boolean;
-    onSelect?: (card: Card[]) => boolean;
+    onSelect?: (card: Card | Card[]) => boolean;
     selectCardMode: SelectCardMode;
     selectOrder?: boolean;
-    selector?: BaseCardSelector;
+    selector: BaseCardSelector<AbilityContext>;
+    attackTargetingHighlightAttacker?: Card;
 }
 
 export interface IDisplayCardPromptPropertiesBase extends IPromptPropertiesBase {
@@ -129,7 +141,7 @@ export interface ISelectableCard {
 export interface IDisplayCardsSelectProperties extends IDisplayCardPromptPropertiesBase {
     selectedCardsHandler: (cards: Card[]) => void;
     validCardCondition?: (card: Card) => boolean;
-    canChooseNothing?: boolean;
+    canChooseFewer?: boolean;
     maxCards?: number;
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[]) => boolean;
     noSelectedCardsButtonText?: string;

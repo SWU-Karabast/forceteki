@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class BobaFettDaimyo extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -12,11 +12,11 @@ export default class BobaFettDaimyo extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Exhaust this leader',
+            title: 'Exhaust this leader to give a friendly unit +1/+0 for this phase',
             optional: true,
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.isUnit() && event.card.controller === context.player && event.card.keywords.length > 0
+                    event.cardTypeWhenInPlay === CardType.BasicUnit && event.player === context.player && event.card.keywords.length > 0
             },
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: {

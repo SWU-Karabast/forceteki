@@ -21,7 +21,7 @@ export default class LukeSkywalkerFaithfulFriend extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'Give a shield to a heroism unit you played this phase',
-            cost: [AbilityHelper.costs.abilityResourceCost(1), AbilityHelper.costs.exhaustSelf()],
+            cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) => {

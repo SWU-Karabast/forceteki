@@ -3,7 +3,7 @@ import type { DamageType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { IDamageSource } from '../IDamageOrDefeatSource';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 
 export interface DamageDealtEntry {
@@ -11,6 +11,7 @@ export interface DamageDealtEntry {
     damageSource: IDamageSource;
     target: Card;
     amount: number;
+    isIndirect: boolean;
 }
 
 export type IDamageDealtThisPhase = DamageDealtEntry[];
@@ -28,6 +29,10 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPh
             .filter((entry) => entry.damageSource.player === player && filter(entry));
     }
 
+    public playerHasDealtDamage(player: Player, filter: (entry: DamageDealtEntry) => boolean = () => true): boolean {
+        return this.getDamageDealtByPlayer(player, filter).length > 0;
+    }
+
     protected override setupWatcher() {
         this.addUpdater({
             when: {
@@ -38,7 +43,8 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPh
                     damageType: event.type,
                     damageSource: event.damageSource,
                     target: event.card,
-                    amount: event.amount
+                    amount: event.amount,
+                    isIndirect: event.isIndirect,
                 })
         });
     }

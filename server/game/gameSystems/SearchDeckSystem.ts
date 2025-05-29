@@ -8,9 +8,10 @@ import type { GameEvent } from '../core/event/GameEvent.js';
 import type { GameSystem } from '../core/gameSystem/GameSystem.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
-import type Player from '../core/Player.js';
+import type { Player } from '../core/Player.js';
 import { shuffleArray } from '../core/utils/Helpers.js';
 import * as Contract from '../core/utils/Contract.js';
+import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
 import type { DeckZone } from '../core/zone/DeckZone.js';
@@ -18,12 +19,12 @@ import type { DeckZone } from '../core/zone/DeckZone.js';
 type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((context: TContext) => T);
 
 export interface ISearchDeckProperties<TContext extends AbilityContext = AbilityContext> extends IPlayerTargetSystemProperties {
-    targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable;
+    targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable | TargetMode.Unlimited;
     activePromptTitle?: string;
 
     /** The number of cards from the top of the deck to search, or a function to determine how many cards to search. Default is -1, which indicates the whole deck. */
     searchCount?: number | ((context: TContext) => number);
-    canChooseNothing?: boolean;
+    canChooseFewer?: boolean;
 
     /** The number of cards to select from the search, or a function to determine how many cards to select. Default is 1. The targetMode will interact with this to determine the min/max number of cards to retrieve. */
     selectCount?: number | ((context: TContext) => number);
@@ -47,6 +48,7 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     /** Used for filtering selection based on things like trait, type, etc. */
     cardCondition?: (card: Card, context: TContext) => boolean;
     chooseNothingImmediateEffect?: GameSystem<TContext>;
+    multiSelectCondition?: (card: Card, currentlySelectedCards: Card[], context: TContext) => boolean;
 }
 
 export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ISearchDeckProperties<TContext> = ISearchDeckProperties<TContext>> extends PlayerTargetSystem<TContext, TProperties> {
@@ -62,22 +64,23 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         shuffleWhenDone: false,
         revealSelected: true,
         cardCondition: () => true,
+        multiSelectCondition: () => true,
         remainingCardsHandler: this.remainingCardsDefaultHandler
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(event): void { }
 
-    public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (this.computeSearchCount(properties.searchCount, context) === 0) {
             return false;
         }
         const player = properties.player || context.player;
-        return this.getDeck(player).length > 0 && super.canAffect(player, context);
+        return this.getDeck(player).length > 0 && super.canAffectInternal(player, context);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<TProperties> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
         properties.cardCondition = properties.cardCondition || (() => true);
@@ -89,23 +92,23 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         const searchCountAmount = this.computeSearchCount(properties.searchCount, context);
         const message =
         searchCountAmount > 0
-            ? `look at the top ${searchCountAmount === 1 ? 'card' : `${searchCountAmount} cards`} of their deck`
+            ? 'look at the top {0} of their deck'
             : 'search their deck';
-        return [message, []];
+        return [message, [ChatHelpers.pluralize(searchCountAmount, 'card', 'cards')]];
     }
 
     public override defaultTargets(context: TContext): Player[] {
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties: any): void {
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties: Partial<TProperties>): void {
         const { searchCount } = this.generatePropertiesFromContext(context, additionalProperties);
         const searchCountAmount = this.computeSearchCount(searchCount, context);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = searchCountAmount;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player = properties.player || context.player;
         const event = this.generateRetargetedEvent(player, context, additionalProperties) as any;
@@ -132,7 +135,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         return player.drawDeck;
     }
 
-    private promptSelectCards(event: any, additionalProperties: any, cards: Card[], selectedCards: Set<Card>): void {
+    private promptSelectCards(event: any, additionalProperties: Partial<TProperties>, cards: Card[], selectedCards: Set<Card>): void {
         const context: TContext = event.context;
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         let selectAmount: number;
@@ -145,6 +148,9 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
                 break;
             case TargetMode.Single:
                 selectAmount = 1;
+                break;
+            case TargetMode.Unlimited:
+                selectAmount = -1; // TODO: do we need to use a large number?
                 break;
             default:
                 Contract.fail(`Invalid targetMode: ${properties.targetMode}`);
@@ -181,19 +187,21 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         title: string,
         selectAmount: number,
         event: any,
-        additionalProperties: any
+        additionalProperties: Partial<TProperties>
     ): IDisplayCardsSelectProperties {
         return {
             activePromptTitle: title,
             source: context.source,
             displayCards: cards,
             maxCards: selectAmount,
-            canChooseNothing: properties.canChooseNothing || true,
+            canChooseFewer: properties.canChooseFewer || true,
             validCardCondition: (card: Card) =>
                 properties.cardCondition(card, context) &&
                 (!properties.selectedCardsImmediateEffect || properties.selectedCardsImmediateEffect.canAffect(card, context, additionalProperties)),
             selectedCardsHandler: (selectedCards: Card[]) =>
-                this.onSearchComplete(properties, context, event, selectedCards, cards)
+                this.onSearchComplete(properties, context, event, selectedCards, cards),
+            multiSelectCondition: (card: Card, currentlySelectedCards: Card[]) =>
+                properties.multiSelectCondition(card, currentlySelectedCards, context)
         };
     }
 
@@ -236,11 +244,12 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
     }
 
     private selectedCardsDefaultHandler(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>): void {
-        const gameSystem = this.generatePropertiesFromContext(event.context).selectedCardsImmediateEffect;
+        const gameSystem = properties.selectedCardsImmediateEffect;
+        const targetDeckOwner = properties.player || context.player;
         if (gameSystem && selectedCards.size > 0) {
             const selectedArray = Array.from(selectedCards);
 
-            const deckZone = context.player.getZone(ZoneName.Deck) as DeckZone;
+            const deckZone = targetDeckOwner.getZone(ZoneName.Deck) as DeckZone;
             deckZone.moveCardsToSearching(selectedArray, event);
 
             const events = [];

@@ -21,6 +21,8 @@ describe('Sanctioners Shuttle', function() {
             context.player1.clickCard(context.sanctionersShuttle);
             expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.tradeFederationShuttle]);
             context.player1.clickCard(context.greenSquadronAwing);
+            expect(context.greenSquadronAwing).toBeCapturedBy(context.sanctionersShuttle);
+            expect(context.getChatLogs(2)).toContain('player1 uses Sanctioner\'s Shuttle to capture Green Squadron A-Wing');
 
             // Remove coordinate
             context.player2.clickCard(context.subjugatingStarfighter);
@@ -31,7 +33,7 @@ describe('Sanctioners Shuttle', function() {
             // Reset unit to hand
             context.player1.clickCard(context.sanctionersShuttle);
             context.player1.clickCard(context.tradeFederationShuttle);
-            context.sanctionersShuttle.moveTo('hand');
+            context.player1.moveCard(context.sanctionersShuttle, 'hand');
 
             context.player2.passAction();
 

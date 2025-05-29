@@ -6,6 +6,7 @@ const fs = require('fs/promises');
 const mkdirp = require('mkdirp');
 const path = require('path');
 const cliProgress = require('cli-progress');
+const { addMockCards } = require('./mockdata');
 
 // ############################################################################
 // #################                 IMPORTANT              ###################
@@ -37,6 +38,16 @@ function populateMissingData(attributes, id) {
             attributes.upgradeHp = 0;
             attributes.upgradePower = 0;
             break;
+        case '4571900905': // The Force
+            attributes.cost = 0;
+            attributes.type = {
+                data: {
+                    attributes: {
+                        name: 'token'
+                    }
+                }
+            };
+            break;
         case '8777351722': // Anakin Skywalker - What It Takes To Win
             attributes.keywords = {
                 data: [{
@@ -54,6 +65,18 @@ function populateMissingData(attributes, id) {
                 { attributes: {
                     name: 'Heroism'
                 } }
+                ]
+            };
+            attributes.backSideTraits = {
+                data: [{ attributes: {
+                    name: 'Force'
+                } },
+                { attributes: {
+                    name: 'Separatist'
+                } },
+                { attributes: {
+                    name: 'Sith'
+                } },
                 ]
             };
             attributes.backSideAspects = {
@@ -104,13 +127,13 @@ function getAttributeNames(attributeList) {
 function filterValues(card) {
     try {
         // just filter out variants for now
-    // TODO: add some map for variants
+        // TODO: add some map for variants
         if (card.attributes.variantOf.data !== null) {
             return null;
         }
 
-        // filtering out C24 for now since we do not handle variants
-        if (card.attributes.expansion.data.attributes.code === 'C24') {
+        // filtering out convention exclusives - e.g., 'C24', 'P25'
+        if ((/^[a-zA-Z]\d\d$/g).test(card.attributes.expansion.data.attributes.code)) {
             return null;
         }
 
@@ -145,6 +168,9 @@ function filterValues(card) {
         }
         if (card.attributes.backSideTitle) {
             filteredObj.backSideTitle = card.attributes.backSideTitle;
+        }
+        if (card.attributes.backSideTraits) {
+            filteredObj.backSideTraits = getAttributeNames(card.attributes.backSideTraits);
         }
 
         // if a card has multiple types it will be still in one string, like 'token upgrade'
@@ -206,7 +232,7 @@ function buildCardLists(cards) {
     const seenNames = [];
     var duplicatesWithSetCode = {};
     const uniqueCardsMap = new Map();
-    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3], ['JTL', 4]]);
+    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3], ['JTL', 4], ['LOF', 5]]);
 
     for (const card of cards) {
         // creates a map of set code + card number to card id. removes reprints when done since we don't need that in the card data
@@ -280,6 +306,8 @@ async function main() {
         .map((pageNumber) => getCardData(pageNumber + 1, downloadProgressBar))))
         .flat()
         .filter((n) => n); // remove nulls
+    // cards = cards.concat([cunningForceBase, aggressionForceBase]);
+    const mockCardNames = addMockCards(cards);
 
     downloadProgressBar.stop();
 
@@ -306,9 +334,11 @@ async function main() {
     fs.writeFile(path.join(pathToJSON, '_cardMap.json'), JSON.stringify(cardMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_playableCardTitles.json'), JSON.stringify(playableCardTitles, null, 2));
     fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
+    fs.writeFile(path.join(pathToJSON, '_mockCardNames.json'), JSON.stringify(mockCardNames, null, 2));
     fs.copyFile(path.join(__dirname, '../card-data-version.txt'), path.join(pathToJSON, 'card-data-version.txt'));
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }
+
 
 main();

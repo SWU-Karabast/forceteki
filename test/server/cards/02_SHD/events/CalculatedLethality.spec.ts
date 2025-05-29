@@ -47,13 +47,15 @@ describe('Calculated Lethality', function () {
 
                 // unit defeated had 2 upgrades, can distribute 2 experience token between friendly units
                 expect(context.player1).toBeAbleToSelectExactly([context.fifthBrother, context.corellianFreighter]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // give 1 experience to fifth brother & corellian freighter
                 context.player1.setDistributeExperiencePromptState(new Map([
                     [context.fifthBrother, 1],
                     [context.corellianFreighter, 1],
                 ]));
+
+                expect(context.getChatLogs(1)).toContain('player1 uses Calculated Lethality to distribute 1 experience to Fifth Brother and 1 experience to Corellian Freighter');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.greenSquadronAwing).toBeInZone('discard');

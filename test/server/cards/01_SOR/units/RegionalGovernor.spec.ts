@@ -108,8 +108,29 @@ describe('Regional Governor', function () {
             context.player2.clickCard(context.vanquish);
             context.player2.clickCard(player1Falcon2Hand);
             expect(player2Falcon1Hand).toBeInZone('spaceArena');
+        });
 
-            // TODO PILOTING
+        it('Regional Governor\'s ability should disallow playing a unit as a pilot', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['regional-governor'],
+                },
+                player2: {
+                    hand: ['dagger-squadron-pilot'],
+                    spaceArena: ['cartel-turncoat']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // play regional governor and say millenium falcon
+            context.player1.clickCard(context.regionalGovernor);
+            expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
+            context.player1.chooseListOption('Dagger Squadron Pilot');
+            context.player2.passAction();
+
+            expect(context.daggerSquadronPilot).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
     });
 });

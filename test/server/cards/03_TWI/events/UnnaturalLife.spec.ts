@@ -47,6 +47,7 @@ describe('Unnatural Life', function() {
                 context.player1.setHand([context.unnaturalLife]);
                 context.player1.passAction();
                 context.player2.clickCard(context.unnaturalLife);
+                context.player2.clickPrompt('Play anyway');
                 expect(context.player1).toBeActivePlayer();
             });
         });

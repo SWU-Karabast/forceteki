@@ -47,6 +47,7 @@ describe('Draw system', function() {
 
                 context.player1.clickCard(context.missionBriefing);
                 context.player1.clickPrompt('You');
+                expect(context.getChatLogs(1)).toContain('player1 attempts to draw 2 cards from their empty deck and takes 6 damage instead');
                 expect(context.player1.base.damage).toBe(6);
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player1.deck.length).toBe(0);
@@ -65,7 +66,7 @@ describe('Draw system', function() {
                 expect(context.player2.hand.length).toBe(1);
                 expect(context.player1).toBeActivePlayer();
 
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
         });
     });

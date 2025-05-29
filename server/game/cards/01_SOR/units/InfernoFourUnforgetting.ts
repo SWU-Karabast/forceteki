@@ -14,8 +14,8 @@ export default class InfernoFourUnforgetting extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Look at the top 2 cards of your deck. Put any number of them on the bottom of your deck and the rest on top in any order.',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
-                onCardDefeated: (event, context) => event.card === context.source,
+                whenPlayed: true,
+                whenDefeated: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.lookMoveDeckCardsTopOrBottom({ amount: 2 })
         });

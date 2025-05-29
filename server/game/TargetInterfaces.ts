@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { CardTypeFilter, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from './core/Constants';
+import type { CardTypeFilter, GameStateChangeRequired, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from './core/Constants';
 import type { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 import type { AggregateSystem } from './core/gameSystem/AggregateSystem';
 
@@ -15,7 +15,7 @@ export type ICardTargetResolver<TContext extends AbilityContext> =
   | ICardExactlyUpToVariableTargetResolver<TContext>
   | ICardBetweenVariableTargetResolver<TContext>
   | ICardMaxStatTargetResolver<TContext>
-  | CardSingleUnlimitedTargetResolver<TContext>;
+  | ICardSingleUnlimitedTargetResolver<TContext>;
 
 export type IActionTargetResolver<TContext extends AbilityContext = AbilityContext> =
   | ICardTargetResolver<TContext>
@@ -78,7 +78,7 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
     hideIfNoLegalTargets?: boolean;
     immediateEffect?: GameSystem<TContext>;
     dependsOn?: string;
-    mustChangeGameState?: boolean;
+    mustChangeGameState?: GameStateChangeRequired;
 }
 
 // TODO: add functionality to PlayerTargetResolver to autodetect any invalid target players.
@@ -115,6 +115,7 @@ interface ICardBetweenVariableTargetResolver<TContext extends AbilityContext> ex
     mode: TargetMode.BetweenVariable;
     minNumCardsFunc: (context: TContext) => number;
     maxNumCardsFunc: (context: TContext) => number;
+    useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 
@@ -126,9 +127,10 @@ interface ICardMaxStatTargetResolver<TContext extends AbilityContext> extends IC
     canChooseNoCards?: boolean;
 }
 
-interface CardSingleUnlimitedTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
+interface ICardSingleUnlimitedTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode?: TargetMode.Single | TargetMode.Unlimited;
     canChooseNoCards?: boolean;
+    multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 
 

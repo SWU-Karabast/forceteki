@@ -14,8 +14,8 @@ export default class WarJuggernaut extends NonLeaderUnitCard {
         this.addConstantAbility({
             title: 'This unit gets +1/+0 for each damaged unit.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((_target, context) => {
-                const playerDamagedUnits = context.player.getUnitsInPlay(WildcardZoneName.AnyArena, (unit) => unit.damage > 0).length;
-                const opponentDamagedUnits = context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (unit) => unit.damage > 0).length;
+                const playerDamagedUnits = context.player.getArenaUnits({ condition: (card) => card.isUnit() && card.damage > 0 }).length;
+                const opponentDamagedUnits = context.player.opponent.getArenaUnits({ condition: (card) => card.isUnit() && card.damage > 0 }).length;
 
                 return { power: playerDamagedUnits + opponentDamagedUnits, hp: 0 };
             })
@@ -24,6 +24,7 @@ export default class WarJuggernaut extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'Deal 1 damage to each of any number of units.',
             targetResolver: {
+                activePromptTitle: 'Choose units to deal 1 damage to.',
                 mode: TargetMode.Unlimited,
                 canChooseNoCards: true,
                 cardTypeFilter: WildcardCardType.Unit,

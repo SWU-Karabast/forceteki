@@ -1,12 +1,14 @@
-import type Player from '../Player';
-import type { Aspect } from '../Constants';
+import type { Player } from '../Player';
+import type { Aspect, Trait } from '../Constants';
 import { ZoneName } from '../Constants';
 import type { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithLeaderProperties, type ILeaderCard } from './propertyMixins/LeaderProperties';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { WithAllAbilityTypes } from './propertyMixins/AllAbilityTypeRegistrations';
+import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
 const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
+
 
 export interface IDoubleSidedLeaderCard extends ILeaderCard {
     get onStartingSide(): boolean;
@@ -14,18 +16,22 @@ export interface IDoubleSidedLeaderCard extends ILeaderCard {
 }
 
 export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implements IDoubleSidedLeaderCard {
-    protected _onStartingSide = true;
     protected setupLeaderBackSide = false;
 
-    public constructor(owner: Player, cardData: any) {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
 
         this.setupLeaderBackSide = true;
         this.setupLeaderBackSideAbilities(this);
     }
 
+    protected override setupDefaultState() {
+        super.setupDefaultState();
+        this.state.onStartingSide = true;
+    }
+
     public get onStartingSide() {
-        return this._onStartingSide;
+        return this.state.onStartingSide;
     }
 
     public override get aspects(): Aspect[] {
@@ -40,6 +46,11 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         return true;
     }
 
+    protected override getPrintedTraits(): Set<Trait> {
+        const traits = this.onStartingSide ? new Set(this.printedTraits) : new Set(this.backsidePrintedTraits);
+        return traits;
+    }
+
     /**
      * Create card abilities for the second leader side by calling subsequent methods with appropriate properties
      */
@@ -48,7 +59,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
     }
 
     public flipLeader() {
-        this._onStartingSide = !this._onStartingSide;
+        this.state.onStartingSide = !this.state.onStartingSide;
     }
 
     public override initializeForStartZone(): void {
@@ -60,7 +71,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
     }
 
     public override getSummary(activePlayer: Player): string {
-        return { ...super.getSummary(activePlayer), onStartingSide: this._onStartingSide };
+        return { ...super.getSummary(activePlayer), onStartingSide: this.state.onStartingSide };
     }
 
     protected override addActionAbility(properties: IActionAbilityProps<this>) {

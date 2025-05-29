@@ -40,7 +40,7 @@ describe('Piloting keyword', function() {
                 context.player1.clickPrompt('Play Dagger Squadron Pilot with Piloting');
                 expect(context.player1).toBeAbleToSelectExactly([context.concordDawnInterceptors, context.falchionIonTank]);
                 context.player1.clickCard(context.concordDawnInterceptors);
-                expect(context.concordDawnInterceptors.upgrades).toContain(context.daggerSquadronPilot);
+                expect(context.daggerSquadronPilot).toBeAttachedTo(context.concordDawnInterceptors);
                 expect(context.concordDawnInterceptors.getPower()).toBe(3);
                 expect(context.concordDawnInterceptors.getHp()).toBe(5);
                 expect(context.player1.readyResourceCount).toBe(p1Resources - 1);
@@ -60,7 +60,6 @@ describe('Piloting keyword', function() {
 
                 const { context } = contextRef;
 
-                const p1Resources = context.player1.readyResourceCount;
                 context.player1.clickCard(context.chewbacca);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Chewbacca', 'Play Chewbacca with Piloting']);
                 context.player1.clickPrompt('Play Chewbacca');
@@ -92,7 +91,7 @@ describe('Piloting keyword', function() {
                 context.player1.clickCard(context.concordDawnInterceptors);
 
                 // Should turn Concord Dawn into a 4/7 thanks to +3/+3
-                expect(context.concordDawnInterceptors.upgrades).toContain(context.chewbacca);
+                expect(context.chewbacca).toBeAttachedTo(context.concordDawnInterceptors);
                 expect(context.concordDawnInterceptors.getPower()).toBe(4);
                 expect(context.concordDawnInterceptors.getHp()).toBe(7);
                 expect(context.player1.readyResourceCount).toBe(p1Resources - 5);
@@ -207,7 +206,7 @@ describe('Piloting keyword', function() {
                 context.player1.clickPrompt('Play Iden Versio with Piloting');
                 context.player1.clickCard(context.restoredArc170);
                 expect(context.player1.readyResourceCount).toBe(p1Resources - 3);
-                expect(context.restoredArc170.upgrades).toContain(context.idenInHand);
+                expect(context.idenInHand).toBeAttachedTo(context.restoredArc170);
                 expect(context.player1).toHavePrompt('Choose which copy of Iden Versio, Adapt or Die to defeat');
                 context.player1.clickCard(context.idenInPlay);
                 expect(context.idenInPlay).toBeInZone('discard');
@@ -235,7 +234,7 @@ describe('Piloting keyword', function() {
                 context.player2.clickCard(context.confiscate);
                 expect(context.player2).toBeAbleToSelectExactly([context.idenVersio, context.shield]);
                 context.player2.clickCard(context.idenVersio);
-                expect(context.concordDawnInterceptors.upgrades).not.toContain(context.idenVersio);
+                expect(context.idenVersio).not.toBeAttachedTo(context.concordDawnInterceptors);
                 expect(context.idenVersio).toBeInZone('discard');
             });
 
@@ -262,13 +261,14 @@ describe('Piloting keyword', function() {
                 expect(context.idenVersio).toBeInZone('discard');
             });
 
-            it('can be moved to another vehicle with a Pilot ignoring the limit', async function () {
+            it('cannot be moved to another vehicle with a Pilot ignoring the limit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: [
                             { card: 'concord-dawn-interceptors', upgrades: ['iden-versio#adapt-or-die', 'shield'] },
                             { card: 'survivors-gauntlet', upgrades: ['bb8#happy-beeps'] },
+                            'cartel-spacer',
                         ],
                     },
                 });
@@ -283,10 +283,12 @@ describe('Piloting keyword', function() {
                 expect(context.survivorsGauntlet).toHaveExactUpgradeNames(['bb8#happy-beeps']);
 
                 context.player1.clickCard(context.idenVersio);
-                context.player1.clickCard(context.survivorsGauntlet);
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player1.clickCardNonChecking(context.survivorsGauntlet);
+                context.player1.clickCard(context.cartelSpacer);
 
                 expect(context.concordDawnInterceptors).toHaveExactUpgradeNames(['shield']);
-                expect(context.survivorsGauntlet).toHaveExactUpgradeNames(['bb8#happy-beeps', 'iden-versio#adapt-or-die', 'shield']);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['iden-versio#adapt-or-die', 'shield']);
             });
         });
 
@@ -329,6 +331,68 @@ describe('Piloting keyword', function() {
             context.player1.clickCard(context.idenVersio);
             expect(context.idenVersio).toBeInZone('groundArena');
             expect(context.player1.exhaustedResourceCount).toBe(3); // +2 for sneak attack and +1 for iden (3pt discount)
+        });
+
+        it('An attached pilot should not be returned by abilities searching for non-leader units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'tarkintown'
+                },
+                player2: {
+                    spaceArena: [{ card: 'ruthless-raider', damage: 1, upgrades: ['darth-vader#scourge-of-squadrons'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // no error should happen in this test
+            context.player1.clickCard(context.tarkintown);
+            context.player1.clickCard(context.ruthlessRaider);
+            expect(context.ruthlessRaider.damage).toBe(4);
+        });
+
+        it('Piloting works when the ability has no aspect costs', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['sullustan-spacer'],
+                    spaceArena: ['green-squadron-awing']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // no error should happen in this test
+            context.player1.clickCard(context.sullustanSpacer);
+            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Sullustan Spacer', 'Play Sullustan Spacer with Piloting']);
+
+            context.player1.clickPrompt('Play Sullustan Spacer with Piloting');
+            expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing]);
+            context.player1.clickCard(context.greenSquadronAwing);
+            expect(context.sullustanSpacer).toBeAttachedTo(context.greenSquadronAwing);
+            expect(context.greenSquadronAwing.getPower()).toBe(2);
+            expect(context.greenSquadronAwing.getHp()).toBe(4);
+        });
+
+        it('Piloting respects aspect costs', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    hand: ['dagger-squadron-pilot'],
+                    spaceArena: ['concord-dawn-interceptors'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            const p1Resources = context.player1.readyResourceCount;
+            context.player1.clickCard(context.daggerSquadronPilot);
+            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Dagger Squadron Pilot', 'Play Dagger Squadron Pilot with Piloting']);
+            context.player1.clickPrompt('Play Dagger Squadron Pilot');
+            expect(context.player1.readyResourceCount).toBe(p1Resources - 5);
+            expect(context.daggerSquadronPilot).toBeInZone('groundArena');
         });
     });
 });

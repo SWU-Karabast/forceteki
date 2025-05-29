@@ -1,7 +1,7 @@
-import type Player from '../Player';
+import type { Player } from '../Player';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
-import { CardType, KeywordName, PlayType, ZoneName } from '../Constants';
+import { CardType, PlayType, Trait, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
@@ -10,13 +10,14 @@ import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { ICardCanChangeControllers } from './CardInterfaces';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
+import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
 export interface INonLeaderUnitCard extends IUnitCard, IPlayableCard {}
 
-export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLeaderUnitCard, ICardCanChangeControllers {
-    public constructor(owner: Player, cardData: any) {
+export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implements INonLeaderUnitCard, ICardCanChangeControllers {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
 
         // superclasses check that we are a unit, check here that we are a non-leader unit
@@ -24,7 +25,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
     }
 
     public override isNonLeaderUnit(): this is INonLeaderUnitCard {
-        return !this.isLeaderAttachedToThis();
+        return !this.isAttached() && !this.isLeaderAttachedToThis();
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
@@ -40,6 +41,10 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
 
     public override isPlayable(): this is IPlayableCard {
         return true;
+    }
+
+    protected override getType(): CardType {
+        return this.isAttached() ? CardType.NonLeaderUnitUpgrade : super.getType();
     }
 
     protected override initializeForCurrentZone(prevZone?: ZoneName): void {
@@ -73,8 +78,12 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
         }
     }
 
-
     public override checkIsAttachable(): void {
-        Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+        Contract.assertTrue(this.hasSomeTrait(Trait.Pilot));
     }
+}
+
+/** used for derived implementations classes. */
+export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
+    protected override state: never;
 }

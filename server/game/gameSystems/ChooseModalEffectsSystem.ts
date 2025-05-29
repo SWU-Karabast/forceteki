@@ -4,7 +4,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import { MetaEventName } from '../core/Constants';
 import type { IChoicesInterface } from '../TargetInterfaces';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 
 export interface IPlayModalCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     amountOfChoices: number;
@@ -66,6 +66,7 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
         context.game.queueSimpleStep(() => {
             const eventsForThisAction = [];
             selectedSystem.queueGenerateEventGameSteps(eventsForThisAction, context);
+            context.game.addMessage('{0} chooses "{1}"', context.source.owner, selectedPrompt);
             context.game.queueSimpleStep(() => {
                 for (const event of eventsForThisAction) {
                     events.push(event);

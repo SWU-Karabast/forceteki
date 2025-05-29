@@ -2,8 +2,9 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { DamageType, EventName } from '../core/Constants';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import { DamageSystem } from './DamageSystem';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -23,26 +24,26 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['draw ' + properties.amount + (properties.amount > 1 ? ' cards' : ' card'), []];
+        return ['draw {0}', [ChatHelpers.pluralize(properties.amount, 'a card', 'cards')]];
     }
 
-    public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IDrawProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.amount !== 0 && super.canAffect(player, context);
+        return properties.amount !== 0 && super.canAffectInternal(player, context);
     }
 
     public override defaultTargets(context: TContext): Player[] {
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IDrawProperties>): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.cards = event.player.drawDeck.slice(0, amount);
         event.amount = amount;
     }
 
-    protected override updateEvent(event, player: Player, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<IDrawProperties>): void {
         super.updateEvent(event, player, context, additionalProperties);
 
         // TODO: convert damage on draw to be a real replacement effect once we have partial replacement working
@@ -50,7 +51,12 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
             // Add a contingent event to deal damage for any cards the player fails to draw due to not having enough left in their deck.
             const contingentEvents = [];
             if (event.amount > event.player.drawDeck.length) {
-                const damageAmount = 3 * (event.amount - event.player.drawDeck.length);
+                const cannotDrawCount = event.amount - event.player.drawDeck.length;
+                const damageAmount = 3 * cannotDrawCount;
+
+                context.game.addMessage('{0} attempts to draw {1} cards from their empty deck and takes {2} damage instead',
+                    event.player, cannotDrawCount, damageAmount
+                );
 
                 // Here we generate a damage event with a new context that contains just the player,
                 // this way the damage is attributed to the player and not the card that triggered the draw (or its controller).

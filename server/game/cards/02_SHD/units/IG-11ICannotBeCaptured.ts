@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName } from '../../../core/Constants';
+import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -18,15 +19,18 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
             },
             replaceWith: {
                 target: this,
-                replacementImmediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.defeat(),
-                    AbilityHelper.immediateEffects.damage((context) => {
-                        return {
-                            amount: 3,
-                            target: context.game.getOtherPlayer(context.player).getUnitsInPlay(ZoneName.GroundArena)
-                        };
-                    })
-                ], true)
+                replacementImmediateEffect: AbilityHelper.immediateEffects.simultaneous({
+                    gameSystems: [
+                        AbilityHelper.immediateEffects.defeat(),
+                        AbilityHelper.immediateEffects.damage((context) => {
+                            return {
+                                amount: 3,
+                                target: context.game.getOtherPlayer(context.player).getArenaUnits({ arena: ZoneName.GroundArena })
+                            };
+                        })
+                    ],
+                    resolutionMode: ResolutionMode.AlwaysResolve,
+                })
             },
             effect: 'defeat him and deal 3 damage to each enemy ground unit instead',
             effectArgs: (context) => [context.source],

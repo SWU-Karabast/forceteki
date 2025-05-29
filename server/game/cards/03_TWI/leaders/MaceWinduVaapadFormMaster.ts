@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +13,7 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'Deal 1 damage to a damaged enemy unit. Then, if it has 5 or more damage on it, deal 1 damage to it.',
-            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityResourceCost(1)],
+            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Opponent,
@@ -21,12 +21,9 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             },
             then: (thenContext) => ({
-                title: 'If it has 5 or more damage on it, deal 1 damage to it',
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: () => thenContext.target.isUnit() && thenContext.target.damage >= 5,
-                    onFalse: AbilityHelper.immediateEffects.noAction(),
-                    onTrue: AbilityHelper.immediateEffects.damage({ amount: 1, target: thenContext.target })
-                })
+                title: 'Deal 1 damage to it',
+                thenCondition: (context) => context.target.isUnit() && context.target.isInPlay() && context.target.damage >= 5,
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1, target: thenContext.target }),
             })
         });
     }
@@ -38,7 +35,7 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                target: context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.isUnit() && card.damage > 0),
+                target: context.player.opponent.getArenaUnits({ condition: (card) => card.isUnit() && card.damage > 0 }),
                 amount: 2
             })),
         });

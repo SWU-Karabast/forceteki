@@ -37,6 +37,9 @@ describe('Unlimited Power', function() {
             expect(context.squadronOfVultures.damage).toBe(3);
             expect(context.cartelTurncoat.damage).toBe(2);
             expect(context.warzoneLieutenant.damage).toBe(1);
+            expect(context.getChatLogs(1)).toContain(
+                'player1 plays Unlimited Power to deal 4 damage to Wampa, to deal 3 damage to Squadron of Vultures, to deal 2 damage to Cartel Turncoat, and to deal 1 damage to Warzone Lieutenant'
+            );
         });
     });
 });

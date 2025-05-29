@@ -5,7 +5,7 @@ import type { Aspect, CardType } from '../Constants';
 import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
-import PlayerAction from './PlayerAction';
+import { PlayerAction } from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import type { CostAdjuster } from '../cost/CostAdjuster';
 import * as Helpers from '../utils/Helpers';
@@ -14,7 +14,8 @@ import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';
 import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type Game from '../Game';
-import type Player from '../Player';
+import type { Player } from '../Player';
+import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -55,6 +56,8 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly playType: PlayType;
     public readonly canPlayFromAnyZone: boolean;
 
+    protected readonly playCost: PlayCardResourceCost;
+
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
     public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
@@ -92,7 +95,7 @@ export abstract class PlayCardAction extends PlayerAction {
             aspects = card.aspects;
         }
 
-        const playCost = new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
+        const playCost = new PlayCardResourceCost(propertiesWithDefaults.playType, cost, aspects);
 
         super(
             game,
@@ -104,10 +107,15 @@ export abstract class PlayCardAction extends PlayerAction {
         );
 
         this.playType = propertiesWithDefaults.playType;
+        this.playCost = playCost;
         this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
         this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
+    }
+
+    protected usesExploit(context: AbilityContext<ICardWithCostProperty>) {
+        return this.playCost.usesExploit(context);
     }
 
     private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true): string {
@@ -173,7 +181,7 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     public override getAdjustedCost(context) {
-        const resourceCost = this.getCosts(context).find((cost) => cost.getAdjustedCost);
+        const resourceCost = this.getCosts(context).find((cost) => cost.isResourceCost());
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
@@ -194,6 +202,8 @@ export abstract class PlayCardAction extends PlayerAction {
         if (context.player.drawDeck.length === 0) {
             return;
         }
+
+        Contract.assertTrue(this.card.canBeExhausted(), `${this.card.title} cannot be smuggled!`);
 
         const smuggleEvent = resourceCard({
             target: context.player.getTopCardOfDeck(),
@@ -227,7 +237,7 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     /** This is used for overriding a card's type when it hits the board, such as Pilots played as upgrades */
-    protected getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
+    public getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
         return card.type;
     }
 

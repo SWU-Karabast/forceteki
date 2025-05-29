@@ -1,9 +1,9 @@
 import type { IDropdownListTargetResolver } from '../../../TargetInterfaces';
-import type PlayerOrCardAbility from '../PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
 import type { AbilityContext } from '../AbilityContext';
 import { TargetResolver } from './TargetResolver';
 import { SelectChoice } from './SelectChoice';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import * as Helpers from '../../utils/Helpers';
 
 /** Target resolver for selecting from a list of strings and passing the choice to a GameSystem */
@@ -21,7 +21,7 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
         return gameSystems.length === 0 || gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
-    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
+    protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const options = typeof this.properties.options === 'function' ? this.properties.options(context) : this.properties.options;
         if (options.length === 0) {
             return;
@@ -44,15 +44,14 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
             context.select = choice;
         }
         const abilitySource = context.ability.gainAbilitySource != null ? context.ability.gainAbilitySource : context.source;
-        context.game.addMessage(`${context.player.name} names ${choice} using ${abilitySource.title}`);
+        context.game.addMessage('{0} names {1} using {2}', context.player, choice, abilitySource.title);
     }
 
     protected override checkTarget(context: AbilityContext): boolean {
         return !!context.selects[this.name];
     }
 
-    protected override hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean {
-        return true;
+    protected override hasTargetsChosenByPlayerInternal(context: AbilityContext, player: Player = context.player) {
+        return this.getChoosingPlayer(context) === player;
     }
 }
-

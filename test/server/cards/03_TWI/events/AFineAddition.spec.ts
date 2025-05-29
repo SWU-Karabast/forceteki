@@ -22,6 +22,7 @@ describe('A Fine Addition', function () {
 
             // NO-OP play -- no enemy was defeated
             context.player1.clickCard(context.aFineAddition);
+            context.player1.clickPrompt('Play anyway');
             expect(context.aFineAddition).toBeInZone('discard');
 
             expect(context.player2).toBeActivePlayer();
@@ -35,6 +36,7 @@ describe('A Fine Addition', function () {
 
             // should be another NO-OP play -- no enemy was defeated
             context.player1.clickCard(context.aFineAddition);
+            context.player1.clickPrompt('Play anyway');
             expect(context.aFineAddition).toBeInZone('discard');
 
             expect(context.player2).toBeActivePlayer();
@@ -71,7 +73,7 @@ describe('A Fine Addition', function () {
             context.player2.clickCard(context.finnThisIsARescue);
             context.player2.clickCard(context.p1Base);
 
-            expect(context.player2).toHavePrompt('Defeat a friendly upgrade on a unit');
+            expect(context.player2).toHavePrompt('Defeat a friendly upgrade on a unit. If you do, give a Shield token to that unit');
             expect(context.player2).toBeAbleToSelectExactly([context.resilient]);
 
             context.player2.clickCard(context.resilient);
@@ -111,6 +113,101 @@ describe('A Fine Addition', function () {
 
             expect(context.battlefieldMarine).toHaveExactUpgradeNames([context.jediLightsaber.internalName, context.lukesLightsaber.internalName, context.ahsokasPadawanLightsaber.internalName]);
             expect(context.player1.exhaustedResourceCount).toBe(6); // +1 for lukes lightsaber
+        });
+
+        it('A Fine Addition\'s ability should play a pilot as an upgrade from your hand, ignoring aspect penalty, if an enemy was defeated this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'dagobah-swamp',
+                    hand: ['a-fine-addition', 'vanquish', 'dagger-squadron-pilot'],
+                    spaceArena: ['cartel-turncoat']
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.vanquish);
+            context.player1.clickCard(context.wampa);
+            context.player2.passAction();
+
+            context.player1.clickCard(context.aFineAddition);
+            expect(context.player1).toBeAbleToSelectExactly([context.daggerSquadronPilot]);
+            context.player1.clickCard(context.daggerSquadronPilot);
+            expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat]);
+            context.player1.clickCard(context.cartelTurncoat);
+            expect(context.daggerSquadronPilot).toBeAttachedTo(context.cartelTurncoat);
+
+            expect(context.player1.exhaustedResourceCount).toBe(6);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A Fine Addition\'s ability should play a pilot as an upgrade from your discard, ignoring aspect penalty, if an enemy was defeated this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'dagobah-swamp',
+                    hand: ['a-fine-addition', 'vanquish'],
+                    discard: ['dagger-squadron-pilot'],
+                    spaceArena: ['cartel-turncoat']
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.vanquish);
+            context.player1.clickCard(context.wampa);
+            context.player2.passAction();
+
+            context.player1.clickCard(context.aFineAddition);
+            expect(context.player1).toBeAbleToSelectExactly([context.daggerSquadronPilot]);
+            context.player1.clickCard(context.daggerSquadronPilot);
+            expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat]);
+            context.player1.clickCard(context.cartelTurncoat);
+            expect(context.daggerSquadronPilot).toBeAttachedTo(context.cartelTurncoat);
+
+            expect(context.player1.exhaustedResourceCount).toBe(6);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A Fine Addition\'s ability should play a pilot as an upgrade from your opponent\'s discard, ignoring aspect penalty, if an enemy was defeated this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'dagobah-swamp',
+                    hand: ['a-fine-addition', 'vanquish'],
+                    spaceArena: ['cartel-turncoat']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    discard: ['dagger-squadron-pilot'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.vanquish);
+            context.player1.clickCard(context.wampa);
+            context.player2.passAction();
+
+            context.player1.clickCard(context.aFineAddition);
+            expect(context.player1).toBeAbleToSelectExactly([context.daggerSquadronPilot]);
+            context.player1.clickCard(context.daggerSquadronPilot);
+            expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat]);
+            context.player1.clickCard(context.cartelTurncoat);
+            expect(context.daggerSquadronPilot).toBeAttachedTo(context.cartelTurncoat);
+
+            expect(context.player1.exhaustedResourceCount).toBe(6);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

@@ -1,9 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
+import type { CardType, WildcardCardType } from '../core/Constants.js';
 import { PlayType } from '../core/Constants.js';
 import { CostAdjustType } from '../core/cost/CostAdjuster.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
-import { GameSystem } from '../core/gameSystem/GameSystem.js';
 import { PlayCardSystem } from './PlayCardSystem.js';
 import { SearchDeckSystem, type ISearchDeckProperties } from './SearchDeckSystem.js';
 
@@ -14,24 +14,25 @@ export interface IPlayMultipleCardsFromDeckProperties<TContext extends AbilityCo
       | 'selectedCardsHandler'
       | 'remainingCardsHandler'> {
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[], context: TContext) => boolean;
+    playAsType?: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
 }
 
 export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = AbilityContext> extends SearchDeckSystem<TContext, IPlayMultipleCardsFromDeckProperties<TContext>> {
-    // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
-    public constructor(propertiesOrPropertyFactory: IPlayMultipleCardsFromDeckProperties<TContext> | ((context?: AbilityContext) => IPlayMultipleCardsFromDeckProperties<TContext>)) {
-        const propsWithViewType = GameSystem.appendToPropertiesOrPropertyFactory<ISearchDeckProperties<TContext>, 'selectedCardsImmediateEffect'>(propertiesOrPropertyFactory,
-            {
-                selectedCardsImmediateEffect: new PlayCardSystem({
-                    playType: PlayType.PlayFromOutOfPlay,
-                    nested: true,
-                    adjustCost: {
-                        costAdjustType: CostAdjustType.Free
-                    }
-                })
-            }
-        );
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IPlayMultipleCardsFromDeckProperties<TContext>> = {}): IPlayMultipleCardsFromDeckProperties<TContext> {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
-        super(propsWithViewType);
+        const selectedCardsImmediateEffect = new PlayCardSystem({
+            playType: PlayType.PlayFromOutOfPlay,
+            nested: true,
+            adjustCost: {
+                costAdjustType: CostAdjustType.Free
+            },
+            playAsType: properties.playAsType,
+        });
+
+        const propsWithViewType = { ...properties, selectedCardsImmediateEffect: selectedCardsImmediateEffect };
+
+        return propsWithViewType as IPlayMultipleCardsFromDeckProperties<TContext>;
     }
 
     protected override buildPromptProperties(
@@ -41,7 +42,7 @@ export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = A
         title: string,
         selectAmount: number,
         event: any,
-        additionalProperties: any
+        additionalProperties: Partial<IPlayMultipleCardsFromDeckProperties<TContext>>
     ): IDisplayCardsSelectProperties {
         return {
             ...super.buildPromptProperties(cards, properties, context, title, selectAmount, event, additionalProperties),

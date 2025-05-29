@@ -13,15 +13,15 @@ export default class JabbasRancorPateesa extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addDecreaseCostAbility({
             title: 'If you control Jabba the Hutt, this unit costs 1 resource less to play',
-            condition: (context) => context.player.controlsLeaderOrUnitWithTitle('Jabba the Hutt'),
+            condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Jabba the Hutt'),
             amount: 1
         });
 
         this.addTriggeredAbility({
             title: 'Deal 3 damage to another friendly ground unit and 3 damage to an enemy ground unit',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                whenPlayed: true,
+                onAttack: true,
             },
             targetResolvers: {
                 myGroundUnit: {

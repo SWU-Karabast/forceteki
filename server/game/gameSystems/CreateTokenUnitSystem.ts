@@ -1,10 +1,11 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { TokenUnitName } from '../core/Constants';
-import { EventName } from '../core/Constants';
+import { EffectName, EventName } from '../core/Constants';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import * as Helpers from '../core/utils/Helpers';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 
 export interface ICreateTokenUnitProperties extends IPlayerTargetSystemProperties {
@@ -22,20 +23,18 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
 
     // event handler doesn't do anything since the tokens were generated in updateEvent
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(event, additionalProperties = {}): void { }
+    public override eventHandler(event): void { }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
 
-        if (properties.amount === 1) {
-            return ['{0} creates a {1}', [properties.target, this.getTokenType()]];
-        }
-        return ['{0} creates {1} {2}s', [properties.target, properties.amount, this.getTokenType()]];
+        const tokenTitle = context.game.cardDataGetter.tokenData[this.getTokenType()]?.title ?? this.getTokenType();
+        return ['create {0}', [ChatHelpers.pluralize(properties.amount, `a ${tokenTitle}`, `${tokenTitle}s`)]];
     }
 
     protected abstract getTokenType(): TokenUnitName;
 
-    protected override updateEvent(event, player: Player, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ICreateTokenUnitProperties>): void {
         super.updateEvent(event, player, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -57,7 +56,7 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
                 const putIntoPlayEvent = new PutIntoPlaySystem({
                     controller: player,
                     target: token,
-                    entersReady: event.entersReady
+                    entersReady: event.entersReady || player.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady)
                 }).generateEvent(event.context);
 
                 putIntoPlayEvent.order = event.order + 1;
@@ -73,7 +72,7 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         return [context.player];
     }
 
-    public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<ICreateTokenUnitProperties>): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);

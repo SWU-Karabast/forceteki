@@ -19,13 +19,12 @@ export default class BladeSquadronBWing extends NonLeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     innerSystem: AbilityHelper.immediateEffects.giveShield()
                 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }
 
     private opponentHasAtLeastThreeExhausted(context) {
-        const exhaustedUnits = context.player.opponent.getUnitsInPlay().filter((card) => card.isUnit() && card.exhausted === true);
+        const exhaustedUnits = context.player.opponent.getArenaUnits().filter((card) => card.isUnit() && card.exhausted === true);
         return exhaustedUnits.length >= 3;
     }
 }

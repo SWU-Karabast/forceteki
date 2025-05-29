@@ -27,7 +27,7 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.cantinaBraggart.damage).toBe(2);
                 expect(context.hanSolo.exhausted).toBeTrue();
 
-                context.hanSolo.exhausted = false;
+                context.readyCard(context.hanSolo);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.hanSolo);
@@ -49,6 +49,50 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.cantinaBraggart).toHaveExactUpgradeNames(['experience']);
                 expect(context.player1.exhaustedResourceCount).toBe(0);
                 expect(context.hanSolo.exhausted).toBeTrue();
+            });
+
+            it('can choose nothing', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['cantina-braggart', 'vanguard-infantry', 'green-squadron-awing', 'devotion'],
+                        groundArena: ['colonel-yularen#isb-director'],
+                        leader: 'han-solo#worth-the-risk',
+                        base: { card: 'echo-base', damage: 5 },
+                        resources: 4,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                expect(context.player1.handSize).toBe(4);
+                context.player1.clickCard(context.hanSolo);
+                expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.vanguardInfantry, context.greenSquadronAwing]);
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.cantinaBraggart).toBeInZone('hand');
+                expect(context.player1.handSize).toBe(4);
+            });
+
+            it('should not be able to play a unit as a Pilot for a discount', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'han-solo#worth-the-risk',
+                        hand: ['anakin-skywalker#ill-try-spinning'],
+                        spaceArena: ['cartel-turncoat']
+                    },
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.');
+                expect(context.player1).toBeAbleToSelectExactly([context.anakinSkywalker]);
+                context.player1.clickCard(context.anakinSkywalker);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.anakinSkywalker).toBeInZone('groundArena');
+                expect(context.anakinSkywalker.damage).toBe(2);
             });
         });
 
@@ -130,6 +174,27 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.hanSolo.exhausted).toBeTrue();
                 expect(context.hanSolo).not.toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should not be able to play a unit as a Pilot for a discount', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'han-solo#worth-the-risk', deployed: true },
+                        hand: ['anakin-skywalker#ill-try-spinning'],
+                        spaceArena: ['cartel-turncoat']
+                    },
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.');
+                expect(context.player1).toBeAbleToSelectExactly([context.anakinSkywalker]);
+                context.player1.clickCard(context.anakinSkywalker);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.anakinSkywalker).toBeInZone('groundArena');
+                expect(context.anakinSkywalker.damage).toBe(2);
             });
         });
     });

@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { CardType } from '../../../core/Constants';
 
 export default class PoggleTheLesserArchdukeOfTheStalgasinHive extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -11,11 +12,11 @@ export default class PoggleTheLesserArchdukeOfTheStalgasinHive extends NonLeader
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'Exhaust this unit',
+            title: 'Exhaust this unit to create a Battle Droid token',
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.isUnit() &&
-                    event.card.controller === context.player &&
+                    event.cardTypeWhenInPlay === CardType.BasicUnit &&
+                    event.player === context.player &&
                     event.card !== context.source
             },
             optional: true,

@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { DamageType, MetaEventName, RelativePlayer } from '../core/Constants';
+import { DamageType, EffectName, MetaEventName, RelativePlayer } from '../core/Constants';
 import type { DistributePromptType } from '../core/gameSteps/PromptInterfaces';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
 import { DamageSystem } from './DamageSystem';
@@ -40,7 +40,7 @@ export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityConte
         return event.damageDealt;
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: any = {}): IDistributeAmongTargetsSystemProperties<AbilityContext<Card>> {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IDistributeIndirectDamageToCardsSystemProperties<TContext>> = {}): IDistributeAmongTargetsSystemProperties<AbilityContext<Card>> {
         const properties = super.generatePropertiesFromContext(context, {
             ...additionalProperties,
             player: RelativePlayer.Opponent,
@@ -50,7 +50,14 @@ export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityConte
         if (context.player.assignIndirectDamageDealtToOpponents()) {
             properties.player = RelativePlayer.Self;
         }
+        if (context.source.isUnit() && context.source.hasOngoingEffect(EffectName.AssignIndirectDamageDealtByUnit)) {
+            properties.player = RelativePlayer.Self;
+        }
 
         return properties;
+    }
+
+    protected override getDistributionType(): string {
+        return 'indirect damage';
     }
 }

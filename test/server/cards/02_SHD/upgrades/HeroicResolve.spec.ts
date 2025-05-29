@@ -38,11 +38,12 @@ describe('Heroic Resolve', function() {
             it('should be able to be activated even if the unit cannot attack', function () {
                 const { context } = contextRef;
 
-                context.frontierAtrt.exhausted = true;
+                context.exhaustCard(context.frontierAtrt);
 
                 // the Heroic Resolve action is the only one available on click so it is automatically selected.
                 // it pays the costs and then the action ends since the unit can't attack
                 context.player1.clickCard(context.frontierAtrt);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.frontierAtrt.isUpgraded()).toBe(false);
                 expect(context.heroicResolve).toBeInZone('discard');
@@ -97,7 +98,7 @@ describe('Heroic Resolve', function() {
 
                 // activate second Heroic Resolve
                 context.player2.passAction();
-                context.frontierAtrt.exhausted = false;
+                context.readyCard(context.frontierAtrt);
                 context.setDamage(context.frontierAtrt, 0);
                 context.player1.clickCard(context.frontierAtrt);
                 expect(context.player1).toHaveEnabledPromptButton('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
@@ -169,7 +170,7 @@ describe('Heroic Resolve', function() {
 
                 // activate second Heroic Resolve
                 context.player2.passAction();
-                context.frontierAtrt.exhausted = false;
+                context.readyCard(context.frontierAtrt);
                 context.setDamage(context.frontierAtrt, 0);
                 context.player1.clickCard(context.frontierAtrt);
                 expect(context.player1).toHaveEnabledPromptButton('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');

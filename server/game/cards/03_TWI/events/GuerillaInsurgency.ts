@@ -18,6 +18,8 @@ export default class GuerillaInsurgency extends EventCard {
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Resource,
                     activePromptTitle: 'Defeat a resource you control',
+                    effect: 'make {0} defeat a resource',
+                    effectArgs: (context) => [context.player],
                     innerSystem: AbilityHelper.immediateEffects.defeat()
                 }),
                 AbilityHelper.immediateEffects.selectCard({
@@ -25,6 +27,8 @@ export default class GuerillaInsurgency extends EventCard {
                     player: RelativePlayer.Opponent,
                     zoneFilter: ZoneName.Resource,
                     activePromptTitle: 'Defeat a resource you control',
+                    effect: 'make {0} defeat a resource',
+                    effectArgs: (context) => [context.player.opponent],
                     innerSystem: AbilityHelper.immediateEffects.defeat()
                 }),
                 AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
@@ -33,7 +37,7 @@ export default class GuerillaInsurgency extends EventCard {
                 })),
                 AbilityHelper.immediateEffects.damage((context) => ({
                     amount: 4,
-                    target: context.game.getPlayers().reduce((units, player) => units.concat(player.getUnitsInPlay(ZoneName.GroundArena)), [])
+                    target: context.game.getPlayers().reduce((units, player) => units.concat(player.getArenaUnits({ arena: ZoneName.GroundArena })), [])
                 }))
             ])
         });

@@ -5,9 +5,9 @@ describe('Tactical Droid Commander', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['providence-destroyer', 'morgan-elsbeth#keeper-of-many-secrets', 'planetary-invasion'],
-                    groundArena: ['tactical-droid-commander'],
-                    resources: 30
+                    hand: ['providence-destroyer', 'morgan-elsbeth#keeper-of-many-secrets', 'planetary-invasion', 'tactical-droid-commander'],
+                    groundArena: [],
+                    resources: 35
 
                 },
                 player2: {
@@ -18,6 +18,11 @@ describe('Tactical Droid Commander', function() {
             });
 
             const { context } = contextRef;
+
+            // play Tactical Droid Commander, no trigger.
+            context.player1.clickCard(context.tacticalDroidCommander);
+
+            context.player2.passAction();
 
             // play Separatist unit, able to exhaust unit of same cost or less.
             context.player1.clickCard(context.providenceDestroyer);
@@ -39,7 +44,7 @@ describe('Tactical Droid Commander', function() {
             // Play a Separatist event, no trigger
             context.player1.clickCard(context.planetaryInvasion);
             context.player1.clickPrompt('Play without Exploit');
-            context.player1.clickPrompt('Done');
+            context.player1.clickPrompt('Choose nothing');
             expect(context.player2).toBeActivePlayer();
         });
     });

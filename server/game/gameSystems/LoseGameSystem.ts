@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import { MetaEventName } from '../core/Constants.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
-import type Player from '../core/Player.js';
+import type { Player } from '../core/Player.js';
 
 export interface ILoseGameProperties extends IPlayerTargetSystemProperties {
     target: Player;
@@ -27,7 +27,7 @@ export class LoseGameSystem<TContext extends AbilityContext = AbilityContext> ex
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<ILoseGameProperties> = {}): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.endGameReason = context.source.title;
     }

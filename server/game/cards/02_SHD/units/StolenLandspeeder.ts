@@ -15,11 +15,14 @@ export default class StolenLandspeeder extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'An opponent takes control of it',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source && event.playType === PlayType.PlayFromHand
+                whenPlayed: true,
             },
-            immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
-                newController: context.player.opponent
-            }))
+            immediateEffect: AbilityHelper.immediateEffects.conditional({
+                condition: (context) => context.event.playType === PlayType.PlayFromHand,
+                onTrue: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
+                    newController: context.player.opponent
+                })),
+            })
         });
 
         this.addBountyAbility({
@@ -32,7 +35,6 @@ export default class StolenLandspeeder extends NonLeaderUnitCard {
                     }),
                     AbilityHelper.immediateEffects.giveExperience(),
                 ]),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

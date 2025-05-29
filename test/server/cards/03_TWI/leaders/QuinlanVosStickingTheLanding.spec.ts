@@ -19,6 +19,7 @@ describe('Quinlan Vos, Sticking the Landing', function () {
 
             // we play an event, nothing happen
             context.player1.clickCard(context.theEmperorsLegion);
+            context.player1.clickPrompt('Play anyway');
 
             // opponent play a unit, nothing happen
             context.player2.clickCard(context.craftySmuggler);
@@ -27,7 +28,7 @@ describe('Quinlan Vos, Sticking the Landing', function () {
             context.player1.clickCard(context.battlefieldMarine);
 
             // can pass this trigger
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 damage to an enemy unit that costs the same as the played unit');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeAbleToSelectExactly([context.craftySmuggler, context.greenSquadronAwing]);
@@ -91,6 +92,7 @@ describe('Quinlan Vos, Sticking the Landing', function () {
 
             // should deal damage to an enemy unit with a cost equal or less than 2
             expect(context.player1).toBeAbleToSelectExactly([context.specforceSoldier, context.craftySmuggler, context.greenSquadronAwing]);
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.greenSquadronAwing);
 
             expect(context.player2).toBeActivePlayer();
@@ -113,6 +115,30 @@ describe('Quinlan Vos, Sticking the Landing', function () {
 
             expect(context.player2).toBeActivePlayer();
             expect(context.wampa.damage).toBe(1);
+        });
+
+        it('Quinlan Vos\'s leader deployed ability should not be triggered by playing a Pilot as an upgrade', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['dagger-squadron-pilot'],
+                    spaceArena: ['cartel-turncoat'],
+                    leader: { card: 'quinlan-vos#sticking-the-landing', deployed: true },
+                },
+                player2: {
+                    hand: ['crafty-smuggler'],
+                    groundArena: ['wampa', 'specforce-soldier'],
+                    spaceArena: ['green-squadron-awing']
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.daggerSquadronPilot);
+            context.player1.clickPrompt('Play Dagger Squadron Pilot with Piloting');
+            context.player1.clickCard(context.cartelTurncoat);
+
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

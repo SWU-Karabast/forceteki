@@ -32,10 +32,13 @@ describe('Han Solo, Audacious Smuggler', function() {
 
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.aggression, context.sparkOfRebellion, context.protector, context.atst]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 context.player1.clickCard(context.aggression);
                 expect(context.aggression).toBeInZone('discard', context.player1);
                 expect(context.player1.readyResourceCount).toBe(5);
+                expect(context.getChatLogs(1)).toEqual([
+                    'player1 uses Han Solo to defeat Aggression',
+                ]);
             });
 
             it('should defeat two resources at the start of the next action phase if both han abilities are used in the same turn', function() {
@@ -52,6 +55,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 // Deploy Han and attack with him
                 context.player2.passAction();
                 context.player1.clickCard(context.hanSolo);
+                context.player1.clickPrompt('Deploy Han Solo');
                 context.player2.passAction();
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickCard(context.p2Base);
@@ -93,7 +97,7 @@ describe('Han Solo, Audacious Smuggler', function() {
 
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.aggression, context.sparkOfRebellion, context.protector, context.atst]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 context.player1.clickCard(context.aggression);
                 expect(context.aggression).toBeInZone('discard', context.player1);
                 expect(context.player1.readyResourceCount).toBe(5);
@@ -114,7 +118,7 @@ describe('Han Solo, Audacious Smuggler', function() {
 
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.vanquish, context.sparkOfRebellion, context.protector, context.atst]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 context.player1.clickCard(context.vanquish);
                 expect(context.vanquish).toBeInZone('discard', context.player1);
                 expect(context.player1.readyResourceCount).toBe(5);
@@ -139,8 +143,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1.readyResourceCount).toBe(7);
                 expect(context.wampa).toBeInZone('resource', context.player1);
-                // TODO: clean up the extranaeous 'and' that is being applied to some chat messages
-                expect(context.getChatLogs(2)).toContain('player1 uses Han Solo to move a card to player1\'s resources and apply a delayed effect and ');
+                expect(context.getChatLogs(2)).toContain('player1 uses Han Solo to move a card to their resources and to apply a delayed effect');
 
                 context.player2.claimInitiative();
                 context.player1.passAction();
@@ -178,7 +181,7 @@ describe('Han Solo, Audacious Smuggler', function() {
 
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.aggression, context.sparkOfRebellion, context.protector, context.atst]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 context.player1.clickCard(context.cunning);
                 expect(context.cunning).toBeInZone('discard', context.player1);
                 expect(context.player1.readyResourceCount).toBe(5);

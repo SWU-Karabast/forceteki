@@ -45,9 +45,9 @@ export class PlayUpgradeAction extends PlayCardAction {
         context.game.openEventWindow(events);
     }
 
-    protected override getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
+    public override getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
         // We need to override this method to ensure Pilots are marked as upgrades in the onCardPlayed event
-        return playType === PlayType.Piloting && card.isUnit() ? CardType.UnitUpgrade : card.type;
+        return playType === PlayType.Piloting && card.isUnit() ? CardType.NonLeaderUnitUpgrade : card.type;
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
@@ -70,6 +70,10 @@ export class PlayUpgradeAction extends PlayCardAction {
     }
 
     public override displayMessage(context: AbilityContext) {
-        context.game.addMessage('{0} plays {1}, attaching it to {2}', context.player, context.source, context.target);
+        let playTypeDescription = '';
+        if (context.playType === PlayType.Smuggle) {
+            playTypeDescription = ' using Smuggle';
+        }
+        context.game.addMessage('{0} plays {1}{2}, attaching it to {3}', context.player, context.source, playTypeDescription, context.target);
     }
 }

@@ -12,7 +12,7 @@ export default class ShootDown extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Deal 3 damage to space unit.',
+            title: 'Deal 3 damage to space unit. If that unit is defeated this way, deal 2 damage to a base',
             targetResolver: {
                 zoneFilter: ZoneName.SpaceArena,
                 cardTypeFilter: WildcardCardType.Unit,
@@ -21,7 +21,7 @@ export default class ShootDown extends EventCard {
             ifYouDo: {
                 title: 'Deal 2 damage to a base',
                 optional: true,
-                ifYouDoCondition: (ifYouDoContext) => ifYouDoContext.events[0].willDefeat,
+                ifYouDoCondition: (ifYouDoContext) => ifYouDoContext.resolvedEvents[0].willDefeat,
                 immediateEffect: AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Deal 2 damage to a base',
                     cardTypeFilter: CardType.Base,

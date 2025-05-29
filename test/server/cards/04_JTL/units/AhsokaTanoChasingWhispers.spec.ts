@@ -23,6 +23,11 @@ describe('Ahsoka Tano, Chasing Whispers', function() {
             expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.atst);
             expect(context.atst.exhausted).toBe(true);
+
+            expect(context.getChatLogs(2)).toEqual([
+                'player1 uses Ahsoka Tano to make player2 discard a card',
+                'player2 discards Restored ARC-170',
+            ]);
         });
 
         it('Ahsoka Tano\'s ability should do nothing when opponent\'s hand is empty', async function () {

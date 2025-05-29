@@ -20,14 +20,14 @@ describe('Doctor Pershing, Experimenting With Life', function() {
 
                 const reset = () => {
                     context.player2.passAction();
-                    context.doctorPershing.exhausted = false;
+                    context.readyCard(context.doctorPershing);
                 };
 
                 // Trigger the ability
                 context.player1.clickCard(context.doctorPershing);
                 context.player1.clickPrompt('Draw a card');
                 expect(context.player1).toBeAbleToSelectExactly([context.doctorPershing, context.wampa, context.tielnFighter]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Target a space friendly unit
                 context.player1.clickCard(context.tielnFighter);
@@ -35,13 +35,16 @@ describe('Doctor Pershing, Experimenting With Life', function() {
                 expect(context.tielnFighter).toBeInZone('discard');
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(0);
+                expect(context.getChatLogs(2)).toContain(
+                    'player1 uses Doctor Pershing, exhausting Doctor Pershing and dealing 1 damage to TIE/ln Fighter to draw a card',
+                );
 
                 // Trigger the ability again
                 reset();
                 context.player1.clickCard(context.doctorPershing);
                 context.player1.clickPrompt('Draw a card');
                 expect(context.player1).toBeAbleToSelectExactly([context.doctorPershing, context.wampa]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Target a shilded friendly unit
                 context.player1.clickCard(context.wampa);
@@ -56,7 +59,7 @@ describe('Doctor Pershing, Experimenting With Life', function() {
                 context.player1.clickCard(context.doctorPershing);
                 context.player1.clickPrompt('Draw a card');
                 expect(context.player1).toBeAbleToSelectExactly([context.doctorPershing, context.wampa]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Target self
                 context.player1.clickCard(context.doctorPershing);

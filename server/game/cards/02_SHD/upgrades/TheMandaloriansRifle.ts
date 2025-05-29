@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
-import type Player from '../../../core/Player';
+import type { Player } from '../../../core/Player';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 
 export default class TheMandaloriansRifle extends UpgradeCard {
@@ -25,7 +25,6 @@ export default class TheMandaloriansRifle extends UpgradeCard {
                 cardCondition: (card) => card.isUnit() && card.exhausted,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.parentCard.title === 'The Mandalorian',
-                    onFalse: AbilityHelper.immediateEffects.noAction(),
                     onTrue: AbilityHelper.immediateEffects.capture((context) => ({
                         captor: context.source.parentCard
                     }))

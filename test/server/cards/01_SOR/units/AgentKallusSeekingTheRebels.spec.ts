@@ -1,8 +1,8 @@
 describe('Agent Kallus, Seeking the Rebels', function() {
     integration(function(contextRef) {
         describe('Kallus\'s triggered ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('should once per turn allow the controller to draw a card when another unique unit is defeated', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -17,9 +17,7 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                         groundArena: ['wampa', 'general-veers#blizzard-force-commander']
                     }
                 });
-            });
 
-            it('should once per turn allow the controller to draw a card when another unique unit is defeated', function () {
                 const { context } = contextRef;
 
                 const reset = (passAction = true) => {
@@ -86,6 +84,26 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                 context.player1.clickCard(context.wampa);
                 expect(context.agentKallus).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(round3HandSize);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not trigger when a unique pilot is defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['rivals-fall'],
+                        groundArena: ['agent-kallus#seeking-the-rebels'],
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'tieln-fighter', upgrades: ['iden-versio#adapt-or-die'] }],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.rivalsFall);
+                context.player1.clickCard(context.tielnFighter);
+
                 expect(context.player2).toBeActivePlayer();
             });
         });

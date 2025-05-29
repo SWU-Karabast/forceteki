@@ -14,8 +14,8 @@ export default class EliteP38Starfighter extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Deal 1 damage to a unit',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
-                onCardDefeated: (event, context) => event.card === context.source
+                whenPlayed: true,
+                whenDefeated: true
             },
             optional: true,
             targetResolver: {

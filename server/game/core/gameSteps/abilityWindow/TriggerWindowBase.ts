@@ -1,4 +1,4 @@
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import type { GameEvent } from '../../event/GameEvent';
 import type { EventWindow } from '../../event/EventWindow';
 import { AbilityType, SubStepCheck } from '../../Constants';
@@ -9,6 +9,7 @@ import type { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import type Game from '../../Game';
+import { PromptType } from '../PromptInterfaces';
 
 export abstract class TriggerWindowBase extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
@@ -53,8 +54,19 @@ export abstract class TriggerWindowBase extends BaseStep {
         }
     }
 
-    public emitEvents() {
-        const events = this.triggeringEvents.filter((event) => !event.isCancelledOrReplaced);
+    public emitEvents(specificEvents = null) {
+        let events;
+        if (specificEvents) {
+            for (const event of specificEvents) {
+                Contract.assertArrayIncludes(this.triggeringEvents, event, `Event ${event.name} not found in triggering events: ${this.triggeringEvents.map((e) => e.name).join(', ')}`);
+            }
+
+            events = specificEvents;
+        } else {
+            events = this.triggeringEvents;
+        }
+
+        events = events.filter((event) => !event.isCancelledOrReplaced);
 
         for (const event of events) {
             this.game.emit(event.name + ':' + this.triggerAbilityType, event, this);
@@ -138,7 +150,14 @@ export abstract class TriggerWindowBase extends BaseStep {
         }
 
         // Check to if we're dealing with a multi-selection of the 'same' ability
-        const isMultiSelectAbility = this.isMultiSelectAbility(abilitiesToResolve, this.resolved.map((resolved) => resolved.ability));
+        let isMultiSelectAbility = this.isMultiSelectAbility(abilitiesToResolve, this.resolved.map((resolved) => resolved.ability));
+
+        // if an ability is triggered multiple times and uses a collective trigger, filter down to one instance of it
+        if (isMultiSelectAbility && abilitiesToResolve[0].ability.collectiveTrigger) {
+            abilitiesToResolve = [abilitiesToResolve[0]];
+            this.unresolved.set(this.currentlyResolvingPlayer, abilitiesToResolve);
+            isMultiSelectAbility = false;
+        }
 
         // if there's more than one ability still unresolved, prompt for next selection
         if (abilitiesToResolve.length > 1) {
@@ -158,7 +177,7 @@ export abstract class TriggerWindowBase extends BaseStep {
     /** Get the set of yet-unresolved abilities for the player whose turn it is to do resolution */
     private getCurrentlyResolvingAbilities() {
         Contract.assertNotNullLike(this.currentlyResolvingPlayer);
-        Contract.assertHasKey(this.unresolved, this.currentlyResolvingPlayer);
+        Contract.assertMapHasKey(this.unresolved, this.currentlyResolvingPlayer);
 
         return this.unresolved.get(this.currentlyResolvingPlayer);
     }
@@ -194,8 +213,9 @@ export abstract class TriggerWindowBase extends BaseStep {
         this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
             activePromptTitle: 'Choose an ability to resolve:',
             source: 'Choose Triggered Ability Resolution Order',
-            choices: choices,
-            handlers: handlers
+            choices,
+            handlers,
+            promptType: PromptType.TriggerWindow
         });
 
         // TODO: a variation of this was being used in the L5R code to choose which card to activate triggered abilities on.
@@ -226,7 +246,10 @@ export abstract class TriggerWindowBase extends BaseStep {
     protected postResolutionUpdate(resolver) {
         const unresolvedAbilitiesForPlayer = this.getCurrentlyResolvingAbilities();
 
-        const justResolvedAbility = unresolvedAbilitiesForPlayer.find((context) => context.ability === resolver.context.ability);
+        const justResolvedAbility = unresolvedAbilitiesForPlayer.find((context) =>
+            context.ability === resolver.context.ability &&
+            context.event === resolver.context.event
+        );
 
         // if we can't find the ability to remove from the list, we have to error or else get stuck in an infinite loop
         if (justResolvedAbility == null) {

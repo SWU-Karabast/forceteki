@@ -1,14 +1,14 @@
 import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
+import { EventName, PlayType, StandardTriggeredAbilityType } from '../Constants';
 import { AbilityType, GameStateChangeRequired, RelativePlayer, Stage } from '../Constants';
-import type { ITriggeredAbilityProps, WhenType } from '../../Interfaces';
+import type { ITriggeredAbilityProps, WhenType, WhenTypeOrStandard } from '../../Interfaces';
 import type { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import * as Contract from '../utils/Contract';
 import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
-import type { ICardWithTriggeredAbilities } from '../card/propertyMixins/TriggeredAbilityRegistration';
 
 interface IEventRegistration {
     name: string;
@@ -43,14 +43,36 @@ interface IEventRegistration {
  */
 
 export default class TriggeredAbility extends CardAbility {
-    public when?: WhenType;
-    public aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
-    public anyPlayer: boolean;
-    public collectiveTrigger: boolean;
-    public eventRegistrations?: IEventRegistration[];
-    public eventsTriggeredFor: GameEvent[] = [];
+    public readonly when?: WhenType;
+    public readonly aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
+    public readonly anyPlayer: boolean;
+    public readonly isBounty: boolean = false;
+    public readonly collectiveTrigger: boolean;
+    public readonly standardTriggerTypes: StandardTriggeredAbilityType[] = [];
+
+    protected eventRegistrations?: IEventRegistration[];
+    protected eventsTriggeredFor: GameEvent[] = [];
 
     private readonly mustChangeGameState: GameStateChangeRequired;
+
+    public get isOnAttackAbility() {
+        return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);
+    }
+
+    public get isWhenDefeated() {
+        return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.WhenDefeated);
+    }
+
+    public get isWhenPlayed() {
+        return this.standardTriggerTypes.some((trigger) =>
+            trigger === StandardTriggeredAbilityType.WhenPlayed ||
+            trigger === StandardTriggeredAbilityType.WhenPlayedUsingSmuggle
+        );
+    }
+
+    public get isWhenPlayedUsingSmuggle() {
+        return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.WhenPlayedUsingSmuggle);
+    }
 
     public constructor(
         game: Game,
@@ -65,10 +87,13 @@ export default class TriggeredAbility extends CardAbility {
         }
 
         if ('when' in properties) {
-            this.when = properties.when;
+            const { when, standardTriggerTypes } = this.parseStandardTriggerTypes(properties.when);
+            this.when = when;
+            this.standardTriggerTypes = standardTriggerTypes;
         } else if ('aggregateWhen' in properties) {
             this.aggregateWhen = properties.aggregateWhen;
         }
+
         this.collectiveTrigger = !!properties.collectiveTrigger;
 
         this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
@@ -95,6 +120,41 @@ export default class TriggeredAbility extends CardAbility {
         }
     }
 
+    private parseStandardTriggerTypes(when: WhenTypeOrStandard): {
+        when: WhenType;
+        standardTriggerTypes: StandardTriggeredAbilityType[];
+    } {
+        const updatedWhen: WhenType = {};
+        const standardTriggerTypes = [];
+
+        for (const [trigger, value] of Object.entries(when)) {
+            if (typeof value === 'boolean') {
+                switch (trigger) {
+                    case StandardTriggeredAbilityType.WhenDefeated:
+                        updatedWhen[EventName.OnCardDefeated] = (event, context) => event.card === context.source;
+                        break;
+                    case StandardTriggeredAbilityType.OnAttack:
+                        updatedWhen[EventName.OnAttackDeclared] = (event, context) => event.attack.attacker === context.source;
+                        break;
+                    case StandardTriggeredAbilityType.WhenPlayed:
+                        updatedWhen[EventName.OnCardPlayed] = (event, context) => event.card === context.source;
+                        break;
+                    case StandardTriggeredAbilityType.WhenPlayedUsingSmuggle:
+                        updatedWhen[EventName.OnCardPlayed] = (event, context) => event.card === context.source && event.playType === PlayType.Smuggle;
+                        break;
+                    default:
+                        Contract.fail(`Unexpected standard trigger type: ${trigger}`);
+                }
+
+                standardTriggerTypes.push(trigger);
+            } else {
+                updatedWhen[trigger] = value;
+            }
+        }
+
+        return { when: updatedWhen, standardTriggerTypes };
+    }
+
     protected override controllerMeetsRequirements(context): boolean {
         let controller = context.source.controller;
 
@@ -103,6 +163,8 @@ export default class TriggeredAbility extends CardAbility {
         // and it might have changed controller.
         if (context.event.card === context.source && context.event.lastKnownInformation) {
             controller = context.event.lastKnownInformation.controller;
+        } else if ('newController' in context.event) {
+            controller = context.event.newController;
         }
 
         switch (this.canBeTriggeredBy) {
@@ -127,7 +189,7 @@ export default class TriggeredAbility extends CardAbility {
         return this.immediateEffect.hasLegalTarget(context, {}, this.mustChangeGameState);
     }
 
-    public override buildTargetResolver(name: string, properties: ITriggeredAbilityTargetResolver) {
+    protected override buildTargetResolver(name: string, properties: ITriggeredAbilityTargetResolver) {
         const propsMustChangeGameState = { mustChangeGameState: this.mustChangeGameState, ...properties };
 
         return super.buildTargetResolver(name, propsMustChangeGameState);
@@ -178,7 +240,8 @@ export default class TriggeredAbility extends CardAbility {
         for (const player of this.game.getPlayers()) {
             const context = this.createContext(player, events);
             if (
-                (this.card as ICardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
+                this.card.canRegisterTriggeredAbilities() &&
+                this.card.getTriggeredAbilities().includes(this) &&
                 this.aggregateWhen(events, context) &&
                 this.meetsRequirements(context) === ''
             ) {

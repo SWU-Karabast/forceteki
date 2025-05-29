@@ -1,6 +1,7 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers.js';
 
 export default class GideonHaskRuthlessLoyalist extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -14,7 +15,7 @@ export default class GideonHaskRuthlessLoyalist extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Give an Experience token to a friendly unit',
             when: {
-                onCardDefeated: (event, context) => event.card.isUnit() && event.card.controller !== context.player
+                onCardDefeated: (event, context) => EnumHelpers.isUnit(event.lastKnownInformation.type) && event.lastKnownInformation.controller !== context.player
             },
             targetResolver: {
                 controller: RelativePlayer.Self,

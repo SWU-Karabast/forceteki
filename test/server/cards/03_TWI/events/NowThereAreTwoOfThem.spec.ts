@@ -31,7 +31,7 @@ describe('Now There are Two of Them', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player1).toBeAbleToSelectExactly([context.toroCalican, context.cadBane, context.syndicateLackeys]);
                 context.player1.clickCard(context.cadBane);
-                context.player1.clickPrompt('Done');
+                context.player1.clickPrompt('Choose nothing');
                 expect(context.cadBane).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(5);
             });
@@ -85,6 +85,7 @@ describe('Now There are Two of Them', function() {
 
                 // You can't play a card if you have more than one unit in play.
                 context.player1.clickCard(context.nowThereAreTwoOfThem);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player2).toBeActivePlayer();
             });
@@ -109,6 +110,7 @@ describe('Now There are Two of Them', function() {
 
                 // You can't play a card if you have 0 unit in play.
                 context.player1.clickCard(context.nowThereAreTwoOfThem);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player2).toBeActivePlayer();
             });

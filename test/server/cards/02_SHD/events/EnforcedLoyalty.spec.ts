@@ -46,6 +46,8 @@ describe('Enforced Loyalty', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.enforcedLoyalty);
+            context.player1.clickPrompt('Play anyway');
+            expect(context.enforcedLoyalty).toBeInZone('discard', context.player1);
             expect(context.player1.handSize).toBe(0);
             expect(context.player2).toBeActivePlayer();
         });

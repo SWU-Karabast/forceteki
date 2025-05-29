@@ -1,7 +1,8 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { GameEvent } from '../event/GameEvent';
-import type Player from '../Player.js';
+import type { Player } from '../Player.js';
+import type { ResourceCost } from '../../costs/ResourceCost';
 
 export interface ICostResult {
     canCancel?: boolean;
@@ -23,10 +24,12 @@ export interface ICost<TContext extends AbilityContext = AbilityContext> {
     canIgnoreForTargeting?: boolean;
 
     getActionName?(context: TContext): string;
-    getCostMessage?(context: TContext): unknown[];
+    getCostMessage?(context: TContext): [string, any[]];
     hasTargetsChosenByInitiatingPlayer?(context: TContext): boolean;
     queueGenerateEventGameSteps?(events: GameEvent[], context: TContext, result?: ICostResult): void;
     resolve?(context: TContext, result: ICostResult): void;
     payEvents?(context: TContext): GameEvent[];
     pay?(context: TContext): void;
+
+    isResourceCost(): this is ResourceCost;
 }

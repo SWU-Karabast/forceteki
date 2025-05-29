@@ -4,13 +4,15 @@ const { ZoneName, Stage, CardType, EventName, AbilityType, RelativePlayer } = re
 const { GameEvent } = require('../event/GameEvent.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
-    constructor(game, context, optional = false, canCancel = null) {
+    constructor(game, context, optional = false, canCancel = null, earlyTargetingOverride = null, ignoredRequirements = []) {
         super(game);
 
         this.context = context;
         this.events = [];
         this.targetResults = {};
         this.costResults = this.getCostResults();
+        this.earlyTargetingOverride = earlyTargetingOverride;
+        this.ignoredRequirements = ignoredRequirements;
         this.initialise();
 
         /** Indicates that we should skip all remaining ability resolution steps */
@@ -75,7 +77,7 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         this.context.stage = Stage.PreTarget;
 
-        if (this.context.ability.meetsRequirements(this.context, [], true) !== '') {
+        if (this.context.ability.meetsRequirements(this.context, this.ignoredRequirements, true) !== '') {
             this.cancelled = true;
             this.resolutionComplete = true;
             return;
@@ -92,11 +94,16 @@ class AbilityResolver extends BaseStepWithPipeline {
             return;
         }
 
+        if (this.earlyTargetingOverride) {
+            this.targetResults = this.earlyTargetingOverride;
+            return;
+        }
+
         if (!this.context.ability.cannotTargetFirst) {
             // if the opponent is the one choosing whether to pass or not, we don't include the pass handler in the target resolver
             const passAbilityHandler = this.passAbilityHandler?.playerChoosing === this.context.player ? this.passAbilityHandler : null;
 
-            this.targetResults = this.context.ability.resolveTargets(this.context, passAbilityHandler, this.canCancel);
+            this.targetResults = this.context.ability.resolveEarlyTargets(this.context, passAbilityHandler, this.canCancel);
         }
     }
 
@@ -317,6 +324,22 @@ class AbilityResolver extends BaseStepWithPipeline {
 
     resetGameAbilityResolver() {
         this.game.currentAbilityResolver = this.currentAbilityResolver;
+    }
+
+    /** @override */
+    continue() {
+        try {
+            return this.pipeline.continue(this.game);
+        } catch (err) {
+            this.game.reportError(err, true);
+
+            // if we hit an error resolving an ability, try to close out the ability gracefully and move on
+            // to see if we can preserve a playable game state
+            this.cancelled = true;
+            this.resolutionComplete = true;
+
+            return true;
+        }
     }
 
     /** @override */

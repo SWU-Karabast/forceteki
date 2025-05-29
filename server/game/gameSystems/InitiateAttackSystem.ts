@@ -33,7 +33,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         allowExhaustedAttacker: false
     };
 
-    public eventHandler(event, additionalProperties): void {
+    public eventHandler(event): void {
         const player = event.player;
         const newContext = (event.attackAbility as InitiateAttackAction).createContext(player);
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
@@ -44,7 +44,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         return ['initiate attack with {0}', [properties.target]];
     }
 
-    protected override addPropertiesToEvent(event, attacker, context: TContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, attacker: IUnitCard, context: TContext, additionalProperties: Partial<IInitiateAttackProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         Contract.assertTrue(attacker.isUnit());
 
@@ -54,11 +54,11 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         event.optional = properties.optional ?? context.ability.optional;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IInitiateAttackProperties<TContext>> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (
             !card.isUnit() ||
-            !super.canAffect(card, context) ||
+            !super.canAffectInternal(card, context) ||
             !properties.attackerCondition(card, context)
         ) {
             return false;

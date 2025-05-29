@@ -23,7 +23,7 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
         this.leavesPlayEventHandler(event.card, ZoneName.Capture, event.context, () => event.card.moveToCaptureZone(event.captor.captureZone));
     }
 
-    public override canAffect(card: Card, context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, _additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!card.isUnit() || !card.isInPlay()) {
             return false;
         }
@@ -33,19 +33,22 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties?: any) {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties?: Partial<TProperties>) {
         return super.generatePropertiesFromContext(context, { captor: context.source, ...additionalProperties });
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { captor, target } = this.generatePropertiesFromContext(context);
-        return ['{0} captures {1}', [captor, target]];
+        if (captor === context.source) {
+            return ['capture {0}', [target]];
+        }
+        return ['capture {0} with {1}', [target, captor]];
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<TProperties>): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         const { captor } = this.generatePropertiesFromContext(context);
 
@@ -55,7 +58,7 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
         event.captor = captor;
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties>): void {
         super.updateEvent(event, card, context, additionalProperties);
         this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
     }

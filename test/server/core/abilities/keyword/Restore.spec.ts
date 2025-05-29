@@ -37,7 +37,7 @@ describe('Restore keyword', function() {
                 context.player2.clickCard(context.waylay);
 
                 context.player1.clickCard(context.regionalSympathizers);
-                context.regionalSympathizers.exhausted = false;
+                context.readyCard(context.regionalSympathizers);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.regionalSympathizers);
@@ -75,7 +75,7 @@ describe('Restore keyword', function() {
                 // second attack to ensure ability deregistration is working
                 context.player2.passAction();
 
-                context.regionalSympathizers.exhausted = false;
+                context.readyCard(context.regionalSympathizers);
                 context.player1.clickCard(context.regionalSympathizers);
                 expect(context.p1Base.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(8);

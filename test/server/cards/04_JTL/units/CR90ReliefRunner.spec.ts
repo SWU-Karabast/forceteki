@@ -25,13 +25,14 @@ describe('CR90 Relief Runner', function () {
 
                 // can choose a unit or a base
                 expect(context.player2).toBeAbleToSelectExactly([context.consularSecurityForce, context.greenSquadronAwing, context.p1Base, context.p2Base]);
-                expect(context.player2).toHaveChooseNoTargetButton();
 
                 context.player2.setDistributeHealingPromptState(new Map([
                     [context.p2Base, 3],
                 ]));
 
                 expect(context.p2Base.damage).toBe(2);
+                expect(context.getChatLogs(2)).toContain('player2 uses CR90 Relief Runner to distribute up to 3 healing to a unit or base');
+                expect(context.getChatLogs(2)).toContain('player2 uses CR90 Relief Runner to distribute 3 healing to Echo Base');
             });
 
             it('should heal up to 3 damage from a unit or a base when defeated (can distribute less)', function () {
@@ -43,7 +44,6 @@ describe('CR90 Relief Runner', function () {
 
                 // can choose a unit or a base
                 expect(context.player2).toBeAbleToSelectExactly([context.consularSecurityForce, context.greenSquadronAwing, context.p1Base, context.p2Base]);
-                expect(context.player2).toHaveChooseNoTargetButton();
 
                 // can heal less than 3 damage
                 context.player2.setDistributeHealingPromptState(new Map([

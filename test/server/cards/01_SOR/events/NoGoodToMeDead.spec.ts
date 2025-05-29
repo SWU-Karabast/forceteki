@@ -28,6 +28,7 @@ describe('No Good to Me Dead', function() {
                 expect(context.wampa.exhausted).toBeFalse();
                 expect(context.greenSquadronAwing.exhausted).toBeFalse();
                 expect(context.sabineWren.exhausted).toBeFalse();
+                expect(context.getChatLogs(1)).toContain('player1 plays No Good to Me Dead to exhaust Battlefield Marine and to prevent Battlefield Marine from readying for the rest of the round');
 
                 // play keep fighting on battlefield marine
                 context.player2.clickCard(keepFightingCards[0]);

@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, Trait } from '../../../core/Constants';
+import { Trait } from '../../../core/Constants';
 
 export default class NienNunbLoyalCoPilot extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -12,8 +12,8 @@ export default class NienNunbLoyalCoPilot extends NonLeaderUnitCard {
     }
 
     private getOtherFriendlyPilotUnitsAndUpgradesCount(context: AbilityContext) {
-        // Check for other friendly Pilot units and upgrades -- and make sure we don't count this card (subtract 1)
-        return context.player.getArenaCards().filter((card) => card.hasSomeTrait(Trait.Pilot)).length - 1;
+        // Check for other friendly Pilot units and upgrades -- and make sure we don't count this card
+        return context.source.controller.getArenaCards({ trait: Trait.Pilot, otherThan: this }).length;
     }
 
     public override setupCardAbilities () {
@@ -24,8 +24,7 @@ export default class NienNunbLoyalCoPilot extends NonLeaderUnitCard {
             }))
         });
 
-        this.addPilotingGainAbilityTargetingAttached({
-            type: AbilityType.Constant,
+        this.addPilotingConstantAbilityTargetingAttached({
             title: 'Attached unit gets +1/+0 for each other friendly Pilot unit and upgrade.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((_target, context) => ({
                 power: this.getOtherFriendlyPilotUnitsAndUpgradesCount(context), hp: 0

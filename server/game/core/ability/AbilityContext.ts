@@ -1,10 +1,10 @@
-import type PlayerOrCardAbility from './PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from './PlayerOrCardAbility';
 import type { Aspect, PlayType } from '../Constants';
 import { Stage } from '../Constants';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Game from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { Card } from '../card/Card';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import type { IOngoingEffectProps } from '../../Interfaces';
@@ -42,7 +42,7 @@ export class AbilityContext<TSource extends Card = Card> {
     public costAspects: Aspect[];
     public targets: any;
     public selects: any;
-    public events: any[] = [];
+    public events: any[];
     public stage: Stage;
     public targetAbility: any;
     public target: any;
@@ -67,11 +67,17 @@ export class AbilityContext<TSource extends Card = Card> {
         this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
         this.selectedPromptCards = properties.selectedPromptCards || [];
+        this.events = properties.events || [];
         // const zone = this.player && this.player.playableZones.find(zone => zone.contains(this.source));
 
         this.playType = this.ability?.isPlayCardAbility()
             ? properties.playType ?? (this.player && this.player.findPlayType(this.source))
             : null;
+    }
+
+    /** Returns the events or their replacement effect events that are resolved. */
+    public get resolvedEvents(): any[] {
+        return this.events.flatMap((event) => event.resolvedEvents);
     }
 
     public isTriggered(): this is TriggeredAbilityContext<TSource> {

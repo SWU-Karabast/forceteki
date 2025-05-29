@@ -23,7 +23,7 @@ describe('Daughter of Dathomir', function () {
                 context.player1.clickCard(context.p2Base);
                 expect(context.p1Base.damage).toBe(1);
 
-                context.daughterOfDathomir.exhausted = false;
+                context.readyCard(context.daughterOfDathomir);
 
                 // give damage to daughter of Dathomir
                 context.player2.clickCard(context.battlefieldMarine);

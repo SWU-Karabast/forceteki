@@ -30,7 +30,7 @@ describe('Qi\'ra, I Alone Survived', function() {
 
                 // reset
                 context.player2.clickPrompt('Pass');
-                context.qira.exhausted = false;
+                context.readyCard(context.qira);
 
                 // test ability with target that dies
                 context.player1.clickCard(context.qira);

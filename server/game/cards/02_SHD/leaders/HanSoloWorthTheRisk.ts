@@ -21,12 +21,12 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.playCardFromHand({
-                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
+                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
+                        playAsType: WildcardCardType.Unit
                     }),
-                    AbilityHelper.immediateEffects.damage((context) => ({
-                        amount: 2,
-                        target: context.target
-                    }))
+                    AbilityHelper.immediateEffects.damage({
+                        amount: 2
+                    })
                 ])
             }
         });
@@ -41,7 +41,8 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.playCardFromHand({
-                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
+                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
+                        playAsType: WildcardCardType.Unit
                     }),
                     AbilityHelper.immediateEffects.damage((context) => ({
                         amount: 2,

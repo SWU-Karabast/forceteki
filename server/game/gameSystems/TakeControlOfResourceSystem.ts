@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameStateChangeRequired, EventName } from '../core/Constants';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
 
@@ -33,14 +33,14 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
         }
     }
 
-    public override canAffect(player: Player | Player[], context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(player: Player | Player[], context: TContext, _additionalProperties: Partial<ITakeControlOfResourceProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const takingResourcePlayer = this.playerFromArray(player);
 
         if (mustChangeGameState !== GameStateChangeRequired.None && takingResourcePlayer.opponent.resources.length === 0) {
             return false;
         }
 
-        return super.canAffect(takingResourcePlayer, context);
+        return super.canAffectInternal(takingResourcePlayer, context);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -48,10 +48,10 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
         const takingResourcePlayer = this.playerFromArray(target);
 
-        return ['{0} takes control of a resource from {1}', [takingResourcePlayer, takingResourcePlayer.opponent]];
+        return ['take control of a resource from {0}', [takingResourcePlayer.opponent]];
     }
 
-    public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<ITakeControlOfResourceProperties>): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
 
         event.newController = player;

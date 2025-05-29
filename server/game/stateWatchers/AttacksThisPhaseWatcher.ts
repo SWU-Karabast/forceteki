@@ -1,16 +1,16 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
-import type { BaseCard } from '../core/card/BaseCard';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import type { IAttackableCard } from '../core/card/CardInterfaces';
 
 export interface AttackEntry {
     attacker: IUnitCard;
     attackerInPlayId: number;
     attackingPlayer: Player;
-    target: IUnitCard | BaseCard;
+    targets: IAttackableCard[];
     targetInPlayId?: number;
     defendingPlayer: Player;
 }
@@ -39,6 +39,10 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
         return this.getCurrentValue()
             .filter(filter)
             .map((entry) => entry.attacker);
+    }
+
+    public cardDidAttack(card: Card): boolean {
+        return this.getAttackersInPlay((entry) => entry.attacker === card).length > 0;
     }
 
     /**
@@ -73,9 +77,9 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
                     attacker: event.attack.attacker,
                     attackerInPlayId: event.attack.attacker.inPlayId,
                     attackingPlayer: event.attack.attacker.controller,
-                    target: event.attack.target,
+                    targets: event.attack.getAllTargets(),
                     targetInPlayId: event.attack.targetInPlayId,
-                    defendingPlayer: event.attack.target.controller
+                    defendingPlayer: event.attack.getDefendingPlayer(),
                 })
         });
     }

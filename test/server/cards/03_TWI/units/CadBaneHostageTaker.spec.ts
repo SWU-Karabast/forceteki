@@ -28,7 +28,7 @@ describe('Cad Bane, Hostage Taker', function() {
             context.player1.clickCard(context.cadBane);
 
             expect(context.player1).toHavePrompt('Choose up to 3 enemy non-leader units with a total of 8 or less remaining HP');
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.mercenaryCompany, context.wingLeader, context.consortiumStarviper, context.battlefieldMarine, context.deathStarStormtrooper]);
 
             context.player1.clickCard(context.wampa);
@@ -47,12 +47,13 @@ describe('Cad Bane, Hostage Taker', function() {
             expect(context.wingLeader).toBeCapturedBy(context.cadBane);
             expect(context.battlefieldMarine).toBeCapturedBy(context.cadBane);
             expect(context.deathStarStormtrooper).toBeInZone('groundArena', context.player2);
+            expect(context.getChatLogs(2)).toContain('player1 uses Cad Bane to capture Wampa, Battlefield Marine, and Wing Leader');
 
             // Player 2 passes
             context.player2.passAction();
 
             // Player 1 attacks with Cad Bane
-            context.cadBane.exhausted = false;
+            context.readyCard(context.cadBane);
             context.player1.clickCard(context.cadBane);
             context.player1.clickCard(context.p2Base);
 

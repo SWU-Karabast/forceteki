@@ -100,7 +100,7 @@ describe('Bossk, Hunting his Prey', function () {
                 }
 
                 function resetAttack() {
-                    context.bossk.exhausted = false;
+                    context.readyCard(context.bossk);
                     context.setDamage(context.bossk, 0);
                 }
 
@@ -471,6 +471,44 @@ describe('Bossk, Hunting his Prey', function () {
 
                 expect(context.player2).toBeActivePlayer();
             });
+        });
+
+        it('Bossk\'s leader deployed ability should deal 1 damage to a unit with a bounty and optionally give +1/+0', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    deck: ['atst', 'atst', 'atst', 'atst', 'atst'],
+                    hand: ['death-mark'],
+                    discard: ['keep-fighting', 'disarm'],
+                    base: 'echo-base',
+                    leader: { card: 'bossk#hunting-his-prey', deployed: true, damage: 0 }
+                },
+                player2: {
+                    deck: ['wampa', 'atst', 'atst', 'atst', 'atst'],
+                    discard: ['tactical-advantage', 'guerilla-attack-pod'],
+                    resources: 10,
+                    base: { card: 'chopper-base', damage: 5 },
+                    leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true, damage: 3 }
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.deathMark);
+            context.player1.clickCard(context.sabineWren);
+            context.player2.passAction();
+
+            context.player1.clickCard(context.bossk);
+            context.player1.clickCard(context.sabineWren);
+
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw 2 cards');
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1.handSize).toBe(2);
+
+            // second Bounty trigger
+            expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1.handSize).toBe(4);
         });
     });
 });

@@ -24,7 +24,6 @@ describe('It Binds All Things', function() {
 
                 // select card to give healing
                 expect(context.player1).toBeAbleToSelectExactly([context.yoda, context.leiaOrgana, context.atst, context.tielnFighter, context.hanSolo]);
-                expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.leiaOrgana, 2],
                 ]));
@@ -47,7 +46,6 @@ describe('It Binds All Things', function() {
 
                 // select card to give healing
                 expect(context.player1).toBeAbleToSelectExactly([context.yoda, context.leiaOrgana, context.atst, context.tielnFighter, context.hanSolo]);
-                expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.yoda, 3],
                 ]));

@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { PlayType } from '../../../core/Constants';
 
 export default class PrivateerCrew extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -11,16 +10,15 @@ export default class PrivateerCrew extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
-            title: 'Give 3 experience tokens to this unit',
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.event.playType === PlayType.Smuggle,
-                onTrue: AbilityHelper.immediateEffects.giveExperience((context) => ({
-                    amount: 3,
-                    target: context.source
-                })),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
-            })
+        this.addTriggeredAbility({
+            title: 'Give 3 Experience tokens to this unit',
+            when: {
+                whenPlayedUsingSmuggle: true,
+            },
+            immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({
+                amount: 3,
+                target: context.source
+            })),
         });
     }
 }

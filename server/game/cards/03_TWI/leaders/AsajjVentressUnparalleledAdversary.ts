@@ -3,7 +3,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import { Duration } from '../../../core/Constants';
-import type Player from '../../../core/Player';
+import type { Player } from '../../../core/Player';
 
 export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -42,7 +42,6 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
                     effect: [AbilityHelper.ongoingEffects.dealsDamageBeforeDefender(),
                         AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })]
                 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

@@ -15,7 +15,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
             // TODO: how do we want to handle prompts for targeting costs (i.e. the defeat unit cost)?
             title: 'Deal 1 damage to a unit and draw a card',
             cost: [
-                AbilityHelper.costs.abilityResourceCost(1),
+                AbilityHelper.costs.abilityActivationResourceCost(1),
                 AbilityHelper.costs.exhaustSelf(),
                 AbilityHelper.costs.defeat({
                     cardTypeFilter: WildcardCardType.Unit,
@@ -45,7 +45,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
         });
 
         this.addOnAttackAbility({
-            title: 'Defeat another friendly unit',
+            title: 'Defeat another friendly unit. If you do, deal 1 damage to a unit and draw a card',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

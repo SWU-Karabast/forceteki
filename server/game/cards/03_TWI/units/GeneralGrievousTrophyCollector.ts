@@ -28,10 +28,9 @@ export default class GeneralGrievousTrophyCollector extends NonLeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
                     mode: TargetMode.ExactlyVariable,
-                    numCardsFunc: (context) => Math.min(4, context.player.opponent.getUnitsInPlay().length),
+                    numCardsFunc: (context) => Math.min(4, context.player.opponent.getArenaUnits().length),
                     innerSystem: AbilityHelper.immediateEffects.defeat()
                 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

@@ -127,13 +127,17 @@ function formatDropdownListOptions(options) {
 }
 
 function isTokenUnit(cardName) {
-    return ['battle-droid', 'clone-trooper'].includes(cardName);
+    return ['battle-droid', 'clone-trooper', 'tie-fighter', 'xwing'].includes(cardName);
 }
 
 function isTokenUpgrade(cardName) {
     return ['shield', 'experience'].includes(cardName);
 }
 
+/**
+ *
+ * @param {Game} game
+ */
 function refreshGameState(game) {
     game.resolveGameState(true);
 

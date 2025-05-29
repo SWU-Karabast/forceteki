@@ -29,7 +29,7 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.handSize).toBe(3);
                 expect(context.entrenched).toBeInZone('hand');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.kraytDragon, context.entrenched]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Select Card, Then Choose Top
                 context.player1.clickCard(context.kraytDragon);
@@ -67,7 +67,7 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.handSize).toBe(3);
                 expect(context.entrenched).toBeInZone('hand');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.kraytDragon, context.entrenched]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Select Card, Then Choose Top
                 context.player1.clickCard(context.kraytDragon);
@@ -106,7 +106,7 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.handSize).toBe(4);
                 expect(context.entrenched).toBeInZone('hand');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.kraytDragon, context.entrenched, context.craftySmuggler]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Select Card, Then Choose Top
                 context.player1.clickCard(context.kraytDragon);
@@ -141,6 +141,7 @@ describe('Yoda, Sensing Darkness', function () {
                 context.player1.clickCard(context.yoda);
                 expect(context.player1).toHaveEnabledPromptButtons(['Deploy Yoda', 'If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.']);
                 context.player1.clickPrompt('If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.');
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.yoda.exhausted).toBe(true);
                 expect(context.player2).toBeActivePlayer();
 
@@ -157,7 +158,7 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.handSize).toBe(4);
                 expect(context.entrenched).toBeInZone('hand');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.kraytDragon, context.entrenched, context.r2d2]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Select Card, Then Choose Top
                 context.player1.clickCard(context.kraytDragon);
@@ -218,6 +219,7 @@ describe('Yoda, Sensing Darkness', function () {
                 context.player1.clickCard(context.yoda);
                 expect(context.player1).toHaveEnabledPromptButtons(['Deploy Yoda', 'If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.']);
                 context.player1.clickPrompt('If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.');
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.yoda.exhausted).toBe(true);
                 expect(context.player2).toBeActivePlayer();
 
@@ -225,6 +227,7 @@ describe('Yoda, Sensing Darkness', function () {
 
                 // Yoda Leader should deploy
                 context.player1.clickCard(context.yoda);
+                context.player1.clickPrompt('Deploy Yoda');
                 expect(context.yoda).toBeInZone('groundArena');
 
                 // Should be able to pass
@@ -255,6 +258,7 @@ describe('Yoda, Sensing Darkness', function () {
                 // Yoda Leader ability should not activate
                 context.player1.clickCard(context.yoda);
                 context.player1.clickPrompt('If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.');
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.yoda.exhausted).toBe(true);
                 expect(context.player2).toBeActivePlayer();
             });

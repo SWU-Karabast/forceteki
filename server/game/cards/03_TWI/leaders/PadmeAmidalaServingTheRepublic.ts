@@ -16,7 +16,7 @@ export default class PadmeAmidalaServingTheRepublic extends LeaderUnitCard {
         this.addCoordinateAbility({
             type: AbilityType.Action,
             title: 'Search the top 3 cards of your deck for a Republic card, reveal it, and draw it',
-            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityResourceCost(1)],
+            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             immediateEffect: this.buildCoordinateAbilityEffect(),
         });
     }
@@ -26,7 +26,7 @@ export default class PadmeAmidalaServingTheRepublic extends LeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Search the top 3 cards of your deck for a Republic card, reveal it, and draw it',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             immediateEffect: this.buildCoordinateAbilityEffect(),
         });

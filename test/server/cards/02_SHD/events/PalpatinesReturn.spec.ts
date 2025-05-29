@@ -31,15 +31,14 @@ describe('Palpatine\'s Return', function() {
                 context.player1.clickCard(context.palpatinesReturn);
                 expect(context.player1).toBeAbleToSelectExactly([context.supremeLeaderSnoke, context.avenger]);
 
-                let exhaustedResourcesBeforeAction = context.player1.exhaustedResourceCount;
                 context.player1.clickCard(context.supremeLeaderSnoke);
-                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAction + 2); // 2 for out of aspect Snoke
+                expect(context.player1.exhaustedResourceCount).toBe(8); // 6 for Palp Return + 2 for out of aspect Snoke
                 expect(context.supremeLeaderSnoke).toBeInZone('groundArena', context.player1);
 
                 reset();
 
                 // Scenario 2: Play a unit for 6 less
-                exhaustedResourcesBeforeAction = context.player1.exhaustedResourceCount;
+                const exhaustedResourcesBeforeAction = context.player1.exhaustedResourceCount;
                 context.player1.clickCard(context.palpatinesReturn);
 
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAction + 6 + 5); // 6 for Palpatine's Return, 5 for out of aspect Avenger
@@ -49,6 +48,7 @@ describe('Palpatine\'s Return', function() {
 
                 // Scenario 3: Do nothing if there are no units in the discard
                 context.player1.clickCard(context.palpatinesReturn);
+                context.player1.clickPrompt('Play anyway');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.palpatinesReturn).toBeInZone('discard', context.player1);

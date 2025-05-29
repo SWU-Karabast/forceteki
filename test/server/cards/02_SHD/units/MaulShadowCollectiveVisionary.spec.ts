@@ -33,7 +33,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                     context.setDamage(context.luminaraUnduli, 0);
                     context.setDamage(context.maul, 0);
                     context.setDamage(context.mercenaryCompany, 0);
-                    context.maul.exhausted = false;
+                    context.readyCard(context.maul);
 
                     if (pass) {
                         context.player2.passAction();
@@ -52,6 +52,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.maul.damage).toBe(0);
                 expect(context.luminaraUnduli.damage).toBe(7);
                 expect(context.mercenaryCompany.damage).toBe(4);
+                expect(context.getChatLogs(1)).toContain('player1 uses Maul to deal 4 combat damage to Mercenary Company instead of Maul');
 
                 reset(false);
 
@@ -199,7 +200,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.mercenaryCompany.damage).toBe(0);
                 expect(context.mercenaryCompany.isUpgraded()).toBeFalse();
 
-                context.maul.exhausted = false;
+                context.readyCard(context.maul);
                 context.setDamage(context.luminaraUnduli, 0);
                 context.player2.passAction();
 
