@@ -998,11 +998,15 @@ export class Lobby {
                 ? this.game.captureGameState(socket.user.id)
                 : { phase: 'action', player1: {}, player2: {} };
 
+            const gameMessages = this.game.getLogMessages();
+            const opponent = this.users.find((u) => u.id !== socket.user.id);
             // Create bug report
             const bugReport = this.server.bugReportHandler.createBugReport(
                 parsedDescription,
                 gameState,
                 socket.user,
+                opponent.socket.user,
+                gameMessages,
                 this.id,
                 this.game?.id,
                 screenResolution,
