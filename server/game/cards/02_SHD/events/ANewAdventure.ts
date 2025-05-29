@@ -2,6 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import { EventCard } from '../../../core/card/EventCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class ANewAdventure extends EventCard {
     protected override getImplementationId() {
@@ -25,8 +26,9 @@ export default class ANewAdventure extends EventCard {
                 canBeTriggeredBy: EnumHelpers.asRelativePlayer(thenContext.player, thenContext.target?.controller),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                     target: thenContext.target,
+                    playAsType: WildcardCardType.Unit,
                     adjustCost: {
-                        costAdjustType: CostAdjustType.Free
+                        costAdjustType: CostAdjustType.Free,
                     }
                 })
             })

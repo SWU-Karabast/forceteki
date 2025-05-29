@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class DirectedByTheForce extends EventCard {
     protected override getImplementationId() {
@@ -16,7 +16,6 @@ export default class DirectedByTheForce extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.theForceIsWithYou(),
                 AbilityHelper.immediateEffects.selectCard({
-                    cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     optional: true,

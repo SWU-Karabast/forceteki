@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { Aspect, CardType, RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import { Aspect, RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
@@ -27,7 +27,6 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: `Play a non-Villainy unit that costs less than ${ifYouDoContext.target.cost}`,
                 targetResolver: {
-                    cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     cardCondition: (card) => card.isUnit() && !card.hasSomeAspect(Aspect.Villainy) && card.cost < ifYouDoContext.target.cost,
@@ -56,7 +55,6 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: `Play a non-Villainy unit that costs less then ${ifYouDoContext.target.cost}`,
                 targetResolver: {
-                    cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     cardCondition: (card) => card.isUnit() && !card.hasSomeAspect(Aspect.Villainy) && card.cost < ifYouDoContext.target.cost,

@@ -84,7 +84,10 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
 
             if (mustChangeGameState !== GameStateChangeRequired.None) {
                 return card.getTriggeredAbilities().some((ability) => {
-                    const cardPlayedEvent = new PlayCardSystem(ability.properties).generateEvent(context);
+                    const cardPlayedEvent = new PlayCardSystem({
+                        ...ability.properties,
+                        playAsType: null
+                    }).generateEvent(context);
                     const abilityContext = ability.createContext(context.player, cardPlayedEvent);
                     abilityContext.stage = Stage.PreTarget;
                     return ability.meetsRequirements(abilityContext) === '';

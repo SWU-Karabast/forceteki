@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class CountDookuFaceOfTheConfederacy extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -19,7 +19,8 @@ export default class CountDookuFaceOfTheConfederacy extends LeaderUnitCard {
                 zoneFilter: ZoneName.Hand,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Separatist),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    exploitValue: 1
+                    exploitValue: 1,
+                    playAsType: WildcardCardType.Any,
                 })
             }
         });

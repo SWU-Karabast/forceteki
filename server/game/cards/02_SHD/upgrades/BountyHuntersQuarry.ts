@@ -1,6 +1,5 @@
-
 import AbilityHelper from '../../../AbilityHelper';
-import { KeywordName, TargetMode } from '../../../core/Constants';
+import { KeywordName, TargetMode, WildcardCardType } from '../../../core/Constants';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
@@ -23,7 +22,8 @@ export default class BountyHuntersQuarry extends UpgradeCard {
                     searchCount: (context) => (context.source.unique ? 10 : 5),
                     cardCondition: (card) => card.isUnit() && card.cost <= 3,
                     selectedCardsImmediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                        adjustCost: { costAdjustType: CostAdjustType.Free }
+                        adjustCost: { costAdjustType: CostAdjustType.Free },
+                        playAsType: WildcardCardType.Unit,
                     }),
                 }),
             }

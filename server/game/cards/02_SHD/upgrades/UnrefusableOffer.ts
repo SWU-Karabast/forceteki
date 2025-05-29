@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { KeywordName, PhaseName, PlayType, ZoneName } from '../../../core/Constants';
+import { KeywordName, PhaseName, PlayType, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class UnrefusableOffer extends UpgradeCard {
@@ -24,6 +24,7 @@ export default class UnrefusableOffer extends UpgradeCard {
                         entersReady: true,
                         adjustCost: { costAdjustType: CostAdjustType.Free },
                         playType: PlayType.PlayFromOutOfPlay,
+                        playAsType: WildcardCardType.Unit,
                         canPlayFromAnyZone: true,
                     })
                 }),

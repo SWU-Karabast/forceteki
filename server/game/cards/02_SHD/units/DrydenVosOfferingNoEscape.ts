@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName } from '../../../core/Constants';
+import { WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class DrydenVos extends NonLeaderUnitCard {
@@ -24,6 +24,7 @@ export default class DrydenVos extends NonLeaderUnitCard {
                 cardCondition: (card, context) => this.checkIfTargetIsGuardedByControlledUnit(card, context),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Free },
+                    playAsType: WildcardCardType.Any,
                     canPlayFromAnyZone: true
                 }),
             }

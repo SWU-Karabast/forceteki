@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { CardType, RelativePlayer, ZoneName, Trait, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
@@ -18,11 +18,11 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
             targetResolver: {
                 activePromptTitle: 'Choose a Capital Ship',
                 cardCondition: (card) => card.hasSomeTrait(Trait.CapitalShip),
-                cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
+                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
+                    playAsType: WildcardCardType.Unit,
                 }),
             }
         });

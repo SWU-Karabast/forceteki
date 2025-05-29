@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { PhaseName, Trait } from '../../../core/Constants';
+import { PhaseName, Trait, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class TripleDarkRaid extends EventCard {
@@ -20,6 +20,7 @@ export default class TripleDarkRaid extends EventCard {
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 5 },
+                        playAsType: WildcardCardType.Any,
                         entersReady: true
                     }),
                     AbilityHelper.immediateEffects.delayedCardEffect({
