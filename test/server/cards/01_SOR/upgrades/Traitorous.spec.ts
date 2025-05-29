@@ -93,5 +93,77 @@ describe('Traitorous', function() {
                 expect(context.wampa).toBeInZone('groundArena', context.player2);
             });
         });
+
+        describe('Traitorous\'s interaction with Pilot leaders', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-vader#victor-squadron-leader',
+                        base: 'mos-eisley',
+                        hand: ['traitorous'],
+                    },
+                    player2: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        hand: ['confiscate'],
+                        spaceArena: [
+                            'millennium-falcon#piece-of-junk',
+                        ]
+                    }
+                });
+            });
+
+            it('cannot take control of a piloted leader unit', function () {
+                const { context } = contextRef;
+                context.player1.passAction();
+
+                // Player 2 deploys Kazuda Xiono to pilot the Millennium Falcon
+                context.player2.clickCard(context.kazudaXiono);
+                context.player2.clickPrompt('Deploy Kazuda Xiono as a Pilot');
+                context.player2.clickCard(context.millenniumFalcon);
+
+                expect(context.millenniumFalcon).toHaveExactUpgradeNames(['kazuda-xiono#best-pilot-in-the-galaxy']);
+                expect(context.millenniumFalcon.isLeader()).toBeTrue();
+
+                // Player 1 attaches Traitorous to the Millennium Falcon, but it does not take control of it
+                context.player1.clickCard(context.traitorous);
+                expect(context.player1).toBeAbleToSelectExactly([context.millenniumFalcon]);
+                context.player1.clickCard(context.millenniumFalcon);
+
+                expect(context.millenniumFalcon).toHaveExactUpgradeNames(['kazuda-xiono#best-pilot-in-the-galaxy', 'traitorous']);
+                expect(context.millenniumFalcon).toBeInZone('spaceArena', context.player2);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('defeats the unit if it becomes a leader unit before the unattach trigger', function () {
+                const { context } = contextRef;
+
+                // Player 1 plays Change of Heart to take control of the Millennium Falcon
+                context.player1.clickCard(context.traitorous);
+                expect(context.player1).toBeAbleToSelectExactly([context.millenniumFalcon]);
+                context.player1.clickCard(context.millenniumFalcon);
+
+                expect(context.millenniumFalcon).toHaveExactUpgradeNames(['traitorous']);
+                expect(context.millenniumFalcon).toBeInZone('spaceArena', context.player1);
+                context.player2.passAction();
+
+                // Player 1 deploys Darth Vader to pilot the Millennium Falcon
+                context.player1.clickCard(context.darthVader);
+                context.player1.clickPrompt('Deploy Darth Vader as a Pilot');
+                context.player1.clickCard(context.millenniumFalcon);
+
+                expect(context.millenniumFalcon).toHaveExactUpgradeNames(['darth-vader#victor-squadron-leader', 'traitorous']);
+                expect(context.millenniumFalcon.isLeader()).toBeTrue();
+
+                // Player 2 defeats Traitorous using Confiscate
+                context.player2.clickCard(context.confiscate);
+                context.player2.clickCard(context.traitorous);
+
+                // Millennium Falcon is defeated, Darth Vader is returned to leader position
+                expect(context.millenniumFalcon).toBeInZone('discard', context.player2);
+                expect(context.darthVader).toBeInZone('base', context.player1);
+                expect(context.darthVader.exhausted).toBeTrue();
+            });
+        });
     });
 });

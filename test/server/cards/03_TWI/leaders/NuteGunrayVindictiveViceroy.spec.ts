@@ -48,6 +48,7 @@ describe('Nute Gunray, Vindictive Viceroy', function () {
                 context.player1.clickCard(context.academyDefenseWalker);
                 context.player2.claimInitiative();
                 context.player1.clickCard(context.nuteGunray);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.nuteGunray.exhausted).toBeTrue();
 
                 // battledroid already on field, another not created as condiiton not met

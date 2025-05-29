@@ -26,6 +26,7 @@ import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
 import type { DelayedEffectType } from './gameSystems/DelayedEffectSystem';
 import type { IUpgradeCard } from './core/card/CardInterfaces';
 import type { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
+import type { FormatMessage } from './core/chat/GameChat';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -47,6 +48,9 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
      */
     anyPlayer?: boolean;
     phase?: PhaseName | 'any';
+
+    // If true, the action will not be automatically triggered when it's the only one available.
+    requiresConfirmation?: boolean;
 };
 
 export interface IOngoingEffectProps {
@@ -243,6 +247,7 @@ export type EffectArg =
   | string
   | RelativePlayer
   | Card
+  | FormatMessage
   | { id: string; label: string; name: string; facedown: boolean; type: CardType }
   | EffectArg[];
 
@@ -441,3 +446,8 @@ type NonParameterKeywordName =
   | KeywordName.Saboteur
   | KeywordName.Sentinel
   | KeywordName.Shielded;
+
+export type NumericKeywordName =
+  | KeywordName.Raid
+  | KeywordName.Restore
+  | KeywordName.Exploit;

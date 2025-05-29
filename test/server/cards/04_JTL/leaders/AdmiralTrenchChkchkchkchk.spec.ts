@@ -367,8 +367,11 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
             expect(context.player1).toHaveEnabledPromptButtons(['Discard a card that costs 3 or more from your hand', 'Deploy Admiral Trench']);
 
             context.player1.clickPrompt('Cancel');
+
             context.player1.exhaustResources(context.player1.readyResourceCount - 2);
+
             context.player1.clickCard(context.admiralTrench);
+            context.player1.clickPrompt('Use it anyway');
 
             expect(context.admiralTrench.exhausted).toBeTrue();
             expect(context.admiralTrench).toBeInZone('base');

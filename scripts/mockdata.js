@@ -240,24 +240,6 @@ const mockCards = [
         internalName: 'nihil-marauder'
     }),
     buildMockCard({
-        title: 'Nameless Terror',
-        power: 3,
-        hp: 3,
-        cost: 3,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        types: ['unit'],
-        keywords: [],
-        traits: ['creature'],
-        setId: {
-            set: 'LOF',
-            number: 33
-        },
-        unique: false,
-        arena: 'ground',
-        internalName: 'nameless-terror'
-    }),
-    buildMockCard({
         title: 'Gungi',
         subtitle: 'Finding Himself',
         power: 2,
@@ -376,6 +358,60 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'vernestra-rwoh#precocious-knight'
+    }),
+    buildMockCard({
+        title: 'Eye of Sion, To Peridea',
+        cost: 6,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        keywords: ['hidden', 'ambush', 'overwhelm', 'restore 1'],
+        traits: ['imperial', 'vehicle', 'transport'],
+        setId: {
+            set: 'LOF',
+            number: 88
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'eye-of-sion#to-peridea'
+    }),
+    buildMockCard({
+        title: 'Shin Hati, Overeager Apprentice',
+        cost: 3,
+        power: 4,
+        hp: 2,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        keywords: ['hidden', 'shielded'],
+        traits: ['force', 'fringe'],
+        setId: {
+            set: 'LOF',
+            number: 183
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'shin-hati#overeager-apprentice'
+    }),
+    buildMockCard({
+        title: 'Baylan Skoll, Enigmatic Master',
+        cost: 5,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        keywords: ['hidden'],
+        traits: ['force', 'fringe'],
+        setId: {
+            set: 'LOF',
+            number: 185
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'baylan-skoll#enigmatic-master'
     }),
 ];
 

@@ -74,15 +74,22 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         this.checkDuration(properties.duration);
-
-        event.sourceCard = this.getDelayedEffectSource(context, additionalProperties);
         Contract.assertNotNullLike(properties.immediateEffect, 'Immediate Effect cannot be null');
+        Contract.assertNotNullLike(context.source, 'Delayed effect source cannot be null');
+
+        if (properties.delayedEffectType === DelayedEffectType.Card) {
+            Contract.assertNotNullLike(target, `No target provided for delayed effect from card ${context.source.internalName}`);
+            if (Array.isArray(target)) {
+                Contract.assertArraySize(target, 1, `Expected exactly one target for delayed effect but found ${target.length}`);
+                target = target[0];
+            }
+        }
 
         const { title, when, limit, immediateEffect, ...otherProperties } = properties;
 
         const effectProperties: IOngoingEffectFactory = {
             ...otherProperties,
-            matchTarget: properties.delayedEffectType === DelayedEffectType.Card ? event.sourceCard : null,
+            matchTarget: properties.delayedEffectType === DelayedEffectType.Card ? target : null,
             ongoingEffect: OngoingEffectLibrary.delayedEffect({
                 title,
                 when,
@@ -91,6 +98,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
             })
         };
 
+        event.sourceCard = context.source;
         event.effectProperties = effectProperties;
         event.immediateEffect = properties.immediateEffect;
     }
@@ -121,29 +129,6 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
             duration === Duration.Custom,
             'Custom duration not implemented yet'
         );
-    }
-
-    protected getDelayedEffectSource(context: TContext, additionalProperties?: Partial<IDelayedEffectProperties>) {
-        const { delayedEffectType, target } = this.generatePropertiesFromContext(context, additionalProperties);
-
-        switch (delayedEffectType) {
-            case DelayedEffectType.Card:
-                Contract.assertNotNullLike(target, `No target provided for delayed effect from card ${context.source.internalName}`);
-
-                let nonArrayTarget;
-                if (Array.isArray(target)) {
-                    Contract.assertArraySize(target, 1, `Expected exactly one target for delayed effect but found ${target.length}`);
-                    nonArrayTarget = target[0];
-                } else {
-                    nonArrayTarget = target;
-                }
-
-                return nonArrayTarget;
-            case DelayedEffectType.Player:
-                return context.source;
-            default:
-                Contract.fail(`Unknown delayed effect type: ${delayedEffectType}`);
-        }
     }
 
     protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<IDelayedEffectProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

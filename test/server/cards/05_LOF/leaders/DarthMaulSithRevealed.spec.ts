@@ -184,6 +184,7 @@ describe('Darth Maul, Sith Revealed', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.darthMaul);
+                context.player1.clickPrompt('Deploy Darth Maul');
 
                 // Darth Maul is deployed because there is no other valid action
                 expect(context.darthMaul).toBeInZone('groundArena');

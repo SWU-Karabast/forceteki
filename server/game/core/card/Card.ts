@@ -200,7 +200,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     /** @deprecated use title instead**/
     public override get name() {
-        return super.name;
+        return this.title;
     }
 
     public get setId(): ISetId {
@@ -323,7 +323,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             }
         }
 
-        return deduplicatedActionAbilities;
+        const epicActionAbilities = deduplicatedActionAbilities
+            .filter((action) => action.isEpicAction);
+
+        return this.isBlank() ? epicActionAbilities : deduplicatedActionAbilities;
     }
 
     /**
@@ -632,7 +635,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     private getTraits() {
         const traits = this.getPrintedTraits();
 
-        for (const gainedTrait of this.getOngoingEffectValues(EffectName.AddTrait)) {
+        for (const gainedTrait of this.getOngoingEffectValues(EffectName.GainTrait)) {
             traits.add(gainedTrait);
         }
         for (const lostTrait of this.getOngoingEffectValues(EffectName.LoseTrait)) {

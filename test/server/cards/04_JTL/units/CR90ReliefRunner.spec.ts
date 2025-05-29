@@ -31,6 +31,8 @@ describe('CR90 Relief Runner', function () {
                 ]));
 
                 expect(context.p2Base.damage).toBe(2);
+                expect(context.getChatLogs(2)).toContain('player2 uses CR90 Relief Runner to distribute up to 3 healing to a unit or base');
+                expect(context.getChatLogs(2)).toContain('player2 uses CR90 Relief Runner to distribute 3 healing to Echo Base');
             });
 
             it('should heal up to 3 damage from a unit or a base when defeated (can distribute less)', function () {

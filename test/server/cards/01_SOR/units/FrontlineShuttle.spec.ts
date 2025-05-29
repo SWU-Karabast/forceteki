@@ -73,11 +73,10 @@ describe('Frontline Shuttle', function() {
                 context.player1.clickCard(context.frontlineShuttle);
 
                 context.player1.clickPrompt('Attack with a unit, even if it’s exhausted. It can’t attack bases for this attack.');
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.player2.base.damage).toBe(0);
-
                 expect(context.frontlineShuttle).toBeInZone('discard');
-
                 expect(context.player2).toBeActivePlayer();
             });
         });

@@ -10,7 +10,7 @@ describe('Commandeer', function() {
                         spaceArena: [{ card: 'green-squadron-awing', exhausted: true }]
                     },
                     player2: {
-                        hand: ['commandeer'],
+                        hand: ['commandeer', 'chewbacca#faithful-first-mate'],
                     }
                 });
                 const { context } = contextRef;
@@ -29,6 +29,14 @@ describe('Commandeer', function() {
                 expect(context.player1).toBeActivePlayer();
                 expect(context.atst).toBeInZone('groundArena', context.player2);
                 expect(context.atst.exhausted).toBeFalse();
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.chewbacca);
+                context.player2.clickPrompt('Play Chewbacca with Piloting');
+                context.player2.clickCard(context.atst);
+
+                expect(context.atst).toHaveExactUpgradeNames(['chewbacca#faithful-first-mate']);
 
                 // Check that AT-ST returns to player 2
                 context.moveToRegroupPhase();

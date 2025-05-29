@@ -19,6 +19,7 @@ export class StandardActionTimer implements IActionTimer {
     private endTime: Date | null = null;
     private onSpecificTimeHandlers: ISpecificTimeHandler[];
     private pauseTime: Date | null = null;
+    private timerOverrideValueSeconds: number | null = null;
     private timers: NodeJS.Timeout[] = [];
 
     private lastPlayerActionId: number | null = null;
@@ -61,9 +62,13 @@ export class StandardActionTimer implements IActionTimer {
         });
     }
 
-    public start() {
+    public start(overrideTimeLimitSeconds?: number) {
+        Contract.assertTrue(overrideTimeLimitSeconds == null || overrideTimeLimitSeconds * 1000 > this.timeLimitMs, `Received invalid time limit, must be null or greater than ${this.timeLimitMs / 1000}: ${overrideTimeLimitSeconds}`);
+
+        this.timerOverrideValueSeconds = overrideTimeLimitSeconds;
+
         this.stop();
-        this.initializeTimersForTimeRemaining(this.timeLimitMs);
+        this.initializeTimersForTimeRemaining(this.getTimeLimitMs());
 
         this.activeUiPromptId = this.game.currentOpenPrompt?.uuid;
 
@@ -80,7 +85,7 @@ export class StandardActionTimer implements IActionTimer {
             return;
         }
 
-        this.start();
+        this.start(this.timerOverrideValueSeconds);
         this.lastPlayerActionId = this.player.lastActionId;
     }
 
@@ -113,12 +118,16 @@ export class StandardActionTimer implements IActionTimer {
         this.activeUiPromptId = null;
     }
 
+    private getTimeLimitMs() {
+        return this.timerOverrideValueSeconds ? this.timerOverrideValueSeconds * 1000 : this.timeLimitMs;
+    }
+
     private initializeTimersForTimeRemaining(timeRemainingMs: number) {
         Contract.assertIsNullLike(this.endTime, 'End time must be cleared before initializing timers');
         Contract.assertPositiveNonZero(timeRemainingMs);
         Contract.assertTrue(this.timers.length === 0, 'Timers must be cleared before initializing new timers');
 
-        this.endTime = new Date(Date.now() + this.timeLimitMs);
+        this.endTime = new Date(Date.now() + this.getTimeLimitMs());
         this.pauseTime = null;
 
         const safeCallHandler = (handler: () => void) => {

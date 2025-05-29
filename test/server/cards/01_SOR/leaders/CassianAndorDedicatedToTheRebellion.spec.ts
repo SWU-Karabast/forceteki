@@ -6,7 +6,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                     phase: 'action',
                     player1: {
                         hand: ['daring-raid', 'daring-raid'],
-                        deck: ['k2so#cassians-counterpart', 'open-fire'],
+                        deck: ['k2so#cassians-counterpart', 'underworld-thug', 'underworld-thug', 'open-fire'],
                         spaceArena: ['green-squadron-awing'],
                         leader: 'cassian-andor#dedicated-to-the-rebellion',
                         resources: 4,
@@ -23,8 +23,10 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
 
                 // Expect this ability be available, but performs a no-op since 3 damage hasn't been dealt yet
                 expect(context.cassianAndor).toHaveAvailableActionWhenClickedBy(context.player1);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.cassianAndor.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
+                expect(context.player1.hand).not.toContain(context.k2so);
 
                 context.readyCard(context.cassianAndor);
                 context.player2.passAction();
@@ -44,8 +46,10 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
 
                 // Expect this ability to be a no-op again since its a new action phase
                 expect(context.cassianAndor).toHaveAvailableActionWhenClickedBy(context.player1);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.cassianAndor.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
+                expect(context.player1.hand).not.toContain(context.openFire);
 
                 context.readyCard(context.cassianAndor);
                 context.player2.passAction();

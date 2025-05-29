@@ -40,11 +40,11 @@ export class ActionWindow extends UiPrompt {
         }
 
         if (legalActions.length === 1) {
-            const confirmOneClick = false;
             const action = legalActions[0];
+            const requiresConfirmation = action.isActionAbility() && action.requiresConfirmation;
             const targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.properties.choosingPlayer !== RelativePlayer.Opponent);
             const context = action.createContext(player);
-            if (!confirmOneClick || action.getCosts(context).some((cost) => cost.promptsPlayer) || targetPrompts) {
+            if (!requiresConfirmation || action.getCosts(context).some((cost) => cost.promptsPlayer) || targetPrompts) {
                 this.resolveAbility(context);
                 return true;
             }

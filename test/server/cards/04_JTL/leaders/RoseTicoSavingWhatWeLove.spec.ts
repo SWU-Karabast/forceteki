@@ -52,12 +52,14 @@ describe('Rose Tico, Saving What We Love', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.roseTico);
                 context.player1.clickPrompt('Heal 2 damage from a Vehicle unit that attacked this phase');
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.player2).toBeActivePlayer();
 
                 // Move to next action phase
                 context.moveToNextActionPhase();
                 context.player1.clickCard(context.roseTico);
                 context.player1.clickPrompt('Heal 2 damage from a Vehicle unit that attacked this phase');
+                context.player1.clickPrompt('Use it anyway');
 
                 // No Vehicle units attacked this phase so not able to heal
                 expect(context.player2).toBeActivePlayer();

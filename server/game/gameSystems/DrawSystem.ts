@@ -51,7 +51,12 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
             // Add a contingent event to deal damage for any cards the player fails to draw due to not having enough left in their deck.
             const contingentEvents = [];
             if (event.amount > event.player.drawDeck.length) {
-                const damageAmount = 3 * (event.amount - event.player.drawDeck.length);
+                const cannotDrawCount = event.amount - event.player.drawDeck.length;
+                const damageAmount = 3 * cannotDrawCount;
+
+                context.game.addMessage('{0} attempts to draw {1} cards from their empty deck and takes {2} damage instead',
+                    event.player, cannotDrawCount, damageAmount
+                );
 
                 // Here we generate a damage event with a new context that contains just the player,
                 // this way the damage is attributed to the player and not the card that triggered the draw (or its controller).

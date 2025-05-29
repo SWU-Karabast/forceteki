@@ -49,6 +49,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
 
                 context.player1.clickCard(context.grandMoffTarkin);
                 context.player1.clickPrompt('Give an experience token to an Imperial unit');
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.grandMoffTarkin.exhausted).toBe(true);

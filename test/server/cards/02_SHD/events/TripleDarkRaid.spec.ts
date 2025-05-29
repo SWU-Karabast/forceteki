@@ -195,6 +195,7 @@ describe('Triple Dark Raid', function () {
                 expect(context.atst).toBeInZone('hand');
                 expect(context.asajjVentress).toBeInZone('base');
                 context.player1.clickCard(context.asajjVentress);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.player2).toBeActivePlayer();
             });
         });

@@ -67,7 +67,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     }
 
     protected getExhaustResourceEvent(context: AbilityContext<TCard>): GameEvent {
-        return new GameEvent(EventName.onExhaustResources, context, { amount: this.getAdjustedCost(context) }, (event) => {
+        return new GameEvent(EventName.OnExhaustResources, context, { amount: this.getAdjustedCost(context) }, (event) => {
             const amount = this.getAdjustedCost(context);
             context.costs.resources = amount;
 
