@@ -527,7 +527,7 @@ const mockCards = [
             set: 'LOF',
             number: 119
         },
-        unique: true,
+        unique: false,
         arena: 'space',
         internalName: 'hyperspace-wayfarer'
     }),
