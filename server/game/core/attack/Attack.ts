@@ -16,6 +16,7 @@ export class Attack {
 
     private unitControllersChanged = new Set<IAttackableCard>();
     private targets: IAttackableCard[];
+    private defendingPlayer: Player;
 
     public previousAttack: Attack;
 
@@ -29,6 +30,7 @@ export class Attack {
         this.attacker = attacker;
         this.attackingPlayer = attacker.controller;
         this.targets = targets;
+        this.defendingPlayer = targets[0].controller;
         this.targetInPlayMap = new Map(targets.filter((target) => target.isUnit()).map((target) => [target, target.inPlayId]));
 
         // we grab the in-play IDs of the attacker and defender cards in case other abilities need to refer back to them later.
@@ -51,8 +53,7 @@ export class Attack {
     }
 
     public getDefendingPlayer(): Player {
-        Contract.assertTrue(this.targets.length > 0, 'Expected at least one target but there are none');
-        return this.targets[0].controller;
+        return this.defendingPlayer;
     }
 
     public getSingleTarget(): IAttackableCard {

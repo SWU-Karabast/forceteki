@@ -79,7 +79,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         const damageEvents = [];
 
         // TSTODO: This will need to be updated to account for attacking units owned by different opponents
-        const targetControllerBase = legalTargets[0].controller.base;
+        const targetControllerBase = this.attack.getDefendingPlayer().base;
 
         if (directOverwhelmDamage > 0) {
             damageEvents.push(new DamageSystem({
