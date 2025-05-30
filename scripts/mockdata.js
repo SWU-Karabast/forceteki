@@ -570,13 +570,14 @@ const mockCards = [
         hp: 10,
         hasNonKeywordAbility: true,
         aspects: ['vigilance'],
+        keywords: ['shielded'],
         types: ['unit'],
         traits: ['mandalorian', 'creature'],
         setId: {
             set: 'LOF',
             number: 73
         },
-        unique: false,
+        unique: true,
         arena: 'ground',
         internalName: 'mythosaur#folklore-awakened'
     }),
