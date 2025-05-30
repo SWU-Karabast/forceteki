@@ -531,6 +531,56 @@ const mockCards = [
         arena: 'space',
         internalName: 'hyperspace-wayfarer'
     }),
+    buildMockCard({
+        title: 'Pounce',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'LOF',
+            number: 224
+        },
+        unique: false,
+        internalName: 'pounce'
+    }),
+    buildMockCard({
+        title: 'Grappling Guardian',
+        cost: 7,
+        power: 3,
+        hp: 9,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['creature'],
+        setId: {
+            set: 'LOF',
+            number: 71
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'grappling-guardian'
+    }),
+    buildMockCard({
+        title: 'Mythosaur',
+        subtitle: 'Folklore Awakened',
+        cost: 9,
+        power: 10,
+        hp: 10,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        keywords: ['shielded'],
+        types: ['unit'],
+        traits: ['mandalorian', 'creature'],
+        setId: {
+            set: 'LOF',
+            number: 73
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mythosaur#folklore-awakened'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
