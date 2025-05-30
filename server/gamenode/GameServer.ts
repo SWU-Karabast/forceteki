@@ -520,13 +520,15 @@ export class GameServer {
                 }
 
                 // Delete the decks
+                const removedDeckLinks: string[] = [];
                 for (const deckId of deckIds) {
-                    await this.deckService.deleteDeckAsync(user.getId(), deckId);
+                    const deletedDeckLink = await this.deckService.deleteDeckAsync(user.getId(), deckId);
+                    removedDeckLinks.push(deletedDeckLink);
                 }
                 return res.status(200).json({
                     success: true,
                     message: `Successfully deleted ${deckIds.length} decks`,
-                    deckIds
+                    removedDeckLinks
                 });
             } catch (err) {
                 logger.error('GameServer (delete-decks) Server error :', err);
