@@ -2,9 +2,18 @@ import type { ITargetResolverBase } from '../../../TargetInterfaces';
 import type { AbilityContext } from '../AbilityContext';
 import * as Contract from '../../utils/Contract';
 import type { GameSystem } from '../../gameSystem/GameSystem';
-import type PlayerOrCardAbility from '../PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
 import { RelativePlayer, Stage } from '../../Constants';
 import type { Player } from '../../Player';
+
+export interface ITargetResult {
+    canIgnoreAllCosts?: boolean;
+    cancelled?: boolean;
+    payCostsFirst?: boolean;
+    delayTargeting?: TargetResolver<ITargetResolverBase<AbilityContext>>;
+    canCancel?: boolean;
+    hasEffectiveTargets?: boolean;
+}
 
 /**
  * Base class for all target resolvers.
@@ -15,7 +24,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
     protected dependentTarget = null;
     protected dependentCost = null;
 
-    public constructor(protected name: string, protected properties: TProps, ability: PlayerOrCardAbility = null) {
+    public constructor(public name: string, protected properties: TProps, ability: PlayerOrCardAbility = null) {
         if (this.properties.dependsOn) {
             this.dependsOnOtherTarget = true;
             Contract.assertNotNullLike(ability);
@@ -41,14 +50,14 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
 
     protected abstract hasTargetsChosenByPlayerInternal(context: AbilityContext, player?: Player): boolean;
 
-    protected abstract resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player);
+    protected abstract resolveInternal(context: AbilityContext, targetResults: ITargetResult, passPrompt, player: Player);
 
-    protected canResolve(context) {
+    protected canResolve(context: AbilityContext) {
         // if this depends on another target, that will check hasLegalTarget already
         return !!this.properties.dependsOn || this.hasLegalTarget(context);
     }
 
-    public resolve(context: AbilityContext, targetResults, passPrompt = null) {
+    public resolve(context: AbilityContext, targetResults: ITargetResult, passPrompt = null) {
         if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
             return;
         }
@@ -78,7 +87,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
         };
     }
 
-    protected setTargetResult(context, target) {
+    protected setTargetResult(context: AbilityContext, target) {
         context.targets[this.name] = target;
         if (this.name === 'target') {
             context.target = target;

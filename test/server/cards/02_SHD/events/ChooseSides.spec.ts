@@ -20,7 +20,9 @@ describe('Choose Sides', function() {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.chooseSides);
+                    context.player1.clickPrompt('Play anyway');
 
+                    expect(context.chooseSides).toBeInZone('discard', context.player1);
                     expect(context.player2).toBeActivePlayer();
                     expect(context.echo.controller).toBe(context.player1Object);
                 });
@@ -45,7 +47,9 @@ describe('Choose Sides', function() {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.chooseSides);
+                    context.player1.clickPrompt('Play anyway');
 
+                    expect(context.chooseSides).toBeInZone('discard', context.player1);
                     expect(context.player2).toBeActivePlayer();
                     expect(context.echo.controller).toBe(context.player2Object);
                 });

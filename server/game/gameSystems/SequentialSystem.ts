@@ -4,6 +4,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { ISimultaneousOrSequentialSystemProperties } from './SimultaneousOrSequentialSystem';
 import { ResolutionMode, SimultaneousOrSequentialSystem } from './SimultaneousOrSequentialSystem';
 
@@ -22,8 +23,13 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
     protected override readonly eventName: MetaEventName.Sequential;
 
     public override getEffectMessage(context: TContext): [string, any] {
-        const properties = super.generatePropertiesFromContext(context);
-        return properties.gameSystems[0].getEffectMessage(context);
+        const { gameSystems } = super.generatePropertiesFromContext(context);
+        const legalSystems = gameSystems.filter((system) => system.hasLegalTarget(context));
+        const message = ChatHelpers.formatWithLength(legalSystems.length, 'then to ');
+        return [message, legalSystems.map((system) => {
+            const [format, args] = system.getEffectMessage(context);
+            return [format, ...args];
+        })];
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISequentialSystemProperties<TContext>> = {}): void {

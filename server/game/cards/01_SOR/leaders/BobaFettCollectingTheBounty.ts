@@ -19,7 +19,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Exhaust Boba Fett',
+            title: 'Exhaust Boba Fett to ready a resource',
             when: {
                 onCardLeavesPlay: (event, context) =>
                     event.card.isUnit() && event.card.controller !== context.player

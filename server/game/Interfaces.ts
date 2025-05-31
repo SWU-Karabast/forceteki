@@ -9,7 +9,7 @@ import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTa
 import type { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import type { ICost } from './core/cost/ICost';
 import type Game from './core/Game';
-import type PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from './core/ability/PlayerOrCardAbility';
 import type { Player } from './core/Player';
 import type { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
 import type { OngoingPlayerEffect } from './core/ongoingEffect/OngoingPlayerEffect';
@@ -26,6 +26,7 @@ import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
 import type { DelayedEffectType } from './gameSystems/DelayedEffectSystem';
 import type { IUpgradeCard } from './core/card/CardInterfaces';
 import type { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
+import type { FormatMessage } from './core/chat/GameChat';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -47,6 +48,9 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
      */
     anyPlayer?: boolean;
     phase?: PhaseName | 'any';
+
+    // If true, the action will not be automatically triggered when it's the only one available.
+    requiresConfirmation?: boolean;
 };
 
 export interface IOngoingEffectProps {
@@ -243,6 +247,7 @@ export type EffectArg =
   | string
   | RelativePlayer
   | Card
+  | FormatMessage
   | { id: string; label: string; name: string; facedown: boolean; type: CardType }
   | EffectArg[];
 
@@ -254,7 +259,9 @@ export type WhenTypeOrStandard<TSource extends Card = Card> = WhenType<TSource> 
     [StandardTriggeredAbilityTypeValue in StandardTriggeredAbilityType]?: true;
 };
 
-export type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
+export type IOngoingCardEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => OngoingCardEffect;
+export type IOngoingPlayerEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => OngoingPlayerEffect;
+export type IOngoingEffectGenerator = IOngoingCardEffectGenerator | IOngoingPlayerEffectGenerator;
 
 export type IOngoingEffectFactory = IOngoingEffectProps & {
     ongoingEffect: any; // IOngoingEffectGenerator | IOngoingEffectGenerator[]
@@ -283,6 +290,11 @@ export interface ISetId {
     number: number;
 }
 
+export interface IResourceState {
+    readyCount: number;
+    exhaustedCount: number;
+}
+
 /* Serialized state retrieving interfaces */
 export interface ISerializedCardState {
     card: string;
@@ -300,7 +312,7 @@ export interface IPlayerSerializedState {
     groundArena?: (string | ISerializedCardState)[];
     spaceArena?: (string | ISerializedCardState)[];
     discard?: string[];
-    resources?: number | (string | ISerializedCardState)[];
+    resources?: number | IResourceState | (string | ISerializedCardState)[];
     base?: string | ISerializedCardState;
     leader?: string | ISerializedCardState;
     deck?: number | string[];
@@ -316,6 +328,8 @@ export interface ISerializedGameState {
     player2?: IPlayerSerializedState;
 }
 
+export type MessageText = string | (string | number)[];
+
 export interface ISerializedReportState {
     description: string;
     gameState: ISerializedGameState;
@@ -324,8 +338,14 @@ export interface ISerializedReportState {
         username: string;
         playerInGameState: string;
     };
+    opponent: {
+        id: string;
+        username: string;
+        playerInGameState: string;
+    };
     lobbyId: string;
     timestamp: string;
+    messages: { date: Date; message: MessageText | { alert: { type: string; message: string | string[] } } }[];
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;
     viewport?: { width: number; height: number } | null;
@@ -434,3 +454,8 @@ type NonParameterKeywordName =
   | KeywordName.Saboteur
   | KeywordName.Sentinel
   | KeywordName.Shielded;
+
+export type NumericKeywordName =
+  | KeywordName.Raid
+  | KeywordName.Restore
+  | KeywordName.Exploit;

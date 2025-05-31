@@ -24,7 +24,7 @@ export default class Bamboozle extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Defeat an upgrade',
+            title: 'Exhaust a unit and return each upgrade on it to its owner\'s hand',
             cannotTargetFirst: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -57,8 +57,8 @@ class PlayBamboozleAction extends PlayEventAction {
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
         return new PlayBamboozleAction(
-            this.card,
-            PlayBamboozleAction.generateProperties(this.card,
+            this.card as Bamboozle,
+            PlayBamboozleAction.generateProperties(this.card as Bamboozle,
                 {
                     ...this.createdWithProperties,
                     ...overrideProperties

@@ -45,7 +45,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
         });
 
         this.addOnAttackAbility({
-            title: 'Defeat another friendly unit',
+            title: 'Defeat another friendly unit. If you do, deal 1 damage to a unit and draw a card',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

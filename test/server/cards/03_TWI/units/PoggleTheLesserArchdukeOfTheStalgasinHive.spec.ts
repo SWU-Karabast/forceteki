@@ -17,7 +17,7 @@ describe('Poggle The Lesser, Archduke of the Stalgasin Hive', function() {
 
             // Player plays a unit, exhaust Poggle and create a Battle Droid token
             context.player1.clickCard(context.battlefieldMarine);
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust this unit');
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this unit to create a Battle Droid token');
             context.player1.clickPrompt('Trigger');
 
             let battleDroids = context.player1.findCardsByName('battle-droid');
@@ -35,7 +35,7 @@ describe('Poggle The Lesser, Archduke of the Stalgasin Hive', function() {
 
             // Player plays a unit but does not exhaust Poggle, ability should not trigger
             context.player1.clickCard(context.greenSquadronAwing);
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust this unit');
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this unit to create a Battle Droid token');
             context.player1.clickPrompt('Pass');
             expect(context.poggleTheLesserArchdukeOfTheStalgasinHive.exhausted).toBe(false);
 
@@ -45,6 +45,7 @@ describe('Poggle The Lesser, Archduke of the Stalgasin Hive', function() {
             // Player plays an event, ability should not trigger
             context.player2.passAction();
             context.player1.clickCard(context.confiscate);
+            context.player1.clickPrompt('Play anyway');
             expect(context.poggleTheLesserArchdukeOfTheStalgasinHive.exhausted).toBe(false);
             expect(context.player2).toBeActivePlayer();
 

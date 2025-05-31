@@ -6,14 +6,18 @@ import * as Helpers from '../utils/Helpers.js';
 import * as Contract from '../utils/Contract.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import type { Card } from '../card/Card.js';
+import type { GameSystem } from '../gameSystem/GameSystem.js';
+import type { GameEvent } from '../event/GameEvent.js';
+import type { Player } from '../Player.js';
+import type { AbilityContext } from './AbilityContext.js';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
 export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends PlayerOrCardAbility<T> {
-    public handler: any;
     public cannotTargetFirst: boolean;
+    private handler: (context: AbilityContext) => void;
 
     /** @param card The card this ability is attached to. */
     public constructor(game, card: Card, properties, type = AbilityType.Action) {
@@ -31,12 +35,12 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         this.cannotTargetFirst = false;
     }
 
-    public override executeHandler(context) {
+    public override executeHandler(context: AbilityContext) {
         this.handler(context);
         this.game.queueSimpleStep(() => this.game.resolveGameState(), 'resolveState');
     }
 
-    public override hasAnyLegalEffects(context, includeSubSteps = SubStepCheck.None) {
+    public override hasAnyLegalEffects(context: AbilityContext, includeSubSteps = SubStepCheck.None) {
         if (this.immediateEffect && this.checkGameActionsForPotential(context)) {
             return true;
         }
@@ -53,7 +57,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         return false;
     }
 
-    public override meetsRequirements(context, ignoredRequirements: string[] = [], thisStepOnly = false) {
+    public override meetsRequirements(context: AbilityContext, ignoredRequirements: string[] = [], thisStepOnly = false) {
         // if there is an ifYouDoNot clause, then lack of game state change just means we go down the "if you do not" path
         // (unless thisStepOnly is true, in which case we ignore sub-steps)
         if (this.properties.ifYouDoNot && !thisStepOnly) {
@@ -63,7 +67,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
     }
 
-    public override checkGameActionsForPotential(context) {
+    public override checkGameActionsForPotential(context: AbilityContext) {
         if (super.checkGameActionsForPotential(context)) {
             return true;
         } else if (this.immediateEffect.isOptional(context) && this.properties.then) {
@@ -75,25 +79,27 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         return false;
     }
 
-    public override displayMessage(context) {
-        let message = this.properties.message;
-        if (typeof message === 'function') {
-            message = message(context);
-        }
-        if (message) {
-            let messageArgs = [context.player, context.source, context.target];
-            if (this.properties.messageArgs) {
-                let args = this.properties.messageArgs;
-                if (typeof args === 'function') {
-                    args = args(context);
-                }
-                messageArgs = messageArgs.concat(args);
+    public override displayMessage(context: AbilityContext) {
+        if ('message' in this.properties) {
+            let message = this.properties.message;
+            if (typeof message === 'function') {
+                message = message(context);
             }
-            this.game.addMessage(message, ...messageArgs);
+            if (message) {
+                let messageArgs = [context.player, context.source, context.target];
+                if ('messageArgs' in this.properties && this.properties.messageArgs) {
+                    let args = this.properties.messageArgs;
+                    if (typeof args === 'function') {
+                        args = args(context);
+                    }
+                    messageArgs = messageArgs.concat(args);
+                }
+                this.game.addMessage(message, ...messageArgs);
+            }
         }
     }
 
-    public getGameSystems(context) {
+    protected getGameSystems(context: AbilityContext): GameSystem[] {
         // if we are using target resolvers, get the legal system(s) and return them
         if (this.targetResolvers.length > 0) {
             return this.targetResolvers.reduce((array, target) => array.concat(target.getGameSystems(context)), []);
@@ -103,7 +109,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         return Helpers.asArray(this.immediateEffect);
     }
 
-    public executeGameActions(context) {
+    private executeGameActions(context: AbilityContext) {
         context.events = [];
 
         this.queueEventsForSystems(context);
@@ -123,23 +129,25 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         }, `resolve events for ${this}`);
     }
 
-    public queueEventsForSystems(context) {
+    public queueEventsForSystems(context: AbilityContext) {
         const systems = this.getGameSystems(context);
 
         for (const system of systems) {
             this.game.queueSimpleStep(() => {
-                system.queueGenerateEventGameSteps(context.events, context);
+                if (system.hasLegalTarget(context)) {
+                    system.queueGenerateEventGameSteps(context.events, context);
+                }
             },
             `queue ${system.name} event generation steps for ${this}`);
         }
     }
 
-    public openEventWindow(events) {
+    private openEventWindow(events: GameEvent[]) {
         return this.game.openEventWindow(events);
     }
 
     /** "Sub-ability-steps" are subsequent steps after the initial ability effect, such as "then" or "if you do" */
-    public getSubAbilityStepContext(context, resolvedAbilityEvents = []) {
+    private getSubAbilityStepContext(context: AbilityContext, resolvedAbilityEvents: GameEvent[] = []) {
         if (this.properties.then) {
             const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
             const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
@@ -188,22 +196,22 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         return null;
     }
 
-    public getConcreteSubAbilityStepProperties(subAbilityStep, context) {
+    private getConcreteSubAbilityStepProperties(subAbilityStep, context: AbilityContext) {
         const properties = typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
 
         // sub-steps will always pass to a parent window
         return { ...properties, triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
     }
 
-    public buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy) {
+    private buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player) {
         return this.buildSubAbilityStep(subAbilityStepProps).createContext(canBeTriggeredBy);
     }
 
-    public buildSubAbilityStep(subAbilityStepProps) {
+    private buildSubAbilityStep(subAbilityStepProps) {
         return new CardAbilityStep(this.game, this.card, subAbilityStepProps, this.type);
     }
 
-    public getCanBeTriggeredBy(subAbilityStep, context) {
+    private getCanBeTriggeredBy(subAbilityStep, context: AbilityContext) {
         Contract.assertFalse(subAbilityStep.canBeTriggeredBy === WildcardRelativePlayer.Any, 'Cannot use WildcardRelativePlayer.Any in a then/ifYouDo');
         if (subAbilityStep.canBeTriggeredBy) {
             return subAbilityStep.canBeTriggeredBy === RelativePlayer.Self ? context.player : context.player.opponent;
@@ -216,5 +224,3 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         return true;
     }
 }
-
-export default CardAbilityStep;

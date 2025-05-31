@@ -22,12 +22,12 @@ export default class TheyHateThatShip extends EventCard {
             then: {
                 title: 'Play a Vehicle unit from your hand. It costs 3 resources less',
                 targetResolver: {
-                    cardTypeFilter: WildcardCardType.Unit,
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle),
                     immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 }
+                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 },
+                        playAsType: WildcardCardType.Unit,
                     }),
                 },
             }

@@ -92,7 +92,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unattachUpgrade(upgrade, event);
     canAttachPilot(pilot: IUnitCard): boolean;
     attachUpgrade(upgrade);
-    getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
+    getNumericKeywordTotal(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
     getMaxUnitAttackLimit(): number;
 }
 
@@ -462,6 +462,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
         }
 
+        public override takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource = null) {
+            const changedController = super.takeControl(newController, moveTo);
+
+            if (changedController && this.isInPlay() && this.canHaveActiveAttack() && this.activeAttack) {
+                this.activeAttack.unitChangedController(this);
+            }
+
+            return changedController;
+        }
+
         protected addPilotingConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'ongoingEffect'>) {
             this.addPilotingAbility({
                 type: AbilityType.Constant,
@@ -499,10 +509,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 title: 'Give triggered ability to the attached card',
                 ...properties
             });
-        }
-
-        public override getActionAbilities(): ActionAbility[] {
-            return this.isBlank() ? [] : super.getActionAbilities();
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
@@ -706,7 +712,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             this.state.attackKeywordAbilities = [];
 
             if (hasRestore) {
-                const restoreAmount = this.getNumericKeywordSum(KeywordName.Restore);
+                const restoreAmount = this.getNumericKeywordTotal(KeywordName.Restore);
                 const restoreProps = Object.assign(this.buildGeneralAbilityProps('keyword_restore'), RestoreAbility.buildRestoreAbilityProperties(restoreAmount));
                 const restoreAbility = this.createTriggeredAbility(restoreProps);
                 restoreAbility.registerEvents();
@@ -880,7 +886,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
         }
 
-        private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers = []) {
+        private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers: string[] = []) {
             const wrappedModifiers = this.getStatModifiers(excludeModifiers);
 
             const baseStatValue = StatsModifierWrapper.fromPrintedValues(this);
@@ -891,12 +897,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         // TODO: add a summary method that logs these modifiers (i.e., the names, amounts, etc.)
-        private getStatModifiers(exclusions): StatsModifierWrapper[] {
-            if (!exclusions) {
-                exclusions = [];
-            }
-
-            let rawEffects;
+        private getStatModifiers(exclusions: (string[] | ((effect: IOngoingCardEffect) => boolean)) = []): StatsModifierWrapper[] {
+            let rawEffects: IOngoingCardEffect[];
             if (typeof exclusions === 'function') {
                 rawEffects = this.getOngoingEffects().filter((effect) => !exclusions(effect));
             } else {
@@ -915,7 +917,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
                 }
 
-                const raidAmount = this.getNumericKeywordSum(KeywordName.Raid);
+                const raidAmount = this.getNumericKeywordTotal(KeywordName.Raid);
                 if (this.isAttacking() && raidAmount > 0) {
                     const raidModifier = { power: raidAmount, hp: 0 };
                     wrappedStatsModifiers.push(new StatsModifierWrapper(raidModifier, 'Raid', false, this.type));

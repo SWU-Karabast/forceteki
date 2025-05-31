@@ -11,6 +11,7 @@ import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 import type { Player } from '../core/Player.js';
 import { shuffleArray } from '../core/utils/Helpers.js';
 import * as Contract from '../core/utils/Contract.js';
+import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
 import type { DeckZone } from '../core/zone/DeckZone.js';
@@ -47,6 +48,7 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     /** Used for filtering selection based on things like trait, type, etc. */
     cardCondition?: (card: Card, context: TContext) => boolean;
     chooseNothingImmediateEffect?: GameSystem<TContext>;
+    multiSelectCondition?: (card: Card, currentlySelectedCards: Card[], context: TContext) => boolean;
 }
 
 export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ISearchDeckProperties<TContext> = ISearchDeckProperties<TContext>> extends PlayerTargetSystem<TContext, TProperties> {
@@ -62,6 +64,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         shuffleWhenDone: false,
         revealSelected: true,
         cardCondition: () => true,
+        multiSelectCondition: () => true,
         remainingCardsHandler: this.remainingCardsDefaultHandler
     };
 
@@ -89,9 +92,9 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         const searchCountAmount = this.computeSearchCount(properties.searchCount, context);
         const message =
         searchCountAmount > 0
-            ? `look at the top ${searchCountAmount === 1 ? 'card' : `${searchCountAmount} cards`} of their deck`
+            ? 'look at the top {0} of their deck'
             : 'search their deck';
-        return [message, []];
+        return [message, [ChatHelpers.pluralize(searchCountAmount, 'card', 'cards')]];
     }
 
     public override defaultTargets(context: TContext): Player[] {
@@ -196,7 +199,9 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
                 properties.cardCondition(card, context) &&
                 (!properties.selectedCardsImmediateEffect || properties.selectedCardsImmediateEffect.canAffect(card, context, additionalProperties)),
             selectedCardsHandler: (selectedCards: Card[]) =>
-                this.onSearchComplete(properties, context, event, selectedCards, cards)
+                this.onSearchComplete(properties, context, event, selectedCards, cards),
+            multiSelectCondition: (card: Card, currentlySelectedCards: Card[]) =>
+                properties.multiSelectCondition(card, currentlySelectedCards, context)
         };
     }
 

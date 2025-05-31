@@ -176,8 +176,8 @@ class DeckBuilder {
 
     getNamedCardsInPlayerEntry(playerEntry) {
         let namedCards = [];
-        // If number, this might be used by padCardListIfNeeded, and should simply return an array.
-        if (typeof playerEntry === 'number') {
+        // If number or resource state, this might be used by padCardListIfNeeded, and should return an empty array.
+        if (typeof playerEntry === 'number' || this.isResourceStateObject(playerEntry)) {
             return [];
         }
         if (playerEntry === null) {
@@ -213,6 +213,14 @@ class DeckBuilder {
         }
         if (typeof cardList === 'number') {
             return Array(cardList).fill(deckFillerCard);
+        }
+        if (this.isResourceStateObject(cardList)) {
+            const readyResources = Array(cardList.readyCount).fill(deckFillerCard);
+            const exhaustedResources = Array(cardList.exhaustedCount).fill({
+                card: deckFillerCard,
+                exhausted: true
+            });
+            return readyResources.concat(exhaustedResources);
         }
         return cardList;
     }
@@ -294,6 +302,19 @@ class DeckBuilder {
         }
     }
 
+    isResourceStateObject(resourceState) {
+        if (typeof resourceState === 'object' && resourceState !== null) {
+            const validKeys = ['readyCount', 'exhaustedCount'];
+            const resourceStateKeys = Object.keys(resourceState);
+            if (resourceStateKeys.length !== validKeys.length) {
+                return false;
+            }
+            return resourceStateKeys.every((key) => validKeys.includes(key));
+        }
+
+        return false;
+    }
+
     getCapturedUnitsFromArena(arenaList, ownerFilter = () => true) {
         if (!arenaList) {
             return [];
@@ -329,7 +350,8 @@ class DeckBuilder {
 
     /** @returns {import('../../server/utils/deck/Deck').Deck} */
     buildDeck(deckCards, leader, base) {
-        const safeGetSetCode = (internalName) => {
+        const safeGetSetCode = (card) => {
+            const internalName = typeof card === 'string' ? card : card.card;
             var setCode = this.internalNameToSetCode.get(internalName);
             Contract.assertNotNullLike(setCode, `Unknown card name: ${internalName}`);
             return setCode;

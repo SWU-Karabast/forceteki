@@ -1,6 +1,13 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { AbilityType, RelativePlayer, Trait, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import {
+    AbilityType,
+    RelativePlayer,
+    Trait,
+    WildcardCardType,
+    WildcardZoneName,
+    ZoneName
+} from '../../../core/Constants';
 
 export default class MajorVonregRedBaron extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -17,11 +24,10 @@ export default class MajorVonregRedBaron extends LeaderUnitCard {
             title: 'Play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle),
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand(),
+                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({ playAsType: WildcardCardType.Unit }),
             },
             ifYouDo: (ifYouDoContext) => {
                 return {

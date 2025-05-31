@@ -53,14 +53,13 @@ export class DeckService {
             // if we create a map it will be faster to lookup.
             const existingDeckLinks = new Map();
             for (const deck of existingDecks) {
-                if (deck.deck.deckLinkID) {
-                    existingDeckLinks.set(deck.deck.deckLinkID, deck);
+                if (deck.deck.deckLink) {
+                    existingDeckLinks.set(deck.deck.deckLink, deck);
                 }
             }
-
             for (const unsyncedDeck of unsyncedDecks) {
                 // skip if deck link already exists
-                if (unsyncedDeck.deckLinkID && existingDeckLinks.has(unsyncedDeck.deckLinkID)) {
+                if (unsyncedDeck.deckLink && existingDeckLinks.has(unsyncedDeck.deckLink)) {
                     continue;
                 }
 
@@ -202,13 +201,13 @@ export class DeckService {
             const deck = await dbService.getDeckAsync(userId, deckId);
             if (!deck) {
                 logger.error(`DeckService: Deck ${deckId} not found for user ${userId}`);
-                return;
+                return null;
             }
 
             // Delete the deck
             await dbService.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`);
             logger.info(`DeckService: Successfully deleted deck ${deckId} for user ${userId}`);
-            return;
+            return deck.deck.deckLinkID;
         } catch (error) {
             logger.error(`DeckService: Error deleting deck ${deckId} for user ${userId}:`, { error: { message: error.message, stack: error.stack } });
             throw error;

@@ -18,6 +18,7 @@ import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
+import { AlertType } from '../game/core/Constants';
 
 interface LobbySpectator {
     id: string;
@@ -94,7 +95,7 @@ export class Lobby {
         );
         this._id = uuid();
         this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
-        this.gameChat = new GameChat();
+        this.gameChat = new GameChat(() => this.sendLobbyState());
         this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
         this.gameType = lobbyGameType;
@@ -163,6 +164,10 @@ export class Lobby {
     private updateUserLastActivity(id: string): void {
         const now = new Date();
         this.userLastActivity.set(id, now);
+
+        if (this.game) {
+            this.game.onPlayerAction(id);
+        }
     }
 
     public hasPlayer(id: string) {
@@ -266,7 +271,7 @@ export class Lobby {
         if (existingUser) {
             existingUser.state = 'connected';
             this.checkUpdateSocket(existingUser, socket);
-            logger.info(`Lobby: setting state to connected for existing user ${user.getUsername()} with socket id ${socket.id}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
+            logger.info(`Lobby: setting state to connected for existing user ${user.getId()} with socket id ${socket.id}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
         } else {
             this.users.push({
                 id: user.getId(),
@@ -333,15 +338,8 @@ export class Lobby {
             return Promise.resolve();
         }
 
-        this.matchingCountdownTimeoutHandle = setTimeout(() => {
-            try {
-                return this.quickLobbyCountdownAsync(remainingSeconds - 1);
-            } catch (err) {
-                logger.error('Lobby: error during quick lobby countdown', { error: { message: err.message, stack: err.stack }, lobbyId: this.id });
-            }
-
-            return Promise.resolve();
-        }, 1000);
+        this.matchingCountdownTimeoutHandle =
+            this.buildSafeTimeout(() => this.quickLobbyCountdownAsync(remainingSeconds - 1), 1000, 'Lobby: error during quick lobby countdown');
 
         this.sendLobbyState();
         return Promise.resolve();
@@ -697,7 +695,27 @@ export class Lobby {
             gameMode: GameMode.Premier,
             players,
             cardDataGetter: this.cardDataGetter,
+            useActionTimer: this.gameType === MatchType.Quick || this.gameType === MatchType.Custom,
+            pushUpdate: () => this.sendGameState(this.game),
+            buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
+                this.buildSafeTimeout(callback, delayMs, errorMessage),
+            userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
         };
+    }
+
+    private userTimeoutDisconnect(userId: string) {
+        const socket = this.users.find((u) => u.id === userId)?.socket;
+
+        Contract.assertNotNullLike(socket, `Unable to find socket for user ${userId} in lobby ${this.id} while attempting to disconnect`);
+
+        socket.socket.data.forceDisconnect = true;
+
+        socket.send('inactiveDisconnect');
+        socket.disconnect();
+
+        this.server.handleIntentionalDisconnect(userId, false, this);
+
+        logger.info(`Lobby: user ${userId} was disconnected due to inactivity`, { lobbyId: this.id, userId });
     }
 
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
@@ -705,6 +723,8 @@ export class Lobby {
             if (!this[command] || typeof this[command] !== 'function') {
                 throw new Error(`Incorrect command or command format expected function but got: ${command}`);
             }
+
+            this.updateUserLastActivity(socket.user.getId());
 
             await this[command](socket, ...args);
             this.sendLobbyState();
@@ -721,6 +741,8 @@ export class Lobby {
                 return;
             }
 
+            this.updateUserLastActivity(socket.user.getId());
+
             // if (command === 'leavegame') {
             //     return this.onLeaveGame(socket);
             // }
@@ -729,7 +751,6 @@ export class Lobby {
                 return;
             }
 
-            this.game.stopNonChessClocks();
             await this.game[command](socket.user.getId(), ...args);
 
             this.game.continue();
@@ -757,7 +778,7 @@ export class Lobby {
         this.matchingCountdownText = 'Opponent has disconnected, re-entering queue';
         this.sendLobbyState();
 
-        setTimeout(() => {
+        this.buildSafeTimeout(() => {
             for (const user of this.users) {
                 logger.error(`Lobby: requeueing user ${user.id} after matched user disconnected`);
 
@@ -766,7 +787,19 @@ export class Lobby {
             }
 
             this.server.removeLobby(this);
-        }, 2000);
+        },
+        2000, 'Lobby: error requeueing user after disconnect');
+    }
+
+    private buildSafeTimeout(callback: () => void, delayMs: number, errorMessage: string): NodeJS.Timeout {
+        const timeout = setTimeout(() => {
+            try {
+                callback();
+            } catch (error) {
+                logger.error(errorMessage, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+            }
+        }, delayMs);
+        return timeout;
     }
 
     // TODO: Review this to make sure we're getting the info we need for debugging
@@ -882,16 +915,18 @@ export class Lobby {
             const player2User = this.playersDetails.find((u) => u.user.getId() === player2.id);
 
             if (!player1User) {
-                logger.error(`Lobby ${this.id}: Missing deck information (${player1User.deckID}) for  player1 ${player1.id}`);
+                logger.error(`Lobby ${this.id}: Missing deck information (${player1User.deckID}) for player1 ${player1.id}`);
                 return;
             }
             if (!player2User) {
-                logger.error(`Lobby ${this.id}: Missing information (${player2User.deckID}) for  player2 ${player2.id}`);
+                logger.error(`Lobby ${this.id}: Missing information (${player2User.deckID}) for player2 ${player2.id}`);
                 return;
             }
 
-            await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
-            await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
+            if (this.game.roundNumber > 1) {
+                await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
+                await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
+            }
 
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
         } catch (error) {
@@ -963,11 +998,15 @@ export class Lobby {
                 ? this.game.captureGameState(socket.user.id)
                 : { phase: 'action', player1: {}, player2: {} };
 
+            const gameMessages = this.game.getLogMessages();
+            const opponent = this.users.find((u) => u.id !== socket.user.id);
             // Create bug report
             const bugReport = this.server.bugReportHandler.createBugReport(
                 parsedDescription,
                 gameState,
                 socket.user,
+                opponent.socket.user,
+                gameMessages,
                 this.id,
                 this.game?.id,
                 screenResolution,
@@ -990,6 +1029,9 @@ export class Lobby {
                 success: success,
                 message: 'Successfully sent bug report'
             });
+
+            this.game.addAlert(AlertType.Notification, '{0} has submitted a bug report', existingUser.username);
+
             this.sendLobbyState();
         } catch (error) {
             logger.error('Error processing bug report', {

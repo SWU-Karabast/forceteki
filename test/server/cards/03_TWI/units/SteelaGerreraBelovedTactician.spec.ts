@@ -27,7 +27,7 @@ describe('Steela Gerrera, Beloved Tactician', function () {
             context.player1.clickCard(context.steelaGerrera);
 
             // deal 2 damage to our base to search the top 8 card of deck for a tactic card
-            expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to your base');
+            expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to your base. If you do, search the top 8 cards of your deck for a Tactic card, reveal it, and draw it');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toHaveExactDisplayPromptCards({
@@ -57,7 +57,7 @@ describe('Steela Gerrera, Beloved Tactician', function () {
             context.player2.clickCard(context.rivalsFall);
             context.player2.clickCard(context.steelaGerrera);
 
-            expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to your base');
+            expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to your base. If you do, search the top 8 cards of your deck for a Tactic card, reveal it, and draw it');
 
             // pass, nothing happen
             context.player1.clickPrompt('Pass');

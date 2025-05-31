@@ -17,7 +17,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.admiralTrench);
-                context.player1.clickPrompt('Discard a card that costs 3 or more from your hand');
+                context.player1.clickPrompt('Discard a card that costs 3 or more from your hand. If you do, draw a card');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.endlessLegions, context.theDarksaber]);
 
@@ -44,7 +44,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.admiralTrench);
-                context.player1.clickPrompt('Discard a card that costs 3 or more from your hand');
+                context.player1.clickPrompt('Discard a card that costs 3 or more from your hand. If you do, draw a card');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.endlessLegions, context.theDarksaber]);
 
@@ -364,11 +364,14 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
 
             context.player1.clickCard(context.admiralTrench);
 
-            expect(context.player1).toHaveEnabledPromptButtons(['Discard a card that costs 3 or more from your hand', 'Deploy Admiral Trench']);
+            expect(context.player1).toHaveEnabledPromptButtons(['Discard a card that costs 3 or more from your hand. If you do, draw a card', 'Deploy Admiral Trench']);
 
             context.player1.clickPrompt('Cancel');
+
             context.player1.exhaustResources(context.player1.readyResourceCount - 2);
+
             context.player1.clickCard(context.admiralTrench);
+            context.player1.clickPrompt('Use it anyway');
 
             expect(context.admiralTrench.exhausted).toBeTrue();
             expect(context.admiralTrench).toBeInZone('base');

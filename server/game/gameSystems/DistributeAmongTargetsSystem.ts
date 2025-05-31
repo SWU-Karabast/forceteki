@@ -3,14 +3,16 @@ import type { Card } from '../core/card/Card';
 import type { CardTypeFilter, ZoneFilter, RelativePlayerFilter } from '../core/Constants';
 import { CardType, RelativePlayer, TargetMode, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
-import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
+import * as CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
+import { BaseCardSelector } from '../core/cardSelector/BaseCardSelector';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { DistributePromptType, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptMapResults } from '../core/gameSteps/PromptInterfaces';
 import type { DamageSystem } from './DamageSystem';
 import type { HealSystem } from './HealSystem';
 import * as Contract from '../core/utils/Contract';
+import * as Helpers from '../core/utils/Helpers';
 import type { GiveExperienceSystem } from './GiveExperienceSystem';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IDistributeAmongTargetsSystemProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     amountToDistribute: number | ((context: TContext) => number);
@@ -30,7 +32,7 @@ export interface IDistributeAmongTargetsSystemProperties<TContext extends Abilit
     controller?: RelativePlayerFilter;
     zoneFilter?: ZoneFilter | ZoneFilter[];
     cardCondition?: (card: Card, context: TContext) => boolean;
-    selector?: BaseCardSelector;
+    selector?: BaseCardSelector<TContext>;
     maxTargets?: number;
 }
 
@@ -53,7 +55,7 @@ export abstract class DistributeAmongTargetsSystem<
     protected abstract getDistributedAmountFromEvent(event: any): number;
 
     public eventHandler(event): void {
-        const context = event.context;
+        const context: TContext = event.context;
         event.totalDistributed =
             event.individualEvents.reduce((total, individualEvent) => total + this.getDistributedAmountFromEvent(individualEvent), 0);
 
@@ -61,15 +63,51 @@ export abstract class DistributeAmongTargetsSystem<
     }
 
     protected getChatMessage(): string {
-        return '{0} uses {1} to distribute {2} {3} among {4}s';
+        return '{0} uses {1} to distribute {2}';
     }
 
     protected getChatMessageArgs(event: any, context: TContext, additionalProperties: Partial<TProperties>): any[] {
+        const targets: FormatMessage[] = [];
+        const individualEvents: any[] = event.individualEvents || [];
+        for (const individualEvent of individualEvents) {
+            const amount = this.getDistributedAmountFromEvent(individualEvent);
+            if (amount !== 0) {
+                targets.push({
+                    format: '{0} {1} to {2}',
+                    args: [`${amount}`, this.getDistributionType(), individualEvent.card],
+                });
+            }
+        }
+
+        return [
+            context.player,
+            context.source,
+            targets,
+        ];
+    }
+
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<TProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const controlDescriptor = properties.controller === RelativePlayer.Self ? 'friendly ' : properties.controller === RelativePlayer.Opponent ? 'enemy ' : '';
-        const targetTypeDescriptor = properties.cardTypeFilter || 'card';
-        const messageArgs = [context.player, context.source, event.totalDistributed, this.getDistributionType(), controlDescriptor + targetTypeDescriptor];
-        return messageArgs;
+
+        const amountToDistribute = Helpers.derive(properties.amountToDistribute, context);
+        const amountDescription = properties.canDistributeLess ? `up to ${amountToDistribute}` : `${amountToDistribute}`;
+
+        if (properties.maxTargets && properties.maxTargets === 1) {
+            const filterDescription = BaseCardSelector.cardTypeFilterDescription(properties.cardTypeFilter || [], false);
+            const controllerDescriptor = properties.controller === RelativePlayer.Self ? 'a friendly' : properties.controller === RelativePlayer.Opponent ? 'an enemy' : filterDescription.article;
+            return [
+                'distribute {0} {1} to {2} {3}',
+                [amountDescription, this.getDistributionType(), controllerDescriptor, filterDescription.description],
+            ];
+        }
+
+        const filterDescription = BaseCardSelector.cardTypeFilterDescription(properties.cardTypeFilter || [], true);
+        const controllerDescriptor = properties.controller === RelativePlayer.Self ? 'friendly ' : properties.controller === RelativePlayer.Opponent ? 'enemy ' : '';
+
+        return [
+            'distribute {0} {1} among {2}{3}',
+            [amountDescription, this.getDistributionType(), controllerDescriptor, filterDescription.description],
+        ];
     }
 
     protected abstract getDistributionType(): string;
@@ -80,13 +118,13 @@ export abstract class DistributeAmongTargetsSystem<
             return;
         }
         const player = properties.player === RelativePlayer.Opponent ? context.player.opponent : context.player;
-        const amountToDistribute = this.getAmountToDistribute(properties.amountToDistribute, context);
+        const amountToDistribute = Helpers.derive(properties.amountToDistribute, context);
 
         if (amountToDistribute === 0) {
             return;
         }
 
-        if (!properties.selector.hasEnoughTargets(context, player)) {
+        if (!properties.selector.hasEnoughTargets(context)) {
             return;
         }
 
@@ -96,8 +134,6 @@ export abstract class DistributeAmongTargetsSystem<
         const distributeEvent = this.generateEvent(context) as any;
         distributeEvent.individualEvents = [];
         distributeEvent.checkCondition = () => true;
-        distributeEvent.message = this.getChatMessage();
-        distributeEvent.messageArgs = this.getDistributionType();
         events.push(distributeEvent);
 
         // auto-select if there's only one legal target and the player isn't allowed to choose 0 targets
@@ -138,18 +174,12 @@ export abstract class DistributeAmongTargetsSystem<
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const player =
-            (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
-            context.player;
-        return properties.selector.canTarget(card, context, player);
+        return properties.selector.canTarget(card, context);
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const player =
-            (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
-            context.player;
-        return properties.selector.hasEnoughTargets(context, player);
+        return properties.selector.hasEnoughTargets(context);
     }
 
     private generateEffectEvent(card: Card, distributeEvent: any, context: TContext, amount: number) {
@@ -161,9 +191,5 @@ export abstract class DistributeAmongTargetsSystem<
         distributeEvent.individualEvents.push(individualEvent);
 
         return individualEvent;
-    }
-
-    private getAmountToDistribute(amountToDistributeOrFn: number | ((context: TContext) => number), context: TContext): number {
-        return typeof amountToDistributeOrFn === 'function' ? amountToDistributeOrFn(context) : amountToDistributeOrFn;
     }
 }

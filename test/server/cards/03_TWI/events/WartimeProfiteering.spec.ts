@@ -18,6 +18,8 @@ describe('Wartime Profiteering', function () {
 
                 // no unit dead, event does nothing
                 context.player1.clickCard(context.wartimeProfiteering);
+                context.player1.clickPrompt('Play anyway');
+                expect(context.wartimeProfiteering).toBeInZone('discard', context.player1);
                 expect(context.player2).toBeActivePlayer();
 
                 // kill specforce soldier
@@ -46,6 +48,7 @@ describe('Wartime Profiteering', function () {
 
                 // no unit dead, event does nothing
                 context.player1.clickCard(context.wartimeProfiteering);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.player2).toBeActivePlayer();
             });
         });

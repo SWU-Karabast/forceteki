@@ -6,8 +6,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers';
-import { KeywordName, WildcardCardType } from '../core/Constants';
-import { CardType, PlayType, MetaEventName } from '../core/Constants';
+import { CardType, KeywordName, MetaEventName, PlayType, WildcardCardType } from '../core/Constants';
 import type { PlayCardAction } from '../core/ability/PlayCardAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
 import type { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
@@ -22,7 +21,7 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     playType?: PlayType;
 
     /** This should be used to specify a card-type play restriction (i.e. Sneak Attack or Fine Addition) */
-    playAsType?: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
+    playAsType: WildcardCardType.Any | WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
     adjustCost?: ICostAdjusterProperties;
     nested?: boolean;
     canPlayFromAnyZone?: boolean;
@@ -43,6 +42,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         optional: false,
         entersReady: false,
         playType: PlayType.PlayFromHand,
+        playAsType: WildcardCardType.Any,
         nested: false,
         canPlayFromAnyZone: false,
     };
@@ -144,8 +144,8 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return false;
     }
 
-    private checkActionPlayAsType(card: Card, playType: PlayType, playAsType: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event | null, action: PlayCardAction): boolean {
-        if (playAsType == null) {
+    private checkActionPlayAsType(card: Card, playType: PlayType, playAsType: WildcardCardType.Any | WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event | null, action: PlayCardAction): boolean {
+        if (playAsType == null || playAsType === WildcardCardType.Any) {
             return true;
         }
         if (EnumHelpers.cardTypeMatches(action.getCardTypeWhenInPlay(card, playType), playAsType)) {

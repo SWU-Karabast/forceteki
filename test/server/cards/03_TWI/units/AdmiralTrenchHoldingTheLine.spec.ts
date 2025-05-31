@@ -48,7 +48,7 @@ describe('Admiral Trench, Holding the Line', function () {
             context.player2.clickCard(context.admiralTrenchHoldingTheLine);
             context.player2.clickPrompt('Trigger exploit');
 
-            expect(context.player2).toHavePrompt('Select 1 cards to exploit');
+            expect(context.player2).toHavePrompt('Select a unit to exploit');
 
             context.player2.clickCard(context.firstLegionSnowtrooper);
             context.player2.clickPrompt('Done');

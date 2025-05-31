@@ -1,12 +1,17 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import type { FormatMessage } from '../core/chat/GameChat';
 import { Duration, EffectName, EventName, WildcardZoneName } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
+import type { OngoingCardEffect } from '../core/ongoingEffect/OngoingCardEffect';
+import type { OngoingPlayerEffect } from '../core/ongoingEffect/OngoingPlayerEffect';
 import * as Contract from '../core/utils/Contract';
+import * as Helpers from '../core/utils/Helpers';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { DistributiveOmit } from '../core/utils/Helpers';
-import type { IOngoingEffectProps } from '../Interfaces';
+import type { IOngoingEffectGenerator, IOngoingEffectProps } from '../Interfaces';
 
 export type ICardLastingEffectProperties = DistributiveOmit<ILastingEffectPropertiesBase, 'target'> & Pick<ICardTargetSystemProperties, 'target'>;
 
@@ -37,8 +42,8 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     }
 
     /** Returns the effects that would be applied to {@link card} by this system's configured lasting effects */
-    public getApplicableEffects(card: Card, context: TContext) {
-        const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context);
+    public getApplicableEffects(card: Card, context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>) {
+        const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context, additionalProperties);
 
         const effects = effectFactories.map((factory) =>
             factory(context.game, context.source, effectProperties)
@@ -50,7 +55,54 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const description = properties.ongoingEffectDescription ?? 'apply a lasting effect to';
+        const targetDescription = properties.ongoingEffectTargetDescription ?? properties.target;
+
+        let description: FormatMessage = { format: 'apply a lasting effect to {0}', args: [targetDescription] };
+        if (properties.ongoingEffectDescription) {
+            description.format = `${properties.ongoingEffectDescription} {0}`;
+        } else if (properties.target && Array.isArray(properties.target)) {
+            const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(properties.target, context, additionalProperties);
+            const abilityRestrictions: FormatMessage[] = [];
+            const otherEffects: FormatMessage[] = [];
+            for (const factory of effectFactories) {
+                for (const [i, props] of effectProperties.entries()) {
+                    const effect = factory(context.game, context.source, props);
+                    if (effect.impl.effectDescription && this.filterApplicableEffects(properties.target[i], [effect]).length > 0) {
+                        if (effect.impl.type === EffectName.AbilityRestrictions) {
+                            abilityRestrictions.push(effect.impl.effectDescription);
+                        } else {
+                            otherEffects.push(effect.impl.effectDescription);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            const effectDescriptions: FormatMessage[] = [];
+            if (otherEffects.length > 0) {
+                effectDescriptions.push({
+                    format: '{0} to {1}',
+                    args: [
+                        { format: ChatHelpers.formatWithLength(otherEffects.length, 'to '), args: otherEffects },
+                        targetDescription,
+                    ]
+                });
+            }
+            if (abilityRestrictions.length > 0) {
+                effectDescriptions.push({
+                    format: 'prevent {1} from {0}',
+                    args: [
+                        { format: ChatHelpers.formatWithLength(abilityRestrictions.length), args: abilityRestrictions },
+                        targetDescription,
+                    ]
+                });
+            }
+
+            if (effectDescriptions.length > 0) {
+                description = { format: ChatHelpers.formatWithLength(effectDescriptions.length, 'to '), args: effectDescriptions };
+            }
+        }
+
         let durationStr: string;
         switch (properties.duration) {
             case Duration.UntilEndOfAttack:
@@ -73,7 +125,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
                 Contract.fail(`Unknown duration: ${(properties as any).duration}`);
         }
 
-        return [`${description} {0}${durationStr}`, [properties.ongoingEffectTargetDescription ?? properties.target]];
+        return ['{0}{1}', [description, durationStr]];
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ICardLastingEffectProperties> = {}): ICardLastingEffectProperties {
@@ -102,19 +154,29 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         return super.canAffectInternal(card, context) && this.filterApplicableEffects(card, effects).length > 0;
     }
 
-    private getEffectFactoriesAndProperties(card: Card, context: TContext, additionalProperties: Partial<ICardLastingEffectProperties> = {}) {
+    private getEffectFactoriesAndProperties(target: Card, context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): { effectFactories: IOngoingEffectGenerator[]; effectProperties: IOngoingEffectProps };
+    private getEffectFactoriesAndProperties(target: Card[], context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): { effectFactories: IOngoingEffectGenerator[]; effectProperties: IOngoingEffectProps[] };
+    private getEffectFactoriesAndProperties(target: Card | Card[], context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): { effectFactories: IOngoingEffectGenerator[]; effectProperties: IOngoingEffectProps | IOngoingEffectProps[] } {
         const { effect, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const effectProperties: IOngoingEffectProps = { matchTarget: card, sourceZoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties };
+        const effectProperties: (card: Card) => IOngoingEffectProps = (card) => ({ matchTarget: card, sourceZoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties });
 
-        return { effectFactories: effect, effectProperties };
+        if (Array.isArray(target)) {
+            return { effectFactories: Helpers.asArray(effect), effectProperties: target.map((card) => effectProperties(card)) };
+        }
+
+        return { effectFactories: Helpers.asArray(effect), effectProperties: effectProperties(target) };
     }
 
-    protected filterApplicableEffects(card: Card, effects: any[]) {
+    protected filterApplicableEffects(card: Card, effects: (OngoingCardEffect | OngoingPlayerEffect)[]) {
         const lastingEffectRestrictions = card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
-        return effects.filter(
-            (props) =>
-                !lastingEffectRestrictions.some((condition) => condition(props.impl))
-        );
+
+        return effects.filter((effect) => {
+            if (card.isBlank() && (effect.impl.type === EffectName.GainAbility || effect.impl.type === EffectName.GainKeyword)) {
+                // If the target is blanked, it cannot gain abilities or keywords
+                return false;
+            }
+            return !lastingEffectRestrictions.some((condition) => condition(effect.impl));
+        });
     }
 }

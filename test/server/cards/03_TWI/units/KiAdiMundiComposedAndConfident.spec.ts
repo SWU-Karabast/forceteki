@@ -19,6 +19,7 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                 // Playing Ki Adi Mundi from hand after first card played
                 context.player1.passAction();
                 context.player2.clickCard(context.confiscate); // Opponent Play first card
+                context.player2.clickPrompt('Play anyway');
                 context.player1.clickCard(context.kiadimundi); // Ki Adi Mundi enters in play and enable Coordinate
                 context.player2.clickCard(context.atst); // Opponent plays second card, ability triggers
 

@@ -15,7 +15,7 @@ export type ICardTargetResolver<TContext extends AbilityContext> =
   | ICardExactlyUpToVariableTargetResolver<TContext>
   | ICardBetweenVariableTargetResolver<TContext>
   | ICardMaxStatTargetResolver<TContext>
-  | CardSingleUnlimitedTargetResolver<TContext>;
+  | ICardSingleUnlimitedTargetResolver<TContext>;
 
 export type IActionTargetResolver<TContext extends AbilityContext = AbilityContext> =
   | ICardTargetResolver<TContext>
@@ -115,7 +115,7 @@ interface ICardBetweenVariableTargetResolver<TContext extends AbilityContext> ex
     mode: TargetMode.BetweenVariable;
     minNumCardsFunc: (context: TContext) => number;
     maxNumCardsFunc: (context: TContext) => number;
-    useSingleSelectModeFunc?: (selectedCards: Card[], context?: TContext) => boolean;
+    useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 
@@ -127,9 +127,10 @@ interface ICardMaxStatTargetResolver<TContext extends AbilityContext> extends IC
     canChooseNoCards?: boolean;
 }
 
-interface CardSingleUnlimitedTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
+interface ICardSingleUnlimitedTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode?: TargetMode.Single | TargetMode.Unlimited;
     canChooseNoCards?: boolean;
+    multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 
 

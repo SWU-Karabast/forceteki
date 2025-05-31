@@ -1,4 +1,5 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
+import type { FormatMessage } from '../../chat/GameChat';
 import type Game from '../../Game';
 import type { IGameObjectBaseState } from '../../GameObjectBase';
 import { GameObjectBase } from '../../GameObjectBase';
@@ -11,11 +12,13 @@ import { GameObjectBase } from '../../GameObjectBase';
 export class OngoingEffectValueWrapper<TValue, TState extends IGameObjectBaseState = IGameObjectBaseState> extends GameObjectBase<TState> {
     private readonly value: TValue;
     public context?: AbilityContext;
+    public effectDescription?: FormatMessage;
 
-    public constructor(game: Game, value: TValue) {
+    public constructor(game: Game, value: TValue, effectDescription?: FormatMessage) {
         super(game);
         // @ts-expect-error
         this.value = value == null ? true : value;
+        this.effectDescription = effectDescription;
     }
 
     public setContext(context: AbilityContext): void {

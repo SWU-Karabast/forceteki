@@ -6,6 +6,7 @@ import { EventName, DeckZoneDestination } from '../core/Constants';
 import { LookAtSystem } from './LookAtSystem';
 import { MoveCardSystem } from './MoveCardSystem';
 import * as Contract from '../core/utils/Contract';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
@@ -109,10 +110,14 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        let message = '';
-        if (properties.amount > 0) {
-            message = `look at the top ${properties.amount === 1 ? 'card' : `${properties.amount} cards`} of their deck and they ${properties.amount === 1 ? 'may put it on the bottom of their deck' : 'put any number of them on the bottom of their deck and the rest on top in any order'}`;
+
+        if (properties.amount === 0) {
+            return ['', []];
         }
-        return [message, []];
+
+        return ['look at the top {0} of their deck and they {1}', [
+            ChatHelpers.pluralize(properties.amount, 'card', 'cards'),
+            properties.amount === 1 ? 'may put it on the bottom of their deck' : 'put any number of them on the bottom of their deck and the rest on top in any order',
+        ]];
     }
 }

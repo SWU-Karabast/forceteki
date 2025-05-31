@@ -15,7 +15,10 @@ export default class MercenaryGunship extends NonLeaderUnitCard {
             title: 'Take control of this unit',
             cost: AbilityHelper.costs.abilityActivationResourceCost(4),
             canBeTriggeredBy: WildcardRelativePlayer.Any,
-            immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({ newController: context.player }))
+            immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
+                newController: context.player,
+                excludeLeaderUnit: false,
+            }))
         });
     }
 }

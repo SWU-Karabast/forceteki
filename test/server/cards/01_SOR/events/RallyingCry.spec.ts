@@ -24,6 +24,9 @@ describe('Rallying Cry', function () {
                 // Playing Rallying Cry from hand
                 context.player1.clickCard(context.rallyingCry);
                 context.player2.passAction();
+                expect(context.getChatLogs(2)).toContain(
+                    'player1 plays Rallying Cry to give Raid 2 to Death Trooper and Imperial Interceptor for this phase'
+                );
 
                 // Attacking with Death Trooper
                 context.player1.clickCard(context.deathTrooper);

@@ -22,6 +22,7 @@ describe('A Fine Addition', function () {
 
             // NO-OP play -- no enemy was defeated
             context.player1.clickCard(context.aFineAddition);
+            context.player1.clickPrompt('Play anyway');
             expect(context.aFineAddition).toBeInZone('discard');
 
             expect(context.player2).toBeActivePlayer();
@@ -35,6 +36,7 @@ describe('A Fine Addition', function () {
 
             // should be another NO-OP play -- no enemy was defeated
             context.player1.clickCard(context.aFineAddition);
+            context.player1.clickPrompt('Play anyway');
             expect(context.aFineAddition).toBeInZone('discard');
 
             expect(context.player2).toBeActivePlayer();
@@ -71,7 +73,7 @@ describe('A Fine Addition', function () {
             context.player2.clickCard(context.finnThisIsARescue);
             context.player2.clickCard(context.p1Base);
 
-            expect(context.player2).toHavePrompt('Defeat a friendly upgrade on a unit');
+            expect(context.player2).toHavePrompt('Defeat a friendly upgrade on a unit. If you do, give a Shield token to that unit');
             expect(context.player2).toBeAbleToSelectExactly([context.resilient]);
 
             context.player2.clickCard(context.resilient);

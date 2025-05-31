@@ -27,6 +27,7 @@ describe('General Hux, No Terms, No Surrender', function() {
             context.player1.clickCard(context.generalHux);
             expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Attack', 'Cancel']);
             context.player1.clickPrompt('Draw a card');
+            context.player1.clickPrompt('Use it anyway');
             expect(context.player1.handSize).toBe(1);
 
             context.readyCard(context.kylosTieSilencer);

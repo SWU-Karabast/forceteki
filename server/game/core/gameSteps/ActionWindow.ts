@@ -1,5 +1,5 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { RelativePlayer, PromptType, EventName, EffectName } from '../Constants.js';
+import { RelativePlayer, EventName, EffectName } from '../Constants.js';
 import * as EnumHelpers from '../utils/EnumHelpers.js';
 import * as Contract from '../utils/Contract.js';
 import type Game from '../Game.js';
@@ -8,7 +8,7 @@ import type { Card } from '../card/Card.js';
 import type { IPlayerPromptStateProperties } from '../PlayerPromptState.js';
 import type AbilityResolver from './AbilityResolver.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
-import type { IButton } from './PromptInterfaces.js';
+import { PromptType, type IButton } from './PromptInterfaces.js';
 
 export class ActionWindow extends UiPrompt {
     private activePlayer: Player;
@@ -18,6 +18,8 @@ export class ActionWindow extends UiPrompt {
 
         this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
 
+        this.activePlayer.actionTimer.stop();
+
         Contract.assertNotNullLike(this.activePlayer);
     }
 
@@ -26,6 +28,8 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override onCardClicked(player: Player, card: Card) {
+        this.stopActionTimer();
+
         if (player !== this.activePlayer) {
             return false;
         }
@@ -36,11 +40,12 @@ export class ActionWindow extends UiPrompt {
         }
 
         if (legalActions.length === 1) {
-            const confirmOneClick = false;
             const action = legalActions[0];
+            const requiresConfirmation = action.isActionAbility() && action.requiresConfirmation;
             const targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.properties.choosingPlayer !== RelativePlayer.Opponent);
-            if (!confirmOneClick || action.cost.some((cost) => cost.promptsPlayer) || targetPrompts) {
-                this.resolveAbility(action.createContext(player));
+            const context = action.createContext(player);
+            if (!requiresConfirmation || action.getCosts(context).some((cost) => cost.promptsPlayer) || targetPrompts) {
+                this.resolveAbility(context);
                 return true;
             }
         }
@@ -65,14 +70,9 @@ export class ActionWindow extends UiPrompt {
     private postResolutionUpdate(resolver: AbilityResolver) {
         this.setPassStatus(false);
 
-        // if (this.activePlayerConsecutiveActions > 1) {
-        //     this.markBonusActionsTaken();
-        // }
-
         this.complete();
     }
 
-    // TODO: confirm that this works correctly
     public override continue() {
         // TODO: do we need promptedActionWindows?
         if (!this.activePlayer.promptedActionWindows[this.windowName]) {
@@ -88,6 +88,10 @@ export class ActionWindow extends UiPrompt {
             this.game.currentActionWindow = null;
         }
         return completed;
+    }
+
+    private stopActionTimer() {
+        this.activePlayer.actionTimer.stop();
     }
 
     public override activePrompt(player: Player): IPlayerPromptStateProperties {
@@ -116,6 +120,8 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override menuCommand(player: Player, choice: string, uuid: string) {
+        this.stopActionTimer();
+
         switch (choice) {
             // case 'manual':
             //     this.game.promptForSelect(this.activePlayer, {

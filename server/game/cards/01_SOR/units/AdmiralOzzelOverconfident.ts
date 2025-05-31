@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, ZoneName, Trait, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class AdmiralOzzelOverconfident extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,12 +17,11 @@ export default class AdmiralOzzelOverconfident extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Play an Imperial unit from your hand. It enters play ready',
-                    cardTypeFilter: CardType.BasicUnit,
                     // TODO: figure out how to make this assume that the played card must be from hand, unless specified otherwise
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
-                    innerSystem: AbilityHelper.immediateEffects.playCardFromHand({ entersReady: true })
+                    innerSystem: AbilityHelper.immediateEffects.playCardFromHand({ entersReady: true, playAsType: WildcardCardType.Unit })
                 }),
                 AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Ready a unit',

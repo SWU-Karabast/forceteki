@@ -1,6 +1,14 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { AbilityType, KeywordName, PlayType, RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
+import {
+    AbilityType,
+    KeywordName,
+    PlayType,
+    RelativePlayer,
+    Trait,
+    WildcardCardType,
+    ZoneName
+} from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
@@ -23,6 +31,7 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
                 cardCondition: (card) => card.hasSomeKeyword(KeywordName.Piloting), // This helps prevent a prompt error
                 immediateEffect: AbilityHelper.immediateEffects.playCard({
                     playType: PlayType.Piloting,
+                    playAsType: WildcardCardType.Upgrade,
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
                 })
             }

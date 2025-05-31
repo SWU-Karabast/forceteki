@@ -11,9 +11,6 @@ describe('Benthic Two Tubes', function() {
                     player2: {
                         groundArena: ['wampa']
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
@@ -21,10 +18,13 @@ describe('Benthic Two Tubes', function() {
                 const { context } = contextRef;
                 context.player1.clickCard(context.benthicTwoTubes);
                 context.player1.clickCard(context.p2Base);
-                // a wing is automatically chosen
+                context.player1.clickCard(context.greenSquadronAwing);
+                expect(context.getChatLogs(2)).toContain('player1 uses Benthic "Two Tubes" to give Raid 2 to Green Squadron A-Wing for this phase');
+
                 context.player2.passAction();
 
                 context.player1.clickCard(context.greenSquadronAwing);
+                context.player1.clickCard(context.p2Base);
                 // benthic: 2 + a wing: 3+2
                 expect(context.p2Base.damage).toBe(7);
             });

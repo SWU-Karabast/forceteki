@@ -33,6 +33,7 @@ describe('Rule With Respect', function() {
                 context.player2.clickCard(context.cartelSpacer);
 
                 context.player1.clickCard(context.ruleWithRespect);
+                context.player1.clickPrompt('Play anyway');
 
                 expect(context.player2).toBeActivePlayer();
 
@@ -47,6 +48,7 @@ describe('Rule With Respect', function() {
 
                 // Scenario 2: No units attacked the base
                 context.player1.clickCard(context.ruleWithRespect);
+                context.player1.clickPrompt('Play anyway');
 
                 expect(context.player2).toBeActivePlayer();
 

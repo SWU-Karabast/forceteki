@@ -12,7 +12,7 @@ export default class BrightHopeTheLastTransport extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
-            title: 'Return a friendly non-leader ground unit to its owner\'s hand',
+            title: 'Return a friendly non-leader ground unit to its owner\'s hand. If you do, draw a card',
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,

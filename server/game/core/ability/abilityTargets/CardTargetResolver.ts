@@ -1,8 +1,8 @@
 import type { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
 import type { AbilityContext } from '../AbilityContext';
-import type PlayerOrCardAbility from '../PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
-import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
+import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import type { Card } from '../../card/Card';
 import type { RelativePlayer, ZoneFilter, ZoneName } from '../../Constants';
 import { EffectName, GameStateChangeRequired, Stage, TargetMode } from '../../Constants';
@@ -13,13 +13,14 @@ import * as EnumHelpers from '../../utils/EnumHelpers.js';
 import type { GameSystem } from '../../gameSystem/GameSystem';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
+import type { BaseCardSelector } from '../../cardSelector/BaseCardSelector';
 
 /**
  * Target resolver for selecting cards for the target of an effect.
  */
 export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<AbilityContext>> {
     private immediateEffect: GameSystem;
-    private selector: any;
+    private selector: BaseCardSelector<AbilityContext>;
 
     private static choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
 
@@ -53,7 +54,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     private getSelector(properties: ICardTargetResolver<AbilityContext>) {
-        const cardCondition = (card, context) => this.checkCardCondition(card, context, properties);
+        const cardCondition = (card: Card, context: AbilityContext) => this.checkCardCondition(card, context, properties);
         return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
     }
 
@@ -83,16 +84,15 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     public override hasLegalTarget(context: AbilityContext) {
-        const player = this.getChoosingPlayer(context);
-        return this.selector.hasEnoughTargets(context, player);
+        return this.selector.hasEnoughTargets(context);
     }
 
     public getAllLegalTargets(context: AbilityContext): Card[] {
-        return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
+        return this.selector.getAllLegalTargets(context);
     }
 
     protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
-        const legalTargets = this.selector.getAllLegalTargets(context, player);
+        const legalTargets = this.selector.getAllLegalTargets(context);
         if (legalTargets.length === 0) {
             if (context.stage === Stage.PreTarget) {
                 // if there are no targets at the pretarget stage, delay targeting until after costs are paid
@@ -241,16 +241,13 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         } else if (context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {
             return false;
         }
-        let cards = context.targets[this.name];
-        if (!Array.isArray(cards)) {
-            cards = [cards];
-        }
-        return (cards.every((card) => this.selector.canTarget(card, context, context.choosingPlayerOverride || this.getChoosingPlayer(context))) &&
+        const cards: Card[] = Helpers.asArray(context.targets[this.name]);
+        return (cards.every((card) => this.selector.canTarget(card, context, [])) &&
           this.selector.hasEnoughSelected(cards, context) && !this.selector.hasExceededLimit(cards, context));
     }
 
     protected override hasTargetsChosenByPlayerInternal(context: AbilityContext, player: Player = context.player) {
-        if (this.getChoosingPlayer(context) === player && (this.selector.optional || this.selector.hasEnoughTargets(context, player))) {
+        if (this.getChoosingPlayer(context) === player && (this.selector.optional || this.selector.hasEnoughTargets(context))) {
             return true;
         }
 

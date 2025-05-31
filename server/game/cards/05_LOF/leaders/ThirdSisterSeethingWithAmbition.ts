@@ -1,7 +1,15 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { CardType, Duration, EventName, KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import {
+    CardType,
+    Duration,
+    EventName,
+    KeywordName,
+    RelativePlayer,
+    WildcardCardType,
+    ZoneName
+} from '../../../core/Constants';
 
 export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +24,7 @@ export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
             title: 'Play a unit from your hand. It gains Hidden for this phase',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
-                cardCondition: (card) => card.isUnit(),
+                // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,

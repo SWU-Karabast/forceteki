@@ -4,17 +4,19 @@ import * as Contract from '../utils/Contract';
 import { EffectName, KeywordName } from '../Constants';
 import type { IAttackableCard } from '../card/CardInterfaces';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
-
-
-type StatisticTotal = number;
+import type { Player } from '../Player';
 
 export class Attack {
     private readonly game: Game;
     public readonly attacker: IUnitCard;
+    public readonly attackingPlayer: Player;
     public readonly attackerInPlayId: number;
     public readonly isAmbush: boolean;
     public readonly targetInPlayMap = new Map<IAttackableCard, number>();
+
+    private unitControllersChanged = new Set<IAttackableCard>();
     private targets: IAttackableCard[];
+    private defendingPlayer: Player;
 
     public previousAttack: Attack;
 
@@ -26,7 +28,9 @@ export class Attack {
     ) {
         this.game = game;
         this.attacker = attacker;
+        this.attackingPlayer = attacker.controller;
         this.targets = targets;
+        this.defendingPlayer = targets[0].controller;
         this.targetInPlayMap = new Map(targets.filter((target) => target.isUnit()).map((target) => [target, target.inPlayId]));
 
         // we grab the in-play IDs of the attacker and defender cards in case other abilities need to refer back to them later.
@@ -40,8 +44,20 @@ export class Attack {
         return this.getUnitPower(this.attacker);
     }
 
+    public unitChangedController(unit: IAttackableCard): void {
+        Contract.assertTrue(
+            unit === this.attacker || this.targets.includes(unit),
+            `Attempting to register attack controller change for unit ${unit.internalName} that is not part of the attack`
+        );
+        this.unitControllersChanged.add(unit);
+    }
+
+    public getDefendingPlayer(): Player {
+        return this.defendingPlayer;
+    }
+
     public getSingleTarget(): IAttackableCard {
-        Contract.assertTrue(this.targets.length === 1, 'Expected one target but there are multiple');
+        Contract.assertTrue(this.targets.length === 1, `Expected one target but there are multiple (${this.targets.length})`);
         return this.targets[0];
     }
 
@@ -82,19 +98,17 @@ export class Attack {
         return this.attacker.hasOngoingEffect(EffectName.DealsDamageBeforeDefender);
     }
 
-    public isAttackerInPlay(): boolean {
-        return this.attacker.isInPlay();
+    public getLegalTargets(): IAttackableCard[] {
+        if (!this.isAttackerLegal()) {
+            return [];
+        }
+
+        // filter out any defenders that have changed controllers
+        return this.targets.filter((target) => !this.unitControllersChanged.has(target));
     }
 
-    public isAttackTargetLegal(): boolean {
-        for (const target of this.targets) {
-            if (target.isBase() || target.isInPlay()) {
-                continue;
-            } else {
-                return false;
-            }
-        }
-        return true;
+    public isAttackerLegal(): boolean {
+        return this.attacker.isInPlay() && !this.unitControllersChanged.has(this.attacker);
     }
 
     public isInvolved(card: Card): boolean {
@@ -103,13 +117,8 @@ export class Attack {
         );
     }
 
-    // TODO: if we end up using this we need to refactor it to reflect attacks in SWU (i.e., show HP)
-    public getTotalsForDisplay(): string {
-        return `${this.attacker.name}: ${this.getAttackerTotalPower()} vs ${this.getTargetTotalPower()}: ${this.targets.map((target) => target.name).join(', ')}`;
-    }
-
-    private getUnitPower(involvedUnit: IUnitCard): StatisticTotal {
-        Contract.assertTrue(involvedUnit.isInPlay(), `Unit ${involvedUnit.name} zone is ${involvedUnit.zoneName}, cannot participate in combat`);
+    private getUnitPower(involvedUnit: IUnitCard): number {
+        Contract.assertTrue(involvedUnit.isInPlay(), `Unit ${involvedUnit.title} zone is ${involvedUnit.zoneName}, cannot participate in combat`);
 
         return involvedUnit.getPower();
     }

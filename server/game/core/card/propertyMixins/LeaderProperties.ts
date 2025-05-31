@@ -49,7 +49,7 @@ export function WithLeaderProperties<TState extends IPlayableOrDeployableCardSta
         }
 
         // TODO TYPE REFACTOR: leaders shouldn't have the takeControl method
-        public override takeControl(newController: Player, _moveTo?: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource) {
+        public override takeControl(newController: Player, _moveTo?: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource): undefined {
             Contract.fail(`Attempting to take control of leader ${this.internalName} for player ${newController.name}, which is illegal`);
         }
     };

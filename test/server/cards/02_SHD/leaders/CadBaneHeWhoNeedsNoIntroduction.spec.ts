@@ -28,7 +28,7 @@ describe('Cad Bane, He Who Needs No Introduction', function () {
 
             // CASE 3: controller plays an Underworld card, ability triggers
             context.player1.clickCard(context.pykeSentinel);
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
             context.player1.clickPrompt('Trigger');
 
             expect(context.cadBane.exhausted).toBeTrue();

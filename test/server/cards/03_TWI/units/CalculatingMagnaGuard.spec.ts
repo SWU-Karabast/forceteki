@@ -45,5 +45,29 @@ describe('Calculating MagnaGuard', function () {
             expect(context.player1).toBeActivePlayer();
             expect(context.calculatingMagnaguard.damage).toBe(3);
         });
+
+        it('Calculating MagnaGuard\'s ability should not trigger if the defeated unit was under the control of the opponent', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['vanquish'],
+                    groundArena: ['wampa', 'calculating-magnaguard']
+                },
+                player2: {
+                    hand: ['change-of-heart'],
+                    hasInitiative: true,
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.changeOfHeart);
+            context.player2.clickCard(context.wampa);
+
+            context.player1.clickCard(context.vanquish);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.calculatingMagnaguard.hasSomeKeyword('sentinel')).toBeFalse();
+        });
     });
 });

@@ -33,7 +33,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         allowExhaustedAttacker: false
     };
 
-    public eventHandler(event, additionalProperties): void {
+    public eventHandler(event): void {
         const player = event.player;
         const newContext = (event.attackAbility as InitiateAttackAction).createContext(player);
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
@@ -44,7 +44,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         return ['initiate attack with {0}', [properties.target]];
     }
 
-    protected override addPropertiesToEvent(event, attacker, context: TContext, additionalProperties: Partial<IInitiateAttackProperties<TContext>> = {}): void {
+    protected override addPropertiesToEvent(event, attacker: IUnitCard, context: TContext, additionalProperties: Partial<IInitiateAttackProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         Contract.assertTrue(attacker.isUnit());
 

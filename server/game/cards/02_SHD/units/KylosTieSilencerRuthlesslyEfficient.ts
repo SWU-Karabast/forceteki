@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName } from '../../../core/Constants';
+import { WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsDiscardedThisPhaseWatcher } from '../../../stateWatchers/CardsDiscardedThisPhaseWatcher';
 
@@ -27,7 +27,7 @@ export default class KylosTieSilencerRuthlesslyEfficient extends NonLeaderUnitCa
                 entry.discardedPlayId === context.source.mostRecentInPlayId &&
                 [ZoneName.Hand, ZoneName.Deck].includes(entry.discardedFromZone)
             ),
-            immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay(),
+            immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({ playAsType: WildcardCardType.Unit }),
             zoneFilter: ZoneName.Discard
         });
     }

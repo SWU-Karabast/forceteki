@@ -1,5 +1,6 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
+import { WildcardCardType } from '../../../core/Constants';
 
 
 export default class EzraBridger extends NonLeaderUnitCard {
@@ -25,7 +26,7 @@ export default class EzraBridger extends NonLeaderUnitCard {
                         {
                             text: 'Play it',
                             arg: 'play',
-                            immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({ target: topCardOfDeck })
+                            immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({ target: topCardOfDeck, playAsType: WildcardCardType.Any })
                         },
                         {
                             text: 'Discard it',

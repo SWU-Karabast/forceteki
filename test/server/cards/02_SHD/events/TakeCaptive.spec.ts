@@ -30,6 +30,7 @@ describe('Take Captive', function() {
                 context.player1.clickCard(context.wampa);
 
                 expect(context.wampa).toBeCapturedBy(context.battlefieldMarine);
+                expect(context.getChatLogs(2)).toContain('player1 plays Take Captive to capture Wampa with Battlefield Marine');
             });
 
             it('should allow a friendly space unit to capture an enemy space non-leader unit', function () {

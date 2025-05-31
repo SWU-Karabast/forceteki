@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { EventName, ZoneName } from '../core/Constants';
+import { EventName, Stage, ZoneName } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 
@@ -13,7 +13,10 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
 
     public eventHandler(event): void {
         event.card.moveTo(ZoneName.Discard);
-        event.context.game.addMessage('{0} discards {1}', event.card.owner, event.card);
+
+        if (event.context.stage !== Stage.Cost) {
+            event.context.game.addMessage('{0} discards {1}', event.card.owner, event.card);
+        }
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Record<string, any> = {}): boolean {
@@ -24,6 +27,14 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
         const properties = this.generatePropertiesFromContext(context);
         return [
             'discard {0}',
+            [properties.target]
+        ];
+    }
+
+    public override getCostMessage(context: TContext): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context);
+        return [
+            'discarding {0}',
             [properties.target]
         ];
     }

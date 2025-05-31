@@ -7,6 +7,10 @@ import type Game from '../../Game';
 export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
     public readonly valueWrapper: OngoingEffectValueWrapper<TValue>;
 
+    public override get effectDescription() {
+        return this.valueWrapper.effectDescription;
+    }
+
     public constructor(game: Game, type: EffectName, value: OngoingEffectValueWrapper<TValue> | TValue) {
         super(game, type);
 

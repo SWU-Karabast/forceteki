@@ -7,7 +7,7 @@ import type {
     ISerializedCardState
 } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
-import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
 import type { IOngoingEffectSourceState } from '../ongoingEffect/OngoingEffectSource';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';
@@ -128,6 +128,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly overrideNotImplemented: boolean = false;
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
+    protected readonly backsidePrintedTraits: Set<Trait>;
     protected readonly printedType: CardType;
 
     protected disableWhenDefeatedCheck = false;
@@ -214,7 +215,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     /** @deprecated use title instead**/
     public override get name() {
-        return super.name;
+        return this.title;
     }
 
     public get setId(): ISetId {
@@ -246,6 +247,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.zone?.name;
     }
 
+    public get isImplemented(): boolean {
+        // We consider a card "implemented" if it doesn't require any implementation
+        return !this.overrideNotImplemented && (!this.hasNonKeywordAbilityText || this.hasImplementationFile);
+    }
+
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
         public readonly owner: Player,
@@ -275,6 +281,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.id = cardData.id;
         this.canBeUpgrade = cardData.upgradeHp != null && cardData.upgradePower != null;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
+        this.backsidePrintedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.backSideTraits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
         // TODO: add validation that if the card has the Piloting trait, the right cardData properties are set
@@ -335,7 +342,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             }
         }
 
-        return deduplicatedActionAbilities;
+        const epicActionAbilities = deduplicatedActionAbilities
+            .filter((action) => action.isEpicAction);
+
+        return this.isBlank() ? epicActionAbilities : deduplicatedActionAbilities;
     }
 
     /**
@@ -393,14 +403,14 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     private validateCardData(cardData: ICardDataJson) {
-        Contract.assertNotNullLike(cardData);
-        Contract.assertNotNullLike(cardData.id);
-        Contract.assertNotNullLike(cardData.title);
-        Contract.assertNotNullLike(cardData.types);
-        Contract.assertNotNullLike(cardData.traits);
-        Contract.assertNotNullLike(cardData.aspects);
-        Contract.assertNotNullLike(cardData.keywords);
-        Contract.assertNotNullLike(cardData.unique);
+        Contract.assertNotNullLike(cardData, 'Card data is null');
+        Contract.assertNotNullLike(cardData.id, 'Card data id is null');
+        Contract.assertNotNullLike(cardData.title, `Card ${cardData.id} is missing property 'title'`);
+        Contract.assertNotNullLike(cardData.types, `Card ${cardData.title} is missing property 'types'`);
+        Contract.assertNotNullLike(cardData.traits, `Card ${cardData.title} is missing property 'traits'`);
+        Contract.assertNotNullLike(cardData.aspects, `Card ${cardData.title} is missing property 'aspects'`);
+        Contract.assertNotNullLike(cardData.keywords, `Card ${cardData.title} is missing property 'keywords'`);
+        Contract.assertNotNullLike(cardData.unique, `Card ${cardData.title} is missing property 'unique'`);
     }
 
     /**
@@ -627,11 +637,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
 
     // ******************************************* TRAIT HELPERS *******************************************
+    protected getPrintedTraits(): Set<Trait> {
+        return new Set(this.printedTraits);
+    }
+
     /** Helper method for {@link Card.traits} */
     private getTraits() {
-        const traits = new Set(this.printedTraits);
+        const traits = this.getPrintedTraits();
 
-        for (const gainedTrait of this.getOngoingEffectValues(EffectName.AddTrait)) {
+        for (const gainedTrait of this.getOngoingEffectValues(EffectName.GainTrait)) {
             traits.add(gainedTrait);
         }
         for (const lostTrait of this.getOngoingEffectValues(EffectName.LoseTrait)) {
@@ -1139,7 +1153,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             cost: this.cardData.cost,
             power: this.cardData.power,
             hp: this.cardData.hp,
-            implemented: !this.overrideNotImplemented && (!this.hasNonKeywordAbilityText || this.hasImplementationFile),  // we consider a card "implemented" if it doesn't require any implementation
+            implemented: this.isImplemented,
             // popupMenuText: this.popupMenuText,
             // showPopup: this.showPopup,
             // tokens: this.tokens,

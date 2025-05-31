@@ -4,8 +4,7 @@ import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { AllPlayerPrompt } from './AllPlayerPrompt';
-import { PromptType } from '../../Constants';
-import { SelectCardMode } from '../PromptInterfaces';
+import { PromptType, SelectCardMode } from '../PromptInterfaces';
 
 export class ResourcePrompt extends AllPlayerPrompt {
     protected selectedCards = new Map<string, Card[]>();
@@ -97,7 +96,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         };
     }
 
-    public override menuCommand(player, arg): boolean {
+    public override menuCommand(player: Player, arg: string): boolean {
         if (arg === 'done') {
             if (this.completionCondition(player)) {
                 return false;

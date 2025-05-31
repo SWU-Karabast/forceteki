@@ -81,7 +81,7 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
      */
     public hasRestriction(actionType: string, context?: AbilityContext) {
         return this.getOngoingEffectValues<Restriction>(EffectName.AbilityRestrictions).some((restriction) =>
-            restriction.isMatch(actionType, context, this)
+            restriction.isMatch(actionType, context)
         );
     }
 

@@ -1,13 +1,14 @@
 import { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { EventName, MetaEventName } from '../Constants';
-import { GameStateChangeRequired } from '../Constants';
+import { GameStateChangeRequired, ZoneName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type { Player } from '../Player';
 import * as Helpers from '../utils/Helpers';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import * as Contract from '../utils/Contract';
 import type { GameObject } from '../GameObject';
+import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
 
 type PlayerOrCard = Player | Card;
 
@@ -17,7 +18,6 @@ export interface IGameSystemProperties {
 
     /** @deprecated TODO: evaluate whether to remove this */
     optional?: boolean;
-    parentSystem?: GameSystem;
     isCost?: boolean;
 
     /** If this system is for a contingent event, provide the source event it is contingent on */
@@ -105,6 +105,52 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return this.isTargetTypeValid(target);
     }
 
+    protected addLastKnownInformationToEvent(event: any, card: Card): void {
+        // build last known information for the card before event window resolves to ensure that no state has yet changed
+        event.setPreResolutionEffect((event) => {
+            event.lastKnownInformation = this.buildLastKnownInformation(card);
+        });
+    }
+
+    protected buildLastKnownInformation(card: Card): ILastKnownInformation {
+        if (card.zoneName !== ZoneName.GroundArena && card.zoneName !== ZoneName.SpaceArena) {
+            return {
+                card,
+                controller: card.controller,
+                arena: card.zoneName
+            };
+        }
+        Contract.assertTrue(card.canBeInPlay());
+
+
+        if (card.isUnit() && !card.isAttached()) {
+            return {
+                card,
+                power: card.getPower(),
+                hp: card.getHp(),
+                type: card.type,
+                arena: card.zoneName,
+                controller: card.controller,
+                damage: card.damage,
+                upgrades: card.upgrades
+            };
+        }
+
+        if (card.isUpgrade()) {
+            return {
+                card,
+                power: card.getPower(),
+                hp: card.getHp(),
+                type: card.type,
+                arena: card.zoneName,
+                controller: card.controller,
+                parentCard: card.parentCard
+            };
+        }
+
+        Contract.fail(`Unexpected card type: ${card.type}`);
+    }
+
     /**
      * Composes a property object for configuring the {@link GameSystem}'s execution using the following sources, in order of decreasing priority:
      * - `this.properties ?? this.propertyFactory(context)`
@@ -131,8 +177,9 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return properties;
     }
 
-    public getCostMessage(context: TContext): undefined | [string, any[]] {
-        return [this.costDescription, []];
+    public getCostMessage?(context: TContext): [string, any[]] {
+        const { target } = this.generatePropertiesFromContext(context);
+        return [this.costDescription, [target]];
     }
 
     public getEffectMessage(context: TContext, additionalProperties: Partial<TProperties> = {}): [string, any[]] {

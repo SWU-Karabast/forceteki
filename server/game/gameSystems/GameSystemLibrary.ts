@@ -2,7 +2,6 @@ import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer, DamageType } from '../core/Constants';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-
 import type { IAttachUpgradeProperties } from './AttachUpgradeSystem';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
 import type { ICaptureProperties } from './CaptureSystem';
@@ -145,6 +144,9 @@ import type { ICreateForceTokenProperties } from './CreateForceTokenSystem';
 import { CreateForceTokenSystem } from './CreateForceTokenSystem';
 import { UseTheForceSystem } from './UseTheForceSystem';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { OptionalSystem, type IOptionalSystemProperties } from './OptionalSystem';
+import type { IUseWhenPlayedProperties } from './UseWhenPlayedSystem';
+import { UseWhenPlayedSystem } from './UseWhenPlayedSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -351,16 +353,16 @@ export function payCardPrintedCost<TContext extends AbilityContext = AbilityCont
 /**
  * default resetOnCancel = false
  */
-export function playCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayCardProperties, TContext> = {}) {
+export function playCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayCardProperties, TContext>) {
     return new PlayCardSystem(propertyFactory);
 }
-export function playCardFromHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext> = {}) {
+export function playCardFromHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext>) {
     // TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilities with another function(s)
     // TODO: implement a "nested" property in PlayCardSystem that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
     // playType automatically defaults to PlayFromHand
     return new PlayCardSystem(propertyFactory);
 }
-export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext> = {}) {
+export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext>) {
     return new PlayCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IPlayCardProperties, 'playType'>(
             propertyFactory,
@@ -426,9 +428,6 @@ export function resourceCard<TContext extends AbilityContext = AbilityContext>(p
 
 /**
  * Returns a card to the player's hand from any arena, discard pile, or resources.
- *
- * @param {PropsFactory<ICardTargetSystemProperties, TContext>} [propertyFactory={}] - A factory function or properties object to create the card target system properties.
- * @returns {CardTargetSystem<TContext>} A new instance of the {@link MoveCardSystem} configured to move a card to the player's hand.
  */
 export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveCardProperties, 'destination' | 'shuffle' | 'shuffleMovedCards'>, TContext> = {}) {
     return new MoveCardSystem<TContext>(
@@ -630,6 +629,9 @@ export function replacementEffect<TContext extends TriggeredAbilityContext = Tri
 export function conditional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IConditionalSystemProperties<TContext>, TContext>) {
     return new ConditionalSystem<TContext>(propertyFactory);
 }
+export function optional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IOptionalSystemProperties<TContext>, TContext>) {
+    return new OptionalSystem<TContext>(propertyFactory);
+}
 // export function onAffinity(propertyFactory: PropsFactory<AffinityActionProperties>) {
 //     return new AffinityAction(propertyFactory);
 // }
@@ -671,4 +673,7 @@ export function shuffleDeck<TContext extends AbilityContext = AbilityContext>(pr
 }
 export function useWhenDefeatedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenDefeatedProperties, TContext> = {}) {
     return new UseWhenDefeatedSystem<TContext>(propertyFactory);
+}
+export function useWhenPlayedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenPlayedProperties, TContext> = {}) {
+    return new UseWhenPlayedSystem<TContext>(propertyFactory);
 }

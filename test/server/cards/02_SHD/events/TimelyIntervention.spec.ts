@@ -71,6 +71,7 @@ describe('Timely Intervention', function () {
                 expect(context.rebelPathfinder.exhausted).toBe(true);
                 expect(context.rebelPathfinder.damage).toBe(1);
                 expect(context.isbAgent.damage).toBe(2);
+                expect(context.getChatLogs(4)).toContain('player1 plays Timely Intervention using Smuggle to play Rebel Pathfinder and to give Ambush to Rebel Pathfinder for this phase');
             });
         });
 

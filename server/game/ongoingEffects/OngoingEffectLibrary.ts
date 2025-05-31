@@ -9,7 +9,7 @@ import { cardCannot } from './CardCannot';
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
 import { addExploit, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-import type { KeywordName } from '../core/Constants';
+import type { KeywordName, Trait } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import type { IAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
@@ -27,6 +27,9 @@ import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl
 import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
+import StatsModifierWrapper from '../core/ongoingEffect/effectImpl/StatsModifierWrapper';
+import { OngoingEffectValueWrapper } from '../core/ongoingEffect/effectImpl/OngoingEffectValueWrapper';
+import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/NumericKeywordMultiplier';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -39,7 +42,6 @@ export = {
     assignIndirectDamageDealtByUnit: () => OngoingEffectBuilder.card.static(EffectName.AssignIndirectDamageDealtByUnit),
     // Card effects
     // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
-    // addTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.AddTrait, trait),
     // additionalTriggerCostForCard: (func) => OngoingEffectBuilder.card.static(EffectName.AdditionalTriggerCost, func),
     // attachmentCardCondition: (func) => OngoingEffectBuilder.card.static(EffectName.AttachmentCardCondition, func),
     // attachmentFactionRestriction: (factions) =>
@@ -123,6 +125,7 @@ export = {
     },
     gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
         OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => new GainKeyword(game, calculate(target, context))),
+    multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
     // gainAllAbilities,
@@ -148,7 +151,8 @@ export = {
     // increaseLimitOnPrintedAbilities: (abilities) =>
     //     OngoingEffectBuilder.card.static(EffectName.IncreaseLimitOnPrintedAbilities, abilities),
     // loseAllNonKeywordAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseAllNonKeywordAbilities),
-    // loseTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
+    gainTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.GainTrait, trait),
+    loseTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
     // modifyBaseMilitarySkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
     // modifyBasePoliticalSkillMultiplier: (value) =>
@@ -156,7 +160,17 @@ export = {
     modifyIndirectDamage: (modifier: IndirectDamageModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyIndirectDamage, modifier),
     modifyPilotingLimit: (modifier: PilotLimitModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyPilotLimit, modifier),
     modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyStartingHandSize, modifier),
-    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) => OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
+    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) => {
+        switch (typeof modifier) {
+            case 'function':
+                return OngoingEffectBuilder.card.dynamic(EffectName.ModifyStats, modifier);
+            default:
+                return OngoingEffectBuilder.card.static(
+                    EffectName.ModifyStats,
+                    (game) => new OngoingEffectValueWrapper(game, modifier, { format: 'give {0}', args: [StatsModifierWrapper.statsModifierDescription(modifier)] })
+                );
+        }
+    },
     noMulligan: () => OngoingEffectBuilder.card.static(EffectName.NoMulligan),
     mustAttack: (properties: MustAttackProperties = {}) => OngoingEffectBuilder.card.static(EffectName.MustAttack, properties),
     // modifyMilitarySkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),

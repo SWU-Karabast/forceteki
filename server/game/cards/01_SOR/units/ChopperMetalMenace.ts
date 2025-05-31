@@ -16,12 +16,12 @@ export default class ChopperMetalMenace extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                     amount: 1,
-                    target: context.source.activeAttack.getSingleTarget().controller
+                    target: context.source.activeAttack.getDefendingPlayer(),
                 })),
                 AbilityHelper.immediateEffects.conditional((context) => ({
                     // There will be one event for the discard system overall plus one per card, so we need to ensure at least two exist
                     condition: context.events.length < 2 ? false : context.events[0].card.isEvent(),
-                    onTrue: AbilityHelper.immediateEffects.exhaustResources({ amount: 1, target: context.source.activeAttack.getSingleTarget().controller }),
+                    onTrue: AbilityHelper.immediateEffects.exhaustResources({ amount: 1, target: context.source.activeAttack.getDefendingPlayer() }),
                 }))
             ])
         });

@@ -22,6 +22,10 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         this.resources = resources;
     }
 
+    public isResourceCost(): this is ResourceCost {
+        return true;
+    }
+
     public canPay(context: AbilityContext<TCard>): boolean {
         // get the minimum cost we could possibly pay for this card to see if we have the resources available
         // (aspect penalty is included in this calculation, if relevant)
@@ -63,7 +67,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     }
 
     protected getExhaustResourceEvent(context: AbilityContext<TCard>): GameEvent {
-        return new GameEvent(EventName.onExhaustResources, context, { amount: this.getAdjustedCost(context) }, (event) => {
+        return new GameEvent(EventName.OnExhaustResources, context, { amount: this.getAdjustedCost(context) }, (event) => {
             const amount = this.getAdjustedCost(context);
             context.costs.resources = amount;
 

@@ -8,7 +8,6 @@ import { TriggerHandlingMode } from '../event/EventWindow.js';
 
 export class EventAbility extends CardAbility {
     protected anyPlayer: boolean;
-    protected doesNotTarget: boolean;
     protected phase: string;
 
     public constructor(game: Game, card: Card, properties: IEventAbilityProps) {
@@ -20,11 +19,9 @@ export class EventAbility extends CardAbility {
         };
 
         super(game, card, adjustedProperties, AbilityType.Event);
-
-        this.doesNotTarget = (properties as any).doesNotTarget;
     }
 
-    public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
+    public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = [], thisStepOnly = false) {
         if (!ignoredRequirements.includes('zone') && this.card.zoneName !== ZoneName.Discard) {
             return 'zone';
         }
@@ -33,6 +30,6 @@ export class EventAbility extends CardAbility {
             return 'phase';
         }
 
-        return super.meetsRequirements(context, ignoredRequirements);
+        return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
     }
 }

@@ -22,6 +22,7 @@ describe('Resupply Carrier', function() {
             expect(context.player1.resources.length).toBe(startingResources + 1);
             expect(context.player1.deck.length).toBe(startingDeckSize - 1);
             expect(context.player2).toBeActivePlayer();
+            expect(context.getChatLogs(1)).toContain('player1 uses Resupply Carrier to move a card to their resources');
         });
     });
 });

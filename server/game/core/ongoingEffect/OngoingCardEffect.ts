@@ -1,6 +1,6 @@
 import { OngoingEffect } from './OngoingEffect';
 import type { CardTypeFilter, ZoneFilter } from '../Constants';
-import { RelativePlayer, WildcardZoneName, WildcardCardType } from '../Constants';
+import { RelativePlayer, WildcardZoneName, WildcardCardType, EffectName } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
@@ -50,6 +50,11 @@ export class OngoingCardEffect extends OngoingEffect {
     public override isValidTarget(target: Card) {
         if (this.targetsSourceOnly) {
             return target === this.context.source;
+        }
+
+        if (target.isBlank() && (this.impl.type === EffectName.GainKeyword || this.impl.type === EffectName.GainAbility)) {
+            // If the target is blanked, it cannot gain abilities or keywords
+            return false;
         }
 
         if (typeof this.matchTarget !== 'function') {

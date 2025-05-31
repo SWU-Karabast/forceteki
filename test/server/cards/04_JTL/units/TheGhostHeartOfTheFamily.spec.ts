@@ -150,6 +150,7 @@ describe('The Ghost, Heart of the Family', () => {
 
                 // Deploy Hera Syndulla, she gains Ambush via The Ghost
                 context.player1.clickCard(context.heraSyndulla);
+                context.player1.clickPrompt('Deploy Hera Syndulla');
                 expect(context.player1).toHavePrompt('Trigger the ability \'Ambush\' or pass');
                 context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.cloudCityWingGuard);
@@ -187,6 +188,7 @@ describe('The Ghost, Heart of the Family', () => {
 
                 // Deploy Hera Syndulla, she gains Shielded via The Ghost
                 context.player1.clickCard(context.heraSyndulla);
+                context.player1.clickPrompt('Deploy Hera Syndulla');
                 expect(context.heraSyndulla).toHaveExactUpgradeNames(['shield']);
             });
 

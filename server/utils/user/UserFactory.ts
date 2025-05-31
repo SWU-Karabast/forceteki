@@ -68,20 +68,24 @@ export class UserFactory {
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
             await dbService.updateUserProfileAsync(userId, {
-                welcomeMessageSeen: false
+                showWelcomeMessage: false
             });
             return true;
         } catch (error) {
-            logger.error('Error setting welcomeMessageSeen status:', { error: { message: error.message, stack: error.stack } });
+            logger.error('Error setting showWelcomeMessage status:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
 
+    /**
+     * • Unlimited username changes during the first week (7 days) after account creation.
+     * • After that, a 1‑month (30‑days) cooldown between changes.
+     */
     public async canChangeUsernameAsync(userId: string): Promise<{
         canChange: boolean;
         message?: string;
         nextChangeAllowedAt?: string; // ISO timestamp when they can change again
-        typeOfMessage: string;
+        typeOfMessage: string | null;
     }> {
         try {
             const dbService = await this.dbServicePromise;
@@ -89,56 +93,56 @@ export class UserFactory {
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
 
             const now = Date.now();
-            // If the user has never changed their username before
-            if (!userProfile.usernameLastUpdatedAt) {
-                return {
-                    canChange: true,
-                    message: 'You can change your username freely within the first hour',
-                    typeOfMessage: 'green'
-                };
-            }
 
-            // User has changed username before
             const createdAt = new Date(userProfile.createdAt).getTime();
-            const lastChange = new Date(userProfile.usernameLastUpdatedAt).getTime();
+            const lastChange = userProfile.usernameLastUpdatedAt
+                ? new Date(userProfile.usernameLastUpdatedAt).getTime()
+                : createdAt; // default to account creation if never changed
 
-            // Check if we're within the first hour of account creation
-            const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
-            const isWithinFirstHour = hoursSinceCreation <= 1;
-            if (isWithinFirstHour) {
+            const weekInMs = 7 * 24 * 60 * 60 * 1000;   // 7 days
+            const monthInMs = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+            const isWithinFirstWeek = now - createdAt < weekInMs;
+
+            // If inside first week always allowed
+            if (isWithinFirstWeek) {
                 return {
                     canChange: true,
-                    message: 'You can change your username freely within the first hour',
+                    message: 'You can change your username freely within the first week',
                     typeOfMessage: 'green'
                 };
             }
 
-            // If outside first hour, check the 4-month restriction
-            const fourMonthsInMs = 4 * 30 * 24 * 60 * 60 * 1000; // 4 months in milliseconds
-            const nextChangeAllowedAt = new Date(lastChange + fourMonthsInMs);
-            const daysRemaining = Math.ceil((nextChangeAllowedAt.getTime() - now) / (1000 * 60 * 60 * 24));
-
-            if (daysRemaining > 0) {
+            // Outside first week enforce 30‑day cooldown
+            const nextChangeAllowedAtMs = lastChange + monthInMs;
+            if (now < nextChangeAllowedAtMs) {
+                const daysRemaining = Math.ceil((nextChangeAllowedAtMs - now) / (1000 * 60 * 60 * 24));
                 return {
                     canChange: false,
                     message: `You can change your username again in ${daysRemaining} days`,
-                    nextChangeAllowedAt: nextChangeAllowedAt.toISOString(),
+                    nextChangeAllowedAt: new Date(nextChangeAllowedAtMs).toISOString(),
                     typeOfMessage: null
                 };
             }
 
-            // Time restriction has passed, user can change username
+            // Cooldown passed allowed
             return {
                 canChange: true,
-                message: 'You can change your username (available every 120 days)',
+                message: 'You can change your username (available every 30 days)',
                 typeOfMessage: 'yellow'
             };
-        } catch (error) {
-            logger.error('Error checking username change eligibility:', { error: { message: error.message, stack: error.stack } });
+        } catch (error: any) {
+            logger.error('Error checking username change eligibility:', {
+                error: { message: error.message, stack: error.stack }
+            });
             throw error;
         }
     }
 
+    /**
+     * • Unlimited username changes during the first week (7 days) after account creation.
+     * • After that, a 1‑month (30‑days) cooldown between changes.
+     */
     public async changeUsernameAsync(userId: string, newUsername: string): Promise<{
         success: boolean;
         username?: string;
@@ -159,28 +163,29 @@ export class UserFactory {
                     message: 'The new username is the same as your current username.'
                 };
             }
+
+            const createdAt = new Date(userProfile.createdAt).getTime();
+            const lastChange = userProfile.usernameLastUpdatedAt
+                ? new Date(userProfile.usernameLastUpdatedAt).getTime()
+                : createdAt; // default to createdAt if never changed
+
+            const weekInMs = 7 * 24 * 60 * 60 * 1000;   // 7 days
+            const monthInMs = 30 * 24 * 60 * 60 * 1000; // 30 days
+            const isWithinFirstWeek = now - createdAt < weekInMs;
+
             // Check if this is the user's first username change timeframe
-            if (userProfile.usernameLastUpdatedAt) {
-                const createdAt = new Date(userProfile.createdAt).getTime();
-                const lastChange = new Date(userProfile.usernameLastUpdatedAt).getTime();
-
-                // Check if we're within the first hour of account creation
-                const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
-                const isWithinFirstHour = hoursSinceCreation <= 1;
-
-                if (!isWithinFirstHour) {
-                    // If outside first hour, apply the 4-month restriction
-                    const fourMonthsInMs = 4 * 30 * 24 * 60 * 60 * 1000; // 4 months in milliseconds
-                    const nextChangeAllowedAt = new Date(lastChange + fourMonthsInMs);
-                    const daysRemaining = Math.ceil((nextChangeAllowedAt.getTime() - now) / (1000 * 60 * 60 * 24));
-
-                    if (daysRemaining > 0) {
-                        logger.error(`GameServer (change-username): User ${userId} must wait ${daysRemaining} more days before changing username again`);
-                        return {
-                            success: false,
-                            message: `You can change your username again in ${daysRemaining} days ( on ${nextChangeAllowedAt.toISOString()})`,
-                        };
-                    }
+            // Outside the first week → enforce 1‑month cooldown
+            if (!isWithinFirstWeek) {
+                const nextChangeAllowedAtMs = lastChange + monthInMs;
+                if (now < nextChangeAllowedAtMs) {
+                    const daysRemaining = Math.ceil((nextChangeAllowedAtMs - now) / (1000 * 60 * 60 * 24));
+                    logger.error(`GameServer (change-username): User ${userId} must wait ${daysRemaining} more days before changing username again`);
+                    return {
+                        success: false,
+                        message: `You can change your username again in ${daysRemaining} days (on ${new Date(nextChangeAllowedAtMs).toISOString()})`,
+                        nextChangeAllowedAt: new Date(nextChangeAllowedAtMs).toISOString(),
+                        daysRemaining
+                    };
                 }
             }
 
@@ -188,7 +193,6 @@ export class UserFactory {
             await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString(),
-                welcomeMessageSeen: false
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);
@@ -272,13 +276,16 @@ export class UserFactory {
 
             // If the user ever finds himself in a weird state where the profile doesn't exist but a dbUserID does
             // we recreate a userProfile with a new id
+            const cleanedUsername = username.trim()
+                .replace(/\s+/g, '')
+                .replace(/[^a-zA-Z0-9_]/g, '');
             const newUser = {
                 id: uuid(),
-                username: username,
+                username: cleanedUsername,
                 lastLogin: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
                 usernameLastUpdatedAt: new Date().toISOString(),
-                welcomeMessageSeen: true,
+                showWelcomeMessage: true,
                 preferences: { cardback: null },
             };
 

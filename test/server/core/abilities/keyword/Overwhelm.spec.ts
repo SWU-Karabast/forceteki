@@ -93,9 +93,16 @@ describe('Overwhelm keyword', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'emperor-palpatine#master-of-the-dark-side', upgrades: ['fallen-lightsaber'] }]
+                        groundArena: [
+                            {
+                                card: 'emperor-palpatine#master-of-the-dark-side',
+                                upgrades: ['fallen-lightsaber']
+                            },
+                            'cloudrider'
+                        ]
                     },
                     player2: {
+                        hand: ['traitorous'],
                         groundArena: ['death-star-stormtrooper']
                     }
                 });
@@ -106,6 +113,24 @@ describe('Overwhelm keyword', function() {
 
                 context.player1.clickCard(context.emperorPalpatine);
                 context.player1.clickCard(context.deathStarStormtrooper);
+                expect(context.p2Base.damage).toBe(9);
+            });
+
+            it('a stolen unit, and the unit is defeated before damage is resolved, all damage goes to the opponent\'s base', function () {
+                const { context } = contextRef;
+                context.player1.passAction();
+
+                // Player 2 takes control of Cloud-Rider with Traitorous
+                context.player2.clickCard(context.traitorous);
+                context.player2.clickCard(context.cloudrider);
+                expect(context.cloudrider).toBeInZone('groundArena', context.player2);
+
+                // Emperor Palpatine attacks Cloud-Rider
+                context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickCard(context.cloudrider);
+
+                expect(context.cloudrider).toBeInZone('discard', context.player1);
+                expect(context.p1Base.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(9);
             });
         });

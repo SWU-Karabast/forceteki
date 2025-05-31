@@ -16,6 +16,7 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
             title: 'Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
+                // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
@@ -36,6 +37,7 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
         this.addActionAbility({
             title: 'Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.',
             targetResolver: {
+                // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,

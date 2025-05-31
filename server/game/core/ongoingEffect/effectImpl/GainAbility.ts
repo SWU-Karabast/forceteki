@@ -1,6 +1,7 @@
 import type { IAbilityPropsWithType } from '../../../Interfaces';
 import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
 import type { Card } from '../../card/Card';
+import type { FormatMessage } from '../../chat/GameChat';
 import { AbilityType } from '../../Constants';
 import type Game from '../../Game';
 import type { GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
@@ -18,17 +19,45 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
     public readonly abilityType: AbilityType;
     public readonly properties: IAbilityPropsWithType;
 
-    // private abilityUuidByTargetCard = new Map<InPlayCard, string>();
-    private get gainAbilitySource() {
-        return this.game.getFromRef(this.state.gainAbilitySource);
-    }
+    private abilityIdentifier: string;
+    private abilityUuidByTargetCard = new Map<InPlayCard, string>();
+    private gainAbilitySource: Card;
+    private source: Card;
 
-    private get source() {
-        return this.game.getFromRef(this.state.source);
+    private static abilityDescription?(props: IAbilityPropsWithType): string {
+        if (props.type === AbilityType.Triggered && 'when' in props) {
+            const triggers: string[] = [];
+            if (props.when.whenPlayed) {
+                triggers.push('When Played');
+            }
+            if (props.when.whenPlayedUsingSmuggle) {
+                triggers.push('When Played using Smuggle');
+            }
+            if (props.when.onAttack) {
+                triggers.push('On Attack');
+            }
+            if (props.when.whenDefeated) {
+                triggers.push('When Defeated');
+            }
+            if (triggers.length === 0) {
+                return undefined;
+            }
+            return `“${triggers.join('/')}: ${props.title}”`;
+        }
+        return undefined;
     }
 
     public constructor(game: Game, gainedAbilityProps: IAbilityPropsWithType) {
-        super(game, Object.assign(gainedAbilityProps, { printedAbility: false }));
+        const abilityDescription = GainAbility.abilityDescription(gainedAbilityProps);
+        let effectDescription: FormatMessage | undefined;
+        if (abilityDescription) {
+            effectDescription = {
+                format: 'give {0}',
+                args: [abilityDescription]
+            };
+        }
+
+        super(game, Object.assign(gainedAbilityProps, { printedAbility: false }), effectDescription);
 
         this.abilityType = gainedAbilityProps.type;
     }

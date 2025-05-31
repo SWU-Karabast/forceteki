@@ -1,11 +1,11 @@
 import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
-import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
+import type { IConstantAbilityProps, IOngoingEffectGenerator, NumericKeywordName } from '../../../Interfaces';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import type { IAlternatePlayActionProperties, IPlayCardActionProperties, IPlayCardActionPropertiesBase, PlayCardAction } from '../../ability/PlayCardAction';
-import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
@@ -142,7 +142,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         // add this card's Exploit amount onto any that come from the property overrides
-        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
+        const exploitValue = this.getNumericKeywordTotal(KeywordName.Exploit);
         const propertyOverridesWithExploit = Helpers.mergeNumericProperty(propertyOverrides, 'exploitValue', exploitValue);
 
         let defaultPlayAction: PlayCardAction = null;
@@ -228,12 +228,20 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
      * for this card and adds up the total of their effect values.
      * @returns value of the total effect if enabled, `null` if the effect is not present
      */
-    public getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null {
+    public getNumericKeywordTotal(keywordName: NumericKeywordName): number | null {
         let keywordValueTotal = 0;
 
         for (const keyword of this.keywords.filter((keyword) => keyword.name === keywordName)) {
             Contract.assertTrue(keyword instanceof KeywordWithNumericValue);
             keywordValueTotal += keyword.value;
+        }
+
+        const multipliers = this.getOngoingEffectValues(EffectName.MultiplyNumericKeyword)
+            .filter((value) => value.keyword === keywordName)
+            .map((value) => value.multiplier);
+
+        for (const multiplier of multipliers) {
+            keywordValueTotal *= multiplier;
         }
 
         return keywordValueTotal > 0 ? keywordValueTotal : null;
@@ -248,10 +256,12 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
      * controller's resource zone.
      *
      * If `newController` is the same as the current controller, nothing happens.
+     *
+     * @returns true if the controller was changed, false if it was the same
      */
-    public takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource = null) {
+    public takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource = null): boolean {
         if (newController === this.controller) {
-            return;
+            return false;
         }
 
         this.controller = newController;
@@ -284,6 +294,8 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
                 }
             }
         }
+
+        return true;
     }
 
     /** Create constant ability props on the card that decreases its cost under the given condition */

@@ -67,6 +67,18 @@ function populateMissingData(attributes, id) {
                 } }
                 ]
             };
+            attributes.backSideTraits = {
+                data: [{ attributes: {
+                    name: 'Force'
+                } },
+                { attributes: {
+                    name: 'Separatist'
+                } },
+                { attributes: {
+                    name: 'Sith'
+                } },
+                ]
+            };
             attributes.backSideAspects = {
                 data: [{ attributes: {
                     name: 'Cunning'
@@ -156,6 +168,9 @@ function filterValues(card) {
         }
         if (card.attributes.backSideTitle) {
             filteredObj.backSideTitle = card.attributes.backSideTitle;
+        }
+        if (card.attributes.backSideTraits) {
+            filteredObj.backSideTraits = getAttributeNames(card.attributes.backSideTraits);
         }
 
         // if a card has multiple types it will be still in one string, like 'token upgrade'

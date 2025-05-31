@@ -10,7 +10,7 @@ import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class AmbushAbility extends TriggeredAbility {
-    public override readonly keyword: KeywordName | null = KeywordName.Ambush;
+    public readonly keyword: KeywordName = KeywordName.Ambush;
 
     public static buildAmbushAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {

@@ -11,7 +11,7 @@ export default class RedSquadronXWing extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
-            title: 'Deal 2 damage to this unit',
+            title: 'Deal 2 damage to this unit. If you do, draw a card',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
             ifYouDo: {

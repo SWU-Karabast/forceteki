@@ -114,6 +114,7 @@ describe('The Starhawk, Prototype Battleship', function() {
 
                 context.player1.clickCard(context.captainRex);
                 context.player1.clickPrompt('If a friendly unit attacked this phase, create a Clone Trooper token.');
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
             });
 
@@ -134,7 +135,7 @@ describe('The Starhawk, Prototype Battleship', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.blueLeader);
-                context.player1.clickPrompt('Pay 2 resources');
+                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.exhaustedResourceCount).toBe(4); // 2 for (adjusted) play cost, 2 for effect payment
@@ -168,6 +169,7 @@ describe('The Starhawk, Prototype Battleship', function() {
 
                 context.player2.clickCard(context.fettsFirespray);
                 context.player2.clickPrompt('Exhaust a non-unique unit');
+                context.player2.clickPrompt('Use it anyway');
                 expect(context.player2.exhaustedResourceCount).toBe(2);
             });
         });

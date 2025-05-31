@@ -92,6 +92,7 @@ describe('Commission', function () {
                     expect(context.player1.deck.length).toBe(0);
 
                     context.player1.clickCard(context.commission);
+                    context.player1.clickPrompt('Play anyway');
                     expect(context.commission).toBeInZone('discard');
                     expect(context.player1.deck.length).toBe(0);
 

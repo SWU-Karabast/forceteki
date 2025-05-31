@@ -70,7 +70,9 @@ describe('Asteroid Sanctuary', function() {
                     context.player2.setGroundArenaUnits([]);
 
                     context.player1.clickCard(context.asteroidSanctuary);
+                    context.player1.clickPrompt('Play anyway');
 
+                    expect(context.asteroidSanctuary).toBeInZone('discard', context.player1);
                     expect(context.player2).toBeActivePlayer();
                 });
             });

@@ -24,9 +24,11 @@ describe('Relentless, Konstantine\'s Folly', function() {
                 // play an event, with no effect
                 let exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
                 context.player2.clickCard(context.vanquish);
+                context.player2.clickPrompt('Play anyway');
                 expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 5);
                 expect(context.relentless).toBeInZone('spaceArena');
                 expect(context.vanquish).toBeInZone('discard');
+                expect(context.getChatLogs(1)).toContain('player2 plays Vanquish to do nothing due to an ongoing effect of Relentless');
 
                 context.player1.passAction();
 
@@ -42,6 +44,7 @@ describe('Relentless, Konstantine\'s Folly', function() {
                 context.player1.passAction();
                 exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
                 context.player2.clickCard(context.momentOfPeace);
+                context.player2.clickPrompt('Play anyway');
                 expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 1);
                 expect(context.relentless).toHaveExactUpgradeNames([]);
             });
@@ -85,6 +88,7 @@ describe('Relentless, Konstantine\'s Folly', function() {
 
                 const exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
                 context.player2.clickCard(context.timelyIntervention);
+                context.player2.clickPrompt('Play anyway');
 
                 expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 4);
                 expect(context.timelyIntervention).toBeInZone('discard');
@@ -98,6 +102,7 @@ describe('Relentless, Konstantine\'s Folly', function() {
 
                 context.player2.clickCard(context.bamboozle);
                 context.player2.clickPrompt('Play Bamboozle by discarding a Cunning card');
+                context.player2.clickPrompt('Play anyway');
                 context.player2.clickCard(context.craftySmuggler);
 
                 expect(context.bamboozle).toBeInZone('discard');
