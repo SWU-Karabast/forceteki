@@ -21,14 +21,14 @@ export default class StatsModifierWrapper {
         this.type = type;
     }
 
-    public static getEffectName(effect: IOngoingCardEffect) {
+    public static getEffectName(effect: OngoingCardEffect) {
         if (effect && effect.context && effect.context.source) {
             return effect.context.source.title;
         }
         return 'Unknown';
     }
 
-    public static getEffectType(effect: IOngoingCardEffect): CardType | undefined {
+    public static getEffectType(effect: OngoingCardEffect): CardType | undefined {
         if (effect && effect.context && effect.context.source) {
             return this.getCardType(effect.context.source);
         }

@@ -897,8 +897,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         // TODO: add a summary method that logs these modifiers (i.e., the names, amounts, etc.)
-        private getStatModifiers(exclusions: (string[] | ((effect: IOngoingCardEffect) => boolean)) = []): StatsModifierWrapper[] {
-            let rawEffects: IOngoingCardEffect[];
+        private getStatModifiers(exclusions: (string[] | ((effect: OngoingCardEffect) => boolean)) = []): StatsModifierWrapper[] {
+            let rawEffects: OngoingCardEffect[];
             if (typeof exclusions === 'function') {
                 rawEffects = this.getOngoingEffects().filter((effect) => !exclusions(effect));
             } else {

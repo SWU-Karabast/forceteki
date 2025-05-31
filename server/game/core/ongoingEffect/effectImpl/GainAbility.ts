@@ -19,10 +19,13 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
     public readonly abilityType: AbilityType;
     public readonly properties: IAbilityPropsWithType;
 
-    private abilityIdentifier: string;
-    private abilityUuidByTargetCard = new Map<InPlayCard, string>();
-    private gainAbilitySource: Card;
-    private source: Card;
+    private get gainAbilitySource() {
+        return this.game.getFromRef(this.state.gainAbilitySource);
+    }
+
+    private get source() {
+        return this.game.getFromRef(this.state.source);
+    }
 
     private static abilityDescription?(props: IAbilityPropsWithType): string {
         if (props.type === AbilityType.Triggered && 'when' in props) {
