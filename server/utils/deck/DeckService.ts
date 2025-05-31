@@ -201,13 +201,13 @@ export class DeckService {
             const deck = await dbService.getDeckAsync(userId, deckId);
             if (!deck) {
                 logger.error(`DeckService: Deck ${deckId} not found for user ${userId}`);
-                return;
+                return null;
             }
 
             // Delete the deck
             await dbService.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`);
             logger.info(`DeckService: Successfully deleted deck ${deckId} for user ${userId}`);
-            return;
+            return deck.deck.deckLinkID;
         } catch (error) {
             logger.error(`DeckService: Error deleting deck ${deckId} for user ${userId}:`, { error: { message: error.message, stack: error.stack } });
             throw error;
