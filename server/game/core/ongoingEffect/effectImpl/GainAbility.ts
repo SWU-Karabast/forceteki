@@ -2,47 +2,64 @@ import type { IAbilityPropsWithType } from '../../../Interfaces';
 import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
 import type { Card } from '../../card/Card';
 import { AbilityType } from '../../Constants';
+import type Game from '../../Game';
+import type { GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
 import * as Contract from '../../utils/Contract';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 
-export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType> {
+export interface IGainAbilityState extends IGameObjectBaseState {
+    abilityIdentifier: string;
+    abilityUuidByTargetCard: Map<string, string>;
+    gainAbilitySource: GameObjectRef<Card>;
+    source: GameObjectRef<Card>;
+}
+
+export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType, IGainAbilityState> {
     public readonly abilityType: AbilityType;
     public readonly properties: IAbilityPropsWithType;
 
-    private abilityIdentifier: string;
-    private abilityUuidByTargetCard = new Map<InPlayCard, string>();
-    private gainAbilitySource: Card;
-    private source: Card;
+    // private abilityUuidByTargetCard = new Map<InPlayCard, string>();
+    private get gainAbilitySource() {
+        return this.game.getFromRef(this.state.gainAbilitySource);
+    }
 
-    public constructor(gainedAbilityProps: IAbilityPropsWithType) {
-        super(Object.assign(gainedAbilityProps, { printedAbility: false }));
+    private get source() {
+        return this.game.getFromRef(this.state.source);
+    }
+
+    public constructor(game: Game, gainedAbilityProps: IAbilityPropsWithType) {
+        super(game, Object.assign(gainedAbilityProps, { printedAbility: false }));
 
         this.abilityType = gainedAbilityProps.type;
+    }
+
+    protected override setupDefaultState() {
+        this.state.abilityUuidByTargetCard = new Map();
     }
 
     public override setContext(context) {
         Contract.assertNotNullLike(context.source);
 
         if (context.ongoingEffect?.abilityIdentifier) {
-            this.abilityIdentifier = `gained_from_${context.ongoingEffect.abilityIdentifier}`;
+            this.state.abilityIdentifier = `gained_from_${context.ongoingEffect.abilityIdentifier}`;
         } else if (context.ongoingEffect?.isLastingEffect) {
             // TODO: currently all gained ability identifiers are the same, find a way to make these unique in case a card gains two
-            this.abilityIdentifier = 'gained_from_lasting_effect';
-        } else if (!this.abilityIdentifier) {
+            this.state.abilityIdentifier = 'gained_from_lasting_effect';
+        } else if (!this.state.abilityIdentifier) {
             Contract.fail('GainAbility.setContext() called without a valid context');
         }
 
         super.setContext(context);
 
-        this.source = this.context.source;
-        this.gainAbilitySource = this.source;
+        this.state.source = this.context.source.getRef();
+        this.state.gainAbilitySource = this.source.getRef();
     }
 
     public override apply(target: InPlayCard) {
         Contract.assertNotNullLike(this.gainAbilitySource, 'gainAbility.apply() called before gainAbility.setContext()');
-        Contract.assertDoesNotHaveKey(this.abilityUuidByTargetCard, target, `Attempting to apply gain ability effect '${this.abilityIdentifier}' to card ${target.internalName} twice`);
+        Contract.assertDoesNotHaveKey(this.state.abilityUuidByTargetCard, target.uuid, `Attempting to apply gain ability effect '${this.state.abilityIdentifier}' to card ${target.internalName} twice`);
 
-        const properties = Object.assign(this.getValue(), { gainAbilitySource: this.gainAbilitySource, abilityIdentifier: this.abilityIdentifier });
+        const properties = Object.assign(this.getValue(), { gainAbilitySource: this.gainAbilitySource, abilityIdentifier: this.state.abilityIdentifier });
 
         let gainedAbilityUuid: string;
         switch (properties.type) {
@@ -66,33 +83,33 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
                 Contract.fail(`Unknown ability type: ${this.abilityType}`);
         }
 
-        this.abilityUuidByTargetCard.set(target, gainedAbilityUuid);
+        this.state.abilityUuidByTargetCard.set(target.uuid, gainedAbilityUuid);
     }
 
     public override unapply(target: InPlayCard) {
-        Contract.assertMapHasKey(this.abilityUuidByTargetCard, target, `Attempting to unapply gain ability effect "${this.abilityIdentifier}" from card ${target.internalName} but it is not applied`);
+        Contract.assertMapHasKey(this.state.abilityUuidByTargetCard, target.uuid, `Attempting to unapply gain ability effect "${this.state.abilityIdentifier}" from card ${target.internalName} but it is not applied`);
 
         switch (this.abilityType) {
             case AbilityType.Action:
-                target.removeGainedActionAbility(this.abilityUuidByTargetCard.get(target));
+                target.removeGainedActionAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
                 break;
 
             case AbilityType.Constant:
-                target.removeGainedConstantAbility(this.abilityUuidByTargetCard.get(target));
+                target.removeGainedConstantAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
                 break;
 
             case AbilityType.Triggered:
-                target.removeGainedTriggeredAbility(this.abilityUuidByTargetCard.get(target));
+                target.removeGainedTriggeredAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
                 break;
 
             case AbilityType.ReplacementEffect:
-                target.removeGainedReplacementEffectAbility(this.abilityUuidByTargetCard.get(target));
+                target.removeGainedReplacementEffectAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
                 break;
 
             default:
                 Contract.fail(`Unknown ability type: ${this.abilityType}`);
         }
 
-        this.abilityUuidByTargetCard.delete(target);
+        this.state.abilityUuidByTargetCard.delete(target.uuid);
     }
 }

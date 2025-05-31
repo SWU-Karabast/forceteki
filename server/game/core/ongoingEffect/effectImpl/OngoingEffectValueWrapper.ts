@@ -1,10 +1,19 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
+import type Game from '../../Game';
+import type { IGameObjectBaseState } from '../../GameObjectBase';
+import { GameObjectBase } from '../../GameObjectBase';
 
-export class OngoingEffectValueWrapper<TValue> {
-    private value: TValue;
+// STATE TODO: I don't think value needs to be state, I think GainedAbility needs the state.
+// export interface IOngoingEffectValueWrapperState<T> extends IGameObjectBaseState {
+//     value: T;
+// }
+
+export class OngoingEffectValueWrapper<TValue, TState extends IGameObjectBaseState = IGameObjectBaseState> extends GameObjectBase<TState> {
+    private readonly value: TValue;
     public context?: AbilityContext;
 
-    public constructor(value: TValue) {
+    public constructor(game: Game, value: TValue) {
+        super(game);
         // @ts-expect-error
         this.value = value == null ? true : value;
     }
@@ -22,4 +31,8 @@ export class OngoingEffectValueWrapper<TValue> {
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public unapply(target): void { }
+
+    public override getGameObjectName() {
+        return 'OngoingEffectValueWrapper';
+    }
 }

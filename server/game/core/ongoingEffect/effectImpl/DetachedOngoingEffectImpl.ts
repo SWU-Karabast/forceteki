@@ -1,15 +1,19 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { EffectName } from '../../Constants';
+import type Game from '../../Game';
 import { OngoingEffectImpl } from './OngoingEffectImpl';
 
 export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
     private state: Record<string, any> = {};
+    public applyFunc;
+    public unapplyFunc;
 
-    public constructor(type: EffectName,
-        public applyFunc,
-        public unapplyFunc
+    public constructor(game: Game,
+        type: EffectName,
+        applyFunc,
+        unapplyFunc
     ) {
-        super(type);
+        super(game, type);
         this.applyFunc = applyFunc;
         this.unapplyFunc = unapplyFunc;
     }
@@ -18,7 +22,7 @@ export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl
         this.state[target.uuid] = this.applyFunc(target, this.context, this.state[target.uuid]);
     }
 
-    public unapply(target: any) {
+    public unapply(effect, target: any) {
         this.state[target.uuid] = this.unapplyFunc(target, this.context, this.state[target.uuid]);
         if (this.state[target.uuid] === undefined) {
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete

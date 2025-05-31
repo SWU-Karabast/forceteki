@@ -1,21 +1,24 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { EffectName } from '../../Constants';
+import type Game from '../../Game';
 import { GameObject } from '../../GameObject';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import StaticOngoingEffectImpl from './StaticOngoingEffectImpl';
 
-export type CalculateOngoingEffect<TValue> = (target: any, context: AbilityContext) => TValue;
-export type CalculateOngoingEffectValueWrapper<TValue> = (target: any, context: AbilityContext) => TValue | OngoingEffectValueWrapper<TValue>;
+export type CalculateOngoingEffect<TValue> = (target: any, context: AbilityContext, game: Game) => TValue;
+export type CalculateOngoingEffectValueWrapper<TValue> = (target: any, context: AbilityContext, game: Game) => TValue | OngoingEffectValueWrapper<TValue>;
 
 // TODO: eventually this will subclass OngoingEffectImpl directly
 export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImpl<TValue> {
     private values: Record<string, OngoingEffectValueWrapper<TValue>> = {};
+    private readonly calculate: CalculateOngoingEffectValueWrapper<TValue>;
 
-    public constructor(
+    public constructor(game: Game,
         type: EffectName,
-        private calculate: CalculateOngoingEffectValueWrapper<TValue>
+        calculate: CalculateOngoingEffectValueWrapper<TValue>
     ) {
-        super(type, null);
+        super(game, type, null);
+        this.calculate = calculate;
     }
 
     public override apply(effect, target) {
@@ -48,13 +51,13 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
     }
 
     private recalculateValue(target, context: AbilityContext): OngoingEffectValueWrapper<TValue> {
-        const value = this.calculate(target, context);
+        const value = this.calculate(target, context, this.game);
 
         if (value instanceof OngoingEffectValueWrapper) {
             return value;
         }
 
-        return new OngoingEffectValueWrapper(value);
+        return new OngoingEffectValueWrapper(this.game, value);
     }
 
     private compareValues(oldValue: TValue, newValue: TValue) {

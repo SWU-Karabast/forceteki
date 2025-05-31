@@ -1,12 +1,17 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { Duration, EffectName } from '../../Constants';
+import type Game from '../../Game';
 
 export abstract class OngoingEffectImpl<TValue> {
     public duration?: Duration = null;
     public isConditional = false;
     protected context?: AbilityContext = null;
+    public readonly type: EffectName;
+    protected readonly game: Game;
 
-    public constructor(public readonly type: EffectName) {
+    public constructor(game: Game, type: EffectName) {
+        this.game = game;
+        this.type = type;
     }
 
     // TODO: add type union in constants.ts for ability targets (player or card, anything else?)

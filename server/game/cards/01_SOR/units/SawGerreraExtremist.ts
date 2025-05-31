@@ -16,7 +16,7 @@ export default class SawGerreraExtremist extends NonLeaderUnitCard {
             title: 'As an additional cost for each opponent to play an event, they must deal 2 damage to their base',
             targetController: RelativePlayer.Opponent,
             sourceZoneFilter: ZoneName.GroundArena,
-            ongoingEffect: OngoingEffectBuilder.player.static(EffectName.AdditionalPlayCost, (context) => {
+            ongoingEffect: OngoingEffectBuilder.player.static(EffectName.AdditionalPlayCost, (game) => (context) => {
                 if (context.ability.card.isEvent()) {
                     return AbilityHelper.costs.dealDamageSpecific(2, context.player.base);
                 }

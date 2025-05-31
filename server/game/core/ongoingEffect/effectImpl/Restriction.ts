@@ -3,6 +3,7 @@ import type { Player } from '../../Player';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import { restrictionDsl } from '../../../ongoingEffects/RestrictionDsl';
 import type { Card } from '../../card/Card';
+import type Game from '../../Game';
 
 const leavePlayTypes = new Set(['discardFromPlay', 'returnToHand', 'returnToDeck', 'removeFromGame']);
 
@@ -21,8 +22,8 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
     public applyingPlayer?: Player;
     public params?: any;
 
-    public constructor(properties: string | RestrictionProperties) {
-        super(null);
+    public constructor(game: Game, properties: string | RestrictionProperties) {
+        super(game, null);
         if (typeof properties === 'string') {
             this.type = properties;
         } else {

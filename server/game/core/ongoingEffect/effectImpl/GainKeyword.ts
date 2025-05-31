@@ -3,15 +3,16 @@ import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import * as Helpers from '../../utils/Helpers';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import type { Card } from '../../card/Card';
+import type Game from '../../Game';
 
 export class GainKeyword extends OngoingEffectValueWrapper<IKeywordProperties | IKeywordProperties[]> {
-    public constructor(keywordProps: KeywordNameOrProperties | KeywordNameOrProperties[]) {
+    public constructor(game: Game, keywordProps: KeywordNameOrProperties | KeywordNameOrProperties[]) {
         if (Array.isArray(keywordProps)) {
-            super(keywordProps.map((keyword) => (typeof keyword === 'string' ? { keyword } : keyword)));
+            super(game, keywordProps.map((keyword) => (typeof keyword === 'string' ? { keyword } : keyword)));
         } else if (typeof keywordProps === 'string') {
-            super({ keyword: keywordProps });
+            super(game, { keyword: keywordProps });
         } else {
-            super(keywordProps);
+            super(game, keywordProps);
         }
     }
 

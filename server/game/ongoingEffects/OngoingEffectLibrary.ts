@@ -110,19 +110,19 @@ export = {
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
     isLeader: () => OngoingEffectBuilder.card.static(EffectName.IsLeader),
     gainAbility: (properties: IAbilityPropsWithType) =>
-        OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(properties)),
+        OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
     // TODO BUG: if multiple cards gain keywords from the same effect and one of them is blanked, they will all be blanked
     gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<KeywordNameOrProperties>) => {
         switch (typeof keywordOrKeywordProperties) {
             case 'function':
                 return OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword,
-                    (target, context) => new GainKeyword(keywordOrKeywordProperties(target, context)));
+                    (target, context, game) => new GainKeyword(game, keywordOrKeywordProperties(target, context, game)));
             default:
-                return OngoingEffectBuilder.card.static(EffectName.GainKeyword, new GainKeyword(keywordOrKeywordProperties));
+                return OngoingEffectBuilder.card.static(EffectName.GainKeyword, (game) => new GainKeyword(game, keywordOrKeywordProperties));
         }
     },
     gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
-        OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context) => new GainKeyword(calculate(target, context))),
+        OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => new GainKeyword(game, calculate(target, context))),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
     // gainAllAbilities,
