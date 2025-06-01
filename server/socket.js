@@ -16,9 +16,14 @@ class Socket extends EventEmitter {
         socket.on('disconnect', this.onDisconnect.bind(this));
     }
 
+    get ip() {
+        return this.socket.handshake.address;
+    }
+
     get id() {
         return this.socket.id;
     }
+
 
     // Commands
 
