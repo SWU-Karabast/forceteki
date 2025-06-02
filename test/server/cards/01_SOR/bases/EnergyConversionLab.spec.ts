@@ -53,6 +53,7 @@ describe('Energy Conversion Lab', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.energyConversionLab);
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.player2).toBeActivePlayer();
             });
@@ -119,6 +120,7 @@ describe('Energy Conversion Lab', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.energyConversionLab);
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.energyConversionLab.epicActionSpent).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
