@@ -20,13 +20,14 @@ export default class BaylanSkollEnigmaticMaster extends NonLeaderUnitCard {
             ifYouDo: {
                 title: 'Return a non-leader unit that costs 4 or less to its owner\'s hand',
                 targetResolver: {
+                    cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     cardCondition: (card) => card.isNonLeaderUnit() && card.cost <= 4,
                     immediateEffect: AbilityHelper.immediateEffects.returnToHand()
                 },
                 then: (thenContext) => ({
                     title: `Play ${thenContext.target?.title} for free`,
                     optional: true,
-                    canBeTriggeredBy: EnumHelpers.asRelativePlayer(thenContext.player, thenContext.target.controller),
+                    canBeTriggeredBy: EnumHelpers.asRelativePlayer(thenContext.player, thenContext.target?.controller),
                     immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                         target: thenContext.target,
                         playAsType: WildcardCardType.Unit,

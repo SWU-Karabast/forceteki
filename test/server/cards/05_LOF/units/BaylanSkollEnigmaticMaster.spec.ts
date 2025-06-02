@@ -166,5 +166,51 @@ describe('Baylan Skoll, Enigmatic Master', function() {
             // Player decides to play Luke Skywalker as a Unit
             expect(context.lukeSkywalker).toBeInZone('groundArena');
         });
+
+        it('Baylan Skoll, Enigmatic Master\'s ability should let player use the Force even if there are no valid targets', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['baylan-skoll#enigmatic-master'],
+                    hasForceToken: true
+                },
+                player2: {
+                    spaceArena: ['redemption#medical-frigate'],
+                    leader: { card: 'kazuda-xiono#best-pilot-in-the-galaxy', deployed: true }
+                },
+            });
+
+            const { context } = contextRef;
+
+            // Player plays Baylan Skoll
+            expect(context.player1.hasTheForce).toBe(true);
+            context.player1.clickCard(context.baylanSkoll);
+            context.player1.clickPrompt('Trigger');
+
+            // Player decides to use the Force even though there are no valid targets
+            expect(context.player2).toBeActivePlayer();
+            expect(context.player1.hasTheForce).toBe(false);
+        });
+
+        it('Baylan Skoll, Enigmatic Master\'s ability should let player use the Force even if there are no other units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['baylan-skoll#enigmatic-master'],
+                    hasForceToken: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player plays Baylan Skoll
+            expect(context.player1.hasTheForce).toBe(true);
+            context.player1.clickCard(context.baylanSkoll);
+            context.player1.clickPrompt('Trigger');
+
+            // Player decides to use the Force even though there are no valid targets
+            expect(context.player2).toBeActivePlayer();
+            expect(context.player1.hasTheForce).toBe(false);
+        });
     });
 });
