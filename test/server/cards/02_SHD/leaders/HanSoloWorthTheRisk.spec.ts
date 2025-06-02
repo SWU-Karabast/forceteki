@@ -119,6 +119,7 @@ describe('Han Solo, Worth the Risk', function () {
 
                 context.player1.clickCard(context.hanSolo);
                 expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.vanguardInfantry, context.greenSquadronAwing]);
+                expect(context.player1).not.toHaveChooseNothingButton();
                 context.player1.clickCard(context.cantinaBraggart);
 
                 expect(context.player1.exhaustedResourceCount).toBe(0);
