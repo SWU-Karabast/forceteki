@@ -35,7 +35,7 @@ describe('Shatterpoint', function() {
                 expect(context.atst).toBeInZone('discard', context.player2);
             });
 
-            it('should use the force to defeat a non-leader unit (without the Force)', function () {
+            it('should choose the "use the force" option but without the force nothing happen', function () {
                 const { context } = contextRef;
 
                 context.player1.setHasTheForce(false);
