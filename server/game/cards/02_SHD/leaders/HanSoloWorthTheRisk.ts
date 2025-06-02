@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { GameStateChangeRequired, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class HanSoloWorthTheRisk extends LeaderUnitCard {
@@ -41,6 +41,7 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
+                mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
