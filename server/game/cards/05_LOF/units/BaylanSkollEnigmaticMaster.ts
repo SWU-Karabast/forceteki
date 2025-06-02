@@ -29,7 +29,7 @@ export default class BaylanSkollEnigmaticMaster extends NonLeaderUnitCard {
                     canBeTriggeredBy: EnumHelpers.asRelativePlayer(thenContext.player, thenContext.target.controller),
                     immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                         target: thenContext.target,
-                        playAsType: WildcardCardType.Any,
+                        playAsType: WildcardCardType.Unit,
                         adjustCost: {
                             costAdjustType: CostAdjustType.Free
                         }

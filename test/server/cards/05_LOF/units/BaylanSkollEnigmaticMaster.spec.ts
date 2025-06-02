@@ -136,7 +136,7 @@ describe('Baylan Skoll, Enigmatic Master', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Baylan Skoll, Enigmatic Master\'s ability should let player to return a Pilot unit and play it as a Pilot for free', async function () {
+        it('Baylan Skoll, Enigmatic Master\'s ability should let player to return a Pilot unit and play it as a Unit for free', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -163,11 +163,8 @@ describe('Baylan Skoll, Enigmatic Master', function() {
             expect(context.player1).toHavePassAbilityPrompt('Play Luke Skywalker for free');
             context.player1.clickPrompt('Trigger');
 
-            // Player decides to play Luke Skywalker as a Pilot
-            context.player1.clickPrompt('Play Luke Skywalker with Piloting');
-            context.player1.clickCard(context.cartelSpacer);
-            expect(context.lukeSkywalker).toBeInZone('spaceArena');
-            expect(context.cartelSpacer).toHaveExactUpgradeNames(['luke-skywalker#you-still-with-me']);
+            // Player decides to play Luke Skywalker as a Unit
+            expect(context.lukeSkywalker).toBeInZone('groundArena');
         });
     });
 });
