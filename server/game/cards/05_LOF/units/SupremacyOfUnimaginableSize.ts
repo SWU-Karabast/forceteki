@@ -12,7 +12,7 @@ export default class SupremacyOfUnimaginableSize extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addConstantAbility({
-            title: 'Each friendly Vehicle unit gets +6/+6',
+            title: 'Other friendly Vehicle units gets +6/+6',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             matchTarget: (card, context) => card !== context.source && card.hasSomeTrait(Trait.Vehicle),

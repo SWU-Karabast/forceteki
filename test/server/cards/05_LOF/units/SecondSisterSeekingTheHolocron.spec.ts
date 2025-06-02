@@ -33,6 +33,37 @@ describe('Second Sister, Seeking the Holocron', function() {
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });
 
+        it('Second Sister\'s ability can be skip', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    resources: {
+                        exhaustedCount: 3,
+                        readyCount: 0
+                    },
+                    groundArena: ['second-sister#seeking-the-holocron'],
+                    deck: ['dooku#it-is-too-late', 'kylo-ren#i-know-your-story', 'atst']
+                },
+            });
+            const { context } = contextRef;
+
+            // Attack with Second Sister
+            context.player1.clickCard(context.secondSister);
+            context.player1.clickCard(context.p2Base);
+
+            // Trigger the ability
+            expect(context.player1).toHavePassAbilityPrompt('Discard 2 cards from your deck. For each Force card discarded this way, ready a resource');
+            context.player1.clickPrompt('Pass');
+
+            expect(context.player2).toBeActivePlayer();
+
+            expect(context.dooku).toBeInZone('deck', context.player1);
+            expect(context.kyloRen).toBeInZone('deck', context.player1);
+            expect(context.atst).toBeInZone('deck', context.player1);
+
+            expect(context.player1.exhaustedResourceCount).toBe(3);
+        });
+
         it('Second Sister\'s ability should discard 2 cards from deck and ready a resource for each Force card discarded (1 Force card)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

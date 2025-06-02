@@ -5,7 +5,7 @@ describe('Supremacy, Of Unimaginable Size', function() {
                 phase: 'action',
                 player1: {
                     spaceArena: ['supremacy#of-unimaginable-size', 'supremacy-tiesf', 'exegol-patroller'],
-                    groundArena: ['wampa']
+                    groundArena: ['wampa', { card: 'general-grievous#trophy-collector', upgrades: ['grievouss-wheel-bike'] }]
                 },
                 player2: {
                     spaceArena: ['tieln-fighter']
@@ -24,9 +24,12 @@ describe('Supremacy, Of Unimaginable Size', function() {
             expect(context.exegolPatroller.getPower()).toBe(9); // Base 3 + 6 = 9
             expect(context.exegolPatroller.getHp()).toBe(7); // Base 1 + 6 = 7
 
-            // Do not buff non-Vehicle units
+            // Do not buff non-Vehicle units or Vehicle upgrade
             expect(context.wampa.getPower()).toBe(4);
             expect(context.wampa.getHp()).toBe(5);
+
+            expect(context.generalGrievous.getPower()).toBe(7);
+            expect(context.generalGrievous.getHp()).toBe(7);
 
             // Do not buff enemy Vehicle units
             expect(context.tielnFighter.getPower()).toBe(2);
