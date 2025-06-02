@@ -33,7 +33,7 @@ export default class Shatterpoint extends EventCard {
                 title: 'Defeat a non-leader unit',
                 ifYouDoCondition: () => {
                     const { card, isResolved, player } = ifYouDoContext.events[0];
-                    return player === ifYouDoContext.player && card instanceof ForceToken && isResolved;
+                    return player === ifYouDoContext.player && card.isForceToken() && isResolved;
                 },
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
