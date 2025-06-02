@@ -105,8 +105,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         // A player can always choose not to pick a card from a zone that is hidden from their opponents
         // if doing so would reveal hidden information(i.e. that there are one or more valid cards in that zone) (SWU Comp Rules 2.0 1.17.4)
         // TODO: test if picking a card from an opponent's usually hidden zone(e.g. opponent's hand) works as expected(the if block here should be skipped)
-        const choosingFromHidden = this.isChoosingFromHidden(legalTargets, context);
-        if (choosingFromHidden) {
+        if (this.isChoosingFromHidden(legalTargets, context) && this.properties.mustChangeGameState !== GameStateChangeRequired.MustFullyResolve) {
             this.properties.optional = true;
             this.selector.optional = true;
             this.selector.appendToDefaultTitle = CardTargetResolver.choosingFromHiddenPrompt;
@@ -142,7 +141,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         if (context.player.autoSingleTarget && legalTargets.length === 1) {
             // ...and we are an optional resolver, prompt the player if they want to resolve
             if (this.selector.optional) {
-                this.promptForSingleOptionalTarget(context, legalTargets[0], choosingFromHidden);
+                this.promptForSingleOptionalTarget(context, legalTargets[0]);
                 return;
             }
 
@@ -215,10 +214,10 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
     }
 
-    private promptForSingleOptionalTarget(context: AbilityContext, target: Card, choosingFromHidden: boolean) {
+    private promptForSingleOptionalTarget(context: AbilityContext, target: Card) {
         const effectName = this.properties.activePromptTitle ? this.properties.activePromptTitle : context.ability.title;
 
-        const activePromptTitle = `Trigger the effect '${effectName}' on target '${target.title}' or pass${choosingFromHidden ? ' ' + CardTargetResolver.choosingFromHiddenPrompt : ''}`;
+        const activePromptTitle = `Trigger the effect '${effectName}' on target '${target.title}' or pass${this.selector.appendToDefaultTitle ? ' ' + this.selector.appendToDefaultTitle : ''}`;
 
         context.game.promptWithHandlerMenu(context.player, {
             activePromptTitle,
@@ -286,8 +285,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     private isChoosingFromHidden(legalTargets: Card[], context: AbilityContext): boolean {
         const choosingPlayer = typeof this.properties.choosingPlayer === 'function' ? this.properties.choosingPlayer(context) : this.properties.choosingPlayer;
         const zones = new Set<ZoneName>(legalTargets.map((card) => card.zoneName));
-        return !(this.properties.ignoreHiddenZoneRule ?? false) &&
-          (!!this.properties.cardTypeFilter || !!this.properties.cardCondition) &&
+        return (!!this.properties.cardTypeFilter || !!this.properties.cardCondition) &&
           (
               (zones.size === 0 && !!this.properties.zoneFilter && CardTargetResolver.allZonesAreHidden(this.properties.zoneFilter, choosingPlayer)) ||
               CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)
