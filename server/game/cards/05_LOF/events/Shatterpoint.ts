@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
-import ForceToken from '../tokens/ForceToken';
 
 export default class Shatterpoint extends EventCard {
     protected override getImplementationId() {
