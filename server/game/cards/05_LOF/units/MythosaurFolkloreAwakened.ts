@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, EventName, Trait, ZoneName } from '../../../core/Constants';
+import { AbilityType, EventName, RelativePlayer, Trait, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
 import { ExhaustSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class MythosaurFolkloreAwakened extends NonLeaderUnitCard {
@@ -43,9 +43,10 @@ export default class MythosaurFolkloreAwakened extends NonLeaderUnitCard {
 
         this.addConstantAbility({
             title: 'Friendly leaders gain the Mandalorian trait',
-            matchTarget: (card, context) =>
-                card.isLeader() &&
-                card.controller === context.player,
+            targetZoneFilter: WildcardZoneName.Any,
+            targetController: RelativePlayer.Self,
+            targetCardTypeFilter: WildcardCardType.Any,
+            matchTarget: (card) => card.isLeader(),
             ongoingEffect: AbilityHelper.ongoingEffects.gainTrait(Trait.Mandalorian)
         });
     }
