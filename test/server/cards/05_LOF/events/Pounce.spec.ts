@@ -21,6 +21,7 @@ describe('Pounce', function() {
             // should have +4
             expect(context.p2Base.damage).toBe(8);
             expect(context.player2).toBeActivePlayer();
+            expect(context.huntingNexu.getPower()).toBe(4);
         });
     });
 });

@@ -5,6 +5,7 @@ describe('Grappling Guardian', function () {
                 phase: 'action',
                 player1: {
                     hand: ['grappling-guardian'],
+                    spaceArena: ['resupply-carrier']
                 },
                 player2: {
                     spaceArena: [{
@@ -18,7 +19,8 @@ describe('Grappling Guardian', function () {
             const { player1, player2 } = context;
 
             player1.clickCard(context.grapplingGuardian);
-            expect(player1).toBeAbleToSelectExactly([context.devastator, context.greenSquadronAwing]);
+            expect(player1).toBeAbleToSelectExactly([context.devastator, context.greenSquadronAwing, context.resupplyCarrier]);
+            expect(player1).toHavePassAbilityButton();
             player1.clickCard(context.devastator);
 
             expect(player2).toBeActivePlayer();
