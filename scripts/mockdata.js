@@ -581,6 +581,79 @@ const mockCards = [
         arena: 'ground',
         internalName: 'mythosaur#folklore-awakened'
     }),
+    buildMockCard({
+        title: 'Second Sister',
+        subtitle: 'Seeking the Holocron',
+        cost: 4,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['force', 'imperial', 'inquisitor'],
+        setId: {
+            set: 'LOF',
+            number: 184
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'second-sister#seeking-the-holocron'
+    }),
+    buildMockCard({
+        title: 'Supremacy',
+        subtitle: 'Of Unimaginable Size',
+        cost: 12,
+        power: 12,
+        hp: 12,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        keywords: ['ambush'],
+        traits: ['first order', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'LOF',
+            number: 89
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'supremacy#of-unimaginable-size'
+    }),
+    buildMockCard({
+        title: 'Exegol Patroller',
+        cost: 2,
+        power: 3,
+        hp: 1,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        keywords: ['overwhelm'],
+        traits: ['first order', 'vehicle', 'sith', 'fighter'],
+        setId: {
+            set: 'LOF',
+            number: 80
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'exegol-patroller',
+    }),
+    buildMockCard({
+        title: 'Supremacy TIE/sf',
+        cost: 3,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        keywords: ['sentinel'],
+        traits: ['first order', 'vehicle', 'fighter'],
+        setId: {
+            set: 'LOF',
+            number: 34
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'supremacy-tiesf',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
