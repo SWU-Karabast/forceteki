@@ -208,7 +208,10 @@ describe('Mythosaur, Folklore Awakened', function() {
                         groundArena: [
                             { card: 'mythosaur#folklore-awakened', upgrades: ['the-darksaber'] },
                         ],
-                        leader: 'obiwan-kenobi#courage-makes-heroes',
+                        spaceArena: [
+                            'gold-leader#fastest-ship-in-the-fleet'
+                        ],
+                        leader: 'wedge-antilles#leader-of-red-squadron',
                     },
                     player2: {
                         leader: 'iden-versio#inferno-squad-commander',
@@ -218,7 +221,7 @@ describe('Mythosaur, Folklore Awakened', function() {
 
             it('gives friendly undeployed leaders the Mandalorian trait', function() {
                 const { context } = contextRef;
-                expect(context.obiwanKenobi.hasSomeTrait('mandalorian')).toBeTrue();
+                expect(context.wedgeAntilles.hasSomeTrait('mandalorian')).toBeTrue();
             });
 
             it('does not give enemy undeployed leaders the Mandalorian trait', function() {
@@ -229,17 +232,37 @@ describe('Mythosaur, Folklore Awakened', function() {
             it('gives friendly deployed leaders the Mandalorian trait', function() {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.obiwanKenobi);
-                context.player1.clickPrompt('Deploy Obi-Wan Kenobi');
+                context.player1.clickCard(context.wedgeAntilles);
+                context.player1.clickPrompt('Deploy Wedge Antilles');
 
-                expect(context.obiwanKenobi.hasSomeTrait('mandalorian')).toBeTrue();
+                expect(context.wedgeAntilles.hasSomeTrait('mandalorian')).toBeTrue();
                 context.player2.passAction();
 
-                // Verify that The Darksaber's ability gives Obi-Wan an experience token
+                // Verify that The Darksaber's ability gives Wedge an experience token
                 context.player1.clickCard(context.mythosaur);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.obiwanKenobi).toHaveExactUpgradeNames(['experience']);
+                expect(context.wedgeAntilles).toHaveExactUpgradeNames(['experience']);
+            });
+
+            it('gives friendly units with pilot leader upgrades the Mandalorian trait', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wedgeAntilles);
+                context.player1.clickPrompt('Deploy Wedge Antilles as a Pilot');
+                context.player1.clickCard(context.goldLeader);
+
+                expect(context.goldLeader.hasSomeTrait('mandalorian')).toBeTrue();
+                context.player2.passAction();
+
+                // Verify that The Darksaber's ability gives Gold Leader an experience token
+                context.player1.clickCard(context.mythosaur);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.goldLeader).toHaveExactUpgradeNames([
+                    'wedge-antilles#leader-of-red-squadron',
+                    'experience'
+                ]);
             });
 
             it('does not give enemy deployed leaders the Mandalorian trait', function() {
