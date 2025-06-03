@@ -1,3 +1,4 @@
+
 describe('A Fine Addition', function () {
     integration(function (contextRef) {
         it('A Fine Addition\'s ability should play an upgrade from your hand or opponents discard, ignoring aspect penalty, if an enemy was defeated this phase', async function () {
@@ -208,6 +209,67 @@ describe('A Fine Addition', function () {
 
             expect(context.player1.exhaustedResourceCount).toBe(6);
             expect(context.player2).toBeActivePlayer();
+        });
+
+        describe('Interaction with upgrades that have friendly unit restrictions', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            'darth-vader#twilight-of-the-apprentice'
+                        ],
+                        hand: [
+                            'takedown',
+                            'a-fine-addition',
+                        ],
+                        resources: 7, // Enough to pay for Takedown (4) + Darth Maul's Lightsaber (3)
+                        leader: 'mother-talzin#power-through-magick',
+                        base: 'echo-base'
+                    },
+                    player2: {
+                        leader: 'darth-maul#sith-revealed',
+                        base: 'dagobah-swamp',
+                        groundArena: [
+                            'darth-maul#revenge-at-last',
+                            'merrin#alone-with-the-dead'
+                        ],
+                        discard: [
+                            'darth-mauls-lightsaber',
+                            // 'the-mandalorians-rifle',
+                            // 'legal-authority'
+                        ]
+                    }
+                });
+            });
+
+            it('should be able to play an upgrade on a friendly unit from opponent\'s discard that has a friendly unit restriction', async function () {
+                const { context } = contextRef;
+
+                // Defeat Merrin with Takedown
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.merrin);
+                context.player2.passAction();
+
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+
+                // Play A Fine Addition
+                context.player1.clickCard(context.aFineAddition);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.darthMaulsLightsaber,
+                    // context.theMandaloriansRifle,
+                    // context.legalAuthority
+                ]);
+
+                // Play Darth Maul's Lightsaber on Darth Vader
+                context.player1.clickCard(context.darthMaulsLightsaber);
+                expect(context.player1).toBeAbleToSelectExactly([context.darthVader]);
+                context.player1.clickCard(context.darthVader);
+
+                expect(context.darthVader).toHaveExactUpgradeNames([
+                    'darth-mauls-lightsaber'
+                ]);
+            });
         });
     });
 });
