@@ -1,6 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import type { GameSystem } from '../../../core/gameSystem/GameSystem';
+import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 
 export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -14,59 +16,40 @@ export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
         this.addActionAbility({
             title: 'Give an Experience token to the unit with the most power among Villainy units',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => {
-                    const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
-                    const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
-                    return villainyUnits.filter((x) => x.getPower() === maxPower).length > 1;
-                },
-                onTrue: AbilityHelper.immediateEffects.selectCard({
-                    cardTypeFilter: WildcardCardType.Unit,
-                    controller: RelativePlayer.Self,
-                    cardCondition: (card, context) => {
-                        const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
-                        const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
-                        return card.isUnit() && card.hasSomeAspect(Aspect.Villainy) && card.getPower() === maxPower;
-                    },
-                    innerSystem: AbilityHelper.immediateEffects.giveExperience()
-                }),
-                onFalse: AbilityHelper.immediateEffects.giveExperience((context) => {
-                    const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
-                    const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
-                    return {
-                        target: villainyUnits.find((x) => x.getPower() === maxPower)
-                    };
-                })
-            })
+            immediateEffect: this.buildSnokeAbility(),
         });
     }
 
     protected override setupLeaderUnitSideAbilities() {
         this.addOnAttackAbility({
             title: 'Give an Experience token to the unit with the most power among Villainy units',
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => {
+            immediateEffect: this.buildSnokeAbility(),
+        });
+    }
+
+    private buildSnokeAbility(): GameSystem<TriggeredAbilityContext<this>> {
+        return AbilityHelper.immediateEffects.conditional({
+            condition: (context) => {
+                const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
+                const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
+                return villainyUnits.filter((x) => x.getPower() === maxPower).length > 1;
+            },
+            onTrue: AbilityHelper.immediateEffects.selectCard({
+                cardTypeFilter: WildcardCardType.Unit,
+                controller: RelativePlayer.Self,
+                cardCondition: (card, context) => {
                     const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
-                    const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
-                    return villainyUnits.filter((x) => x.getPower() === maxPower).length > 1;
+                    const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c));
+                    return card.isUnit() && card.hasSomeAspect(Aspect.Villainy) && card.getPower() === maxPower;
                 },
-                onTrue: AbilityHelper.immediateEffects.selectCard({
-                    cardTypeFilter: WildcardCardType.Unit,
-                    controller: RelativePlayer.Self,
-                    cardCondition: (card, context) => {
-                        const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
-                        const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
-                        return card.isUnit() && card.hasSomeAspect(Aspect.Villainy) && card.getPower() === maxPower;
-                    },
-                    innerSystem: AbilityHelper.immediateEffects.giveExperience()
-                }),
-                onFalse: AbilityHelper.immediateEffects.giveExperience((context) => {
-                    const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
-                    const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
-                    return {
-                        target: villainyUnits.find((x) => x.getPower() === maxPower)
-                    };
-                })
+                innerSystem: AbilityHelper.immediateEffects.giveExperience()
+            }),
+            onFalse: AbilityHelper.immediateEffects.giveExperience((context) => {
+                const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
+                const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
+                return {
+                    target: villainyUnits.find((x) => x.getPower() === maxPower)
+                };
             })
         });
     }

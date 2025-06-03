@@ -6,7 +6,7 @@ describe('Supreme Leader Snoke, In The Seat Of Power', function() {
                     phase: 'action',
                     player1: {
                         leader: 'supreme-leader-snoke#in-the-seat-of-power',
-                        groundArena: ['admiral-motti#brazen-and-scornful', 'kylo-ren#i-know-your-story', 'wampa'],
+                        groundArena: ['admiral-motti#brazen-and-scornful', 'kylo-ren#i-know-your-story', 'wampa', { card: 'hylobon-enforcer', damage: 1 }],
                         spaceArena: ['cartel-spacer']
                     },
                     player2: {
@@ -20,7 +20,7 @@ describe('Supreme Leader Snoke, In The Seat Of Power', function() {
                 context.player1.clickPrompt('Give an Experience token to the unit with the most power among Villainy units');
 
                 // should be able to select between units with most power (in case of equality)
-                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.kyloRen]);
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.kyloRen, context.hylobonEnforcer]);
                 context.player1.clickCard(context.kyloRen);
 
                 // Check that the costs were paid
@@ -31,6 +31,7 @@ describe('Supreme Leader Snoke, In The Seat Of Power', function() {
                 expect(context.kyloRen).toHaveExactUpgradeNames(['experience']);
                 expect(context.cartelSpacer.isUpgraded()).toBeFalse();
                 expect(context.admiralMotti.isUpgraded()).toBeFalse();
+                expect(context.hylobonEnforcer.isUpgraded()).toBeFalse();
                 expect(context.pykeSentinel.isUpgraded()).toBeFalse();
                 expect(context.wampa.isUpgraded()).toBeFalse();
             });
