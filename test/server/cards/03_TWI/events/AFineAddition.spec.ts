@@ -235,15 +235,13 @@ describe('A Fine Addition', function () {
                             'merrin#alone-with-the-dead'
                         ],
                         discard: [
-                            'darth-mauls-lightsaber',
-                            // 'the-mandalorians-rifle',
-                            // 'legal-authority'
+                            'darth-mauls-lightsaber'
                         ]
                     }
                 });
             });
 
-            it('should be able to play an upgrade on a friendly unit from opponent\'s discard that has a friendly unit restriction', async function () {
+            it('should be able to play an upgrade with a friendly unit restriction from an opponent\'s discard pile, ignoring aspect penalty', function () {
                 const { context } = contextRef;
 
                 // Defeat Merrin with Takedown
@@ -256,9 +254,7 @@ describe('A Fine Addition', function () {
                 // Play A Fine Addition
                 context.player1.clickCard(context.aFineAddition);
                 expect(context.player1).toBeAbleToSelectExactly([
-                    context.darthMaulsLightsaber,
-                    // context.theMandaloriansRifle,
-                    // context.legalAuthority
+                    context.darthMaulsLightsaber
                 ]);
 
                 // Play Darth Maul's Lightsaber on Darth Vader
@@ -266,6 +262,7 @@ describe('A Fine Addition', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.darthVader]);
                 context.player1.clickCard(context.darthVader);
 
+                expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.darthVader).toHaveExactUpgradeNames([
                     'darth-mauls-lightsaber'
                 ]);
