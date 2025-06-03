@@ -2,6 +2,8 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { ICardWithExhaustProperty } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import type { Card } from '../core/card/Card';
 import { AbilityRestriction, EventName, GameStateChangeRequired } from '../core/Constants';
+import type { IExhaustSource } from '../IDamageOrDefeatSource';
+import { ExhaustSourceType } from '../IDamageOrDefeatSource';
 import type { IExhaustOrReadyProperties } from './ExhaustOrReadySystem';
 import { ExhaustOrReadySystem } from './ExhaustOrReadySystem';
 
@@ -35,5 +37,17 @@ export class ExhaustSystem<TContext extends AbilityContext = AbilityContext> ext
         }
 
         return true;
+    }
+
+    public override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties?: Partial<IExhaustSystemProperties>) {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        super.addPropertiesToEvent(event, card, context, additionalProperties);
+
+        const exhaustSource: IExhaustSource = {
+            type: properties.isCost ? ExhaustSourceType.Cost : ExhaustSourceType.Ability,
+            player: context.player
+        };
+
+        event.exhaustSource = exhaustSource;
     }
 }
