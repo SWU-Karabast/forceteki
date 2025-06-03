@@ -97,6 +97,36 @@ describe('Second Sister, Seeking the Holocron', function() {
             expect(context.player1.exhaustedResourceCount).toBe(2);
         });
 
+        it('Second Sister\'s ability should discard the last card from the deck and ready 1 resource', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    resources: {
+                        exhaustedCount: 3,
+                        readyCount: 0
+                    },
+                    groundArena: ['second-sister#seeking-the-holocron'],
+                    deck: ['dooku#it-is-too-late']
+                },
+            });
+            const { context } = contextRef;
+
+            // Attack with Second Sister
+            context.player1.clickCard(context.secondSister);
+            context.player1.clickCard(context.p2Base);
+
+            // Trigger the ability
+            expect(context.player1).toHavePassAbilityPrompt('Discard 2 cards from your deck. For each Force card discarded this way, ready a resource');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player2).toBeActivePlayer();
+
+            expect(context.dooku).toBeInZone('discard', context.player1);
+
+            // only 1 card discarded (1 force)
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+        });
+
         it('Second Sister\'s ability should not ready any resource if deck is empty', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
