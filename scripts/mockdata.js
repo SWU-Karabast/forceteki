@@ -654,6 +654,24 @@ const mockCards = [
         arena: 'space',
         internalName: 'supremacy-tiesf',
     }),
+    buildMockCard({
+        title: 'Supreme Leader Snoke',
+        subtitle: 'In the Seat of Power',
+        cost: 6,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['leader'],
+        traits: ['first order', 'force', 'official'],
+        setId: {
+            set: 'LOF',
+            number: 6
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'supreme-leader-snoke#in-the-seat-of-power',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
