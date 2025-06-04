@@ -10,6 +10,7 @@ import * as Helpers from '../core/utils/Helpers';
 export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IPlayerTargetSystemProperties = IPlayerTargetSystemProperties> extends PlayerTargetSystem<TContext, TProperties> {
     public override name = 'useTheForce';
     protected override eventName = EventName.OnCardLeavesPlay;
+    public override readonly costDescription: string = 'using the Force';
 
     public override eventHandler(event): void {
         const forceToken = event.card;
