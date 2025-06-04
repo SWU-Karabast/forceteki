@@ -21,7 +21,8 @@ describe('Jar Jar Binks, Foolish Gungan', function () {
             context.player1.clickCard(context.p2Base);
 
             // Ability hits Republic ARC-170
-            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to deal 2 damage to Republic ARC-170');
+            expect(context.getChatLogs(2)).toContain('Republic ARC-170 was randomly selected using Jar Jar Binks\'s ability');
+            expect(context.getChatLogs(2)).toContain('player1 uses Jar Jar Binks to deal 2 damage to Republic ARC-170');
             expect(context.republicArc170.damage).toBe(2);
             expect(context.p2Base.damage).toBe(2);
 
@@ -30,7 +31,8 @@ describe('Jar Jar Binks, Foolish Gungan', function () {
             context.player1.clickCard(context.p2Base);
 
             // Ability hits Restored ARC-170
-            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to deal 2 damage to Restored ARC-170');
+            expect(context.getChatLogs(2)).toContain('Restored ARC-170 was randomly selected using Jar Jar Binks\'s ability');
+            expect(context.getChatLogs(2)).toContain('player1 uses Jar Jar Binks to deal 2 damage to Restored ARC-170');
             expect(context.restoredArc170.damage).toBe(2);
             expect(context.p2Base.damage).toBe(4);
 
@@ -39,7 +41,8 @@ describe('Jar Jar Binks, Foolish Gungan', function () {
             context.player1.clickCard(context.p2Base);
 
             // Ability hits AT-ST
-            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to deal 2 damage to AT-ST');
+            expect(context.getChatLogs(2)).toContain('AT-ST was randomly selected using Jar Jar Binks\'s ability');
+            expect(context.getChatLogs(2)).toContain('player1 uses Jar Jar Binks to deal 2 damage to AT-ST');
             expect(context.atst.damage).toBe(2);
             expect(context.p2Base.damage).toBe(6);
         });
