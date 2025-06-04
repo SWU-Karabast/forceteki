@@ -52,7 +52,7 @@ export class OngoingCardEffect extends OngoingEffect {
             return target === this.context.source;
         }
 
-        if (target.isBlank() && (this.impl.type === EffectName.GainKeyword || this.impl.type === EffectName.GainAbility)) {
+        if (!EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self) && target.isBlank() && (this.impl.type === EffectName.GainKeyword || this.impl.type === EffectName.GainAbility)) {
             // If the target is blanked, it cannot gain abilities or keywords
             return false;
         }
