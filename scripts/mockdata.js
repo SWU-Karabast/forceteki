@@ -655,6 +655,24 @@ const mockCards = [
         internalName: 'supremacy-tiesf',
     }),
     buildMockCard({
+        title: 'Supreme Leader Snoke',
+        subtitle: 'In the Seat of Power',
+        cost: 6,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['leader'],
+        traits: ['first order', 'force', 'official'],
+        setId: {
+            set: 'LOF',
+            number: 6
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'supreme-leader-snoke#in-the-seat-of-power',
+    }),
+    buildMockCard({
         title: 'Bendu',
         subtitle: 'Do You Fear The Storm?',
         cost: 8,
