@@ -30,27 +30,30 @@ export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
     private buildSnokeAbility(): GameSystem<TriggeredAbilityContext<this>> {
         return AbilityHelper.immediateEffects.conditional({
             condition: (context) => {
-                const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
-                const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
+                const { villainyUnits, maxPower } = this.getUnitsAndMaxPower(context);
                 return villainyUnits.filter((x) => x.getPower() === maxPower).length > 1;
             },
             onTrue: AbilityHelper.immediateEffects.selectCard({
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) => {
-                    const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
-                    const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c));
+                    const { maxPower } = this.getUnitsAndMaxPower(context);
                     return card.isUnit() && card.hasSomeAspect(Aspect.Villainy) && card.getPower() === maxPower;
                 },
                 innerSystem: AbilityHelper.immediateEffects.giveExperience()
             }),
             onFalse: AbilityHelper.immediateEffects.giveExperience((context) => {
-                const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
-                const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
+                const { villainyUnits, maxPower } = this.getUnitsAndMaxPower(context);
                 return {
                     target: villainyUnits.find((x) => x.getPower() === maxPower)
                 };
             })
         });
+    }
+
+    private getUnitsAndMaxPower(context: TriggeredAbilityContext<this>) {
+        const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
+        const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
+        return { villainyUnits, maxPower };
     }
 }
