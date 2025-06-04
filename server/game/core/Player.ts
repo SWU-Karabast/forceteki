@@ -878,7 +878,7 @@ export class Player extends GameObject<IPlayerState> {
                 if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
                     const upgrade = context.source;
                     return context.game.getArenaUnits()
-                        .filter((unit) => upgrade.canAttach(unit, context))
+                        .filter((unit) => upgrade.canAttach(unit, context, this))
                         .some((unit) => adjuster.canAdjust(upgrade, context, { attachTarget: unit, ...canAdjustProps }));
                 }
 
