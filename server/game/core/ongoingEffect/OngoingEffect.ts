@@ -4,7 +4,7 @@ import type { Card } from '../card/Card';
 import type { ZoneFilter } from '../Constants';
 import { Duration, WildcardZoneName, EffectName } from '../Constants';
 import type Game from '../Game';
-import type { Player } from '../Player';
+import type { GameObject } from '../GameObject';
 import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 
@@ -35,21 +35,21 @@ import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
  * impl                 - object with details of effect to be applied. Includes duration
  *                        and the numerical value of the effect, if any.
  */
-export abstract class OngoingEffect {
+export abstract class OngoingEffect<TTarget extends GameObject> {
     public game: Game;
     public source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
-    public matchTarget: (Player | Card) | ((target: Player | Card, context: AbilityContext) => boolean);
+    public matchTarget: TTarget | ((target: TTarget, context: AbilityContext) => boolean);
     public duration?: Duration;
     public until: WhenType;
     public condition: (context?: AbilityContext) => boolean;
     public sourceZoneFilter: ZoneFilter | ZoneFilter[];
     public impl: OngoingEffectImpl<any>;
-    public ongoingEffect: IOngoingEffectProps;
-    public targets: (Player | Card)[];
+    public ongoingEffect: IOngoingEffectProps<TTarget>;
+    public targets: TTarget[];
     public context: AbilityContext;
 
-    public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effectImpl: OngoingEffectImpl<any>) {
+    public constructor(game: Game, source: Card, properties: IOngoingEffectProps<TTarget>, effectImpl: OngoingEffectImpl<any>) {
         Contract.assertFalse(
             properties.duration === Duration.WhileSourceInPlay && !source.canBeInPlay(),
             `${source.internalName} is not a legal target for an effect with duration '${Duration.WhileSourceInPlay}'`
@@ -80,7 +80,7 @@ export abstract class OngoingEffect {
         this.impl.setContext(this.context);
     }
 
-    public isValidTarget(target: Player | Card) {
+    public isValidTarget(target: TTarget) {
         return true;
     }
 
@@ -101,12 +101,12 @@ export abstract class OngoingEffect {
         this.removeTargets([target]);
     }
 
-    public removeTargets(targets) {
+    public removeTargets(targets: TTarget[]) {
         targets.forEach((target) => this.impl.unapply(target));
         this.targets = this.targets.filter((target) => !targets.includes(target));
     }
 
-    public hasTarget(target) {
+    public hasTarget(target: TTarget) {
         return this.targets.includes(target);
     }
 

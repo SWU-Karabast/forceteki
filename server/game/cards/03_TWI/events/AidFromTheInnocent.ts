@@ -26,15 +26,15 @@ export default class AidFromTheInnocent extends EventCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: 'For this phase, you may play the discarded cards for 2 less each',
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous(
-                    Helpers.asArray(ifYouDoContext.selectedPromptCards).map((target) =>
+                    Helpers.asArray(ifYouDoContext.selectedPromptCards).flatMap((target) => [
                         AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                             target: target,
-                            effect: [
-                                AbilityHelper.ongoingEffects.canPlayFromDiscard(),
-                                AbilityHelper.ongoingEffects.decreaseCost({ amount: 2, match: (card) => card === target })
-                            ]
+                            effect: AbilityHelper.ongoingEffects.canPlayFromDiscard(),
+                        }),
+                        AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
+                            effect: AbilityHelper.ongoingEffects.decreaseCost({ amount: 2, match: (card) => card === target }),
                         })
-                    )
+                    ])
                 )
             })
         });
