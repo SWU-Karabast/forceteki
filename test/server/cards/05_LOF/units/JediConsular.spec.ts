@@ -28,6 +28,7 @@ describe('Jedi Consular', function() {
                 expect(context.player1.hasTheForce).toBeFalse();
                 expect(context.swoopRacer).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(1);
+                expect(context.getChatLogs(2)).toContain('player1 uses Jedi Consular, exhausting Jedi Consular and using the Force to play Swoop Racer');
 
                 context.player2.passAction();
 

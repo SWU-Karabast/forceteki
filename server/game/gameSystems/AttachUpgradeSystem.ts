@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
 import type { CardTypeFilter } from '../core/Constants';
-import { RelativePlayer } from '../core/Constants';
+import { PlayType, RelativePlayer } from '../core/Constants';
 import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -115,6 +115,11 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
     }
 
     private getFinalController(properties: IAttachUpgradeProperties, context: TContext) {
+        // If playing from out of play, the controller is always the player
+        if (context.playType && context.playType === PlayType.PlayFromOutOfPlay) {
+            return context.player;
+        }
+
         if (!properties.newController) {
             return properties.upgrade.controller;
         }
