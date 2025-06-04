@@ -15,23 +15,33 @@ describe('Jar Jar Binks, Foolish Gungan', function () {
 
             const { context } = contextRef;
 
-            context.game.setRandomSeed('356244');
+            context.game.setRandomSeed('12345');
 
             context.player1.clickCard(context.jarJarBinks);
             context.player1.clickCard(context.p2Base);
+
+            // Ability hits Republic ARC-170
+            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to deal 2 damage to Republic ARC-170');
+            expect(context.republicArc170.damage).toBe(2);
+            expect(context.p2Base.damage).toBe(2);
 
             context.moveToNextActionPhase();
             context.player1.clickCard(context.jarJarBinks);
             context.player1.clickCard(context.p2Base);
 
+            // Ability hits Restored ARC-170
+            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to deal 2 damage to Restored ARC-170');
+            expect(context.restoredArc170.damage).toBe(2);
+            expect(context.p2Base.damage).toBe(4);
+
             context.moveToNextActionPhase();
             context.player1.clickCard(context.jarJarBinks);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.p1Base.damage).toBe(2); // Jar Jar's ability deals damage to a base
-            expect(context.p2Base.damage).toBe(6); // Jar Jar's attacks
-            expect(context.jarJarBinks.damage).toBe(2); // Jar Jar's ability deals damage to a friendly unit
-            expect(context.restoredArc170.damage).toBe(2); // Jar Jar's ability deals damage to an enemy unit
+            // Ability hits AT-ST
+            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to deal 2 damage to AT-ST');
+            expect(context.atst.damage).toBe(2);
+            expect(context.p2Base.damage).toBe(6);
         });
     });
 });

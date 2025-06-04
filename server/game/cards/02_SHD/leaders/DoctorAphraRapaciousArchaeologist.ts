@@ -1,5 +1,4 @@
 import AbilityHelper from '../../../AbilityHelper';
-import * as Helpers from '../../../core/utils/Helpers';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { PhaseName, RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
 
@@ -44,9 +43,11 @@ export default class DoctorAphraRapaciousArchaeologist extends LeaderUnitCard {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Discard,
                 multiSelectCardCondition: (card, selectedCards) => selectedCards.every((selectedCard) => selectedCard.title !== card.title),
-                immediateEffect: AbilityHelper.immediateEffects.returnToHand((context) => ({
-                    target: Helpers.randomItem(Helpers.asArray(context.target), context.game.randomGenerator),
-                })),
+                immediateEffect: AbilityHelper.immediateEffects.randomSelection({
+                    title: 'Return 1 at random to your hand',
+                    count: 1,
+                    innerSystem: AbilityHelper.immediateEffects.returnToHand(),
+                })
             },
         });
     }

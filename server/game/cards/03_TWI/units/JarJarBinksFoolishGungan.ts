@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
-import * as Helpers from '../../../core/utils/Helpers';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { Card } from '../../../core/card/Card';
 
 export default class JarJarBinksFoolishGungan extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -13,14 +14,20 @@ export default class JarJarBinksFoolishGungan extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addOnAttackAbility({
             title: 'Deal 2 damage to a random unit or base',
-            immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({ amount: 2, target: this.chooseRandomTarget(context) })),
+            immediateEffect: AbilityHelper.immediateEffects.randomSelection((context) => ({
+                title: 'Deal 2 damage to a random unit or base',
+                target: this.getAllTargets(context),
+                count: 1,
+                innerSystem: AbilityHelper.immediateEffects.damage({
+                    amount: 2
+                })
+            }))
         });
     }
 
-    private chooseRandomTarget(context) {
+    private getAllTargets(context: AbilityContext): Card[] {
         const controllerUnits = context.player.getArenaUnits();
         const opponentUnits = context.player.opponent.getArenaUnits();
-        const allTargets = [...controllerUnits, ...opponentUnits, context.player.opponent.base, context.player.base]; // All units and bases
-        return Helpers.randomItem(allTargets, context.game.randomGenerator);
+        return [...controllerUnits, ...opponentUnits, context.player.opponent.base, context.player.base]; // All units and bases
     }
 }
