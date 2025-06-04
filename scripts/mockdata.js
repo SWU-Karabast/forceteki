@@ -672,6 +672,55 @@ const mockCards = [
         arena: 'ground',
         internalName: 'supreme-leader-snoke#in-the-seat-of-power',
     }),
+    buildMockCard({
+        title: 'Bendu',
+        subtitle: 'Do You Fear The Storm?',
+        cost: 8,
+        power: 10,
+        hp: 10,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['force', 'creature'],
+        setId: {
+            set: 'LOF',
+            number: 170
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bendu#do-you-fear-the-storm',
+    }),
+    buildMockCard({
+        title: 'Caretaker Matron',
+        cost: 2,
+        power: 0,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        types: ['unit'],
+        traits: ['fringe'],
+        setId: {
+            set: 'LOF',
+            number: 243
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'caretaker-matron',
+    }),
+    buildMockCard({
+        title: 'Force Illusion',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['force', 'trick'],
+        setId: {
+            set: 'LOF',
+            number: 223
+        },
+        unique: false,
+        internalName: 'force-illusion',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
@@ -701,9 +750,9 @@ function buildMockCard(cardData) {
     return {
         title: cardData.title,
         subtitle: cardData.subtitle || '',
-        cost: cardData.cost || null,
-        hp: cardData.hp || null,
-        power: cardData.power || null,
+        cost: cardData.cost ?? null,
+        hp: cardData.hp ?? null,
+        power: cardData.power ?? null,
         text,
         deployBox,
         epicAction: '',
@@ -712,8 +761,8 @@ function buildMockCard(cardData) {
         reprints: {
             data: []
         },
-        upgradePower: cardData.upgradePower || null,
-        upgradeHp: cardData.upgradeHp || null,
+        upgradePower: cardData.upgradePower ?? null,
+        upgradeHp: cardData.upgradeHp ?? null,
         id: cardData.internalName + '-id',
         aspects: cardData.aspects || [],
         traits: cardData.traits || [],
