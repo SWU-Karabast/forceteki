@@ -721,6 +721,24 @@ const mockCards = [
         unique: false,
         internalName: 'force-illusion',
     }),
+    buildMockCard({
+        title: 'Cal Kestis',
+        subtitle: 'I Can\'t Keep Hiding',
+        cost: 4,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['leader'],
+        traits: ['force', 'fringe'],
+        setId: {
+            set: 'LOF',
+            number: 15
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'cal-kestis#i-cant-keep-hiding',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
