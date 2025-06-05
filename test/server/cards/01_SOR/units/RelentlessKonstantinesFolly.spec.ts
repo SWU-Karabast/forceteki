@@ -11,7 +11,8 @@ describe('Relentless, Konstantine\'s Folly', function() {
                     player2: {
                         hand: ['vanquish', 'repair', 'moment-of-peace', 'scout-bike-pursuer', 'bamboozle', 'crafty-smuggler'],
                         base: { card: 'dagobah-swamp', damage: 5 },
-                        resources: ['timely-intervention', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst']
+                        groundArena: ['tech#source-of-insight'],
+                        resources: ['timely-intervention', 'confiscate', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst']
                     },
                 });
             });
@@ -86,11 +87,25 @@ describe('Relentless, Konstantine\'s Folly', function() {
 
                 expect(context.player2).toBeAbleToSelect(context.timelyIntervention);
 
-                const exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
+                let exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
                 context.player2.clickCard(context.timelyIntervention);
                 context.player2.clickPrompt('Play anyway');
 
                 expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 4);
+                expect(context.timelyIntervention).toBeInZone('discard');
+                expect(context.player1).toBeActivePlayer();
+
+                context.moveToNextActionPhase();
+
+                context.player1.passAction();
+
+                expect(context.player2).toBeAbleToSelect(context.confiscate);
+
+                exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
+                context.player2.clickCard(context.confiscate);
+                context.player2.clickPrompt('Play anyway');
+
+                expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 3);
                 expect(context.timelyIntervention).toBeInZone('discard');
                 expect(context.player1).toBeActivePlayer();
             });
