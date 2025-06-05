@@ -19,7 +19,7 @@ export interface ITargetResult {
  * Base class for all target resolvers.
  */
 export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityContext>> {
-    public readonly dependsOnOtherTarget;
+    public readonly dependsOnOtherTarget: boolean;
 
     protected dependentTarget = null;
     protected dependentCost = null;
