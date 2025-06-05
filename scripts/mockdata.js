@@ -739,6 +739,42 @@ const mockCards = [
         arena: 'ground',
         internalName: 'cal-kestis#i-cant-keep-hiding',
     }),
+    buildMockCard({
+        title: 'Quinlan Vos',
+        subtitle: 'Dark Disciple',
+        cost: 4,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 163
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'quinlan-vos#dark-disciple',
+    }),
+    buildMockCard({
+        title: 'Asajj Ventress',
+        subtitle: 'Harden Your Heart',
+        cost: 5,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['force', 'night', 'bounty hunter'],
+        setId: {
+            set: 'LOF',
+            number: 165
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'asajj-ventress#harden-your-heart',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
