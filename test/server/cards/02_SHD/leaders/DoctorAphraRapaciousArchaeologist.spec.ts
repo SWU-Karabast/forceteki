@@ -55,9 +55,10 @@ describe('Doctor Aphra, Rapacious Archaeologist', function () {
                 // After the selection, one "random" card is returned to the hand and Doctor Aphra loses the +3/+0 bonus because there are no longer 5 different cost cards in the discard
                 context.player1.clickPrompt('Done');
 
-                expect(context.devotion).toBeInZone('hand', context.player1);
+                expect(context.getChatLogs(1)).toContain('player1 uses Doctor Aphra to randomly select Millennium Falcon from Millennium Falcon, Warzone Lieutenant, and Devotion, and to return Millennium Falcon to their hand');
+                expect(milleniumFalconPieceOfJunk).toBeInZone('hand', context.player1);
+                expect(context.devotion).toBeInZone('discard', context.player1);
                 expect(context.warzoneLieutenant).toBeInZone('discard', context.player1);
-                expect(milleniumFalconPieceOfJunk).toBeInZone('discard', context.player1);
                 expect(context.doctorAphraRapaciousArchaeologist.getPower()).toBe(2);
                 expect(context.doctorAphraRapaciousArchaeologist.getHp()).toBe(5);
             });

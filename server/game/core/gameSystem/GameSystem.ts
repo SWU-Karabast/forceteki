@@ -10,7 +10,7 @@ import * as Contract from '../utils/Contract';
 import type { GameObject } from '../GameObject';
 import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
 
-type PlayerOrCard = Player | Card;
+export type PlayerOrCard = Player | Card;
 
 export interface IGameSystemProperties {
     target?: PlayerOrCard | PlayerOrCard[];
