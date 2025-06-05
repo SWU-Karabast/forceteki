@@ -15,9 +15,7 @@ export default class JarJarBinksFoolishGungan extends NonLeaderUnitCard {
         this.addOnAttackAbility({
             title: 'Deal 2 damage to a random unit or base',
             immediateEffect: AbilityHelper.immediateEffects.randomSelection((context) => ({
-                title: 'Deal 2 damage to a random unit or base',
                 target: this.getAllTargets(context),
-                count: 1,
                 innerSystem: AbilityHelper.immediateEffects.damage({
                     amount: 2
                 })

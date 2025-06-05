@@ -3,18 +3,25 @@ import type { Card } from '../core/card/Card';
 import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
-import type { GameSystem, IGameSystemProperties, PlayerOrCard } from '../core/gameSystem/GameSystem';
+import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import * as Helpers from '../core/utils/Helpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
-import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IRandomSelectionSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
-    title: string;
-    count: number;
+
+    /**
+     * The number of targets to randomly select.
+     * If not specified, defaults to 1.
+     * @type {number}
+     */
+    count?: number;
     innerSystem: GameSystem<TContext>;
 }
 
+/**
+ * A system that takes an array of targets and randomly selects {@link IRandomSelectionSystemProperties.count}
+ * targets to pass to the inner system.
+ */
 export class RandomSelectionSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, IRandomSelectionSystemProperties<TContext>> {
     protected override readonly eventName = MetaEventName.RandomSelection;
 
@@ -22,10 +29,41 @@ export class RandomSelectionSystem<TContext extends AbilityContext = AbilityCont
         return [properties.innerSystem];
     }
 
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>>): IRandomSelectionSystemProperties<TContext> {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+        properties.count = properties.count ?? 1;
+
+        if (!context.targets.randomTarget) {
+            const targets = Helpers.asArray(properties.target);
+
+            const selectedTargets = Helpers.getRandomArrayElements(targets, properties.count, context.game.randomGenerator);
+
+            context.targets.randomTarget = selectedTargets.length === 1 ? selectedTargets[0] : selectedTargets;
+        }
+
+        properties.innerSystem.setDefaultTargetFn(() => context.targets.randomTarget);
+
+        return properties;
+    }
+
     public override getEffectMessage(context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const target: PlayerOrCard | PlayerOrCard[] | string | FormatMessage = properties.target;
-        return [`randomly ${ChatHelpers.verb(properties, 'select', 'selecting')} {0} from: {1}`, [properties.count, target]];
+        const options = properties.target;
+        const target = context.targets.randomTarget;
+
+        const [innerEffectMessage, innerEffectArgs] = properties.innerSystem.getEffectMessage(context, additionalProperties);
+        const innerMessage = context.game.gameChat.formatMessage(innerEffectMessage, innerEffectArgs);
+
+        const messageArgs = [
+            'randomly select ',
+            target,
+            ' from ',
+            options,
+            ', and to ',
+            ...innerMessage
+        ];
+
+        return [this.generateFormatString(messageArgs), messageArgs];
     }
 
     public override canAffectInternal(target: Player | Card, context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
@@ -42,35 +80,15 @@ export class RandomSelectionSystem<TContext extends AbilityContext = AbilityCont
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const targets = Helpers.asArray(properties.target);
 
-        const selectedTargets = Helpers.getRandomArrayElements(targets, properties.count, context.game.randomGenerator);
+        context.target = context.targets.randomTarget;
 
-        if (selectedTargets.length === 1) {
-            context.target = selectedTargets[0];
-        } else {
-            context.target = selectedTargets;
-        }
-
-        const finalAdditionalProperties = { ...additionalProperties, target: selectedTargets };
-
-        this.addSelectionMessage(context, properties, finalAdditionalProperties);
-        properties.innerSystem.queueGenerateEventGameSteps(events, context, finalAdditionalProperties);
+        properties.innerSystem.queueGenerateEventGameSteps(events, context, { ...additionalProperties, target: context.targets.randomTarget });
     }
 
-    private addSelectionMessage(
-        context: TContext,
-        properties: IRandomSelectionSystemProperties<TContext>,
-        additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}
-    ): void {
-        context.game.addMessage(
-            '{0} was randomly selected using {1}\'s ability',
-            additionalProperties.target,
-            context.source
-        );
-
-        const messageArgs = [context.player, ' uses ', context.source, ' to '];
-        const [effectMessage, effectArgs] = properties.innerSystem.getEffectMessage(context, additionalProperties);
-        context.game.addMessage('{0}{1}{2}{3}{4}{5}{6}{7}{8}', ...messageArgs, { message: context.game.gameChat.formatMessage(effectMessage, effectArgs) });
+    private generateFormatString(args: any[]): string {
+        return args.reduce((format, _arg, index) => {
+            return format + `{${index}}`;
+        }, '');
     }
 }

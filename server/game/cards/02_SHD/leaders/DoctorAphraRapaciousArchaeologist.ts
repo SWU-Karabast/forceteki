@@ -44,7 +44,6 @@ export default class DoctorAphraRapaciousArchaeologist extends LeaderUnitCard {
                 zoneFilter: ZoneName.Discard,
                 multiSelectCardCondition: (card, selectedCards) => selectedCards.every((selectedCard) => selectedCard.title !== card.title),
                 immediateEffect: AbilityHelper.immediateEffects.randomSelection({
-                    title: 'Return 1 at random to your hand',
                     count: 1,
                     innerSystem: AbilityHelper.immediateEffects.returnToHand(),
                 })

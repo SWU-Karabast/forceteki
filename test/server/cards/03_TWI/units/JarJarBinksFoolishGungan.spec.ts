@@ -15,35 +15,32 @@ describe('Jar Jar Binks, Foolish Gungan', function () {
 
             const { context } = contextRef;
 
-            context.game.setRandomSeed('12345');
+            context.game.setRandomSeed('khgfk');
 
             context.player1.clickCard(context.jarJarBinks);
             context.player1.clickCard(context.p2Base);
 
-            // Ability hits Republic ARC-170
-            expect(context.getChatLogs(2)).toContain('Republic ARC-170 was randomly selected using Jar Jar Binks\'s ability');
-            expect(context.getChatLogs(2)).toContain('player1 uses Jar Jar Binks to deal 2 damage to Republic ARC-170');
-            expect(context.republicArc170.damage).toBe(2);
+            // Ability hits own base
+            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to randomly select Kestro City from Jar Jar Binks, Republic ARC-170, Wampa, AT-ST, Restored ARC-170, Administrator\'s Tower, and Kestro City, and to deal 2 damage to Kestro City');
+            expect(context.p1Base.damage).toBe(2);
             expect(context.p2Base.damage).toBe(2);
 
             context.moveToNextActionPhase();
             context.player1.clickCard(context.jarJarBinks);
             context.player1.clickCard(context.p2Base);
 
-            // Ability hits Restored ARC-170
-            expect(context.getChatLogs(2)).toContain('Restored ARC-170 was randomly selected using Jar Jar Binks\'s ability');
-            expect(context.getChatLogs(2)).toContain('player1 uses Jar Jar Binks to deal 2 damage to Restored ARC-170');
-            expect(context.restoredArc170.damage).toBe(2);
+            // Ability hits Republic ARC-170 (friendly unit)
+            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to randomly select Republic ARC-170 from Jar Jar Binks, Republic ARC-170, Wampa, AT-ST, Restored ARC-170, Administrator\'s Tower, and Kestro City, and to deal 2 damage to Republic ARC-170');
+            expect(context.republicArc170.damage).toBe(2);
             expect(context.p2Base.damage).toBe(4);
 
             context.moveToNextActionPhase();
             context.player1.clickCard(context.jarJarBinks);
             context.player1.clickCard(context.p2Base);
 
-            // Ability hits AT-ST
-            expect(context.getChatLogs(2)).toContain('AT-ST was randomly selected using Jar Jar Binks\'s ability');
-            expect(context.getChatLogs(2)).toContain('player1 uses Jar Jar Binks to deal 2 damage to AT-ST');
-            expect(context.atst.damage).toBe(2);
+            // Ability hits Wampa (enemy unit)
+            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to randomly select Wampa from Jar Jar Binks, Republic ARC-170, Wampa, AT-ST, Restored ARC-170, Administrator\'s Tower, and Kestro City, and to deal 2 damage to Wampa');
+            expect(context.wampa.damage).toBe(2);
             expect(context.p2Base.damage).toBe(6);
         });
     });
