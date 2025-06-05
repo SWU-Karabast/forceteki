@@ -51,7 +51,7 @@ describe('Force Illusion', function() {
             context.player2.clickCard(context.p1Base);
         });
 
-        it('Force Illusion\'s ability should exhaust an enemy unit and give a friendly unit Sentinel for the phase', async function () {
+        it('Force Illusion\'s ability should give a friendly unit Sentinel for the phase even if there is no enemy unit to exhaust', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -75,7 +75,7 @@ describe('Force Illusion', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Force Illusion\'s ability should exhaust an enemy unit and give a friendly unit Sentinel for the phase', async function () {
+        it('Force Illusion\'s ability should exhaust an enemy unit even if there no friendly unit to give Sentinel', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

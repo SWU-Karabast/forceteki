@@ -5,11 +5,12 @@ describe('Bendu Do You Fear The Storm?', function () {
                 phase: 'action',
                 player1: {
                     groundArena: ['bendu#do-you-fear-the-storm', 'perimeter-atrt'],
+                    spaceArena: ['bright-hope#the-last-transport'],
                     discard: ['yoda#old-master']
                 },
                 player2: {
                     groundArena: ['jango-fett#renowned-bounty-hunter'],
-                    spaceArena: ['bright-hope#the-last-transport']
+                    spaceArena: ['ig2000#assassins-aggressor']
                 }
             });
 
@@ -25,6 +26,7 @@ describe('Bendu Do You Fear The Storm?', function () {
             expect(context.perimeterAtrt.damage).toBe(3);
             expect(context.jangoFett.damage).toBe(3);
             expect(context.brightHope.damage).toBe(3);
+            expect(context.ig2000.damage).toBe(3);
             expect(context.bendu.damage).toBe(0);
         });
     });
