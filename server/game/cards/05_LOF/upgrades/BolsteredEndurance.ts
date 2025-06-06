@@ -1,6 +1,6 @@
 import type { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { Aspect, KeywordName, Trait } from '../../../core/Constants';
+import { Trait } from '../../../core/Constants';
 
 export default class BolsteredEndurance extends UpgradeCard {
     protected override getImplementationId() {
