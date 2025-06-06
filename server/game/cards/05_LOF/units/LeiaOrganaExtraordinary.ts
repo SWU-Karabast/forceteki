@@ -5,7 +5,7 @@ import { AbilityRestriction, AbilityType, Aspect, ZoneName } from '../../../core
 export default class LeiaOrganaExtraordinary extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'leia-organa#extraordinary-id',
+            id: '2236831712',
             internalName: 'leia-organa#extraordinary',
         };
     }
