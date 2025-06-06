@@ -43,7 +43,7 @@ describe('Barriss Offee, We Have Become Villains', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it(', controller skips playing an event, discount should not be applied later', function () {
+            it('if controller skips playing an event discount should not be applied later', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.barrissOffee);
@@ -205,7 +205,7 @@ describe('Barriss Offee, We Have Become Villains', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it(', controller skips playing an event, discount should not be applied later', function () {
+            it('if controller skips playing an event discount should not be applied later', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.barrissOffee);
