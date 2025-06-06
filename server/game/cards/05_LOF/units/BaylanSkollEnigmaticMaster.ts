@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class BaylanSkollEnigmaticMaster extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'baylan-skoll#enigmatic-master-id',
+            id: '4729355863',
             internalName: 'baylan-skoll#enigmatic-master',
         };
     }

@@ -5,7 +5,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class CalKestisICantKeepHiding extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'cal-kestis#i-cant-keep-hiding-id',
+            id: '6677799440',
             internalName: 'cal-kestis#i-cant-keep-hiding',
         };
     }

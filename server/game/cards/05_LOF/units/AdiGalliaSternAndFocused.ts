@@ -5,7 +5,7 @@ import { CardType } from '../../../core/Constants';
 export default class AdiGalliaSternAndFocused extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'adi-gallia#stern-and-focused-id',
+            id: '4741025404',
             internalName: 'adi-gallia#stern-and-focused',
         };
     }

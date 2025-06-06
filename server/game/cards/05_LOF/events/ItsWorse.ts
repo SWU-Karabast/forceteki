@@ -5,7 +5,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class ItsWorse extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'its-worse-id',
+            id: '6707315263',
             internalName: 'its-worse',
         };
     }

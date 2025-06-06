@@ -5,7 +5,7 @@ import AbilityHelper from '../../../AbilityHelper';
 export default class ProtectThePod extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'protect-the-pod-id',
+            id: '1723823172',
             internalName: 'protect-the-pod',
         };
     }

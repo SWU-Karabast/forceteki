@@ -6,7 +6,7 @@ import { ExhaustSourceType } from '../../../IDamageOrDefeatSource';
 export default class MythosaurFolkloreAwakened extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mythosaur#folklore-awakened-id',
+            id: '1462779761',
             internalName: 'mythosaur#folklore-awakened',
         };
     }

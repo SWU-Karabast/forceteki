@@ -9,7 +9,7 @@ export default class CaretakerMatron extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'caretaker-matron-id',
+            id: '6800160263',
             internalName: 'caretaker-matron',
         };
     }

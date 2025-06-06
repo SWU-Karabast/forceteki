@@ -5,7 +5,7 @@ import { Trait } from '../../../core/Constants';
 export default class Pounce extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'pounce-id',
+            id: '3591040205',
             internalName: 'pounce',
         };
     }

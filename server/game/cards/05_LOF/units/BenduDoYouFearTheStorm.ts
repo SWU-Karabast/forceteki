@@ -4,7 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class BenduDoYouFearTheStorm extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bendu#do-you-fear-the-storm-id',
+            id: '6564460785',
             internalName: 'bendu#do-you-fear-the-storm',
         };
     }

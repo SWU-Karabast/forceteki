@@ -5,7 +5,7 @@ import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Con
 export default class AhsokaTanoFightingForPeace extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ahsoka-tano#fighting-for-peace-id',
+            id: '7077983867',
             internalName: 'ahsoka-tano#fighting-for-peace',
         };
     }
