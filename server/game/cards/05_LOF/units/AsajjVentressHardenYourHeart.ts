@@ -5,7 +5,7 @@ import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants
 export default class AsajjVentressHardenYourHeart extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'asajj-ventress#harden-your-heart-id',
+            id: '5227991792',
             internalName: 'asajj-ventress#harden-your-heart',
         };
     }
