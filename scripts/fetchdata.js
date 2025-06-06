@@ -307,7 +307,7 @@ async function main() {
         .flat()
         .filter((n) => n); // remove nulls
     // cards = cards.concat([cunningForceBase, aggressionForceBase]);
-    // const mockCardNames = addMockCards(cards);
+    const mockCardNames = addMockCards(cards);
 
     downloadProgressBar.stop();
 
@@ -334,7 +334,7 @@ async function main() {
     fs.writeFile(path.join(pathToJSON, '_cardMap.json'), JSON.stringify(cardMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_playableCardTitles.json'), JSON.stringify(playableCardTitles, null, 2));
     fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
-    // fs.writeFile(path.join(pathToJSON, '_mockCardNames.json'), JSON.stringify(mockCardNames, null, 2));
+    fs.writeFile(path.join(pathToJSON, '_mockCardNames.json'), JSON.stringify(mockCardNames, null, 2));
     fs.copyFile(path.join(__dirname, '../card-data-version.txt'), path.join(pathToJSON, 'card-data-version.txt'));
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
