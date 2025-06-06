@@ -71,4 +71,8 @@ export class BountyAbility extends TriggeredAbility {
 
         context.events.push(bountyEvent);
     }
+
+    public override displayMessage(context: AbilityContext): void {
+        return super.displayMessage(context, `collects the "${this.bountyProperties.title}" bounty on`);
+    }
 }

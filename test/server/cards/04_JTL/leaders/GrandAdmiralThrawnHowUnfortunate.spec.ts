@@ -559,6 +559,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
 
                 expect(context.wampa.damage).toBe(3);
                 expect(context.player1).toBeActivePlayer();
+                expect(context.getChatLogs(1)).toContain('player2 collects the "Deal 3 damage to a unit" bounty on Val to deal 3 damage to Wampa');
             });
 
             it('should be activated by Chimaera', async function () {
