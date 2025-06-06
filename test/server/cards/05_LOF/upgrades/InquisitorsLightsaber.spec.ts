@@ -1,6 +1,6 @@
-describe('Inquisitors\' Lightsaber', function () {
+describe('Inquisitor\'s Lightsaber', function () {
     integration(function (contextRef) {
-        it('Inquisitors\' Lightsaber\'s should give +2/+0 while attacking a force unit', async function () {
+        it('Inquisitor\'s Lightsaber\'s should give +2/+0 while attacking a force unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
