@@ -64,6 +64,32 @@ describe('Cal Kestis, I Can\'t Keep Hiding', function () {
 
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('cannot be used if the player does not have the force', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cal-kestis#i-cant-keep-hiding',
+                        hasForceToken: false,
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Click Cal Kestis
+                context.player1.clickCard(context.calKestis);
+
+                // Action ability not available
+                expect(context.player1).toHaveEnabledPromptButtons([
+                    'Deploy Cal Kestis',
+                    'Cancel'
+                ]);
+
+                context.player1.clickPrompt('Cancel');
+            });
         });
 
         describe('Cal Kestis\'s Unit side ability', function () {
