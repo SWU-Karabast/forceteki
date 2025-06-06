@@ -51,6 +51,12 @@ describe('Leia Organa, Extraordinary', function () {
             expect(context.consularSecurityForce.getPower()).toBe(3);
             expect(context.consularSecurityForce.getHp()).toBe(7);
 
+            context.player1.setHasTheForce(true);
+            context.player2.passAction();
+
+            // leia should not have his ability once she's on the ground
+            expect(context.leiaOrgana).not.toHaveAvailableActionWhenClickedBy(context.player1);
+
             // next phase, leia should be ready and +2/+2 should have expired
             context.moveToNextActionPhase();
 
@@ -73,26 +79,6 @@ describe('Leia Organa, Extraordinary', function () {
             });
 
             const { context } = contextRef;
-
-            expect(context.leiaOrgana).not.toHaveAvailableActionWhenClickedBy(context.player1);
-        });
-
-        it('Leia Organa\'s ability should not have abilities when she is on ground unit', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    spaceArena: [{ card: 'leia-organa#extraordinary', exhausted: true }],
-                    hasForceToken: true,
-                },
-            });
-
-            const { context } = contextRef;
-
-            context.player1.clickCard(context.leiaOrgana);
-            expect(context.leiaOrgana).toBeInZone('groundArena');
-
-            context.player2.passAction();
-            context.player1.setHasTheForce(true);
 
             expect(context.leiaOrgana).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
