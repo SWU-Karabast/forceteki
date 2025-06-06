@@ -18,7 +18,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         }
     }
 
-    protected override hasLegalTarget(context: any): boolean {
+    public override hasLegalTarget(context: any): boolean {
         // Placeholder.
         return true;
     }
@@ -45,7 +45,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         return contextCopy;
     }
 
-    protected override checkTarget(context: AbilityContext): boolean {
+    public override checkTarget(context: AbilityContext): boolean {
         if (!context.targets[this.name]) {
             return false;
         }
