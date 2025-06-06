@@ -219,8 +219,4 @@ export class CardAbilityStep extends PlayerOrCardAbility {
 
         return context.player;
     }
-
-    public override isCardAbility(): this is CardAbilityStep {
-        return true;
-    }
 }
