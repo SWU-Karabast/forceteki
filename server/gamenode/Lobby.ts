@@ -725,7 +725,6 @@ export class Lobby {
             }
 
             this.updateUserLastActivity(socket.user.getId());
-
             await this[command](socket, ...args);
             this.sendLobbyState();
         } catch (error) {
@@ -974,9 +973,10 @@ export class Lobby {
     }
 
     // Report bug method
-    private async reportBug(socket: Socket, bugReportMessage: any): Promise<void> {
+    private async reportBug(socket: Socket, ...args: any): Promise<void> {
         try {
             // Parse description as JSON if it's in JSON format
+            const bugReportMessage = args[0];
             let parsedDescription = '';
             let screenResolution = null;
             let viewport = null;
@@ -995,7 +995,7 @@ export class Lobby {
 
             // Create game state snapshot
             const gameState = this.game
-                ? this.game.captureGameState(socket.user.id)
+                ? this.game.captureGameState(socket.user.getId())
                 : { phase: 'action', player1: {}, player2: {} };
 
             const gameMessages = this.game.getLogMessages();
@@ -1020,7 +1020,7 @@ export class Lobby {
             }
 
             // we find the user
-            const existingUser = this.users.find((u) => u.id === socket.user.id);
+            const existingUser = this.users.find((u) => u.id === socket.user.getId());
             existingUser.reportedBugs += success ? 1 : 0;
 
             // Send success message to client
