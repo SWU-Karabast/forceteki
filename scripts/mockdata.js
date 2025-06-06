@@ -815,6 +815,24 @@ const mockCards = [
         unique: false,
         internalName: 'a-precarious-predicament',
     }),
+    buildMockCard({
+        title: 'Leia Organa',
+        subtitle: 'Extraordinary',
+        cost: 5,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['force', 'resistance', 'official'],
+        setId: {
+            set: 'LOF',
+            number: 98
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'leia-organa#extraordinary',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
