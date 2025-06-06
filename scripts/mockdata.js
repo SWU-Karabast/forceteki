@@ -775,6 +775,34 @@ const mockCards = [
         arena: 'ground',
         internalName: 'asajj-ventress#harden-your-heart',
     }),
+    buildMockCard({
+        title: 'It\'s Worse',
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: [],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'LOF',
+            number: 264
+        },
+        unique: false,
+        internalName: 'its-worse',
+    }),
+    buildMockCard({
+        title: 'A Precarious Predicament',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'LOF',
+            number: 222
+        },
+        unique: false,
+        internalName: 'a-precarious-predicament',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
