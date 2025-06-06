@@ -13,7 +13,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         super(name, properties, ability);
     }
 
-    protected override hasLegalTarget(context: AbilityContext): boolean {
+    public override hasLegalTarget(context: AbilityContext): boolean {
         const keys = Object.keys(this.getChoices(context));
         return keys.some((key) => this.isChoiceLegal(key, context));
     }
@@ -48,7 +48,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         }
     }
 
-    protected override getGameSystems(context: AbilityContext): GameSystem | GameSystem[] {
+    public override getGameSystems(context: AbilityContext): GameSystem | GameSystem[] {
         if (!context.selects[this.name]) {
             return [];
         }
@@ -108,7 +108,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         }
     }
 
-    protected override checkTarget(context: AbilityContext): boolean {
+    public override checkTarget(context: AbilityContext): boolean {
         if (!context.selects[this.name]) {
             return false;
         }
