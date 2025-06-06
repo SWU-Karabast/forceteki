@@ -12,7 +12,7 @@ export default class QuinlanVosDarkDisciple extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addOnAttackAbility({
-            title: 'You may deal 2 damage to an enemy base',
+            title: 'Deal 2 damage to an enemy base',
             optional: true,
             targetResolver: {
                 cardTypeFilter: CardType.Base,

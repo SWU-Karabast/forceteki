@@ -32,7 +32,7 @@ describe('Quinlan Vos, Dark Disciple', () => {
                 context.player1.clickCard(context.quinlanVos);
                 context.player1.clickCard(context.consularSecurityForce);
 
-                expect(context.player1).toHavePrompt('You may deal 2 damage to an enemy base');
+                expect(context.player1).toHavePrompt('Deal 2 damage to an enemy base');
                 expect(context.player1).toHaveExactPromptButtons(['Pass']);
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base]);
 
@@ -58,7 +58,7 @@ describe('Quinlan Vos, Dark Disciple', () => {
                 context.player1.clickCard(context.quinlanVos);
                 context.player1.clickCard(context.consularSecurityForce);
 
-                expect(context.player1).toHavePrompt('You may deal 2 damage to an enemy base');
+                expect(context.player1).toHavePrompt('Deal 2 damage to an enemy base');
                 expect(context.player1).toHaveExactPromptButtons(['Pass']);
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base]);
 
