@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType } from '../../../core/Constants';
+import { WildcardCardType, CardType } from '../../../core/Constants';
 
 export default class EighthBrotherHuntTogether extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -24,7 +24,7 @@ export default class EighthBrotherHuntTogether extends NonLeaderUnitCard {
             ifYouDo: {
                 title: 'Give a unit +2/+2',
                 targetResolver: {
-                    cardCondition: (card) => card.isUnit(),
+                    cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                     }),
