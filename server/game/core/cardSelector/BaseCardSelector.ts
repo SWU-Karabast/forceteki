@@ -59,6 +59,9 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
                 case WildcardCardType.NonLeaderUpgrade:
                     filters.push(plural ? 'non-leader upgrades' : 'non-leader upgrade');
                     break;
+                case WildcardCardType.NonUnit:
+                    filters.push(plural ? 'non-units' : 'non-unit');
+                    break;
                 case CardType.Base:
                     filters.push(plural ? 'bases' : 'base');
                     break;
