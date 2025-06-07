@@ -38,7 +38,7 @@ describe('Blockade Runner', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should get an Experience token when damaging the base with overwhelm', async function () {
+            it('should get an Experience token when damaging the base with Overwhelm', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -59,6 +59,33 @@ describe('Blockade Runner', function() {
 
                 context.player1.clickPrompt('Trigger');
                 expect(context.blockadeRunner).toHaveExactUpgradeNames(['experience']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should get an Experience token when defeating the attacked unit and damaging the base with Overwhelm', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: [{ card: 'blockade-runner', upgrades: ['heroic-resolve', 'twin-laser-turret'] }],
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'concord-dawn-interceptors', damage: 3 }],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.blockadeRunner);
+                context.player1.clickPrompt('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
+                context.player1.clickCard(context.heroicResolve);
+                context.player1.clickCard(context.concordDawnInterceptors);
+                context.player1.clickPrompt('Deal 1 damage to each of up to 2 units in this arena.');
+                context.player1.clickCard(context.concordDawnInterceptors);
+                context.player1.clickPrompt('Done');
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to this unit');
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.blockadeRunner).toHaveExactUpgradeNames(['twin-laser-turret', 'experience']);
                 expect(context.player2).toBeActivePlayer();
             });
 
