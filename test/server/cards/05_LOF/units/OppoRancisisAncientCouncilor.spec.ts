@@ -216,6 +216,22 @@ describe('Oppo Rancisis, Ancient Councilor', function() {
             expect(context.p2Base.damage).toBe(3);
         });
 
+        it('Oppo Rancisis should not gain Restore 4 when 2 friendly units have Restore', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: { card: 'echo-base', damage: 5 },
+                    groundArena: ['oppo-rancisis#ancient-councilor', 'moisture-farmer', 'yoda#old-master'],
+                }
+            });
+
+            const { context } = contextRef;
+            context.player1.clickCard(context.oppoRancisis);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p1Base.damage).toBe(3);
+            expect(context.p2Base.damage).toBe(3);
+        });
+
         it('Oppo Rancisis should gain lose keywords when the friendly unit leaves play', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -235,6 +251,7 @@ describe('Oppo Rancisis, Ancient Councilor', function() {
 
             context.player1.clickCard(context.oppoRancisis);
             context.player1.clickCard(context.p2Base);
+
             expect(context.p1Base.damage).toBe(5);
             expect(context.p2Base.damage).toBe(3);
         });

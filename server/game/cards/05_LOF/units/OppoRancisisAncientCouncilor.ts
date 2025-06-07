@@ -22,13 +22,13 @@ export default class OppoRancisisAncientCouncilor extends NonLeaderUnitCard {
 
         this.addConstantAbility({
             title: 'This unit gains Raid 2 while a friendly unit has Raid',
-            condition: (context) => context.player.isKeywordInPlay(KeywordName.Raid),
+            condition: (context) => context.player.isKeywordInPlay(KeywordName.Raid, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 })
         });
 
         this.addConstantAbility({
             title: 'This unit gains Restore 2 while a friendly unit has Restore',
-            condition: (context) => context.player.isKeywordInPlay(KeywordName.Restore),
+            condition: (context) => context.player.isKeywordInPlay(KeywordName.Restore, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Restore, amount: 2 })
         });
     }
@@ -36,7 +36,7 @@ export default class OppoRancisisAncientCouncilor extends NonLeaderUnitCard {
     private addKeywordCopyAbility(keyword: NonParameterKeywordName) {
         this.addConstantAbility({
             title: `This unit gains ${keyword} while a friendly unit has ${keyword}`,
-            condition: (context) => context.player.isKeywordInPlay(keyword),
+            condition: (context) => context.player.isKeywordInPlay(keyword, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: keyword })
         });
     }
