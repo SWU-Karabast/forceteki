@@ -446,7 +446,7 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
 }
 
 /** List of keywords that don't have any additional parameters */
-type NonParameterKeywordName =
+export type NonParameterKeywordName =
   | KeywordName.Ambush
   | KeywordName.Grit
   | KeywordName.Hidden
