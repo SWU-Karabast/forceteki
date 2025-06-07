@@ -28,7 +28,7 @@ export default class QiraPlayingHerPart extends NonLeaderUnitCard {
                     title: 'While this unit is in play, each card with that name costs 3 resources more for your opponents to play',
                     immediateEffect: AbilityHelper.immediateEffects.playerLastingEffect((context) => ({
                         duration: Duration.WhileSourceInPlay,
-                        targetController: context.player.opponent,
+                        target: context.player.opponent,
                         effect: AbilityHelper.ongoingEffects.increaseCost({
                             amount: 3,
                             match: (card) => card.title === thenContext.select,

@@ -37,7 +37,7 @@ export default class SifoDyasCommissioningAnArmy extends NonLeaderUnitCard {
                         effect: AbilityHelper.ongoingEffects.forFree({
                             match: (card) => deckSearchContext.selectedPromptCards.includes(card)
                         }),
-                        targetController: deckSearchContext.player
+                        target: deckSearchContext.player
                     })),
                 ]),
             })

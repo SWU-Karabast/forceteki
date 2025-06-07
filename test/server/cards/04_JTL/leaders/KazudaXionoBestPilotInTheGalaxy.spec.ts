@@ -38,6 +38,8 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 expect(context.player1).toBeActivePlayer();
                 context.player1.clickCard(context.fireball);
                 context.player1.clickCard(context.p2Base);
+                expect(context.getChatLogs(3)).toContain('player1 uses Kazuda Xiono, exhausting Kazuda Xiono to choose a target for Kazuda Xiono and to give an additional action to player1');
+                expect(context.getChatLogs(3)).toContain('player1 uses Kazuda Xiono to remove all abilities from Contracted Hunter for the rest of the round');
 
                 // Begin regroup phase
                 context.moveToRegroupPhase();

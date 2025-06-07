@@ -87,7 +87,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
 
         const { title, when, limit, immediateEffect, ...otherProperties } = properties;
 
-        const effectProperties: IOngoingEffectFactory = {
+        const effectProperties: IOngoingEffectFactory<any> = {
             ...otherProperties,
             matchTarget: properties.delayedEffectType === DelayedEffectType.Card ? target : null,
             ongoingEffect: OngoingEffectLibrary.delayedEffect({

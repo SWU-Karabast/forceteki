@@ -14,7 +14,7 @@ export interface IAbilityContextProperties {
     source?: any;
     player?: Player;
     ability?: PlayerOrCardAbility;
-    ongoingEffect?: IOngoingEffectProps;
+    ongoingEffect?: IOngoingEffectProps<any>;
     costs?: any;
     costAspects?: Aspect[];
     targets?: any;
@@ -37,7 +37,7 @@ export class AbilityContext<TSource extends Card = Card> {
     public source: TSource;
     public player: Player;
     public ability?: PlayerOrCardAbility;
-    public ongoingEffect?: IOngoingEffectProps;
+    public ongoingEffect?: IOngoingEffectProps<any>;
     public costs: any;
     public costAspects: Aspect[];
     public targets: any;

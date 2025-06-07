@@ -1,48 +1,62 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { RelativePlayer } from '../core/Constants';
-import { Duration, EventName, GameStateChangeRequired } from '../core/Constants';
+import { EventName, GameStateChangeRequired } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
-import type { GameObject } from '../core/GameObject';
-import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
-import * as Contract from '../core/utils/Contract';
+import * as Helpers from '../core/utils/Helpers';
+import * as LastingEffectSystemHelpers from './helpers/LastingEffectSystemHelpers';
+import type { DistributiveOmit } from '../core/utils/Helpers';
+import type { IOngoingPlayerEffectGenerator, IOngoingPlayerEffectProps } from '../Interfaces';
 
-export type IPlayerLastingEffectProperties = ILastingEffectPropertiesBase & {
-
-    /** Default is `RelativePlayer.Self` */
-    targetPlayer?: RelativePlayer | Player;
+export type IPlayerLastingEffectProperties = DistributiveOmit<ILastingEffectPropertiesBase, 'target' | 'effect'> & Pick<IPlayerTargetSystemProperties, 'target'> & {
+    effect: IOngoingPlayerEffectGenerator | IOngoingPlayerEffectGenerator[];
 };
 
-export class PlayerLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IPlayerLastingEffectProperties> {
+export class PlayerLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IPlayerLastingEffectProperties> {
     public override readonly name: string = 'applyPlayerLastingEffect';
     public override readonly eventName: EventName = EventName.OnEffectApplied;
 
-    public eventHandler(event: any, additionalProperties: Partial<IPlayerLastingEffectProperties>): void {
-        const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
-        if (!properties.ability) {
-            properties.ability = event.context.ability;
+    public eventHandler(event): void {
+        const effects = Helpers.asArray(event.effectProperties).flatMap((props: IOngoingPlayerEffectProps) =>
+            (event.effectFactories as IOngoingPlayerEffectGenerator[]).map((factory) =>
+                factory(event.context.game, event.context.source, props)
+            )
+        );
+
+        for (const effect of effects) {
+            event.context.game.ongoingEffectEngine.add(effect);
         }
-
-        const { effect, ...otherProperties } = properties;
-
-        const renamedProperties = Object.assign(otherProperties, { ongoingEffect: effect });
-
-        const effectType = properties.duration === Duration.Custom ? 'lastingEffect' : properties.duration;
-        event.context.source[effectType](() => renamedProperties);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IPlayerLastingEffectProperties> = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
-        if (!Array.isArray(properties.effect)) {
-            properties.effect = [properties.effect];
-        }
-        return properties;
+    public override addPropertiesToEvent(event: any, target: Player, context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): void {
+        super.addPropertiesToEvent(event, target, context, additionalProperties);
+
+        const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(target, context, additionalProperties);
+
+        event.effectFactories = effectFactories;
+        event.effectProperties = effectProperties;
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IPlayerLastingEffectProperties> = {}): boolean {
+    private getEffectFactoriesAndProperties(target: Player, context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps };
+    private getEffectFactoriesAndProperties(target: Player[], context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps[] };
+    private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps | IOngoingPlayerEffectProps[] };
+    private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps | IOngoingPlayerEffectProps[] } {
+        const { effect, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
+
+        const effectProperties: (target: Player) => IOngoingPlayerEffectProps = (target) => ({ matchTarget: target, isLastingEffect: true, ability: context.ability, ...otherProperties });
+
+        if (Array.isArray(target)) {
+            return { effectFactories: Helpers.asArray(effect), effectProperties: target.map((target) => effectProperties(target)) };
+        }
+
+        return { effectFactories: Helpers.asArray(effect), effectProperties: effectProperties(target as Player) };
+    }
+
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IPlayerLastingEffectProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.effect.length > 0;
+        return properties.effect.length > 0 && super.hasLegalTarget(context, additionalProperties, mustChangeGameState);
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IPlayerLastingEffectProperties>): void {
@@ -51,41 +65,18 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
         }
     }
 
-    // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
-    protected override isTargetTypeValid(target: GameObject): boolean {
-        return false;
-    }
-
-    protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<IPlayerLastingEffectProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        return this.isTargetTypeValid(target);
+    public override defaultTargets(context: TContext): Player[] {
+        return context.player ? [context.player] : [];
     }
 
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const description = properties.ongoingEffectDescription ?? 'apply a lasting effect to';
-        let durationStr: string;
-        switch (properties.duration) {
-            case Duration.UntilEndOfAttack:
-                durationStr = ' for this attack';
-                break;
-            case Duration.UntilEndOfPhase:
-                durationStr = ' for this phase';
-                break;
-            case Duration.UntilEndOfRound:
-                durationStr = ' for the rest of the round';
-                break;
-            case Duration.WhileSourceInPlay:
-                durationStr = ' while in play';
-                break;
-            case Duration.Persistent:
-            case Duration.Custom:
-                durationStr = '';
-                break;
-            default:
-                Contract.fail(`Unknown duration: ${(properties as any).duration}`);
-        }
-
-        return [`${description} {0}${durationStr}`, [properties.ongoingEffectTargetDescription ?? properties.target]];
+        return LastingEffectSystemHelpers.getEffectMessage(
+            context,
+            properties,
+            additionalProperties,
+            (target, context, additionalProps) => this.getEffectFactoriesAndProperties(target, context, additionalProps)
+        );
     }
 }

@@ -26,8 +26,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
                 }),
                 AbilityHelper.immediateEffects.playerLastingEffect({
                     effect: AbilityHelper.ongoingEffects.additionalAction(),
-                    // TODO: This should be Duration.Persistent, but it isn't working correctly. We should investigate.
-                    duration: Duration.UntilEndOfPhase
+                    duration: Duration.Persistent
                 })
             ])
         });

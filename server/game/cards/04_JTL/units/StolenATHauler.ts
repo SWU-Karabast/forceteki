@@ -17,7 +17,7 @@ export default class StolenATHauler extends NonLeaderUnitCard {
                     effect: AbilityHelper.ongoingEffects.canPlayFromDiscard({ player: context.player.opponent })
                 })),
                 AbilityHelper.immediateEffects.forThisPhasePlayerEffect((context) => ({
-                    targetController: context.player.opponent,
+                    target: context.player.opponent,
                     effect: AbilityHelper.ongoingEffects.forFree({
                         match: (card) => card === context.source
                     })
