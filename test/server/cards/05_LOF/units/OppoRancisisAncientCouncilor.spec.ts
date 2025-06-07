@@ -216,6 +216,29 @@ describe('Oppo Rancisis, Ancient Councilor', function() {
             expect(context.p2Base.damage).toBe(3);
         });
 
+        it('Oppo Rancisis should gain lose keywords when the friendly unit leaves play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: { card: 'echo-base', damage: 5 },
+                    groundArena: ['oppo-rancisis#ancient-councilor', 'moisture-farmer'],
+                },
+                player2: {
+                    hand: ['takedown']
+                }
+            });
+
+            const { context } = contextRef;
+            context.player1.passAction();
+            context.player2.clickCard(context.takedown);
+            context.player2.clickCard(context.moistureFarmer);
+
+            context.player1.clickCard(context.oppoRancisis);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p1Base.damage).toBe(5);
+            expect(context.p2Base.damage).toBe(3);
+        });
+
         it('Oppo Rancisis should not gain keywords from enemy units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
