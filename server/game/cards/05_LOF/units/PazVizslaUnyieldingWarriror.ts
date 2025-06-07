@@ -13,7 +13,7 @@ export default class PazVizslaUnyieldingWarrior extends NonLeaderUnitCard {
         this.addConstantAbility({
             title: 'This unit gets +2/+0 for each damage on him',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
-                power: +(target.damage * 2), hp: 0
+                power: (target.damage * 2), hp: 0
             }))
         });
     }

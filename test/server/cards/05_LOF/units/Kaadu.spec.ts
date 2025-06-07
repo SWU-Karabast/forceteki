@@ -19,7 +19,7 @@ describe('Kaadu', function() {
                 });
             });
 
-            it('should give its own ground unit +3/+3 and overwhelm', function () {
+            it('should give its own ground unit Overwhelm', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.kaadu);
@@ -32,7 +32,7 @@ describe('Kaadu', function() {
                 expect(context.p2Base.damage).toBe(4);
             });
 
-            it('should give friendly space unit +3/+3 and overwhelm', function () {
+            it('should give friendly space unit Overwhelm', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.kaadu);

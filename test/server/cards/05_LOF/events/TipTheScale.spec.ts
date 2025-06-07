@@ -59,6 +59,29 @@ describe('Tip The Scale', function () {
                 });
                 context.player1.clickPrompt('Done');
             });
+
+            it('should look at an opponent\'s hand and discard a non-unit card from it.', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['tip-the-scale', 'open-fire'],
+                        leader: 'jyn-erso#resisting-oppression',
+                        base: 'chopper-base',
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        hand: [],
+                    }
+                });
+                const { context } = contextRef;
+
+                // Default test, gives the player two options
+                context.player1.clickCard(context.tipTheScale);
+                context.player1.clickPrompt('Play anyway');
+                expect(context.tipTheScale.zoneName).toBe('discard');
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
