@@ -5,7 +5,7 @@ import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Con
 export default class ForceIllusion extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'force-illusion-id',
+            id: '1906860379',
             internalName: 'force-illusion',
         };
     }
