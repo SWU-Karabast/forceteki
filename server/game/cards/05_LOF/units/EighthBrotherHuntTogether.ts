@@ -24,7 +24,6 @@ export default class EighthBrotherHuntTogether extends NonLeaderUnitCard {
             ifYouDo: {
                 title: 'Give a unit +2/+2',
                 targetResolver: {
-                    // cardTypeFilter: CardType.BasicUnit && CardType.LeaderUnit,
                     cardCondition: (card) => card.isUnit(),
                     immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
