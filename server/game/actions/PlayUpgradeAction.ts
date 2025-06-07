@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction';
+import type { IPlayCardActionProperties, PlayCardContext } from '../core/ability/PlayCardAction';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
@@ -16,6 +16,12 @@ export class PlayUpgradeAction extends PlayCardAction {
             {
                 ...properties,
                 targetResolver: {
+                    activePromptTitle: `Attach ${card.title} to a unit`,
+                    cardCondition: (card, context) => (
+                        properties.attachTargetCondition
+                            ? properties.attachTargetCondition(card, context)
+                            : true
+                    ),
                     immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({ upgrade: context.source }))
                 }
             }

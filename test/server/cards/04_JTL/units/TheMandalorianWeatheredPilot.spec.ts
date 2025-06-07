@@ -53,7 +53,7 @@ describe('The Mandalorian, Weathered Pilot', function () {
                 context.player1.clickCard(context.theMandalorianWeatheredPilot);
                 context.player1.clickPrompt('Play The Mandalorian with Piloting');
 
-                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePrompt('Attach The Mandalorian to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.republicAttackPod, context.millenniumFalconPieceOfJunk]);
 
                 context.player1.clickCard(context.republicAttackPod);
@@ -81,7 +81,7 @@ describe('The Mandalorian, Weathered Pilot', function () {
                 context.player1.clickCard(context.theMandalorianWeatheredPilot);
                 context.player1.clickPrompt('Play The Mandalorian with Piloting');
 
-                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePrompt('Attach The Mandalorian to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.republicAttackPod, context.millenniumFalconPieceOfJunk]);
 
                 context.player1.clickCard(context.millenniumFalconPieceOfJunk);
