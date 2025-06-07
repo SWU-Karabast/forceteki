@@ -102,10 +102,12 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                 context.player1.clickPrompt('Discard a card from your hand. If you discard an Upgrade this way, draw a card');
                 context.player1.clickCard(context.fallenLightsaber);
 
-                // Verify the card was discarded and no new card was drawn
+                // Verify the card was discarded and base took damage for drawing from an empty deck
                 expect(context.fallenLightsaber).toBeInZone('discard');
                 expect(context.kyloRen.exhausted).toBeTrue();
                 expect(context.player1.hand.length).toBe(0);
+                expect(context.p1Base.damage).toBe(3);
+                expect(context.getChatLogs(1)).toContain('player1 attempts to draw 1 cards from their empty deck and takes 3 damage instead');
             });
         });
 
@@ -145,43 +147,49 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                     context.constructedLightsaber,
                     context.devotion,
                 ]);
+
                 // Verify non-playable cards are not selectable
                 expect(context.player1).toBeAbleToSelectNoneOf([
                     context.idenVersio,   // Cannot select piloting unit
                     context.drainEssence, // Cannot select event
                     context.dorsalTurret  // Cannot select Upgrade that can't attach to Kylo Ren
                 ]);
-                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
 
-                // Choose all 3 playable Upgrades
+                // Verify we could choose nothing
+                expect(context.player1).toHaveEnabledPromptButton('Pass');
+
+                // Choose Fallen Lightsaber
                 context.player1.clickCard(context.fallenLightsaber);
-                context.player1.clickCard(context.constructedLightsaber);
-                context.player1.clickCard(context.devotion);
-
-                expect(context.player1).toHaveEnabledPromptButton('Done');
-                context.player1.clickPrompt('Done');
-
-                // Play each Upgrade on Kylo Ren, one at a time, paying their costs
                 expect(context.player1).toHavePrompt('Attach Fallen Lightsaber to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.kyloRen]);
                 context.player1.clickCard(context.kyloRen);
+
+                // Cost was paid and upgrade was attached
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.kyloRen).toHaveExactUpgradeNames([
                     'fallen-lightsaber'
                 ]);
 
+                // Choose Constructed Lightsaber
+                context.player1.clickCard(context.constructedLightsaber);
                 expect(context.player1).toHavePrompt('Attach Constructed Lightsaber to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.kyloRen]);
                 context.player1.clickCard(context.kyloRen);
+
+                // Cost was paid and upgrade was attached
                 expect(context.player1.exhaustedResourceCount).toBe(6);
                 expect(context.kyloRen).toHaveExactUpgradeNames([
                     'fallen-lightsaber',
                     'constructed-lightsaber'
                 ]);
 
+                // Choose Devotion
+                context.player1.clickCard(context.devotion);
                 expect(context.player1).toHavePrompt('Attach Devotion to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.kyloRen]);
                 context.player1.clickCard(context.kyloRen);
+
+                // Cost was paid and upgrade was attached
                 expect(context.player1.exhaustedResourceCount).toBe(8);
                 expect(context.kyloRen).toHaveExactUpgradeNames([
                     'fallen-lightsaber',
@@ -189,6 +197,53 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                     'devotion'
                 ]);
 
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('only allows playing upgrades that can be paid for', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kylo-ren#were-not-done-yet',
+                        base: 'fortress-vader',
+                        discard: [
+                            'fallen-lightsaber',
+                            'constructed-lightsaber',
+                            'devotion',
+                        ],
+                        resources: {
+                            readyCount: 3,
+                            exhaustedCount: 4
+                        }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Deploy Kylo Ren
+                context.player1.clickCard(context.kyloRen);
+                context.player1.clickPrompt('Deploy Kylo Ren');
+
+                // Verify playable Upgrades from discard
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.fallenLightsaber,
+                    context.constructedLightsaber,
+                    context.devotion
+                ]);
+
+                // Choose Fallen Lightsaber
+                context.player1.clickCard(context.fallenLightsaber);
+                expect(context.player1).toHavePrompt('Attach Fallen Lightsaber to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.kyloRen]);
+                context.player1.clickCard(context.kyloRen);
+
+                // Cost was paid and upgrade was attached
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.kyloRen).toHaveExactUpgradeNames([
+                    'fallen-lightsaber'
+                ]);
+
+                // No more ready resources, P1's turn ends
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -226,6 +281,47 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                 context.player1.clickPrompt('Deploy Kylo Ren');
 
                 expect(context.kyloRen).toBeInZone('groundArena');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('allows the player to choose no Upgrades', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kylo-ren#were-not-done-yet',
+                        base: 'fortress-vader',
+                        discard: [
+                            'fallen-lightsaber',
+                            'constructed-lightsaber',
+                            'devotion',
+                        ],
+                        resources: {
+                            readyCount: 3,
+                            exhaustedCount: 4
+                        }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Deploy Kylo Ren
+                context.player1.clickCard(context.kyloRen);
+                context.player1.clickPrompt('Deploy Kylo Ren');
+
+                // Verify playable Upgrades from discard
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.fallenLightsaber,
+                    context.constructedLightsaber,
+                    context.devotion
+                ]);
+                expect(context.player1).toHaveEnabledPromptButton('Pass');
+
+                // Choose nothing
+                context.player1.clickPrompt('Pass');
+
+                // P1's turn ends without attaching any upgrades
+                expect(context.kyloRen).toBeInZone('groundArena');
+                expect(context.kyloRen).toHaveExactUpgradeNames([]);
                 expect(context.player2).toBeActivePlayer();
             });
 
