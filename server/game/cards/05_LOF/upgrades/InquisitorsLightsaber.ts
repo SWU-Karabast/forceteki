@@ -15,7 +15,7 @@ export default class InquisitorsLightsaber extends UpgradeCard {
 
         this.addConstantAbilityTargetingAttached({
             title: 'While attacking a Force unit, this unit gets +2/+0.',
-            condition: (context) => context.source.parentCard.isAttacking() && context.source.parentCard.activeAttack?.targetIsUnit((card) => card.hasSomeTrait(Trait.Force)),
+            condition: (context) => context.source.parentCard.isAttacking() && context.source.parentCard.activeAttack?.targetIsUnit((card) => card.hasSomeTrait(Trait.Force), true),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
         });
     }
