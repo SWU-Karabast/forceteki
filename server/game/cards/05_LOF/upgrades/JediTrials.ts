@@ -19,7 +19,7 @@ export default class JediTrials extends UpgradeCard {
         });
 
         this.addConstantAbilityTargetingAttached({
-            title: ' While attached unit has 4 or more upgrades on it, it gains the Jedi trait',
+            title: 'While attached unit has 4 or more upgrades on it, it gains the Jedi trait',
             condition: (context) => context.source.parentCard.upgrades.length >= 4,
             ongoingEffect: AbilityHelper.ongoingEffects.gainTrait(Trait.Jedi)
         });
