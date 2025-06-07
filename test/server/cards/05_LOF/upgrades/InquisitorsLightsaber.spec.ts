@@ -20,7 +20,7 @@ describe('Inquisitor\'s Lightsaber', function () {
             expect(context.consularSecurityForce.damage).toBe(3); // 2+1
 
             context.setDamage(context.yoda, 0);
-            context.yoda.exhausted = false;
+            context.readyCard(context.yoda);
 
             context.player2.passAction();
 
