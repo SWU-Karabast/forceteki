@@ -47,5 +47,28 @@ describe('Zuckuss, The Findsman', function() {
             expect(context.atst).toBeInZone('discard', context.player2);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('Zuckuss\'s ability should name a card, not discard the top card of defender\'s deck because he is empty', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['zuckuss#the-findsman'],
+                },
+                player2: {
+                    deck: []
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.zuckuss);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
+            context.player1.chooseListOption('Fett\'s Firespray');
+
+            expect(context.p2Base.damage).toBe(4);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

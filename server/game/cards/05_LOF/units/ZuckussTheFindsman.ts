@@ -26,7 +26,8 @@ export default class ZuckussTheFindsman extends NonLeaderUnitCard {
                     })),
                     AbilityHelper.immediateEffects.conditional({
                         condition: (context) => {
-                            return context.events[0].card.title === thenContext.select;
+                            const event = context.events.find((x) => x.name === 'onCardDiscarded');
+                            return !!event && event.card.title === thenContext.select;
                         },
                         onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect({
                             effect: AbilityHelper.ongoingEffects.modifyStats({ power: 4, hp: 0 })
