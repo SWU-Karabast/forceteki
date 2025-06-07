@@ -14,7 +14,7 @@ export default class TrustYourInstincts extends EventCard {
             title: 'Use the Force to attack with a unit and give +2/+0 and deal combat damage first',
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {
-                title: 'attack with a unit. It gets +2/+0 and deals combat damage before defender',
+                title: 'Attack with a unit. It gets +2/+0 and deals combat damage before defender',
                 initiateAttack: {
                     attackerCondition: (card, context) => card.controller === context.player,
                     attackerLastingEffects: [
