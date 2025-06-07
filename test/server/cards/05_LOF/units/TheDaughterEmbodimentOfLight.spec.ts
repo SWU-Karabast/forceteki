@@ -1,6 +1,6 @@
 describe('The Daughter, Embodiment of Light', () => {
     integration(function (contextRef) {
-        describe('When damage is dealt to your base', () => {
+        describe('The Daughter\'s ability', () => {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -17,8 +17,7 @@ describe('The Daughter, Embodiment of Light', () => {
                 });
             });
 
-
-            it('may allow the player to use the force. If they do, heal 2 damage from your base', () => {
+            it('may allow the player to use the force when damage is dealt to his base. If they do, heal 2 damage from your base', () => {
                 const { context } = contextRef;
 
                 context.player2.clickCard(context.atst);
@@ -40,7 +39,7 @@ describe('The Daughter, Embodiment of Light', () => {
                 expect(context.p1Base.damage).toBe(8);
             });
 
-            it('may allow the player to use the force. If they do, heal 2 damage from your base', () => {
+            it('may allow the player to use the force when damage is dealt to his base. If they do, heal 2 damage from your base (multiple time in turn)', () => {
                 const { context } = contextRef;
 
                 context.player2.clickCard(context.atst);
@@ -68,7 +67,7 @@ describe('The Daughter, Embodiment of Light', () => {
                 expect(context.p1Base.damage).toBe(3);
             });
 
-            it('may allow the player to use the force. If they do, heal 2 damage from your base', () => {
+            it('may allow the player to use the force when damage is dealt to his base. If they do, heal 2 damage from your base (from an event)', () => {
                 const { context } = contextRef;
 
                 context.player2.clickCard(context.daringRaid);
@@ -82,7 +81,7 @@ describe('The Daughter, Embodiment of Light', () => {
                 expect(context.p1Base.damage).toBe(0);
             });
 
-            it('may allow the player to use the force. If they do, heal 2 damage from your base', () => {
+            it('not allow the player to use the force when damage is dealt to unit', () => {
                 const { context } = contextRef;
 
                 context.player2.clickCard(context.daringRaid);
