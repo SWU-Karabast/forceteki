@@ -105,6 +105,7 @@ export enum EffectName {
     MustAttack = 'mustAttack',
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
+    PrintedAttributesOverride = 'printedAttributesOverride',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
     SuppressEffects = 'suppressEffects',

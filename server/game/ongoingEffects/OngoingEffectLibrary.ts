@@ -30,6 +30,7 @@ import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
 import StatsModifierWrapper from '../core/ongoingEffect/effectImpl/StatsModifierWrapper';
 import { OngoingEffectValueWrapper } from '../core/ongoingEffect/effectImpl/OngoingEffectValueWrapper';
 import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/NumericKeywordMultiplier';
+import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl/PrintedAttributesOverride';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -128,6 +129,7 @@ export = {
     multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
+    overridePrintedAttributes: (printedAttributesOverride: PrintedAttributesOverride) => OngoingEffectBuilder.card.static(EffectName.PrintedAttributesOverride, printedAttributesOverride),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),
