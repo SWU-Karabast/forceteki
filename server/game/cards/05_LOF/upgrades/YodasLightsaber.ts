@@ -11,11 +11,13 @@ export default class YodasLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override canAttach(targetCard: Card): boolean {
+        return targetCard.isUnit() && !targetCard.hasSomeTrait(Trait.Vehicle);
+    }
 
+    public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'You may use the force. If you do, heal 3 damage from a base',
+            title: 'You may use the Force. If you do, heal 3 damage from a base',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {

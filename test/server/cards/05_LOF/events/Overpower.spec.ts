@@ -55,6 +55,17 @@ describe('Overpower', function() {
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCard(context.patrollingVwing);
                 expect(context.p2Base.damage).toBe(7);
+
+                // Move to the next phase
+                context.moveToNextActionPhase();
+                const p2BaseDamage = context.p2Base.damage;
+
+                // Attack with cartel, should not have the pump
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(p2BaseDamage + 2);
+                expect(context.cartelSpacer.hasSomeKeyword('overwhelm')).toBeFalse();
             });
 
             it('should give enemy space unit +3/+3 and overwhelm', function () {

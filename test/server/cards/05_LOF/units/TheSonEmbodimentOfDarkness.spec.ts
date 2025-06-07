@@ -52,5 +52,26 @@ describe('The Son, Embodiment of Darkness', function() {
             context.player1.clickCard(context.p2Base);
             expect(context.p2Base.damage).toBe(7);
         });
+        it('The Son, Embodiment of Darkness\'s ability should not be active as player doesn\'t have the Force', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['seventh-sister#implacable-inquisitor'],
+                    groundArena: ['grand-inquisitor#youre-right-to-be-afraid', 'the-son#embodiment-of-darkness'],
+                    base: { card: 'shadowed-undercity', damage: 3 },
+                },
+                player2: {
+                    groundArena: ['rebel-pathfinder'],
+                    hand: ['battlefield-marine'],
+                    base: { card: 'echo-base', damage: 3 }
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.grandInquisitorYoureRightToBeAfraid);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(9);
+        });
     });
 });

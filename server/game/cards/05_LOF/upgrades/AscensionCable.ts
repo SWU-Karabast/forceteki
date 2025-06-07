@@ -10,9 +10,11 @@ export default class AscensionCable extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override canAttach(targetCard: Card): boolean {
+        return targetCard.isUnit() && !targetCard.hasSomeTrait(Trait.Vehicle);
+    }
 
+    public override setupCardAbilities () {
         this.addGainKeywordTargetingAttached({
             keyword: KeywordName.Saboteur
         });
