@@ -44,7 +44,7 @@ describe('Battle Fury', function () {
                 expect(context.arquitensAssaultCruiser).toBeInZone('discard');
             });
 
-            it('discards from the unit\'s controller if it is played on an enemy uni', function () {
+            it('discards from the unit\'s controller if it is played on an enemy unit', function () {
                 const { context } = contextRef;
 
                 // Play Battle Fury
