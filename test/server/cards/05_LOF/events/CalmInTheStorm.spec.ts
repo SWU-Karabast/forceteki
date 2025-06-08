@@ -15,14 +15,10 @@ describe('Calm in the Storm', function() {
                 });
                 const { context } = contextRef;
 
-                // Verify no unit is exhausted or has tokens at the start
-                expect(context.battlefieldMarine.exhausted).toBe(false);
-                expect(context.battlefieldMarine.upgrades.length).toBe(0);
-
                 // Play Calm in the Storm
                 context.player1.clickCard(context.calmInTheStorm);
 
-                // Should be able to select only non-exhausted friendly units
+                // Should be able to select only friendly units
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.battlefieldMarine,
                     context.lukeSkywalkerAHerosBeginning,

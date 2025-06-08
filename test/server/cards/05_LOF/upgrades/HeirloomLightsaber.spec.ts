@@ -26,9 +26,6 @@ describe('Heirloom Lightsaber', function() {
                     context.wampa
                 ]);
 
-                // Verify the Vehicle unit cannot be targeted
-                expect(context.player1).not.toBeAbleToSelect(context.tieFighter);
-
                 // Attach to Luke (who is a Force unit)
                 context.player1.clickCard(context.lukeSkywalkerAHerosBeginning);
 
