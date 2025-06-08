@@ -14,9 +14,7 @@ export default class TheFatherMaintainingBalance extends NonLeaderUnitCard {
             title: 'Deal 1 damage to this unit. If you do, the Force is with you.',
             optional: true,
             when: {
-                onForceUsed: (event, context) =>
-                    event.player === context.player &&
-                    !context.player.hasTheForce
+                onForceUsed: (event, context) => event.player === context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 1,
