@@ -66,6 +66,7 @@ describe('Kylo Ren\'s Lightsaber', () => {
 
                 // It can only target non-Vehicle units (including enemy units)
                 expect(context.player1).toBeAbleToSelectExactly([
+                    context.kyloRen,
                     context.hylobonEnforcer,
                     context.battlefieldMarine
                 ]);
