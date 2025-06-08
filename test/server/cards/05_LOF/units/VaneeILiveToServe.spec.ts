@@ -25,6 +25,8 @@ describe('Vanee, I Live to Serve', () => {
             expect(context.player1).toBeAbleToSelectExactly([vaderExperience]);
 
             context.player1.clickCard(vaderExperience);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.darthVader, context.atst, context.vanee]);
             context.player1.clickCard(context.atst);
 
             expect(context.atst).toHaveExactUpgradeNames(['experience']);
@@ -53,6 +55,8 @@ describe('Vanee, I Live to Serve', () => {
             expect(context.player1).toBeAbleToSelectExactly([vaderExperience]);
 
             context.player1.clickCard(vaderExperience);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.darthVader, context.vanee]);
             context.player1.clickCard(context.vanee);
 
             expect(context.vanee).toHaveExactUpgradeNames(['experience']);

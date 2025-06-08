@@ -38,6 +38,8 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
         for (const currentPlayer of players) {
             const availableDeck = currentPlayer.drawDeck;
 
+            console.log('available deck', availableDeck.length, mustChangeGameState);
+
             if (mustChangeGameState !== GameStateChangeRequired.None && availableDeck.length === 0) {
                 return false;
             }

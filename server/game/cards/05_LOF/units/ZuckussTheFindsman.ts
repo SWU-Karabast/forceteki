@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { TargetMode } from '../../../core/Constants';
+import { EventName, TargetMode } from '../../../core/Constants';
 
 export default class ZuckussTheFindsman extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -18,22 +18,23 @@ export default class ZuckussTheFindsman extends NonLeaderUnitCard {
                 options: this.game.playableCardTitles,
             },
             then: (thenContext) => ({
-                title: 'If a card with that name is discarded, this unit gets +4/+0 for this attack.',
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.discardFromDeck((context) => ({
-                        amount: 1,
-                        target: context.source.activeAttack.getDefendingPlayer(),
-                    })),
-                    AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => {
-                            const event = context.events.find((x) => x.name === 'onCardDiscarded');
-                            return !!event && event.card.title === thenContext.select;
-                        },
-                        onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect({
-                            effect: AbilityHelper.ongoingEffects.modifyStats({ power: 4, hp: 0 })
-                        })
+                title: 'Discard the top card of the defending player\'s deck, if a card with that name is discarded, this unit gets +4/+0 for this attack.',
+                // mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
+                immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
+                    amount: 1,
+                    target: context.source.activeAttack.getDefendingPlayer(),
+                })),
+                ifYouDo: (context) => ({
+                    title: 'This unit gets +4/+0 for this attack',
+                    ifYouDoCondition: () => {
+                        // TODO find a way to pass mustChangeGameState in DiscardFromDeckSystem
+                        const discardEvent = context.events.find((x) => x.name === EventName.OnCardDiscarded);
+                        return /* !!discardEvent &&*/ discardEvent.card.title === thenContext.select;
+                    },
+                    immediateEffect: AbilityHelper.immediateEffects.forThisAttackCardEffect({
+                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: 4, hp: 0 })
                     })
-                ])
+                })
             })
         });
     }
