@@ -52,6 +52,14 @@ describe('Kylo Ren\'s Lightsaber', () => {
 
                 context.moveToNextActionPhase();
 
+                // Kylo Ren is not ready due to the second part of No Good to Me Dead's effect
+                expect(context.kyloRen.exhausted).toBeTrue();
+
+                context.moveToNextActionPhase();
+
+                // Kylo Ren is ready again
+                expect(context.kyloRen.exhausted).toBeFalse();
+
                 // Kylo Ren can be exhausted by friendly card abilities
                 context.player1.clickCard(context.atatSuppressor); // Exhaust all ground units
 
