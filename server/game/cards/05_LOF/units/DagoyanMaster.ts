@@ -1,0 +1,43 @@
+import AbilityHelper from '../../../AbilityHelper';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { Trait } from '../../../core/Constants';
+
+export default class DagoyanMaster extends NonLeaderUnitCard {
+    protected override getImplementationId() {
+        return {
+            id: '1708605474',
+            internalName: 'dagoyan-master'
+        };
+    }
+
+    public override setupCardAbilities() {
+        this.addWhenPlayedAbility({
+            title: 'Use the Force to search top 5 cards fo your deck for a Force unit, reveal it, and draw it',
+            optional: true,
+            immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
+            ifYouDo: {
+                title: 'Search the top 5 cards of your deck for a Force unit, reveal it, and draw it',
+                immediateEffect: AbilityHelper.immediateEffects.deckSearch({
+                    selectCount: 1,
+                    searchCount: 5,
+                    cardCondition: (card) => card.hasSomeTrait(Trait.Force),
+                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                })
+            }
+        });
+        this.addWhenDefeatedAbility({
+            title: 'Use the Force to search top 5 cards fo your deck for a Force unit, reveal it, and draw it',
+            optional: true,
+            immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
+            ifYouDo: {
+                title: 'Search the top 5 cards of your deck for a Force unit, reveal it, and draw it',
+                immediateEffect: AbilityHelper.immediateEffects.deckSearch({
+                    selectCount: 1,
+                    searchCount: 5,
+                    cardCondition: (card) => card.hasSomeTrait(Trait.Force),
+                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                })
+            }
+        });
+    }
+}
