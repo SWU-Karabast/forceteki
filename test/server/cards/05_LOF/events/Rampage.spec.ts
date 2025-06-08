@@ -34,6 +34,10 @@ describe('Rampage', function() {
             expect(context.namelessTerror.getPower()).toBe(3);
             expect(context.namelessTerror.getHp()).toBe(3);
 
+            // Non friendly, non creature also not affected
+            expect(context.battleDroid.getPower()).toBe(1);
+            expect(context.battleDroid.getHp()).toBe(1);
+
             context.moveToRegroupPhase();
 
             // bonus expired after phase ends
