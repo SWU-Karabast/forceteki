@@ -21,12 +21,18 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     playType?: PlayType;
 
     /** This should be used to specify a card-type play restriction (i.e. Sneak Attack or Fine Addition) */
-    playAsType: WildcardCardType.Any | WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
+    playAsType: WildcardCardType.Any | WildcardCardType.NonUnit | WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
     adjustCost?: ICostAdjusterProperties;
     nested?: boolean;
     canPlayFromAnyZone?: boolean;
     exploitValue?: number;
     // TODO: implement a "nested" property that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
+
+    /**
+     * This is used to specify a condition for the attach target when playing an Upgrade or Piloting card
+     * as part of a card ability. If not specified, the default behavior is to allow any valid attach target.
+     */
+    attachTargetCondition?: (attachTarget: Card, context: AbilityContext) => boolean;
 }
 
 // TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilities with another function(s)
@@ -93,7 +99,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.playAsType != null) {
-            if (properties.playAsType === WildcardCardType.Upgrade && card.isUnit()) {
+            if ((properties.playAsType === WildcardCardType.Upgrade || properties.playAsType === WildcardCardType.NonUnit) && card.isUnit()) {
                 if (!card.hasSomeKeyword(KeywordName.Piloting)) {
                     return false;
                 }
@@ -144,7 +150,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return false;
     }
 
-    private checkActionPlayAsType(card: Card, playType: PlayType, playAsType: WildcardCardType.Any | WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event | null, action: PlayCardAction): boolean {
+    private checkActionPlayAsType(card: Card, playType: PlayType, playAsType: WildcardCardType.Any | WildcardCardType.NonUnit | WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event | null, action: PlayCardAction): boolean {
         if (playAsType == null || playAsType === WildcardCardType.Any) {
             return true;
         }
@@ -168,7 +174,8 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             costAdjusters,
             entersReady: properties.entersReady,
             canPlayFromAnyZone: properties.canPlayFromAnyZone,
-            exploitValue: properties.exploitValue
+            exploitValue: properties.exploitValue,
+            attachTargetCondition: properties.attachTargetCondition
         };
     }
 }

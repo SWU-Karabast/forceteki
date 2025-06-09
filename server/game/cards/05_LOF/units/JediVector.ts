@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../../core/Constants';
 
-export default class jediVector extends NonLeaderUnitCard {
+export default class JediVector extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '0035741177',
