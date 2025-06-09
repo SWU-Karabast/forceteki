@@ -19,6 +19,7 @@ describe('Force Speed', function() {
                         ]
                     },
                     player2: {
+                        hand: ['independent-smuggler'],
                         groundArena: [
                             {
                                 card: 'consular-security-force',
@@ -37,10 +38,9 @@ describe('Force Speed', function() {
                         ],
                         spaceArena: [
                             {
-                                card: 'razor-crest#ride-for-hire',
+                                card: 'millennium-falcon#get-out-and-push',
                                 upgrades: [
                                     'snapshot-reflexes',
-                                    'droid-cohort',
                                     'the-mandalorian#weathered-pilot'
                                 ]
                             },
@@ -51,30 +51,36 @@ describe('Force Speed', function() {
 
             it('attacks with a unit, and allows the attacker to return any number of non-unique upgrades attached to the defender to their owners\' hands."', function () {
                 const { context } = contextRef;
+                context.player1.passAction();
+
+                // Player 2 plays Independent Smuggler on Millennium Falcon
+                context.player2.clickCard(context.independentSmuggler);
+                context.player2.clickPrompt('Play Independent Smuggler with Piloting');
+                context.player2.clickCard(context.millenniumFalcon);
 
                 // Player 1 plays Force Speed
                 context.player1.clickCard(context.forceSpeed);
 
                 // Player 1 initiates an attack with Seventh Fleet Defender
                 context.player1.clickCard(context.seventhFleetDefender);
-                context.player1.clickCard(context.razorCrest);
+                context.player1.clickCard(context.millenniumFalcon);
 
                 // Ability is triggered
                 expect(context.player1).toHavePrompt(prompt);
 
-                // Only non-unique upgrades attached to Razor Crest should be selectable
+                // Only non-unique upgrades attached to Millennium Falcon should be selectable
                 expect(context.player1).toBeAbleToSelectExactly([
-                    context.snapshotReflexes,
-                    context.droidCohort
+                    context.snapshotReflexes,       // Non-unique upgrade
+                    context.independentSmuggler,    // Non-unique pilot upgrade
                 ]);
 
                 context.player1.clickCard(context.snapshotReflexes);
-                context.player1.clickCard(context.droidCohort);
+                context.player1.clickCard(context.independentSmuggler);
                 context.player1.clickPrompt('Done');
 
                 // Both upgrades should be returned to their owners' hands
                 expect(context.snapshotReflexes).toBeInZone('hand', context.player2);
-                expect(context.droidCohort).toBeInZone('hand', context.player2);
+                expect(context.independentSmuggler).toBeInZone('hand', context.player2);
             });
 
             it('works correctly if the attack has multiple defenders', function () {
@@ -126,10 +132,9 @@ describe('Force Speed', function() {
                 player2: {
                     spaceArena: [
                         {
-                            card: 'razor-crest#ride-for-hire',
+                            card: 'millennium-falcon#get-out-and-push',
                             upgrades: [
                                 'snapshot-reflexes',
-                                'droid-cohort',
                                 'the-mandalorian#weathered-pilot'
                             ]
                         },
