@@ -82,6 +82,7 @@ describe('Lightsaber Throw', function () {
             context.player1.clickCard(context.lightsaberThrow);
 
             expect(context.player1).toBeAbleToSelectNoneOf([context.poeDameron, context.wampa]);
+            context.player1.clickPrompt('Play anyway');
 
             expect(context.rebelPathfinder).toBeInZone('deck');
             expect(context.poeDameron).toBeInZone('hand');
