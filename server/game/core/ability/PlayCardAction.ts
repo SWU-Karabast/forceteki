@@ -26,6 +26,7 @@ export interface IPlayCardActionPropertiesBase {
     additionalCosts?: ICost[];
     exploitValue?: number;
     canPlayFromAnyZone?: boolean;
+    attachTargetCondition?: (attachTarget: Card, context: AbilityContext) => boolean;
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
