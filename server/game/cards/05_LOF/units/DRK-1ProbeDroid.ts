@@ -12,7 +12,7 @@ export default class DRK1ProbeDroid extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
-            title: 'Defeat a non unique upgrade.',
+            title: 'Defeat a non-unique upgrade.',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
