@@ -47,7 +47,7 @@ describe('Dagoyan Master', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should search the top 5 for a Force unit, reveal it, and draw it', function () {
+            it('should allow opponent to use No Glory Only Results to search the top 5 for a Force unit, reveal it, and draw it', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.dagoyanMaster);
