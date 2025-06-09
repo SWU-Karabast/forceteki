@@ -4,7 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class T6Shuttle1974StayClose extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 't6-shuttle-1974#stay-close-id',
+            id: '2134957922',
             internalName: 't6-shuttle-1974#stay-close'
         };
     }
