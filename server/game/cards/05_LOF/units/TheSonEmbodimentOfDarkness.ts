@@ -13,7 +13,7 @@ export default class TheSonEmbodimentOfDarkness extends NonLeaderUnitCard {
         this.addConstantAbility({
             title: 'While the Force is with you, each friendly unit gets +2/+0',
             condition: (context) => context.player.hasTheForce,
-            matchTarget: (card, context) => card !== context.source,
+            matchTarget: (card) => card.isUnit(),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),
         });
     }
