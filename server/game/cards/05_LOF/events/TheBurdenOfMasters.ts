@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, TargetMode, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class TheBurdenOfMasters extends EventCard {
     protected override getImplementationId() {
@@ -12,22 +12,20 @@ export default class TheBurdenOfMasters extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Put a Force unit from your discard on the bottom of your deck. If you do, play a card from your hand and give 2 experience tokens to it',
+            title: 'Put a Force unit from your discard on the bottom of your deck. If you do, play a unit from your hand and give 2 Experience tokens to it',
             targetResolver: {
-                mode: TargetMode.UpTo,
                 numCards: 1,
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Force),
-                immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck({ shuffleMovedCards: true })
+                immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck(),
             },
             ifYouDo: {
-                title: 'Play a unit from your hand, and give two experience tokens to it.',
+                title: 'Play a unit from your hand, and give two Experience tokens to it.',
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
-                    cardCondition: (card) => card.isUnit(),
                     immediateEffect: AbilityHelper.immediateEffects.sequential({
                         gameSystems: [
                             AbilityHelper.immediateEffects.playCardFromHand({ playAsType: WildcardCardType.Unit }),
