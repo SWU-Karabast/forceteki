@@ -13,13 +13,15 @@ export default class SaeseeTiinCourageousWarrior extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
             title: 'If you have the initiative, deal 1 damage to each of up to 3 units',
-            mode: TargetMode.UpTo,
-            cardTypeFilter: WildcardCardType.Unit,
-            canChooseNoCards: true,
-            numCards: 3,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasInitiative(),
-                onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                onTrue: AbilityHelper.immediateEffects.selectCard({
+                    mode: TargetMode.UpTo,
+                    cardTypeFilter: WildcardCardType.Unit,
+                    canChooseNoCards: true,
+                    numCards: 3,
+                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                })
             })
         });
     }
