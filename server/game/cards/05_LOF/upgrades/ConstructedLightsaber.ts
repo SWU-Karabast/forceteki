@@ -1,4 +1,3 @@
-import type { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Aspect, KeywordName, Trait } from '../../../core/Constants';
 
@@ -10,11 +9,9 @@ export default class ConstructedLightsaber extends UpgradeCard {
         };
     }
 
-    public override canAttach(targetCard: Card): boolean {
-        return targetCard.isUnit() && targetCard.hasSomeTrait(Trait.Force);
-    }
-
     public override setupCardAbilities() {
+        this.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
+
         this.addGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard.hasSomeAspect(Aspect.Heroism),
             keyword: KeywordName.Restore,

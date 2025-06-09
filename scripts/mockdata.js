@@ -2,7 +2,8 @@ const { color } = require('console-log-colors');
 
 const mockCards = [
     buildMockCard({
-        title: 'Malakili, Loving Rancor Keeper',
+        title: 'Malakili',
+        subtitle: 'Loving Rancor Keeper',
         power: 1,
         hp: 4,
         hasNonKeywordAbility: true,
@@ -33,7 +34,8 @@ const mockCards = [
         internalName: 'shien-flurry',
     }),
     buildMockCard({
-        title: 'Kit Fisto\'s Aethersprite, Good Hunting',
+        title: 'Kit Fisto\'s Aethersprite',
+        subtitle: 'Good Hunting',
         power: 4,
         hp: 5,
         cost: 5,
@@ -51,7 +53,8 @@ const mockCards = [
         internalName: 'kit-fistos-aethersprite#good-hunting'
     }),
     buildMockCard({
-        title: 'Adi Gallia, Stern and Focused',
+        title: 'Adi Gallia',
+        subtitle: 'Stern and Focused',
         cost: 2,
         power: 2,
         hp: 4,
@@ -83,7 +86,8 @@ const mockCards = [
         internalName: 'niman-strike',
     }),
     buildMockCard({
-        title: 'Yaddle, A Chance to Make Things Right',
+        title: 'Yaddle',
+        subtitle: 'A Chance to Make Things Right',
         cost: 2,
         power: 2,
         hp: 4,
@@ -119,7 +123,8 @@ const mockCards = [
         internalName: 'drengir-spawn'
     }),
     buildMockCard({
-        title: 'The Legacy Run, Doomed Debris',
+        title: 'The Legacy Run',
+        subtitle: 'Doomed Debris',
         cost: 5,
         power: 3,
         hp: 3,
@@ -136,7 +141,8 @@ const mockCards = [
         internalName: 'the-legacy-run#doomed-debris'
     }),
     buildMockCard({
-        title: 'Aurra Sing, Patient and Deadly',
+        title: 'Aurra Sing',
+        subtitle: 'Patient and Deadly',
         cost: 2,
         power: 1,
         hp: 4,
@@ -185,7 +191,8 @@ const mockCards = [
         internalName: 'purge-trooper'
     }),
     buildMockCard({
-        title: 'Grand Inquisitor, Stories Travel Quickly',
+        title: 'Grand Inquisitor',
+        subtitle: 'Stories Travel Quickly',
         power: 3,
         hp: 5,
         cost: 5,
@@ -312,7 +319,8 @@ const mockCards = [
         internalName: 'avar-kriss#marshal-of-starlight'
     }),
     buildMockCard({
-        title: 'Priestesses of the Force, Eternal',
+        title: 'Priestesses of the Force',
+        subtitle: 'Eternal',
         cost: 7,
         power: 6,
         hp: 8,
@@ -343,7 +351,8 @@ const mockCards = [
         internalName: 'sorcerous-blast'
     }),
     buildMockCard({
-        title: 'Vernestra Rwoh, Precocious Knight',
+        title: 'Vernestra Rwoh',
+        subtitle: 'Precocious Knight',
         cost: 3,
         power: 3,
         hp: 4,
@@ -360,7 +369,8 @@ const mockCards = [
         internalName: 'vernestra-rwoh#precocious-knight'
     }),
     buildMockCard({
-        title: 'Eye of Sion, To Peridea',
+        title: 'Eye of Sion',
+        subtitle: 'To Peridea',
         cost: 6,
         power: 4,
         hp: 7,
@@ -378,7 +388,8 @@ const mockCards = [
         internalName: 'eye-of-sion#to-peridea'
     }),
     buildMockCard({
-        title: 'Shin Hati, Overeager Apprentice',
+        title: 'Shin Hati',
+        subtitle: 'Overeager Apprentice',
         cost: 3,
         power: 4,
         hp: 2,
@@ -396,7 +407,8 @@ const mockCards = [
         internalName: 'shin-hati#overeager-apprentice'
     }),
     buildMockCard({
-        title: 'Baylan Skoll, Enigmatic Master',
+        title: 'Baylan Skoll',
+        subtitle: 'Enigmatic Master',
         cost: 5,
         power: 5,
         hp: 5,
@@ -774,6 +786,34 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'asajj-ventress#harden-your-heart',
+    }),
+    buildMockCard({
+        title: 'It\'s Worse',
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: [],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'LOF',
+            number: 264
+        },
+        unique: false,
+        internalName: 'its-worse',
+    }),
+    buildMockCard({
+        title: 'A Precarious Predicament',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'LOF',
+            number: 222
+        },
+        unique: false,
+        internalName: 'a-precarious-predicament',
     }),
 ];
 
