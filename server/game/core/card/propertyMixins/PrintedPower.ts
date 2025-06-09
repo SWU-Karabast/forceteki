@@ -4,7 +4,6 @@ import * as Contract from '../../utils/Contract';
 import type { Card, CardConstructor, ICardState } from '../Card';
 
 export interface ICardWithPrintedPowerProperty extends Card {
-    readonly printedPower: number;
     getPrintedPower(): number;
     getPower(): number;
 }
@@ -29,8 +28,10 @@ export function WithPrintedPower<TBaseClass extends CardConstructor<TState>, TSt
 
         public getPrintedPower(): number {
             if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
-                return this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride)
-                    .reduce((max, override) => (override.printedPower !== undefined ? Math.max(max, override.printedPower) : max), this.printedPower);
+                const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
+                if (overrides.some((override) => override.printedPower !== undefined)) {
+                    return overrides.reduce((max, override) => (override.printedPower !== undefined ? Math.max(max, override.printedPower) : max), 0);
+                }
             }
             return this.printedPower;
         }
