@@ -12,7 +12,7 @@ export default class DagoyanMaster extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'Use the Force to search top 5 cards fo your deck for a Force unit, reveal it, and draw it',
+            title: 'Use the Force. If you do, search the top 5 cards of your deck for a Force unit, reveal it, and draw it',
             optional: true,
             when: {
                 whenPlayed: true,
