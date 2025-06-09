@@ -200,6 +200,7 @@ export enum WildcardCardType {
     Any = 'any',
     NonLeaderUnit = 'nonLeaderUnit',
     NonLeaderUpgrade = 'nonLeaderUpgrade',
+    NonUnit = 'nonUnit',
     /** Any card type that can be played from hand */
     Playable = 'playable',
     Token = 'token',
