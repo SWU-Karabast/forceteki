@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import * as KeywordHelpers from '../../../core/ability/KeywordHelpers';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
 import type { NonParameterKeywordName } from '../../../Interfaces';
@@ -35,7 +36,7 @@ export default class OppoRancisisAncientCouncilor extends NonLeaderUnitCard {
 
     private addKeywordCopyAbility(keyword: NonParameterKeywordName) {
         this.addConstantAbility({
-            title: `This unit gains ${keyword} while a friendly unit has ${keyword}`,
+            title: `This unit gains ${KeywordHelpers.keywordDescription(keyword)} while a friendly unit has ${keyword}`,
             condition: (context) => context.player.isKeywordInPlay(keyword, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: keyword })
         });
