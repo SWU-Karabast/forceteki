@@ -34,7 +34,6 @@ describe('Dagoyan Master', function() {
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-
                 context.player1.clickCardInDisplayCardPrompt(context.jediKnight);
 
                 expect(context.getChatLogs(2)).toContain('player1 takes Jedi Knight');
