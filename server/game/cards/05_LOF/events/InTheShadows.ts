@@ -17,7 +17,7 @@ export default class InTheShadows extends EventCard {
                 mode: TargetMode.UpTo,
                 numCards: 3,
                 controller: RelativePlayer.Self,
-                cardCondition: (card) => card.isUnit() && card.hasSomeKeyword(KeywordName.Hidden),
+                cardCondition: (card) => card.hasSomeKeyword(KeywordName.Hidden),
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             }
         });
