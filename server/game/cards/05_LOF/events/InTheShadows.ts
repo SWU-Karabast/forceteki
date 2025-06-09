@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { KeywordName, TargetMode } from '../../../core/Constants';
+import { KeywordName, TargetMode, RelativePlayer } from '../../../core/Constants';
 
 export default class InTheShadows extends EventCard {
     protected override getImplementationId() {
@@ -12,11 +12,12 @@ export default class InTheShadows extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Give an experience token to up to 3 friendly units with Hidden',
+            title: 'Give an Experience token to up to 3 friendly units with Hidden',
             targetResolver: {
                 mode: TargetMode.UpTo,
                 numCards: 3,
-                cardCondition: (card, context) => card.isUnit() && card.hasSomeKeyword(KeywordName.Hidden) && card.controller === context.player,
+                controller: RelativePlayer.Self,
+                cardCondition: (card) => card.isUnit() && card.hasSomeKeyword(KeywordName.Hidden),
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             }
         });
