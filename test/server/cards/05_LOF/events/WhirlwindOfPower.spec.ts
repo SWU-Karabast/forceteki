@@ -41,6 +41,7 @@ describe('Whirlwind Of Power', function() {
                     player1: {
                         hand: ['whirlwind-of-power'],
                         spaceArena: ['green-squadron-awing'],
+                        leader: 'kanan-jarrus#help-us-survive'
                     },
                     player2: {
                         groundArena: ['wampa'],
@@ -75,6 +76,20 @@ describe('Whirlwind Of Power', function() {
                 // give -2/-2 to Lurking tie phantom
                 context.player1.clickCard(context.lurkingTiePhantom);
                 expect(context.lurkingTiePhantom).toBeInZone('discard');
+            });
+
+            it('should give -3/-3 with leader deployed', function () {
+                const { context } = contextRef;
+                context.player1.clickCard(context.kananJarrus);
+                context.player1.clickPrompt('Deploy Kanan Jarrus');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.whirlwindOfPower);
+                // give -3/-3 to Wampa
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.getPower()).toBe(1);
+                expect(context.wampa.getHp()).toBe(2);
             });
         });
 

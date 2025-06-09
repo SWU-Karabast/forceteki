@@ -63,5 +63,27 @@ describe('Axe Woves, Accomplished Warrior', function() {
                 expect(context.axeWoves.getHp()).toBe(3);
             });
         });
+
+        describe('Axe Woves\'s', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['wampa', 'axe-woves#accomplished-warrior'],
+                        hand: ['hotshot-dl44-blaster'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'atst'],
+                        hand: ['top-target', 'perilous-position']
+                    }
+                });
+            });
+
+            it('should be 2/2 without any upgrades', function () {
+                const { context } = contextRef;
+                expect(context.axeWoves.getPower()).toBe(2);
+                expect(context.axeWoves.getHp()).toBe(2);
+            });
+        });
     });
 });
