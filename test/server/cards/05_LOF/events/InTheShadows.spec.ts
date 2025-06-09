@@ -55,6 +55,24 @@ describe('In The Shadows', function () {
                 expect(context.grandInquisitorYoureRightToBeAfraid).toHaveExactUpgradeNames(['experience']);
                 expect(context.fifthBrotherFearHunter).toHaveExactUpgradeNames(['experience']);
             });
+
+            it('should allow you to choose nothing', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.inTheShadows);
+
+                // should be able to select all friendly hidden
+                expect(context.player1).toBeAbleToSelectExactly([context.grandInquisitorYoureRightToBeAfraid, context.fifthBrotherFearHunter, context.eighthBrotherHuntTogether, context.scytheIntimidatingSilhouette]);
+
+                context.player1.clickPrompt('Choose Nothing');
+
+                // check experience token
+                expect(context.villageTender.isUpgraded()).toBeFalse();
+                expect(context.scytheIntimidatingSilhouette.isUpgraded()).toBeFalse();
+                expect(context.eighthBrotherHuntTogether.isUpgraded()).toBeFalse();
+                expect(context.grandInquisitorYoureRightToBeAfraid.isUpgraded()).toBeFalse();
+                expect(context.fifthBrotherFearHunter.isUpgraded()).toBeFalse();
+            });
         });
     });
 });
