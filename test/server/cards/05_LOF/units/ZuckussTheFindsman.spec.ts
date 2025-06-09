@@ -48,7 +48,7 @@ describe('Zuckuss, The Findsman', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Zuckuss\'s ability should name a card, not discard the top card of defender\'s deck because he is empty', async function () {
+        it('Zuckuss\'s ability should name a card (skipped because of empty deck), not discard the top card of defender\'s deck because he is empty', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -64,11 +64,8 @@ describe('Zuckuss, The Findsman', function() {
             context.player1.clickCard(context.zuckuss);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
-            context.player1.chooseListOption('Fett\'s Firespray');
-
-            expect(context.p2Base.damage).toBe(4);
             expect(context.player2).toBeActivePlayer();
+            expect(context.p2Base.damage).toBe(4);
         });
     });
 });
