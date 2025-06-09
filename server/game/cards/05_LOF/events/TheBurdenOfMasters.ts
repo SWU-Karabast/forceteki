@@ -14,7 +14,7 @@ export default class TheBurdenOfMasters extends EventCard {
         this.setEventAbility({
             title: 'Put a Force unit from your discard on the bottom of your deck. If you do, play a unit from your hand and give 2 Experience tokens to it',
             targetResolver: {
-                numCards: 1,
+                // numCards: 1,
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Force),
