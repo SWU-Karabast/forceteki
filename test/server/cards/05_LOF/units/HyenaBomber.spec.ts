@@ -18,9 +18,10 @@ describe('Hyena Bomber', function() {
             it('should deal 2 damage to friendly unit because we control another aggression unit.', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.hyenaBomber);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Trigger');
                 // should select ground unit of both players
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
-                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
@@ -29,9 +30,10 @@ describe('Hyena Bomber', function() {
             it('should deal 2 damage to enemy unit because we control another aggression unit.', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.hyenaBomber);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Trigger');
                 // should select ground unit of both players
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
-                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();

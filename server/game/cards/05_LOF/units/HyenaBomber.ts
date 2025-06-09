@@ -14,13 +14,13 @@ export default class HyenaBomber extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'Deal 2 damage to a ground unit if you control another aggression unit',
             optional: true,
-            targetResolver: {
-                zoneFilter: ZoneName.GroundArena,
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.isAspectInPlay(Aspect.Aggression, context.source),
-                    onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 }),
-                })
-            },
+            immediateEffect: AbilityHelper.immediateEffects.conditional({
+                condition: (context) => context.player.isAspectInPlay(Aspect.Aggression, context.source),
+                onTrue: AbilityHelper.immediateEffects.selectCard({
+                    zoneFilter: ZoneName.GroundArena,
+                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 }),
+                }),
+            })
         });
     }
 }
