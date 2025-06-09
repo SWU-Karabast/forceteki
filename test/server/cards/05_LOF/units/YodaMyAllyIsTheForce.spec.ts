@@ -135,6 +135,50 @@ describe('Yoda, My Ally is the Force', function() {
                 // Player 1 turn should be over now
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should still count a unit that we have taken control of', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hasForceToken: true,
+                        groundArena: ['yoda#my-ally-is-the-force', 'battlefield-marine'],
+                        hand: ['yodas-lightsaber', 'traitorous'],
+                        base: { card: 'echo-base', damage: 5 }
+                    },
+                    player2: {
+                        groundArena: ['sith-trooper'],
+                        spaceArena: ['hyperspace-wayfarer']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // First use Traitorous to take control of the enemy unit
+                context.player1.clickCard(context.traitorous);
+                context.player1.clickCard(context.sithTrooper);
+
+                // Verify control was taken
+                expect(context.sithTrooper).toBeInZone('groundArena', context.player1);
+
+                context.player2.passAction();
+
+                // Now use the Force with Yoda's lightsaber
+                context.player1.clickCard(context.yodasLightsaber);
+                context.player1.clickCard(context.yodaMyAllyIsTheForce);
+
+                // Should be prompted to use the Force
+                expect(context.player1).toHavePrompt('Trigger the ability \'You may use the Force. If you do, heal 3 damage from a base\' or pass');
+                context.player1.clickPrompt('Trigger');
+
+                context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(2);
+
+                // Should be prompted for Yoda's ability
+                context.player1.clickCard(context.hyperspaceWayfarer);
+
+                // Hyperspace wayfarer should take 6 damage (2 × 3 units controlled including the stolen Sith Trooper)
+                expect(context.hyperspaceWayfarer.damage).toBe(6);
+            });
         });
     });
 });
