@@ -49,7 +49,7 @@ describe('Constructed Lightsaber', function () {
                 },
                 player2: {
                     groundArena: [{
-                        card: 'multitroop-transport',
+                        card: 'daughter-of-dathomir',
                         upgrades: ['constructed-lightsaber']
                     }]
                 }
@@ -57,9 +57,10 @@ describe('Constructed Lightsaber', function () {
 
             const { context } = contextRef;
 
+            expect(context.daughterOfDathomir.hasSomeKeyword('sentinel')).toBeTrue();
             context.player1.clickCard(context.wampa);
-            expect(context.player1).toBeAbleToSelectExactly([context.multitroopTransport]);
-            context.player1.clickCard(context.multitroopTransport);
+            expect(context.player1).toBeAbleToSelectExactly([context.daughterOfDathomir]);
+            context.player1.clickCard(context.daughterOfDathomir);
         });
     });
 });
