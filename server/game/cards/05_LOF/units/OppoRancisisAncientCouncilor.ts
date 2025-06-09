@@ -36,7 +36,7 @@ export default class OppoRancisisAncientCouncilor extends NonLeaderUnitCard {
 
     private addKeywordCopyAbility(keyword: NonParameterKeywordName) {
         this.addConstantAbility({
-            title: `This unit gains ${KeywordHelpers.keywordDescription(keyword)} while a friendly unit has ${keyword}`,
+            title: `This unit gains ${KeywordHelpers.keywordDescription(keyword)} while a friendly unit has ${KeywordHelpers.keywordDescription(keyword)}`,
             condition: (context) => context.player.isKeywordInPlay(keyword, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: keyword })
         });
