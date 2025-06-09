@@ -6,7 +6,7 @@ describe('Rey, Nobody', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['drain-essence', 'bolstered-endurance', 'yoda#old-master'],
+                        hand: ['drain-essence', 'bolstered-endurance', 'yoda#old-master', 'luke-skywalker#you-still-with-me'],
                         groundArena: ['guardian-of-the-whills', 'atst'],
                         leader: 'rey#nobody',
                         resources: 6 // making Rey undeployable makes testing the activated ability's condition smoother
@@ -42,7 +42,29 @@ describe('Rey, Nobody', function() {
                 context.player1.clickCard(context.rey);
 
                 // Select a unit to damage
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.lukeSkywalker, context.atst]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.lukeSkywalkerFaithfulFriend, context.atst]);
+                context.player1.clickCard(context.atst);
+
+                // Check board state
+                expect(context.rey.exhausted).toBe(true);
+                expect(context.atst.damage).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should damage a unit if a Force Pilot upgrade card was played by controller', function () {
+                const { context } = contextRef;
+
+                // Play a Force event card
+                context.player1.clickCard(context.lukeSkywalkerYouStillWithMe);
+                context.player1.clickPrompt('Play Luke Skywalker with Piloting');
+                context.player1.clickCard(context.atst);
+                context.player2.passAction();
+
+                // Use ability with effect
+                context.player1.clickCard(context.rey);
+
+                // Select a unit to damage
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.lukeSkywalkerFaithfulFriend, context.atst, context.guardianOfTheWhills]);
                 context.player1.clickCard(context.atst);
 
                 // Check board state
@@ -63,7 +85,7 @@ describe('Rey, Nobody', function() {
                 context.player1.clickCard(context.rey);
 
                 // Select a unit to damage
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.lukeSkywalker, context.atst, context.guardianOfTheWhills]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.lukeSkywalkerFaithfulFriend, context.atst, context.guardianOfTheWhills]);
                 context.player1.clickCard(context.atst);
 
                 // Check board state
@@ -167,6 +189,37 @@ describe('Rey, Nobody', function() {
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.tielnFighter).toBeInZone('hand', context.player1);
                 expect(context.wampa).toBeInZone('hand', context.player1);
+                expect(context.battlefieldMarine).toBeInZone('deck', context.player1);
+            });
+
+            it('should be able to pass discard and draw two cards ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['atst', 'guardian-of-the-whills', 'vanquish'],
+                        deck: ['tieln-fighter', 'wampa', 'battlefield-marine'],
+                        leader: 'rey#nobody'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Deploy Rey
+                expect(context.player1.hand.length).toBe(3);
+                context.player1.clickCard(context.rey);
+                context.player1.clickPrompt('Deploy Rey');
+
+                // Trigger Rey's deployed ability
+                expect(context.player1).toHavePassAbilityPrompt('Discard your hand');
+                context.player1.clickPrompt('Pass');
+
+                // Rey should be in the ground arena now
+                expect(context.rey).toBeInZone('groundArena');
+
+                // Check cards are not drawn
+                expect(context.player1.hand.length).toBe(3);
+                expect(context.tielnFighter).toBeInZone('deck', context.player1);
+                expect(context.wampa).toBeInZone('deck', context.player1);
                 expect(context.battlefieldMarine).toBeInZone('deck', context.player1);
             });
         });
