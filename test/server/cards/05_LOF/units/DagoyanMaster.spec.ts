@@ -51,6 +51,7 @@ describe('Dagoyan Master', function() {
             it('should search the top 5 for a Force unit, reveal it, and draw it', function () {
                 const { context } = contextRef;
 
+                context.player1.clickCard(context.dagoyanMaster);
                 context.player1.clickPrompt('Pass');
 
                 context.player2.clickCard(context.noGloryOnlyResults);
