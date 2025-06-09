@@ -373,7 +373,6 @@ export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityC
     );
 }
 
-
 export function chooseModalEffects<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayModalCardProperties, TContext>) {
     return new ChooseModalEffectsSystem<TContext>(propertyFactory);
 }
