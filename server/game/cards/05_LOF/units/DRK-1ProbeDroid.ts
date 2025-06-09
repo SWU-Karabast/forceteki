@@ -16,7 +16,7 @@ export default class DRK1ProbeDroid extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
-                cardCondition: (card) => !card.unique && card.isUpgrade(),
+                cardCondition: (card) => !card.unique,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             }
         });
