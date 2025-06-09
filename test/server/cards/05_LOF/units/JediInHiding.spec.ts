@@ -32,7 +32,7 @@ describe('Jedi In Hiding', () => {
             expect(context.noGloryOnlyResults).toBeInZone('discard', context.player2);
         });
 
-        it('Jedi In Hiding\'s when defeated ability may allow the player to use the force. If they do, opponent discards a card from their hand', async () => {
+        it('Jedi In Hiding\'s when defeated ability does not allow to discard a card from opponent\'s hand if player does not have the force', async () => {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -54,7 +54,7 @@ describe('Jedi In Hiding', () => {
             expect(context.noGloryOnlyResults).toBeInZone('hand', context.player2);
         });
 
-        it('Jedi In Hiding\'s when defeated ability may allow the player to use the force. If they do, opponent discards a card from their hand', async () => {
+        it('Jedi In Hiding\'s when defeated ability may allow the opponent to use the force because of No Glory Only Results. If they do, player discards a card from their hand', async () => {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
