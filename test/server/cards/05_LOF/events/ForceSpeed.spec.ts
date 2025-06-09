@@ -1,0 +1,153 @@
+describe('Force Speed', function() {
+    integration(function(contextRef) {
+        const prompt = 'Return any number of non-unique upgrades attached to the defender to their owners\' hands.';
+
+        describe('Force Speed\'s ability', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['force-speed'],
+                        groundArena: [
+                            {
+                                card: 'darth-maul#revenge-at-last',
+                                upgrades: ['constructed-lightsaber']
+                            }
+                        ],
+                        spaceArena: [
+                            'seventh-fleet-defender',
+                        ]
+                    },
+                    player2: {
+                        groundArena: [
+                            {
+                                card: 'consular-security-force',
+                                upgrades: ['shield', 'experience']
+                            },
+                            {
+                                card: 'sundari-peacekeeper',
+                                upgrades: [
+                                    'the-darksaber',
+                                    {
+                                        card: 'perilous-position',
+                                        ownerAndController: 'player1'
+                                    }
+                                ]
+                            }
+                        ],
+                        spaceArena: [
+                            {
+                                card: 'razor-crest#ride-for-hire',
+                                upgrades: [
+                                    'snapshot-reflexes',
+                                    'droid-cohort',
+                                    'the-mandalorian#weathered-pilot'
+                                ]
+                            },
+                        ]
+                    }
+                });
+            });
+
+            it('attacks with a unit, and allows the attacker to return any number of non-unique upgrades attached to the defender to their owners\' hands."', function () {
+                const { context } = contextRef;
+
+                // Player 1 plays Force Speed
+                context.player1.clickCard(context.forceSpeed);
+
+                // Player 1 initiates an attack with Seventh Fleet Defender
+                context.player1.clickCard(context.seventhFleetDefender);
+                context.player1.clickCard(context.razorCrest);
+
+                // Ability is triggered
+                expect(context.player1).toHavePrompt(prompt);
+
+                // Only non-unique upgrades attached to Razor Crest should be selectable
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.snapshotReflexes,
+                    context.droidCohort
+                ]);
+
+                context.player1.clickCard(context.snapshotReflexes);
+                context.player1.clickCard(context.droidCohort);
+                context.player1.clickPrompt('Done');
+
+                // Both upgrades should be returned to their owners' hands
+                expect(context.snapshotReflexes).toBeInZone('hand', context.player2);
+                expect(context.droidCohort).toBeInZone('hand', context.player2);
+            });
+
+            it('works correctly if the attack has multiple defenders', function () {
+                const { context } = contextRef;
+
+                // Player 1 plays Force Speed
+                context.player1.clickCard(context.forceSpeed);
+
+                // Player 1 initiates an attack with Darth Maul
+                context.player1.clickCard(context.darthMaul);
+                context.player1.clickCard(context.consularSecurityForce);
+                context.player1.clickCard(context.sundariPeacekeeper);
+                context.player1.clickPrompt('Done');
+
+                // Ability is triggered
+                expect(context.player1).toHavePrompt(prompt);
+
+                // Only non-unique upgrades attached to defenders should be selectable
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.shield,             // Defender 1
+                    context.experience,         // Defender 1
+                    context.perilousPosition    // Defender 2
+                ]);
+
+                context.player1.clickCard(context.shield);
+                context.player1.clickCard(context.experience);
+                context.player1.clickCard(context.perilousPosition);
+                context.player1.clickPrompt('Done');
+
+                // Token upagrades are removed from the game instead of being returned to hand
+                expect(context.shield).toBeInZone('outsideTheGame');
+                expect(context.experience).toBeInZone('outsideTheGame');
+
+                // Perilous Position should be returned to Player 1's hand
+                expect(context.perilousPosition).toBeInZone('hand', context.player1);
+            });
+        });
+
+        it('has no effect if the player does not have ready units to attack with', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['force-speed'],
+                    spaceArena: [
+                        { card: 'seventh-fleet-defender', exhausted: true },
+                    ]
+
+                },
+                player2: {
+                    spaceArena: [
+                        {
+                            card: 'razor-crest#ride-for-hire',
+                            upgrades: [
+                                'snapshot-reflexes',
+                                'droid-cohort',
+                                'the-mandalorian#weathered-pilot'
+                            ]
+                        },
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player 1 plays Force Speed
+            context.player1.clickCard(context.forceSpeed);
+
+            // Player 1 is warned that the card will have no effect
+            expect(context.player1).toHavePrompt('Playing Force Speed will have no effect. Are you sure you want to play it?');
+            context.player1.clickPrompt('Play anyway');
+
+            // Nothing happens, it is Player 2's turn
+            expect(context.player2).toBeActivePlayer();
+        });
+    });
+});
