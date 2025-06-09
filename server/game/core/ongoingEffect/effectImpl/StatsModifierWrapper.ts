@@ -51,8 +51,8 @@ export default class StatsModifierWrapper {
     }
 
     public static fromPrintedValues(card: Card, overrides = false) {
-        Contract.assertHasProperty(card, 'printedHp');
-        Contract.assertHasProperty(card, 'printedPower');
+        Contract.assertHasProperty(card, 'getPrintedHp');
+        Contract.assertHasProperty(card, 'getPrintedPower');
 
         const description = card.isUpgrade() ? `${card.name} bonus` : `${card.name} base`;
 
@@ -72,8 +72,8 @@ export default class StatsModifierWrapper {
                 power = card.printedUpgradePower;
             }
         } else {
-            hp = card.printedHp;
-            power = card.printedPower;
+            hp = card.getPrintedHp();
+            power = card.getPrintedPower();
         }
 
         return new this(
