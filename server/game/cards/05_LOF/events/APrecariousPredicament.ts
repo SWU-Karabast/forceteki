@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { PlayType, RelativePlayer, TargetMode, WildcardCardType, WildcardRelativePlayer, ZoneName } from '../../../core/Constants';
+import { PlayType, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class APrecariousPredicament extends EventCard {
@@ -16,7 +16,7 @@ export default class APrecariousPredicament extends EventCard {
             title: 'Return an enemy non-leader unit to its owner\'s hand unless its controller says, “It could be worse”. If they do, you may play a card named It\'s Worse from your hand or resources for free',
             targetResolvers: {
                 targetUnit: {
-                    controller: WildcardRelativePlayer.Any,
+                    controller: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit
                 },
                 opponentsChoice: {

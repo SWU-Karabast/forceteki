@@ -16,7 +16,7 @@ describe('A Precarious Predicament', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.aPrecariousPredicament);
-                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa, context.battlefieldMarine]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player2).toHaveEnabledPromptButtons(['Return Battlefield Marine to its owner\'s hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
@@ -40,37 +40,13 @@ describe('A Precarious Predicament', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.aPrecariousPredicament);
-                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa, context.battlefieldMarine]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.wampa);
                 expect(context.player2).toHaveEnabledPromptButtons(['Return Wampa to your hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
 
                 context.player2.clickPrompt('Return Wampa to your hand');
                 expect(context.wampa).toBeInZone('hand', context.player2);
-            });
-
-            it('should return a unit to its owner\'s hand when controlled and owned by player', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['a-precarious-predicament'],
-                        groundArena: ['pyke-sentinel'],
-                    },
-                    player2: {
-                        groundArena: ['wampa', { card: 'battlefield-marine', owner: 'player1' }],
-                        leader: { card: 'grand-moff-tarkin#oversector-governor', deployed: true },
-                    }
-                });
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.aPrecariousPredicament);
-                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa, context.battlefieldMarine]);
-
-                context.player1.clickCard(context.pykeSentinel);
-                expect(context.player2).toHaveEnabledPromptButtons(['Return Pyke Sentinel to opponent\'s hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
-
-                context.player2.clickPrompt('Return Pyke Sentinel to opponent\'s hand');
-                expect(context.pykeSentinel).toBeInZone('hand', context.player1);
             });
         });
 
@@ -95,7 +71,7 @@ describe('A Precarious Predicament', function() {
                 const itsWorseResource = context.player1.findCardByName('its-worse', 'resource');
 
                 context.player1.clickCard(context.aPrecariousPredicament);
-                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa, context.battlefieldMarine]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player2).toHaveEnabledPromptButtons(['Return Battlefield Marine to opponent\'s hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
@@ -131,7 +107,7 @@ describe('A Precarious Predicament', function() {
                 const itsWorseResource = context.player1.findCardByName('its-worse', 'resource');
 
                 context.player1.clickCard(context.aPrecariousPredicament);
-                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa, context.battlefieldMarine]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player2).toHaveEnabledPromptButtons(['Return Battlefield Marine to opponent\'s hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
@@ -167,7 +143,7 @@ describe('A Precarious Predicament', function() {
                 const itsWorseResource = context.player1.findCardByName('its-worse', 'resource');
 
                 context.player1.clickCard(context.aPrecariousPredicament);
-                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa, context.battlefieldMarine]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player2).toHaveEnabledPromptButtons(['Return Battlefield Marine to opponent\'s hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
