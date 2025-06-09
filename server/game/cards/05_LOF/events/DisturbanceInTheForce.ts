@@ -24,7 +24,7 @@ export default class DisturbanceInTheForce extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({
                     controller: context.player,
-                    filter: (card) => card.cardType === CardType.BasicUnit || card.cardType === CardType.LeaderUnit
+                    filter: (card) => card.cardType === CardType.BasicUnit || card.cardType === CardType.LeaderUnit || card.cardType === CardType.TokenUnit
                 }),
                 onTrue: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.theForceIsWithYou(),

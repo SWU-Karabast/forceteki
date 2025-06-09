@@ -5,7 +5,7 @@ describe('Disturbance in the Force', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['disturbance-in-the-force'],
+                        hand: ['disturbance-in-the-force', 'droid-deployment'],
                         groundArena: ['wampa', 'atst'],
                         hasForceToken: false,
                     },
@@ -48,6 +48,22 @@ describe('Disturbance in the Force', function() {
                 expect(context.player1.hasTheForce).toBeFalse();
             });
 
+            it('should not create a Force token and allow giving a Shield token when a friendly unit left play this phase with No Glory Only Results', function () {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.wampa);
+
+                context.player1.clickCard(context.disturbanceInTheForce);
+                expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
+                context.player1.clickPrompt('Play anyway');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.hasTheForce).toBeFalse();
+            });
+
             it('should create a Force token and allow giving a Shield token when a friendly unit left play this phase', function () {
                 const { context } = contextRef;
 
@@ -64,6 +80,28 @@ describe('Disturbance in the Force', function() {
                 expect(context.atst).toHaveExactUpgradeNames(['shield']);
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames([]);
                 expect(context.kiadimundi).toHaveExactUpgradeNames([]);
+                expect(context.player1.hasTheForce).toBeTrue();
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should create a Force token and allow giving a Shield token when a friendly token unit left play this phase', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.droidDeployment);
+
+                const droids = context.player1.findCardsByName('battle-droid');
+
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(droids[0]);
+
+                context.player1.clickCard(context.disturbanceInTheForce);
+
+                expect(context.player1).toBeAbleToSelectExactly([droids[1], context.wampa, context.atst, context.battlefieldMarine, context.kiadimundi]);
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickCard(context.atst);
+
+                expect(context.atst).toHaveExactUpgradeNames(['shield']);
                 expect(context.player1.hasTheForce).toBeTrue();
 
                 expect(context.player2).toBeActivePlayer();
