@@ -25,5 +25,24 @@ describe('Consumed By The Dark Side', function() {
             expect(context.battlefieldMarine.damage).toBe(2);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('Consumed By The Dark Side\'s event should be playable even if there\'s no units on the board', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['consumed-by-the-dark-side']
+                }
+            });
+            const { context } = contextRef;
+
+            // Player 1 plays Consumed By The Dark Side
+            context.player1.clickCard(context.consumedByTheDarkSide);
+
+            // Player 1 should receive a warning that the event would not have any effect but should be able to play the event anyway
+            context.player1.clickPrompt('Play anyway');
+
+            // Check active player
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
