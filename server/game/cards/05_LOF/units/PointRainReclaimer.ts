@@ -15,7 +15,7 @@ export default class PointRainReclaimer extends NonLeaderUnitCard {
             title: 'If you control a Jedi unit, give an Experience token to this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.isTraitInPlay(Trait.Jedi, context.source),
+                condition: (context) => context.player.isTraitInPlay(Trait.Jedi),
                 onTrue: AbilityHelper.immediateEffects.giveExperience(),
             })
         });

@@ -16,7 +16,7 @@ export default class LorSanTekkaSecretKeeper extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card) => card.unique && card.isUnit(),
+                cardCondition: (card) => card.unique,
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             }
         });

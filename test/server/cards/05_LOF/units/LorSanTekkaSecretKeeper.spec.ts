@@ -6,11 +6,11 @@ describe('Lor San Tekka, Secret Keeper', function() {
                     phase: 'action',
                     player1: {
                         hand: ['point-rain-reclaimer'],
-                        groundArena: ['luke-skywalker#jedi-knight', 'lor-san-tekka#secret-keeper'],
+                        groundArena: ['luke-skywalker#jedi-knight', 'lor-san-tekka#secret-keeper', 'battlefield-marine'],
                     },
                     player2: {
                         hand: ['no-glory-only-results', 'supreme-leader-snoke#shadow-ruler'],
-                        groundArena: ['darth-vader#twilight-of-the-apprentice'],
+                        groundArena: ['darth-vader#twilight-of-the-apprentice', 'hylobon-enforcer'],
                     }
                 });
             });
@@ -21,6 +21,7 @@ describe('Lor San Tekka, Secret Keeper', function() {
                 context.player2.clickCard(context.supremeLeaderSnoke);
 
                 expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.lukeSkywalker, context.supremeLeaderSnoke, context.darthVader]);
                 context.player1.clickCard(context.lukeSkywalker);
                 expect(context.lukeSkywalker).toHaveExactUpgradeNames(['experience']);
                 expect(context.player1).toBeActivePlayer();
@@ -44,6 +45,7 @@ describe('Lor San Tekka, Secret Keeper', function() {
                 context.player2.clickCard(context.lorSanTekka);
 
                 expect(context.player2).toHavePassAbilityButton();
+                expect(context.player2).toBeAbleToSelectExactly([context.darthVader, context.lukeSkywalker]);
                 context.player2.clickCard(context.darthVader);
                 expect(context.darthVader).toHaveExactUpgradeNames(['experience']);
                 expect(context.player1).toBeActivePlayer();

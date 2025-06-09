@@ -45,6 +45,13 @@ describe('Dagoyan Master', function() {
                 // Check cards in deck
                 expect(context.player1.deck.length).toBe(7);
                 expect([context.fifthBrother, context.battlefieldMarine, context.rebelPathfinder, context.scoutBikePursuer]).toAllBeInBottomOfDeck(context.player1, 4);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should search the top 5 for a Force unit, reveal it, and draw it', function () {
+                const { context } = contextRef;
+
+                context.player1.clickPrompt('Pass');
 
                 context.player2.clickCard(context.noGloryOnlyResults);
                 context.player2.clickCard(context.dagoyanMaster);
