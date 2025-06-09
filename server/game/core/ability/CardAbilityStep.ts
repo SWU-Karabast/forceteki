@@ -10,6 +10,7 @@ import type { GameSystem } from '../gameSystem/GameSystem.js';
 import type { GameEvent } from '../event/GameEvent.js';
 import type { Player } from '../Player.js';
 import type { AbilityContext } from './AbilityContext.js';
+import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
@@ -158,45 +159,46 @@ export class CardAbilityStep extends PlayerOrCardAbility {
             return null;
         }
 
-        let ifAbility;
-        let effectShouldResolve;
-
-        if (this.properties.ifYouDo) {
-            // if there are no resolved events, we can skip past evaluating "if you do" conditions
+        if (this.properties.ifYouDo || this.properties.ifYouDoNot) {
             if (resolvedAbilityEvents.length === 0) {
+                // if there are no resolved events, "if you do not" check automatically succeeds
+                if (this.properties.ifYouDoNot) {
+                    return this.buildSubAbilityStepContext(
+                        this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context),
+                        context.player
+                    );
+                }
+
+                // if there are no resolved events, we can skip past evaluating "if you do" conditions
                 return null;
             }
-            ifAbility = this.properties.ifYouDo;
-            effectShouldResolve = true;
-        } else if (this.properties.ifYouDoNot) {
-            // if there are no resolved events, "if you do not" check automatically succeeds
-            if (resolvedAbilityEvents.length === 0) {
-                return this.buildSubAbilityStepContext(
-                    this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context),
-                    context.player
-                );
+
+            // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
+            const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
+
+            if (this.properties.ifYouDo) {
+                const concreteIfAbility = this.getConcreteSubAbilityStepProperties(this.properties.ifYouDo, context);
+                const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
+
+                if (conditionalEvent.isResolvedOrReplacementResolved && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
+                    return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+                }
             }
 
-            ifAbility = this.properties.ifYouDoNot;
-            effectShouldResolve = false;
-        } else {
-            return null;
-        }
+            if (this.properties.ifYouDoNot) {
+                const concreteIfAbility = this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context);
+                const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
 
-        const concreteIfAbility = this.getConcreteSubAbilityStepProperties(ifAbility, context);
-        const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
-
-        // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
-        const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
-
-        if (conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
-            return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+                if (!conditionalEvent.isResolvedOrReplacementResolved) {
+                    return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+                }
+            }
         }
 
         return null;
     }
 
-    private getConcreteSubAbilityStepProperties(subAbilityStep, context: AbilityContext) {
+    private getConcreteSubAbilityStepProperties<TContext extends AbilityContext, TAbility extends IAbilityPropsWithSystems<TContext>>(subAbilityStep: ((context?: TContext) => TAbility) | TAbility, context: TContext) {
         const properties = typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
 
         // sub-steps will always pass to a parent window
