@@ -30,7 +30,6 @@ export default class DisturbanceInTheForce extends EventCard {
                     AbilityHelper.immediateEffects.theForceIsWithYou(),
                     AbilityHelper.immediateEffects.selectCard({
                         optional: true,
-                        // canChooseNoCards: true,
                         cardTypeFilter: WildcardCardType.Unit,
                         innerSystem: AbilityHelper.immediateEffects.giveShield()
                     })
