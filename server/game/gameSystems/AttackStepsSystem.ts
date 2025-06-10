@@ -49,9 +49,13 @@ export interface IAttackProperties<TContext extends AbilityContext = AbilityCont
      */
     attackerLastingEffects?: IAttackLastingEffectPropertiesOrFactory<TContext> | IAttackLastingEffectPropertiesOrFactory<TContext>[];
 
-    // TODO: allow declaring multiple attackers (new Maul)
     /**
-     * Effects to apply to the attacker for the duration of the attack. Can be one or more {@link IAttackLastingEffectProperties}
+     * Overrides the default combat damage dealt by the attacker. By default, a unit deals damage equal to its power.
+     */
+    attackerCombatDamageOverride?: (attack: Attack, context: TContext) => number;
+
+    /**
+     * Effects to apply to the defender for the duration of the attack. Can be one or more {@link IAttackLastingEffectProperties}
      * or a function generator(s) for them.
      */
     defenderLastingEffects?: IAttackLastingEffectPropertiesOrFactory<TContext> | IAttackLastingEffectPropertiesOrFactory<TContext>[];
@@ -228,7 +232,8 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             context.game,
             properties.attacker as IUnitCard,
             event.target as IAttackableCard[],
-            properties.isAmbush
+            properties.isAmbush,
+            properties.attackerCombatDamageOverride
         );
 
         event.attackerLastingEffects = properties.attackerLastingEffects;
@@ -323,7 +328,8 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             context.game,
             properties.attacker as IUnitCard,
             [attackTarget],
-            properties.isAmbush
+            properties.isAmbush,
+            properties.attackerCombatDamageOverride
         );
 
         for (const attackerLastingEffect of attackerLastingEffects) {
