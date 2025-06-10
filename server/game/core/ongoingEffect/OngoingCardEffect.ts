@@ -52,8 +52,14 @@ export class OngoingCardEffect extends OngoingEffect<Card> {
             return target === this.context.source;
         }
 
-        if (target.isBlank() && (this.impl.type === EffectName.GainKeyword || this.impl.type === EffectName.GainAbility)) {
-            // If the target is blanked, it cannot gain abilities or keywords
+        if (target.isBlank() && this.impl.type === EffectName.GainAbility) {
+            // If the target is blanked, it cannot gain abilities
+            return false;
+        }
+
+        if (target.isBlank() && this.impl.type === EffectName.GainKeyword && !EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self)) {
+            // If the target is blanked, it cannot gain keywords unless it is in an hidden zone,
+            // this is to allow blanked cards to be played if they gain smuggle
             return false;
         }
 

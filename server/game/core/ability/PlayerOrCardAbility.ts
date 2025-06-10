@@ -42,7 +42,7 @@ export abstract class PlayerOrCardAbility {
     public title: string;
     public limit?: IAbilityLimit;
     public canResolveWithoutLegalTargets: boolean;
-    public targetResolvers: any[];  // TargetResolver[]
+    public targetResolvers: TargetResolver<any>[];
 
     public readonly uuid: string;
     public readonly game: Game;
@@ -56,7 +56,7 @@ export abstract class PlayerOrCardAbility {
     public readonly properties: IPlayerOrCardAbilityProps<AbilityContext>;
     public readonly triggerHandlingMode: TriggerHandlingMode;
     protected readonly cost: ICost<AbilityContext>[] | ((context: AbilityContext) => ICost<AbilityContext> | ICost<AbilityContext>[]);
-    public readonly nonDependentTargets: any[]; // TargetResolver[]
+    public readonly nonDependentTargets: TargetResolver<any>[];
 
     /** Return the controller of ability, can be different from card's controller (with bounty for example) */
     public get controller(): Player {
@@ -117,7 +117,7 @@ export abstract class PlayerOrCardAbility {
         //     }
         // }
 
-        this.nonDependentTargets = this.targetResolvers.filter((target) => !target.properties.dependsOn);
+        this.nonDependentTargets = this.targetResolvers.filter((target) => !target.dependsOnOtherTarget);
     }
 
     public toString() {

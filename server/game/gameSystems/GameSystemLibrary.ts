@@ -147,6 +147,8 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { OptionalSystem, type IOptionalSystemProperties } from './OptionalSystem';
 import type { IUseWhenPlayedProperties } from './UseWhenPlayedSystem';
 import { UseWhenPlayedSystem } from './UseWhenPlayedSystem';
+import type { IRandomSelectionSystemProperties } from './RandomSelectionSystem';
+import { RandomSelectionSystem } from './RandomSelectionSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -370,7 +372,6 @@ export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityC
         )
     );
 }
-
 
 export function chooseModalEffects<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayModalCardProperties, TContext>) {
     return new ChooseModalEffectsSystem<TContext>(propertyFactory);
@@ -631,6 +632,9 @@ export function conditional<TContext extends AbilityContext = AbilityContext>(pr
 }
 export function optional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IOptionalSystemProperties<TContext>, TContext>) {
     return new OptionalSystem<TContext>(propertyFactory);
+}
+export function randomSelection<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IRandomSelectionSystemProperties<TContext>, TContext>) {
+    return new RandomSelectionSystem<TContext>(propertyFactory);
 }
 // export function onAffinity(propertyFactory: PropsFactory<AffinityActionProperties>) {
 //     return new AffinityAction(propertyFactory);
