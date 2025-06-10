@@ -150,48 +150,62 @@ export class CardAbilityStep extends PlayerOrCardAbility {
     /** "Sub-ability-steps" are subsequent steps after the initial ability effect, such as "then" or "if you do" */
     private getSubAbilityStepContext(context: AbilityContext, resolvedAbilityEvents: GameEvent[] = []) {
         if (this.properties.then) {
-            const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
-            const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
-            if (!then.thenCondition || then.thenCondition(context)) {
-                return this.buildSubAbilityStepContext(then, canBeTriggeredBy);
-            }
-
-            return null;
+            return this.buildThenSubAbilityStepContext(context);
         }
 
         if (this.properties.ifYouDo || this.properties.ifYouDoNot) {
-            if (resolvedAbilityEvents.length === 0) {
-                // if there are no resolved events, "if you do not" check automatically succeeds
-                if (this.properties.ifYouDoNot) {
-                    return this.buildSubAbilityStepContext(
-                        this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context),
-                        context.player
-                    );
-                }
+            return this.buildIfYouDoOrIfYouDoNotSubAbilityStepContext(context, resolvedAbilityEvents);
+        }
 
-                // if there are no resolved events, we can skip past evaluating "if you do" conditions
-                return null;
-            }
+        return null;
+    }
 
-            // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
-            const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
+    private buildThenSubAbilityStepContext(context: AbilityContext) {
+        if (!this.properties.then) {
+            return null;
+        }
 
-            if (this.properties.ifYouDo) {
-                const concreteIfAbility = this.getConcreteSubAbilityStepProperties(this.properties.ifYouDo, context);
-                const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
+        const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
+        const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
+        if (!then.thenCondition || then.thenCondition(context)) {
+            return this.buildSubAbilityStepContext(then, canBeTriggeredBy);
+        }
 
-                if (conditionalEvent.isResolvedOrReplacementResolved && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
-                    return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
-                }
-            }
+        return null;
+    }
 
+    private buildIfYouDoOrIfYouDoNotSubAbilityStepContext(context: AbilityContext, resolvedAbilityEvents: GameEvent[] = []) {
+        if (resolvedAbilityEvents.length === 0) {
+            // if there are no resolved events, "if you do not" check automatically succeeds
             if (this.properties.ifYouDoNot) {
-                const concreteIfAbility = this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context);
-                const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
+                return this.buildSubAbilityStepContext(
+                    this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context),
+                    context.player
+                );
+            }
 
-                if (!conditionalEvent.isResolvedOrReplacementResolved) {
-                    return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
-                }
+            // if there are no resolved events, we can skip past evaluating "if you do" conditions
+            return null;
+        }
+
+        // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
+        const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
+
+        if (this.properties.ifYouDo) {
+            const concreteIfAbility = this.getConcreteSubAbilityStepProperties(this.properties.ifYouDo, context);
+            const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
+
+            if (conditionalEvent.isResolvedOrReplacementResolved && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
+                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+            }
+        }
+
+        if (this.properties.ifYouDoNot) {
+            const concreteIfAbility = this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context);
+            const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
+
+            if (!conditionalEvent.isResolvedOrReplacementResolved) {
+                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
             }
         }
 
