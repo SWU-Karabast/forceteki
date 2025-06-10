@@ -92,8 +92,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
-        const legalTargets = this.selector.getAllLegalTargets(context);
-        if (legalTargets.length === 0) {
+        if (!this.hasLegalTarget(context)) {
             if (context.stage === Stage.PreTarget) {
                 // if there are no targets at the pretarget stage, delay targeting until after costs are paid
                 targetResults.delayTargeting = this;
@@ -101,6 +100,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             }
             return;
         }
+
+        const legalTargets = this.getAllLegalTargets(context);
 
         // A player can always choose not to pick a card from a zone that is hidden from their opponents
         // if doing so would reveal hidden information(i.e. that there are one or more valid cards in that zone) (SWU Comp Rules 2.0 1.17.4)

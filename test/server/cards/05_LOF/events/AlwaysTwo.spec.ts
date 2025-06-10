@@ -11,6 +11,7 @@ describe('Always Two', function () {
                         'emperor-palpatine#master-of-the-dark-side',
                         'sith-trooper',
                         'death-star-stormtrooper',
+                        'darth-vader#twilight-of-the-apprentice',
                     ],
                     spaceArena: [
                         'scimitar#sith-infiltrator',
@@ -33,18 +34,18 @@ describe('Always Two', function () {
             expect(context.player1).toHavePrompt(prompt);
             expect(context.player1).toBeAbleToSelectExactly([
                 context.emperorPalpatine,
-                context.scimitar
+                context.scimitar,
+                context.darthVader,
             ]);
 
             context.player1.clickCard(context.emperorPalpatine);
-
-            // Now only the second unique Sith unit should be selectable
-            expect(context.player1).toHavePrompt(prompt);
-            expect(context.player1).toBeAbleToSelectExactly([
-                context.scimitar,
-            ]);
+            expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
             context.player1.clickCard(context.scimitar);
+            expect(context.player1).toHaveEnabledPromptButton('Done');
+
+            // Confirm the selection
+            context.player1.clickPrompt('Done');
 
             // Check that the selected units received 2 Shield and 2 Experience tokens
             const expectedUpgrades = ['shield', 'shield', 'experience', 'experience'];
@@ -54,6 +55,7 @@ describe('Always Two', function () {
             // Check that all other friendly units were defeated
             expect(context.sithTrooper).toBeInZone('discard', context.player1);
             expect(context.deathStarStormtrooper).toBeInZone('discard', context.player1);
+            expect(context.darthVader).toBeInZone('discard', context.player1);
 
             // Check that enemy units remained unaffected
             expect(context.darthTyranus).toBeInZone('groundArena', context.player2);
