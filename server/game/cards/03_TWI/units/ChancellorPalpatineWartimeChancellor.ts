@@ -4,7 +4,6 @@ import { EffectName, RelativePlayer } from '../../../core/Constants';
 import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectBuilder';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
-import { isUnit } from '../../../core/utils/EnumHelpers';
 
 export default class ChancellorPalpatineWartimeChancellor extends NonLeaderUnitCard {
     private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
@@ -30,7 +29,7 @@ export default class ChancellorPalpatineWartimeChancellor extends NonLeaderUnitC
         this.addOnAttackAbility({
             title: 'Create a Clone Trooper token.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ filter: (entry) => isUnit(entry.cardType) }),
+                condition: () => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({}),
                 onTrue: AbilityHelper.immediateEffects.createCloneTrooper(),
             })
         });

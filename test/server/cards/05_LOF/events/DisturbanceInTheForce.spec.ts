@@ -161,5 +161,36 @@ describe('Disturbance in the Force', function() {
 
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('should create a Force token and allow giving a Shield token when a enemy unit left this phase with No Glory Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['disturbance-in-the-force', 'no-glory-only-results'],
+                    groundArena: ['wampa', 'atst'],
+                    hasForceToken: false,
+                },
+                player2: {
+                    groundArena: ['battlefield-marine', 'kiadimundi#composed-and-confident']
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.disturbanceInTheForce);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.kiadimundi]);
+            expect(context.player1).toHaveChooseNothingButton();
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa).toHaveExactUpgradeNames(['shield']);
+            expect(context.player1.hasTheForce).toBeTrue();
+
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
