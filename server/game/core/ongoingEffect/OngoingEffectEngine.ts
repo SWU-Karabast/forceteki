@@ -11,12 +11,12 @@ import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
 interface ICustomDurationEvent {
     name: string;
     handler: (...args: any[]) => void;
-    effect: OngoingEffect;
+    effect: OngoingEffect<any>;
 }
 
 export class OngoingEffectEngine {
     public events: EventRegistrar;
-    public effects: OngoingEffect[] = [];
+    public effects: OngoingEffect<any>[] = [];
     public customDurationEvents: ICustomDurationEvent[] = [];
     public effectsChangedSinceLastCheck = false;
 
@@ -29,7 +29,7 @@ export class OngoingEffectEngine {
         ]);
     }
 
-    public add(effect: OngoingEffect) {
+    public add(effect: OngoingEffect<any>) {
         this.effects.push(effect);
         if (effect.duration === Duration.Custom) {
             this.registerCustomDurationEvents(effect);
@@ -39,8 +39,8 @@ export class OngoingEffectEngine {
     }
 
     public checkDelayedEffects(events: GameEvent[]) {
-        const effectsToTrigger: OngoingEffect[] = [];
-        const effectsToRemove: OngoingEffect[] = [];
+        const effectsToTrigger: OngoingEffect<any>[] = [];
+        const effectsToRemove: OngoingEffect<any>[] = [];
 
         for (const effect of this.effects.filter(
             (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
@@ -172,9 +172,9 @@ export class OngoingEffectEngine {
         });
     }
 
-    public unapplyAndRemove(match: (effect: OngoingEffect) => boolean) {
+    public unapplyAndRemove(match: (effect: OngoingEffect<any>) => boolean) {
         let anyEffectRemoved = false;
-        const remainingEffects: OngoingEffect[] = [];
+        const remainingEffects: OngoingEffect<any>[] = [];
         for (const effect of this.effects) {
             if (match(effect)) {
                 anyEffectRemoved = true;
@@ -202,7 +202,7 @@ export class OngoingEffectEngine {
         this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfRound);
     }
 
-    private registerCustomDurationEvents(effect: OngoingEffect) {
+    private registerCustomDurationEvents(effect: OngoingEffect<any>) {
         if (!effect.until) {
             return;
         }
@@ -218,7 +218,7 @@ export class OngoingEffectEngine {
         }
     }
 
-    private unregisterCustomDurationEvents(effect: OngoingEffect) {
+    private unregisterCustomDurationEvents(effect: OngoingEffect<any>) {
         const remainingEvents: ICustomDurationEvent[] = [];
         for (const event of this.customDurationEvents) {
             if (event.effect === effect) {
@@ -230,7 +230,7 @@ export class OngoingEffectEngine {
         this.customDurationEvents = remainingEvents;
     }
 
-    private createCustomDurationHandler(customDurationEffect: OngoingEffect) {
+    private createCustomDurationHandler(customDurationEffect: OngoingEffect<any>) {
         return (...args) => {
             const event = args[0];
             const listener = customDurationEffect.until[event.name];

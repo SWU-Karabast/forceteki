@@ -14,7 +14,6 @@ export class PlayerPhaseLastingEffectSystem<TContext extends AbilityContext = Ab
     public override readonly name = 'applyPlayerPhaseLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
     protected override readonly defaultProperties: IPlayerLastingEffectProperties = {
-        targetPlayer: null,
         duration: null,
         effect: [],
         ability: null

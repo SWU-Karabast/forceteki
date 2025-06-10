@@ -120,5 +120,49 @@ describe('Bendu, The One in the Middle', function() {
                 expect(context.wroshyrTreeTender).toBeInZone('groundArena');
             });
         });
+
+        it('should decrease the cost of the next non-Heroism, non-Villainy played by the original controller by 2 after changing controller', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: [
+                        'cloud-city-wing-guard',
+                        'echo-base-defender',
+                        'emperors-royal-guard',
+                        'wilderness-fighter',
+                        'consortium-starviper',
+                        'homestead-militia',
+                        'vanquish',
+                        'hwk290-freighter',
+                        'wroshyr-tree-tender'
+                    ],
+                    groundArena: ['bendu#the-one-in-the-middle'],
+                    leader: 'luke-skywalker#faithful-friend',
+                    base: 'echo-base'
+                },
+                player2: {
+                    base: 'massassi-temple',
+                    groundArena: ['battlefield-marine'],
+                    hand: ['change-of-heart', 'wampa'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.bendu);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.clickCard(context.changeOfHeart);
+            context.player2.clickCard(context.bendu);
+
+            context.player1.clickCard(context.cloudCityWingGuard);
+            expect(context.cloudCityWingGuard).toBeInZone('groundArena');
+            expect(context.player1.exhaustedResourceCount).toBe(1);
+
+            const exhaustedResourceCount = context.player2.exhaustedResourceCount;
+            context.player2.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('groundArena');
+            expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourceCount + 4);
+        });
     });
 });
