@@ -139,18 +139,6 @@ class AbilityResolver extends BaseStepWithPipeline {
                 card: this.context.source,
                 ability: this.context.ability
             };
-            if (this.context.ability.isPlayCardAbility()) {
-                this.events.push(new GameEvent(EventName.OnCardPlayed, this.context, {
-                    player: this.context.player,
-                    card: this.context.source,
-                    originalZone: this.context.source.zoneName,
-                    originallyOnTopOfDeck:
-                        this.context.player && this.context.player.drawDeck && this.context.player.drawDeck[0] === this.context.source,
-                    onPlayCardSource: this.context.onPlayCardSource,
-                    playType: this.context.playType,
-                    resolver: this
-                }));
-            }
             if (this.context.ability.isActivatedAbility()) {
                 this.events.push(new GameEvent(EventName.OnCardAbilityTriggered, this.context, {
                     player: this.context.player,
