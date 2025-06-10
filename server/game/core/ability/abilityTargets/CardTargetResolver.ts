@@ -1,6 +1,7 @@
 import type { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
 import type { AbilityContext } from '../AbilityContext';
 import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
+import type { ITargetResult } from './TargetResolver';
 import { TargetResolver } from './TargetResolver';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import type { Card } from '../../card/Card';
@@ -60,7 +61,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
     private checkCardCondition(card: Card, context: AbilityContext, properties: ICardTargetResolver<AbilityContext>) {
         try {
-            const contextCopy = this.getContextCopy(card, context);
+            const contextCopy = this.getContextCopy(card, context, properties.mode);
             if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
@@ -78,9 +79,13 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         const contextCopy = context.copy();
         contextCopy.targets[this.name] = targetMode === TargetMode.Single || targetMode == null ? card : [card];
         if (this.name === 'target') {
-            contextCopy.target = card;
+            contextCopy.target = contextCopy.targets[this.name];
         }
         return contextCopy;
+    }
+
+    protected override setTargetResult(context: AbilityContext, target: Card | Card[]): void {
+        super.setTargetResult(context, this.properties.mode === TargetMode.Single || this.properties.mode == null ? target : Helpers.asArray(target));
     }
 
     public override hasLegalTarget(context: AbilityContext) {
@@ -92,8 +97,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
-        const legalTargets = this.selector.getAllLegalTargets(context);
-        if (legalTargets.length === 0) {
+        if (!this.hasLegalTarget(context)) {
             if (context.stage === Stage.PreTarget) {
                 // if there are no targets at the pretarget stage, delay targeting until after costs are paid
                 targetResults.delayTargeting = this;
@@ -101,6 +105,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             }
             return;
         }
+
+        const legalTargets = this.getAllLegalTargets(context);
 
         // A player can always choose not to pick a card from a zone that is hidden from their opponents
         // if doing so would reveal hidden information(i.e. that there are one or more valid cards in that zone) (SWU Comp Rules 2.0 1.17.4)
@@ -230,7 +236,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         });
     }
 
-    private cancel(targetResults) {
+    private cancel(targetResults: ITargetResult) {
         targetResults.cancelled = true;
     }
 
