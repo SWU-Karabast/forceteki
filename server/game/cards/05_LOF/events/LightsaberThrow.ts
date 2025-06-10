@@ -14,7 +14,6 @@ export default class LightsaberThrow extends EventCard {
         this.setEventAbility({
             title: 'Discard a Lightsaber card from your hand. If you do, deal 4 damage to a ground unit and draw a card.',
             targetResolver: {
-                numCards: 1,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Lightsaber),

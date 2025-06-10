@@ -23,8 +23,8 @@ describe('Flight of the Inquisitor', function () {
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).not.toBeAbleToSelect([context.allianceXwing]);
-                context.player1.clickCard(context.fallenLightsaber);
                 context.player1.clickCard(context.fifthBrother);
+                context.player1.clickCard(context.fallenLightsaber);
 
                 expect(context.fallenLightsaber).toBeInZone('hand');
                 expect(context.fifthBrother).toBeInZone('hand');
@@ -36,9 +36,9 @@ describe('Flight of the Inquisitor', function () {
 
                 context.player1.clickCard(context.flightOfTheInquisitor);
                 context.player1.clickPrompt('Trigger');
-                context.player1.clickCard(context.fallenLightsaber);
-                expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.fifthBrother);
+                expect(context.player1).not.toHavePassAbilityButton();
+                context.player1.clickCard(context.fallenLightsaber);
 
                 expect(context.fallenLightsaber).toBeInZone('hand');
                 expect(context.fifthBrother).toBeInZone('hand');
@@ -46,7 +46,7 @@ describe('Flight of the Inquisitor', function () {
             });
         });
 
-        it('Lightsaber Throw\'s ability should allow choosing only Lightsaber if only card available', async function () {
+        it('Flight of the Inquisitor\'s ability should allow choosing only Lightsaber if only card available', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
