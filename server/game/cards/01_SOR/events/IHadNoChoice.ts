@@ -1,5 +1,4 @@
 import AbilityHelper from '../../../AbilityHelper';
-import * as Helpers from '../../../core/utils/Helpers.js';
 import { EventCard } from '../../../core/card/EventCard';
 import { RelativePlayer, TargetMode, WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
 
@@ -26,11 +25,11 @@ export default class IHadNoChoice extends EventCard {
                     dependsOn: 'targetUnits',
                     mode: TargetMode.Single,
                     choosingPlayer: RelativePlayer.Opponent,
-                    cardCondition: (card, context) => Helpers.asArray(context.targets.targetUnits).includes(card),
+                    cardCondition: (card, context) => context.targets.targetUnits.includes(card),
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                         AbilityHelper.immediateEffects.returnToHand(),
                         AbilityHelper.immediateEffects.moveToBottomOfDeck((context) => ({
-                            target: Helpers.asArray(context.targets.targetUnits).filter((card) => card !== context.targets.opponentChoice)
+                            target: context.targets.targetUnits.filter((card) => card !== context.targets.opponentChoice)
                         }))
                     ])
                 }

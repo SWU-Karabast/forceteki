@@ -1,6 +1,7 @@
 import type { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
 import type { AbilityContext } from '../AbilityContext';
 import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
+import type { ITargetResult } from './TargetResolver';
 import { TargetResolver } from './TargetResolver';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import type { Card } from '../../card/Card';
@@ -81,6 +82,10 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             contextCopy.target = contextCopy.targets[this.name];
         }
         return contextCopy;
+    }
+
+    protected override setTargetResult(context: AbilityContext, target: Card | Card[]): void {
+        super.setTargetResult(context, this.properties.mode === TargetMode.Single || this.properties.mode == null ? target : Helpers.asArray(target));
     }
 
     public override hasLegalTarget(context: AbilityContext) {
@@ -231,7 +236,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         });
     }
 
-    private cancel(targetResults) {
+    private cancel(targetResults: ITargetResult) {
         targetResults.cancelled = true;
     }
 
