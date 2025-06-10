@@ -14,7 +14,7 @@ describe('Do or Do Not', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.doOrDoNot);
-                expect(context.player1).toHavePassAbilityPrompt('Use the Force to draw 2 cards. If you do not, draw 1 card');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you do, draw 2 cards. If you do not, draw 1 card');
 
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(2);
@@ -36,7 +36,7 @@ describe('Do or Do Not', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.doOrDoNot);
-                expect(context.player1).toHavePassAbilityPrompt('Use the Force to draw 2 cards. If you do not, draw 1 card');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you do, draw 2 cards. If you do not, draw 1 card');
 
                 context.player1.clickPrompt('Pass');
                 expect(context.player1.handSize).toBe(1);
@@ -96,7 +96,7 @@ describe('Do or Do Not', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.doOrDoNot);
-                expect(context.player1).toHavePassAbilityPrompt('Use the Force to draw 2 cards. If you do not, draw 1 card');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you do, draw 2 cards. If you do not, draw 1 card');
 
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(0);
