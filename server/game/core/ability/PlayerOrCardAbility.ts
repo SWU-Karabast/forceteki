@@ -13,7 +13,6 @@ import type Game from '../Game.js';
 import type { Player } from '../Player.js';
 import type { PlayCardAction } from './PlayCardAction.js';
 import type { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';
-import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { Card } from '../card/Card.js';
 import { v4 as uuidv4 } from 'uuid';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
@@ -23,6 +22,7 @@ import type { IAbilityLimit } from './AbilityLimit.js';
 import type { ICost } from '../cost/ICost.js';
 import type { ITargetResult, TargetResolver } from './abilityTargets/TargetResolver.js';
 import type { ActionAbility } from './ActionAbility.js';
+import type { CardAbility } from './CardAbility.js';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
@@ -397,7 +397,7 @@ export abstract class PlayerOrCardAbility {
     }
 
     /** Indicates whether this ability is an ability from card text as opposed to other types of actions like playing a card */
-    public isCardAbility(): this is CardAbilityStep {
+    public isCardAbility(): this is CardAbility {
         return false;
     }
 
