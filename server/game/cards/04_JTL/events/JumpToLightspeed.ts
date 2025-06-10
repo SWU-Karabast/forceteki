@@ -38,7 +38,7 @@ export default class JumpToLightspeed extends EventCard {
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: 'The next time you play a copy of that unit this phase, you may play it for free',
-                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                     effect: AbilityHelper.ongoingEffects.forFree({
                         cardTypeFilter: CardType.BasicUnit,
                         match: (card) => {
