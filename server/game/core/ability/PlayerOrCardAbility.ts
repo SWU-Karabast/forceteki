@@ -1,7 +1,7 @@
 import { CardTargetResolver } from './abilityTargets/CardTargetResolver.js';
 import { SelectTargetResolver } from './abilityTargets/SelectTargetResolver.js';
 import type { RelativePlayerFilter } from '../Constants.js';
-import { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck } from '../Constants.js';
+import { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck, GameStateChangeRequired } from '../Constants.js';
 import { GameEvent } from '../event/GameEvent.js';
 import * as Contract from '../utils/Contract.js';
 import { PlayerTargetResolver } from './abilityTargets/PlayerTargetResolver.js';
@@ -288,11 +288,23 @@ export abstract class PlayerOrCardAbility {
         return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
     }
 
-    public resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler, canCancel?: boolean) {
+    protected resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler, canCancel?: boolean) {
         const targetResults = this.getDefaultTargetResults(context, canCancel);
         for (const target of targetResolvers) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
         }
+
+        // If the ability has no target resolvers, itcannot resolve without legal targets (e.g. bounties), and it has an immediate effect without a then effect.
+        // we check if the immediate effect has any legal target so that the ability can be cancelled automatically if not.
+        // This is useful for abilities with a "if you do not" effect to trigger it automatically without prompting the player
+        // in case the ability effect has no legal target.
+        if (targetResolvers.length === 0 && !this.canResolveWithoutLegalTargets && this.immediateEffect && !this.properties.then) {
+            const immediateEffect = this.immediateEffect;
+            context.game.queueSimpleStep(() => {
+                targetResults.hasEffectiveTargets = targetResults.hasEffectiveTargets || immediateEffect.hasLegalTarget(context, {}, GameStateChangeRequired.MustFullyOrPartiallyResolve);
+            }, `Resolve target for immediate effect of ${this}`);
+        }
+
         return targetResults;
     }
 
