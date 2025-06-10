@@ -25,11 +25,6 @@ describe('Babu Frik, Heyyy!', function () {
             it('should allow a friendly Droid unit to attack with damage equal to its remaining HP', function () {
                 const { context } = contextRef;
 
-                const gunshipHP = context.devastatingGunship.getHp();
-
-                // Verify that the Gunship's HP is not equal to its power
-                expect(context.devastatingGunship.getPower()).not.toBe(gunshipHP);
-
                 // Player 1 uses Babu Frik's ability to attack with the Devastating Gunship
                 context.player1.clickCard(context.babuFrik);
                 expect(context.player1).toHaveExactPromptButtons([prompt, 'Attack', 'Cancel']);
@@ -42,12 +37,16 @@ describe('Babu Frik, Heyyy!', function () {
                     context.separatistCommando
                 ]);
 
+                // Explicitly check the Gunship's power and HP before the attack
+                expect(context.devastatingGunship.getPower()).toBe(7);
+                expect(context.devastatingGunship.remainingHp).toBe(1);
+
                 // Player 1 selects the Devastating Gunship to attack
                 context.player1.clickCard(context.devastatingGunship);
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.babuFrik.exhausted).toBeTrue();
-                expect(context.p2Base.damage).toBe(gunshipHP);
+                expect(context.p2Base.damage).toBe(1);
             });
 
             it('incorporates HP modifiers into the damage calculation', function () {

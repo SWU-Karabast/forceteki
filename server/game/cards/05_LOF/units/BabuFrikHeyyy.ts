@@ -19,7 +19,7 @@ export default class BabuFrikHeyyy extends NonLeaderUnitCard {
                 attackerCondition: (card, context) =>
                     card.controller === context.player &&
                     card.hasSomeTrait(Trait.Droid),
-                attackerCombatDamageOverride: (attack) => attack.attacker.getHp()
+                attackerCombatDamageOverride: (attack) => attack.attacker.remainingHp
             }
         });
     }
