@@ -170,6 +170,31 @@ describe('Rey, With Palpatine\'s Power', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should not trigger after being drawn and then immediately being discarded', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'kestro-city',
+                        deck: ['rey#with-palpatines-power'],
+                        groundArena: ['wampa'],
+                    }, player2: {
+                        hand: ['battlefield-marine', 'lothal-insurgent']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.player1.passAction();
+                context.player2.clickCard(context.lothalInsurgent);
+
+                expect(context.rey).toBeInZone('discard');
+                expect(context.player1).not.toHavePrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base.');
+                expect(context.player1).toBeActivePlayer();
+            });
+
             it('should be able to use ability for each Rey if two Reys are drawn together', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

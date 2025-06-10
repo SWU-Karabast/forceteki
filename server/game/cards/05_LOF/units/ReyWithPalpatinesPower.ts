@@ -19,7 +19,7 @@ export default class ReyWithPalpatinesPower extends NonLeaderUnitCard {
             },
             zoneFilter: ZoneName.Hand,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.getAspects().some((aspect) => aspect === Aspect.Aggression),
+                condition: (context) => context.player.base.aspects.concat(context.player.leader.aspects).includes(Aspect.Aggression) && context.source.zoneName === ZoneName.Hand,
                 onTrue: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.reveal((context) => ({ promptedPlayer: RelativePlayer.Opponent,
                         useDisplayPrompt: true,
