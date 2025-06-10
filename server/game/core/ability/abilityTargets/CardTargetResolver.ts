@@ -60,7 +60,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
     private checkCardCondition(card: Card, context: AbilityContext, properties: ICardTargetResolver<AbilityContext>) {
         try {
-            const contextCopy = this.getContextCopy(card, context);
+            const contextCopy = this.getContextCopy(card, context, properties.mode);
             if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
@@ -78,7 +78,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         const contextCopy = context.copy();
         contextCopy.targets[this.name] = targetMode === TargetMode.Single || targetMode == null ? card : [card];
         if (this.name === 'target') {
-            contextCopy.target = card;
+            contextCopy.target = contextCopy.targets[this.name];
         }
         return contextCopy;
     }
