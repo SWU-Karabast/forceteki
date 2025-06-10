@@ -45,9 +45,13 @@ export class Attack {
     }
 
     public getAttackerCombatDamage(context: AbilityContext): number | null {
-        return this.attackerCombatDamageOverride
+        const attackDamage = this.attackerCombatDamageOverride
             ? this.attackerCombatDamageOverride(this, context)
             : this.getUnitPower(this.attacker);
+
+        Contract.assertNonNegative(attackDamage, `Attacker combat damage cannot be negative: ${attackDamage}`);
+
+        return attackDamage;
     }
 
     public unitChangedController(unit: IAttackableCard): void {
@@ -96,9 +100,7 @@ export class Attack {
     public getTargetCombatDamage(_context: AbilityContext): number | null {
         // If we ever need to override the combat damage for the defender, we can follow the same pattern as attackerCombatDamageOverride
         return this.targets.reduce(
-            (total, target) =>
-                total + (target.isBase() ? 0 : this.getUnitPower(target))
-            , 0
+            (total, target) => total + (target.isBase() ? 0 : this.getUnitPower(target)), 0
         );
     }
 

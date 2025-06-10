@@ -1,7 +1,7 @@
 describe('Babu Frik, Heyyy!', function () {
     integration(function(contextRef) {
         describe('Babu Frik\'s action ability', function() {
-            const prompt = 'You may attack with a friendly Droid unit. For this attack, it deals damage equal to its remaining HP instead of its power.';
+            const prompt = 'Attack with a friendly Droid unit. For this attack, it deals damage equal to its remaining HP instead of its power.';
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -9,6 +9,7 @@ describe('Babu Frik, Heyyy!', function () {
                         hand: ['huyang#enduring-instructor'],
                         groundArena: [
                             'babu-frik#heyyy',
+                            { card: 'ig11#i-cannot-be-captured', damage: 1 },
                             { card: 'separatist-commando', upgrades: ['resilient'] }
                         ],
                         spaceArena: [
@@ -16,7 +17,7 @@ describe('Babu Frik, Heyyy!', function () {
                         ]
                     },
                     player2: {
-                        hand: ['takedown', 'vanquish'],
+                        hand: ['takedown', 'vanquish', 'its-worse'],
                         groundArena: ['super-battle-droid']
                     }
                 });
@@ -34,6 +35,7 @@ describe('Babu Frik, Heyyy!', function () {
                 expect(context.player1).toHavePrompt(prompt);
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.devastatingGunship,
+                    context.ig11,
                     context.separatistCommando
                 ]);
 
@@ -69,6 +71,7 @@ describe('Babu Frik, Heyyy!', function () {
                 expect(context.player1).toHavePrompt(prompt);
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.devastatingGunship,
+                    context.ig11,
                     context.separatistCommando
                 ]);
 
@@ -106,6 +109,7 @@ describe('Babu Frik, Heyyy!', function () {
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.devastatingGunship,
+                    context.ig11,
                     context.separatistCommando
                 ]);
 
@@ -124,6 +128,9 @@ describe('Babu Frik, Heyyy!', function () {
                 context.player1.passAction();
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.separatistCommando);
+                context.player1.passAction();
+                context.player2.clickCard(context.itsWorse);
+                context.player2.clickCard(context.ig11);
 
                 // Player 1 activates Babu Frik's ability
                 context.player1.clickCard(context.babuFrik);
@@ -138,6 +145,35 @@ describe('Babu Frik, Heyyy!', function () {
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.babuFrik.exhausted).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('deals the right amount of damage if the Droid unit takes damage in the on-attack step', function () {
+                const { context } = contextRef;
+
+                // Player 1 uses Babu Frik's ability to attack with the IG-11
+                context.player1.clickCard(context.babuFrik);
+                expect(context.player1).toHaveExactPromptButtons([prompt, 'Attack', 'Cancel']);
+                context.player1.clickPrompt(prompt);
+
+                // Only the friendly Droid units should be available for attack
+                expect(context.player1).toHavePrompt(prompt);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.devastatingGunship,
+                    context.ig11,
+                    context.separatistCommando
+                ]);
+
+                // Player 1 selects the IG-11 to attack
+                context.player1.clickCard(context.ig11);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Deal 3 damage to a damaged ground unit');
+                context.player1.clickCard(context.ig11);
+
+                // IG-11 takes 3 damage and has 1 remaining HP
+                expect(context.ig11.damage).toBe(4);
+                expect(context.ig11.remainingHp).toBe(1);
+                expect(context.p2Base.damage).toBe(1); // IG-11 deals 1 damage equal to its remaining HP
             });
         });
     });
