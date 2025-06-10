@@ -42,6 +42,7 @@ describe('Always Two', function () {
             expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
             context.player1.clickCard(context.scimitar);
+            context.player1.clickCardNonChecking(context.darthVader);
             expect(context.player1).toHaveEnabledPromptButton('Done');
 
             // Confirm the selection
