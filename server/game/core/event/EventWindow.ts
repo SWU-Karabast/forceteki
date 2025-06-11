@@ -77,6 +77,7 @@ export class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.resolveEvents(), 'resolveEvents'),
             new SimpleStep(this.game, () => this.checkUniqueRule(), 'checkUniqueRule'),
             new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
+            new SimpleStep(this.game, () => this.postResolutionTriggers(), 'postResolutionTriggers'),
             new SimpleStep(this.game, () => this.resolveSubwindowEvents(), 'checkSubwindowEvents'),
             new SimpleStep(this.game, () => this.resolveSubAbilityStep(), 'checkThenAbilitySteps'),
             new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
@@ -221,7 +222,9 @@ export class EventWindow extends BaseStepWithPipeline {
     private resolveGameState() {
         // TODO: understand if resolveGameState really needs the resolvedEvents array or not
         this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents);
+    }
 
+    private postResolutionTriggers() {
         // emit the events a second time post-resolution for the sake of potential keywords gained during
         // resolution (such as Ambush) which came online during resolveGameState() and need to register triggers
         for (const event of this.resolvedEvents) {
