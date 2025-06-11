@@ -331,20 +331,20 @@ export class UserFactory {
             Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
 
             const decoded = jwt.verify(token, secret) as any;
-            if (!decoded || (!decoded.id) || (!decoded.uuid)) {
-                return this.createAnonymousUser(userData.id);
+            if (!decoded || (!decoded.userId)) {
+                throw new Error('Parameter missing in JWT token');
             }
 
             // Update the user data with the decoded UUID
             const updatedUserData = {
                 ...userData,
-                id: decoded.uuid
+                id: decoded.userId
             };
 
             return new AuthenticatedUser(updatedUserData);
         } catch (error) {
             logger.error('Error verifying JWT token:', { error: { message: error.message, stack: error.stack } });
-            return null;
+            throw error;
         }
     }
 }
