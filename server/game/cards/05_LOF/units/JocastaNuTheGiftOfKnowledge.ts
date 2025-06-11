@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { RelativePlayer, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class JocastaNuTheGiftOfKnowledge extends NonLeaderUnitCard {
     protected override getImplementationId() {
