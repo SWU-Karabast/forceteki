@@ -15,7 +15,7 @@ export interface IReplacementEffectSystemProperties<TContext extends TriggeredAb
 }
 
 export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends GameSystem<TContext, IReplacementEffectSystemProperties<TContext>> {
-    protected override readonly eventName = MetaEventName.ReplacementEffect;
+    public override readonly eventName = MetaEventName.ReplacementEffect;
 
     public override eventHandler(event, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}): void {
         const triggerWindow = event.context.replacementEffectWindow;

@@ -18,7 +18,7 @@ export interface ILookMoveDeckCardsTopOrBottomProperties extends IPlayerTargetSy
 
 export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ILookMoveDeckCardsTopOrBottomProperties> {
     public override readonly name = 'lookMoveDeckCardsTopOrBottomSystem';
-    protected override readonly eventName = EventName.OnLookMoveDeckCardsTopOrBottom;
+    public override readonly eventName = EventName.OnLookMoveDeckCardsTopOrBottom;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(event): void { }

@@ -14,7 +14,7 @@ export type IDistributeExperienceSystemProperties<TContext extends AbilityContex
  * Will prompt the user to select where to put the experience (unless auto-selecting a single target is possible).
  */
 export class DistributeExperienceSystem<TContext extends AbilityContext = AbilityContext> extends DistributeAmongTargetsSystem<TContext> {
-    protected override readonly eventName = MetaEventName.DistributeExperience;
+    public override readonly eventName = MetaEventName.DistributeExperience;
     public override readonly name = 'distributeExperience';
 
     public override promptType: DistributePromptType = StatefulPromptType.DistributeExperience;

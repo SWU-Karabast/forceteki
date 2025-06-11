@@ -12,7 +12,7 @@ export interface IOptionalSystemProperties<TContext extends AbilityContext = Abi
 }
 
 export class OptionalSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, IOptionalSystemProperties<TContext>> {
-    protected override readonly eventName = MetaEventName.Optional;
+    public override readonly eventName = MetaEventName.Optional;
 
     public override getInnerSystems(properties: IOptionalSystemProperties<TContext>) {
         return [properties.innerSystem];

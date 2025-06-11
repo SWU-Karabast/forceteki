@@ -32,7 +32,7 @@ describe('Hunting Aggressor', function() {
 
             // Planetary Bombardment deals 9 damage (8 plus one from Hunting Aggressor)
             context.player1.clickCard(context.planetaryBombardment);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             expect(context.player2).toHavePrompt('Distribute 9 indirect damage among targets');
 
             context.player2.setDistributeIndirectDamagePromptState(new Map([
@@ -61,7 +61,7 @@ describe('Hunting Aggressor', function() {
 
             // Planetary Bombardment deals 10 damage (8 plus two from Hunting Aggressors)
             context.player1.clickCard(context.planetaryBombardment);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             expect(context.player2).toHavePrompt('Distribute 10 indirect damage among targets');
 
             context.player2.setDistributeIndirectDamagePromptState(new Map([
@@ -92,7 +92,7 @@ describe('Hunting Aggressor', function() {
 
             // Planetary Bombardment deals 8 damage
             context.player2.clickCard(context.planetaryBombardment);
-            context.player2.clickPrompt('Opponent');
+            context.player2.clickPrompt('Deal indirect damage to opponent');
             expect(context.player1).toHavePrompt('Distribute 8 indirect damage among targets');
 
             context.player1.setDistributeIndirectDamagePromptState(new Map([
@@ -126,7 +126,7 @@ describe('Hunting Aggressor', function() {
 
             // Planetary Bombardment deals 9 damage (8 plus one from Hunting Aggressor)
             context.player1.clickCard(context.planetaryBombardment);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             expect(context.player2).toHavePrompt('Distribute 9 indirect damage among targets');
 
             context.player2.setDistributeIndirectDamagePromptState(new Map([
@@ -155,7 +155,7 @@ describe('Hunting Aggressor', function() {
 
             // Planetary Bombardment deals 8 damage
             context.player1.clickCard(context.planetaryBombardment);
-            context.player1.clickPrompt('You');
+            context.player1.clickPrompt('Deal indirect damage to yourself');
             expect(context.player1).toHavePrompt('Distribute 8 indirect damage among targets');
 
             context.player1.setDistributeIndirectDamagePromptState(new Map([
@@ -188,11 +188,11 @@ describe('Hunting Aggressor', function() {
 
             // Trigger Boba's ability, deals 2 indirect damage (1 plus one from Hunting Aggressor)
             context.player1.clickPrompt('Trigger');
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             expect(context.p2Base.damage).toBe(6);
 
             // Trigger Dengar's ability, deals 3 indirect damage (2 plus one from Hunting Aggressor) and 1 combat damage
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             expect(context.p2Base.damage).toBe(10);
         });
     });

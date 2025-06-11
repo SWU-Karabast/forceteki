@@ -16,7 +16,7 @@ export interface IDetachPilotProperties extends ICardTargetSystemProperties {}
 
 export class DetachPilotSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDetachPilotProperties> {
     public override readonly name = 'detach';
-    protected override readonly eventName = EventName.OnCardMoved;
+    public override readonly eventName = EventName.OnCardMoved;
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.UnitUpgrade];
 
     public eventHandler(event: any): void {

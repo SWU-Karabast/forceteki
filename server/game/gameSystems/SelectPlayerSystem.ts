@@ -19,7 +19,7 @@ export interface ISelectPlayerProperties<TContext extends AbilityContext = Abili
 export class SelectPlayerSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ISelectPlayerProperties<TContext>> {
     public override readonly name: string = 'selectPlayer';
     public override readonly effectDescription: string = 'choose a player';
-    protected override readonly eventName: MetaEventName.SelectPlayer;
+    public override readonly eventName: MetaEventName.SelectPlayer;
     protected override readonly defaultProperties: ISelectPlayerProperties<TContext> = {
         innerSystem: null,
         mode: TargetMode.Player,

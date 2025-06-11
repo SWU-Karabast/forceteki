@@ -19,7 +19,7 @@ describe('First Order Stormtrooper', function () {
             context.player1.clickCard(context.p2Base);
 
             // Player 1 chooses to deal 1 indirect damage their opponent
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
 
             expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.p2Base]);
@@ -38,7 +38,7 @@ describe('First Order Stormtrooper', function () {
             expect(context.firstOrderStormtrooper).toBeInZone('discard');
 
             // Player 1 chooses to deal 1 indirect damage their opponent
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
 
             expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.p2Base]);

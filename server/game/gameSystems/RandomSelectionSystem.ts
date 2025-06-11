@@ -23,7 +23,7 @@ export interface IRandomSelectionSystemProperties<TContext extends AbilityContex
  * targets to pass to the inner system.
  */
 export class RandomSelectionSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, IRandomSelectionSystemProperties<TContext>> {
-    protected override readonly eventName = MetaEventName.RandomSelection;
+    public override readonly eventName = MetaEventName.RandomSelection;
 
     public override getInnerSystems(properties: IRandomSelectionSystemProperties<TContext>) {
         return [properties.innerSystem];
