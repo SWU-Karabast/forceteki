@@ -21,7 +21,7 @@ export default class MoffGideonIKnowEverything extends NonLeaderUnitCard {
                     ((event.type === DamageType.Combat && event.damageSource.attack.getSingleTarget().isBase()) || event.type === DamageType.Overwhelm)
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect((context) => ({
-                targetController: context.player.opponent,
+                target: context.player.opponent,
                 effect: AbilityHelper.ongoingEffects.increaseCost({
                     cardTypeFilter: WildcardCardType.Unit,
                     amount: 1,

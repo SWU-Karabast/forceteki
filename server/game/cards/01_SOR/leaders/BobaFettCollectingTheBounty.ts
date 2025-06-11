@@ -2,6 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
+import { isUnit } from '../../../core/utils/EnumHelpers';
 
 export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
     private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
@@ -22,7 +23,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
             title: 'Exhaust Boba Fett to ready a resource',
             when: {
                 onCardLeavesPlay: (event, context) =>
-                    event.card.isUnit() && event.card.controller !== context.player
+                    isUnit(event.lastKnownInformation.type) && event.lastKnownInformation.controller !== context.player
             },
             // we shortcut and automatically activate Boba's ability if there are any exhausted resources
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
@@ -45,7 +46,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {
-                    const opponentHasUnitsThatLeftPlayThisPhase = this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ controller: context.player.opponent, filter: (entry) => entry.card.isUnit() });
+                    const opponentHasUnitsThatLeftPlayThisPhase = this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({ controller: context.player.opponent });
                     const playerHasResourcesToReady = context.player.resources.some((resource) => resource.exhausted);
                     return opponentHasUnitsThatLeftPlayThisPhase && playerHasResourcesToReady;
                 },

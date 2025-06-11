@@ -72,7 +72,7 @@ export class AttackFlow extends BaseStepWithPipeline {
                 inPlayTargets.push(target);
             } else if (this.attack.hasOverwhelm()) {
                 // This target is no longer in play
-                directOverwhelmDamage += this.attack.getAttackerTotalPower();
+                directOverwhelmDamage += this.attack.getAttackerCombatDamage(this.context);
             }
         }
 
@@ -118,7 +118,7 @@ export class AttackFlow extends BaseStepWithPipeline {
     private createAttackerDamageEvent(target: IAttackableCard): GameEvent {
         const attackerDamageEvent = new DamageSystem({
             type: DamageType.Combat,
-            amount: this.attack.getAttackerTotalPower(),
+            amount: this.attack.getAttackerCombatDamage(this.context),
             sourceAttack: this.attack,
             target: target
         }).generateEvent(this.context);
@@ -148,7 +148,7 @@ export class AttackFlow extends BaseStepWithPipeline {
     private createDefenderDamageEvent(): GameEvent {
         return new DamageSystem({
             type: DamageType.Combat,
-            amount: this.attack.getTargetTotalPower(),
+            amount: this.attack.getTargetCombatDamage(this.context),
             sourceAttack: this.attack,
             target: this.attack.attacker
         }).generateEvent(this.context);

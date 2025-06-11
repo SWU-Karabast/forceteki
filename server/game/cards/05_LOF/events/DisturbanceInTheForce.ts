@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { CardType, WildcardCardType } from '../../../core/Constants';
+import { WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 
@@ -22,10 +22,7 @@ export default class DisturbanceInTheForce extends EventCard {
         this.setEventAbility({
             title: 'If a friendly unit left play this phase, the Force is with you and you may give a Shield token to a unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({
-                    controller: context.player,
-                    filter: (card) => card.cardType === CardType.BasicUnit || card.cardType === CardType.LeaderUnit || card.cardType === CardType.TokenUnit
-                }),
+                condition: (context) => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({ controller: context.player }),
                 onTrue: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.theForceIsWithYou(),
                     AbilityHelper.immediateEffects.selectCard({

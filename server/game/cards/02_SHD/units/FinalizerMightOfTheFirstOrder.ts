@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as Contract from '../../../core/utils/Contract';
-import * as Helpers from '../../../core/utils/Helpers.js';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import type { Card } from '../../../core/card/Card';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
@@ -35,7 +34,7 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
             then: (chosenUnitsContext) => ({
                 title: 'Each of those units captures an enemy non-leader unit in the same arena',
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous(
-                    Helpers.asArray(chosenUnitsContext.target).map((target) =>
+                    chosenUnitsContext.target?.map((target) =>
                         AbilityHelper.immediateEffects.selectCard({
                             activePromptTitle: `Choose a unit to capture with ${target.title}`,
                             player: RelativePlayer.Self,

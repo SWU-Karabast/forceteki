@@ -24,7 +24,7 @@ export default class DagoyanMaster extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                     selectCount: 1,
                     searchCount: 5,
-                    cardCondition: (card) => card.hasSomeTrait(Trait.Force),
+                    cardCondition: (card) => card.hasSomeTrait(Trait.Force) && card.isUnit(),
                     selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
                 })
             }

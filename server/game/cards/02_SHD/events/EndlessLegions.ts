@@ -1,5 +1,4 @@
 import AbilityHelper from '../../../AbilityHelper';
-import * as Helpers from '../../../core/utils/Helpers';
 import { EventCard } from '../../../core/card/EventCard';
 import { GameStateChangeRequired, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
@@ -40,7 +39,7 @@ export default class EndlessLegions extends EventCard {
                 zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
                 mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
-                cardCondition: (card: Card) => Helpers.asArray(revealedCardsContext.target).includes(card) && !playedCards.includes(card),
+                cardCondition: (card: Card) => revealedCardsContext.target?.includes(card) && !playedCards.includes(card),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Free },
                     playAsType: WildcardCardType.Unit,
