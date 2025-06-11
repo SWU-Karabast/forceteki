@@ -82,6 +82,41 @@ describe('Psychometry', function() {
                 context.player1.clickPrompt('Take Nothing');
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should be able to choose a card that lost a Trait before being discarded', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['psychometry'],
+                        groundArena: [{ card: 'yoda#old-master', damage: 1 }],
+                        deck: ['mystic-reflection', 'krayt-dragon', 'wampa', 'jedi-light-cruiser', 'moisture-farmer']
+                    },
+                    player2: {
+                        groundArena: ['nameless-terror']
+                    }
+                });
+                const { context } = contextRef;
+
+                // Take away Yoda's Force trait and defeat him
+                context.player1.passAction();
+                context.player2.clickCard(context.namelessTerror);
+                context.player2.clickCard(context.yoda);
+
+                context.player1.clickPrompt('Done');
+
+                context.player1.clickCard(context.psychometry);
+                expect(context.player1).toBeAbleToSelectExactly([context.yoda]);
+                context.player1.clickCard(context.yoda);
+
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.mysticReflection, context.jediLightCruiser],
+                    invalid: [context.wampa, context.moistureFarmer, context.kraytDragon]
+                });
+
+                context.player1.clickCardInDisplayCardPrompt(context.mysticReflection);
+                expect(context.mysticReflection).toBeInZone('hand');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
