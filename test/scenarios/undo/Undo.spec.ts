@@ -496,63 +496,63 @@ describe('Undo', function() {
             });
         });
 
-        // describe('War Juggernaut\'s constant ability', function() {
-        //     // ISSUE: Might have broken due to partial ongoing effect changes.
-        //     // it('should get +1/0 for each damaged unit', async function() {
-        //     //     await contextRef.setupTestAsync({
-        //     //         phase: 'action',
-        //     //         player1: {
-        //     //             groundArena: [{ card: 'war-juggernaut', damage: 4 }, 'pyke-sentinel'],
-        //     //             spaceArena: [{ card: 'inferno-four#unforgetting', damage: 2 }]
-        //     //         },
-        //     //         player2: {
-        //     //             groundArena: ['first-legion-snowtrooper', { card: 'maul#shadow-collective-visionary', damage: 3 }],
-        //     //             spaceArena: [{ card: 'imperial-interceptor', damage: 1 }, 'ruthless-raider']
-        //     //         }
-        //     //     });
+        describe('War Juggernaut\'s constant ability', function() {
+            // ISSUE: Might have broken due to partial ongoing effect changes.
+            it('should get +1/0 for each damaged unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'war-juggernaut', damage: 4 }, 'pyke-sentinel'],
+                        spaceArena: [{ card: 'inferno-four#unforgetting', damage: 2 }]
+                    },
+                    player2: {
+                        groundArena: ['first-legion-snowtrooper', { card: 'maul#shadow-collective-visionary', damage: 3 }],
+                        spaceArena: [{ card: 'imperial-interceptor', damage: 1 }, 'ruthless-raider']
+                    }
+                });
 
-        //     //     const { context } = contextRef;
+                const { context } = contextRef;
 
-        //     //     rollback(context, () => {
-        //     //         // War Juggernaut should have 7 power (3 from card and 4 from damaged units)
-        //     //         expect(context.warJuggernaut.getPower()).toBe(7);
+                rollback(context, () => {
+                    // War Juggernaut should have 7 power (3 from card and 4 from damaged units)
+                    expect(context.warJuggernaut.getPower()).toBe(7);
 
-        //     //         context.player1.clickCard(context.pykeSentinel);
-        //     //         context.player1.clickCard(context.firstLegionSnowtrooper);
+                    context.player1.clickCard(context.pykeSentinel);
+                    context.player1.clickCard(context.firstLegionSnowtrooper);
 
-        //     //         // War Juggernaut should have 9 power (3 from card and 6 from damaged units)
-        //     //         expect(context.warJuggernaut.getPower()).toBe(9);
-        //     //     });
-        //     // });
+                    // War Juggernaut should have 9 power (3 from card and 6 from damaged units)
+                    expect(context.warJuggernaut.getPower()).toBe(9);
+                });
+            });
 
-        //     // ISSUE: Might have broken due to partial ongoing effect changes.
-        //     // it('should not get +1/0 because there are no damaged units', async function() {
-        //     //     await contextRef.setupTestAsync({
-        //     //         phase: 'action',
-        //     //         player1: {
-        //     //             groundArena: ['war-juggernaut', 'pyke-sentinel'],
-        //     //             spaceArena: ['inferno-four#unforgetting']
-        //     //         },
-        //     //         player2: {
-        //     //             groundArena: ['first-legion-snowtrooper', 'maul#shadow-collective-visionary'],
-        //     //             spaceArena: ['imperial-interceptor', 'ruthless-raider']
-        //     //         }
-        //     //     });
+            // ISSUE: Might have broken due to partial ongoing effect changes.
+            it('should not get +1/0 because there are no damaged units', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['war-juggernaut', 'pyke-sentinel'],
+                        spaceArena: ['inferno-four#unforgetting']
+                    },
+                    player2: {
+                        groundArena: ['first-legion-snowtrooper', 'maul#shadow-collective-visionary'],
+                        spaceArena: ['imperial-interceptor', 'ruthless-raider']
+                    }
+                });
 
-        //     //     const { context } = contextRef;
+                const { context } = contextRef;
 
-        //     //     rollback(context, () => {
-        //     //     // War Juggernaut should have 3 power (3 from card and 0 from damaged units)
-        //     //         expect(context.warJuggernaut.getPower()).toBe(3);
+                rollback(context, () => {
+                    // War Juggernaut should have 3 power (3 from card and 0 from damaged units)
+                    expect(context.warJuggernaut.getPower()).toBe(3);
 
-        //     //         context.player1.clickCard(context.pykeSentinel);
-        //     //         context.player1.clickCard(context.firstLegionSnowtrooper);
+                    context.player1.clickCard(context.pykeSentinel);
+                    context.player1.clickCard(context.firstLegionSnowtrooper);
 
-        //     //         // War Juggernaut should have 5 power (3 from card and 2 from damaged units)
-        //     //         expect(context.warJuggernaut.getPower()).toBe(5);
-        //     //     });
-        //     // });
-        // });
+                    // War Juggernaut should have 5 power (3 from card and 2 from damaged units)
+                    expect(context.warJuggernaut.getPower()).toBe(5);
+                });
+            });
+        });
 
 
         describe('Echo, Valiant Arc Trooper\'s constant Coordinate ability', function() {
@@ -585,23 +585,23 @@ describe('Undo', function() {
             });
 
             // ISSUE: Might have broken due to partial ongoing effect changes.
-            // it('should be able to rollback from inactive to active', function () {
-            //     const { context } = contextRef;
-            //     expect(context.echo.getPower()).toBe(2);
-            //     expect(context.echo.getHp()).toBe(2);
-            //     context.player1.clickCard(context.battlefieldMarine);
+            it('should be able to rollback from inactive to active', function () {
+                const { context } = contextRef;
+                expect(context.echo.getPower()).toBe(2);
+                expect(context.echo.getHp()).toBe(2);
+                context.player1.clickCard(context.battlefieldMarine);
 
-            //     // Rollback from inactive to active.
-            //     rollback(context, () => {
-            //         expect(context.echo.getPower()).toBe(4);
-            //         expect(context.echo.getHp()).toBe(4);
+                // Rollback from inactive to active.
+                rollback(context, () => {
+                    expect(context.echo.getPower()).toBe(4);
+                    expect(context.echo.getHp()).toBe(4);
 
-            //         context.player2.clickCard(context.cartelSpacer);
-            //         context.player2.clickCard(context.wingLeader);
-            //         expect(context.echo.getPower()).toBe(2);
-            //         expect(context.echo.getHp()).toBe(2);
-            //     });
-            // });
+                    context.player2.clickCard(context.cartelSpacer);
+                    context.player2.clickCard(context.wingLeader);
+                    expect(context.echo.getPower()).toBe(2);
+                    expect(context.echo.getHp()).toBe(2);
+                });
+            });
         });
 
         describe('Punch It\'s ability', function () {

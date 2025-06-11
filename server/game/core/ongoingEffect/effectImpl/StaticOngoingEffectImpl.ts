@@ -3,9 +3,16 @@ import type { EffectName } from '../../Constants';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { OngoingEffectImpl } from './OngoingEffectImpl';
 import type Game from '../../Game';
+import type { GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
 
-export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
-    public readonly valueWrapper: OngoingEffectValueWrapper<TValue>;
+export interface IStaticOngoingEffectImplState<TValue> extends IGameObjectBaseState {
+    valueWrapper: GameObjectRef<OngoingEffectValueWrapper<TValue>>;
+}
+
+export default class StaticOngoingEffectImpl<TValue, TState extends IStaticOngoingEffectImplState<TValue> = IStaticOngoingEffectImplState<TValue>> extends OngoingEffectImpl<TValue, TState> {
+    public get valueWrapper() {
+        return this.game.getFromRef(this.state.valueWrapper);
+    }
 
     public override get effectDescription() {
         return this.valueWrapper.effectDescription;
@@ -15,9 +22,9 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
         super(game, type);
 
         if (value instanceof OngoingEffectValueWrapper) {
-            this.valueWrapper = value;
+            this.state.valueWrapper = value.getRef();
         } else {
-            this.valueWrapper = new OngoingEffectValueWrapper(game, value);
+            this.state.valueWrapper = new OngoingEffectValueWrapper(game, value).getRef();
         }
     }
 

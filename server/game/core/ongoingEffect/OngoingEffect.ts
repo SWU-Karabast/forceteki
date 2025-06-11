@@ -200,4 +200,8 @@ export abstract class OngoingEffect<T extends IOngoingEffectState = IOngoingEffe
             effect: this.impl.getDebugInfo()
         };
     }
+
+    public override afterSetAllState(oldState: T) {
+        this.refreshContext();
+    }
 }

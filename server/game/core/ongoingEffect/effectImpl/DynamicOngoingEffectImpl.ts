@@ -2,15 +2,20 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import type { EffectName } from '../../Constants';
 import type Game from '../../Game';
 import { GameObject } from '../../GameObject';
+import type { GameObjectRef } from '../../GameObjectBase';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import type { IStaticOngoingEffectImplState } from './StaticOngoingEffectImpl';
 import StaticOngoingEffectImpl from './StaticOngoingEffectImpl';
 
 export type CalculateOngoingEffect<TValue> = (target: any, context: AbilityContext, game: Game) => TValue;
 export type CalculateOngoingEffectValueWrapper<TValue> = (target: any, context: AbilityContext, game: Game) => TValue | OngoingEffectValueWrapper<TValue>;
+export interface IDynamicOngoingEffectImpl<TValue> extends IStaticOngoingEffectImplState<TValue> {
+    values: Record<string, GameObjectRef<OngoingEffectValueWrapper<TValue>>>;
+}
+
 
 // TODO: eventually this will subclass OngoingEffectImpl directly
-export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImpl<TValue> {
-    private values: Record<string, OngoingEffectValueWrapper<TValue>> = {};
+export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImpl<TValue, IDynamicOngoingEffectImpl<TValue>> {
     private readonly calculate: CalculateOngoingEffectValueWrapper<TValue>;
 
     public constructor(game: Game,
@@ -19,6 +24,11 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
     ) {
         super(game, type, null);
         this.calculate = calculate;
+    }
+
+    public override setupDefaultState(): void {
+        super.setupDefaultState();
+        this.state.values = {};
     }
 
     public override apply(effect, target) {
@@ -40,12 +50,12 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
     }
 
     public override getValue(target) {
-        return this.values[target.uuid]?.getValue();
+        return this.game.getFromRef(this.state.values[target.uuid])?.getValue();
     }
 
     private setValue(target: GameObject, value: OngoingEffectValueWrapper<TValue>) {
-        this.values[target.uuid]?.unapply(target);
-        this.values[target.uuid] = value;
+        this.game.getFromRef(this.state.values[target.uuid])?.unapply(target);
+        this.state.values[target.uuid] = value.getRef();
         value.apply(target);
         return value.getValue();
     }

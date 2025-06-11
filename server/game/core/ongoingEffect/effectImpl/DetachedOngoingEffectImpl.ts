@@ -1,12 +1,17 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { EffectName } from '../../Constants';
 import type Game from '../../Game';
+import type { IGameObjectBaseState } from '../../GameObjectBase';
 import { OngoingEffectImpl } from './OngoingEffectImpl';
 
-export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
-    private state: Record<string, any> = {};
-    public applyFunc;
-    public unapplyFunc;
+// STATE ISSUE: This does not work; `state` is often a function.
+export interface IStaticOngoingEffectImplState<TValue> extends IGameObjectBaseState {
+    state: Record<string, any>;
+}
+
+export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue, IStaticOngoingEffectImplState<TValue>> {
+    public readonly applyFunc;
+    public readonly unapplyFunc;
 
     public constructor(game: Game,
         type: EffectName,
@@ -16,6 +21,11 @@ export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl
         super(game, type);
         this.applyFunc = applyFunc;
         this.unapplyFunc = unapplyFunc;
+    }
+
+    protected override setupDefaultState(): void {
+        super.setupDefaultState();
+        this.state.state = {};
     }
 
     public apply(effect, target: any) {

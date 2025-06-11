@@ -2,16 +2,17 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import type { FormatMessage } from '../../chat/GameChat';
 import type { Duration, EffectName } from '../../Constants';
 import type Game from '../../Game';
+import type { IGameObjectBaseState } from '../../GameObjectBase';
+import { GameObjectBase } from '../../GameObjectBase';
 
-export abstract class OngoingEffectImpl<TValue> {
+export abstract class OngoingEffectImpl<TValue, TState extends IGameObjectBaseState = IGameObjectBaseState> extends GameObjectBase<TState> {
     public duration?: Duration = null;
     public isConditional = false;
     protected context?: AbilityContext = null;
     public readonly type: EffectName;
-    protected readonly game: Game;
 
     public constructor(game: Game, type: EffectName) {
-        this.game = game;
+        super(game);
         this.type = type;
     }
 
@@ -33,5 +34,9 @@ export abstract class OngoingEffectImpl<TValue> {
         return {
             type: this.type
         };
+    }
+
+    public override getGameObjectName() {
+        return 'OngoingEffectImpl';
     }
 }
