@@ -18,17 +18,14 @@ export default class Psychometry extends EventCard {
                 zoneFilter: ZoneName.Discard,
                 cardCondition: (card, context) => card !== context.source
             },
-            then: (context) => {
-                const chosenCard = context.target;
-                return {
-                    title: 'Search the top 5 cards of your deck for a card that shares a Trait with the chosen card, reveal it, and draw it.',
-                    immediateEffect: AbilityHelper.immediateEffects.deckSearch({
-                        searchCount: 5,
-                        cardCondition: (card) => card.hasSomeTrait(chosenCard.traits),
-                        selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
-                    })
-                };
-            }
+            then: (context) => ({
+                title: 'Search the top 5 cards of your deck for a card that shares a Trait with the chosen card, reveal it, and draw it.',
+                immediateEffect: AbilityHelper.immediateEffects.deckSearch({
+                    searchCount: 5,
+                    cardCondition: (card) => card.hasSomeTrait(context.target.traits),
+                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                })
+            })
         });
     }
 }
