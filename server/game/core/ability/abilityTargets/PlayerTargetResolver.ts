@@ -71,6 +71,8 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
             const immediateEffectName = this.getImmediateEffectEventName(context);
             if (immediateEffectName === EventName.OnIndirectDamageDealtToPlayer) {
                 effectChoices = (relativePlayer: RelativePlayer) => (relativePlayer === RelativePlayer.Self ? 'Deal indirect damage to yourself' : 'Deal indirect damage to opponent');
+            } else if (immediateEffectName === EventName.OnCardsDiscardedFromHand) {
+                effectChoices = (relativePlayer: RelativePlayer) => (relativePlayer === RelativePlayer.Self ? 'You discard' : 'Opponent discards');
             }
         }
 
