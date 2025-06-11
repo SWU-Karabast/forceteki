@@ -18,8 +18,7 @@ export default class JocastaNuTheGiftOfKnowledge extends NonLeaderUnitCard {
                 upgrade: {
                     activePromptTitle: 'Choose a friendly upgrade to move',
                     controller: RelativePlayer.Self,
-                    cardTypeFilter: WildcardCardType.Upgrade,
-                    cardCondition: (card, context) => card.controller === context.player && context.targets.upgrade.parentCard.controller === context.player,
+                    cardCondition: (card, context) => card.isUpgrade() && card.controller === context.player && card.parentCard.controller === context.player,
                 },
                 unit: {
                     dependsOn: 'upgrade',
