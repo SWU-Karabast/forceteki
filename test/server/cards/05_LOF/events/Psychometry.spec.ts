@@ -55,6 +55,7 @@ describe('Psychometry', function() {
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.jediLightCruiser);
 
+                expect(context.getChatLogs(2)).toContain('player1 takes Jedi Light Cruiser');
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -74,7 +75,7 @@ describe('Psychometry', function() {
                 context.player1.clickCard(context.yoda);
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    selectable: [context.mysticReflection, context.yoda, context.jediLightCruiser],
+                    selectable: [context.mysticReflection, context.jediLightCruiser],
                     invalid: [context.wampa, context.moistureFarmer, context.kraytDragon]
                 });
 
