@@ -309,6 +309,34 @@ describe('Rey, With Palpatine\'s Power', function() {
                 expect(arrey[1]).toBeInZone('hand');
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should interact correctly with a card that searches and draws Rey', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['psychometry'],
+                        discard: ['yoda#old-master'],
+                        deck: ['mystic-reflection', 'krayt-dragon', 'wampa', 'rey#with-palpatines-power', 'moisture-farmer']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.psychometry);
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCardInDisplayCardPrompt(context.rey);
+                expect(context.getChatLogs(2)).toContain('player1 takes Rey');
+
+                expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base.');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.reyWithPalpatinesPower]);
+                context.player2.clickPrompt('Done');
+
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

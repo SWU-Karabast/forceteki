@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, CardType, PhaseName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
@@ -15,7 +16,7 @@ export default class ReyWithPalpatinesPower extends NonLeaderUnitCard {
             title: 'Reveal Rey to deal 2 damage to a unit and 2 damage to a base.',
             optional: true,
             when: {
-                onCardsDrawn: (event, context) => event.player === context.player && context.game.currentPhase === PhaseName.Action && event.cards.includes(context.source)
+                onCardsDrawn: (event, context) => this.checkDrawnCard(event, context)
             },
             zoneFilter: ZoneName.Hand,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
@@ -37,5 +38,19 @@ export default class ReyWithPalpatinesPower extends NonLeaderUnitCard {
                 ])
             })
         });
+    }
+
+    // Checks that the drawn card is Rey and that it is the action phase
+    private checkDrawnCard(event: any, context: TriggeredAbilityContext) {
+        if (event.player !== context.player || context.game.currentPhase !== PhaseName.Action) {
+            return false;
+        }
+
+        if (event.card && event.card === context.source) {
+            return true;
+        } else if (event.cards && event.cards.includes(context.source)) {
+            return true;
+        }
+        return false;
     }
 }
