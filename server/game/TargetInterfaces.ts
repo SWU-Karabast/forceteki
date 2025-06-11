@@ -64,13 +64,6 @@ export interface IDropdownListTargetResolver<TContext extends AbilityContext> ex
 export interface ITargetResolverBase<TContext extends AbilityContext> {
     activePromptTitle?: ((context: TContext) => string) | string;
     appendToDefaultTitle?: string;
-    zoneFilter?: ZoneFilter | ZoneFilter[];
-
-    /** If zoneFilter includes ZoneName.Capture, use this to filter down to only the capture zones of specific units. Otherwise, all captured units in the arena will be targeted. */
-    capturedByFilter?: Card | Card[] | ((context: TContext) => (Card | Card[]));
-
-    /** Filter cards by their controller */
-    controller?: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
 
     // TODO: allow this be a concrete player object as well as a RelativePlayer enum
     /** Selects which player is choosing the target (defaults to the player controlling the source card) */
@@ -95,6 +88,12 @@ interface ICardTargetResolverBase<TContext extends AbilityContext> extends ITarg
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     zoneFilter?: ZoneFilter | ZoneFilter[];
     cardCondition?: (card: Card, context?: TContext) => boolean;
+
+    /** If zoneFilter includes ZoneName.Capture, use this to filter down to only the capture zones of specific units. Otherwise, all captured units in the arena will be targeted. */
+    capturedByFilter?: Card | Card[] | ((context: TContext) => (Card | Card[]));
+
+    /** Filter cards by their controller */
+    controller?: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
 }
 
 interface ICardExactlyUpToTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
