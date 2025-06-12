@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait } from '../../../core/Constants';
+import { Trait, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
@@ -35,7 +35,7 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
                                     {
                                         text: 'Play it for free',
                                         arg: 'play',
-                                        immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({ target: drawnDroid, adjustCost: { costAdjustType: CostAdjustType.Free } })
+                                        immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({ target: drawnDroid, adjustCost: { costAdjustType: CostAdjustType.Free }, playAsType: WildcardCardType.Unit })
                                     },
                                     {
                                         text: 'Leave it in your hand',
@@ -53,7 +53,7 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
                 ifYouDoCondition: (context) => context.events[0]?.card?.cost <= 2,
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand((context) => ({ target: context.events[0].card,
-                    adjustCost: { costAdjustType: CostAdjustType.Free } }
+                    adjustCost: { costAdjustType: CostAdjustType.Free }, playAsType: WildcardCardType.Unit }
                 ))
             }
         });

@@ -1147,6 +1147,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             // tokens: this.tokens,
             type: this.type,
             uuid: this.uuid,
+            printedType: this.printedType,
             ...selectionState
         };
 

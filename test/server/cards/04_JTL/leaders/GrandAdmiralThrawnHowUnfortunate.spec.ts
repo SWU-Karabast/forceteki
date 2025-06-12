@@ -460,8 +460,8 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 context.player2.clickCard(context.rivalsFall);
                 context.player2.clickCard(context.zygerrianStarhopper);
 
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
-                context.player1.clickPrompt('Opponent');
+                expect(context.player1).toHaveEnabledPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent']);
+                context.player1.clickPrompt('Deal indirect damage to opponent');
 
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
                 expect(context.player2).not.toHaveChooseNothingButton();
@@ -476,8 +476,8 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
                 context.player1.clickPrompt('Trigger');
 
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
-                context.player1.clickPrompt('Opponent');
+                expect(context.player1).toHaveEnabledPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent']);
+                context.player1.clickPrompt('Deal indirect damage to opponent');
 
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
                 expect(context.player2).not.toHaveChooseNothingButton();
@@ -559,6 +559,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
 
                 expect(context.wampa.damage).toBe(3);
                 expect(context.player1).toBeActivePlayer();
+                expect(context.getChatLogs(1)).toContain('player2 collects the "Deal 3 damage to a unit" bounty on Val to deal 3 damage to Wampa');
             });
 
             it('should be activated by Chimaera', async function () {

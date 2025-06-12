@@ -25,13 +25,13 @@ export default class ConsolidationOfPower extends EventCard {
                 playUnit: {
                     optional: true,
                     dependsOn: 'friendlyUnits',
-                    cardTypeFilter: WildcardCardType.Unit,
                     mode: TargetMode.Single,
                     controller: RelativePlayer.Self,
                     cardCondition: (_card, context) => context.targets.playUnit.cost <= context.targets.friendlyUnits.reduce((sum, card) => sum + card.getPower(), 0),
                     zoneFilter: ZoneName.Hand,
                     immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.Free },
+                        playAsType: WildcardCardType.Unit
                     })
                 }
             },

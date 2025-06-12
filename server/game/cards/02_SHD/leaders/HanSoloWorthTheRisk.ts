@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { GameStateChangeRequired, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class HanSoloWorthTheRisk extends LeaderUnitCard {
@@ -16,6 +16,7 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
             title: 'Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
+                // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
@@ -36,9 +37,11 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
         this.addActionAbility({
             title: 'Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.',
             targetResolver: {
+                // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
+                mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },

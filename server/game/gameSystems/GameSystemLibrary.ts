@@ -147,6 +147,8 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { OptionalSystem, type IOptionalSystemProperties } from './OptionalSystem';
 import type { IUseWhenPlayedProperties } from './UseWhenPlayedSystem';
 import { UseWhenPlayedSystem } from './UseWhenPlayedSystem';
+import type { IRandomSelectionSystemProperties } from './RandomSelectionSystem';
+import { RandomSelectionSystem } from './RandomSelectionSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -353,16 +355,16 @@ export function payCardPrintedCost<TContext extends AbilityContext = AbilityCont
 /**
  * default resetOnCancel = false
  */
-export function playCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayCardProperties, TContext> = {}) {
+export function playCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayCardProperties, TContext>) {
     return new PlayCardSystem(propertyFactory);
 }
-export function playCardFromHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext> = {}) {
+export function playCardFromHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext>) {
     // TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilities with another function(s)
     // TODO: implement a "nested" property in PlayCardSystem that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
     // playType automatically defaults to PlayFromHand
     return new PlayCardSystem(propertyFactory);
 }
-export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext> = {}) {
+export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext>) {
     return new PlayCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IPlayCardProperties, 'playType'>(
             propertyFactory,
@@ -370,7 +372,6 @@ export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityC
         )
     );
 }
-
 
 export function chooseModalEffects<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayModalCardProperties, TContext>) {
     return new ChooseModalEffectsSystem<TContext>(propertyFactory);
@@ -631,6 +632,9 @@ export function conditional<TContext extends AbilityContext = AbilityContext>(pr
 }
 export function optional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IOptionalSystemProperties<TContext>, TContext>) {
     return new OptionalSystem<TContext>(propertyFactory);
+}
+export function randomSelection<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IRandomSelectionSystemProperties<TContext>, TContext>) {
+    return new RandomSelectionSystem<TContext>(propertyFactory);
 }
 // export function onAffinity(propertyFactory: PropsFactory<AffinityActionProperties>) {
 //     return new AffinityAction(propertyFactory);

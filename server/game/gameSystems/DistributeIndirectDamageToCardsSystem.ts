@@ -15,7 +15,7 @@ export type IDistributeIndirectDamageToCardsSystemProperties<TContext extends Ab
  * Will prompt the user to select where to put the damage (unless auto-selecting a single target is possible).
  */
 export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityContext = AbilityContext> extends DistributeAmongTargetsSystem<TContext> {
-    protected override readonly eventName = MetaEventName.DistributeIndirectDamageToCards;
+    public override readonly eventName = MetaEventName.DistributeIndirectDamageToCards;
     public override readonly name = 'distributeIndirectDamageToCards';
 
     public override promptType: DistributePromptType = StatefulPromptType.DistributeIndirectDamage;

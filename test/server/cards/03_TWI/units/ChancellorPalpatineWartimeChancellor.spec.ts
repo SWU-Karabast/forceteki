@@ -125,5 +125,79 @@ describe('Chancellor Palpatine Wartime Chancellor', function() {
             expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.ready)).toBeTrue();
             expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
         });
+
+        it('Chancellor Palpatine\'s ability should create token if a leader unit left play this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['chancellor-palpatine#wartime-chancellor'],
+                    leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
+                },
+                player2: {
+                    hasInitiative: true,
+                    hand: ['takedown'],
+                }
+            });
+            const { context } = contextRef;
+            context.player2.clickCard(context.takedown);
+            context.player2.clickCard(context.chirrutImwe);
+
+            context.player1.clickCard(context.chancellorPalpatine);
+            context.player1.clickCard(context.p2Base);
+
+            const troopers = context.player1.findCardsByName('clone-trooper', 'groundArena');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(troopers.length).toBe(1);
+        });
+
+        it('Chancellor Palpatine\'s ability should create token if a enemy leader unit left play this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['chancellor-palpatine#wartime-chancellor'],
+                },
+                player2: {
+                    hasInitiative: true,
+                    leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true },
+                    hand: ['takedown'],
+                }
+            });
+            const { context } = contextRef;
+            context.player2.clickCard(context.takedown);
+            context.player2.clickCard(context.chirrutImwe);
+
+            context.player1.clickCard(context.chancellorPalpatine);
+            context.player1.clickCard(context.p2Base);
+
+            const troopers = context.player1.findCardsByName('clone-trooper', 'groundArena');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(troopers.length).toBe(1);
+        });
+
+        it('Chancellor Palpatine\'s ability should create token if a token unit left play this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['chancellor-palpatine#wartime-chancellor', 'clone-trooper'],
+                },
+                player2: {
+                    hasInitiative: true,
+                    hand: ['takedown'],
+                }
+            });
+            const { context } = contextRef;
+            context.player2.clickCard(context.takedown);
+            context.player2.clickCard(context.cloneTrooper);
+
+            context.player1.clickCard(context.chancellorPalpatine);
+            context.player1.clickCard(context.p2Base);
+
+            const troopers = context.player1.findCardsByName('clone-trooper', 'groundArena');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(troopers.length).toBe(1);
+        });
     });
 });

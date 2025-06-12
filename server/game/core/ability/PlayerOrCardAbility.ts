@@ -1,7 +1,7 @@
 import { CardTargetResolver } from './abilityTargets/CardTargetResolver.js';
 import { SelectTargetResolver } from './abilityTargets/SelectTargetResolver.js';
 import type { RelativePlayerFilter } from '../Constants.js';
-import { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck } from '../Constants.js';
+import { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck, GameStateChangeRequired } from '../Constants.js';
 import { GameEvent } from '../event/GameEvent.js';
 import * as Contract from '../utils/Contract.js';
 import { PlayerTargetResolver } from './abilityTargets/PlayerTargetResolver.js';
@@ -13,7 +13,6 @@ import type Game from '../Game.js';
 import type { Player } from '../Player.js';
 import type { PlayCardAction } from './PlayCardAction.js';
 import type { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';
-import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { Card } from '../card/Card.js';
 import { v4 as uuidv4 } from 'uuid';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
@@ -23,6 +22,7 @@ import type { IAbilityLimit } from './AbilityLimit.js';
 import type { ICost } from '../cost/ICost.js';
 import type { ITargetResult, TargetResolver } from './abilityTargets/TargetResolver.js';
 import type { ActionAbility } from './ActionAbility.js';
+import type { CardAbility } from './CardAbility.js';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
@@ -42,7 +42,7 @@ export abstract class PlayerOrCardAbility {
     public title: string;
     public limit?: IAbilityLimit;
     public canResolveWithoutLegalTargets: boolean;
-    public targetResolvers: any[];  // TargetResolver[]
+    public targetResolvers: TargetResolver<any>[];
 
     public readonly uuid: string;
     public readonly game: Game;
@@ -56,7 +56,7 @@ export abstract class PlayerOrCardAbility {
     public readonly properties: IPlayerOrCardAbilityProps<AbilityContext>;
     public readonly triggerHandlingMode: TriggerHandlingMode;
     protected readonly cost: ICost<AbilityContext>[] | ((context: AbilityContext) => ICost<AbilityContext> | ICost<AbilityContext>[]);
-    public readonly nonDependentTargets: any[]; // TargetResolver[]
+    public readonly nonDependentTargets: TargetResolver<any>[];
 
     /** Return the controller of ability, can be different from card's controller (with bounty for example) */
     public get controller(): Player {
@@ -117,7 +117,7 @@ export abstract class PlayerOrCardAbility {
         //     }
         // }
 
-        this.nonDependentTargets = this.targetResolvers.filter((target) => !target.properties.dependsOn);
+        this.nonDependentTargets = this.targetResolvers.filter((target) => !target.dependsOnOtherTarget);
     }
 
     public toString() {
@@ -288,11 +288,23 @@ export abstract class PlayerOrCardAbility {
         return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
     }
 
-    public resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler, canCancel?: boolean) {
+    protected resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler, canCancel?: boolean) {
         const targetResults = this.getDefaultTargetResults(context, canCancel);
         for (const target of targetResolvers) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
         }
+
+        // If the ability has no target resolvers, itcannot resolve without legal targets (e.g. bounties), and it has an immediate effect without a then effect.
+        // we check if the immediate effect has any legal target so that the ability can be cancelled automatically if not.
+        // This is useful for abilities with a "if you do not" effect to trigger it automatically without prompting the player
+        // in case the ability effect has no legal target.
+        if (targetResolvers.length === 0 && !this.canResolveWithoutLegalTargets && this.immediateEffect && !this.properties.then) {
+            const immediateEffect = this.immediateEffect;
+            context.game.queueSimpleStep(() => {
+                targetResults.hasEffectiveTargets = targetResults.hasEffectiveTargets || immediateEffect.hasLegalTarget(context, {}, GameStateChangeRequired.MustFullyOrPartiallyResolve);
+            }, `Resolve target for immediate effect of ${this}`);
+        }
+
         return targetResults;
     }
 
@@ -385,7 +397,7 @@ export abstract class PlayerOrCardAbility {
     }
 
     /** Indicates whether this ability is an ability from card text as opposed to other types of actions like playing a card */
-    public isCardAbility(): this is CardAbilityStep {
+    public isCardAbility(): this is CardAbility {
         return false;
     }
 

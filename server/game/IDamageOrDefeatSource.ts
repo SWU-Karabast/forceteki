@@ -23,6 +23,11 @@ export enum DefeatSourceType {
     UniqueRule = 'uniqueRule'
 }
 
+export enum ExhaustSourceType {
+    Cost = 'cost',
+    Ability = 'ability'
+}
+
 export interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
     type: DamageSourceType.Attack | DefeatSourceType.Attack;
     attack: Attack;
@@ -47,6 +52,11 @@ export interface IDefeatedByUniqueRule extends IDamageOrDefeatSourceBase {
 
 export interface IDefeatedByFramework extends IDamageOrDefeatSourceBase {
     type: DefeatSourceType.FrameworkEffect;
+}
+
+export interface IExhaustSource {
+    player: Player;
+    type: ExhaustSourceType;
 }
 
 // ********************************************** INTERNAL TYPES **********************************************

@@ -16,11 +16,13 @@ export default class BibFortunaJabbasMajordomo extends NonLeaderUnitCard {
             title: 'Play an event from your hand. It costs 1 less.',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
+                // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: CardType.Event,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
+                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
+                    playAsType: CardType.Event,
                 })
             }
         });

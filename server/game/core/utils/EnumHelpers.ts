@@ -198,6 +198,8 @@ export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilt
                 return isNonLeaderUnit(cardType);
             case WildcardCardType.NonLeaderUpgrade:
                 return isNonLeaderUpgrade(cardType);
+            case WildcardCardType.NonUnit:
+                return !isUnit(cardType);
             case WildcardCardType.UnitUpgrade:
                 return isUnitUpgrade(cardType);
             case WildcardCardType.Unit:
@@ -222,6 +224,8 @@ export const getCardTypesForFilter = (cardTypeFilter: CardTypeFilter): CardType[
             return [CardType.BasicUnit, CardType.TokenUnit];
         case WildcardCardType.NonLeaderUpgrade:
             return [CardType.BasicUpgrade, CardType.TokenUpgrade, CardType.NonLeaderUnitUpgrade];
+        case WildcardCardType.NonUnit:
+            return [CardType.BasicUpgrade, CardType.TokenUpgrade, CardType.NonLeaderUnitUpgrade, CardType.Event];
         case WildcardCardType.UnitUpgrade:
             return [CardType.LeaderUpgrade, CardType.NonLeaderUnitUpgrade];
         case WildcardCardType.Unit:

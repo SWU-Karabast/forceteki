@@ -21,7 +21,7 @@ describe('Guerilla Soldier', function() {
             expect(context.guerillaSoldier.exhausted).toBeTrue();
 
             // Player 1 distributes the indirect damage and chooses the base
-            context.player1.clickPrompt('You');
+            context.player1.clickPrompt('Deal indirect damage to yourself');
             expect(context.player1).toBeAbleToSelectExactly([context.guerillaSoldier, context.p1Base]);
             expect(context.player1).not.toHaveChooseNothingButton();
             context.player1.setDistributeIndirectDamagePromptState(new Map([
@@ -41,7 +41,7 @@ describe('Guerilla Soldier', function() {
             expect(context.guerillaSoldier.exhausted).toBeTrue();
 
             // Player 2 distributes the indirect damage without choosing the base
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             expect(context.player2).toBeAbleToSelectExactly([context.greenSquadronAwing, context.republicArc170, context.headhunterSquadron, context.p2Base]);
             expect(context.player2).not.toHaveChooseNothingButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([

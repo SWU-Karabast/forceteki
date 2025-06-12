@@ -62,7 +62,7 @@ describe('Malakili, Loving Rancor Keeper', function () {
             context.player1.clickCard(context.wildRancor);
 
             const promptTable = [
-                'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage: Malakili, Loving Rancor Keeper',
+                'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage: Malakili',
                 'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage: Wampa',
                 'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage: Battlefield Marine'
             ];

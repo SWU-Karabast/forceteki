@@ -267,6 +267,30 @@ class Game extends EventEmitter {
     }
 
     /**
+     * returns last 30 gameChat log messages excluding player chat messages.
+     */
+    getLogMessages() {
+        const filteredMessages = this.gameChat.messages.filter((messageEntry) => {
+            const message = messageEntry.message;
+
+            // Check if it's an alert message (these should be included)
+            if (typeof message === 'object' && message !== null && 'alert' in message) {
+                return true;
+            }
+
+            // We need this long check since the first element of message[0] can be String | String[] | object with type | []
+            if (Array.isArray(message) && message.length > 0) {
+                const firstElement = message[0];
+                if (typeof firstElement === 'object' && firstElement && 'type' in firstElement && 'type' in firstElement && firstElement['type'] === 'playerChat') {
+                    return false;
+                }
+            }
+            return true;
+        });
+        return filteredMessages.slice(-30);
+    }
+
+    /**
      * Checks if a player is a spectator
      * @param {Player | Spectator} player
      * @returns {player is Spectator}

@@ -5,6 +5,7 @@ import { EffectName, KeywordName } from '../Constants';
 import type { IAttackableCard } from '../card/CardInterfaces';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { Player } from '../Player';
+import type { AbilityContext } from '../ability/AbilityContext';
 
 export class Attack {
     private readonly game: Game;
@@ -14,8 +15,10 @@ export class Attack {
     public readonly isAmbush: boolean;
     public readonly targetInPlayMap = new Map<IAttackableCard, number>();
 
+    private readonly attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number;
     private unitControllersChanged = new Set<IAttackableCard>();
     private targets: IAttackableCard[];
+    private defendingPlayer: Player;
 
     public previousAttack: Attack;
 
@@ -23,13 +26,16 @@ export class Attack {
         game: Game,
         attacker: IUnitCard,
         targets: IAttackableCard[],
-        isAmbush: boolean = false
+        isAmbush: boolean = false,
+        attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number
     ) {
         this.game = game;
         this.attacker = attacker;
         this.attackingPlayer = attacker.controller;
         this.targets = targets;
+        this.defendingPlayer = targets[0].controller;
         this.targetInPlayMap = new Map(targets.filter((target) => target.isUnit()).map((target) => [target, target.inPlayId]));
+        this.attackerCombatDamageOverride = attackerCombatDamageOverride;
 
         // we grab the in-play IDs of the attacker and defender cards in case other abilities need to refer back to them later.
         // e.g., to check if the defender was defeated
@@ -38,8 +44,14 @@ export class Attack {
         this.isAmbush = isAmbush;
     }
 
-    public getAttackerTotalPower(): number | null {
-        return this.getUnitPower(this.attacker);
+    public getAttackerCombatDamage(context: AbilityContext): number | null {
+        const attackDamage = this.attackerCombatDamageOverride
+            ? this.attackerCombatDamageOverride(this, context)
+            : this.getUnitPower(this.attacker);
+
+        Contract.assertNonNegative(attackDamage, `Attacker combat damage cannot be negative: ${attackDamage}`);
+
+        return attackDamage;
     }
 
     public unitChangedController(unit: IAttackableCard): void {
@@ -51,8 +63,7 @@ export class Attack {
     }
 
     public getDefendingPlayer(): Player {
-        Contract.assertTrue(this.targets.length > 0, 'Expected at least one target but there are none');
-        return this.targets[0].controller;
+        return this.defendingPlayer;
     }
 
     public getSingleTarget(): IAttackableCard {
@@ -85,8 +96,12 @@ export class Attack {
         return matchingUnits.length > 0;
     }
 
-    public getTargetTotalPower(): number | null {
-        return this.targets.reduce((total, target) => total + (target.isBase() ? 0 : this.getUnitPower(target)), 0);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public getTargetCombatDamage(_context: AbilityContext): number | null {
+        // If we ever need to override the combat damage for the defender, we can follow the same pattern as attackerCombatDamageOverride
+        return this.targets.reduce(
+            (total, target) => total + (target.isBase() ? 0 : this.getUnitPower(target)), 0
+        );
     }
 
     public hasOverwhelm(): boolean {

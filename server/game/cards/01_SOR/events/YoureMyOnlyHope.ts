@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class YoureMyOnlyHope extends EventCard {
     protected override getImplementationId() {
@@ -27,6 +28,7 @@ export default class YoureMyOnlyHope extends EventCard {
                         arg: 'play-free',
                         immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                             target: topCardOfDeck,
+                            playAsType: WildcardCardType.Any,
                             adjustCost: { costAdjustType: CostAdjustType.Free }
                         })
                     };
@@ -35,6 +37,7 @@ export default class YoureMyOnlyHope extends EventCard {
                         arg: 'play-discount',
                         immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                             target: topCardOfDeck,
+                            playAsType: WildcardCardType.Any,
                             adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 5 }
                         })
                     };

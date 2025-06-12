@@ -70,7 +70,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
             when: {
                 onCardLeavesPlay: () => true
             },
-            update: (currentState, event) => currentState.concat({ card: event.card, controlledBy: event.card.controller, cardType: event.lastKnownInformation.type })
+            update: (currentState, event) => currentState.concat({ card: event.card, controlledBy: event.lastKnownInformation.controller, cardType: event.lastKnownInformation.type })
         });
     }
 

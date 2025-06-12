@@ -1,6 +1,7 @@
 import type { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
 import type { AbilityContext } from '../AbilityContext';
 import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
+import type { ITargetResult } from './TargetResolver';
 import { TargetResolver } from './TargetResolver';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import type { Card } from '../../card/Card';
@@ -60,7 +61,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
     private checkCardCondition(card: Card, context: AbilityContext, properties: ICardTargetResolver<AbilityContext>) {
         try {
-            const contextCopy = this.getContextCopy(card, context);
+            const contextCopy = this.getContextCopy(card, context, properties.mode);
             if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
@@ -78,9 +79,13 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         const contextCopy = context.copy();
         contextCopy.targets[this.name] = targetMode === TargetMode.Single || targetMode == null ? card : [card];
         if (this.name === 'target') {
-            contextCopy.target = card;
+            contextCopy.target = contextCopy.targets[this.name];
         }
         return contextCopy;
+    }
+
+    protected override setTargetResult(context: AbilityContext, target: Card | Card[]): void {
+        super.setTargetResult(context, this.properties.mode === TargetMode.Single || this.properties.mode == null ? target : Helpers.asArray(target));
     }
 
     public override hasLegalTarget(context: AbilityContext) {
@@ -92,8 +97,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
-        const legalTargets = this.selector.getAllLegalTargets(context);
-        if (legalTargets.length === 0) {
+        if (!this.hasLegalTarget(context)) {
             if (context.stage === Stage.PreTarget) {
                 // if there are no targets at the pretarget stage, delay targeting until after costs are paid
                 targetResults.delayTargeting = this;
@@ -102,11 +106,12 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             return;
         }
 
+        const legalTargets = this.getAllLegalTargets(context);
+
         // A player can always choose not to pick a card from a zone that is hidden from their opponents
         // if doing so would reveal hidden information(i.e. that there are one or more valid cards in that zone) (SWU Comp Rules 2.0 1.17.4)
         // TODO: test if picking a card from an opponent's usually hidden zone(e.g. opponent's hand) works as expected(the if block here should be skipped)
-        const choosingFromHidden = this.isChoosingFromHidden(legalTargets, context);
-        if (choosingFromHidden) {
+        if (this.isChoosingFromHidden(legalTargets, context) && this.properties.mustChangeGameState !== GameStateChangeRequired.MustFullyResolve) {
             this.properties.optional = true;
             this.selector.optional = true;
             this.selector.appendToDefaultTitle = CardTargetResolver.choosingFromHiddenPrompt;
@@ -142,7 +147,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         if (context.player.autoSingleTarget && legalTargets.length === 1) {
             // ...and we are an optional resolver, prompt the player if they want to resolve
             if (this.selector.optional) {
-                this.promptForSingleOptionalTarget(context, legalTargets[0], choosingFromHidden);
+                this.promptForSingleOptionalTarget(context, legalTargets[0]);
                 return;
             }
 
@@ -215,10 +220,10 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
     }
 
-    private promptForSingleOptionalTarget(context: AbilityContext, target: Card, choosingFromHidden: boolean) {
+    private promptForSingleOptionalTarget(context: AbilityContext, target: Card) {
         const effectName = this.properties.activePromptTitle ? this.properties.activePromptTitle : context.ability.title;
 
-        const activePromptTitle = `Trigger the effect '${effectName}' on target '${target.title}' or pass${choosingFromHidden ? ' ' + CardTargetResolver.choosingFromHiddenPrompt : ''}`;
+        const activePromptTitle = `Trigger the effect '${effectName}' on target '${target.title}' or pass${this.selector.appendToDefaultTitle ? ' ' + this.selector.appendToDefaultTitle : ''}`;
 
         context.game.promptWithHandlerMenu(context.player, {
             activePromptTitle,
@@ -231,11 +236,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         });
     }
 
-    private cancel(targetResults) {
+    private cancel(targetResults: ITargetResult) {
         targetResults.cancelled = true;
     }
 
-    protected override checkTarget(context: AbilityContext): boolean {
+    public override checkTarget(context: AbilityContext): boolean {
         if (!context.targets[this.name]) {
             return false;
         } else if (context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {
@@ -286,8 +291,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     private isChoosingFromHidden(legalTargets: Card[], context: AbilityContext): boolean {
         const choosingPlayer = typeof this.properties.choosingPlayer === 'function' ? this.properties.choosingPlayer(context) : this.properties.choosingPlayer;
         const zones = new Set<ZoneName>(legalTargets.map((card) => card.zoneName));
-        return !(this.properties.ignoreHiddenZoneRule ?? false) &&
-          (!!this.properties.cardTypeFilter || !!this.properties.cardCondition) &&
+        return (!!this.properties.cardTypeFilter || !!this.properties.cardCondition) &&
           (
               (zones.size === 0 && !!this.properties.zoneFilter && CardTargetResolver.allZonesAreHidden(this.properties.zoneFilter, choosingPlayer)) ||
               CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)

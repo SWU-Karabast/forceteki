@@ -1,7 +1,9 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { TargetMode, Trait } from '../../../core/Constants';
+import type { Player } from '../../../core/Player';
 import * as Contract from '../../../core/utils/Contract';
 
 export default class QuiGonJinnsLightsaber extends UpgradeCard {
@@ -12,9 +14,11 @@ export default class QuiGonJinnsLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle) && card.controller === this.controller);
+    public override canAttach(targetCard: Card, _context: AbilityContext, controller: Player): boolean {
+        return targetCard.isUnit() && !targetCard.hasSomeTrait(Trait.Vehicle) && targetCard.controller === controller;
+    }
 
+    public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'Exhaust any number of units with combined cost 6 or less.',
             optional: true,

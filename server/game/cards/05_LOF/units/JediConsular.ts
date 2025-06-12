@@ -19,6 +19,7 @@ export default class JediConsular extends NonLeaderUnitCard {
                 AbilityHelper.costs.useTheForce(),
             ],
             targetResolver: {
+                // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,

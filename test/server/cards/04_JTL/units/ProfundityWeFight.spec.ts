@@ -18,7 +18,7 @@ describe('Profundity, We Fight!', function() {
 
             // Player 1 chooses opponent to discard a card
             expect(context.player1).toHavePrompt('Choose a player to discard a card from their hand');
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Opponent discards');
 
             // Player 2 discards a card
             expect(context.player2).toHavePrompt('Choose a card to discard for Profundity\'s effect');
@@ -49,7 +49,7 @@ describe('Profundity, We Fight!', function() {
 
             // Player 1 chooses opponent to discard a card
             expect(context.player1).toHavePrompt('Choose a player to discard a card from their hand');
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Opponent discards');
 
             // Player 2 discards a card
             expect(context.player2).toBeAbleToSelectExactly([
@@ -81,7 +81,7 @@ describe('Profundity, We Fight!', function() {
 
             // Player 1 chooses self to discard a card
             expect(context.player1).toHavePrompt('Choose a player to discard a card from their hand');
-            context.player1.clickPrompt('You');
+            context.player1.clickPrompt('You discard');
 
             // Player 1 discards a card
             expect(context.player1).toHavePrompt('Choose a card to discard for Profundity\'s effect');
@@ -102,7 +102,7 @@ describe('Profundity, We Fight!', function() {
 
             // Player 1 chooses opponent to discard a card
             expect(context.player1).toHavePrompt('Choose a player to discard a card from their hand');
-            context.player1.clickPrompt('You');
+            context.player1.clickPrompt('You discard');
 
             // Player 1 discards a card
             expect(context.player1).toBeAbleToSelectExactly([

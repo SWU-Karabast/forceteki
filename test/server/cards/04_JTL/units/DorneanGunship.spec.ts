@@ -16,7 +16,7 @@ describe('Dornean Gunship', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.dorneanGunship);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
 
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 // avenger + escort skiff + dornean gunship

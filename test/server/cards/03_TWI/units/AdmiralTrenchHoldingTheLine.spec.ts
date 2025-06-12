@@ -76,7 +76,7 @@ describe('Admiral Trench, Holding the Line', function () {
             expect(context.player2.hand).toContain(context.firstLegionSnowtrooper);
 
             context.player1.clickCard(context.pillage);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Opponent discards');
             context.player2.clickCard(context.deathStarStormtrooper);
             context.player2.clickCard(context.firstLegionSnowtrooper);
             context.player2.clickPrompt('Done');

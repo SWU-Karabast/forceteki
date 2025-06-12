@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
-import * as Helpers from '../../../core/utils/Helpers';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { GameStateChangeRequired, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
@@ -37,13 +36,13 @@ export default class EndlessLegions extends EventCard {
             title: 'Play a revelead unit for free',
             targetResolver: {
                 activePromptTitle: 'Choose a unit to play for free',
-                cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
-                ignoreHiddenZoneRule: true,
-                cardCondition: (card: Card) => Helpers.asArray(revealedCardsContext.target).includes(card) && !playedCards.includes(card),
+                mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
+                cardCondition: (card: Card) => revealedCardsContext.target?.includes(card) && !playedCards.includes(card),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Free },
+                    playAsType: WildcardCardType.Unit,
                     canPlayFromAnyZone: true,
                     nested: true,
                 })

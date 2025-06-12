@@ -14,7 +14,6 @@ export default class SoresuStance extends EventCard {
         this.setEventAbility({
             title: 'Play a Force unit from your hand and give a Shield token to it',
             targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Force),

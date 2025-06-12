@@ -257,7 +257,7 @@ describe('Cobb Vanth, The Marshal', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(6);
 
                 context.player2.clickCard(context.pillage);
-                context.player2.clickPrompt('Opponent');
+                context.player2.clickPrompt('Opponent discards');
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toBeInZone('discard');
 

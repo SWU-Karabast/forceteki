@@ -39,7 +39,7 @@ export type ISelectCardProperties<TContext extends AbilityContext = AbilityConte
  */
 export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ISelectCardProperties<TContext>> {
     public override readonly name: string = 'selectCard';
-    protected override readonly eventName: MetaEventName.SelectCard;
+    public override readonly eventName: MetaEventName.SelectCard;
     protected override readonly defaultProperties: ISelectCardProperties<TContext> = {
         cardCondition: () => true,
         innerSystem: null,

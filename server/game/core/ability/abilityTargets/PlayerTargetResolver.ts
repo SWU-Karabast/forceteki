@@ -3,9 +3,15 @@ import type { IPlayerTargetResolver } from '../../../TargetInterfaces';
 import type { AbilityContext } from '../AbilityContext';
 import type { Player } from '../../Player';
 import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
-import { TargetMode } from '../../Constants';
+import { EventName } from '../../Constants';
+import { MetaEventName } from '../../Constants';
+import { RelativePlayer, TargetMode } from '../../Constants';
 import * as Contract from '../../utils/Contract';
+import * as EnumHelpers from '../../utils/EnumHelpers';
+import * as Helpers from '../../utils/Helpers';
 import { isArray } from 'underscore';
+import { AggregateSystem } from '../../gameSystem/AggregateSystem';
+import type { GameSystem } from '../../gameSystem/GameSystem';
 
 // This currently assumes that every player will always be a legal target for any effect it's given.
 // TODO: Make a PlayerSelector class(see the use of property "selector" in CardTargetResolver) to help determine target legality. Use it to replace placeholder override functions below.
@@ -18,7 +24,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         }
     }
 
-    protected override hasLegalTarget(context: any): boolean {
+    public override hasLegalTarget(context: any): boolean {
         // Placeholder.
         return true;
     }
@@ -45,7 +51,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         return contextCopy;
     }
 
-    protected override checkTarget(context: AbilityContext): boolean {
+    public override checkTarget(context: AbilityContext): boolean {
         if (!context.targets[this.name]) {
             return false;
         }
@@ -58,7 +64,20 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
     protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const promptProperties = this.getDefaultProperties(context);
 
-        const choices = ['You', 'Opponent'];
+        let effectChoices: IPlayerTargetResolver<AbilityContext>['effectChoices'] = ((relativePlayer: RelativePlayer) => (relativePlayer === RelativePlayer.Self ? 'You' : 'Opponent'));
+        if (this.properties.effectChoices) {
+            effectChoices = this.properties.effectChoices;
+        } else {
+            const immediateEffectName = this.getImmediateEffectEventName(context);
+            if (immediateEffectName === EventName.OnIndirectDamageDealtToPlayer) {
+                effectChoices = (relativePlayer: RelativePlayer) => (relativePlayer === RelativePlayer.Self ? 'Deal indirect damage to yourself' : 'Deal indirect damage to opponent');
+            } else if (immediateEffectName === EventName.OnCardsDiscardedFromHand) {
+                effectChoices = (relativePlayer: RelativePlayer) => (relativePlayer === RelativePlayer.Self ? 'You discard' : 'Opponent discards');
+            }
+        }
+
+        const players = [player, player.opponent];
+        const choices: string[] = players.map((p) => effectChoices(EnumHelpers.asRelativePlayer(player, p), context));
 
         if (this.properties.mode === TargetMode.MultiplePlayers) { // Uses a HandlerMenuMultipleSelectionPrompt: handler takes an array of chosen items
             const activePromptTitle = typeof this.properties.activePromptTitle === 'function'
@@ -66,18 +85,13 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                 : this.properties.activePromptTitle || this.getDefaultPromptTitle(context, true);
 
             const multiSelect = true;
-            const handler = (chosen) => {
-                chosen = chosen.map((choiceTitle) => {
-                    switch (choiceTitle) {
-                        case 'You':
-                            return player;
-                        case 'Opponent':
-                            return player.opponent;
-                        default:
-                            Contract.fail('Player other than "You" or "Opponent" chosen');
-                    }
+            const handler = (chosen: string[]) => {
+                const chosenPlayers = chosen.map((choiceTitle) => {
+                    const index = choices.indexOf(choiceTitle);
+                    Contract.assertTrue(index >= 0, `Choice '${choiceTitle}' not found in choices: ${choices.join(', ')}`);
+                    return players[index];
                 });
-                this.setTargetResult(context, chosen);
+                this.setTargetResult(context, chosenPlayers);
                 return true;
             };
 
@@ -86,7 +100,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
             const activePromptTitle = typeof this.properties.activePromptTitle === 'function'
                 ? this.properties.activePromptTitle(context)
                 : this.properties.activePromptTitle || this.getDefaultPromptTitle(context, false);
-            const handlers = [player, player.opponent].map(
+            const handlers = players.map(
                 (chosenPlayer) => {
                     return () => {
                         this.setTargetResult(context, chosenPlayer);
@@ -112,5 +126,33 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         const abilityTitleStr = context.ability?.title ? ` for ability '${context.ability.title}'` : '';
 
         return isMultiSelect ? `Choose any number of players to target${abilityTitleStr}` : `Choose a player to target${abilityTitleStr}`;
+    }
+
+    private getImmediateEffectEventName?(context: AbilityContext): EventName | MetaEventName {
+        const gameSystems = Helpers.asArray(this.getGameSystems(context));
+        if (gameSystems.length === 0) {
+            return undefined;
+        }
+
+        const eventNames = new Set<EventName | MetaEventName>(
+            gameSystems
+                .flatMap((system) => this.flattenInnerSystems(system, context))
+                .map((system) => system.eventName)
+                .filter((eventName) => eventName !== MetaEventName.NoAction)
+        );
+
+        if (eventNames.size !== 1) {
+            return undefined;
+        }
+
+        const [eventName] = eventNames;
+        return eventName;
+    }
+
+    private flattenInnerSystems(system: GameSystem, context: AbilityContext): GameSystem[] {
+        if (system instanceof AggregateSystem) {
+            return system.getInnerSystems(system.generatePropertiesFromContext(context)).flatMap((innerSystem) => this.flattenInnerSystems(innerSystem, context));
+        }
+        return [system];
     }
 }

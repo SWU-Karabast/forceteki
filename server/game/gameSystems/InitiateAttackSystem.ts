@@ -25,7 +25,7 @@ export interface IInitiateAttackProperties<TContext extends AbilityContext = Abi
  */
 export class InitiateAttackSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IInitiateAttackProperties<TContext>> {
     public override readonly name = 'initiateUnitAttack';
-    protected override readonly eventName = MetaEventName.InitiateAttack;
+    public override readonly eventName = MetaEventName.InitiateAttack;
     protected override readonly defaultProperties: IInitiateAttackProperties = {
         ignoredRequirements: [],
         attackerCondition: () => true,

@@ -16,6 +16,7 @@ export default class AllianceDispatcher extends NonLeaderUnitCard {
             title: 'Play a unit from your hand. It costs 1 less',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
+                // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,

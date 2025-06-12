@@ -4,10 +4,17 @@ import type { FormatMessage } from '../../chat/GameChat';
 export class OngoingEffectValueWrapper<TValue> {
     private value: TValue;
     public context?: AbilityContext;
+    public effectDescription?: FormatMessage;
 
-    public constructor(value: TValue, public effectDescription?: FormatMessage) {
+    public constructor(value: TValue, effectDescription?: FormatMessage | string) {
         // @ts-expect-error
         this.value = value == null ? true : value;
+
+        if (typeof effectDescription === 'string') {
+            this.effectDescription = { format: effectDescription, args: [] };
+        } else {
+            this.effectDescription = effectDescription;
+        }
     }
 
     public setContext(context: AbilityContext): void {

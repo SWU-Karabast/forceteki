@@ -22,16 +22,13 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                         keyword: KeywordName.Bounty,
                         ability: {
                             title: 'The next unit you play this phase costs 1 resource less',
-                            immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect(
-                                (context) => ({
-                                    targetController: context.player,
-                                    effect: AbilityHelper.ongoingEffects.decreaseCost({
-                                        cardTypeFilter: WildcardCardType.Unit,
-                                        limit: AbilityLimit.perGame(1),
-                                        amount: 1
-                                    })
+                            immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
+                                effect: AbilityHelper.ongoingEffects.decreaseCost({
+                                    cardTypeFilter: WildcardCardType.Unit,
+                                    limit: AbilityLimit.perGame(1),
+                                    amount: 1
                                 })
-                            )
+                            })
                         }
                     })
                 })
@@ -70,14 +67,13 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                         keyword: KeywordName.Bounty,
                         ability: {
                             title: 'The next unit you play this phase costs 2 resources less',
-                            immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect((context) => ({
-                                targetController: context.player,
+                            immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
                                     limit: AbilityLimit.perGame(1),
                                     amount: 2
                                 })
-                            }))
+                            })
                         }
                     })
                 })

@@ -1,5 +1,4 @@
 import AbilityHelper from '../../../AbilityHelper';
-import * as Helpers from '../../../core/utils/Helpers.js';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
@@ -37,7 +36,7 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                                     useDisplayPrompt: true
                                 })),
                                 AbilityHelper.immediateEffects.simultaneous(
-                                    Helpers.asArray(matchingCardNames).map((target) =>
+                                    matchingCardNames.map((target) =>
                                         AbilityHelper.immediateEffects.discardSpecificCard({
                                             target: target
                                         })
@@ -52,7 +51,7 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                             condition: opponentDeck.length > 0,
                             onTrue: AbilityHelper.immediateEffects.simultaneous(() => {
                                 const matchingCardNames = opponentDeck.filter((card) => card.title === ifYouDoContext.target.title);
-                                return Helpers.asArray(matchingCardNames).map((target) =>
+                                return matchingCardNames.map((target) =>
                                     AbilityHelper.immediateEffects.discardSpecificCard({
                                         target: target
                                     })

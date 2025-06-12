@@ -105,6 +105,7 @@ export enum EffectName {
     MustAttack = 'mustAttack',
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
+    PrintedAttributesOverride = 'printedAttributesOverride',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
     SuppressEffects = 'suppressEffects',
@@ -200,6 +201,7 @@ export enum WildcardCardType {
     Any = 'any',
     NonLeaderUnit = 'nonLeaderUnit',
     NonLeaderUpgrade = 'nonLeaderUpgrade',
+    NonUnit = 'nonUnit',
     /** Any card type that can be played from hand */
     Playable = 'playable',
     Token = 'token',
@@ -318,6 +320,7 @@ export enum MetaEventName {
     Optional = 'optional',
     PayCardPrintedCost = 'payCardPrintedCost',
     PlayCard = 'playCard',
+    RandomSelection = 'randomSelection',
     ReplacementEffect = 'replacementEffect',
     SelectCard = 'selectCard',
     SelectPlayer = 'selectPlayer',

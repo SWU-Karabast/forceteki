@@ -114,7 +114,6 @@ describe('Capture system', function() {
 
             // use Han Solo to play Discerning Veteran which captures Battlefield Marine
             context.player2.clickCard(context.hanSolo);
-            context.player2.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it. -> Discerning Veteran');
             expect(context.battlefieldMarine).toBeCapturedBy(context.discerningVeteran);
 
             // player 1 flip Palpatine to take control of Discerning Veteran and confirm all state

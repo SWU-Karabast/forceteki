@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { PlayType } from '../../../core/Constants';
+import { PlayType, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class StolenLandspeeder extends NonLeaderUnitCard {
@@ -32,6 +32,7 @@ export default class StolenLandspeeder extends NonLeaderUnitCard {
                 onTrue: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                         adjustCost: { costAdjustType: CostAdjustType.Free },
+                        playAsType: WildcardCardType.Unit,
                     }),
                     AbilityHelper.immediateEffects.giveExperience(),
                 ]),
