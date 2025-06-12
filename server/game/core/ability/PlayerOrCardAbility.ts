@@ -19,10 +19,12 @@ import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
 import type { IActionTargetResolver, ITargetResolverBase } from '../../TargetInterfaces.js';
 import type { IAbilityLimit } from './AbilityLimit.js';
-import type { ICost } from '../cost/ICost.js';
+import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { ITargetResult, TargetResolver } from './abilityTargets/TargetResolver.js';
 import type { ActionAbility } from './ActionAbility.js';
 import type { CardAbility } from './CardAbility.js';
+import type { CardAbilityStep } from './CardAbilityStep.js';
+import type { IPassAbilityHandler } from '../gameSteps/AbilityResolver.js';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
@@ -43,6 +45,7 @@ export abstract class PlayerOrCardAbility {
     public limit?: IAbilityLimit;
     public canResolveWithoutLegalTargets: boolean;
     public targetResolvers: TargetResolver<any>[];
+    public cannotTargetFirst: boolean;
 
     public readonly uuid: string;
     public readonly game: Game;
@@ -94,6 +97,7 @@ export abstract class PlayerOrCardAbility {
         this.game = game;
         this.card = card;
         this.properties = properties;
+        this.cannotTargetFirst = false;
 
         // TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
 
@@ -228,7 +232,7 @@ export abstract class PlayerOrCardAbility {
         return costs;
     }
 
-    public resolveCosts(context: AbilityContext, results) {
+    public resolveCosts(context: AbilityContext, results: ICostResult) {
         for (const cost of this.getCosts(context, results.playCosts, results.triggerCosts)) {
             context.game.queueSimpleStep(() => {
                 if (!results.cancelled) {
@@ -277,18 +281,18 @@ export abstract class PlayerOrCardAbility {
         return this.nonDependentTargets.some((target) => target.canResolve(context));
     }
 
-    public resolveEarlyTargets(context: AbilityContext, passHandler = null, canCancel = false) {
+    public resolveEarlyTargets(context: AbilityContext, passHandler?: IPassAbilityHandler, canCancel = false) {
         return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
     }
 
     /**
      * Prompts the current player to choose each target defined for the ability.
      */
-    public resolveTargets(context: AbilityContext, passHandler = null, canCancel = false) {
+    public resolveTargets(context: AbilityContext, passHandler?: IPassAbilityHandler, canCancel = false) {
         return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
     }
 
-    protected resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler, canCancel?: boolean) {
+    protected resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler?: IPassAbilityHandler, canCancel?: boolean) {
         const targetResults = this.getDefaultTargetResults(context, canCancel);
         for (const target of targetResolvers) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
@@ -398,6 +402,10 @@ export abstract class PlayerOrCardAbility {
 
     /** Indicates whether this ability is an ability from card text as opposed to other types of actions like playing a card */
     public isCardAbility(): this is CardAbility {
+        return false;
+    }
+
+    public isCardAbilityStep(): this is CardAbilityStep {
         return false;
     }
 

@@ -2,7 +2,7 @@ import { AbilityRestriction, EffectName, PlayType, RelativePlayer, ZoneName } fr
 import * as Contract from '../core/utils/Contract.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
-import AbilityResolver from '../core/gameSteps/AbilityResolver.js';
+import { AbilityResolver } from '../core/gameSteps/AbilityResolver.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { IEventCard } from '../core/card/EventCard.js';
 import type { ITargetResult } from '../core/ability/abilityTargets/TargetResolver.js';
