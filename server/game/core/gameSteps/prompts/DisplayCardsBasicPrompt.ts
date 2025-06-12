@@ -46,7 +46,7 @@ export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasi
         return {};
     }
 
-    public override activePromptInternal() {
+    public override activePromptDisplayCardInternal() {
         return {
             buttons: [this.doneButton],
         };
