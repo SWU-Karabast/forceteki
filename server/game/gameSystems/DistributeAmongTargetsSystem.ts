@@ -57,7 +57,9 @@ export abstract class DistributeAmongTargetsSystem<
     public eventHandler(event): void {
         const context: TContext = event.context;
         event.totalDistributed =
-            event.individualEvents.reduce((total, individualEvent) => total + this.getDistributedAmountFromEvent(individualEvent), 0);
+            (event.individualEvents as GameEvent[])
+                .flatMap((event) => event.resolvedEvents)
+                .reduce((total, individualEvent) => total + this.getDistributedAmountFromEvent(individualEvent), 0);
 
         context.game.addMessage(this.getChatMessage(), ...this.getChatMessageArgs(event, context, event.additionalProperties));
     }
@@ -69,7 +71,7 @@ export abstract class DistributeAmongTargetsSystem<
     protected getChatMessageArgs(event: any, context: TContext, additionalProperties: Partial<TProperties>): any[] {
         const targets: FormatMessage[] = [];
         const individualEvents: any[] = event.individualEvents || [];
-        for (const individualEvent of individualEvents) {
+        for (const individualEvent of individualEvents.flatMap((event) => event.resolvedEvents)) {
             const amount = this.getDistributedAmountFromEvent(individualEvent);
             if (amount !== 0) {
                 targets.push({
