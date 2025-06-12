@@ -16,7 +16,7 @@ export interface IDiscardEntireHandSystemProperties extends IPlayerTargetSystemP
  */
 export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardEntireHandSystemProperties> {
     public override name = 'discardEntireHand';
-    public override eventName = EventName.OnEntireHandDiscarded;
+    public override readonly eventName = EventName.OnEntireHandDiscarded;
     public override readonly costDescription: string = 'discard hand';
     public override readonly effectDescription: string = 'discard hand';
 

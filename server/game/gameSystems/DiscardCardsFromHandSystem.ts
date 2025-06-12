@@ -36,7 +36,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
     };
 
     public override name = 'discard';
-    public override eventName = EventName.OnCardsDiscardedFromHand;
+    public override readonly eventName = EventName.OnCardsDiscardedFromHand;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(_event): void { }

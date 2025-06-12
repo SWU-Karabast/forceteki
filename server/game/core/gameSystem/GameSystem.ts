@@ -37,12 +37,12 @@ export interface IGameSystemProperties {
 // TODO: could we remove the default generic parameter so that all child classes are forced to declare it
 export abstract class GameSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IGameSystemProperties = IGameSystemProperties> {
     public readonly name: string = ''; // TODO: should these be abstract?
+    public abstract readonly eventName: EventName | MetaEventName;
     public readonly costDescription: string = '';
     public readonly effectDescription: string = '';
 
     protected readonly propertyFactory?: (context?: TContext) => TProperties;
     protected readonly properties?: TProperties;
-    protected abstract readonly eventName: EventName | MetaEventName;
     protected readonly defaultProperties: IGameSystemProperties = { cannotBeCancelled: false, optional: false };
     protected getDefaultTargets: (context: TContext) => any = (context) => this.defaultTargets(context);
 

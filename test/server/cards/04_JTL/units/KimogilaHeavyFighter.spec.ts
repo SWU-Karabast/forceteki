@@ -21,7 +21,7 @@ describe('Kimogila Heavy Fighter', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.kimogilaHeavyFighter);
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.battlefieldMarine, 1],
                     [context.restoredArc170, 1],
@@ -40,7 +40,7 @@ describe('Kimogila Heavy Fighter', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.kimogilaHeavyFighter);
-                context.player1.clickPrompt('You');
+                context.player1.clickPrompt('Deal indirect damage to yourself');
                 context.player1.setDistributeIndirectDamagePromptState(new Map([
                     [context.snowspeeder, 1],
                     [context.allianceXwing, 1],
@@ -59,7 +59,7 @@ describe('Kimogila Heavy Fighter', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.kimogilaHeavyFighter);
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.p2Base, 3]
                 ]));
@@ -74,7 +74,7 @@ describe('Kimogila Heavy Fighter', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.kimogilaHeavyFighter);
-                context.player1.clickPrompt('You');
+                context.player1.clickPrompt('Deal indirect damage to yourself');
                 context.player1.setDistributeIndirectDamagePromptState(new Map([
                     [context.p1Base, 1],
                     [context.allianceXwing, 2],

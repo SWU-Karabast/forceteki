@@ -24,7 +24,7 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
                 expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
                 context.player1.clickPrompt('Trigger');
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
 
                 expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
 
@@ -115,7 +115,7 @@ describe('Boba Fett, Any Methods Necessary', function() {
 
                     expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
                     context.player1.clickPrompt('Trigger');
-                    context.player1.clickPrompt('Opponent');
+                    context.player1.clickPrompt('Deal indirect damage to opponent');
                     expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
                     context.player2.setDistributeIndirectDamagePromptState(new Map([
                         [context.p2Base, 1],

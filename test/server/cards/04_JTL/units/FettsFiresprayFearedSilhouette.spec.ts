@@ -15,7 +15,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.fettsFirespray);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 1],
             ]));
@@ -37,7 +37,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.fettsFirespray);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
             ]));
@@ -59,7 +59,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.fettsFirespray);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
             ]));
@@ -81,7 +81,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.fettsFirespray);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
             ]));
@@ -105,7 +105,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.fettsFirespray);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
             ]));
@@ -128,7 +128,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
 
             context.player1.clickCard(context.fettsFirespray);
             context.player1.clickCard(context.p2Base);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
             ]));
@@ -160,7 +160,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
 
             context.player1.clickCard(context.fettsFirespray);
             context.player1.clickCard(context.p2Base);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
             ]));
@@ -183,7 +183,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
 
             context.player1.clickCard(context.fettsFirespray);
             context.player1.clickCard(context.p2Base);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 1],
             ]));

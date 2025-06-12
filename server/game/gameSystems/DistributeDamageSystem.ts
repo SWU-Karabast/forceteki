@@ -22,7 +22,7 @@ export class DistributeDamageSystem<
     TContext extends AbilityContext = AbilityContext,
     TProperties extends IDistributeDamageSystemProperties<TContext> = IDistributeDamageSystemProperties<TContext>
 > extends DistributeAmongTargetsSystem<TContext, TProperties> {
-    protected override readonly eventName = MetaEventName.DistributeDamage;
+    public override readonly eventName = MetaEventName.DistributeDamage;
     public override readonly name = 'distributeDamage';
 
     public override promptType: DistributePromptType = StatefulPromptType.DistributeDamage;

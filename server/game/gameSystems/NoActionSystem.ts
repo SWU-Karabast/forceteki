@@ -13,7 +13,7 @@ export interface INoActionSystemProperties extends IGameSystemProperties {
  * @override This was copied from L5R but has not been tested yet
  */
 export class NoActionSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, INoActionSystemProperties> {
-    protected override readonly eventName = MetaEventName.NoAction;
+    public override readonly eventName = MetaEventName.NoAction;
     protected override readonly defaultProperties: INoActionSystemProperties = {
         hasLegalTarget: false
     };

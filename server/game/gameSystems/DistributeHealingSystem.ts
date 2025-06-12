@@ -14,7 +14,7 @@ export type IDistributeHealingSystemProperties<TContext extends AbilityContext =
  * Will prompt the user to select where to put the healing (unless auto-selecting a single target is possible).
  */
 export class DistributeHealingSystem<TContext extends AbilityContext = AbilityContext> extends DistributeAmongTargetsSystem<TContext> {
-    protected override readonly eventName = MetaEventName.DistributeHealing;
+    public override readonly eventName = MetaEventName.DistributeHealing;
     public override readonly name = 'distributeHealing';
 
     public override promptType: DistributePromptType = StatefulPromptType.DistributeHealing;
