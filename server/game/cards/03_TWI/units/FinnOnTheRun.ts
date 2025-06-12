@@ -27,7 +27,7 @@ export default class FinnOnTheRun extends NonLeaderUnitCard {
                         when: {
                             onDamageDealt: (event, context) => event.card === context.source && !event.isIndirect
                         },
-                        effect: 'Finn\'s ability prevents 1 damage to {1}',
+                        effect: 'prevent 1 damage to {1}',
                         effectArgs: (context) => [context.source],
                         replaceWith: {
                             replacementImmediateEffect: new DamageSystem((context) => ({

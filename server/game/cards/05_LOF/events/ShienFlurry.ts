@@ -43,7 +43,7 @@ export default class ShienFlurry extends EventCard {
                                         onDamageDealt: (event, context) => event.card === context.source && !event.isIndirect
                                     },
                                     limit: AbilityHelper.limit.perGame(1),
-                                    effect: 'Shien Flurry\'s ability prevents 2 damage to {1}',
+                                    effect: 'prevent 2 damage to {1}',
                                     effectArgs: (context) => [context.source],
                                     replaceWith: {
                                         replacementImmediateEffect: new DamageSystem((context) => ({
