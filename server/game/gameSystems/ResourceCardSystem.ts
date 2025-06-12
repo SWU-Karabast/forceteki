@@ -16,7 +16,7 @@ export interface IResourceCardProperties extends ICardTargetSystemProperties {
 export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IResourceCardProperties> {
     public override readonly name = 'resource';
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
-    protected override readonly eventName = EventName.OnCardResourced;
+    public override readonly eventName = EventName.OnCardResourced;
 
     protected override defaultProperties: IResourceCardProperties = {
         // TODO: remove completely if faceup logic is not needed

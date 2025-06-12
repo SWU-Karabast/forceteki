@@ -19,10 +19,10 @@ describe('Force Throw', function() {
 
                 // Damage dealt by opponent discarded card
                 context.player1.clickCard(context.forceThrow);
-                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards']);
 
                 // Opponent discards a card
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Opponent discards');
                 context.player2.clickCard(context.karabast);
                 expect(context.getChatLogs(2)).toContain('player2 discards Karabast');
 
@@ -56,7 +56,7 @@ describe('Force Throw', function() {
 
                 // Opponent discards a card no force unit in play
                 context.player1.clickCard(context.forceThrow);
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Opponent discards');
                 context.player2.clickCard(context.karabast);
 
                 expect(context.karabast).toBeInZone('discard');
@@ -79,7 +79,7 @@ describe('Force Throw', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.forceThrow);
-                context.player1.clickPrompt('You');
+                context.player1.clickPrompt('You discard');
 
                 expect(context.player2).toBeActivePlayer();
             });
@@ -100,7 +100,7 @@ describe('Force Throw', function() {
 
                 // Discard a card and no force unit in play
                 context.player1.clickCard(context.forceThrow);
-                context.player1.clickPrompt('You');
+                context.player1.clickPrompt('You discard');
 
                 context.player1.clickCard(context.strikeTrue);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.ezraBridger, context.atst]);

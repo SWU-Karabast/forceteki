@@ -16,7 +16,7 @@ describe('Pillage', function() {
                 const { player1, player2, pillage, allianceXwing, battlefieldMarine, imperialInterceptor, wampa } = context;
 
                 player1.clickCard(pillage);
-                player1.clickPrompt('Opponent');
+                player1.clickPrompt('Opponent discards');
                 expect(player2).toBeAbleToSelectExactly([
                     allianceXwing, battlefieldMarine, imperialInterceptor, wampa
                 ]);
@@ -50,7 +50,7 @@ describe('Pillage', function() {
                 const { player1, player2, pillage, imperialInterceptor } = context;
 
                 player1.clickCard(pillage);
-                player1.clickPrompt('Opponent');
+                player1.clickPrompt('Opponent discards');
 
                 player2.clickCard(imperialInterceptor);
 
@@ -71,7 +71,7 @@ describe('Pillage', function() {
                 const { player1, player2, pillage } = context;
 
                 player1.clickCard(pillage);
-                player1.clickPrompt('Opponent');
+                player1.clickPrompt('Opponent discards');
 
                 expect(player2.discard.length).toEqual(0);
                 expect(player2).toBeActivePlayer();
@@ -89,7 +89,7 @@ describe('Pillage', function() {
                 const { player1, player2, pillage, allianceXwing, battlefieldMarine, imperialInterceptor, wampa } = context;
 
                 player1.clickCard(pillage);
-                player1.clickPrompt('You');
+                player1.clickPrompt('You discard');
                 expect(player1).toBeAbleToSelectExactly([
                     allianceXwing, battlefieldMarine, imperialInterceptor, wampa
                 ]);

@@ -24,8 +24,9 @@ describe('Planetary Bombardment', function() {
             // Player 1 plays Planetary Bombardment and deals 12 indirect damage
             context.player1.clickCard(context.planetaryBombardment);
             expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 8 indirect damage to a player. If you control a Capital Ship unit, deal 12 indirect damage instead\'');
+            expect(context.player1).toHaveExactPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent']);
 
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             expect(context.player2).toHavePrompt('Distribute 12 indirect damage among targets');
 
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.lurkingTiePhantom, context.bobaFett, context.chirrutImwe, context.p2Base]);
@@ -56,9 +57,10 @@ describe('Planetary Bombardment', function() {
             // Player 1 plays Planetary Bombardment and deals 8 indirect damage
             context.player1.clickCard(context.planetaryBombardment);
             expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 8 indirect damage to a player. If you control a Capital Ship unit, deal 12 indirect damage instead\'');
+            expect(context.player1).toHaveExactPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent']);
             expect(context.p1Base.damage).toBe(0);
 
-            context.player1.clickPrompt('You');
+            context.player1.clickPrompt('Deal indirect damage to yourself');
 
             expect(context.p1Base.damage).toBe(8);
             expect(context.getChatLogs(1)).toContain('player1 uses Planetary Bombardment to distribute 8 indirect damage to Kestro City');

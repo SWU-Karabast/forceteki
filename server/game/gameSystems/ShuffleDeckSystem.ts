@@ -10,7 +10,7 @@ export interface IShuffleDeckProperties extends IPlayerTargetSystemProperties {}
 export class ShuffleDeckSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IShuffleDeckProperties> {
     public override readonly name = 'shuffle';
     public override readonly effectDescription = 'shuffle deck';
-    protected override readonly eventName = EventName.OnDeckShuffled;
+    public override readonly eventName = EventName.OnDeckShuffled;
 
     public override defaultTargets(context: TContext): Player[] {
         return [context.player];
