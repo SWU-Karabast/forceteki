@@ -331,8 +331,8 @@ export class UserFactory {
             Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
 
             const decoded = jwt.verify(token, secret) as any;
-            if (!decoded || (!decoded.userId)) {
-                throw new Error('Parameter missing in JWT token');
+            if (!decoded.userId) {
+                throw new Error('Parameter userId missing in JWT token');
             }
 
             // Update the user data with the decoded UUID
