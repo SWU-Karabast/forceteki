@@ -48,6 +48,18 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry> {
             .map((entry) => entry.card);
     }
 
+    public getCardsPlayedByPlayer(
+        player: Player,
+        filter?: (entry: PlayedCardEntry) => boolean
+    ): Card[] {
+        return this.getCurrentValue()
+            .filter((entry) => {
+                const additionalFilter = filter ? filter(entry) : true;
+                return entry.playedBy === player && additionalFilter;
+            })
+            .map((entry) => entry.card);
+    }
+
     /** Check the list of played cards in the state if we found cards that match filters */
     public someCardPlayed(filter: (entry: UnwrapRef<PlayedCardEntry>) => boolean): boolean {
         return this.getCardsPlayed(filter).length > 0;
