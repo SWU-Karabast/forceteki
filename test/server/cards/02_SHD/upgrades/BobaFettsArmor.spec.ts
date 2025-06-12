@@ -25,6 +25,7 @@ describe('Boba Fett\'s Armor', function () {
             context.player1.clickCard(context.bobaFettDisintegrator);
             expect(context.bobaFettDisintegrator.damage).toBe(1);
             expect(context.battlefieldMarine).toBeInZone('discard');
+            expect(context.getChatLogs(2)).toContain('player2 uses Boba Fett\'s Armor to prevent 2 damage to Boba Fett');
 
             resetBobaHealth();
 

@@ -30,7 +30,7 @@ export default class BobaFettsArmor extends UpgradeCard {
                     sourceAttack: context.event.damageSource.attack,
                 }))
             },
-            effect: 'Boba Fett\'s armor prevents 2 damage to {1}',
+            effect: 'prevent 2 damage to {1}',
             effectArgs: (context) => [context.source.parentCard]
         });
     }
