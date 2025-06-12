@@ -22,7 +22,7 @@ export class MulliganPrompt extends AllPlayerPrompt {
         return this.playersDone[player.name];
     }
 
-    public override activePrompt(): IPlayerPromptStateProperties {
+    public override activePromptInternal(): IPlayerPromptStateProperties {
         return {
             menuTitle: 'Choose whether to mulligan or keep your hand',
             buttons: [{ text: 'Mulligan', arg: 'mulligan' }, { text: 'Keep', arg: 'keep' }],
