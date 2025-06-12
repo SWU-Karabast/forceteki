@@ -34,7 +34,7 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
         this.promptTitle = properties.promptTitle || this.source.name;
     }
 
-    protected abstract activePromptInternal(): Partial<IPlayerPromptStateProperties>;
+    protected abstract activePromptDisplayCardInternal(): Partial<IPlayerPromptStateProperties>;
     protected abstract defaultProperties(): Partial<TProperties>;
     protected abstract getDisplayCards(): IDisplayCard[];
 
@@ -50,7 +50,7 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
         return player === this.choosingPlayer;
     }
 
-    public override activePrompt() {
+    public override activePromptInternal() {
         const displayCards = this.getDisplayCards();
 
         const displayCardStates = new Set(displayCards.map((card) => card.selectionState));
@@ -64,7 +64,7 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
             promptTitle: this.promptTitle,
             promptUuid: this.uuid,
             displayCards,
-            ...this.activePromptInternal(),
+            ...this.activePromptDisplayCardInternal(),
             promptType: PromptType.DisplayCards
         };
     }

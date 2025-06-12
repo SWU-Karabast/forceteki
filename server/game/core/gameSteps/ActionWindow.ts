@@ -94,7 +94,7 @@ export class ActionWindow extends UiPrompt {
         this.activePlayer.actionTimer.stop();
     }
 
-    public override activePrompt(player: Player): IPlayerPromptStateProperties {
+    public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         const { mustTakeCardAction, overrideActionPromptTitle } = this.getSelectableCards();
 
         const buttons: IButton[] = [
