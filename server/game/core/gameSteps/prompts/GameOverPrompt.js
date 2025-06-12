@@ -13,7 +13,7 @@ class GameOverPrompt extends AllPlayerPrompt {
     }
 
     /** @override */
-    activePrompt() {
+    activePromptInternal() {
         if (Array.isArray(this.winner)) {
             return {
                 promptTitle: 'Tie Game',
