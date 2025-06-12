@@ -25,6 +25,7 @@ describe('Finn, On the Run', function () {
             context.player2.clickCard(context.chewbacca);
 
             expect(context.chewbacca.damage).toBe(2);
+            expect(context.getChatLogs(2)).toContain('player1 uses Chewbacca\'s gained ability from Finn to prevent 1 damage to Chewbacca');
             context.player1.passAction();
 
             // attack on another unit, damage is not reduced
