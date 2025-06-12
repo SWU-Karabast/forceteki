@@ -61,7 +61,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         return context.game.getPlayers().includes(context.targets[this.name]);
     }
 
-    protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
+    protected override resolveInternal(player: Player, context: AbilityContext) {
         const promptProperties = this.getDefaultProperties(context);
 
         let effectChoices: IPlayerTargetResolver<AbilityContext>['effectChoices'] = ((relativePlayer: RelativePlayer) => (relativePlayer === RelativePlayer.Self ? 'You' : 'Opponent'));

@@ -5,8 +5,11 @@ import type { Player } from '../Player.js';
 import type { ResourceCost } from '../../costs/ResourceCost';
 
 export interface ICostResult {
-    canCancel?: boolean;
-    cancelled?: boolean;
+    canCancel: boolean;
+    cancelled: boolean;
+    events: GameEvent[];
+    playCosts: boolean;
+    triggerCosts: boolean;
 }
 
 export interface ICost<TContext extends AbilityContext = AbilityContext> {

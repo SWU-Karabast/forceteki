@@ -15,6 +15,7 @@ import type { GameSystem } from '../../gameSystem/GameSystem';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { BaseCardSelector } from '../../cardSelector/BaseCardSelector';
+import type { IPassAbilityHandler } from '../../gameSteps/AbilityResolver';
 
 /**
  * Target resolver for selecting cards for the target of an effect.
@@ -96,7 +97,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return this.selector.getAllLegalTargets(context);
     }
 
-    protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
+    protected override resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult, passPrompt?: IPassAbilityHandler) {
         if (!this.hasLegalTarget(context)) {
             if (context.stage === Stage.PreTarget) {
                 // if there are no targets at the pretarget stage, delay targeting until after costs are paid

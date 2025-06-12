@@ -17,8 +17,6 @@ import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
 export class CardAbilityStep extends PlayerOrCardAbility {
-    public cannotTargetFirst: boolean;
-
     private handler: (context: AbilityContext) => void;
 
     public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
@@ -33,7 +31,6 @@ export class CardAbilityStep extends PlayerOrCardAbility {
         super(game, card, properties, type);
 
         this.handler = properties.handler || this.executeGameActions;
-        this.cannotTargetFirst = false;
     }
 
     public override executeHandler(context: AbilityContext) {
@@ -148,7 +145,7 @@ export class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** "Sub-ability-steps" are subsequent steps after the initial ability effect, such as "then" or "if you do" */
-    private getSubAbilityStepContext(context: AbilityContext, resolvedAbilityEvents: GameEvent[] = []) {
+    public getSubAbilityStepContext(context: AbilityContext, resolvedAbilityEvents: GameEvent[] = []) {
         if (this.properties.then) {
             return this.buildThenSubAbilityStepContext(context);
         }
@@ -234,5 +231,9 @@ export class CardAbilityStep extends PlayerOrCardAbility {
         }
 
         return context.player;
+    }
+
+    public override isCardAbilityStep(): this is CardAbilityStep {
+        return true;
     }
 }

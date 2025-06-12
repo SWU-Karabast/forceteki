@@ -21,7 +21,7 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
         return gameSystems.length === 0 || gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
-    protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
+    protected override resolveInternal(player: Player, context: AbilityContext) {
         const options = typeof this.properties.options === 'function' ? this.properties.options(context) : this.properties.options;
         if (options.length === 0) {
             return;
