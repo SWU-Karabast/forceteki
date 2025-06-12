@@ -179,6 +179,69 @@ describe('Yoda, My Ally is the Force', function() {
                 // Hyperspace wayfarer should take 6 damage (2 × 3 units controlled including the stolen Sith Trooper)
                 expect(context.hyperspaceWayfarer.damage).toBe(6);
             });
+
+            it('should trigger correctly if Yoda is bounced while using the Force', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'quigon-jinn#student-of-the-living-force',
+                        hasForceToken: true,
+                        groundArena: ['yoda#my-ally-is-the-force', 'battlefield-marine', 'clone-trooper'],
+                        hand: ['wampa'],
+                        base: { card: 'echo-base', damage: 5 },
+                        resources: 5
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'hyperspace-wayfarer' }]
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.quigonJinn);
+                context.player1.clickCard(context.yoda);
+
+                expect(context.yoda).toBeInZone('hand');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.player1.hasTheForce).toBe(false);
+
+                // Deal Yoda damage - should be 6 (2 × 3 units controlled)
+                expect(context.player1).toBeAbleToSelectExactly([context.hyperspaceWayfarer, context.battlefieldMarine, context.cloneTrooper, context.wampa]);
+                context.player1.clickCard(context.hyperspaceWayfarer);
+                expect(context.hyperspaceWayfarer.damage).toBe(6);
+            });
+
+            it('should trigger correctly if Yoda is bounced while using the Force and no card is played', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'quigon-jinn#student-of-the-living-force',
+                        hasForceToken: true,
+                        groundArena: ['yoda#my-ally-is-the-force', 'battlefield-marine', 'clone-trooper'],
+                        base: { card: 'echo-base', damage: 5 },
+                        resources: 5
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'hyperspace-wayfarer' }]
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.quigonJinn);
+                context.player1.clickCard(context.yoda);
+
+                expect(context.yoda).toBeInZone('hand');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.player1.hasTheForce).toBe(false);
+
+                // Deal Yoda damage - should be 4 (2 × 2 units controlled)
+                expect(context.player1).toBeAbleToSelectExactly([context.hyperspaceWayfarer, context.battlefieldMarine, context.cloneTrooper]);
+                context.player1.clickCard(context.hyperspaceWayfarer);
+                expect(context.hyperspaceWayfarer.damage).toBe(4);
+            });
         });
     });
 });
