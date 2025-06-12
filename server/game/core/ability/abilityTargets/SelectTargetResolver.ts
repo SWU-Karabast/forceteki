@@ -1,11 +1,13 @@
 import type { ISelectTargetResolver, IChoicesInterface } from '../../../TargetInterfaces';
 import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
 import type { AbilityContext } from '../AbilityContext';
+import type { ITargetResult } from './TargetResolver';
 import { TargetResolver } from './TargetResolver';
 import type { GameSystem } from '../../gameSystem/GameSystem';
 import { SelectChoice } from './SelectChoice';
 import { Stage } from '../../Constants';
 import type { Player } from '../../Player';
+import type { IPassAbilityHandler } from '../../gameSteps/AbilityResolver';
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
 export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<AbilityContext>> {
@@ -59,7 +61,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         return [];
     }
 
-    protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
+    protected override resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult, passPrompt?: IPassAbilityHandler) {
         const choices = Object.keys(this.getChoices(context));
         let legalChoices = choices.filter((key) => this.isChoiceLegal(key, context));
 

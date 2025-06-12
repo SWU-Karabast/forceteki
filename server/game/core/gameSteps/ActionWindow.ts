@@ -6,7 +6,7 @@ import type Game from '../Game.js';
 import type { Player } from '../Player.js';
 import type { Card } from '../card/Card.js';
 import type { IPlayerPromptStateProperties } from '../PlayerPromptState.js';
-import type AbilityResolver from './AbilityResolver.js';
+import type { AbilityResolver } from './AbilityResolver.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import { PromptType, type IButton } from './PromptInterfaces.js';
 

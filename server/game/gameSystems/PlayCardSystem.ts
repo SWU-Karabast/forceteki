@@ -1,5 +1,5 @@
 import type { Card } from '../core/card/Card';
-import AbilityResolver from '../core/gameSteps/AbilityResolver';
+import { AbilityResolver } from '../core/gameSteps/AbilityResolver';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
