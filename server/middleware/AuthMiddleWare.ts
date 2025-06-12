@@ -2,7 +2,6 @@ import type { Request, Response, NextFunction } from 'express';
 import { parse } from 'cookie';
 import { UserFactory } from '../utils/user/UserFactory';
 import { logger } from '../logger';
-import { AuthenticatedUser } from '../utils/user/User';
 
 // Extend Express Request type
 declare global {
@@ -46,7 +45,7 @@ export const authMiddleware = (routeName = null) => {
                 logger.info(`Auth ${routeName}: token found in cookies. Authenticating user.`);
             }
             if (req.body.user?.authenticated) {
-                req.user = new AuthenticatedUser(req.body.user);
+                req.user = userFactory.verifyTokenAndCreateAuthenticatedUser(token, req.body.user);
             } else {
                 req.user = await userFactory.createUserFromTokenAsync(token);
             }

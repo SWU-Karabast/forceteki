@@ -37,6 +37,7 @@ describe('Shien Flurry', function() {
 
                 // 2 damages should have been prevented
                 expect(context.obiwanKenobi.damage).toBe(2);
+                expect(context.getChatLogs(5)).toContain('player1 uses Obi-Wan Kenobi\'s gained ability from Shien Flurry to prevent 2 damage to Obi-Wan Kenobi');
             });
 
             it('should allow playing a Force unit from hand, give it Ambush, and prevent 2 damage the next time it would be dealt damage (no damage from ambush)', function() {
