@@ -55,7 +55,7 @@ describe('Calculated Lethality', function () {
                     [context.corellianFreighter, 1],
                 ]));
 
-                expect(context.getChatLogs(1)).toContain('player1 uses Calculated Lethality to distribute 1 experience to Fifth Brother and 1 experience to Corellian Freighter');
+                expect(context.getChatLogs(1)).toContain('player1 uses Calculated Lethality to give 1 Experience token to Fifth Brother and 1 Experience token to Corellian Freighter');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.greenSquadronAwing).toBeInZone('discard');

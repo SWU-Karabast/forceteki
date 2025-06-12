@@ -44,4 +44,8 @@ export class DistributeDamageSystem<
     protected override getDistributionType(): string {
         return 'damage';
     }
+
+    protected override getDistributionVerb(): string {
+        return 'deal';
+    }
 }

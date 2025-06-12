@@ -129,7 +129,7 @@ describe('Shien Flurry', function() {
             expect(context.obiwanKenobi.damage).toBe(4);
             expect(context.getChatLogs(3)).toContain('player2 uses The Legacy Run to distribute 6 damage among enemy units');
             expect(context.getChatLogs(3)).toContain('player1 uses Obi-Wan Kenobi\'s gained ability from Shien Flurry to Shien Flurry\'s ability prevents 2 damage to Obi-Wan Kenobi');
-            expect(context.getChatLogs(3)).toContain('player2 uses The Legacy Run to distribute 4 damage to Obi-Wan Kenobi');
+            expect(context.getChatLogs(3)).toContain('player2 uses The Legacy Run to deal 4 damage to Obi-Wan Kenobi');
         });
     });
 });

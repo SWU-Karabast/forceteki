@@ -42,7 +42,7 @@ describe('Overwhelming Barrage', function() {
                 expect(context.hanSolo.damage).toBe(1);
 
                 expect(context.getChatLogs(2)).toContain('player1 plays Overwhelming Barrage to give +2/+2 to Wampa for this phase');
-                expect(context.getChatLogs(2)).toContain('player1 uses Overwhelming Barrage to distribute 2 damage to AT-ST, 2 damage to Battlefield Marine, 1 damage to TIE/ln Fighter, and 1 damage to Han Solo');
+                expect(context.getChatLogs(2)).toContain('player1 uses Overwhelming Barrage to deal 2 damage to AT-ST, 2 damage to Battlefield Marine, 1 damage to TIE/ln Fighter, and 1 damage to Han Solo');
 
                 // attack into wampa to confirm stats buff
                 context.setDamage(context.atst, 0);
