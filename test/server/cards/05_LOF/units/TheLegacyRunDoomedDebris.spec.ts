@@ -36,7 +36,7 @@ describe('The Legacy Run, Doomed Debris', function() {
                 expect(context.tielnFighter).toBeInZone('discard');
                 expect(context.bobaFett.damage).toBe(1);
                 expect(context.getChatLogs(2)).toContain('player1 uses The Legacy Run to distribute 6 damage among enemy units');
-                expect(context.getChatLogs(2)).toContain('player1 uses The Legacy Run to distribute 2 damage to Consular Security Force, 2 damage to Wampa, 1 damage to TIE/ln Fighter, and 1 damage to Boba Fett');
+                expect(context.getChatLogs(2)).toContain('player1 uses The Legacy Run to deal 2 damage to Consular Security Force, 2 damage to Wampa, 1 damage to TIE/ln Fighter, and 1 damage to Boba Fett');
             });
 
             it('should be able to put all damage on a single target and exceed its HP total', function () {
