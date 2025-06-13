@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType, GameStateChangeRequired } from '../core/Constants';
+import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType, GameStateChangeRequired, PlayType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -89,7 +89,9 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         // if the card is already resourced by the target player, no game state change will occur
         if (
             mustChangeGameState !== GameStateChangeRequired.None &&
-            card.controller === resourceControllingPlayer && card.zoneName === ZoneName.Resource
+            card.controller === resourceControllingPlayer &&
+            card.zoneName === ZoneName.Resource &&
+            context.playType !== PlayType.Smuggle
         ) {
             return false;
         }
