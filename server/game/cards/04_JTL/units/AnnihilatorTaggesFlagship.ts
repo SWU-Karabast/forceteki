@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { EventName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -24,12 +25,12 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: `Discard all cards named ${ifYouDoContext.target.title} from the opponent's hand and deck`,
+                title: `Discard all cards named ${this.getTargetTitle(ifYouDoContext)} from the opponent's hand and deck`,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.conditional({
                         condition: ifYouDoContext.player.opponent.hand.length > 0,
                         onTrue: AbilityHelper.immediateEffects.sequential((context) => {
-                            const matchingCardNames = context.player.opponent.hand.filter((card) => card.title === ifYouDoContext.target.title);
+                            const matchingCardNames = context.player.opponent.hand.filter((card) => card.title === this.getTargetTitle(ifYouDoContext));
                             return [
                                 AbilityHelper.immediateEffects.lookAt((context) => ({
                                     target: context.player.opponent.hand,
@@ -50,7 +51,7 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                         return {
                             condition: opponentDeck.length > 0,
                             onTrue: AbilityHelper.immediateEffects.simultaneous(() => {
-                                const matchingCardNames = opponentDeck.filter((card) => card.title === ifYouDoContext.target.title);
+                                const matchingCardNames = opponentDeck.filter((card) => card.title === this.getTargetTitle(ifYouDoContext));
                                 return matchingCardNames.map((target) =>
                                     AbilityHelper.immediateEffects.discardSpecificCard({
                                         target: target
@@ -62,5 +63,9 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                 ])
             })
         });
+    }
+
+    private getTargetTitle(context: AbilityContext): string {
+        return context.events.find((event) => event.name === EventName.OnCardDefeated)?.lastKnownInformation?.title ?? context.target.title;
     }
 }

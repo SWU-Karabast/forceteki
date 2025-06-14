@@ -413,5 +413,41 @@ describe('Annihilator, Tagge\'s Flagship', function() {
 
             expect(context.player1).toBeActivePlayer();
         });
+
+        it('Annihilator\'s when defeated ability should defeat an enemy unit and discard all cards with the same name from the opponent\'s hand and deck even if the defeat event was replaced', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['annihilator#tagges-flagship'],
+                    deck: ['battlefield-marine']
+                },
+                player2: {
+                    groundArena: ['l337#get-out-of-my-seat', 'atst'],
+                    hand: ['l337#droid-revolutionary', 'l337#get-out-of-my-seat', 'cartel-turncoat', 'rivals-fall'],
+                    deck: ['l337#droid-revolutionary', 'l337#get-out-of-my-seat', 'cartel-spacer']
+                }
+            });
+
+            const { context } = contextRef;
+
+            const inPlayL337 = context.player2.findCardByName('l337#get-out-of-my-seat', 'groundArena');
+            const inHandL337 = context.player2.findCardByName('l337#droid-revolutionary', 'hand');
+            const inDeckL337 = context.player2.findCardByName('l337#droid-revolutionary', 'deck');
+            const inHandL337Pilot = context.player2.findCardByName('l337#get-out-of-my-seat', 'hand');
+            const inDeckL337Pilot = context.player2.findCardByName('l337#get-out-of-my-seat', 'deck');
+
+            context.player1.clickCard(context.annihilator);
+            context.player1.clickCard(inPlayL337);
+            context.player2.clickPrompt('Trigger');
+            context.player2.clickCard(context.atst);
+            context.player1.clickPrompt('Done');
+
+            expect(context.atst).toHaveExactUpgradeNames(['l337#get-out-of-my-seat']);
+            expect(inPlayL337).toBeInZone('groundArena');
+            expect(inHandL337).toBeInZone('discard');
+            expect(inDeckL337).toBeInZone('discard');
+            expect(inHandL337Pilot).toBeInZone('discard');
+            expect(inDeckL337Pilot).toBeInZone('discard');
+        });
     });
 });

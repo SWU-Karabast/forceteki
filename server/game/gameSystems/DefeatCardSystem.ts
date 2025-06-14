@@ -25,6 +25,7 @@ export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
 /** Records the "last known information" of a card before it left the arena, in case ability text needs to refer back to it. See SWU 8.12. */
 export interface ILastKnownInformation {
     card: Card;
+    title: string;
     controller: Player;
     arena: ZoneName;
     power?: number;

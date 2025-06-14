@@ -116,16 +116,17 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         if (card.zoneName !== ZoneName.GroundArena && card.zoneName !== ZoneName.SpaceArena) {
             return {
                 card,
+                title: card.title,
                 controller: card.controller,
                 arena: card.zoneName
             };
         }
         Contract.assertTrue(card.canBeInPlay());
 
-
         if (card.isUnit() && !card.isAttached()) {
             return {
                 card,
+                title: card.title,
                 power: card.getPower(),
                 hp: card.getHp(),
                 type: card.type,
@@ -139,6 +140,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         if (card.isUpgrade()) {
             return {
                 card,
+                title: card.title,
                 power: card.getPower(),
                 hp: card.getHp(),
                 type: card.type,
