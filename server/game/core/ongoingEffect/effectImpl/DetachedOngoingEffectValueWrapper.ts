@@ -1,37 +1,28 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
-import type { EffectName } from '../../Constants';
-import { OngoingEffectImpl } from './OngoingEffectImpl';
+import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 
-export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
+export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapper<TValue> {
     private state: Record<string, any> = {};
 
-    public constructor(type: EffectName,
+    public constructor(
         public applyFunc,
         public unapplyFunc
     ) {
-        super(type);
+        super(null);
         this.applyFunc = applyFunc;
         this.unapplyFunc = unapplyFunc;
     }
 
-    public apply(target: any) {
+    public override apply(target: any) {
         this.state[target.uuid] = this.applyFunc(target, this.context, this.state[target.uuid]);
     }
 
-    public unapply(target: any) {
+    public override unapply(target: any) {
         this.state[target.uuid] = this.unapplyFunc(target, this.context, this.state[target.uuid]);
         if (this.state[target.uuid] === undefined) {
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete this.state[target.uuid];
         }
-    }
-
-    public getValue(target: any) {
-        return null;
-    }
-
-    public recalculate(target: any): boolean {
-        return false;
     }
 
     public override setContext(context: AbilityContext) {
