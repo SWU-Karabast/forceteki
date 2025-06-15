@@ -515,4 +515,5 @@ export enum AlertType {
     Notification = 'notification',
     Warning = 'warning',
     Danger = 'danger',
+    ReadyStatus = 'readyStatus',
 }

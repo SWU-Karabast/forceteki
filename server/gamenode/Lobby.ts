@@ -353,6 +353,7 @@ export class Lobby {
         }
         currentUser.ready = args[0];
         logger.info(`Lobby: user ${currentUser.username} set ready status: ${args[0]}`, { lobbyId: this.id, userName: currentUser.username, userId: currentUser.id });
+        this.gameChat.addAlert(AlertType.ReadyStatus, `${currentUser.username} is ${args[0] ? 'ready to start' : 'not ready to start'}`);
         this.updateUserLastActivity(currentUser.id);
     }
 
