@@ -25,14 +25,10 @@ export class GainKeyword extends OngoingEffectValueWrapper<IKeywordProperties | 
     }
 
     public override apply(target: Card): void {
-        super.apply(target);
-
         this.refreshWhileInPlayKeywordAbilityEffects(target);
     }
 
     public override unapply(target: Card): void {
-        super.unapply(target);
-
         this.refreshWhileInPlayKeywordAbilityEffects(target);
     }
 
