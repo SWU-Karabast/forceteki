@@ -10,8 +10,8 @@ export default class FirstOrderStormtrooper extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities (sourceCard: this) {
+        sourceCard.addTriggeredAbility({
             title: 'Deal 1 indirect damage to a player',
             when: {
                 onAttack: true,

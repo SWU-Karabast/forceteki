@@ -40,5 +40,21 @@ export default class Clone extends NonLeaderUnitCard {
                 this.game.resolveAbility(ability.createContext(event.context.player, event));
             }
         });
+
+        this.game.on(EventName.OnCardLeavesPlay, (event) => {
+            if (event.card === sourceCard) {
+                for (const ability of sourceCard.getConstantAbilities()) {
+                    sourceCard.removeGainedConstantAbility(ability.uuid);
+                }
+
+                for (const ability of sourceCard.getTriggeredAbilities()) {
+                    sourceCard.removeGainedTriggeredAbility(ability.uuid);
+                }
+
+                for (const ability of sourceCard.getActionAbilities()) {
+                    sourceCard.removeGainedActionAbility(ability.uuid);
+                }
+            }
+        });
     }
 }

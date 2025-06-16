@@ -886,7 +886,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected updateConstantAbilityEffectsInternal(constantAbilities: IConstantAbility[], from: ZoneName, to: ZoneName, allowIdempotentUnregistration = false) {
-        if (!EnumHelpers.isArena(to) || from === ZoneName.Discard || from === ZoneName.Capture) {
+        if (!EnumHelpers.isArena(to) || from === ZoneName.Discard) {
             this.removeLastingEffects();
         }
 
