@@ -17,7 +17,6 @@ import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
 export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends PlayerOrCardAbility<T> {
-    public cannotTargetFirst: boolean;
     private handler: (context: AbilityContext) => void;
 
     /** @param card The card this ability is attached to. */

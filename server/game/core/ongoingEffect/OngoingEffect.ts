@@ -41,7 +41,7 @@ export interface IOngoingEffectState<TTarget extends GameObject> extends IGameOb
  * impl                 - object with details of effect to be applied. Includes duration
  *                        and the numerical value of the effect, if any.
  */
-export abstract class OngoingEffect<TTarget extends GameObject, TState extends IOngoingEffectState<TTarget> = IOngoingEffectState<TTarget>> extends GameObjectBase<TState> {
+export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TState extends IOngoingEffectState<TTarget> = IOngoingEffectState<TTarget>> extends GameObjectBase<TState> {
     public source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
     public readonly matchTarget: TTarget | ((target: TTarget, context: AbilityContext) => boolean);
