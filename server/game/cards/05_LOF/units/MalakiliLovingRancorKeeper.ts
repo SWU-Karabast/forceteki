@@ -10,7 +10,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'malakili#loving-rancor-keeper-id',
+            id: '4945479132',
             internalName: 'malakili#loving-rancor-keeper',
         };
     }

@@ -1,13 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
-import {
-    AbilityType,
-    DamageType,
-    KeywordName,
-    RelativePlayer,
-    Trait,
-    WildcardCardType,
-    ZoneName
-} from '../../../core/Constants';
+import { AbilityType, DamageType, KeywordName, RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 import { DamageSystem } from '../../../gameSystems/DamageSystem';
@@ -15,7 +7,7 @@ import { DamageSystem } from '../../../gameSystems/DamageSystem';
 export default class ShienFlurry extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'shien-flurry-id',
+            id: '7981459508',
             internalName: 'shien-flurry',
         };
     }
