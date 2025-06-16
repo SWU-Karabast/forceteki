@@ -16,7 +16,7 @@ export interface IExecuteHandlerSystemProperties<TContext extends AbilityContext
  * @override This was copied from L5R but has not been tested yet
  */
 export class ExecuteHandlerSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IExecuteHandlerSystemProperties<TContext>> {
-    protected override readonly eventName = MetaEventName.ExecuteHandler;
+    public override readonly eventName = MetaEventName.ExecuteHandler;
     protected override readonly defaultProperties: IExecuteHandlerSystemProperties = {
         handler: () => true,
         hasTargetsChosenByInitiatingPlayer: false

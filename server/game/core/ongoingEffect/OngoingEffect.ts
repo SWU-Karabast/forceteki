@@ -7,12 +7,11 @@ import type Game from '../Game';
 import type { GameObject } from '../GameObject';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 
-export interface IOngoingEffectState extends IGameObjectBaseState {
-    targets: GameObjectRef<(Player | Card)>[];
+export interface IOngoingEffectState<TTarget extends GameObject> extends IGameObjectBaseState {
+    targets: GameObjectRef<TTarget>[];
 }
 
 /**
@@ -42,17 +41,16 @@ export interface IOngoingEffectState extends IGameObjectBaseState {
  * impl                 - object with details of effect to be applied. Includes duration
  *                        and the numerical value of the effect, if any.
  */
-export abstract class OngoingEffect<T extends IOngoingEffectState = IOngoingEffectState> extends GameObjectBase<T> {
-    public readonly id: number;
-    public readonly source: Card;
+export abstract class OngoingEffect<TTarget extends GameObject, TState extends IOngoingEffectState<TTarget> = IOngoingEffectState<TTarget>> extends GameObjectBase<TState> {
+    public source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
-    public readonly matchTarget: (Player | Card) | ((target: Player | Card, context: AbilityContext) => boolean);
+    public readonly matchTarget: TTarget | ((target: TTarget, context: AbilityContext) => boolean);
     public readonly duration?: Duration;
     public readonly until: WhenType;
     public readonly condition: (context?: AbilityContext) => boolean;
     public readonly sourceZoneFilter: ZoneFilter | ZoneFilter[];
     public readonly impl: OngoingEffectImpl<any>;
-    public readonly ongoingEffect: IOngoingEffectProps;
+    public readonly ongoingEffect: IOngoingEffectProps<TTarget>;
     public context: AbilityContext;
 
     public get type() {
@@ -63,7 +61,7 @@ export abstract class OngoingEffect<T extends IOngoingEffectState = IOngoingEffe
         return this.state.targets.map((x) => this.game.getFromRef(x));
     }
 
-    public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effectImpl: OngoingEffectImpl<any>) {
+    public constructor(game: Game, source: Card, properties: IOngoingEffectProps<TTarget>, effectImpl: OngoingEffectImpl<any>) {
         Contract.assertFalse(
             properties.duration === Duration.WhileSourceInPlay && !source.canBeInPlay(),
             `${source.internalName} is not a legal target for an effect with duration '${Duration.WhileSourceInPlay}'`
@@ -101,7 +99,7 @@ export abstract class OngoingEffect<T extends IOngoingEffectState = IOngoingEffe
         this.impl.setContext(this.context);
     }
 
-    public isValidTarget(target: Player | Card) {
+    public isValidTarget(target: TTarget) {
         return true;
     }
 
@@ -123,12 +121,12 @@ export abstract class OngoingEffect<T extends IOngoingEffectState = IOngoingEffe
         this.removeTargets([target]);
     }
 
-    public removeTargets(targets) {
+    public removeTargets(targets: TTarget[]) {
         targets.forEach((target) => this.impl.unapply(this, target));
         this.state.targets = this.targets.filter((target) => !targets.includes(target)).map((x) => x.getRef());
     }
 
-    public hasTarget(target) {
+    public hasTarget(target: TTarget) {
         return this.targets.includes(target);
     }
 
@@ -201,7 +199,7 @@ export abstract class OngoingEffect<T extends IOngoingEffectState = IOngoingEffe
         };
     }
 
-    public override afterSetAllState(oldState: T) {
+    public override afterSetAllState(oldState: TState) {
         this.refreshContext();
     }
 }

@@ -1,7 +1,7 @@
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { Trait } from '../../../core/Constants';
+import { DamageType, Trait } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
-import AbilityHelper from '../../../AbilityHelper';
+import { DamageSystem } from '../../../gameSystems/DamageSystem';
 
 export default class BobaFettsArmor extends UpgradeCard {
     protected override getImplementationId() {
@@ -22,15 +22,15 @@ export default class BobaFettsArmor extends UpgradeCard {
                   !event.isIndirect,
             },
             replaceWith: {
-                replacementImmediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
+                replacementImmediateEffect: new DamageSystem((context) => ({
                     target: context.source.parentCard,
-                    amount: () => (Math.max(context.event.amount - 2, 0)),
-                    source: context.event.damageSource.damageDealtBy,
+                    amount: Math.max(context.event.amount - 2, 0),
+                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
                     type: context.event.type,
                     sourceAttack: context.event.damageSource.attack,
                 }))
             },
-            effect: 'Boba Fett\'s armor prevents 2 damage to {1}',
+            effect: 'prevent 2 damage to {1}',
             effectArgs: (context) => [context.source.parentCard]
         });
     }

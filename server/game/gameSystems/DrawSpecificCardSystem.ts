@@ -16,7 +16,7 @@ export interface IDrawSpecificCardProperties extends ICardTargetSystemProperties
 
 export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDrawSpecificCardProperties> {
     public override readonly name = 'drawSpecific';
-    protected override readonly eventName = EventName.OnCardsDrawn;
+    public override readonly eventName = EventName.OnCardsDrawn;
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
     protected override defaultProperties: IDrawSpecificCardProperties = {

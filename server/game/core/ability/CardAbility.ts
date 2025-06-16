@@ -6,7 +6,7 @@ import * as Helpers from '../utils/Helpers';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
-import type { FormatMessage } from '../chat/GameChat';
+import type { FormatMessage, MsgArg } from '../chat/GameChat';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import * as ChatHelpers from '../chat/ChatHelpers';
 import { CardAbilityStep } from './CardAbilityStep';
@@ -122,7 +122,7 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
         return zone;
     }
 
-    public override displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
+    public override displayMessage(context: AbilityContext, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
         if ('message' in this.properties && this.properties.message) {
             let messageArgs = 'messageArgs' in this.properties ? this.properties.messageArgs : [];
             if (typeof messageArgs === 'function') {
@@ -135,9 +135,9 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
             return;
         }
 
-        const gainAbilitySource = context.ability && context.ability.gainAbilitySource;
+        const gainAbilitySource = context.ability && context.ability.isCardAbility() && context.ability.gainAbilitySource;
 
-        const messageArgs = [context.player, ` ${messageVerb} `, context.source];
+        const messageArgs: MsgArg[] = [context.player, ` ${messageVerb} `, context.source];
         if (gainAbilitySource) {
             if (gainAbilitySource !== context.source) {
                 messageArgs.push('\'s gained ability from ', gainAbilitySource);
@@ -191,5 +191,9 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
 
     public override isActivatedAbility() {
         return [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.type);
+    }
+
+    public override isCardAbility(): this is CardAbility {
+        return true;
     }
 }

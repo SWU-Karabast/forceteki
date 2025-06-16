@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
+import type { IUserDataEntity } from '../../services/DynamoDBInterfaces';
 
 
 /**
@@ -313,6 +314,36 @@ export class UserFactory {
             }
             // This catches both JWT verification errors and database errors
             logger.error('Authentication error:', { error: { message: error.message, stack: error.stack } });
+            throw error;
+        }
+    }
+
+
+    /**
+     * Verifies JWT token and creates an AuthenticatedUser from the provided user data
+     * @param token JWT token to verify
+     * @param userData User data to create the AuthenticatedUser with
+     * @returns AuthenticatedUser instance if token is valid, null otherwise
+     */
+    public verifyTokenAndCreateAuthenticatedUser(token: string, userData: IUserDataEntity): AuthenticatedUser | AnonymousUser | null {
+        try {
+            const secret = process.env.NEXTAUTH_SECRET;
+            Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
+
+            const decoded = jwt.verify(token, secret) as any;
+            if (!decoded.userId) {
+                throw new Error('Parameter userId missing in JWT token');
+            }
+
+            // Update the user data with the decoded UUID
+            const updatedUserData = {
+                ...userData,
+                id: decoded.userId
+            };
+
+            return new AuthenticatedUser(updatedUserData);
+        } catch (error) {
+            logger.error('Error verifying JWT token:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }

@@ -185,5 +185,35 @@ describe('Tech, Source of Insight', function () {
             expect(context.daringRaid).toBeInZone('discard', context.player2);
             expect(context.p2Base.damage).toBe(2);
         });
+
+        it('should be able to smuggle resupply to add another card to resources', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'rey#more-than-a-scavenger',
+                    base: 'data-vault',
+                    deck: ['moisture-farmer'],
+                    groundArena: [
+                        'tech#source-of-insight'
+                    ],
+                    resources: [
+                        'atst',
+                        'atst',
+                        'atst',
+                        'atst',
+                        'resupply'
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.resupply);
+
+            expect(context.moistureFarmer).toBeInZone('resource');
+            expect(context.resupply).toBeInZone('resource');
+            expect(context.player1.exhaustedResourceCount).toBe(6);
+            expect(context.player1.readyResourceCount).toBe(0);
+        });
     });
 });

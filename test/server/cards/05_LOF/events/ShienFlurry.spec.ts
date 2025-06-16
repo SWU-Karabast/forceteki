@@ -37,6 +37,7 @@ describe('Shien Flurry', function() {
 
                 // 2 damages should have been prevented
                 expect(context.obiwanKenobi.damage).toBe(2);
+                expect(context.getChatLogs(5)).toContain('player1 uses Obi-Wan Kenobi\'s gained ability from Shien Flurry to prevent 2 damage to Obi-Wan Kenobi');
             });
 
             it('should allow playing a Force unit from hand, give it Ambush, and prevent 2 damage the next time it would be dealt damage (no damage from ambush)', function() {
@@ -103,6 +104,33 @@ describe('Shien Flurry', function() {
             player1.clickCard(context.shienFlurry);
             expect(player2).toBeActivePlayer();
             expect(player1.exhaustedResourceCount).toBe(1);
+        });
+
+        it('Shien Flurry\'s ability should prevent 2 indirect damage the next time it would be dealt damage', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['shien-flurry', 'obiwan-kenobi#following-fate'],
+                    base: 'administrators-tower',
+                    spaceArena: ['the-legacy-run#doomed-debris'],
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.shienFlurry);
+            context.player1.clickCard(context.obiwanKenobi);
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.theLegacyRun);
+
+            expect(context.obiwanKenobi.damage).toBe(4);
+            expect(context.getChatLogs(3)).toContain('player2 uses The Legacy Run to distribute 6 damage among enemy units');
+            expect(context.getChatLogs(3)).toContain('player1 uses Obi-Wan Kenobi\'s gained ability from Shien Flurry to prevent 2 damage to Obi-Wan Kenobi');
+            expect(context.getChatLogs(3)).toContain('player2 uses The Legacy Run to deal 4 damage to Obi-Wan Kenobi');
         });
     });
 });

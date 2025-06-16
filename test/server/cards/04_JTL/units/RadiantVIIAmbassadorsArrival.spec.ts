@@ -14,7 +14,7 @@ describe('Radiant VII, Ambassadors\' Arrival', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.radiantVii);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 5],
             ]));

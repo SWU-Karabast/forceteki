@@ -48,7 +48,7 @@ import type { IBaseCard } from './card/BaseCard';
 import { logger } from '../../logger';
 import { StandardActionTimer } from './actionTimer/StandardActionTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
-import type { IActionTimer } from './actionTimer/IActionTimer';
+import { PlayerTimeRemainingStatus, type IActionTimer } from './actionTimer/IActionTimer';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -173,8 +173,16 @@ export class Player extends GameObject<IPlayerState> {
                 () => this.game.onActionTimerExpired(this),
                 (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId)
             );
-            this.actionTimer.addSpecificTimeHandler(20, () => this.game.addAlert(AlertType.Warning, '{0} has 20 seconds remaining to take an action before being kicked for inactivity', this));
-            this.actionTimer.addSpecificTimeHandler(10, () => this.game.addAlert(AlertType.Danger, '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this));
+            this.actionTimer.addSpecificTimeHandler(20,
+                (updateTimerStatusHandler) => {
+                    updateTimerStatusHandler(PlayerTimeRemainingStatus.Warning);
+                    this.game.addAlert(AlertType.Warning, '{0} has 20 seconds remaining to take an action before being kicked for inactivity', this);
+                });
+            this.actionTimer.addSpecificTimeHandler(10,
+                (updateTimerStatusHandler) => {
+                    updateTimerStatusHandler(PlayerTimeRemainingStatus.Danger);
+                    this.game.addAlert(AlertType.Danger, '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this);
+                });
         } else {
             this.actionTimer = new NoopActionTimer();
         }
@@ -878,7 +886,7 @@ export class Player extends GameObject<IPlayerState> {
                 if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
                     const upgrade = context.source;
                     return context.game.getArenaUnits()
-                        .filter((unit) => upgrade.canAttach(unit, context))
+                        .filter((unit) => upgrade.canAttach(unit, context, this))
                         .some((unit) => adjuster.canAdjust(upgrade, context, { attachTarget: unit, ...canAdjustProps }));
                 }
 
@@ -1297,7 +1305,8 @@ export class Player extends GameObject<IPlayerState> {
             isActionPhaseActivePlayer,
             clock: undefined,
             aspects: this.getAspects(),
-            hasForceToken: this.hasTheForce
+            hasForceToken: this.hasTheForce,
+            timeRemainingStatus: this.actionTimer.timeRemainingStatus,
         };
 
         // if (this.showDeck) {

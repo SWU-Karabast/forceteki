@@ -11,7 +11,6 @@ import { logger } from '../logger';
 import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
 import type { User } from '../utils/user/User';
-import { AuthenticatedUser } from '../utils/user/User';
 import * as env from '../env';
 import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
@@ -164,7 +163,7 @@ export class GameServer {
 
                         // If client sent pre-authenticated user data, use it directly
                         if (userData.authenticated) {
-                            user = new AuthenticatedUser(userData);
+                            user = this.userFactory.verifyTokenAndCreateAuthenticatedUser(token, userData);
                         } else {
                             // User data exists but not marked as authenticated
                             // Verify with token instead

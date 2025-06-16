@@ -51,7 +51,6 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     public readonly when?: WhenType;
     public readonly aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
     public readonly anyPlayer: boolean;
-    public readonly isBounty: boolean = false;
     public readonly collectiveTrigger: boolean;
     public readonly standardTriggerTypes: StandardTriggeredAbilityType[] = [];
 

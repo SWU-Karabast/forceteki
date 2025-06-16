@@ -13,7 +13,7 @@ export interface IPlayModalCardProperties<TContext extends AbilityContext = Abil
 
 export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPlayModalCardProperties> {
     public override readonly name = 'ChooseModalEffectsSystem';
-    protected override readonly eventName = MetaEventName.ChooseModalEffects;
+    public override readonly eventName = MetaEventName.ChooseModalEffects;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(event): void { }

@@ -21,7 +21,7 @@ describe('IndirectDamageToPlayer system', function() {
                 context.player1.clickCard(context.firstOrderStormtrooper);
                 context.player1.clickCard(context.p2Base);
 
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.wampa, 1],
                 ]));
@@ -36,14 +36,14 @@ describe('IndirectDamageToPlayer system', function() {
                 context.player1.clickCard(context.firstOrderStormtrooper);
                 context.player1.clickCard(context.wampa);
 
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.bobaFett, 1],
                 ]));
 
                 expect(context.bobaFett.damage).toBe(1);
 
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.bobaFett, 1],
                 ]));
@@ -57,14 +57,14 @@ describe('IndirectDamageToPlayer system', function() {
                 context.player1.clickCard(context.firstOrderStormtrooper);
                 context.player1.clickCard(context.wampa);
 
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.lurkingTiePhantom, 1],
                 ]));
 
                 expect(context.lurkingTiePhantom.damage).toBe(1);
 
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.lurkingTiePhantom, 1],
                 ]));
@@ -78,7 +78,7 @@ describe('IndirectDamageToPlayer system', function() {
                 context.player1.clickCard(context.firstOrderStormtrooper);
                 context.player1.clickCard(context.wampa);
 
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.chirrutImwe, 1],
                 ]));
@@ -86,7 +86,7 @@ describe('IndirectDamageToPlayer system', function() {
                 expect(context.chirrutImwe.damage).toBe(5);
                 expect(context.chirrutImwe.remainingHp).toBe(0);
 
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 expect(
                     () => context.player2.setDistributeIndirectDamagePromptState(new Map([
                         [context.chirrutImwe, 1],

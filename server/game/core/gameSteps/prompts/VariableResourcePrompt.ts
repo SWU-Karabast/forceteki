@@ -18,7 +18,7 @@ export class VariableResourcePrompt extends ResourcePrompt {
         this.maxCardsToResource = maxCardsToResource;
     }
 
-    public override activePrompt(): IPlayerPromptStateProperties {
+    public override activePromptInternal(): IPlayerPromptStateProperties {
         const promptText = `Select between ${this.minCardsToResource} and ${this.maxCardsToResource} cards to resource`;
 
         return {

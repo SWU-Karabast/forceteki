@@ -610,6 +610,7 @@ class Game extends EventEmitter {
 
         this.userTimeoutDisconnect(player.id);
         this.addAlert(AlertType.Danger, '{0} has been removed due to inactivity.', player);
+        return null;
     }
 
     // TODO: parameter contract checks for this flow

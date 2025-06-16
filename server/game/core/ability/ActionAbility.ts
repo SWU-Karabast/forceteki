@@ -81,7 +81,7 @@ export class ActionAbility extends CardAbility {
 
             // We consider the action ability to have an effect if it meets the requirements and it has no costs or a legal effect.
             // Otherwise, we prompt the player to confirm that they didn't trigger it by mistake.
-            if (requirements === '' && (this.getCosts(context).length === 0 || this.hasAnyLegalEffects(context, SubStepCheck.ThenIfYouDo))) {
+            if (requirements === '' && ((this.getCosts(context).length === 0 && !this.isEpicAction) || this.hasAnyLegalEffects(context, SubStepCheck.ThenIfYouDo))) {
                 return;
             }
 

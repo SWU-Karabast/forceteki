@@ -2,7 +2,8 @@ const { color } = require('console-log-colors');
 
 const mockCards = [
     buildMockCard({
-        title: 'Malakili, Loving Rancor Keeper',
+        title: 'Malakili',
+        subtitle: 'Loving Rancor Keeper',
         power: 1,
         hp: 4,
         hasNonKeywordAbility: true,
@@ -33,7 +34,8 @@ const mockCards = [
         internalName: 'shien-flurry',
     }),
     buildMockCard({
-        title: 'Kit Fisto\'s Aethersprite, Good Hunting',
+        title: 'Kit Fisto\'s Aethersprite',
+        subtitle: 'Good Hunting',
         power: 4,
         hp: 5,
         cost: 5,
@@ -51,7 +53,8 @@ const mockCards = [
         internalName: 'kit-fistos-aethersprite#good-hunting'
     }),
     buildMockCard({
-        title: 'Adi Gallia, Stern and Focused',
+        title: 'Adi Gallia',
+        subtitle: 'Stern and Focused',
         cost: 2,
         power: 2,
         hp: 4,
@@ -83,7 +86,8 @@ const mockCards = [
         internalName: 'niman-strike',
     }),
     buildMockCard({
-        title: 'Yaddle, A Chance to Make Things Right',
+        title: 'Yaddle',
+        subtitle: 'A Chance to Make Things Right',
         cost: 2,
         power: 2,
         hp: 4,
@@ -119,7 +123,8 @@ const mockCards = [
         internalName: 'drengir-spawn'
     }),
     buildMockCard({
-        title: 'The Legacy Run, Doomed Debris',
+        title: 'The Legacy Run',
+        subtitle: 'Doomed Debris',
         cost: 5,
         power: 3,
         hp: 3,
@@ -136,7 +141,8 @@ const mockCards = [
         internalName: 'the-legacy-run#doomed-debris'
     }),
     buildMockCard({
-        title: 'Aurra Sing, Patient and Deadly',
+        title: 'Aurra Sing',
+        subtitle: 'Patient and Deadly',
         cost: 2,
         power: 1,
         hp: 4,
@@ -185,7 +191,8 @@ const mockCards = [
         internalName: 'purge-trooper'
     }),
     buildMockCard({
-        title: 'Grand Inquisitor, Stories Travel Quickly',
+        title: 'Grand Inquisitor',
+        subtitle: 'Stories Travel Quickly',
         power: 3,
         hp: 5,
         cost: 5,
@@ -312,7 +319,8 @@ const mockCards = [
         internalName: 'avar-kriss#marshal-of-starlight'
     }),
     buildMockCard({
-        title: 'Priestesses of the Force, Eternal',
+        title: 'Priestesses of the Force',
+        subtitle: 'Eternal',
         cost: 7,
         power: 6,
         hp: 8,
@@ -343,7 +351,8 @@ const mockCards = [
         internalName: 'sorcerous-blast'
     }),
     buildMockCard({
-        title: 'Vernestra Rwoh, Precocious Knight',
+        title: 'Vernestra Rwoh',
+        subtitle: 'Precocious Knight',
         cost: 3,
         power: 3,
         hp: 4,
@@ -360,7 +369,8 @@ const mockCards = [
         internalName: 'vernestra-rwoh#precocious-knight'
     }),
     buildMockCard({
-        title: 'Eye of Sion, To Peridea',
+        title: 'Eye of Sion',
+        subtitle: 'To Peridea',
         cost: 6,
         power: 4,
         hp: 7,
@@ -378,7 +388,8 @@ const mockCards = [
         internalName: 'eye-of-sion#to-peridea'
     }),
     buildMockCard({
-        title: 'Shin Hati, Overeager Apprentice',
+        title: 'Shin Hati',
+        subtitle: 'Overeager Apprentice',
         cost: 3,
         power: 4,
         hp: 2,
@@ -396,7 +407,8 @@ const mockCards = [
         internalName: 'shin-hati#overeager-apprentice'
     }),
     buildMockCard({
-        title: 'Baylan Skoll, Enigmatic Master',
+        title: 'Baylan Skoll',
+        subtitle: 'Enigmatic Master',
         cost: 5,
         power: 5,
         hp: 5,
@@ -581,6 +593,228 @@ const mockCards = [
         arena: 'ground',
         internalName: 'mythosaur#folklore-awakened'
     }),
+    buildMockCard({
+        title: 'Second Sister',
+        subtitle: 'Seeking the Holocron',
+        cost: 4,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['force', 'imperial', 'inquisitor'],
+        setId: {
+            set: 'LOF',
+            number: 184
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'second-sister#seeking-the-holocron'
+    }),
+    buildMockCard({
+        title: 'Supremacy',
+        subtitle: 'Of Unimaginable Size',
+        cost: 12,
+        power: 12,
+        hp: 12,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        keywords: ['ambush'],
+        traits: ['first order', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'LOF',
+            number: 89
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'supremacy#of-unimaginable-size'
+    }),
+    buildMockCard({
+        title: 'Exegol Patroller',
+        cost: 2,
+        power: 3,
+        hp: 1,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        keywords: ['overwhelm'],
+        traits: ['first order', 'vehicle', 'sith', 'fighter'],
+        setId: {
+            set: 'LOF',
+            number: 80
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'exegol-patroller',
+    }),
+    buildMockCard({
+        title: 'Supremacy TIE/sf',
+        cost: 3,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        keywords: ['sentinel'],
+        traits: ['first order', 'vehicle', 'fighter'],
+        setId: {
+            set: 'LOF',
+            number: 34
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'supremacy-tiesf',
+    }),
+    buildMockCard({
+        title: 'Supreme Leader Snoke',
+        subtitle: 'In the Seat of Power',
+        cost: 6,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['leader'],
+        traits: ['first order', 'force', 'official'],
+        setId: {
+            set: 'LOF',
+            number: 6
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'supreme-leader-snoke#in-the-seat-of-power',
+    }),
+    buildMockCard({
+        title: 'Bendu',
+        subtitle: 'Do You Fear The Storm?',
+        cost: 8,
+        power: 10,
+        hp: 10,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['force', 'creature'],
+        setId: {
+            set: 'LOF',
+            number: 170
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bendu#do-you-fear-the-storm',
+    }),
+    buildMockCard({
+        title: 'Caretaker Matron',
+        cost: 2,
+        power: 0,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        types: ['unit'],
+        traits: ['fringe'],
+        setId: {
+            set: 'LOF',
+            number: 243
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'caretaker-matron',
+    }),
+    buildMockCard({
+        title: 'Force Illusion',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['force', 'trick'],
+        setId: {
+            set: 'LOF',
+            number: 223
+        },
+        unique: false,
+        internalName: 'force-illusion',
+    }),
+    buildMockCard({
+        title: 'Cal Kestis',
+        subtitle: 'I Can\'t Keep Hiding',
+        cost: 4,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['leader'],
+        traits: ['force', 'fringe'],
+        setId: {
+            set: 'LOF',
+            number: 15
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'cal-kestis#i-cant-keep-hiding',
+    }),
+    buildMockCard({
+        title: 'Quinlan Vos',
+        subtitle: 'Dark Disciple',
+        cost: 4,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 163
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'quinlan-vos#dark-disciple',
+    }),
+    buildMockCard({
+        title: 'Asajj Ventress',
+        subtitle: 'Harden Your Heart',
+        cost: 5,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['force', 'night', 'bounty hunter'],
+        setId: {
+            set: 'LOF',
+            number: 165
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'asajj-ventress#harden-your-heart',
+    }),
+    buildMockCard({
+        title: 'It\'s Worse',
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: [],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'LOF',
+            number: 264
+        },
+        unique: false,
+        internalName: 'its-worse',
+    }),
+    buildMockCard({
+        title: 'A Precarious Predicament',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'LOF',
+            number: 222
+        },
+        unique: false,
+        internalName: 'a-precarious-predicament',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
@@ -610,9 +844,9 @@ function buildMockCard(cardData) {
     return {
         title: cardData.title,
         subtitle: cardData.subtitle || '',
-        cost: cardData.cost || null,
-        hp: cardData.hp || null,
-        power: cardData.power || null,
+        cost: cardData.cost ?? null,
+        hp: cardData.hp ?? null,
+        power: cardData.power ?? null,
         text,
         deployBox,
         epicAction: '',
@@ -621,8 +855,8 @@ function buildMockCard(cardData) {
         reprints: {
             data: []
         },
-        upgradePower: cardData.upgradePower || null,
-        upgradeHp: cardData.upgradeHp || null,
+        upgradePower: cardData.upgradePower ?? null,
+        upgradeHp: cardData.upgradeHp ?? null,
         id: cardData.internalName + '-id',
         aspects: cardData.aspects || [],
         traits: cardData.traits || [],

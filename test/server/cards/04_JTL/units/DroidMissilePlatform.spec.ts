@@ -17,7 +17,7 @@ describe('Droid Missile Platform', function () {
             context.player1.clickCard(context.rivalsFall);
             context.player1.clickCard(context.droidMissilePlatform);
 
-            context.player2.clickPrompt('Opponent');
+            context.player2.clickPrompt('Deal indirect damage to opponent');
 
             context.player1.setDistributeIndirectDamagePromptState(new Map([
                 [context.p1Base, 3],
@@ -43,7 +43,7 @@ describe('Droid Missile Platform', function () {
 
             context.player1.clickCard(context.noGloryOnlyResults);
             context.player1.clickCard(context.droidMissilePlatform);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.p2Base.damage).toBe(3);

@@ -53,28 +53,35 @@ export abstract class DistributeAmongTargetsSystem<
     protected abstract canDistributeLessDefault(): boolean;
     protected abstract generateEffectSystem(target?: Card, amount?: number, properties?): DamageSystem | HealSystem | GiveExperienceSystem;
     protected abstract getDistributedAmountFromEvent(event: any): number;
+    protected abstract getDistributionType(amount: number): string | FormatMessage;
+
+    protected getDistributionVerb(): string {
+        return 'distribute';
+    }
 
     public eventHandler(event): void {
         const context: TContext = event.context;
         event.totalDistributed =
-            event.individualEvents.reduce((total, individualEvent) => total + this.getDistributedAmountFromEvent(individualEvent), 0);
+            (event.individualEvents as GameEvent[])
+                .flatMap((event) => event.resolvedEvents.filter((resolvedEvent) => resolvedEvent.name === event.name))
+                .reduce((total, individualEvent) => total + this.getDistributedAmountFromEvent(individualEvent), 0);
 
         context.game.addMessage(this.getChatMessage(), ...this.getChatMessageArgs(event, context, event.additionalProperties));
     }
 
     protected getChatMessage(): string {
-        return '{0} uses {1} to distribute {2}';
+        return `{0} uses {1} to ${this.getDistributionVerb()} {2}`;
     }
 
     protected getChatMessageArgs(event: any, context: TContext, additionalProperties: Partial<TProperties>): any[] {
         const targets: FormatMessage[] = [];
         const individualEvents: any[] = event.individualEvents || [];
-        for (const individualEvent of individualEvents) {
+        for (const individualEvent of individualEvents.flatMap((event) => event.resolvedEvents.filter((resolvedEvent: GameEvent) => resolvedEvent.name === event.name))) {
             const amount = this.getDistributedAmountFromEvent(individualEvent);
             if (amount !== 0) {
                 targets.push({
                     format: '{0} {1} to {2}',
-                    args: [`${amount}`, this.getDistributionType(), individualEvent.card],
+                    args: [`${amount}`, this.getDistributionType(amount), individualEvent.card],
                 });
             }
         }
@@ -97,7 +104,7 @@ export abstract class DistributeAmongTargetsSystem<
             const controllerDescriptor = properties.controller === RelativePlayer.Self ? 'a friendly' : properties.controller === RelativePlayer.Opponent ? 'an enemy' : filterDescription.article;
             return [
                 'distribute {0} {1} to {2} {3}',
-                [amountDescription, this.getDistributionType(), controllerDescriptor, filterDescription.description],
+                [amountDescription, this.getDistributionType(amountToDistribute), controllerDescriptor, filterDescription.description],
             ];
         }
 
@@ -106,11 +113,9 @@ export abstract class DistributeAmongTargetsSystem<
 
         return [
             'distribute {0} {1} among {2}{3}',
-            [amountDescription, this.getDistributionType(), controllerDescriptor, filterDescription.description],
+            [amountDescription, this.getDistributionType(amountToDistribute), controllerDescriptor, filterDescription.description],
         ];
     }
-
-    protected abstract getDistributionType(): string;
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);

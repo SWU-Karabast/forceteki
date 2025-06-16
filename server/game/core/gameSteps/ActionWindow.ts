@@ -1,12 +1,12 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { RelativePlayer, EventName, EffectName } from '../Constants.js';
+import { EventName, EffectName } from '../Constants.js';
 import * as EnumHelpers from '../utils/EnumHelpers.js';
 import * as Contract from '../utils/Contract.js';
 import type Game from '../Game.js';
 import type { Player } from '../Player.js';
 import type { Card } from '../card/Card.js';
 import type { IPlayerPromptStateProperties } from '../PlayerPromptState.js';
-import type AbilityResolver from './AbilityResolver.js';
+import type { AbilityResolver } from './AbilityResolver.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import { PromptType, type IButton } from './PromptInterfaces.js';
 
@@ -42,8 +42,8 @@ export class ActionWindow extends UiPrompt {
         if (legalActions.length === 1) {
             const action = legalActions[0];
             const requiresConfirmation = action.isActionAbility() && action.requiresConfirmation;
-            const targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.properties.choosingPlayer !== RelativePlayer.Opponent);
             const context = action.createContext(player);
+            const targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.getChoosingPlayer(context) === player);
             if (!requiresConfirmation || action.getCosts(context).some((cost) => cost.promptsPlayer) || targetPrompts) {
                 this.resolveAbility(context);
                 return true;
@@ -94,7 +94,7 @@ export class ActionWindow extends UiPrompt {
         this.activePlayer.actionTimer.stop();
     }
 
-    public override activePrompt(player: Player): IPlayerPromptStateProperties {
+    public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         const { mustTakeCardAction, overrideActionPromptTitle } = this.getSelectableCards();
 
         const buttons: IButton[] = [

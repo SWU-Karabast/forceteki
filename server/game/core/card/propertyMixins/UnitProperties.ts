@@ -987,7 +987,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         public unattachUpgrade(upgrade: IUpgradeCard, event = null) {
             this.assertPropertyEnabledForZone(this.state.upgrades, 'upgrades');
             this.state.upgrades = this.state.upgrades.filter((card) => card.uuid !== upgrade.uuid);
-            if (upgrade.printedHp !== 0) {
+            if (upgrade.getPrintedHp() !== 0) {
                 this.lastPlayerToModifyHp = event?.context?.ability ? event.context.ability.controller : upgrade.owner;
             }
         }
@@ -1002,7 +1002,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             this.state.upgrades.push(upgrade.getRef());
 
-            if (upgrade.printedHp !== 0) {
+            if (upgrade.getPrintedHp() !== 0) {
                 this.lastPlayerToModifyHp = upgrade.controller;
             }
         }

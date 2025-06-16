@@ -53,29 +53,31 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
     requiresConfirmation?: boolean;
 };
 
-export interface IOngoingEffectProps {
+export interface IOngoingEffectProps<TTarget> {
     targetZoneFilter?: ZoneFilter;
     sourceZoneFilter?: ZoneFilter | ZoneFilter[];
     targetCardTypeFilter?: any;
-    matchTarget?: (Player | Card) | ((target: Player | Card, context: AbilityContext) => boolean);
+    matchTarget?: TTarget | ((target: TTarget, context: AbilityContext) => boolean);
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
     duration?: Duration;
     condition?: (context: AbilityContext) => boolean;
     until?: WhenType;
     ability?: PlayerOrCardAbility;
-    target?: (Player | Card) | (Player | Card)[];
+    target?: TTarget | TTarget[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
     delayedEffectType?: DelayedEffectType;
     isLastingEffect?: boolean;
 }
 
-export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
-    targetController?: Player | RelativePlayer;
+export type IOngoingCardOrPlayerEffectProps<TTarget extends Card | Player> = TTarget extends Card ? IOngoingCardEffectProps : IOngoingPlayerEffectProps;
+
+export interface IOngoingPlayerEffectProps extends IOngoingEffectProps<Player> {
+    targetController?: RelativePlayerFilter;
 }
 
-export interface IOngoingCardEffectProps extends IOngoingEffectProps {
+export interface IOngoingCardEffectProps extends IOngoingEffectProps<Card> {
     targetController?: RelativePlayer;
 }
 
@@ -259,11 +261,14 @@ export type WhenTypeOrStandard<TSource extends Card = Card> = WhenType<TSource> 
     [StandardTriggeredAbilityTypeValue in StandardTriggeredAbilityType]?: true;
 };
 
-export type IOngoingCardEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => OngoingCardEffect;
-export type IOngoingPlayerEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => OngoingPlayerEffect;
+export type IOngoingCardOrPlayerEffect<TTarget extends Card | Player> = TTarget extends Card ? OngoingCardEffect : OngoingPlayerEffect;
+
+export type IOngoingCardOrPlayerEffectGenerator<TTarget extends Card | Player> = (game: Game, source: Card, props: IOngoingCardOrPlayerEffectProps<TTarget>) => IOngoingCardOrPlayerEffect<TTarget>;
+export type IOngoingCardEffectGenerator = IOngoingCardOrPlayerEffectGenerator<Card>;
+export type IOngoingPlayerEffectGenerator = IOngoingCardOrPlayerEffectGenerator<Player>;
 export type IOngoingEffectGenerator = IOngoingCardEffectGenerator | IOngoingPlayerEffectGenerator;
 
-export type IOngoingEffectFactory = IOngoingEffectProps & {
+export type IOngoingEffectFactory<TTarget> = IOngoingEffectProps<TTarget> & {
     ongoingEffect: any; // IOngoingEffectGenerator | IOngoingEffectGenerator[]
 };
 
@@ -446,7 +451,7 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
 }
 
 /** List of keywords that don't have any additional parameters */
-type NonParameterKeywordName =
+export type NonParameterKeywordName =
   | KeywordName.Ambush
   | KeywordName.Grit
   | KeywordName.Hidden

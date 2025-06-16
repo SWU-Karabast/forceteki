@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { KeywordName, PlayType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { GameStateChangeRequired, KeywordName, PlayType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 import type { ICardTargetResolver } from '../../../TargetInterfaces';
@@ -34,8 +34,8 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
-                ignoreHiddenZoneRule: true,
                 cardCondition: (card) => card.owner === this.controller,
+                mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                 activePromptTitle: 'Defeat a resource you own and control',
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             }

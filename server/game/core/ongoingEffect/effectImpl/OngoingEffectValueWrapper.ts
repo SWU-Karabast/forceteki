@@ -14,11 +14,15 @@ export class OngoingEffectValueWrapper<TValue, TState extends IGameObjectBaseSta
     public context?: AbilityContext;
     public effectDescription?: FormatMessage;
 
-    public constructor(game: Game, value: TValue, effectDescription?: FormatMessage) {
+    public constructor(game: Game, value: TValue, effectDescription?: FormatMessage | string) {
         super(game);
         // @ts-expect-error
         this.value = value == null ? true : value;
-        this.effectDescription = effectDescription;
+        if (typeof effectDescription === 'string') {
+            this.effectDescription = { format: effectDescription, args: [] };
+        } else {
+            this.effectDescription = effectDescription;
+        }
     }
 
     public setContext(context: AbilityContext): void {

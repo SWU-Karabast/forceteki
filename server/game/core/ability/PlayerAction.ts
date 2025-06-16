@@ -4,7 +4,7 @@ import type Game from '../Game.js';
 import type { Card } from '../card/Card.js';
 import type { AbilityContext } from './AbilityContext.js';
 
-export class PlayerAction extends PlayerOrCardAbility {
+export abstract class PlayerAction extends PlayerOrCardAbility {
     public cannotBeCancelled: boolean;
 
     public constructor(game: Game, card: Card, title: string, costs = [], targetResolver, triggerHandlingMode = TriggerHandlingMode.ResolvesTriggers) {

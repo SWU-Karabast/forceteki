@@ -34,7 +34,7 @@ describe('Devastator, Hunting the Rebellion', function () {
 
             // Player 1 plays Planetary Bombardment
             context.player1.clickCard(context.planetaryBombardment);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
 
             // Player 1 assigns the indirect damage to the opponent
             expect(context.player1).toHavePrompt('Distribute 12 indirect damage among targets');
@@ -48,7 +48,7 @@ describe('Devastator, Hunting the Rebellion', function () {
             expect(context.p2Base.damage).toBe(13);
 
             // Player 2 chooses to deal 1 indirect damage to their opponent
-            context.player2.clickPrompt('Opponent');
+            context.player2.clickPrompt('Deal indirect damage to opponent');
 
             // Player 1 assigns the indirect damage because Devastator's ability doesn't affect player 2
             expect(context.player1).toHavePrompt('Distribute 1 indirect damage among targets');
@@ -65,7 +65,7 @@ describe('Devastator, Hunting the Rebellion', function () {
             // Player 1 plays Planetary Bombardment and they don't assign indirect damage anymore
             context.player1.moveCard(context.planetaryBombardment, 'hand');
             context.player1.clickCard(context.planetaryBombardment);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
 
             // Player 2 assigns the indirect damage because Devastator is not in play anymore
             expect(context.player2).toHavePrompt('Distribute 8 indirect damage among targets');

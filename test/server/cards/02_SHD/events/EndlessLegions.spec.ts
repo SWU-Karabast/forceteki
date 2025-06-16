@@ -1,6 +1,6 @@
 describe('Endless Legions', function() {
     integration(function(contextRef) {
-        it('Endless Legionsl\'s event ability should allows to play for free any number of resources', async function() {
+        it('Endless Legions\'s event ability should allows to play for free any number of resources', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -91,7 +91,7 @@ describe('Endless Legions', function() {
             ]);
             context.player2.clickPrompt('Done');
 
-            expect(context.player1).not.toHaveEnabledPromptButton('Choose nothing');
+            expect(context.player1).not.toHaveChooseNothingButton();
 
             // Only the units are selectable
             expect(context.player1).toBeAbleToSelectExactly([
@@ -153,7 +153,7 @@ describe('Endless Legions', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Endless Legionsl\'s event ability should play no cards if no units are revealed', async function() {
+        it('Endless Legions\'s event ability should play no cards if no units are revealed', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -225,7 +225,7 @@ describe('Endless Legions', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Endless Legionsl\'s event ability should play no cards if no units are revealed', async function() {
+        it('Endless Legions\'s event ability should play no cards if no units are revealed', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

@@ -34,6 +34,18 @@ describe('I Had No Choice', function() {
                     expect(context.resilient).toBeInZone('discard', context.player1);
                     expect(context.player2).toBeActivePlayer();
                 });
+
+                it('can choose nothing', function () {
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.iHadNoChoice);
+                    expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.warzoneLieutenant, context.viperProbeDroid]);
+                    context.player1.clickPrompt('Choose nothing');
+
+                    expect(context.viperProbeDroid).toBeInZone('groundArena', context.player2);
+                    expect(context.wampa).toBeInZone('groundArena', context.player1);
+                    expect(context.player2).toBeActivePlayer();
+                });
             });
 
             describe('when there is only one non-leader unit in play', function() {
