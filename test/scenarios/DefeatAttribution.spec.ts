@@ -534,7 +534,7 @@ describe('Defeat attribution', function () {
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(context.huyang);
                 expect(context.battlefieldMarine).toBeInZone('discard');
-                expect(context.getChatLogs(3)).toContain('Battlefield Marine is defeated due to having no remaining HP');
+                expect(context.getChatLogs(3)).toContain('player1\'s Battlefield Marine is defeated due to having no remaining HP');
 
                 const exhaustedResourceCount = context.player2.exhaustedResourceCount;
                 context.player2.clickCard(context.bravado);

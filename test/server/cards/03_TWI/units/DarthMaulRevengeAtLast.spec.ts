@@ -158,8 +158,8 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.wampa).toBeInZone('discard');
             expect(context.p2Base.damage).toBe(0);
             expect(context.getChatLogs(3)).toContain('Darth Maul attacks Moisture Farmer and Wampa');
-            expect(context.getChatLogs(3)).toContain('Moisture Farmer is defeated by player1 due to having no remaining HP');
-            expect(context.getChatLogs(3)).toContain('Wampa is defeated by player1 due to having no remaining HP');
+            expect(context.getChatLogs(3)).toContain('player2\'s Moisture Farmer is defeated by player1 due to having no remaining HP');
+            expect(context.getChatLogs(3)).toContain('player2\'s Wampa is defeated by player1 due to having no remaining HP');
         });
 
         it('should be able to attack two of many units when played with Ambush', async function () {

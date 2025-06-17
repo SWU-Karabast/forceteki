@@ -858,9 +858,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 this.game.queueSimpleStep(() => {
                     const responsiblePlayer = (defeatEvent as any).defeatSource?.player;
                     if (responsiblePlayer) {
-                        this.game.addMessage('{0} is defeated by {1} due to having no remaining HP', this, responsiblePlayer);
+                        this.game.addMessage('{0}\'s {1} is defeated by {2} due to having no remaining HP', this.controller, this, responsiblePlayer);
                     } else {
-                        this.game.addMessage('{0} is defeated due to having no remaining HP', this);
+                        this.game.addMessage('{0}\'s {1} is defeated due to having no remaining HP', this.controller, this);
                     }
                 }, `Log defeat message for ${this.internalName}`);
 
