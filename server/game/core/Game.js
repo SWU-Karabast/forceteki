@@ -1647,11 +1647,67 @@ class Game extends EventEmitter {
 
             const removeEmptySize = new TextEncoder().encode(JSON.stringify(gameState)).length;
 
+            for (const [_, player] of Object.entries(gameState.players)) {
+                for (const [_, zone] of Object.entries(player.cardPiles || {})) {
+                    for (const card of zone) {
+                        const ownerId = card.owner.id;
+                        const controllerId = card.controller.id;
+
+                        delete card.owner;
+                        delete card.controller;
+
+                        card.controllerId = controllerId;
+                        card.ownerId = ownerId;
+                    }
+                }
+            }
+
+            const ownerControllerIdSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
+
+            // for (const [_, player] of Object.entries(gameState.players)) {
+            //     for (const [_, zone] of Object.entries(player.cardPiles || {})) {
+            //         for (const card of zone) {
+            //             card.controllerId = 0;
+            //             card.ownerId = 1;
+            //         }
+            //     }
+            // }
+
+            // const ownerControllerIntegerSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
+
+            // TODO TO REMOVE:
+            // - cost
+            // - facedown
+            // - implemented
+            // - selected (optionally)
+            // - unselectable (optionally)
+            // - controlled
+            // - type
+
+            for (const [_, player] of Object.entries(gameState.players)) {
+                for (const [_, zone] of Object.entries(player.cardPiles || {})) {
+                    for (const card of zone) {
+                        delete card.cost;
+                        delete card.facedown;
+                        delete card.implemented;
+                        delete card.controlled;
+                        delete card.type;
+
+                        if (!card.selectable) {
+                            delete card.selected;
+                            delete card.unselectable;
+                        }
+                    }
+                }
+            }
+
+            const removeUnusedSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
+
             // Calculate and log the size in bytes
             // const jsonString = JSON.stringify(gameState);
             // console.log(`Entire JSON: ${jsonString}`);
             // const byteSize = new TextEncoder().encode(jsonString).length;
-            console.log(`Game state size (bytes):\n\t- original: ${beforeCleaningSize}\n\t- remove deck: ${removeDeckSize}\n\t- remove null: ${removeEmptySize}`);
+            console.log(`Game state size (bytes):\n\t- original: ${beforeCleaningSize}\n\t- after remove deck: ${removeDeckSize}\n\t- after remove null: ${removeEmptySize}\n\t- after owner/controller ids: ${ownerControllerIdSize}\n\t- after remove unused: ${removeUnusedSize}`);
 
             // Break down size by component
             const calculateSize = (obj) => {
