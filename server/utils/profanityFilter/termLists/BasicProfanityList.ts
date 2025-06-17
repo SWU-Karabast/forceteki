@@ -334,8 +334,7 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
             .addPattern(pattern`n[i]gger`)
             .addPattern(pattern`n[i]gga`)
             .addPattern(pattern`|nig|`)
-            .addPattern(pattern`|nigs|`)
-            .addWhitelistedTerm('snigger'),
+            .addPattern(pattern`|nigs|`),
     )
     .addPhrase((phrase) =>
         phrase
