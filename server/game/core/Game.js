@@ -1632,7 +1632,16 @@ class Game extends EventEmitter {
                 winner: this.winner ? this.winner : undefined, // TODO comment once we clarify how to display endgame screen
             };
 
+            // TODO: consider also removing any values that are boolean false
+
             const beforeCleaningSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
+
+            for (const [_, player] of Object.entries(gameState.players)) {
+                player.numCardsInDeck = player.cardPiles?.deck?.length || undefined;
+                delete player.cardPiles?.deck;
+            }
+
+            const removeDeckSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
 
             Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
 
@@ -1642,7 +1651,7 @@ class Game extends EventEmitter {
             // const jsonString = JSON.stringify(gameState);
             // console.log(`Entire JSON: ${jsonString}`);
             // const byteSize = new TextEncoder().encode(jsonString).length;
-            console.log(`Game state size (bytes):\n\t- original: ${beforeCleaningSize}\n\t- remove null: ${removeEmptySize}`);
+            console.log(`Game state size (bytes):\n\t- original: ${beforeCleaningSize}\n\t- remove deck: ${removeDeckSize}\n\t- remove null: ${removeEmptySize}`);
 
             // Break down size by component
             const calculateSize = (obj) => {
