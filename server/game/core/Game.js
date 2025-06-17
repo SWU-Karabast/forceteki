@@ -1610,7 +1610,7 @@ class Game extends EventEmitter {
                 playerState[player.id] = player.getStateSummary(activePlayer);
             }
 
-            return {
+            const gameState = {
                 playerUpdate: activePlayer.name,
                 id: this.id,
                 manualMode: this.manualMode,
@@ -1631,6 +1631,77 @@ class Game extends EventEmitter {
                 gameMode: this.gameMode,
                 winner: this.winner ? this.winner : undefined, // TODO comment once we clarify how to display endgame screen
             };
+
+            const beforeCleaningSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
+
+            Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
+
+            const removeEmptySize = new TextEncoder().encode(JSON.stringify(gameState)).length;
+
+            // Calculate and log the size in bytes
+            // const jsonString = JSON.stringify(gameState);
+            // console.log(`Entire JSON: ${jsonString}`);
+            // const byteSize = new TextEncoder().encode(jsonString).length;
+            console.log(`Game state size (bytes):\n\t- original: ${beforeCleaningSize}\n\t- remove null: ${removeEmptySize}`);
+
+            // Break down size by component
+            const calculateSize = (obj) => {
+                const str = JSON.stringify(obj);
+                return new TextEncoder().encode(str).length;
+            };
+
+            // // Calculate size of each component
+            // const playerSize = calculateSize(gameState.players);
+            // const messagesSize = calculateSize(gameState.messages);
+            // const spectatorsSize = calculateSize(gameState.spectators);
+            // const clientUIPropertiesSize = calculateSize(gameState.clientUIProperties);
+
+            // // Log breakdowns
+            // console.log('Size breakdown (bytes):');
+            // console.log(`- Players: ${playerSize} (${(playerSize / byteSize * 100).toFixed(1)}%)`);
+            // console.log(`- Messages: ${messagesSize} (${(messagesSize / byteSize * 100).toFixed(1)}%)`);
+            // console.log(`- Spectators: ${spectatorsSize} (${(spectatorsSize / byteSize * 100).toFixed(1)}%)`);
+            // console.log(`- UI Properties: ${clientUIPropertiesSize} (${(clientUIPropertiesSize / byteSize * 100).toFixed(1)}%)`);
+            // console.log(`- Other: ${byteSize - playerSize - messagesSize - spectatorsSize - clientUIPropertiesSize} (${((byteSize - playerSize - messagesSize - spectatorsSize - clientUIPropertiesSize) / byteSize * 100).toFixed(1)}%)`);
+
+            // // Further break down player data
+            // if (Object.keys(gameState.players).length > 0) {
+            //     console.log('\nPlayer data breakdown:');
+            //     for (const playerId in gameState.players) {
+            //         const playerData = gameState.players[playerId];
+            //         const playerTotal = calculateSize(playerData);
+            //         console.log(`Player ${playerData.name}: ${playerTotal} bytes`);
+
+            //         // Break down player components
+            //         const playerComponents = {
+            //             hand: playerData.cardPiles?.hand || [],
+            //             outsideTheGame: playerData.cardPiles?.outsideTheGame || [],
+            //             capturedZone: playerData.cardPiles?.capturedZone || [],
+            //             resources: playerData.cardPiles?.resources || [],
+            //             groundArena: playerData.cardPiles?.groundArena || [],
+            //             spaceArena: playerData.cardPiles?.spaceArena || [],
+            //             deck: playerData.cardPiles?.deck || [],
+            //             discard: playerData.cardPiles?.discard || []
+            //         };
+
+            //         // Add other important player data
+            //         if (playerData.leader) {
+            //             playerComponents.leader = playerData.leader ? [playerData.leader] : [];
+            //         }
+            //         if (playerData.base) {
+            //             playerComponents.base = playerData.base ? [playerData.base] : [];
+            //         }
+
+            //         for (const [component, data] of Object.entries(playerComponents)) {
+            //             const componentSize = calculateSize(data);
+            //             if (componentSize > 0) {
+            //                 console.log(`  - ${component}: ${componentSize} bytes (${(componentSize / playerTotal * 100).toFixed(1)}%)`);
+            //             }
+            //         }
+            //     }
+            // }
+
+            return gameState;
         }
         return {};
     }

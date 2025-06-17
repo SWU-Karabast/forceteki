@@ -307,3 +307,29 @@ export function setUnion<T>(setA: Set<T>, setB: Set<T>): Set<T> {
     }
     return union;
 }
+
+export function deleteEmptyPropertiesRecursiveInPlace(obj) {
+    deleteEmptyPropertiesRecursiveInPlaceInternal(obj, []);
+}
+
+function deleteEmptyPropertiesRecursiveInPlaceInternal(obj, visited) {
+    if (obj == null || visited.includes(obj)) {
+        return;
+    }
+
+    visited.push(obj);
+
+    const keysToDelete = [];
+    for (const key in obj) {
+        if (obj[key] == null) {
+            keysToDelete.push(key);
+        } else if (obj[key] instanceof Object) {
+            deleteEmptyPropertiesRecursiveInPlaceInternal(obj[key], visited);
+        }
+    }
+
+    for (const key of keysToDelete) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete obj[key];
+    }
+}
