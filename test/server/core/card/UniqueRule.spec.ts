@@ -40,6 +40,7 @@ describe('Uniqueness rule', function() {
                 expect(context.chopperInPlay).toBeInZone('discard');
                 expect(context.p2Chopper).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(1)).toContain('player1 defeats 1 copy of Chopper due to the uniquenes rule');
             });
 
             it('the player should be able to defeat either copy', function () {
@@ -512,6 +513,7 @@ describe('Uniqueness rule', function() {
                 expect(obi1).toBeInZone('discard');
                 expect(obi2).toBeInZone('discard');
                 expect(obi3).toBeInZone('groundArena');
+                expect(context.getChatLogs(1)).toContain('player1 defeats 2 copies of Obi-Wan Kenobi due to the uniquenes rule');
 
                 // Once both are defeated, the player can resolve the When Defeated abilities
                 expect(context.player1).toHavePrompt('Choose an ability to resolve:');

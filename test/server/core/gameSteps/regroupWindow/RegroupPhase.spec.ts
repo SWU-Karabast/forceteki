@@ -163,6 +163,7 @@ describe('Regroup phase', function() {
                     expect(context.ardentSympathizer.zoneName).toBe('discard');
                     expect(context.scoutBikePursuer.getPower()).toBe(1);
                     expect(context.allianceXwing.getPower()).toBe(2);
+                    expect(context.getChatLogs(4)).toContain('Ardent Sympathizer is defeated due to having no remaining HP');
                 }
             );
         });
@@ -306,6 +307,7 @@ describe('Regroup phase', function() {
             it('can allow the player to play a card, then initiate an attack with ambush', function() {
                 const { context } = contextRef;
                 context.moveToRegroupPhase();
+                expect(context.getChatLogs(1)).toContain('Fireball is defeated by player2 due to having no remaining HP');
 
                 // Resolve BHQ ability to play Cloud-Rider
                 expect(context.player1).toHavePassAbilityPrompt(bhqPrompt);
