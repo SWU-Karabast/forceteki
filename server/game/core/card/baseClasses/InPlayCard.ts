@@ -393,14 +393,14 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
                         this.resolveUniqueDefeat(card);
                     }
                     this.game.addMessage(
-                        '{0} defeats {1} {2} of {3} due to the uniquenes rule',
+                        '{0} defeats {1} {2} of {3} due to the uniqueness rule',
                         this.controller, cardOrCards.length, cardOrCards.length > 1 ? 'copies' : 'copy', this
                     );
                     return true;
                 }
                 Contract.assertTrue(cardOrCards.canBeInPlay(), `Card ${cardOrCards.title} is not a IInPlayCard`);
                 this.game.addMessage(
-                    '{0} defeats 1 copy of {1} due to the uniquenes rule',
+                    '{0} defeats 1 copy of {1} due to the uniqueness rule',
                     this.controller, this
                 );
                 return this.resolveUniqueDefeat(cardOrCards);
