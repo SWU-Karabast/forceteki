@@ -300,6 +300,7 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
             .addPattern(pattern`|fk`)
             .addPattern(pattern`|fu|`)
             .addPattern(pattern`|fuk`)
+            .addPattern(pattern`|fok|`)
             .addWhitelistedTerm('fick')
             .addWhitelistedTerm('kung-fu')
             .addWhitelistedTerm('kung fu'),
@@ -335,7 +336,7 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
             .addPattern(pattern`n[i]gga`)
             .addPattern(pattern`|nig|`)
             .addPattern(pattern`|nigs|`)
-            .addWhitelistedTerm('snigger'),
+            .addPattern(pattern`|snigger|`),
     )
     .addPhrase((phrase) =>
         phrase
