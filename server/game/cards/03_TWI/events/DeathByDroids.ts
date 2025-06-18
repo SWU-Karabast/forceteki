@@ -17,7 +17,7 @@ export default class DeathByDroids extends EventCard {
                 AbilityHelper.immediateEffects.selectCard({
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardCondition: (card) => card.isUnit() && card.cost <= 3,
-                    innerSystem: AbilityHelper.immediateEffects.defeat(),
+                    immediateEffect: AbilityHelper.immediateEffects.defeat(),
                 }),
                 AbilityHelper.immediateEffects.createBattleDroid((context) => ({ target: context.player, amount: 2 })), // TODO: determine why default target doesn't work here
             ])

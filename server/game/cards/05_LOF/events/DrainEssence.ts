@@ -17,7 +17,7 @@ export default class DrainEssence extends EventCard {
                 AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Select a unit to deal 2 damage to',
                     cardTypeFilter: WildcardCardType.Unit,
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                 }),
                 AbilityHelper.immediateEffects.theForceIsWithYou()
             ])

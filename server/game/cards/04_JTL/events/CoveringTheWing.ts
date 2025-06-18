@@ -20,7 +20,7 @@ export default class CoveringTheWing extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card !== thenContext.events[0]?.generatedTokens[0],
-                    innerSystem: AbilityHelper.immediateEffects.giveShield(),
+                    immediateEffect: AbilityHelper.immediateEffects.giveShield(),
                 })
             })
         });

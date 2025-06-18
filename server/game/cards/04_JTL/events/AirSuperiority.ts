@@ -18,7 +18,7 @@ export default class AirSuperiority extends EventCard {
                 onTrue: AbilityHelper.immediateEffects.selectCard({
                     controller: RelativePlayer.Opponent,
                     zoneFilter: ZoneName.GroundArena,
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 4 })
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 4 })
                 }),
             })
         });
