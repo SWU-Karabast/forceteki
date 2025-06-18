@@ -38,7 +38,8 @@ describe('Planetary Bombardment', function() {
                 [context.bobaFett, 2],
                 [context.chirrutImwe, 1],
             ]));
-            expect(context.getChatLogs(1)).toContain('player1 uses Planetary Bombardment to deal 4 indirect damage to Wampa, 3 indirect damage to Administrator\'s Tower, 2 indirect damage to Lurking TIE Phantom, 2 indirect damage to Boba Fett, and 1 indirect damage to Chirrut Îmwe');
+            expect(context.getChatLogs(2)).toContain('player1 uses Planetary Bombardment to deal 4 indirect damage to Wampa, 3 indirect damage to Administrator\'s Tower, 2 indirect damage to Lurking TIE Phantom, 2 indirect damage to Boba Fett, and 1 indirect damage to Chirrut Îmwe');
+            expect(context.getChatLogs(1)).toContain('player2\'s Lurking TIE Phantom is defeated by player1 due to having no remaining HP');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.wampa.damage).toBe(4);

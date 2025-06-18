@@ -42,7 +42,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     public override readonly costDescription = 'defeating {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
-    protected override readonly defaultProperties: IDefeatCardProperties = {
+    protected override readonly defaultProperties: Partial<IDefeatCardPropertiesBase> = {
         defeatSource: DefeatSourceType.Ability
     };
 
@@ -109,20 +109,9 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         // if this defeat is caused by damage, just use the same source as the damage event
         const { defeatSource } = this.generatePropertiesFromContext(context);
 
-        let eventDefeatSource: IDefeatSource;
+        const eventDefeatSource = this.buildDefeatSource(defeatSource, event, card, context);
 
         event.isDefeatedByAttacker = false;
-        if (typeof defeatSource === 'object') {
-            eventDefeatSource = { ...defeatSource };
-
-            if (eventDefeatSource?.type === DefeatSourceType.Attack) {
-                eventDefeatSource.player = eventDefeatSource.damageDealtBy[0].controller; // TODO: See if we can do this without [0]
-            } else {
-                eventDefeatSource.type = DefeatSourceType.NonCombatDamage;
-            }
-        } else {
-            eventDefeatSource = this.buildDefeatSourceForType(defeatSource, event, context);
-        }
         event.defeatSource = eventDefeatSource;
 
         try {
@@ -138,8 +127,24 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         }
     }
 
-    protected buildDefeatSourceForType(defeatSourceType: DefeatSourceType, event: any, context: TContext): IDefeatSource | null {
-        Contract.assertEqual(defeatSourceType, DefeatSourceType.Ability);
+    protected buildDefeatSource(defeatSource: IDamageSource | DefeatSourceType.Ability | DefeatSourceType.UniqueRule | DefeatSourceType.FrameworkEffect, event: any, card: Card, context: TContext): IDefeatSource {
+        if (typeof defeatSource === 'object') {
+            if (defeatSource.type === DefeatSourceType.Attack) {
+                return {
+                    ...defeatSource,
+                    player: defeatSource.damageDealtBy[0].controller // TODO: See if we can do this without [0]
+                };
+            }
+
+            return {
+                event,
+                card: context.source,
+                ...defeatSource,
+                type: DefeatSourceType.NonCombatDamage,
+            };
+        }
+
+        Contract.assertEqual(defeatSource, DefeatSourceType.Ability);
 
         // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
         return {
