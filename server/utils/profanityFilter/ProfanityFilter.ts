@@ -28,7 +28,7 @@ export function usernameContainsProfanity(text: string): boolean {
 }
 
 /**
- * For cases like usernames that can't have whitespace, separates a string into words based on common separators
+ * For usernames - which can't have whitespace - separates a string into words based on common separators
  * such as underscores, periods, and camelCase.
  *
  * Example: "helloWorld" -> "hello World", "hello_world" -> "hello world", "hello.world" -> "hello world"
@@ -40,6 +40,12 @@ function separateWordsWithWhitespace(text: string): string {
     return splitOnWordBoundaries;
 }
 
+/**
+ * Utility for checking if a word has been broken into individual characters with separators
+ * (e.g., underscores or periods) and consolidating it back into a single word for profanity checking.
+ *
+ * Example: "h_e_l_l_o" -> "hello", "w.o.r.l.d" -> "world"
+ */
 function consolidateDividedWords(text: string): string {
     let newString = '';
 
