@@ -33,7 +33,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.wampa);
             expect(context.darthMaul.damage).toBe(4);
             expect(context.wampa).toBeInZone('discard');
-            expect(context.getChatLogs(2)).toContain('Darth Maul attacks Wampa');
+            expect(context.getChatLogs(2)).toContain('player1 attacks Wampa with Darth Maul');
         });
 
         it('should not be prompted to select multiple targets when there is only one enemy ground unit', async function () {
@@ -157,7 +157,7 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.moistureFarmer).toBeInZone('discard');
             expect(context.wampa).toBeInZone('discard');
             expect(context.p2Base.damage).toBe(0);
-            expect(context.getChatLogs(3)).toContain('Darth Maul attacks Moisture Farmer and Wampa');
+            expect(context.getChatLogs(3)).toContain('player1 attacks Moisture Farmer and Wampa with Darth Maul');
             expect(context.getChatLogs(3)).toContain('player2\'s Moisture Farmer is defeated by player1 due to having no remaining HP');
             expect(context.getChatLogs(3)).toContain('player2\'s Wampa is defeated by player1 due to having no remaining HP');
         });

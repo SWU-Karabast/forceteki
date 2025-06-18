@@ -95,8 +95,8 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
         this.registerAttackEffects(context, event.attackerLastingEffects, event.defenderLastingEffects, event.attack);
 
-        const attack = event.attack;
-        context.game.addMessage('{0} attacks {1}', attack.attacker, attack.getAllTargets());
+        const attack: Attack = event.attack;
+        context.game.addMessage('{0} attacks {1} with {2}', attack.attackingPlayer, attack.getAllTargets(), attack.attacker);
         context.game.queueStep(new AttackFlow(context, attack));
     }
 
