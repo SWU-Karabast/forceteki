@@ -130,6 +130,55 @@ describe('Clone', function() {
                 expect(context.clone).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('can copy token units', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa', { card: 'enfys-nest#marauder', upgrades: ['experience'] }],
+                    },
+                    player2: {
+                        groundArena: ['clone-trooper', 'atst'],
+                        spaceArena: ['leia-organa#extraordinary'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone.title).toBe('Clone');
+                expect(context.clone.subtitle).toBe('');
+                expect(context.clone.printedCost).toBe(7);
+                expect(context.clone.aspects).toEqual(['command']);
+                expect(context.clone.defaultArena).toBe('groundArena');
+                expect(context.clone.unique).toBeFalse();
+                expect(context.clone.printedType).toBe('basicUnit');
+                expect(context.clone.getPrintedTraits()).toEqual(new Set(['clone']));
+                expect(context.clone.getPrintedPower()).toBe(0);
+                expect(context.clone.getPrintedHp()).toBe(0);
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cloneTrooper, context.enfysNest, context.leiaOrgana]);
+
+                context.player1.clickCard(context.cloneTrooper);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone.title).toBe('Clone Trooper');
+                expect(context.clone.subtitle).toBe('');
+                expect(context.clone.printedCost).toBe(0);
+                expect(context.clone.aspects).toEqual(['heroism']);
+                expect(context.clone.defaultArena).toBe('groundArena');
+                expect(context.clone.unique).toBeFalse();
+                expect(context.clone.printedType).toBe('tokenUnit');
+                expect(context.clone.getPrintedTraits()).toEqual(new Set(['republic', 'clone', 'trooper']));
+                expect(context.clone.traits).toEqual(new Set(['republic', 'clone', 'trooper']));
+                expect(context.clone.getPrintedPower()).toBe(2);
+                expect(context.clone.getPrintedHp()).toBe(2);
+            });
         });
 
         describe('when played from discard', function() {
@@ -429,6 +478,57 @@ describe('Clone', function() {
                 expect(context.clone.getPrintedTraits()).toEqual(new Set(['clone']));
                 expect(context.clone.getPrintedPower()).toBe(0);
                 expect(context.clone.getPrintedHp()).toBe(0);
+            });
+        });
+
+        describe('when it copies a unit with modified printed traits', function() {
+            it('copies the new printed power and hp', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa', { card: 'enfys-nest#marauder', upgrades: ['experience'] }],
+                    },
+                    player2: {
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['size-matters-not'] }, 'atst'],
+                        spaceArena: ['leia-organa#extraordinary'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone.title).toBe('Clone');
+                expect(context.clone.subtitle).toBe('');
+                expect(context.clone.printedCost).toBe(7);
+                expect(context.clone.aspects).toEqual(['command']);
+                expect(context.clone.defaultArena).toBe('groundArena');
+                expect(context.clone.unique).toBeFalse();
+                expect(context.clone.printedType).toBe('basicUnit');
+                expect(context.clone.getPrintedTraits()).toEqual(new Set(['clone']));
+                expect(context.clone.getPrintedPower()).toBe(0);
+                expect(context.clone.getPrintedHp()).toBe(0);
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
+
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone.title).toBe('Battlefield Marine');
+                expect(context.clone.subtitle).toBe('');
+                expect(context.clone.printedCost).toBe(2);
+                expect(context.clone.aspects).toEqual(['command', 'heroism']);
+                expect(context.clone.defaultArena).toBe('groundArena');
+                expect(context.clone.unique).toBeFalse();
+                expect(context.clone.printedType).toBe('basicUnit');
+                expect(context.clone.getPrintedTraits()).toEqual(new Set(['rebel', 'trooper']));
+                expect(context.clone.traits).toEqual(new Set(['rebel', 'trooper', 'clone']));
+                expect(context.clone.getPrintedPower()).toBe(5);
+                expect(context.clone.getPrintedHp()).toBe(5);
             });
         });
     });
