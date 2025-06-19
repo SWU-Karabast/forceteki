@@ -22,6 +22,8 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
+const zlib = require('zlib');
+
 const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
@@ -1780,7 +1782,7 @@ class Game extends EventEmitter {
             // console.log('Size breakdown (bytes):');
             // console.log(`- Players: ${playerSize} (${(playerSize / byteSize * 100).toFixed(1)}%)`);
             // console.log(`- Messages: ${messagesSize} (${(messagesSize / byteSize * 100).toFixed(1)}%)`);
-            // console.log(`- Spectators: ${spectatorsSize} (${(spectatorsSize / byteSize * 100).toFixed(1)}%)`);
+            // console.log(`- Spectators: ${spectatorsSize}  (${(spectatorsSize / byteSize * 100).toFixed(1)}%)`);
             // console.log(`- UI Properties: ${clientUIPropertiesSize} (${(clientUIPropertiesSize / byteSize * 100).toFixed(1)}%)`);
             // console.log(`- Other: ${byteSize - playerSize - messagesSize - spectatorsSize - clientUIPropertiesSize} (${((byteSize - playerSize - messagesSize - spectatorsSize - clientUIPropertiesSize) / byteSize * 100).toFixed(1)}%)`);
 
@@ -1822,6 +1824,18 @@ class Game extends EventEmitter {
             // }
 
             gameState.messages = clonedMessages;
+
+            const startTime = process.hrtime();
+            const compressedData = zlib.brotliCompressSync(JSON.stringify(gameState), {
+                params: {
+                    [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY
+                }
+            });
+
+            const endTime = process.hrtime(startTime);
+            const duration = (endTime[0] * 1000 + endTime[1] / 1000000).toFixed(2);
+
+            console.log(`Before compression: ${removeUnusedSize} bytes, after compression: ${compressedData.length} bytes. Duration: ${duration} ms`);
 
             return gameState;
         }
