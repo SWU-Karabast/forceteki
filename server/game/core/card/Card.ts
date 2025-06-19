@@ -46,6 +46,7 @@ import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilit
 import type { GameObjectRef } from '../GameObjectBase';
 import { logger } from '../../../logger';
 import type Experience from '../../cards/01_SOR/tokens/Experience';
+import type { PrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -118,6 +119,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly _subtitle?: string;
     protected readonly _title: string;
     protected readonly _unique: boolean;
+    protected readonly _printedType: CardType;
 
     protected readonly canBeUpgrade: boolean;
     protected readonly hasNonKeywordAbilityText: boolean;
@@ -126,7 +128,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
     protected readonly backsidePrintedTraits: Set<Trait>;
-    protected readonly printedType: CardType;
 
     protected actionAbilities: ActionAbility[] = [];
     protected constantAbilities: IConstantAbility[] = [];
@@ -152,9 +153,28 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.movedFromZone = value;
     }
 
+    protected get printedType(): CardType {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
+            const index = overrides.findIndex((override) => override.printedType != null);
+            if (index >= 0) {
+                return overrides[index].printedType;
+            }
+        }
+
+        return this._printedType;
+    }
 
     // ******************************************** PROPERTY GETTERS ********************************************
     public get aspects(): Aspect[] {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
+            const index = overrides.findIndex((override) => override.aspects != null);
+            if (index >= 0) {
+                return overrides[index].aspects;
+            }
+        }
+
         return this._aspects;
     }
 
@@ -187,10 +207,26 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public get subtitle(): string {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
+            const index = overrides.findIndex((override) => override.subtitle != null);
+            if (index >= 0) {
+                return overrides[index].subtitle;
+            }
+        }
+
         return this._subtitle;
     }
 
     public get title(): string {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
+            const index = overrides.findIndex((override) => override.title != null);
+            if (index >= 0) {
+                return overrides[index].title;
+            }
+        }
+
         return this._title;
     }
 
@@ -261,13 +297,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this._title = cardData.title;
         this._backSideTitle = cardData.backSideTitle;
         this._unique = cardData.unique;
+        this._printedType = Card.buildTypeFromPrinted(cardData.types);
 
         this.controller = owner;
         this.id = cardData.id;
         this.canBeUpgrade = cardData.upgradeHp != null && cardData.upgradePower != null;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.backsidePrintedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.backSideTraits, Trait));
-        this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
         // TODO: add validation that if the card has the Piloting trait, the right cardData properties are set
         this.printedKeywords = KeywordHelpers.parseKeywords(
@@ -628,6 +664,14 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // ******************************************* TRAIT HELPERS *******************************************
     protected getPrintedTraits(): Set<Trait> {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
+            const index = overrides.findIndex((override) => override.printedTraits != null);
+            if (index >= 0) {
+                return overrides[index].printedTraits;
+            }
+        }
+
         return new Set(this.printedTraits);
     }
 

@@ -131,7 +131,7 @@ export class OngoingEffectEngine {
                     return limit.isAtMax(effect.context.player);
                 }
 
-                if (effect.duration !== Duration.Persistent) {
+                if (effect.duration !== Duration.Persistent && effect.duration !== Duration.Custom) {
                     return effect.matchTarget === card;
                 }
 
@@ -234,7 +234,7 @@ export class OngoingEffectEngine {
         return (...args) => {
             const event = args[0];
             const listener = customDurationEffect.until[event.name];
-            if (listener && listener(...args)) {
+            if (listener && listener(event, customDurationEffect.context)) {
                 customDurationEffect.cancel();
                 this.unregisterCustomDurationEvents(customDurationEffect);
                 this.effects = this.effects.filter((effect) => effect !== customDurationEffect);

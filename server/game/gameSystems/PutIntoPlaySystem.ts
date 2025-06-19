@@ -80,6 +80,12 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.originalZone = overrideZone || card.zoneName;
         event.entersReady = entersReady || card.hasOngoingEffect(EffectName.EntersPlayReady);
         event.newController = EnumHelpers.asConcretePlayer(controller, context.player);
+        event.setPreResolutionEffect((event) => {
+            const card: Card = event.card;
+            if (card.canBeExhausted()) {
+                card.preEnterPlayEffect(event);
+            }
+        });
     }
 
     private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {
