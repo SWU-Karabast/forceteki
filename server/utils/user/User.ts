@@ -38,6 +38,8 @@ export abstract class User {
      * Gets the object representation of the user for sending to the client
      */
     public abstract toJSON(): Record<string, any>;
+
+    public abstract needsUsernameChange(): boolean;
 }
 
 /**
@@ -75,6 +77,11 @@ export class AuthenticatedUser extends User {
         return this.userData.preferences;
     }
 
+    public needsUsernameChange(): boolean {
+        // undefined = false
+        return !!this.userData.needsUsernameChange;
+    }
+
     public toJSON(): Record<string, any> {
         return {
             id: this.getId(),
@@ -109,6 +116,10 @@ export class AnonymousUser extends User {
 
     public getId(): string {
         return this.id;
+    }
+
+    public needsUsernameChange(): boolean {
+        return false;
     }
 
     public getUsername(): string {

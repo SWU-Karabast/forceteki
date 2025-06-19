@@ -93,6 +93,14 @@ export class UserFactory {
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
 
+            if (userProfile.needsUsernameChange) {
+                return {
+                    canChange: true,
+                    message: 'You are required to change your username.',
+                    typeOfMessage: 'green',
+                };
+            }
+
             const now = Date.now();
 
             const createdAt = new Date(userProfile.createdAt).getTime();
@@ -164,7 +172,6 @@ export class UserFactory {
                     message: 'The new username is the same as your current username.'
                 };
             }
-
             const createdAt = new Date(userProfile.createdAt).getTime();
             const lastChange = userProfile.usernameLastUpdatedAt
                 ? new Date(userProfile.usernameLastUpdatedAt).getTime()
@@ -176,7 +183,8 @@ export class UserFactory {
 
             // Check if this is the user's first username change timeframe
             // Outside the first week → enforce 1‑month cooldown
-            if (!isWithinFirstWeek) {
+            const cooldownSatisfied = isWithinFirstWeek || userProfile.needsUsernameChange;
+            if (!cooldownSatisfied) {
                 const nextChangeAllowedAtMs = lastChange + monthInMs;
                 if (now < nextChangeAllowedAtMs) {
                     const daysRemaining = Math.ceil((nextChangeAllowedAtMs - now) / (1000 * 60 * 60 * 24));
@@ -194,6 +202,7 @@ export class UserFactory {
             await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString(),
+                needsUsernameChange: false,
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);
@@ -288,6 +297,7 @@ export class UserFactory {
                 usernameLastUpdatedAt: new Date().toISOString(),
                 showWelcomeMessage: true,
                 preferences: { cardback: null },
+                needsUsernameChange: false
             };
 
             // Create OAuth link
