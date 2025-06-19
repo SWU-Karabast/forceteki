@@ -1139,6 +1139,7 @@ export class GameServer {
      */
     public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: any) {
         try {
+            console.log(deck);
             const userLobbyMapEntry = this.userLobbyMap.get(user.getId());
             if (userLobbyMapEntry) {
                 const lobbyId = userLobbyMapEntry.lobbyId;

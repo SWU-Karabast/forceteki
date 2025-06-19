@@ -297,7 +297,7 @@ export class Lobby {
             if (!socket.eventContainsListener('requeue')) {
                 socket.registerEvent(
                     'requeue',
-                    () => this.server.requeueUser(socket, this.format, user, existingUser?.deck?.getDecklist())
+                    () => this.server.requeueUser(socket, this.format, user, { ...existingUser?.deck?.getDecklist(), id: existingUser?.deck?.id })
                 );
             }
 
@@ -781,8 +781,7 @@ export class Lobby {
         this.buildSafeTimeout(() => {
             for (const user of this.users) {
                 logger.error(`Lobby: requeueing user ${user.id} after matched user disconnected`);
-
-                this.server.requeueUser(user.socket, this.format, user.socket.user, user.deck.getDecklist());
+                this.server.requeueUser(user.socket, this.format, user.socket.user, { ...user.deck?.getDecklist()  });
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
 
@@ -922,7 +921,9 @@ export class Lobby {
                 logger.error(`Lobby ${this.id}: Missing information (${player2User.deckID}) for player2 ${player2.id}`);
                 return;
             }
-
+            console.log('TESTINGAGAIN!');
+            console.log(player1User);
+            console.log(player2User);
             if (this.game.roundNumber > 1) {
                 await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
                 await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
