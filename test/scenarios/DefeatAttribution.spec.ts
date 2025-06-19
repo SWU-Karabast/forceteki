@@ -381,7 +381,6 @@ describe('Defeat attribution', function () {
             });
 
             it('"If you\'ve defeated an enemy unit this phase" effects will trigger', function () {
-                // TODO this is currently leveraging active player, not player that removed the buff
                 const { context } = contextRef;
 
                 expect(context.rebelPathfinder).toBeInZone('groundArena');
@@ -504,8 +503,47 @@ describe('Defeat attribution', function () {
             });
         });
 
+        describe('When a unit has been defeated by the expiration of a lasting effect,', function() {
+            it('"If you\'ve defeated an enemy unit this phase" effects will not trigger', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['huyang#enduring-instructor'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                    player2: {
+                        groundArena: [{ card: 'wampa', exhausted: true }],
+                        hand: ['waylay', 'open-fire', 'bravado'],
+                        base: 'nadiri-dockyards',
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.huyang);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine.getPower()).toBe(5);
+                expect(context.battlefieldMarine.getHp()).toBe(5);
+
+                context.player2.clickCard(context.openFire);
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+
+                context.player1.claimInitiative();
+
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.huyang);
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.getChatLogs(3)).toContain('player1\'s Battlefield Marine is defeated due to having no remaining HP');
+
+                const exhaustedResourceCount = context.player2.exhaustedResourceCount;
+                context.player2.clickCard(context.bravado);
+                context.player2.clickCard(context.wampa);
+                expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourceCount + 5);
+            });
+        });
+
         // TODO add test for 'A Fine Addition'
-        // TODO Add test case for Huyang
         // TODO add more tests around Jango potentially
     });
 });
