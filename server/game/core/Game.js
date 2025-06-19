@@ -1715,6 +1715,61 @@ class Game extends EventEmitter {
                 return new TextEncoder().encode(str).length;
             };
 
+            const originalMessagesSize = calculateSize(gameState.messages);
+
+            const clonedMessages = structuredClone(gameState.messages);
+            for (const [_, message] of Object.entries(clonedMessages)) {
+                if (!Array.isArray(message.message)) {
+                    continue;
+                }
+
+                let idx = 0;
+                let accumulatedStr = '';
+                const messageText = [];
+
+                while (idx < message.message.length) {
+                    const msg = message.message[idx];
+
+                    if (typeof msg === 'string') {
+                        accumulatedStr += msg;
+                    } else {
+                        if (accumulatedStr.length > 0) {
+                            messageText.push(accumulatedStr);
+                            accumulatedStr = '';
+                        }
+
+                        const clonedMsg = structuredClone(msg);
+                        messageText.push(clonedMsg);
+                    }
+
+                    idx++;
+                }
+
+                if (accumulatedStr.length > 0) {
+                    messageText.push(accumulatedStr);
+                }
+
+                message.message = messageText;
+            }
+
+            const consolidatedStrSize = calculateSize(clonedMessages);
+
+            for (const [_, message] of Object.entries(clonedMessages)) {
+                if (!Array.isArray(message.message)) {
+                    continue;
+                }
+
+                for (const msg of message.message) {
+                    if (typeof msg !== 'string') {
+                        delete msg['label'];
+                    }
+                }
+            }
+
+            const removeLabelSize = calculateSize(clonedMessages);
+
+            console.log(`Message array size (bytes):\n\t- original: ${originalMessagesSize}\n\t- after consolidate strings: ${consolidatedStrSize}\n\t- after removing labels: ${removeLabelSize}`);
+
             // // Calculate size of each component
             // const playerSize = calculateSize(gameState.players);
             // const messagesSize = calculateSize(gameState.messages);
@@ -1765,6 +1820,8 @@ class Game extends EventEmitter {
             //         }
             //     }
             // }
+
+            gameState.messages = clonedMessages;
 
             return gameState;
         }
