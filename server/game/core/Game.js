@@ -1637,10 +1637,6 @@ class Game extends EventEmitter {
             // clean out any properies that are null or undefined to reduce the message size
             Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
 
-            const beforeCleaningSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
-
-            console.log(`Game state size (bytes):\n\t- original: ${beforeCleaningSize}`);
-
             return gameState;
         }
         return {};

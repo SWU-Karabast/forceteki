@@ -308,6 +308,10 @@ export function setUnion<T>(setA: Set<T>, setB: Set<T>): Set<T> {
     return union;
 }
 
+/**
+ * Recurses through an object's properties and removes any properties that are null or undefined.
+ * This is an _in-place_ operation, meaning it modifies the original object.
+ */
 export function deleteEmptyPropertiesRecursiveInPlace(obj) {
     deleteEmptyPropertiesRecursiveInPlaceInternal(obj, []);
 }
