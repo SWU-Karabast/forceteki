@@ -1711,23 +1711,9 @@ class Game extends EventEmitter {
 
             const consolidatedStrSize = calculateSize(clonedMessages);
 
-            for (const [_, message] of Object.entries(clonedMessages)) {
-                if (!Array.isArray(message.message)) {
-                    continue;
-                }
+            console.log(`Message array size (bytes):\n\t- original: ${originalMessagesSize}\n\t- after consolidate strings: ${consolidatedStrSize}`);
 
-                for (const msg of message.message) {
-                    if (typeof msg !== 'string') {
-                        delete msg['label'];
-                    }
-                }
-            }
-
-            const removeLabelSize = calculateSize(clonedMessages);
-
-            console.log(`Message array size (bytes):\n\t- original: ${originalMessagesSize}\n\t- after consolidate strings: ${consolidatedStrSize}\n\t- after removing labels: ${removeLabelSize}`);
-
-            gameState.messages = clonedMessages;
+            // gameState.messages = clonedMessages;
 
             const startTime = process.hrtime();
             const compressedData = zlib.brotliCompressSync(JSON.stringify(gameState), {

@@ -47,37 +47,56 @@ export class GameChat {
             return '';
         }
 
+        // split the format string by placeholders like {0}, {1}, etc.
         const fragments = format.split(/(\{\d+\})/);
-        return fragments.reduce((output, fragment) => {
+
+        const formatOutput = [];
+        for (const fragment of fragments) {
             const argMatch = fragment.match(/\{(\d+)\}/);
-            if (argMatch && args) {
-                const arg: MsgArg = args[argMatch[1]];
-                if (arg) {
-                    if (typeof arg === 'object' && 'message' in arg && arg.message) {
-                        return output.concat(arg.message);
-                    } else if (Array.isArray(arg)) {
-                        if (typeof arg[0] === 'string' && arg[0].includes('{')) {
-                            return output.concat(this.formatMessage(arg[0], arg.slice(1)));
-                        }
-                        return output.concat(this.formatArray(arg));
-                    } else if (typeof arg === 'object' && 'getShortSummary' in arg && arg.getShortSummary) {
-                        return output.concat(arg.getShortSummary());
-                    } else if (typeof arg === 'object' && 'format' in arg && 'args' in arg) {
-                        return output.concat(this.formatMessage(arg.format, arg.args));
-                    }
-                    return output.concat(arg);
+
+            if (argMatch) {
+                const formattedArg = this.tryFormatPlaceholder(fragment, argMatch, args);
+
+                if (formattedArg) {
+                    formatOutput.push(formattedArg);
                 }
-            } else if (!argMatch && fragment) {
-                const splitFragment = fragment.split(' ');
-                const lastWord = splitFragment.pop();
-                return splitFragment
-                    .reduce((output, word) => {
-                        return output.concat(word || [], ' ');
-                    }, output)
-                    .concat(lastWord || []);
+            } else if (fragment) {
+                formatOutput.push(fragment);
             }
-            return output;
-        }, []);
+        }
+
+        return formatOutput;
+    }
+
+    /**
+     * Tries to format the fragment if it is a placeholder such as '{0}', returns null if no placeholder is found or if the argument is not valid
+     */
+    private tryFormatPlaceholder(fragment: string, argMatch: RegExpMatchArray, args: MsgArg[]): any | null {
+        if (!args) {
+            return null;
+        }
+
+        const arg: MsgArg = args[argMatch[1]];
+        if (!arg) {
+            return null;
+        }
+
+        if (Array.isArray(arg)) {
+            if (typeof arg[0] === 'string' && arg[0].includes('{')) {
+                return this.formatMessage(arg[0], arg.slice(1));
+            }
+            return this.formatArray(arg);
+        } else if (typeof arg === 'object') {
+            if ('message' in arg && arg.message) {
+                return arg.message;
+            } else if ('getShortSummary' in arg && arg.getShortSummary) {
+                return arg.getShortSummary();
+            } else if ('format' in arg && 'args' in arg) {
+                return this.formatMessage(arg.format, arg.args);
+            }
+        }
+
+        return arg;
     }
 
     private formatArray(array: MsgArg[]): string | string[] {
