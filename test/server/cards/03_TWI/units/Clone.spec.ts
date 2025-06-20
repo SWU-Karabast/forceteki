@@ -61,33 +61,6 @@ describe('Clone', function() {
                 expect(context.clone).toBeCloneOf(context.leiaOrgana);
             });
 
-            it('should be defeated immediately if enters play as itself', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        base: 'echo-base',
-                        hand: ['clone'],
-                        groundArena: ['wampa', { card: 'enfys-nest#marauder', upgrades: ['experience'] }],
-                    },
-                    player2: {
-                        groundArena: ['battlefield-marine', 'atst'],
-                        spaceArena: [{ card: 'leia-organa#extraordinary', exhausted: true }],
-                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
-                expect(context.player1).toHavePassAbilityButton();
-
-                context.player1.clickPrompt('Pass');
-                expect(context.player1.exhaustedResourceCount).toBe(7);
-                expect(context.clone).toBeInZone('discard');
-                expect(context.player2).toBeActivePlayer();
-            });
-
             it('can copy token units', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -347,6 +320,63 @@ describe('Clone', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.clone).toBeInZone('spaceArena');
                 expect(context.clone).toBeCloneOf(context.leiaOrgana);
+            });
+        });
+
+        describe('when it enters play as itself', function() {
+            it('should be defeated immediately', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa', { card: 'enfys-nest#marauder', upgrades: ['experience'] }],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'atst'],
+                        spaceArena: [{ card: 'leia-organa#extraordinary', exhausted: true }],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickPrompt('Pass');
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should survives if an effect increases its hp', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa', 'enfys-nest#marauder', 'clone-commander-cody#commanding-the-212th'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'atst'],
+                        spaceArena: [{ card: 'leia-organa#extraordinary', exhausted: true }],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickPrompt('Pass');
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone.getHp()).toBe(1);
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
