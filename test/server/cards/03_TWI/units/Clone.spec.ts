@@ -199,7 +199,7 @@ describe('Clone', function() {
                         groundArena: ['battlefield-marine', { card: 'atst', upgrades: ['experience'] }],
                         spaceArena: ['leia-organa#extraordinary'],
                         leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
-                        hand: ['cad-bane#hostage-taker', 'vanquish'],
+                        hand: ['cad-bane#hostage-taker', 'vanquish', 'waylay'],
                     }
                 });
 
@@ -248,9 +248,24 @@ describe('Clone', function() {
                 expect(context.clone).toBeInZone('groundArena');
                 expect(context.clone).toBeCloneOf(context.cadBane);
 
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.clone);
+                expect(context.clone).toBeInZone('hand');
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.readyResources(7);
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana, context.cadBane]);
+
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.battlefieldMarine);
+
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.clone);
-                expect(context.atst.damage).toBe(7);
+                expect(context.atst.damage).toBe(3);
                 expect(context.clone).toBeInZone('discard');
                 expect(context.clone).toBeVanillaClone();
             });
