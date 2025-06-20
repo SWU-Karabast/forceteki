@@ -38,6 +38,7 @@ export default class Clone extends NonLeaderUnitCard {
                             printedTraits: context.target.getPrintedTraits(),
                         }),
                         AbilityHelper.ongoingEffects.gainTrait(Trait.Clone),
+                        AbilityHelper.ongoingEffects.isClonedUnit(),
                     ]
                 })),
             },

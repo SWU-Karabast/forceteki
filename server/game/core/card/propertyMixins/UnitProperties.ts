@@ -59,6 +59,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     get capturedUnits(): IUnitCard[];
     get captureZone(): CaptureZone;
     get lastPlayerToModifyHp(): Player;
+    get isClone(): boolean;
     readonly upgrades: IUpgradeCard[];
     getCaptor(): IUnitCard | null;
     isAttacking(): boolean;
@@ -183,6 +184,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             return this._defaultArena;
+        }
+
+        public get isClone(): boolean {
+            return this.hasOngoingEffect(EffectName.IsClonedUnit);
         }
 
         public getCaptor(): IUnitCard | null {

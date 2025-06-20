@@ -517,9 +517,11 @@ describe('Clone', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(14);
                 expect(clone1).toBeInZone('groundArena');
                 expect(clone1).toBeCloneOf(context.wampa);
+                expect(clone1.isClone).toBeTrue();
                 expect(clone2).toBeInZone('groundArena');
                 expect(clone2).toBeCloneOf(context.wampa);
                 expect(clone2).toBeCloneOf(clone1);
+                expect(clone2.isClone).toBeTrue();
             });
 
             it('can copy another vanilla clone', async function () {
@@ -554,6 +556,8 @@ describe('Clone', function() {
                 expect(handClone).toBeInZone('groundArena');
                 expect(handClone).toBeCloneOf(groundClone);
                 expect(handClone).toBeVanillaClone();
+                expect(groundClone.isClone).toBeFalse();
+                expect(handClone.isClone).toBeTrue();
             });
 
             it('is not defeated if blanked', async function () {
@@ -619,6 +623,7 @@ describe('Clone', function() {
                 context.player1.clickPrompt('Pass');
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.clone).toBeInZone('discard');
+                expect(context.clone.isClone).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -647,6 +652,7 @@ describe('Clone', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.clone).toBeInZone('groundArena');
                 expect(context.clone.getHp()).toBe(1);
+                expect(context.clone.isClone).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });
         });
