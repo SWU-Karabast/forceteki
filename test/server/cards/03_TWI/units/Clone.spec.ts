@@ -60,6 +60,100 @@ describe('Clone', function() {
                 expect(context.clone).toBeInZone('spaceArena');
                 expect(context.clone).toBeCloneOf(context.gracefulPurrgil);
             });
+
+            it('should pay aspect penalties for Clone\'s aspects instead of the copied unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'fortress-vader',
+                        hand: ['clone'],
+                        groundArena: ['wampa', { card: 'enfys-nest#marauder', upgrades: ['experience'] }],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'atst'],
+                        spaceArena: ['graceful-purrgil'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.wampa);
+                expect(context.player1.exhaustedResourceCount).toBe(9); // 7 + 2 from aspect penalty
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.wampa);
+            });
+
+            it('should use Clone cost when calculating cost discounts', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa'],
+                        spaceArena: ['the-starhawk#prototype-battleship'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'atst'],
+                        spaceArena: ['graceful-purrgil'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.gracefulPurrgil);
+                expect(context.player1.exhaustedResourceCount).toBe(4); // 7 / 2 because of The Starhawk
+                expect(context.clone).toBeInZone('spaceArena');
+                expect(context.clone).toBeCloneOf(context.gracefulPurrgil);
+            });
+
+            it('should use Clone cost when calculating cost increases', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'atst'],
+                        spaceArena: ['graceful-purrgil'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                        hand: ['qira#playing-her-part'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player2.clickCard(context.qira);
+                context.player2.clickPrompt('Done');
+                context.player2.chooseListOption('Clone');
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.exhaustedResourceCount).toBe(10); // 7 + 3 from Qi'ra
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.battlefieldMarine);
+            });
         });
 
         describe('when played from discard', function() {
@@ -341,6 +435,41 @@ describe('Clone', function() {
                 expect(context.clone).toBeInZone('discard');
                 expect(context.clone).toBeVanillaClone();
                 expect(context.cloneTrooper).toBeInZone('outsideTheGame');
+            });
+
+            it('remains in play as a copy of that unit if the unit is defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['atst'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.wampa);
+
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard');
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.wampa);
             });
         });
 
