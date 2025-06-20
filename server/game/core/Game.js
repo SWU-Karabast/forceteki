@@ -1826,10 +1826,8 @@ class Game extends EventEmitter {
             gameState.messages = clonedMessages;
 
             const startTime = process.hrtime();
-            const compressedData = zlib.brotliCompressSync(JSON.stringify(gameState), {
-                params: {
-                    [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY
-                }
+            const compressedData = zlib.deflateSync(JSON.stringify(gameState), {
+                level: zlib.constants.Z_BEST_SPEED
             });
 
             const endTime = process.hrtime(startTime);
