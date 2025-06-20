@@ -4,7 +4,8 @@ import type {
     ISetId,
     Zone,
     ITriggeredAbilityProps,
-    ISerializedCardState
+    ISerializedCardState,
+    IAbilityPropsWithSystems
 } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
@@ -47,6 +48,8 @@ import type { GameObjectRef } from '../GameObjectBase';
 import { logger } from '../../../logger';
 import type Experience from '../../cards/01_SOR/tokens/Experience';
 import type { PrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
+import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPlayAbilityRegistration';
+import PreEnterPlayAbility from '../ability/PreEnterPlayAbility';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -136,6 +139,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected disableWhenPlayedCheck = false;
     protected disableWhenPlayedUsingSmuggleCheck = false;
     protected triggeredAbilities: TriggeredAbility[] = [];
+    protected preEnterPlayAbilities: PreEnterPlayAbility[] = [];
 
     protected get hiddenForController() {
         return this.state.hiddenForController;
@@ -488,6 +492,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
+    protected createPreEnterPlayAbility<TSource extends Card = this>(properties: IAbilityPropsWithSystems<AbilityContext<TSource>>): PreEnterPlayAbility {
+        return new PreEnterPlayAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('preEnterPlay'), properties));
+    }
+
     protected buildGeneralAbilityProps(abilityTypeDescriptor: string) {
         return {
             cardName: this.title,
@@ -608,6 +616,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * Returns true if the card is a type that can legally have triggered abilities.
      */
     public canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
+        return false;
+    }
+
+    /**
+     * Returns true if the card is a type that can legally have pre-enter play abilities.
+     */
+    public canRegisterPreEnterPlayAbilities(): this is ICardWithPreEnterPlayAbilities {
         return false;
     }
 

@@ -82,8 +82,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.newController = EnumHelpers.asConcretePlayer(controller, context.player);
         event.setPreResolutionEffect((event) => {
             const card: Card = event.card;
-            if (card.canBeExhausted()) {
-                card.preEnterPlayEffect(event);
+            if (card.canRegisterPreEnterPlayAbilities()) {
+                for (const ability of card.getPreEnterPlayAbilities()) {
+                    context.game.resolveAbility(ability.createContext(context.player, event));
+                }
             }
         });
     }

@@ -10,7 +10,6 @@ import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
-import type { GameEvent } from '../../event/GameEvent';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
@@ -46,9 +45,8 @@ export interface ICardWithExhaustProperty extends Card {
     ready();
 }
 
-export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty {
-    preEnterPlayEffect(event: GameEvent): void;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty {}
 
 export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
     getPlayCardActions(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction[];
@@ -83,9 +81,6 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         // this class is for all card types other than Base
         Contract.assertFalse(this.printedType === CardType.Base);
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public preEnterPlayEffect(event: GameEvent) {}
 
     public override getActions(): PlayerOrCardAbility[] {
         return super.getActions()
