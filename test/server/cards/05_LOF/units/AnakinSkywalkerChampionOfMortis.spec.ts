@@ -38,7 +38,7 @@ describe('Anakin Skywalker, Champion of Mortis', function () {
 
             context.player1.clickCard(context.anakinSkywalker);
 
-            expect(context.player1).toHaveExactPromptButtons([heroismPrompt, villainyPrompt]);
+            expect(context.player1).toHaveExactPromptButtons([heroismPrompt, `${villainyPrompt} (No effect)`]);
 
             context.player1.clickPrompt(heroismPrompt);
 
@@ -67,7 +67,7 @@ describe('Anakin Skywalker, Champion of Mortis', function () {
 
             context.player1.clickCard(context.anakinSkywalker);
 
-            expect(context.player1).toHaveExactPromptButtons([heroismPrompt, villainyPrompt]);
+            expect(context.player1).toHaveExactPromptButtons([`${heroismPrompt} (No effect)`, villainyPrompt]);
 
             context.player1.clickPrompt(villainyPrompt);
 

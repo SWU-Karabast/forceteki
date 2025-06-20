@@ -261,7 +261,7 @@ describe('Hotshot Maneuver', function() {
 
                 // Trigger attack
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('Give the defender -2/-2 for this phase');
+                context.player1.clickPrompt('Give the defender -2/-2 for this phase (No effect)');
 
                 expect(context.liberatedSlaves.damage).toBe(2);
                 expect(context.fettsFirespray.damage).toBe(2);

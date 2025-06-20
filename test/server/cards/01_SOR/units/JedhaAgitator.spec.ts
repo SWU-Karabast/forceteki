@@ -49,7 +49,7 @@ describe('Jedha Agitator', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHaveEnabledPromptButton('If you control a leader unit, deal 2 damage to a ground unit or base');
-                expect(context.player1).toHaveEnabledPromptButton('Saboteur: defeat all shields');
+                expect(context.player1).toHaveEnabledPromptButton('Saboteur: defeat all shields (No effect)');
                 expect(context.jedhaAgitator.exhausted).toBe(true);
 
                 context.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
