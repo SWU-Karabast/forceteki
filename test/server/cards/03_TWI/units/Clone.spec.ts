@@ -43,15 +43,10 @@ describe('Clone', function() {
                         groundArena: ['battlefield-marine', 'atst'],
                         spaceArena: [{ card: 'leia-organa#extraordinary', exhausted: true }],
                         leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
-                        hasForceToken: true,
-                        hasInitiative: true,
                     }
                 });
 
                 const { context } = contextRef;
-
-                context.player2.clickCard(context.leiaOrgana);
-                expect(context.leiaOrgana).toBeInZone('groundArena');
 
                 expect(context.clone).toBeVanillaClone();
 
@@ -315,6 +310,43 @@ describe('Clone', function() {
                 expect(context.atst.damage).toBe(7);
                 expect(context.clone).toBeInZone('discard');
                 expect(context.clone).toBeVanillaClone();
+            });
+        });
+
+        describe('when it enters play as a copy of another unit', function() {
+            it('should be in the default arena of the copied card even if the copied card is in a different arena', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa', { card: 'enfys-nest#marauder', upgrades: ['experience'] }],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'atst'],
+                        spaceArena: [{ card: 'leia-organa#extraordinary', exhausted: true }],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                        hasForceToken: true,
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.leiaOrgana);
+                expect(context.leiaOrgana).toBeInZone('groundArena');
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
+
+                context.player1.clickCard(context.leiaOrgana);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('spaceArena');
+                expect(context.clone).toBeCloneOf(context.leiaOrgana);
             });
         });
 
