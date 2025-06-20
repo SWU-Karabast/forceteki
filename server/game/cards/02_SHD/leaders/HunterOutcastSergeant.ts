@@ -32,16 +32,22 @@ export default class HunterOutcastSergeant extends LeaderUnitCard {
         return {
             zoneFilter: ZoneName.Resource,
             controller: RelativePlayer.Self,
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) =>
-                    context.player.getArenaUnits({ condition: (card) => card.unique })
-                        .map((unit) => unit.title)
-                        .includes(context.target?.title),
-                onTrue: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.returnToHand(),
-                    AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.player.getTopCardOfDeck() }))
-                ])
-            }),
+            immediateEffect: AbilityHelper.immediateEffects.sequential([
+                AbilityHelper.immediateEffects.reveal({
+                    promptedPlayer: RelativePlayer.Opponent,
+                    useDisplayPrompt: true
+                }),
+                AbilityHelper.immediateEffects.conditional({
+                    condition: (context) =>
+                        context.player.getArenaUnits({ condition: (card) => card.unique })
+                            .map((unit) => unit.title)
+                            .includes(context.target?.title),
+                    onTrue: AbilityHelper.immediateEffects.simultaneous([
+                        AbilityHelper.immediateEffects.returnToHand(),
+                        AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.player.getTopCardOfDeck() }))
+                    ])
+                })
+            ])
         };
     }
 }
