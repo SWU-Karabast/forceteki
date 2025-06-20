@@ -19,6 +19,8 @@ import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
 import { AlertType } from '../game/core/Constants';
+import { brotliCompress, constants as zlibConstants } from 'zlib';
+import { promisify } from 'util';
 
 interface LobbySpectator {
     id: string;
@@ -55,6 +57,8 @@ export interface RematchRequest {
 }
 
 export class Lobby {
+    private static brotliCompressAsync = promisify(brotliCompress);
+
     private readonly _id: string;
     private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
@@ -802,7 +806,7 @@ export class Lobby {
     }
 
     // TODO: Review this to make sure we're getting the info we need for debugging
-    public handleError(game: Game, error: Error, severeGameMessage = false) {
+    public async handleErrorAsync(game: Game, error: Error, severeGameMessage = false) {
         logger.error('Game: handleError', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
 
         let maxErrorCountExceeded = false;
@@ -942,7 +946,7 @@ export class Lobby {
         socket.socket.send('lobbystate', this.getLobbyState());
     }
 
-    public sendGameState(game: Game): void {
+    public async sendGameStateAsync(game: Game): Promise<void> {
         // we check here if the game ended and update the stats.
         if (game.winner && game.finishedAt && !game.statsUpdated) {
             // Update deck stats asynchronously
@@ -953,14 +957,24 @@ export class Lobby {
         }
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
-                user.socket.send('gamestate', game.getState(user.id));
+                user.socket.send('gamestate', await this.getCompressedGameStateAsync(game, user.id));
             }
         }
         for (const user of this.spectators) {
             if (user.socket) {
-                user.socket.send('gamestate', game.getState(user.id));
+                user.socket.send('gamestate', await this.getCompressedGameStateAsync(game, user.id));
             }
         }
+
+        return Promise.resolve();
+    }
+
+    private getCompressedGameStateAsync(game: Game, userId: string): Promise<Buffer> {
+        return Lobby.brotliCompressAsync(JSON.stringify(game.getState(userId)), {
+            params: {
+                [zlibConstants.BROTLI_PARAM_QUALITY]: zlibConstants.BROTLI_MIN_QUALITY
+            }
+        });
     }
 
     public sendLobbyState(): void {
