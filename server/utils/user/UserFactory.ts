@@ -183,8 +183,8 @@ export class UserFactory {
 
             // Check if this is the user's first username change timeframe
             // Outside the first week → enforce 1‑month cooldown
-            const cooldownSatisfied = isWithinFirstWeek || userProfile.needsUsernameChange;
-            if (!cooldownSatisfied) {
+            const canBypassChangeRestriction = isWithinFirstWeek || userProfile.needsUsernameChange;
+            if (!canBypassChangeRestriction) {
                 const nextChangeAllowedAtMs = lastChange + monthInMs;
                 if (now < nextChangeAllowedAtMs) {
                     const daysRemaining = Math.ceil((nextChangeAllowedAtMs - now) / (1000 * 60 * 60 * 24));
