@@ -331,6 +331,7 @@ describe('Clone', function() {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['size-matters-not'] }, 'atst'],
                         spaceArena: ['leia-organa#extraordinary'],
                         leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                        hand: ['disabling-fang-fighter'],
                     }
                 });
 
@@ -347,6 +348,14 @@ describe('Clone', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.clone).toBeInZone('groundArena');
                 expect(context.clone).toBeCloneOf(context.battlefieldMarine);
+
+                context.player2.clickCard(context.disablingFangFighter);
+                context.player2.clickCard(context.sizeMattersNot);
+                expect(context.battlefieldMarine.getPrintedPower()).toBe(3);
+                expect(context.battlefieldMarine.getPrintedHp()).toBe(3);
+                expect(context.clone).not.toBeCloneOf(context.battlefieldMarine);
+                expect(context.clone.getPrintedPower()).toBe(5);
+                expect(context.clone.getPrintedHp()).toBe(5);
             });
         });
     });
