@@ -668,7 +668,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
             const index = overrides.findIndex((override) => override.printedTraits != null);
             if (index >= 0) {
-                return overrides[index].printedTraits;
+                return new Set(overrides[index].printedTraits);
             }
         }
 
