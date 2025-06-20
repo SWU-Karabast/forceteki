@@ -1634,98 +1634,12 @@ class Game extends EventEmitter {
                 winner: this.winner ? this.winner : undefined, // TODO comment once we clarify how to display endgame screen
             };
 
-            // TODO: consider also removing any values that are boolean false
-
-            const beforeCleaningSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
-
             // clean out any properies that are null or undefined to reduce the message size
             Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
 
-            const removeEmptySize = new TextEncoder().encode(JSON.stringify(gameState)).length;
-
-            // const ownerControllerIntegerSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
-
-            // TODO TO REMOVE:
-            // - cost
-            // - facedown
-            // - implemented
-            // - selected (optionally)
-            // - unselectable (optionally)
-            // - controlled
-            // - type
-
-            for (const [_, player] of Object.entries(gameState.players)) {
-                for (const [_, zone] of Object.entries(player.cardPiles || {})) {
-                    for (const card of zone) {
-                        delete card.implemented;
-                    }
-                }
-            }
-
-            const removeUnusedSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
+            const beforeCleaningSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
 
             console.log(`Game state size (bytes):\n\t- original: ${beforeCleaningSize}`);
-
-            // Break down size by component
-            const calculateSize = (obj) => {
-                const str = JSON.stringify(obj);
-                return new TextEncoder().encode(str).length;
-            };
-
-            const originalMessagesSize = calculateSize(gameState.messages);
-
-            const clonedMessages = structuredClone(gameState.messages);
-            for (const [_, message] of Object.entries(clonedMessages)) {
-                if (!Array.isArray(message.message)) {
-                    continue;
-                }
-
-                let idx = 0;
-                let accumulatedStr = '';
-                const messageText = [];
-
-                while (idx < message.message.length) {
-                    const msg = message.message[idx];
-
-                    if (typeof msg === 'string') {
-                        accumulatedStr += msg;
-                    } else {
-                        if (accumulatedStr.length > 0) {
-                            messageText.push(accumulatedStr);
-                            accumulatedStr = '';
-                        }
-
-                        const clonedMsg = structuredClone(msg);
-                        messageText.push(clonedMsg);
-                    }
-
-                    idx++;
-                }
-
-                if (accumulatedStr.length > 0) {
-                    messageText.push(accumulatedStr);
-                }
-
-                message.message = messageText;
-            }
-
-            const consolidatedStrSize = calculateSize(clonedMessages);
-
-            console.log(`Message array size (bytes):\n\t- original: ${originalMessagesSize}\n\t- after consolidate strings: ${consolidatedStrSize}`);
-
-            // gameState.messages = clonedMessages;
-
-            const startTime = process.hrtime();
-            const compressedData = zlib.brotliCompressSync(JSON.stringify(gameState), {
-                params: {
-                    [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY
-                }
-            });
-
-            const endTime = process.hrtime(startTime);
-            const duration = (endTime[0] * 1000 + endTime[1] / 1000000).toFixed(2);
-
-            console.log(`Before compression: ${removeUnusedSize} bytes, after compression: ${compressedData.length} bytes. Duration: ${duration} ms`);
 
             return gameState;
         }

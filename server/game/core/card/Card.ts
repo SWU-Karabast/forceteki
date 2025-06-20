@@ -1134,7 +1134,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             name: this.cardData.title,
             power: this.cardData.power,
             hp: this.cardData.hp,
-            implemented: this.isImplemented,
+            unimplemented: !this.isImplemented || undefined,    // don't bother sending "unimplemented: false" to the client
             type: this.type,
             uuid: this.uuid,
             printedType: this.printedType,
