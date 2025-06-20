@@ -1116,36 +1116,25 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         // If it is not the active player and in opposing hand or deck - return facedown card
         if (this.zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent)) {
             const state = {
-                controller: this.controller.getShortSummary(),
-                owner: this.owner.getShortSummary(),
-                // menu: isActivePlayer ? this.getMenu() : undefined,
-                facedown: true,
+                controllerId: this.controller.id,
+                ownerId: this.owner.id,
                 zone: this.zoneName,
                 uuid: isActivePlayer ? this.uuid : undefined
             };
             return { ...state, ...selectionState };
         }
 
-
         const state = {
             id: this.cardData.id,
             setId: this.setId,
-            controlled: this.owner !== this.controller,
-            controller: this.controller.getShortSummary(),
-            owner: this.owner.getShortSummary(),
+            controllerId: this.controller.id,
+            ownerId: this.owner.id,
             aspects: this.aspects,
-            // facedown: this.isFacedown(),
             zone: this.zoneName,
-            // menu: this.getMenu(),
             name: this.cardData.title,
-            cost: this.cardData.cost,
             power: this.cardData.power,
             hp: this.cardData.hp,
             implemented: this.isImplemented,
-            // popupMenuText: this.popupMenuText,
-            // showPopup: this.showPopup,
-            // tokens: this.tokens,
-            type: this.type,
             uuid: this.uuid,
             printedType: this.printedType,
             ...selectionState
@@ -1157,8 +1146,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     public getCardState(): any {
         return {
             internalName: this.internalName,
-            controller: this.controller.getShortSummary(),
-            controlled: this.owner !== this.controller,
+            controllerId: this.controller.id,
             type: this.type
         };
     }

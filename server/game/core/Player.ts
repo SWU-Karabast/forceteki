@@ -1187,11 +1187,9 @@ export class Player extends GameObject<IPlayerState> {
      * @param {Player} activePlayer
      */
     public getSummaryForZone(zone: ZoneName, activePlayer: Player) {
-        const zoneCards = zone === ZoneName.Deck
-            ? this.drawDeck
-            : this.getCardsInZone(zone);
+        Contract.assertFalse(zone === ZoneName.Deck, 'getSummaryForZone should not be called for the deck as it is not used in the UI');
 
-        return zoneCards?.map((card) => {
+        return this.getCardsInZone(zone)?.map((card) => {
             return card.getSummary(activePlayer);
         }) ?? [];
     }
@@ -1284,8 +1282,8 @@ export class Player extends GameObject<IPlayerState> {
                 resources: this.getSummaryForZone(ZoneName.Resource, activePlayer),
                 groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer),
                 spaceArena: this.getSummaryForZone(ZoneName.SpaceArena, activePlayer),
-                deck: this.getSummaryForZone(ZoneName.Deck, activePlayer),
-                discard: this.getSummaryForZone(ZoneName.Discard, activePlayer)
+                discard: this.getSummaryForZone(ZoneName.Discard, activePlayer),
+                // we don't get the deck summary here, as it is not needed in the UI
             },
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
@@ -1307,6 +1305,7 @@ export class Player extends GameObject<IPlayerState> {
             aspects: this.getAspects(),
             hasForceToken: this.hasTheForce,
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
+            numCardsInDeck: this.drawDeck?.length,
         };
 
         // if (this.showDeck) {

@@ -1638,42 +1638,10 @@ class Game extends EventEmitter {
 
             const beforeCleaningSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
 
-            for (const [_, player] of Object.entries(gameState.players)) {
-                player.numCardsInDeck = player.cardPiles?.deck?.length || undefined;
-                delete player.cardPiles?.deck;
-            }
-
-            const removeDeckSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
-
+            // clean out any properies that are null or undefined to reduce the message size
             Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
 
             const removeEmptySize = new TextEncoder().encode(JSON.stringify(gameState)).length;
-
-            for (const [_, player] of Object.entries(gameState.players)) {
-                for (const [_, zone] of Object.entries(player.cardPiles || {})) {
-                    for (const card of zone) {
-                        const ownerId = card.owner.id;
-                        const controllerId = card.controller.id;
-
-                        delete card.owner;
-                        delete card.controller;
-
-                        card.controllerId = controllerId;
-                        card.ownerId = ownerId;
-                    }
-                }
-            }
-
-            const ownerControllerIdSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
-
-            // for (const [_, player] of Object.entries(gameState.players)) {
-            //     for (const [_, zone] of Object.entries(player.cardPiles || {})) {
-            //         for (const card of zone) {
-            //             card.controllerId = 0;
-            //             card.ownerId = 1;
-            //         }
-            //     }
-            // }
 
             // const ownerControllerIntegerSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
 
@@ -1689,27 +1657,14 @@ class Game extends EventEmitter {
             for (const [_, player] of Object.entries(gameState.players)) {
                 for (const [_, zone] of Object.entries(player.cardPiles || {})) {
                     for (const card of zone) {
-                        delete card.cost;
-                        delete card.facedown;
                         delete card.implemented;
-                        delete card.controlled;
-                        delete card.type;
-
-                        if (!card.selectable) {
-                            delete card.selected;
-                            delete card.unselectable;
-                        }
                     }
                 }
             }
 
             const removeUnusedSize = new TextEncoder().encode(JSON.stringify(gameState)).length;
 
-            // Calculate and log the size in bytes
-            // const jsonString = JSON.stringify(gameState);
-            // console.log(`Entire JSON: ${jsonString}`);
-            // const byteSize = new TextEncoder().encode(jsonString).length;
-            console.log(`Game state size (bytes):\n\t- original: ${beforeCleaningSize}\n\t- after remove deck: ${removeDeckSize}\n\t- after remove null: ${removeEmptySize}\n\t- after owner/controller ids: ${ownerControllerIdSize}\n\t- after remove unused: ${removeUnusedSize}`);
+            console.log(`Game state size (bytes):\n\t- original: ${beforeCleaningSize}`);
 
             // Break down size by component
             const calculateSize = (obj) => {
@@ -1771,57 +1726,6 @@ class Game extends EventEmitter {
             const removeLabelSize = calculateSize(clonedMessages);
 
             console.log(`Message array size (bytes):\n\t- original: ${originalMessagesSize}\n\t- after consolidate strings: ${consolidatedStrSize}\n\t- after removing labels: ${removeLabelSize}`);
-
-            // // Calculate size of each component
-            // const playerSize = calculateSize(gameState.players);
-            // const messagesSize = calculateSize(gameState.messages);
-            // const spectatorsSize = calculateSize(gameState.spectators);
-            // const clientUIPropertiesSize = calculateSize(gameState.clientUIProperties);
-
-            // // Log breakdowns
-            // console.log('Size breakdown (bytes):');
-            // console.log(`- Players: ${playerSize} (${(playerSize / byteSize * 100).toFixed(1)}%)`);
-            // console.log(`- Messages: ${messagesSize} (${(messagesSize / byteSize * 100).toFixed(1)}%)`);
-            // console.log(`- Spectators: ${spectatorsSize}  (${(spectatorsSize / byteSize * 100).toFixed(1)}%)`);
-            // console.log(`- UI Properties: ${clientUIPropertiesSize} (${(clientUIPropertiesSize / byteSize * 100).toFixed(1)}%)`);
-            // console.log(`- Other: ${byteSize - playerSize - messagesSize - spectatorsSize - clientUIPropertiesSize} (${((byteSize - playerSize - messagesSize - spectatorsSize - clientUIPropertiesSize) / byteSize * 100).toFixed(1)}%)`);
-
-            // // Further break down player data
-            // if (Object.keys(gameState.players).length > 0) {
-            //     console.log('\nPlayer data breakdown:');
-            //     for (const playerId in gameState.players) {
-            //         const playerData = gameState.players[playerId];
-            //         const playerTotal = calculateSize(playerData);
-            //         console.log(`Player ${playerData.name}: ${playerTotal} bytes`);
-
-            //         // Break down player components
-            //         const playerComponents = {
-            //             hand: playerData.cardPiles?.hand || [],
-            //             outsideTheGame: playerData.cardPiles?.outsideTheGame || [],
-            //             capturedZone: playerData.cardPiles?.capturedZone || [],
-            //             resources: playerData.cardPiles?.resources || [],
-            //             groundArena: playerData.cardPiles?.groundArena || [],
-            //             spaceArena: playerData.cardPiles?.spaceArena || [],
-            //             deck: playerData.cardPiles?.deck || [],
-            //             discard: playerData.cardPiles?.discard || []
-            //         };
-
-            //         // Add other important player data
-            //         if (playerData.leader) {
-            //             playerComponents.leader = playerData.leader ? [playerData.leader] : [];
-            //         }
-            //         if (playerData.base) {
-            //             playerComponents.base = playerData.base ? [playerData.base] : [];
-            //         }
-
-            //         for (const [component, data] of Object.entries(playerComponents)) {
-            //             const componentSize = calculateSize(data);
-            //             if (componentSize > 0) {
-            //                 console.log(`  - ${component}: ${componentSize} bytes (${(componentSize / playerTotal * 100).toFixed(1)}%)`);
-            //             }
-            //         }
-            //     }
-            // }
 
             gameState.messages = clonedMessages;
 
