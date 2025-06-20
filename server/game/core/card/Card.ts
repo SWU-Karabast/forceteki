@@ -1135,6 +1135,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             power: this.cardData.power,
             hp: this.cardData.hp,
             implemented: this.isImplemented,
+            type: this.type,
             uuid: this.uuid,
             printedType: this.printedType,
             ...selectionState

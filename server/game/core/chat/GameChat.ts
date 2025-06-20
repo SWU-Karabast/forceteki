@@ -54,14 +54,30 @@ export class GameChat {
         for (const fragment of fragments) {
             const argMatch = fragment.match(/\{(\d+)\}/);
 
+            let formattedFragment;
             if (argMatch) {
-                const formattedArg = this.tryFormatPlaceholder(fragment, argMatch, args);
+                formattedFragment = this.tryFormatPlaceholder(fragment, argMatch, args);
+            } else {
+                formattedFragment = fragment;
+            }
 
-                if (formattedArg) {
-                    formatOutput.push(formattedArg);
+            if (formattedFragment) {
+                if (Array.isArray(formattedFragment)) {
+                    formatOutput.push(...formattedFragment);
+                    continue;
                 }
-            } else if (fragment) {
-                formatOutput.push(fragment);
+
+                const prevFragmentType = typeof formatOutput.at(-1);
+                const thisFragmentType = typeof formattedFragment;
+
+                if (prevFragmentType === 'string' && (thisFragmentType === 'string' || thisFragmentType === 'number')) {
+                    // concatenate simple strings and numbers together to reduce the number of elements sent over the wire
+                    formatOutput[formatOutput.length - 1] += formattedFragment;
+                } else if (thisFragmentType === 'number') {
+                    formatOutput.push(formattedFragment.toString());
+                } else {
+                    formatOutput.push(formattedFragment);
+                }
             }
         }
 
