@@ -266,7 +266,7 @@ export class GameServer {
                         next(err);
                     }
                 }
-                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences() } });
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange() } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
                 next(err);
