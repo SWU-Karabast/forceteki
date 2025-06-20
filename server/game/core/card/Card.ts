@@ -293,7 +293,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this._aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
         this._backSideAspects = EnumHelpers.checkConvertToEnum(cardData.backSideAspects ?? [], Aspect);
         this._internalName = cardData.internalName;
-        this._subtitle = cardData.subtitle;
+        this._subtitle = cardData.subtitle === '' ? null : cardData.subtitle;
         this._title = cardData.title;
         this._backSideTitle = cardData.backSideTitle;
         this._unique = cardData.unique;
