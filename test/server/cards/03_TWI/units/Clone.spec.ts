@@ -471,6 +471,90 @@ describe('Clone', function() {
                 expect(context.clone).toBeInZone('groundArena');
                 expect(context.clone).toBeCloneOf(context.wampa);
             });
+
+            it('can copy another cloned unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone', 'clone'],
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['atst'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const clone1 = context.player1.findCardsByName('clone')[0];
+                const clone2 = context.player1.findCardsByName('clone')[1];
+
+                expect(clone1).toBeVanillaClone();
+                expect(clone2).toBeVanillaClone();
+
+                context.player1.clickCard(clone1);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(clone1).toBeInZone('groundArena');
+                expect(clone1).toBeCloneOf(context.wampa);
+                expect(clone2).toBeInZone('hand');
+                expect(clone2).toBeVanillaClone();
+
+                context.player2.passAction();
+
+                context.player1.clickCard(clone2);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, clone1]);
+
+                context.player1.clickCard(clone1);
+                expect(context.player1.exhaustedResourceCount).toBe(14);
+                expect(clone1).toBeInZone('groundArena');
+                expect(clone1).toBeCloneOf(context.wampa);
+                expect(clone2).toBeInZone('groundArena');
+                expect(clone2).toBeCloneOf(context.wampa);
+                expect(clone2).toBeCloneOf(clone1);
+            });
+
+            it('can copy another vanilla clone', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa', 'clone', 'clone-commander-cody#commanding-the-212th'],
+                    },
+                    player2: {
+                        groundArena: ['atst'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const handClone = context.player1.findCardByName('clone', 'hand');
+                const groundClone = context.player1.findCardByName('clone', 'groundArena');
+
+                expect(handClone).toBeVanillaClone();
+                expect(groundClone).toBeVanillaClone();
+
+                context.player1.clickCard(handClone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cloneCommanderCody, groundClone]);
+
+                context.player1.clickCard(groundClone);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(handClone).toBeInZone('groundArena');
+                expect(handClone).toBeCloneOf(groundClone);
+                expect(handClone).toBeVanillaClone();
+            });
         });
 
         describe('when it enters play as itself', function() {
