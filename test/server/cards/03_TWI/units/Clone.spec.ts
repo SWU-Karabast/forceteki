@@ -60,36 +60,6 @@ describe('Clone', function() {
                 expect(context.clone).toBeInZone('spaceArena');
                 expect(context.clone).toBeCloneOf(context.leiaOrgana);
             });
-
-            it('can copy token units', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        base: 'echo-base',
-                        hand: ['clone'],
-                        groundArena: ['wampa', { card: 'enfys-nest#marauder', upgrades: ['experience'] }],
-                    },
-                    player2: {
-                        groundArena: ['clone-trooper', 'atst'],
-                        spaceArena: ['leia-organa#extraordinary'],
-                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
-                    }
-                });
-
-                const { context } = contextRef;
-
-                expect(context.clone).toBeVanillaClone();
-
-                context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
-                expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cloneTrooper, context.enfysNest, context.leiaOrgana]);
-
-                context.player1.clickCard(context.cloneTrooper);
-                expect(context.player1.exhaustedResourceCount).toBe(7);
-                expect(context.clone).toBeInZone('groundArena');
-                expect(context.clone).toBeCloneOf(context.cloneTrooper);
-            });
         });
 
         describe('when played from discard', function() {
@@ -320,6 +290,42 @@ describe('Clone', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.clone).toBeInZone('spaceArena');
                 expect(context.clone).toBeCloneOf(context.leiaOrgana);
+            });
+
+            it('can copy token units', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa', { card: 'enfys-nest#marauder', upgrades: ['experience'] }],
+                    },
+                    player2: {
+                        groundArena: ['clone-trooper', 'atst'],
+                        spaceArena: ['leia-organa#extraordinary'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cloneTrooper, context.enfysNest, context.leiaOrgana]);
+
+                context.player1.clickCard(context.cloneTrooper);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.cloneTrooper);
+
+                context.player2.clickCard(context.cloneTrooper);
+                context.player2.clickCard(context.clone);
+                expect(context.clone).toBeInZone('discard');
+                expect(context.clone).toBeVanillaClone();
+                expect(context.cloneTrooper).toBeInZone('outsideTheGame');
             });
         });
 
