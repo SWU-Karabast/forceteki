@@ -137,7 +137,7 @@ export class GameServer {
 
         // Setup socket server
         this.io = new IOServer(server, {
-            perMessageDeflate: false,
+            perMessageDeflate: {},
             path: '/ws',
             cors: {
                 origin: env.corsOrigins,
