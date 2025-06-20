@@ -26,7 +26,7 @@ describe('Shield', function() {
                 expect(context.shield).toBeInZone('outsideTheGame');
                 expect(context.tielnFighter.isUpgraded()).toBe(false);
                 expect(context.getChatLogs(2)).toEqual([
-                    'Cartel Spacer attacks TIE/ln Fighter',
+                    'player1 attacks TIE/ln Fighter with Cartel Spacer',
                     'player2 uses Shield to prevent TIE/ln Fighter from taking damage',
                 ]);
 

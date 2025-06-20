@@ -29,7 +29,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
                 expect(context.getChatLogs(1)).toContain(
-                    'player1 uses Chancellor Palpatine, exhausting Chancellor Palpatine to draw a card, then to heal 2 damage from Echo Base, and then to flip Chancellor Palpatine'
+                    'player1 uses Chancellor Palpatine, exhausting Chancellor Palpatine to draw a card, then to heal 2 damage from player1\'s base, and then to flip Chancellor Palpatine'
                 );
 
                 context.moveToNextActionPhase();
@@ -46,7 +46,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(cloneTroopers.length).toBe(1);
                 expect(cloneTroopers[0]).toBeInZone('groundArena');
                 expect(context.getChatLogs(1)).toContain(
-                    'player1 uses Darth Sidious, exhausting Darth Sidious to create a Clone Trooper, then to deal 2 damage to Administrator\'s Tower, and then to flip Darth Sidious'
+                    'player1 uses Darth Sidious, exhausting Darth Sidious to create a Clone Trooper, then to deal 2 damage to player2\'s base, and then to flip Darth Sidious'
                 );
 
                 // Move to next phase and enable Palpatine hero flip

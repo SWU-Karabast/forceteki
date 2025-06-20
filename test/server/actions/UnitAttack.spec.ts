@@ -59,7 +59,7 @@ describe('Basic attack', function() {
                 expect(context.allianceXwing.damage).toBe(2);
                 expect(context.allianceXwing.exhausted).toBe(false);
 
-                expect(context.getChatLogs(2)).toContain('Cartel Spacer attacks Alliance X-Wing');
+                expect(context.getChatLogs(2)).toContain('player1 attacks Alliance X-Wing with Cartel Spacer');
             });
 
             it('another unit and neither is defeated, both should receive damage and attacker should be exhausted', function () {
