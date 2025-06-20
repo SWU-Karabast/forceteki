@@ -25,10 +25,10 @@ describe('Clone', function() {
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
-                context.player1.clickCard(context.enfysNest);
+                context.player1.clickCard(context.wampa);
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.clone).toBeInZone('groundArena');
-                expect(context.clone).toBeCloneOf(context.enfysNest);
+                expect(context.clone).toBeCloneOf(context.wampa);
             });
 
             it('should enter play as non-unique copy of another enemy unit', async function () {
@@ -41,7 +41,7 @@ describe('Clone', function() {
                     },
                     player2: {
                         groundArena: ['battlefield-marine', 'atst'],
-                        spaceArena: [{ card: 'leia-organa#extraordinary', exhausted: true }],
+                        spaceArena: ['graceful-purrgil'],
                         leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
                     }
                 });
@@ -53,12 +53,12 @@ describe('Clone', function() {
                 context.player1.clickCard(context.clone);
                 expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.gracefulPurrgil]);
 
-                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickCard(context.gracefulPurrgil);
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.clone).toBeInZone('spaceArena');
-                expect(context.clone).toBeCloneOf(context.leiaOrgana);
+                expect(context.clone).toBeCloneOf(context.gracefulPurrgil);
             });
         });
 
@@ -87,9 +87,9 @@ describe('Clone', function() {
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
-                context.player1.clickCard(context.enfysNest);
+                context.player1.clickCard(context.battlefieldMarine);
                 expect(context.clone).toBeInZone('groundArena');
-                expect(context.clone).toBeCloneOf(context.enfysNest);
+                expect(context.clone).toBeCloneOf(context.battlefieldMarine);
             });
         });
 
@@ -118,9 +118,9 @@ describe('Clone', function() {
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
-                context.player1.clickCard(context.enfysNest);
+                context.player1.clickCard(context.wampa);
                 expect(context.clone).toBeInZone('groundArena');
-                expect(context.clone).toBeCloneOf(context.enfysNest);
+                expect(context.clone).toBeCloneOf(context.wampa);
             });
         });
 
@@ -147,10 +147,10 @@ describe('Clone', function() {
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana, context.tech]);
 
-                context.player1.clickCard(context.enfysNest);
+                context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1.exhaustedResourceCount).toBe(9);
                 expect(context.clone).toBeInZone('groundArena');
-                expect(context.clone).toBeCloneOf(context.enfysNest);
+                expect(context.clone).toBeCloneOf(context.battlefieldMarine);
             });
         });
 
@@ -180,9 +180,9 @@ describe('Clone', function() {
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
-                context.player1.clickCard(context.enfysNest);
+                context.player1.clickCard(context.wampa);
                 expect(context.clone).toBeInZone('groundArena');
-                expect(context.clone).toBeCloneOf(context.enfysNest);
+                expect(context.clone).toBeCloneOf(context.wampa);
             });
         });
 
@@ -193,7 +193,7 @@ describe('Clone', function() {
                     player1: {
                         base: 'echo-base',
                         hand: ['clone', 'unexpected-escape', 'palpatines-return'],
-                        groundArena: ['wampa', 'enfys-nest#champion-of-justice'],
+                        groundArena: ['wampa', 'grand-inquisitor#youre-right-to-be-afraid'],
                     },
                     player2: {
                         groundArena: ['battlefield-marine', { card: 'atst', upgrades: ['experience'] }],
@@ -210,11 +210,11 @@ describe('Clone', function() {
                 context.player1.clickCard(context.clone);
                 expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana]);
 
-                context.player1.clickCard(context.enfysNest);
+                context.player1.clickCard(context.wampa);
                 expect(context.clone).toBeInZone('groundArena');
-                expect(context.clone).toBeCloneOf(context.enfysNest);
+                expect(context.clone).toBeCloneOf(context.wampa);
 
                 context.player2.clickCard(context.cadBane);
                 context.player2.clickCard(context.clone);
@@ -227,7 +227,7 @@ describe('Clone', function() {
                 context.player1.clickCard(context.clone);
                 expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana, context.cadBane]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana, context.cadBane]);
 
                 context.player1.clickCard(context.leiaOrgana);
                 expect(context.clone).toBeInZone('spaceArena');
@@ -242,11 +242,11 @@ describe('Clone', function() {
                 context.player1.clickCard(context.clone);
                 expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana, context.cadBane]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana, context.cadBane]);
 
-                context.player1.clickCard(context.cadBane);
+                context.player1.clickCard(context.grandInquisitor);
                 expect(context.clone).toBeInZone('groundArena');
-                expect(context.clone).toBeCloneOf(context.cadBane);
+                expect(context.clone).toBeCloneOf(context.grandInquisitor);
 
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(context.clone);
@@ -257,7 +257,7 @@ describe('Clone', function() {
                 context.player1.clickCard(context.clone);
                 expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana, context.cadBane]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana, context.cadBane]);
 
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.clone).toBeInZone('groundArena');
