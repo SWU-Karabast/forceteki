@@ -614,7 +614,7 @@ describe('Clone', function() {
             });
         });
 
-        describe('when it copies a unit with modified printed traits', function() {
+        describe('when it copies a unit with modified printed attributes', function() {
             it('copies the new printed power and hp', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -652,6 +652,74 @@ describe('Clone', function() {
                 expect(context.clone).not.toBeCloneOf(context.battlefieldMarine);
                 expect(context.clone.getPrintedPower()).toBe(5);
                 expect(context.clone.getPrintedHp()).toBe(5);
+            });
+        });
+
+        describe('when it copies a unit with modified non-printed attributes', function() {
+            it('copies printed traits even if the unit lost a trait', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa', 'nameless-terror'],
+                    },
+                    player2: {
+                        groundArena: ['shaak-ti#unity-wins-wars', 'atst'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.namelessTerror);
+                context.player1.clickCard(context.p2Base);
+                expect(context.shaakTi.getPrintedTraits()).toContain('force');
+                expect(context.shaakTi.getTraits()).not.toContain('force');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.shaakTi);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.shaakTi);
+                expect(context.clone.getPrintedTraits()).toContain('force');
+            });
+
+            it('copies printed traits even if the unit gained a trait', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa', 'nameless-terror'],
+                    },
+                    player2: {
+                        groundArena: [{ card: 'shaak-ti#unity-wins-wars', upgrades: ['foundling'] }, 'atst'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.shaakTi);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.shaakTi);
+                expect(context.shaakTi.getTraits()).toContain('mandalorian');
+                expect(context.clone.getPrintedTraits()).not.toContain('mandalorian');
             });
         });
     });
