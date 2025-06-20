@@ -690,6 +690,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeInZone('groundArena');
                 expect(context.clone).toBeCloneOf(context.shaakTi);
                 expect(context.clone.getPrintedTraits()).toContain('force');
+                expect(context.clone.getTraits()).toContain('force');
             });
 
             it('copies printed traits even if the unit gained a trait', async function() {
@@ -720,6 +721,51 @@ describe('Clone', function() {
                 expect(context.clone).toBeCloneOf(context.shaakTi);
                 expect(context.shaakTi.getTraits()).toContain('mandalorian');
                 expect(context.clone.getPrintedTraits()).not.toContain('mandalorian');
+                expect(context.clone.getTraits()).not.toContain('mandalorian');
+            });
+
+            it('copies printed power and hp even if the unit has a buff', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'atst'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                        hand: ['huyang#enduring-instructor', 'clan-wren-rescuer'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player2.clickCard(context.huyang);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.battlefieldMarine);
+                expect(context.clone.getPower()).toBe(3);
+                expect(context.clone.getHp()).toBe(3);
+                expect(context.battlefieldMarine.getPower()).toBe(5);
+                expect(context.battlefieldMarine.getHp()).toBe(5);
+
+                context.player2.clickCard(context.clanWrenRescuer);
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.clone.getPower()).toBe(3);
+                expect(context.clone.getHp()).toBe(3);
+                expect(context.battlefieldMarine.getPower()).toBe(6);
+                expect(context.battlefieldMarine.getHp()).toBe(6);
             });
         });
     });
