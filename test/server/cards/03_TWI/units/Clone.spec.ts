@@ -555,6 +555,43 @@ describe('Clone', function() {
                 expect(handClone).toBeCloneOf(groundClone);
                 expect(handClone).toBeVanillaClone();
             });
+
+            it('is not defeated if blanked', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa', { card: 'enfys-nest#marauder', upgrades: ['experience'] }],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'atst'],
+                        spaceArena: [{ card: 'leia-organa#extraordinary', exhausted: true }],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                        hand: ['force-lightning'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
+
+                context.player1.clickCard(context.leiaOrgana);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('spaceArena');
+                expect(context.clone).toBeCloneOf(context.leiaOrgana);
+
+                context.player2.clickCard(context.forceLightning);
+                context.player2.clickCard(context.clone);
+                context.player2.chooseListOption('0');
+
+                expect(context.clone).toBeInZone('spaceArena');
+            });
         });
 
         describe('when it enters play as itself', function() {
