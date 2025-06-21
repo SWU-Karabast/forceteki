@@ -1,8 +1,6 @@
 describe('Boba Fett, Disintegrator', function() {
     integration(function(contextRef) {
         describe('Boba Fett, Disintegrator\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -91,7 +89,7 @@ describe('Boba Fett, Disintegrator', function() {
 
                 context.player1.clickCard(context.bobaFett);
                 context.player1.clickCard(context.consularSecurityForce);
-                context.player1.clickPrompt('If this unit is attacking an exhausted unit that didn\'t enter play this round, deal 3 damage to the defender.');
+                context.player1.clickPrompt('If this unit is attacking an exhausted unit that didn\'t enter play this round, deal 3 damage to the defender. (No effect)');
 
                 // check game state
                 expect(context.consularSecurityForce.damage).toBe(5);
