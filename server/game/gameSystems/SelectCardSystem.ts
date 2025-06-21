@@ -17,7 +17,6 @@ export type ISelectCardProperties<TContext extends AbilityContext = AbilityConte
   & {
       player?: RelativePlayer;
       controller?: RelativePlayerFilter;
-      manuallyRaiseEvent?: boolean;
       selector?: BaseCardSelector<TContext>;
       cancelHandler?: () => void;
       optional?: boolean;
@@ -37,7 +36,6 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     public override readonly eventName: MetaEventName.SelectCard;
     protected override readonly defaultProperties: Partial<ISelectCardProperties<TContext>> = {
         cardCondition: () => true,
-        manuallyRaiseEvent: false,
         optional: false,
     };
 
@@ -108,10 +106,6 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 }
 
                 properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
-
-                if (properties.manuallyRaiseEvent) {
-                    context.game.openEventWindow(events);
-                }
             } else {
                 properties.cancelHandler?.();
             }
