@@ -376,17 +376,16 @@ export class Lobby {
         const mode = args[0];
         Contract.assertTrue(mode === 'reset' || mode === 'regular', 'Invalid rematch mode, expected reset or regular but receieved: ' + mode);
 
-        const currentUser = this.users.find((u) => u.id === socket.user.getId());
-        Contract.assertNotNullLike(currentUser, `Unable to find user with id ${socket.user.getId()} in lobby ${this.id}`);
+        const user = this.getUser(socket.user.getId());
 
         // Set the rematch request property (allow only one request at a time)
         if (!this.rematchRequest) {
             this.rematchRequest = {
-                initiator: currentUser.id,
+                initiator: user.id,
                 mode,
             };
-            logger.info(`Lobby: user ${socket.user.getId()} requested a rematch (${mode})`, { lobbyId: this.id, userName: currentUser.username, userId: currentUser.id });
-            this.game.addAlert(AlertType.Notification, `${currentUser.username} has requested a ${mode === 'reset' ? 'quick' : ''} rematch!`);
+            logger.info(`Lobby: user ${socket.user.getId()} requested a rematch (${mode})`, { lobbyId: this.id, userName: user.username, userId: user.id });
+            this.game.addAlert(AlertType.Notification, `${user.username} has requested a ${mode === 'reset' ? 'quick' : ''} rematch!`);
         }
         this.sendLobbyState();
     }
