@@ -6,7 +6,6 @@ export class SelectChoice {
     public getShortSummary() {
         return {
             id: this.choice,
-            label: this.choice,
             name: this.choice,
             type: TargetMode.Select
         };
