@@ -81,9 +81,7 @@ export default class TriggeredAbility extends CardAbility {
     ) {
         super(game, card, properties, abilityType);
 
-        if (!card.canRegisterTriggeredAbilities()) {
-            throw Error(`Card '${card.internalName}' cannot have triggered abilities`);
-        }
+        Contract.assertTrue(card.canRegisterTriggeredAbilities(), `Card '${card.internalName}' cannot have triggered abilities`);
 
         if ('when' in properties) {
             const { when, standardTriggerTypes } = this.parseStandardTriggerTypes(properties.when);

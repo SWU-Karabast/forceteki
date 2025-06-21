@@ -4,6 +4,7 @@ import { AbilityType } from '../Constants';
 import type Game from '../Game';
 import type { AbilityContext } from './AbilityContext';
 import { CardAbility } from './CardAbility';
+import * as Contract from '../utils/Contract';
 
 export default class PreEnterPlayAbility extends CardAbility {
     public constructor(
@@ -13,8 +14,6 @@ export default class PreEnterPlayAbility extends CardAbility {
     ) {
         super(game, card, properties, AbilityType.Triggered);
 
-        if (!card.canRegisterPreEnterPlayAbilities()) {
-            throw Error(`Card '${card.internalName}' cannot have pre-enter play abilities`);
-        }
+        Contract.assertTrue(card.canRegisterPreEnterPlayAbilities(), `Card '${card.internalName}' cannot register pre-enter play abilities`);
     }
 }
