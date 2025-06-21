@@ -47,7 +47,7 @@ import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilit
 import type { GameObjectRef } from '../GameObjectBase';
 import { logger } from '../../../logger';
 import type Experience from '../../cards/01_SOR/tokens/Experience';
-import type { PrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
+import { getPrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPlayAbilityRegistration';
 import PreEnterPlayAbility from '../ability/PreEnterPlayAbility';
 
@@ -159,10 +159,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     protected get printedType(): CardType {
         if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
-            const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
-            const index = overrides.findIndex((override) => override.printedType != null);
-            if (index >= 0) {
-                return overrides[index].printedType;
+            const override = getPrintedAttributesOverride('printedType', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
             }
         }
 
@@ -172,10 +171,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     // ******************************************** PROPERTY GETTERS ********************************************
     public get aspects(): Aspect[] {
         if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
-            const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
-            const index = overrides.findIndex((override) => override.aspects != null);
-            if (index >= 0) {
-                return overrides[index].aspects;
+            const override = getPrintedAttributesOverride('aspects', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
             }
         }
 
@@ -212,10 +210,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     public get subtitle(): string {
         if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
-            const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
-            const index = overrides.findIndex((override) => override.subtitle != null);
-            if (index >= 0) {
-                return overrides[index].subtitle;
+            const override = getPrintedAttributesOverride('subtitle', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
             }
         }
 
@@ -224,10 +221,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     public get title(): string {
         if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
-            const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
-            const index = overrides.findIndex((override) => override.title != null);
-            if (index >= 0) {
-                return overrides[index].title;
+            const override = getPrintedAttributesOverride('title', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
             }
         }
 
@@ -680,10 +676,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     // ******************************************* TRAIT HELPERS *******************************************
     protected getPrintedTraits(): Set<Trait> {
         if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
-            const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
-            const index = overrides.findIndex((override) => override.printedTraits != null);
-            if (index >= 0) {
-                return new Set(overrides[index].printedTraits);
+            const override = getPrintedAttributesOverride('printedTraits', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return new Set(override);
             }
         }
 

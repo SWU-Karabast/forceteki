@@ -597,6 +597,43 @@ describe('Clone', function() {
 
                 expect(context.clone).toBeInZone('spaceArena');
             });
+
+            it('should allow to be affected by effects that change printed attributes', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['wampa', 'plo-koon#i-dont-believe-in-chance'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'atst'],
+                        leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
+                        hand: ['size-matters-not'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.ploKoon]);
+
+                context.player1.clickCard(context.ploKoon);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.ploKoon);
+                expect(context.clone.getPrintedPower()).toBe(6);
+                expect(context.clone.getPrintedHp()).toBe(8);
+
+                context.player2.clickCard(context.sizeMattersNot);
+                context.player2.clickCard(context.clone);
+                expect(context.clone.getPrintedPower()).toBe(5);
+                expect(context.clone.getPrintedHp()).toBe(5);
+            });
         });
 
         describe('when it enters play as itself', function() {

@@ -42,7 +42,7 @@ import type { GameObjectRef } from '../../GameObjectBase';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/LeadersDeployedThisPhaseWatcher';
 import AbilityHelper from '../../../AbilityHelper';
-import type { PrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
+import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -176,13 +176,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         public get defaultArena(): Arena {
             if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
-                const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
-                const index = overrides.findIndex((override) => override.defaultArena != null);
-                if (index >= 0) {
-                    return overrides[index].defaultArena;
+                const override = getPrintedAttributesOverride('defaultArena', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+                if (override != null) {
+                    return override;
                 }
             }
-
             return this._defaultArena;
         }
 

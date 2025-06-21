@@ -1,5 +1,5 @@
 import { EffectName } from '../../Constants';
-import type { PrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
+import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import * as Contract from '../../utils/Contract';
 import type { Card, CardConstructor } from '../Card';
 
@@ -15,10 +15,9 @@ export function WithCost<TBaseClass extends CardConstructor>(BaseClass: TBaseCla
 
         public get printedCost(): number {
             if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
-                const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
-                const index = overrides.findIndex((override) => override.printedCost != null);
-                if (index >= 0) {
-                    return overrides[index].printedCost;
+                const override = getPrintedAttributesOverride('printedCost', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+                if (override != null) {
+                    return override;
                 }
             }
             return this._printedCost;
