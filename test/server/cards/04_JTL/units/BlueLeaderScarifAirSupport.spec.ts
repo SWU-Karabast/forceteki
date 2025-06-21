@@ -70,7 +70,7 @@ describe('Blue Leader, Scarif Air Support', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.blueLeader);
-            expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', 'Ambush (No effect)']);
+            expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', '(No effect) Ambush']);
 
             context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
@@ -156,7 +156,7 @@ describe('Blue Leader, Scarif Air Support', function() {
             expect(context.blueLeader).toHaveExactUpgradeNames(['shield']);
 
             // move Blue Leader to the ground arena, shield should move with it
-            expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', 'Ambush (No effect)']);
+            expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', '(No effect) Ambush']);
             context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
 
@@ -192,7 +192,7 @@ describe('Blue Leader, Scarif Air Support', function() {
 
             context.player1.clickCard(context.sneakAttack);
             context.player1.clickCard(context.blueLeader);
-            expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', 'Ambush (No effect)']);
+            expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', '(No effect) Ambush']);
 
             context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
@@ -231,7 +231,7 @@ describe('Blue Leader, Scarif Air Support', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.blueLeader);
-                expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', 'Ambush (No effect)']);
+                expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', '(No effect) Ambush']);
                 context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
                 context.player1.clickPrompt('Trigger');
             });

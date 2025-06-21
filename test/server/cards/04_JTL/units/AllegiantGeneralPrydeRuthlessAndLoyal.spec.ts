@@ -58,7 +58,7 @@ describe('Allegiant General Pryde, Ruthless and Loyal', function () {
 
                 expect(context.player1).toHaveEnabledPromptButtons([
                     'Defeat a non-unique upgrade on the unit: Battlefield Marine',
-                    'Defeat a non-unique upgrade on the unit: Crafty Smuggler (No effect)'
+                    '(No effect) Defeat a non-unique upgrade on the unit: Crafty Smuggler'
                 ]);
 
                 context.player1.clickPrompt('Defeat a non-unique upgrade on the unit: Battlefield Marine');

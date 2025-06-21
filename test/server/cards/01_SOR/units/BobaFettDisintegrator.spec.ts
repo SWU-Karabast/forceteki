@@ -89,7 +89,7 @@ describe('Boba Fett, Disintegrator', function() {
 
                 context.player1.clickCard(context.bobaFett);
                 context.player1.clickCard(context.consularSecurityForce);
-                context.player1.clickPrompt('If this unit is attacking an exhausted unit that didn\'t enter play this round, deal 3 damage to the defender. (No effect)');
+                context.player1.clickPrompt('(No effect) If this unit is attacking an exhausted unit that didn\'t enter play this round, deal 3 damage to the defender.');
 
                 // check game state
                 expect(context.consularSecurityForce.damage).toBe(5);
