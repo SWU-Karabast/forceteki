@@ -10,6 +10,7 @@ import type { Player } from '../core/Player';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type { ICardTargetResolver } from '../TargetInterfaces';
 import type { BaseCardSelector } from '../core/cardSelector/BaseCardSelector';
+import type { MsgArg } from '../core/chat/GameChat';
 
 export type ISelectCardProperties<TContext extends AbilityContext = AbilityContext> = ICardTargetSystemProperties
   & Helpers.DistributiveOmit<ICardTargetResolver<TContext>, 'immediateEffect'>
@@ -123,11 +124,10 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             return;
         }
 
-        const messageArgs = [context.player, ' uses ', context.source, ' to '];
-
         const [effectMessage, effectArgs] = properties.immediateEffect.getEffectMessage(context);
+        const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
 
-        context.game.addMessage('{0}{1}{2}{3}{4}{5}{6}{7}{8}', ...messageArgs, { message: context.game.gameChat.formatMessage(effectMessage, effectArgs) });
+        context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }
 
     public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): boolean {
