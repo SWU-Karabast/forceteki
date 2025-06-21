@@ -182,8 +182,17 @@ export abstract class TriggerWindowBase extends BaseStep {
         return this.unresolved.get(this.currentlyResolvingPlayer);
     }
 
+    private getChoiceTitle(context: TriggeredAbilityContext, isMultiSelectAbility: boolean) {
+        let title = isMultiSelectAbility ? this.getOverrideTitle(context) : context.ability.title;
+        if (!context.ability.hasAnyLegalEffects(context, SubStepCheck.All)) {
+            title = `(No effect) ${title}`;
+        }
+
+        return title;
+    }
+
     private getOverrideTitle(context: TriggeredAbilityContext) {
-        return (context.ability as TriggeredAbility).title + ': ' + context.event.card.title;
+        return `${context.ability.title}: ${context.event.card.title}`;
     }
 
     private isMultiSelectAbility(abilitiesToResolve: TriggeredAbilityContext[], resolvedAbilities: TriggeredAbility[]) {
@@ -202,11 +211,10 @@ export abstract class TriggerWindowBase extends BaseStep {
         let handlers: (() => void)[] = [];
 
         // If its a multi-select, append the card name at the end of the ability name to differentiate them
+        choices = abilitiesToResolve.map((context) => this.getChoiceTitle(context, isMultiSelectAbility));
         if (isMultiSelectAbility) {
-            choices = abilitiesToResolve.map((context) => this.getOverrideTitle(context));
             handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context.createCopy({ overrideTitle: this.getOverrideTitle(context) })));
         } else {
-            choices = abilitiesToResolve.map((context) => (context.ability as TriggeredAbility).title);
             handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
         }
 
