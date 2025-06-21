@@ -119,6 +119,8 @@ declare namespace jasmine {
         toHaveExactDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
         toHaveExactEnabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
         toHaveExactDisabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
+        toBeCloneOf(card: any): boolean;
+        toBeVanillaClone(): boolean;
     }
 }
 

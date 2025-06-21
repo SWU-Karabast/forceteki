@@ -76,10 +76,27 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             additionalProperties
         ) as IPutIntoPlayProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
+        const newController = EnumHelpers.asConcretePlayer(controller, context.player);
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
-        event.entersReady = entersReady || card.hasOngoingEffect(EffectName.EntersPlayReady);
-        event.newController = EnumHelpers.asConcretePlayer(controller, context.player);
+        event.entersReady = entersReady ||
+          card.hasOngoingEffect(EffectName.EntersPlayReady) ||
+          (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
+        event.newController = newController;
+        event.setPreResolutionEffect((event) => {
+            const card: Card = event.card;
+            if (card.canRegisterPreEnterPlayAbilities()) {
+                for (const ability of card.getPreEnterPlayAbilities()) {
+                    context.game.resolveAbility(ability.createContext(context.player, event));
+                }
+                context.game.queueSimpleStep(() => {
+                    if (!event.entersReady) {
+                        event.entersReady = card.hasOngoingEffect(EffectName.EntersPlayReady) ||
+                          (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
+                    }
+                }, `Update onUnitEntersPlay event after resolving pre-enter play abilities for ${card.internalName}`);
+            }
+        });
     }
 
     private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {
