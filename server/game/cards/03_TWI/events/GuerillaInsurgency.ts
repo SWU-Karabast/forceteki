@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, ZoneName } from '../../../core/Constants';
+import { GameStateChangeRequired, RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class GuerillaInsurgency extends EventCard {
     protected override getImplementationId() {
@@ -17,19 +17,21 @@ export default class GuerillaInsurgency extends EventCard {
                 AbilityHelper.immediateEffects.selectCard({
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Resource,
+                    mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                     activePromptTitle: 'Defeat a resource you control',
                     effect: 'make {0} defeat a resource',
                     effectArgs: (context) => [context.player],
-                    innerSystem: AbilityHelper.immediateEffects.defeat()
+                    immediateEffect: AbilityHelper.immediateEffects.defeat()
                 }),
                 AbilityHelper.immediateEffects.selectCard({
                     controller: RelativePlayer.Opponent,
                     player: RelativePlayer.Opponent,
                     zoneFilter: ZoneName.Resource,
+                    mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                     activePromptTitle: 'Defeat a resource you control',
                     effect: 'make {0} defeat a resource',
                     effectArgs: (context) => [context.player.opponent],
-                    innerSystem: AbilityHelper.immediateEffects.defeat()
+                    immediateEffect: AbilityHelper.immediateEffects.defeat()
                 }),
                 AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                     target: context.game.getPlayers(),

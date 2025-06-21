@@ -51,6 +51,6 @@ export class SelectPlayerSystem<TContext extends AbilityContext = AbilityContext
             if (!targetResults.cancelled) {
                 properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
             }
-        }, `Exectute immediate effect for select player system "${properties.name}"`);
+        }, `Execute immediate effect for select player system "${properties.name}"`);
     }
 }

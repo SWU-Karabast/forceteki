@@ -21,14 +21,14 @@ export default class AdmiralOzzelOverconfident extends NonLeaderUnitCard {
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
-                    innerSystem: AbilityHelper.immediateEffects.playCardFromHand({ entersReady: true, playAsType: WildcardCardType.Unit })
+                    immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({ entersReady: true, playAsType: WildcardCardType.Unit })
                 }),
                 AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Ready a unit',
                     player: RelativePlayer.Opponent,
                     optional: true,
                     cardTypeFilter: WildcardCardType.Unit,
-                    innerSystem: AbilityHelper.immediateEffects.ready()
+                    immediateEffect: AbilityHelper.immediateEffects.ready()
                 })
             ])
         });

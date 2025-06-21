@@ -20,7 +20,7 @@ export default class SaeseeTiinCourageousWarrior extends NonLeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     canChooseNoCards: true,
                     numCards: 3,
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
                 })
             })
         });

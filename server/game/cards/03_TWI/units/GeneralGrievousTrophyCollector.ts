@@ -29,7 +29,7 @@ export default class GeneralGrievousTrophyCollector extends NonLeaderUnitCard {
                     controller: RelativePlayer.Opponent,
                     mode: TargetMode.ExactlyVariable,
                     numCardsFunc: (context) => Math.min(4, context.player.opponent.getArenaUnits().length),
-                    innerSystem: AbilityHelper.immediateEffects.defeat()
+                    immediateEffect: AbilityHelper.immediateEffects.defeat()
                 }),
             })
         });

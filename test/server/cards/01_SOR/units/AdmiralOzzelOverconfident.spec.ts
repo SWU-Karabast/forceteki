@@ -39,6 +39,28 @@ describe('Admiral Ozzel, Overconfident', function() {
                 context.player2.clickCard(context.wampa);
                 expect(context.wampa.exhausted).toBe(false);
             });
+
+            it('should allow the controller to exhaust Admiral Ozzel and not play a unit', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.admiralOzzel);
+                expect(context.player1).toHaveEnabledPromptButtons(['Play an Imperial unit from your hand. It enters play ready', 'Attack']);
+
+                context.player1.clickPrompt('Play an Imperial unit from your hand. It enters play ready');
+                expect(context.admiralOzzel.exhausted).toBe(true);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.deathStarStormtrooper]);
+                expect(context.player1).toHaveChooseNothingButton();
+
+                context.player1.clickPrompt('Choose nothing');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+
+                expect(context.player2).toHavePrompt('Ready a unit');
+                expect(context.player2).toHaveEnabledPromptButton('Choose nothing');
+                expect(context.player2).toBeAbleToSelectExactly([context.admiralOzzel, context.wampa, context.ruthlessRaider]);
+
+                context.player2.clickCard(context.wampa);
+                expect(context.wampa.exhausted).toBe(false);
+            });
         });
 
         describe('Admiral Ozzel, Overconfident\'s ability', function () {

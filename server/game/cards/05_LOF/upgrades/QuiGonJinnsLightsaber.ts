@@ -29,7 +29,7 @@ export default class QuiGonJinnsLightsaber extends UpgradeCard {
                     mode: TargetMode.Unlimited,
                     multiSelectCardCondition: (card, currentlySelectedCards) => card.isUnit() && this.costSum(currentlySelectedCards.concat(card)) <= 6,
                     canChooseNoCards: true,
-                    innerSystem: AbilityHelper.immediateEffects.exhaust()
+                    immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 })
             })
         });

@@ -23,7 +23,7 @@ export default class FifthBrotherFearHunter extends NonLeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     zoneFilter: ZoneName.GroundArena,
                     cardCondition: (card, context) => card !== context.source,
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
                 })
             ])
         });

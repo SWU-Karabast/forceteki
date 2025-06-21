@@ -16,7 +16,7 @@ export default class MakeAnOpening extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
-                    innerSystem: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                    immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 }),
                     }),
                 }),

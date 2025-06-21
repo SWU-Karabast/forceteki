@@ -16,7 +16,7 @@ export default class TheWillOfTheForce extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                    innerSystem: AbilityHelper.immediateEffects.returnToHand(),
+                    immediateEffect: AbilityHelper.immediateEffects.returnToHand(),
                 }),
                 AbilityHelper.immediateEffects.optional({
                     title: 'Use the Force',

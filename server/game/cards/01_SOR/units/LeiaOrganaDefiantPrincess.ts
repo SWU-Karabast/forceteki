@@ -19,7 +19,7 @@ export default class LeiaOrganaDefiantPrincess extends NonLeaderUnitCard {
                     ['Ready a resource']: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
                     ['Exhaust a unit']: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
-                        innerSystem: AbilityHelper.immediateEffects.exhaust()
+                        immediateEffect: AbilityHelper.immediateEffects.exhaust()
                     })
                 }
             }

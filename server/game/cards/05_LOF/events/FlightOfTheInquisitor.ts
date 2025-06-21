@@ -20,13 +20,13 @@ export default class FlightOfTheInquisitor extends EventCard {
                         zoneFilter: ZoneName.Discard,
                         cardTypeFilter: WildcardCardType.Unit,
                         cardCondition: (card) => card.hasSomeTrait(Trait.Force),
-                        innerSystem: AbilityHelper.immediateEffects.returnToHand()
+                        immediateEffect: AbilityHelper.immediateEffects.returnToHand()
                     }),
                     AbilityHelper.immediateEffects.selectCard({
                         zoneFilter: ZoneName.Discard,
                         cardTypeFilter: WildcardCardType.Upgrade,
                         cardCondition: (card) => card.hasSomeTrait(Trait.Lightsaber),
-                        innerSystem: AbilityHelper.immediateEffects.returnToHand()
+                        immediateEffect: AbilityHelper.immediateEffects.returnToHand()
                     }),
                 ]
             )

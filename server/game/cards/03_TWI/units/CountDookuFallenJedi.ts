@@ -21,7 +21,7 @@ export default class CountDookuFallenJedi extends NonLeaderUnitCard {
                         cardTypeFilter: WildcardCardType.Unit,
                         controller: RelativePlayer.Opponent,
                         optional: true,
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: exploitedUnitInformation.power }),
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: exploitedUnitInformation.power }),
                     })
                 )
             )

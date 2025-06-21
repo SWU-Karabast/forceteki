@@ -42,7 +42,7 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
                             zoneFilter: target.zoneName,
                             controller: RelativePlayer.Opponent,
                             cardCondition: (card, context) => !this.capturedCardsFromContext(context).has(card),
-                            innerSystem: AbilityHelper.immediateEffects.capture({ captor: target })
+                            immediateEffect: AbilityHelper.immediateEffects.capture({ captor: target })
                         })
                     )
                 )

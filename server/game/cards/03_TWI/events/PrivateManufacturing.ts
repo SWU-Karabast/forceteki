@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
+import { GameStateChangeRequired, RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
 
 export default class PrivateManufacturing extends EventCard {
     protected override getImplementationId() {
@@ -23,8 +23,9 @@ export default class PrivateManufacturing extends EventCard {
                         controller: RelativePlayer.Self,
                         zoneFilter: ZoneName.Hand,
                         numCards: 2,
+                        mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                         effect: 'choose 2 cards to move to the bottom of their deck',
-                        innerSystem: AbilityHelper.immediateEffects.moveToBottomOfDeck()
+                        immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck()
                     })
                 })
             ])

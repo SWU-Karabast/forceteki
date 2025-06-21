@@ -292,7 +292,7 @@ export abstract class PlayerOrCardAbility {
         return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
     }
 
-    protected resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler?: IPassAbilityHandler, canCancel?: boolean) {
+    protected resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler?: IPassAbilityHandler, canCancel: boolean = false) {
         const targetResults = this.getDefaultTargetResults(context, canCancel);
         for (const target of targetResolvers) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
@@ -312,7 +312,7 @@ export abstract class PlayerOrCardAbility {
         return targetResults;
     }
 
-    public getDefaultTargetResults(context: AbilityContext, canCancel?: boolean): ITargetResult {
+    public getDefaultTargetResults(context: AbilityContext, canCancel: boolean = false): ITargetResult {
         return {
             canIgnoreAllCosts:
                 context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,
@@ -323,13 +323,13 @@ export abstract class PlayerOrCardAbility {
         };
     }
 
-    public resolveRemainingTargets(context: AbilityContext, nextTarget, passHandler = null) {
+    public resolveRemainingTargets(context: AbilityContext, nextTarget?: ITargetResult['delayTargeting'], passHandler = null) {
         const index = this.targetResolvers.indexOf(nextTarget);
         let targets = this.targetResolvers.slice();
         if (targets.slice(0, index).every((target) => target.checkTarget(context))) {
             targets = targets.slice(index);
         }
-        const targetResults = {};
+        const targetResults = this.getDefaultTargetResults(context, false);
         for (const target of targets) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
         }

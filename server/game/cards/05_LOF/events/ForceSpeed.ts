@@ -26,7 +26,7 @@ export default class ForceSpeed extends EventCard {
                                 card.isUpgrade() &&
                                 !card.unique &&
                                 attack.getAllTargets().some((target) => target === card.parentCard),
-                            innerSystem: AbilityHelper.immediateEffects.returnToHand()
+                            immediateEffect: AbilityHelper.immediateEffects.returnToHand()
                         })
                     })
                 })

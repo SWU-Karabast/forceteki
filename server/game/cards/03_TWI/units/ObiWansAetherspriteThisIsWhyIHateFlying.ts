@@ -24,7 +24,7 @@ export default class ObiWansAetherspriteThisIsWhyIHateFlying extends NonLeaderUn
                     zoneFilter: ZoneName.SpaceArena,
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card, context) => card !== context.source,
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                 }),
             ])
         });

@@ -28,7 +28,7 @@ export default class DisturbanceInTheForce extends EventCard {
                     AbilityHelper.immediateEffects.selectCard({
                         optional: true,
                         cardTypeFilter: WildcardCardType.Unit,
-                        innerSystem: AbilityHelper.immediateEffects.giveShield()
+                        immediateEffect: AbilityHelper.immediateEffects.giveShield()
                     })
                 ])
             })

@@ -20,7 +20,7 @@ export default class DirectedByTheForce extends EventCard {
                     zoneFilter: ZoneName.Hand,
                     optional: true,
                     effect: 'choose a unit to play',
-                    innerSystem: AbilityHelper.immediateEffects.playCardFromHand({
+                    immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                         playAsType: WildcardCardType.Unit
                     }),
                 }),

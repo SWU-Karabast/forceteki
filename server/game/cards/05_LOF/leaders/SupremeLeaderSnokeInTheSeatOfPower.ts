@@ -40,7 +40,7 @@ export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
                     cardCondition: (card) => {
                         return card.isUnit() && card.hasSomeAspect(Aspect.Villainy) && card.getPower() === maxPower;
                     },
-                    innerSystem: AbilityHelper.immediateEffects.giveExperience()
+                    immediateEffect: AbilityHelper.immediateEffects.giveExperience()
                 }),
                 onFalse: AbilityHelper.immediateEffects.giveExperience({
                     target: villainyUnits.find((x) => x.getPower() === maxPower)

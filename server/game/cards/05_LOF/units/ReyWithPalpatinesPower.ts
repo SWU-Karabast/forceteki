@@ -28,11 +28,11 @@ export default class ReyWithPalpatinesPower extends NonLeaderUnitCard {
                     AbilityHelper.immediateEffects.simultaneous([
                         AbilityHelper.immediateEffects.selectCard({
                             cardTypeFilter: WildcardCardType.Unit,
-                            innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                            immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                         }),
                         AbilityHelper.immediateEffects.selectCard({
                             cardTypeFilter: CardType.Base,
-                            innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                            immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                         })
                     ])
                 ])

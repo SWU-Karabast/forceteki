@@ -55,7 +55,7 @@ describe('Turbolaser Salvo', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Turbolaser Salvo should choose not deal damage to friendly units', async function() {
+        it('Turbolaser Salvo should not deal damage to friendly units', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -104,7 +104,7 @@ describe('Turbolaser Salvo', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Turbolaser Salvo should choose not deal damage to units in the non-chosen arena', async function() {
+        it('Turbolaser Salvo should not deal damage to units in the non-chosen arena', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

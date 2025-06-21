@@ -28,7 +28,7 @@ export default class DarthVaderScourgeOfSquadrons extends NonLeaderUnitCard {
                 ifYouDoCondition: (ifYouDoContext) => ifYouDoContext.resolvedEvents[0].willDefeat,
                 immediateEffect: AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Deal 1 damage to a unit or base',
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 })
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
                 })
             }
         });

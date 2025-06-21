@@ -24,7 +24,7 @@ export default class ImpossibleEscape extends EventCard {
                         ['Exhaust a friendly unit']: AbilityHelper.immediateEffects.selectCard({
                             cardTypeFilter: WildcardCardType.Unit,
                             controller: RelativePlayer.Self,
-                            innerSystem: AbilityHelper.immediateEffects.exhaust(),
+                            immediateEffect: AbilityHelper.immediateEffects.exhaust(),
                         })
                     }
                 }),
@@ -35,7 +35,7 @@ export default class ImpossibleEscape extends EventCard {
                     AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
                         controller: RelativePlayer.Opponent,
-                        innerSystem: AbilityHelper.immediateEffects.exhaust(),
+                        immediateEffect: AbilityHelper.immediateEffects.exhaust(),
                     }),
                     AbilityHelper.immediateEffects.draw(),
                 ]),

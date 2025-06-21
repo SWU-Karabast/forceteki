@@ -27,11 +27,11 @@ export default class PoeDameronQuickToImprovise extends NonLeaderUnitCard {
                     amountOfChoices: ifYouDoContext.target.length,
                     choices: () => ({
                         ['Deal 2 damage to a unit or base.']: AbilityHelper.immediateEffects.selectCard({
-                            innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                            immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                         }),
                         ['Defeat an upgrade.']: AbilityHelper.immediateEffects.selectCard({
                             cardTypeFilter: WildcardCardType.Upgrade,
-                            innerSystem: AbilityHelper.immediateEffects.defeat(),
+                            immediateEffect: AbilityHelper.immediateEffects.defeat(),
                         }),
                         ['An opponent discards a card from their hand.']: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                             amount: 1,

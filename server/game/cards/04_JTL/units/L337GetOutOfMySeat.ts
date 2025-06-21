@@ -25,7 +25,7 @@ export default class L337GetOutOfMySeat extends NonLeaderUnitCard {
                     replacementImmediateEffect: AbilityHelper.immediateEffects.selectCard({
                         controller: RelativePlayer.Self,
                         cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && !card.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot)),
-                        innerSystem: AbilityHelper.immediateEffects.attachUpgrade<TriggeredAbilityContext<this>>((context) => ({
+                        immediateEffect: AbilityHelper.immediateEffects.attachUpgrade<TriggeredAbilityContext<this>>((context) => ({
                             target: context.target,
                             upgrade: context.source
                         }))
