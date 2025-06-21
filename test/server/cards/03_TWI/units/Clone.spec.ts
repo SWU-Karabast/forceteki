@@ -21,7 +21,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -52,7 +52,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.gracefulPurrgil]);
 
@@ -82,7 +82,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.wampa);
@@ -112,7 +112,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.gracefulPurrgil);
@@ -147,7 +147,7 @@ describe('Clone', function() {
                 context.player2.chooseListOption('Clone');
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.battlefieldMarine);
@@ -178,7 +178,7 @@ describe('Clone', function() {
 
                 context.player1.clickCard(context.palpatinesReturn);
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -209,7 +209,7 @@ describe('Clone', function() {
                 context.player1.clickCard(context.unexpectedEscape);
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -238,7 +238,7 @@ describe('Clone', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana, context.tech]);
 
@@ -271,7 +271,7 @@ describe('Clone', function() {
                 context.player1.clickCard(context.uwingReinforcement);
                 context.player1.clickCardInDisplayCardPrompt(context.clone);
                 context.player1.clickPrompt('Play cards in selection order');
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -303,7 +303,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana]);
 
@@ -320,7 +320,7 @@ describe('Clone', function() {
                 context.player1.clickCard(context.unexpectedEscape);
                 context.player1.clickCard(context.cadBane);
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana, context.cadBane]);
 
@@ -335,7 +335,7 @@ describe('Clone', function() {
 
                 context.player1.clickCard(context.palpatinesReturn);
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana, context.cadBane]);
 
@@ -350,7 +350,7 @@ describe('Clone', function() {
 
                 context.player1.readyResources(7);
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana, context.cadBane]);
 
@@ -392,7 +392,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -422,7 +422,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cloneTrooper, context.enfysNest, context.leiaOrgana]);
 
@@ -457,7 +457,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
 
@@ -496,7 +496,7 @@ describe('Clone', function() {
                 expect(clone2).toBeVanillaClone();
 
                 context.player1.clickCard(clone1);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
 
@@ -510,7 +510,7 @@ describe('Clone', function() {
                 context.player2.passAction();
 
                 context.player1.clickCard(clone2);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, clone1]);
 
@@ -548,7 +548,7 @@ describe('Clone', function() {
                 expect(groundClone).toBeVanillaClone();
 
                 context.player1.clickCard(handClone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cloneCommanderCody, groundClone]);
 
@@ -582,7 +582,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -618,7 +618,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.ploKoon]);
 
@@ -655,7 +655,7 @@ describe('Clone', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickPrompt('Pass');
@@ -683,7 +683,7 @@ describe('Clone', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickPrompt('Pass');
@@ -717,7 +717,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -763,7 +763,7 @@ describe('Clone', function() {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.shaakTi);
@@ -793,7 +793,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.shaakTi);
@@ -829,7 +829,7 @@ describe('Clone', function() {
                 context.player2.clickCard(context.battlefieldMarine);
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.battlefieldMarine);

@@ -14,7 +14,7 @@ export default class Clone extends NonLeaderUnitCard {
 
     protected override setupCardAbilities(): void {
         this.addPreEnterPlayAbility({
-            title: 'This unit enter play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique',
+            title: 'This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
