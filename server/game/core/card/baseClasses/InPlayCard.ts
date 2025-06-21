@@ -24,7 +24,7 @@ import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 
-const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
+const InPlayCardParent = WithAllAbilityTypes(WithCost(PlayableOrDeployableCard));
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor<T extends IInPlayCardState = IInPlayCardState> = new (...args: any[]) => InPlayCard<T>;

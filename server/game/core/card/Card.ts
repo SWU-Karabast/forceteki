@@ -4,8 +4,7 @@ import type {
     ISetId,
     Zone,
     ITriggeredAbilityProps,
-    ISerializedCardState,
-    IAbilityPropsWithSystems
+    ISerializedCardState
 } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
@@ -49,7 +48,6 @@ import { logger } from '../../../logger';
 import type Experience from '../../cards/01_SOR/tokens/Experience';
 import { getPrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPlayAbilityRegistration';
-import PreEnterPlayAbility from '../ability/PreEnterPlayAbility';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -139,7 +137,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected disableWhenPlayedCheck = false;
     protected disableWhenPlayedUsingSmuggleCheck = false;
     protected triggeredAbilities: TriggeredAbility[] = [];
-    protected preEnterPlayAbilities: PreEnterPlayAbility[] = [];
 
     protected get hiddenForController() {
         return this.state.hiddenForController;
@@ -486,10 +483,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     protected createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
         return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
-    }
-
-    protected createPreEnterPlayAbility<TSource extends Card = this>(properties: IAbilityPropsWithSystems<AbilityContext<TSource>>): PreEnterPlayAbility {
-        return new PreEnterPlayAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('preEnterPlay'), properties));
     }
 
     protected buildGeneralAbilityProps(abilityTypeDescriptor: string) {
