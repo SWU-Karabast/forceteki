@@ -1,15 +1,14 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import type { MetaEventName, RelativePlayerFilter, RelativePlayer } from '../core/Constants';
+import type { MetaEventName, RelativePlayer } from '../core/Constants';
 import { GameStateChangeRequired } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
-import * as Helpers from '../core/utils/Helpers';
+import type * as Helpers from '../core/utils/Helpers';
 import type { Player } from '../core/Player';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type { ICardTargetResolver } from '../TargetInterfaces';
-import type { BaseCardSelector } from '../core/cardSelector/BaseCardSelector';
 import type { MsgArg } from '../core/chat/GameChat';
 
 export type ISelectCardProperties<TContext extends AbilityContext = AbilityContext> = ICardTargetSystemProperties
@@ -17,15 +16,11 @@ export type ISelectCardProperties<TContext extends AbilityContext = AbilityConte
   & Required<Pick<ICardTargetResolver<TContext>, 'immediateEffect'>>
   & {
       player?: RelativePlayer;
-      controller?: RelativePlayerFilter;
-      selector?: BaseCardSelector<TContext>;
       cancelHandler?: () => void;
       optional?: boolean;
       name?: string;
       effect?: string;
       effectArgs?: (context) => string[];
-      message?: string;
-      messageArgs?: (cards: Card[], properties: ISelectCardProperties<TContext>) => any[];
   };
 
 /**
@@ -71,13 +66,6 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         return targetResolver.hasLegalTarget(context);
     }
 
-    protected override targets(context: TContext, additionalProperties?: Partial<ISelectCardProperties<TContext>>): Card[] {
-        this.validateContext(context);
-
-        const targetResolver = this.generateTargetResolver(context, additionalProperties);
-        return targetResolver.getAllLegalTargets(context);
-    }
-
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): void {
         if (!this.hasLegalTarget(context, additionalProperties)) {
             return;
@@ -113,13 +101,6 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         context: TContext,
         properties: ISelectCardProperties<TContext>
     ) {
-        const cards = Helpers.asArray(context.targets[properties.name]);
-
-        if (properties.message) {
-            context.game.addMessage(properties.message, ...properties.messageArgs(cards, properties));
-            return;
-        }
-
         const [effectMessage, effectArgs] = properties.immediateEffect.getEffectMessage(context);
         const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
 
