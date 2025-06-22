@@ -139,18 +139,18 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     private generateTargetResolver(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): CardTargetResolver {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const targetResolverProperies = Object.assign({ choosingPlayer: properties.player }, properties);
+        const targetResolverProperties = { choosingPlayer: properties.player, ...properties };
         if (properties.isCost) {
-            targetResolverProperies.optional = false;
-            targetResolverProperies.mustChangeGameState = GameStateChangeRequired.MustFullyResolve;
+            targetResolverProperties.optional = false;
+            targetResolverProperties.mustChangeGameState = GameStateChangeRequired.MustFullyResolve;
         } else if (properties.immediateEffect.isOptional(context)) {
-            targetResolverProperies.optional = true;
+            targetResolverProperties.optional = true;
         }
 
-        if (targetResolverProperies.waitingPromptTitle == null && context.source.isCard()) {
-            targetResolverProperies.waitingPromptTitle = `Waiting for opponent to use ${context.source.title}`;
+        if (targetResolverProperties.waitingPromptTitle == null && context.source.isCard()) {
+            targetResolverProperties.waitingPromptTitle = `Waiting for opponent to use ${context.source.title}`;
         }
 
-        return new CardTargetResolver(properties.name, targetResolverProperies, context.ability);
+        return new CardTargetResolver(properties.name, targetResolverProperties, context.ability);
     }
 }
