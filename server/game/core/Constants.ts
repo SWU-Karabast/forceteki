@@ -92,6 +92,7 @@ export enum EffectName {
     GainKeyword = 'gainKeyword',
     GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
+    IsClonedUnit = 'isClonedUnit',
     IsLeader = 'isLeader',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',

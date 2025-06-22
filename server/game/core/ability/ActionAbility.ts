@@ -5,6 +5,7 @@ import type { IActionAbilityProps } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
 import type { ITargetResult } from './abilityTargets/TargetResolver.js';
+import * as Contract from '../utils/Contract';
 
 /**
  * Represents an action ability provided by card text.
@@ -47,9 +48,7 @@ export class ActionAbility extends CardAbility {
         this.condition = properties.condition;
         this.requiresConfirmation = properties.requiresConfirmation ?? false;
 
-        if (!card.canRegisterActionAbilities()) {
-            throw Error(`Card '${card.internalName}' cannot have action abilities`);
-        }
+        Contract.assertTrue(card.canRegisterActionAbilities(), `Card '${card.internalName}' cannot have action abilities`);
     }
 
     public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = [], thisStepOnly = false) {

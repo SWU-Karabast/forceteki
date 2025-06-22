@@ -42,6 +42,7 @@ import type { GameObjectRef } from '../../GameObjectBase';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/LeadersDeployedThisPhaseWatcher';
 import AbilityHelper from '../../../AbilityHelper';
+import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -58,6 +59,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     get capturedUnits(): IUnitCard[];
     get captureZone(): CaptureZone;
     get lastPlayerToModifyHp(): Player;
+    get isClone(): boolean;
     readonly upgrades: IUpgradeCard[];
     getCaptor(): IUnitCard | null;
     isAttacking(): boolean;
@@ -131,7 +133,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         // ************************************* FIELDS AND PROPERTIES *************************************
-        public readonly defaultArena: Arena;
+        private readonly _defaultArena: Arena;
 
         protected pilotingActionAbilities: ActionAbility[];
         protected pilotingConstantAbilities: IConstantAbility[];
@@ -170,6 +172,20 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         public get upgrades(): IUpgradeCard[] {
             this.assertPropertyEnabledForZone(this.state.upgrades, 'upgrades');
             return this.state.upgrades.map((x) => this.game.gameObjectManager.get(x));
+        }
+
+        public get defaultArena(): Arena {
+            if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+                const override = getPrintedAttributesOverride('defaultArena', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+                if (override != null) {
+                    return override;
+                }
+            }
+            return this._defaultArena;
+        }
+
+        public get isClone(): boolean {
+            return this.hasOngoingEffect(EffectName.IsClonedUnit);
         }
 
         public getCaptor(): IUnitCard | null {
@@ -231,10 +247,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             Contract.assertNotNullLike(cardData.arena);
             switch (cardData.arena) {
                 case 'space':
-                    this.defaultArena = ZoneName.SpaceArena;
+                    this._defaultArena = ZoneName.SpaceArena;
                     break;
                 case 'ground':
-                    this.defaultArena = ZoneName.GroundArena;
+                    this._defaultArena = ZoneName.GroundArena;
                     break;
                 default:
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
