@@ -107,9 +107,6 @@ describe('Headhunting', function() {
                     player2: {
                         groundArena: ['bounty-guild-initiate', 'consular-security-force'],
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
@@ -129,8 +126,11 @@ describe('Headhunting', function() {
                 expect(context.consularSecurityForce.damage).toBe(5);
                 expect(context.reputableHunter.damage).toBe(3);
 
-                // second attack, non-bounty-hunter - goes straight to target resolution since only one legal attacker
+                // second attack, non-bounty-hunter
                 context.setDamage(context.consularSecurityForce, 0);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickCard(context.atst);
                 expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
                 expect(context.player1).toHavePassAttackButton();
                 context.player1.clickCard(context.consularSecurityForce);

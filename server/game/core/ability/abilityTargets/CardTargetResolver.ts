@@ -97,6 +97,10 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return this.selector.getAllLegalTargets(context);
     }
 
+    public canTarget(card: Card, context: AbilityContext) {
+        return this.selector.canTarget(card, context, []);
+    }
+
     protected override resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult, passPrompt?: IPassAbilityHandler) {
         if (!this.hasLegalTarget(context)) {
             if (context.stage === Stage.PreTarget) {
@@ -157,23 +161,17 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             return;
         }
 
-        // create a copy of properties without cardCondition
-        let extractedProperties;
-        {
-            const { cardCondition, ...otherProperties } = this.properties;
-            extractedProperties = otherProperties;
+        const buttons = [];
+        if (targetResults.canCancel) {
+            buttons.push({ text: 'Cancel', arg: 'cancel' });
         }
 
-        const buttons = [];
         if (context.stage === Stage.PreTarget) {
             // TODO: figure out if we need these buttons
             /* if (!targetResults.noCostsFirstButton) {
                 buttons.push({ text: 'Pay costs first', arg: 'costsFirst' });
             }
             buttons.push({ text: 'Cancel', arg: 'cancel' });*/
-            if (targetResults.canCancel) {
-                buttons.push({ text: 'Cancel', arg: 'cancel' });
-            }
             if (passPrompt) {
                 buttons.push({ text: passPrompt.buttonText, arg: passPrompt.arg });
                 passPrompt.hasBeenShown = true;
@@ -190,6 +188,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             mustSelect: mustSelect,
             isOpponentEffect: player === context.player.opponent,
             selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
+            hideIfNoLegalTargets: this.properties.hideIfNoLegalTargets,
+            immediateEffect: this.immediateEffect,
             onSelect: (card) => {
                 this.setTargetResult(context, card);
                 return true;
@@ -218,7 +218,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
                 }
             }
         };
-        context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
+        context.game.promptForSelect(player, promptProperties);
     }
 
     private promptForSingleOptionalTarget(context: AbilityContext, target: Card) {

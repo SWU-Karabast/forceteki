@@ -45,7 +45,7 @@ describe('Cargo Juggernaut', function () {
 
                 context.setDamage(context.p1Base, 10);
                 context.player1.clickCard(context.cargoJuggernaut);
-                context.player1.clickPrompt('If you control another Vigilance unit, heal 4 damage from your base');
+                context.player1.clickPrompt('(No effect) If you control another Vigilance unit, heal 4 damage from your base');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p1Base.damage).toBe(10);

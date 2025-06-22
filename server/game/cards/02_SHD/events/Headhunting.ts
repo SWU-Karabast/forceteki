@@ -24,7 +24,7 @@ export default class Headhunting extends EventCard {
 
     private buildBountyHunterAttackEffect() {
         return AbilityHelper.immediateEffects.selectCard({
-            innerSystem: AbilityHelper.immediateEffects.attack({
+            immediateEffect: AbilityHelper.immediateEffects.attack({
                 targetCondition: (card) => !card.isBase(),
                 attackerLastingEffects: {
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),

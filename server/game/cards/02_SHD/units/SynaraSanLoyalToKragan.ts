@@ -20,7 +20,7 @@ export default class SynaraSanLoyalToKragan extends NonLeaderUnitCard {
                     title: 'Deal 5 damage to a base',
                     immediateEffect: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: CardType.Base,
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: 5 })
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 5 })
                     })
                 }
             })

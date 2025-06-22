@@ -33,7 +33,7 @@ export default class XanaduBloodCadBanesReward extends NonLeaderUnitCard {
                         ['Exhaust an enemy unit']: AbilityHelper.immediateEffects.selectCard({
                             controller: RelativePlayer.Opponent,
                             cardTypeFilter: WildcardCardType.Unit,
-                            innerSystem: AbilityHelper.immediateEffects.exhaust()
+                            immediateEffect: AbilityHelper.immediateEffects.exhaust()
                         }),
                     }
                 }

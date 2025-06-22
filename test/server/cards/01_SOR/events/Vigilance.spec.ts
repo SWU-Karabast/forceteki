@@ -77,6 +77,7 @@ describe('Vigilance', function() {
 
                 // check board state
                 expect(context.viperProbeDroid).toBeInZone('discard');
+                expect(context.getChatLogs(1)).toContain('player1 uses Vigilance to defeat Viper Probe Droid');
 
                 // heal 5 damage from a base
                 expect(context.player1).toHaveEnabledPromptButtons([
@@ -91,6 +92,7 @@ describe('Vigilance', function() {
 
                 // check board state
                 expect(context.p1Base.damage).toEqual(1);
+                expect(context.getChatLogs(1)).toContain('player1 uses Vigilance to heal 5 damage from Echo Base');
             });
         });
         describe('Vigilance\'s ability', function() {

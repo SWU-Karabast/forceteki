@@ -18,7 +18,7 @@ export default class HyenaBomber extends NonLeaderUnitCard {
                 condition: (context) => context.player.isAspectInPlay(Aspect.Aggression, context.source),
                 onTrue: AbilityHelper.immediateEffects.selectCard({
                     zoneFilter: ZoneName.GroundArena,
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 }),
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                 }),
             })
         });

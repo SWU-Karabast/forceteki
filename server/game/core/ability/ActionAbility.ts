@@ -67,7 +67,7 @@ export class ActionAbility extends CardAbility {
         return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
     }
 
-    public override resolveEarlyTargets(context: AbilityContext, passHandler?: any, canCancel?: boolean): ITargetResult {
+    public override resolveEarlyTargets(context: AbilityContext, passHandler?: any, canCancel: boolean = false): ITargetResult {
         this.earlyTargetResults = super.resolveEarlyTargets(context, passHandler, canCancel);
 
         this.game.queueSimpleStep(() => {

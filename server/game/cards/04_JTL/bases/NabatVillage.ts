@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { BaseCard } from '../../../core/card/BaseCard';
-import { PhaseName, RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
+import { GameStateChangeRequired, PhaseName, RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
 
 export default class NabatVillage extends BaseCard {
     protected override getImplementationId () {
@@ -34,8 +34,9 @@ export default class NabatVillage extends BaseCard {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 numCards: 3,
+                mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                 effect: 'choose 3 cards to move to the bottom of their deck',
-                innerSystem: AbilityHelper.immediateEffects.moveToBottomOfDeck()
+                immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck()
             })
         });
     }

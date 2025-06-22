@@ -261,7 +261,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                 const p2Yularen = context.player2.findCardByName('colonel-yularen#isb-director');
 
                 context.player1.clickCard(context.maul);
-                context.player1.clickPrompt('Heal 1 damage from your base'); // select yularen's heal on base
+                context.player1.clickPrompt('(No effect) Heal 1 damage from your base'); // select yularen's heal on base
 
                 // Select opponents Yularen to be ambushed
                 context.player1.clickPrompt('Trigger');

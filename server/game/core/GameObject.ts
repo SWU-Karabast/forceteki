@@ -80,7 +80,6 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     public getShortSummary() {
         return {
             id: this.id,
-            label: this.name,
             name: this.name,
             uuid: this.uuid
         };
