@@ -62,12 +62,12 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const targetResolver = this.generateTargetResolver(context, additionalProperties);
+        const targetResolver = this.generateTargetResolver(context, additionalProperties, mustChangeGameState);
         return targetResolver.canTarget(card, context);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): boolean {
-        const targetResolver = this.generateTargetResolver(context, additionalProperties);
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        const targetResolver = this.generateTargetResolver(context, additionalProperties, mustChangeGameState);
         return targetResolver.hasLegalTarget(context);
     }
 
@@ -136,10 +136,10 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         return properties.immediateEffect.hasTargetsChosenByPlayer(context, player, additionalProperties);
     }
 
-    private generateTargetResolver(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): CardTargetResolver {
+    private generateTargetResolver(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}, mustChangeGameState?: GameStateChangeRequired): CardTargetResolver {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const targetResolverProperties = { choosingPlayer: properties.player, ...properties };
+        const targetResolverProperties = { choosingPlayer: properties.player, mustChangeGameState, ...properties };
         if (properties.isCost) {
             targetResolverProperties.optional = false;
             targetResolverProperties.mustChangeGameState = GameStateChangeRequired.MustFullyResolve;
