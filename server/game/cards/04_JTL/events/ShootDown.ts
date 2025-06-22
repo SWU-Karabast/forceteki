@@ -25,7 +25,7 @@ export default class ShootDown extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Deal 2 damage to a base',
                     cardTypeFilter: CardType.Base,
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                 })
             }
         });

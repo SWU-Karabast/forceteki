@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { PhaseName, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { GameStateChangeRequired, PhaseName, RelativePlayer, ZoneName } from '../../../core/Constants';
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
 
 export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
@@ -20,7 +20,8 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
                 AbilityHelper.immediateEffects.selectCard({
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
-                    innerSystem: AbilityHelper.immediateEffects.resourceCard({
+                    mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
+                    immediateEffect: AbilityHelper.immediateEffects.resourceCard({
                         readyResource: true
                     })
                 }),
@@ -52,8 +53,9 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.selectCard({
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
+                mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                 activePromptTitle: () => (this.controller.exhaustedResourceCount === 0 ? defaultActivePromptTitle : `${defaultActivePromptTitle}. The resource you choose will automatically be switched to exhausted before it is defeated (you will not lose any ready resources).`),
-                innerSystem: AbilityHelper.immediateEffects.defeat()
+                immediateEffect: AbilityHelper.immediateEffects.defeat()
             })
         });
     }

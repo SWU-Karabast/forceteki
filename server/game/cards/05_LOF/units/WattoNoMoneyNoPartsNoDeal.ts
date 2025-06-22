@@ -21,7 +21,7 @@ export default class WattoNoMoneyNoPartsNoDeal extends NonLeaderUnitCard {
                         AbilityHelper.immediateEffects.selectCard({
                             cardTypeFilter: WildcardCardType.Unit,
                             controller: RelativePlayer.Self,
-                            innerSystem: AbilityHelper.immediateEffects.giveExperience()
+                            immediateEffect: AbilityHelper.immediateEffects.giveExperience()
                         }),
                     ['Opponent draws a card']:
                         AbilityHelper.immediateEffects.draw({ amount: 1 }),

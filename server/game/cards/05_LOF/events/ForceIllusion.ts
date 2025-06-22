@@ -18,13 +18,13 @@ export default class ForceIllusion extends EventCard {
                     activePromptTitle: 'Exhaust an enemy unit',
                     controller: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.Unit,
-                    innerSystem: AbilityHelper.immediateEffects.exhaust()
+                    immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 }),
                 AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'A friendly unit gains Sentinel for this phase',
                     controller: RelativePlayer.Self,
                     cardTypeFilter: WildcardCardType.Unit,
-                    innerSystem: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                    immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
                     })
                 }),

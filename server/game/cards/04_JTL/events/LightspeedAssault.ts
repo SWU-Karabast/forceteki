@@ -23,7 +23,7 @@ export default class LightspeedAssault extends EventCard {
                         AbilityHelper.immediateEffects.selectCard({
                             controller: RelativePlayer.Opponent,
                             zoneFilter: ZoneName.SpaceArena,
-                            innerSystem: AbilityHelper.immediateEffects.damage({
+                            immediateEffect: AbilityHelper.immediateEffects.damage({
                                 amount: friendlySpaceUnit.getPower()
                             })
                         })

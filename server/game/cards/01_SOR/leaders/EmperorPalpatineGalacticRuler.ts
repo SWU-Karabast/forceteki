@@ -25,7 +25,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 })
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
                 }),
                 AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
             ])
@@ -58,7 +58,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 })
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
                     }),
                     AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
                 ])

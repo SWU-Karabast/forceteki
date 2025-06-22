@@ -20,7 +20,7 @@ export default class Shatterpoint extends EventCard {
                         .selectCard({
                             cardTypeFilter: WildcardCardType.NonLeaderUnit,
                             cardCondition: (card) => card.isUnit() && card.remainingHp <= 3,
-                            innerSystem: AbilityHelper.immediateEffects.defeat(),
+                            immediateEffect: AbilityHelper.immediateEffects.defeat(),
                         }),
                     ['Use the Force. If you do, defeat a non-leader unit']: AbilityHelper.immediateEffects
                         .useTheForce()

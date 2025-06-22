@@ -110,6 +110,7 @@ describe('Hotshot Maneuver', function() {
                 expect(context.player1).toHavePrompt('Choose an enemy unit to deal 2 damage to');
                 expect(context.player1).toBeAbleToSelectExactly([context.liberatedSlaves]);
                 context.player1.clickCard(context.liberatedSlaves);
+                expect(context.liberatedSlaves.damage).toBe(2);
 
                 // Trigger attack
                 context.player1.clickCard(context.p2Base);
@@ -120,7 +121,6 @@ describe('Hotshot Maneuver', function() {
                     [context.p2Base, 1],
                 ]));
 
-                expect(context.liberatedSlaves.damage).toBe(2);
                 expect(context.p2Base.damage).toBe(5);
             });
 

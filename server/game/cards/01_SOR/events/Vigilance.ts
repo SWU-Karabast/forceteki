@@ -22,16 +22,16 @@ export default class Vigilance extends EventCard {
                     }),
                     ['Heal 5 damage from a base.']: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: CardType.Base,
-                        innerSystem: AbilityHelper.immediateEffects.heal({ amount: 5 }),
+                        immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 5 }),
                     }),
                     ['Defeat a unit with 3 or less remaining HP.']: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
                         cardCondition: (card: any) => card.remainingHp <= 3,
-                        innerSystem: AbilityHelper.immediateEffects.defeat()
+                        immediateEffect: AbilityHelper.immediateEffects.defeat()
                     }),
                     ['Give a Shield token to a unit.']: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
-                        innerSystem: AbilityHelper.immediateEffects.giveShield()
+                        immediateEffect: AbilityHelper.immediateEffects.giveShield()
                     }),
                 })
             })
