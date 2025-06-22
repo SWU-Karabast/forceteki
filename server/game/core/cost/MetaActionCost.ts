@@ -16,8 +16,8 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override getActionName(context: TContext): string {
-        const { immediateEffect: gameSystem } = this.gameSystem.generatePropertiesFromContext(context);
-        return gameSystem.name;
+        const { immediateEffect } = this.gameSystem.generatePropertiesFromContext(context);
+        return immediateEffect.name;
     }
 
     public override canPay(context: TContext): boolean {

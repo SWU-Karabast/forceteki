@@ -21,12 +21,12 @@ type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = Di
 // TODO: we need to update the various cost generators to automatically inject { isCost: true } using additionalProperties so we don't have
 // to do it explicitly in each method. However, that requires doing a pass to make sure that additionalProperties is being respected everywhere.
 function getSelectCost<TContext extends AbilityContext = AbilityContext>(
-    gameSystem: CardTargetSystem<TContext>,
+    immediateEffect: CardTargetSystem<TContext>,
     properties: SelectCostProperties<TContext>,
     activePromptTitle: string
 ) {
     return new MetaActionCost<TContext>(
-        new SelectCardSystem(Object.assign({ immediateEffect: gameSystem }, properties, { isCost: true })),
+        new SelectCardSystem({ immediateEffect, ...properties, isCost: true }),
         activePromptTitle
     );
 }
