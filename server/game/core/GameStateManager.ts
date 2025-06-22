@@ -1,4 +1,5 @@
 import type { Card } from './card/Card';
+import type { PhaseName } from './Constants';
 import { SnapshotType } from './Constants';
 import type Game from './Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from './GameObjectBase';
@@ -24,17 +25,45 @@ export interface IGameState {
     allCards: GameObjectRef<Card>[];
 }
 
-const maxPlayerSnapshots = 2; // 2 for current and previous turns.
-const maxPhaseSnapshots = 2; // 2 for current and previous of a specific phase.
-const maxRoundSnapshots = 2; // Current and previous start of round.
+const maxPlayerSnapshots = 5; // Number of manual player snapshots
+const maxActionSnapshots = 2; // Number of actions saved for undo in a turn (per player)
+const maxPhaseSnapshots = 2; // Current and previous of a specific phase
+const maxRoundSnapshots = 2; // Current and previous start of round
 
-export interface ISnapshotSettings {
+export interface ISnapshotSettingsBase {
     type: SnapshotType;
-    phaseName?: string;
-    phaseOffset?: number;
-    playerRef?: GameObjectRef<Player>;
-    round?: number;
 }
+
+export interface IActionSnapshotSettings extends ISnapshotSettingsBase {
+    type: SnapshotType.Action;
+    playerRef: GameObjectRef<Player>;
+}
+
+export interface IPhaseSnapshotSettings extends ISnapshotSettingsBase {
+    type: SnapshotType.Phase;
+    phaseName: PhaseName;
+}
+
+export interface IPlayerSnapshotSettings extends ISnapshotSettingsBase {
+    type: SnapshotType.Player;
+    playerRef: GameObjectRef<Player>;
+}
+
+export interface IRoundSnapshotSettings extends ISnapshotSettingsBase {
+    type: SnapshotType.Round;
+}
+
+export type ISnapshotSettings = IActionSnapshotSettings | IPhaseSnapshotSettings | IPlayerSnapshotSettings | IRoundSnapshotSettings;
+
+export type IGetSnapshotSettings = ISnapshotSettings & {
+
+    /**
+     * Optional offset to indicate how far back in the list to go. Most recent is -1, second most recent is -2, etc.
+     *
+     * Defaults to -1 (most recent).
+     */
+    offset?: number;
+};
 
 export class GameStateManager {
     private readonly game: Game;
@@ -43,8 +72,9 @@ export class GameStateManager {
     private readonly gameObjectMapping: Map<string, GameObjectBase>;
 
     // These contain snapshot indexes, not the ID, to cut down on a loop. This is safe as long as we maintain a flat list of snapshots.
+    private allActionSnapshots: Map<string, number[]>;
     private allPlayerSnapshots: Map<string, number[]>;
-    private allPhaseSnapshots: Map<string, number[]>;
+    private allPhaseSnapshots: Map<PhaseName, number[]>;
     private roundSnapshots: number[];
     private lastId = 0;
     private lastSnapshotId = 0;
@@ -103,31 +133,48 @@ export class GameStateManager {
         };
         this.lastSnapshotId = nextSnapshotId;
 
-        if (options.type === SnapshotType.Player) {
-            let playerSnapshots = this.allPlayerSnapshots.get(this.game.state.actionPhaseActivePlayer.uuid);
-            if (!playerSnapshots) {
-                playerSnapshots = [];
-                this.allPlayerSnapshots.set(this.game.state.actionPhaseActivePlayer.uuid, playerSnapshots);
-            }
-            playerSnapshots.push(this.snapshots.length - 1);
-            if (playerSnapshots.length > maxPlayerSnapshots) {
-                playerSnapshots.splice(0, 1);
-            }
-        } else if (options.type === SnapshotType.Phase) {
-            let phaseSnapshots = this.allPhaseSnapshots.get(options.phaseName);
-            if (!phaseSnapshots) {
-                phaseSnapshots = [];
-                this.allPhaseSnapshots.set(options.phaseName, phaseSnapshots);
-            }
-            phaseSnapshots.push(this.snapshots.length - 1);
-            if (phaseSnapshots.length > maxPhaseSnapshots) {
-                phaseSnapshots.splice(0, 1);
-            }
-        } else if (options.type === SnapshotType.Round) {
-            this.roundSnapshots.push(this.snapshots.length - 1);
-            if (this.roundSnapshots.length > maxRoundSnapshots) {
-                this.roundSnapshots.splice(0, 1);
-            }
+        switch (options.type) {
+            case SnapshotType.Action:
+                let actionSnapshots = this.allActionSnapshots.get(this.game.state.actionPhaseActivePlayer.uuid);
+                if (!actionSnapshots) {
+                    actionSnapshots = [];
+                    this.allActionSnapshots.set(this.game.state.actionPhaseActivePlayer.uuid, actionSnapshots);
+                }
+                actionSnapshots.push(this.snapshots.length - 1);
+                if (actionSnapshots.length > maxActionSnapshots) {
+                    actionSnapshots.splice(0, 1);
+                }
+                break;
+            case SnapshotType.Phase:
+                let phaseSnapshots = this.allPhaseSnapshots.get(options.phaseName);
+                if (!phaseSnapshots) {
+                    phaseSnapshots = [];
+                    this.allPhaseSnapshots.set(options.phaseName, phaseSnapshots);
+                }
+                phaseSnapshots.push(this.snapshots.length - 1);
+                if (phaseSnapshots.length > maxPhaseSnapshots) {
+                    phaseSnapshots.splice(0, 1);
+                }
+                break;
+            case SnapshotType.Player:
+                let playerSnapshots = this.allPlayerSnapshots.get(this.game.state.actionPhaseActivePlayer.uuid);
+                if (!playerSnapshots) {
+                    playerSnapshots = [];
+                    this.allPlayerSnapshots.set(this.game.state.actionPhaseActivePlayer.uuid, playerSnapshots);
+                }
+                playerSnapshots.push(this.snapshots.length - 1);
+                if (playerSnapshots.length > maxPlayerSnapshots) {
+                    playerSnapshots.splice(0, 1);
+                }
+                break;
+            case SnapshotType.Round:
+                this.roundSnapshots.push(this.snapshots.length - 1);
+                if (this.roundSnapshots.length > maxRoundSnapshots) {
+                    this.roundSnapshots.splice(0, 1);
+                }
+                break;
+            default:
+                Contract.fail(`Invalid snapshot type provided: ${(options as any).type}`);
         }
 
         this.snapshots.push(snapshot);
@@ -135,18 +182,21 @@ export class GameStateManager {
         return snapshot.id;
     }
 
-    public rollbackTo(settings: ISnapshotSettings) {
+    public rollbackTo(settings: IGetSnapshotSettings) {
         let snapshot: IGameSnapshot;
+
+        const offset = settings.offset ?? -1;
+        Contract.assertTrue(offset < 0, `Snapshot offset must be negative, got ${offset}.`);
 
         if (settings.type === SnapshotType.Player) {
             snapshot = this.getSnapshotForPlayer(settings.playerRef);
             Contract.assertNotNullLike(snapshot, () => `Unable to find last snapshot for player ${this.get(settings.playerRef).name}`);
         } else if (settings.type === SnapshotType.Phase) {
-            snapshot = this.getSnapshotForPhase(settings.phaseName, settings.phaseOffset);
+            snapshot = this.getSnapshotForPhase(settings.phaseName, offset);
             Contract.assertNotNullLike(snapshot, () => `Unable to find last snapshot for ${settings.phaseName} Phase`);
         } else if (settings.type === SnapshotType.Round) {
-            snapshot = this.getSnapshotForRound(settings.round);
-            Contract.assertNotNullLike(snapshot, () => `Unable to find last snapshot for Round ${settings.round}`);
+            snapshot = this.getSnapshotForRound(offset);
+            Contract.assertNotNullLike(snapshot, () => `Unable to find last snapshot for Round ${this.game.roundNumber + offset} (current round is Round ${this.game.roundNumber})`);
         } else {
             Contract.fail('Invalid rollback settings provided.');
         }
@@ -176,13 +226,13 @@ export class GameStateManager {
         return this.snapshots[snapshotIdx];
     }
 
-    private getSnapshotForPhase(phaseName: string, offset: number = 0): IGameSnapshot | undefined {
+    private getSnapshotForPhase(phaseName: PhaseName, offset: number = -1): IGameSnapshot | undefined {
         const phaseSnapshots = this.allPhaseSnapshots.get(phaseName);
         if (!phaseSnapshots) {
             return undefined;
         }
 
-        const snapshotIdx = phaseSnapshots[this.snapshots.length - 1 - offset];
+        const snapshotIdx = phaseSnapshots[this.snapshots.length + offset];
 
         if (!snapshotIdx) {
             return undefined;
