@@ -40,10 +40,6 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         optional: false,
     };
 
-    public constructor(properties: ISelectCardProperties<TContext> | ((context: TContext) => ISelectCardProperties<TContext>)) {
-        super(properties);
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public eventHandler(event): void { }
 
