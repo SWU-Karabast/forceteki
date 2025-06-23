@@ -30,13 +30,14 @@ describe('Count Dooku, Fallen Jedi', function() {
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
                 expect(context.player1).toHaveChooseNothingButton();
-                // click needs to be non-checking b/c prompt remains unchanged
-                context.player1.clickCardNonChecking(context.atst);
+                expect(context.player1).toHavePrompt('Deal 5 damage to an enemy unit (for exploiting Wampa)');
+                context.player1.clickCard(context.atst);
                 expect(context.atst.damage).toBe(5);
 
                 // choose second damage target (from battle droid)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
                 expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePrompt('Deal 1 damage to an enemy unit (for exploiting Battle Droid)');
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer.damage).toBe(1);
                 expect(context.getChatLogs(1)[0]).toContain('player1 uses Count Dooku to deal 1 damage to Cartel Spacer');
@@ -56,6 +57,7 @@ describe('Count Dooku, Fallen Jedi', function() {
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
+                expect(context.player1).toHavePrompt('Deal 5 damage to an enemy unit (for exploiting Wampa)');
                 context.player1.clickPrompt('Choose nothing');
                 expect(context.atst.damage).toBe(0);
                 expect(context.cartelSpacer.damage).toBe(0);
@@ -63,6 +65,7 @@ describe('Count Dooku, Fallen Jedi', function() {
                 // choose second damage target (from battle droid)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
                 expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePrompt('Deal 1 damage to an enemy unit (for exploiting Battle Droid)');
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer.damage).toBe(1);
             });
