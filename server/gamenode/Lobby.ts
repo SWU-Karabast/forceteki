@@ -964,6 +964,8 @@ export class Lobby {
                 user.socket.send('gamestate', game.getState(user.id));
             }
         }
+
+        this.game.resetClientEvents();
     }
 
     public sendLobbyState(): void {
