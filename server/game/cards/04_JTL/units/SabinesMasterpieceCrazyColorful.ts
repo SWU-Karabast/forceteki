@@ -19,7 +19,7 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
                     onTrue: AbilityHelper.immediateEffects.selectCard({
                         activePromptTitle: 'Choose a base to heal 2 damage from',
                         cardTypeFilter: CardType.Base,
-                        innerSystem: AbilityHelper.immediateEffects.heal({ amount: 2 }),
+                        immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 2 }),
                     }),
                 }),
                 AbilityHelper.immediateEffects.conditional({
@@ -27,7 +27,7 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
                     onTrue: AbilityHelper.immediateEffects.selectCard({
                         activePromptTitle: 'Choose a unit to give an Experience token to',
                         cardTypeFilter: WildcardCardType.Unit,
-                        innerSystem: AbilityHelper.immediateEffects.giveExperience()
+                        immediateEffect: AbilityHelper.immediateEffects.giveExperience()
                     }),
                 }),
                 AbilityHelper.immediateEffects.conditional({
@@ -35,7 +35,7 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
                     onTrue: AbilityHelper.immediateEffects.selectCard({
                         activePromptTitle: 'Choose a unit or base to deal 1 damage to',
                         cardTypeFilter: [CardType.Base, WildcardCardType.Unit],
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
                     }),
                 }),
                 AbilityHelper.immediateEffects.conditional({

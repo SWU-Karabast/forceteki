@@ -11,6 +11,10 @@ describe('Flight of the Inquisitor', function () {
                     },
                     player2: {
                         groundArena: ['steadfast-battalion'],
+                        discard: [
+                            'vernestra-rwoh#precocious-knight',
+                            'youngling-padawan'
+                        ]
                     },
                 });
             });
@@ -54,7 +58,11 @@ describe('Flight of the Inquisitor', function () {
                     discard: ['timely-intervention', 'fallen-lightsaber', 'jedi-lightsaber'],
                 },
                 player2: {
-                    groundArena: ['rugged-survivors']
+                    groundArena: ['rugged-survivors'],
+                    discard: [
+                        'vernestra-rwoh#precocious-knight',
+                        'youngling-padawan'
+                    ]
                 }
             });
 
@@ -79,7 +87,11 @@ describe('Flight of the Inquisitor', function () {
                     deck: ['rebel-pathfinder']
                 },
                 player2: {
-                    groundArena: ['rugged-survivors']
+                    groundArena: ['rugged-survivors'],
+                    discard: [
+                        'vernestra-rwoh#precocious-knight',
+                        'youngling-padawan'
+                    ]
                 }
             });
 
@@ -107,7 +119,11 @@ describe('Flight of the Inquisitor', function () {
                     deck: ['rebel-pathfinder']
                 },
                 player2: {
-                    hand: ['timely-intervention']
+                    hand: ['timely-intervention'],
+                    discard: [
+                        'vernestra-rwoh#precocious-knight',
+                        'youngling-padawan'
+                    ]
                 }
             });
 

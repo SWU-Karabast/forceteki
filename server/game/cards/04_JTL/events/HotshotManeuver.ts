@@ -22,12 +22,13 @@ export default class HotshotManeuver extends EventCard {
                     condition: (context) => this.numberOfTargets(context) > 0,
                     onFalse: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true }),
                     onTrue: AbilityHelper.immediateEffects.selectCard({
+                        name: 'enemyUnits',
                         activePromptTitle: (context) => (this.numberOfTargets(context) === 1 ? 'Choose an enemy unit to deal 2 damage to' : `Choose ${this.numberOfTargets(context)} enemy units to deal 2 damage to`),
                         mode: TargetMode.ExactlyVariable,
                         numCardsFunc: (context) => this.numberOfTargets(context),
                         cardTypeFilter: WildcardCardType.Unit,
                         controller: RelativePlayer.Opponent,
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 }),
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                     })
                 })
             },

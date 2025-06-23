@@ -297,7 +297,7 @@ export class Lobby {
             if (!socket.eventContainsListener('requeue')) {
                 socket.registerEvent(
                     'requeue',
-                    () => this.server.requeueUser(socket, this.format, user, existingUser?.deck?.getDecklist())
+                    () => this.server.requeueUser(socket, this.format, user, { ...existingUser?.deck?.getDecklist(), deckID: existingUser?.deck?.id })
                 );
             }
 
@@ -376,13 +376,16 @@ export class Lobby {
         const mode = args[0];
         Contract.assertTrue(mode === 'reset' || mode === 'regular', 'Invalid rematch mode, expected reset or regular but receieved: ' + mode);
 
+        const user = this.getUser(socket.user.getId());
+
         // Set the rematch request property (allow only one request at a time)
         if (!this.rematchRequest) {
             this.rematchRequest = {
-                initiator: socket.user.getId(),
+                initiator: user.id,
                 mode,
             };
-            logger.info(`Lobby: user ${socket.user.getId()} requested a rematch (${mode})`, { lobbyId: this.id, userName: socket.user.username, userId: socket.user.id });
+            logger.info(`Lobby: user ${socket.user.getId()} requested a rematch (${mode})`, { lobbyId: this.id, userName: user.username, userId: user.id });
+            this.game.addAlert(AlertType.Notification, `${user.username} has requested a ${mode === 'reset' ? 'quick' : ''} rematch!`);
         }
         this.sendLobbyState();
     }
@@ -781,8 +784,7 @@ export class Lobby {
         this.buildSafeTimeout(() => {
             for (const user of this.users) {
                 logger.error(`Lobby: requeueing user ${user.id} after matched user disconnected`);
-
-                this.server.requeueUser(user.socket, this.format, user.socket.user, user.deck.getDecklist());
+                this.server.requeueUser(user.socket, this.format, user.socket.user, { ...user.deck?.getDecklist(), deckID: user.deck?.id });
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
 
@@ -922,7 +924,6 @@ export class Lobby {
                 logger.error(`Lobby ${this.id}: Missing information (${player2User.deckID}) for player2 ${player2.id}`);
                 return;
             }
-
             if (this.game.roundNumber > 1) {
                 await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
                 await this.updatePlayerStatsAsync(player2User, player1User, player2Score);

@@ -45,6 +45,8 @@ import type { GameObjectRef } from '../GameObjectBase';
 import { logger } from '../../../logger';
 import type Experience from '../../cards/01_SOR/tokens/Experience';
 import { ConstantAbility } from '../ability/ConstantAbility';
+import { getPrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
+import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPlayAbilityRegistration';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -121,6 +123,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly _subtitle?: string;
     protected readonly _title: string;
     protected readonly _unique: boolean;
+    protected readonly _printedType: CardType;
 
     protected readonly canBeUpgrade: boolean;
     protected readonly hasNonKeywordAbilityText: boolean;
@@ -129,7 +132,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
     protected readonly backsidePrintedTraits: Set<Trait>;
-    protected readonly printedType: CardType;
 
     protected disableWhenDefeatedCheck = false;
     protected disableOnAttackCheck = false;
@@ -167,9 +169,26 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.state.triggeredAbilities.map((x) => this.game.getFromRef(x));
     }
 
+    protected get printedType(): CardType {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const override = getPrintedAttributesOverride('printedType', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
+            }
+        }
+
+        return this._printedType;
+    }
 
     // ******************************************** PROPERTY GETTERS ********************************************
     public get aspects(): Aspect[] {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const override = getPrintedAttributesOverride('aspects', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
+            }
+        }
+
         return this._aspects;
     }
 
@@ -202,10 +221,24 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public get subtitle(): string {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const override = getPrintedAttributesOverride('subtitle', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
+            }
+        }
+
         return this._subtitle;
     }
 
     public get title(): string {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const override = getPrintedAttributesOverride('title', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
+            }
+        }
+
         return this._title;
     }
 
@@ -272,17 +305,17 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this._aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
         this._backSideAspects = EnumHelpers.checkConvertToEnum(cardData.backSideAspects ?? [], Aspect);
         this._internalName = cardData.internalName;
-        this._subtitle = cardData.subtitle;
+        this._subtitle = cardData.subtitle === '' ? null : cardData.subtitle;
         this._title = cardData.title;
         this._backSideTitle = cardData.backSideTitle;
         this._unique = cardData.unique;
+        this._printedType = Card.buildTypeFromPrinted(cardData.types);
 
         this.controller = owner;
         this.id = cardData.id;
         this.canBeUpgrade = cardData.upgradeHp != null && cardData.upgradePower != null;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.backsidePrintedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.backSideTraits, Trait));
-        this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
         // TODO: add validation that if the card has the Piloting trait, the right cardData properties are set
         this.printedKeywords = KeywordHelpers.parseKeywords(
@@ -586,6 +619,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     /**
+     * Returns true if the card is a type that can legally have pre-enter play abilities.
+     */
+    public canRegisterPreEnterPlayAbilities(): this is ICardWithPreEnterPlayAbilities {
+        return false;
+    }
+
+    /**
      * Returns true if the card is a type that can be put into play and considered "in play."
      * The returned type set is equivalent to {@link InPlayCard}.
      */
@@ -638,6 +678,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // ******************************************* TRAIT HELPERS *******************************************
     protected getPrintedTraits(): Set<Trait> {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const override = getPrintedAttributesOverride('printedTraits', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return new Set(override);
+            }
+        }
+
         return new Set(this.printedTraits);
     }
 
@@ -1128,35 +1175,25 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         // If it is not the active player and in opposing hand or deck - return facedown card
         if (this.zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent)) {
             const state = {
-                controller: this.controller.getShortSummary(),
-                owner: this.owner.getShortSummary(),
-                // menu: isActivePlayer ? this.getMenu() : undefined,
-                facedown: true,
+                controllerId: this.controller.id,
+                ownerId: this.owner.id,
                 zone: this.zoneName,
                 uuid: isActivePlayer ? this.uuid : undefined
             };
             return { ...state, ...selectionState };
         }
 
-
         const state = {
             id: this.cardData.id,
             setId: this.setId,
-            controlled: this.owner !== this.controller,
-            controller: this.controller.getShortSummary(),
-            owner: this.owner.getShortSummary(),
+            controllerId: this.controller.id,
+            ownerId: this.owner.id,
             aspects: this.aspects,
-            // facedown: this.isFacedown(),
             zone: this.zoneName,
-            // menu: this.getMenu(),
             name: this.cardData.title,
-            cost: this.cardData.cost,
             power: this.cardData.power,
             hp: this.cardData.hp,
-            implemented: this.isImplemented,
-            // popupMenuText: this.popupMenuText,
-            // showPopup: this.showPopup,
-            // tokens: this.tokens,
+            unimplemented: !this.isImplemented || undefined,    // don't bother sending "unimplemented: false" to the client
             type: this.type,
             uuid: this.uuid,
             printedType: this.printedType,
@@ -1169,8 +1206,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     public getCardState(): any {
         return {
             internalName: this.internalName,
-            controller: this.controller.getShortSummary(),
-            controlled: this.owner !== this.controller,
+            controllerId: this.controller.id,
             type: this.type
         };
     }

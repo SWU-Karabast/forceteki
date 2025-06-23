@@ -183,6 +183,18 @@ function filterValues(card) {
             filteredObj.setId.number = card.attributes.cardNumber;
         }
 
+        let lofReprintMap = new Map();
+        lofReprintMap.set(58, { set: 'SOR', number: 61 }); // Guardian of the Whills - SOR 61
+        lofReprintMap.set(60, { set: 'TWI', number: 58 }); // Padawan Starfighter - TWI 58
+        lofReprintMap.set(162, { set: 'SHD', number: 168 }); // Hunting Nexu - SHD 168
+        lofReprintMap.set(164, { set: 'SOR', number: 164 }); // Wampa - SOR 164
+
+        if (filteredObj.setId.set === 'LOF' && lofReprintMap.has(filteredObj.setId.number)) {
+            let reprintData = lofReprintMap.get(filteredObj.setId.number);
+            filteredObj.setId.set = reprintData.set;
+            filteredObj.setId.number = reprintData.number;
+        }
+
         if (filteredObj.keywords.includes('piloting')) {
             filteredObj.pilotText = filteredObj.epicAction;
             filteredObj.epicAction = null;

@@ -32,7 +32,7 @@ export default class APrecariousPredicament extends EventCard {
                             controller: RelativePlayer.Self,
                             zoneFilter: [ZoneName.Hand, ZoneName.Resource],
                             cardCondition: (card) => card.title === 'It\'s Worse',
-                            innerSystem: AbilityHelper.immediateEffects.playCard((context) => ({
+                            immediateEffect: AbilityHelper.immediateEffects.playCard((context) => ({
                                 adjustCost: { costAdjustType: CostAdjustType.Free },
                                 playAsType: WildcardCardType.Any,
                                 canPlayFromAnyZone: true,

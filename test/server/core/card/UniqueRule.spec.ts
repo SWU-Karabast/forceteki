@@ -40,6 +40,7 @@ describe('Uniqueness rule', function() {
                 expect(context.chopperInPlay).toBeInZone('discard');
                 expect(context.p2Chopper).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(1)).toContain('player1 defeats 1 copy of Chopper due to the uniqueness rule');
             });
 
             it('the player should be able to defeat either copy', function () {
@@ -214,7 +215,7 @@ describe('Uniqueness rule', function() {
                 expect(context.kallusInPlay).toBeInZone('discard');
 
                 // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to no attack target)
-                expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Ambush']);
+                expect(context.player1).toHaveExactPromptButtons(['Draw a card', '(No effect) Ambush']);
                 context.player1.clickPrompt('Draw a card');
                 context.player1.clickPrompt('Trigger');     // this click is for the 'Pass' prompt
                 expect(context.player1.handSize).toBe(handSize + 1);
@@ -241,7 +242,7 @@ describe('Uniqueness rule', function() {
                 expect(context.kallusInHand).toBeInZone('discard');
 
                 // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to attacker being defeated)
-                expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Ambush']);
+                expect(context.player1).toHaveExactPromptButtons(['Draw a card', '(No effect) Ambush']);
                 context.player1.clickPrompt('Draw a card');
                 context.player1.clickPrompt('Trigger');     // this click is for the 'Pass' prompt
                 expect(context.player1.handSize).toBe(handSize + 1);
@@ -453,7 +454,7 @@ describe('Uniqueness rule', function() {
 
                 context.player1.clickCard(kuiil2);
 
-                expect(context.getChatLogs(1)).toContain('player1 defeats 1 copy of Kuiil due to the uniquenes rule');
+                expect(context.getChatLogs(1)).toContain('player1 defeats 1 copy of Kuiil due to the uniqueness rule');
                 expect(kuiil1).toBeInZone('groundArena');
                 expect(kuiil2).toBeInZone('discard');
 
@@ -508,10 +509,11 @@ describe('Uniqueness rule', function() {
 
                 context.player1.clickPrompt('Done');
 
-                expect(context.getChatLogs(1)).toContain('player1 defeats 2 copies of Obi-Wan Kenobi due to the uniquenes rule');
+                expect(context.getChatLogs(1)).toContain('player1 defeats 2 copies of Obi-Wan Kenobi due to the uniqueness rule');
                 expect(obi1).toBeInZone('discard');
                 expect(obi2).toBeInZone('discard');
                 expect(obi3).toBeInZone('groundArena');
+                expect(context.getChatLogs(1)).toContain('player1 defeats 2 copies of Obi-Wan Kenobi due to the uniqueness rule');
 
                 // Once both are defeated, the player can resolve the When Defeated abilities
                 expect(context.player1).toHavePrompt('Choose an ability to resolve:');

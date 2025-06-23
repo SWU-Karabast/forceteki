@@ -21,7 +21,7 @@ export default class RuthlessRaider extends NonLeaderUnitCard {
                 AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                 }),
                 AbilityHelper.immediateEffects.damage((context) => ({ amount: 2, target: context.player.opponent.base }))
             ])

@@ -35,7 +35,7 @@ describe('Guerilla Insurgency', function() {
 
                 expect(context.player2).toHavePrompt('Defeat a resource you control');
                 expect(context.player2).toBeAbleToSelectExactly([context.confiscate, context.restock, context.breakingIn]);
-                expect(context.player1).not.toHaveChooseNothingButton();
+                expect(context.player2).not.toHaveChooseNothingButton();
                 context.player2.clickCard(context.confiscate);
 
                 // Each player discards 2 cards

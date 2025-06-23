@@ -42,6 +42,7 @@ import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/Lea
 import AbilityHelper from '../../../AbilityHelper';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
 import type { OngoingCardEffect } from '../../ongoingEffect/OngoingCardEffect';
+import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -49,6 +50,7 @@ export interface IUnitPropertiesCardState extends IInPlayCardState {
     captureZone: GameObjectRef<CaptureZone> | null;
     lastPlayerToModifyHp?: GameObjectRef<Player>;
     upgrades: GameObjectRef<IUpgradeCard>[] | null;
+    expiredLastingEffectChangedRemainingHp: boolean;
 
     whenCapturedKeywordAbilities?: GameObjectRef<TriggeredAbility>[];
     whenDefeatedKeywordAbilities?: GameObjectRef<TriggeredAbility>[];
@@ -70,6 +72,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     get capturedUnits(): IUnitCard[];
     get captureZone(): CaptureZone;
     get lastPlayerToModifyHp(): Player;
+    get isClone(): boolean;
     readonly upgrades: IUpgradeCard[];
     getCaptor(): IUnitCard | null;
     isAttacking(): boolean;
@@ -143,7 +146,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         // ************************************* FIELDS AND PROPERTIES *************************************
-        public readonly defaultArena: Arena;
+        private readonly _defaultArena: Arena;
 
         public get lastPlayerToModifyHp(): Player {
             Contract.assertTrue(this.isInPlay());
@@ -202,6 +205,20 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         public get upgrades(): IUpgradeCard[] {
             this.assertPropertyEnabledForZone(this.state.upgrades, 'upgrades');
             return this.state.upgrades.map((x) => this.game.gameObjectManager.get(x));
+        }
+
+        public get defaultArena(): Arena {
+            if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+                const override = getPrintedAttributesOverride('defaultArena', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+                if (override != null) {
+                    return override;
+                }
+            }
+            return this._defaultArena;
+        }
+
+        public get isClone(): boolean {
+            return this.hasOngoingEffect(EffectName.IsClonedUnit);
         }
 
         public getCaptor(): IUnitCard | null {
@@ -263,10 +280,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             Contract.assertNotNullLike(cardData.arena);
             switch (cardData.arena) {
                 case 'space':
-                    this.defaultArena = ZoneName.SpaceArena;
+                    this._defaultArena = ZoneName.SpaceArena;
                     break;
                 case 'ground':
-                    this.defaultArena = ZoneName.GroundArena;
+                    this._defaultArena = ZoneName.GroundArena;
                     break;
                 default:
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
@@ -854,6 +871,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         public override addDamage(amount: number, source: IDamageSource): number {
             const damageAdded = super.addDamage(amount, source);
 
+            if (damageAdded > 0) {
+                this.state.expiredLastingEffectChangedRemainingHp = false;
+            }
+
             this.checkDefeated(source);
 
             return damageAdded;
@@ -875,15 +896,32 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             if (this.damage >= this.getHp() && !this.state.pendingDefeat) {
-                // add defeat event to window
-                this.game.addSubwindowEvents(
-                    new FrameworkDefeatCardSystem({ target: this, defeatSource: source })
-                        .generateEvent(this.game.getFrameworkContext())
+                const defeatEvent = new FrameworkDefeatCardSystem({
+                    target: this,
+                    defeatSource: source,
+                    defeatedByExpiringLastingEffect: this.state.expiredLastingEffectChangedRemainingHp,
+                }).generateEvent(
+                    this.game.getFrameworkContext(typeof source === 'object' ? source.player : null)
                 );
+
+                // add defeat event to window
+                this.game.addSubwindowEvents(defeatEvent);
+
+                this.game.queueSimpleStep(() => {
+                    const responsiblePlayer = (defeatEvent as any).defeatSource?.player;
+                    if (responsiblePlayer) {
+                        this.game.addMessage('{0}\'s {1} is defeated by {2} due to having no remaining HP', this.controller, this, responsiblePlayer);
+                    } else {
+                        this.game.addMessage('{0}\'s {1} is defeated due to having no remaining HP', this.controller, this);
+                    }
+                }, `Log defeat message for ${this.internalName}`);
 
                 // mark that this unit has a defeat pending so that other effects targeting it will not resolve
                 this.state.pendingDefeat = true;
             }
+
+            // Reset the flag becuase at this point we already know if the unit was defeated or not
+            this.state.expiredLastingEffectChangedRemainingHp = false;
         }
 
         private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers: string[] = []) {
@@ -1062,8 +1100,20 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         public override addOngoingEffect(ongoingEffect: OngoingCardEffect): void {
             if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
                 this.lastPlayerToModifyHp = ongoingEffect.context.source.controller;
+                this.expiredLastingEffectChangedRemainingHp = false;
             }
             super.addOngoingEffect(ongoingEffect);
+        }
+
+        public override removeOngoingEffect(ongoingEffect: OngoingCardEffect): void {
+            if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
+                if (this.game.currentAbilityResolver?.context?.player) {
+                    this.lastPlayerToModifyHp = this.game.currentAbilityResolver.context.player;
+                }
+
+                this.expiredLastingEffectChangedRemainingHp = ongoingEffect.context.ongoingEffect?.isLastingEffect ?? false;
+            }
+            super.removeOngoingEffect(ongoingEffect);
         }
 
         // STATE TODO: We need to really dig into what is being updated by resolveAbilitiesForNewZone. We desperately want to remove this onAfter method.

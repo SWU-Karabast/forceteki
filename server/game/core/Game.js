@@ -1615,7 +1615,7 @@ class Game extends EventEmitter {
                 playerState[player.id] = player.getStateSummary(activePlayer);
             }
 
-            return {
+            const gameState = {
                 playerUpdate: activePlayer.name,
                 id: this.id,
                 manualMode: this.manualMode,
@@ -1636,6 +1636,11 @@ class Game extends EventEmitter {
                 gameMode: this.gameMode,
                 winner: this.winner ? this.winner : undefined, // TODO comment once we clarify how to display endgame screen
             };
+
+            // clean out any properies that are null or undefined to reduce the message size
+            Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
+
+            return gameState;
         }
         return {};
     }
