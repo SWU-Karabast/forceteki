@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class FlightOfTheInquisitor extends EventCard {
     protected override getImplementationId() {
@@ -18,15 +18,17 @@ export default class FlightOfTheInquisitor extends EventCard {
                 [
                     AbilityHelper.immediateEffects.selectCard({
                         zoneFilter: ZoneName.Discard,
+                        controller: RelativePlayer.Self,
                         cardTypeFilter: WildcardCardType.Unit,
                         cardCondition: (card) => card.hasSomeTrait(Trait.Force),
-                        innerSystem: AbilityHelper.immediateEffects.returnToHand()
+                        immediateEffect: AbilityHelper.immediateEffects.returnToHand()
                     }),
                     AbilityHelper.immediateEffects.selectCard({
                         zoneFilter: ZoneName.Discard,
+                        controller: RelativePlayer.Self,
                         cardTypeFilter: WildcardCardType.Upgrade,
                         cardCondition: (card) => card.hasSomeTrait(Trait.Lightsaber),
-                        innerSystem: AbilityHelper.immediateEffects.returnToHand()
+                        immediateEffect: AbilityHelper.immediateEffects.returnToHand()
                     }),
                 ]
             )

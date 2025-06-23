@@ -17,7 +17,7 @@ export default class BladeSquadronBWing extends NonLeaderUnitCard {
                 condition: (context) => this.opponentHasAtLeastThreeExhausted(context),
                 onTrue: AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
-                    innerSystem: AbilityHelper.immediateEffects.giveShield()
+                    immediateEffect: AbilityHelper.immediateEffects.giveShield()
                 }),
             })
         });

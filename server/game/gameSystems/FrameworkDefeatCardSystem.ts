@@ -41,7 +41,7 @@ export class FrameworkDefeatCardSystem<TContext extends AbilityContext = Ability
                 Contract.fail(`Unexpected framework defeat reason: '${properties.defeatSource}'`);
         }
 
-        return ['defeat {0} due to {1}', [properties.target, causeStr]];
+        return ['defeat {0} due to {1}', [this.getTargetMessage(properties.target, context), causeStr]];
     }
 
     // fully override the base canAffect method since nothing can interrupt defeat due to framework effect

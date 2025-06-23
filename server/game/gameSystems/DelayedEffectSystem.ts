@@ -67,7 +67,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<IDelayedEffectProperties>): [string, any[]] {
         const { effectDescription, target } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        return [effectDescription ?? this.effectDescription, [target]];
+        return [effectDescription ?? this.effectDescription, [this.getTargetMessage(target, context)]];
     }
 
     public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<IDelayedEffectProperties>): void {

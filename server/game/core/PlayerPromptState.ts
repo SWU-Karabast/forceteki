@@ -22,6 +22,13 @@ export interface IPlayerPromptStateProperties {
     attackTargetingHighlightAttacker?: Card;
 }
 
+export interface ICardSelectionState {
+    selectable: boolean;
+    selected?: boolean;
+    unselectable?: boolean;
+    order?: number;
+}
+
 export class PlayerPromptState {
     public selectCardMode? = null;
     public selectOrder = false;
@@ -96,18 +103,22 @@ export class PlayerPromptState {
         this.clearSelectedCards();
     }
 
-    public getCardSelectionState(card: Card) {
+    public getCardSelectionState(card: Card): ICardSelectionState {
         const selectable = this._selectableCards.includes(card);
-        const index = this._selectedCards?.indexOf(card) ?? -1;
-        const result = {
-            selected: index !== -1,
-            selectable: selectable,
-            unselectable: this.selectCardMode && !selectable
-        };
 
-        if (index !== -1 && this.selectOrder) {
-            return Object.assign({ order: index + 1 }, result);
+        if (!selectable) {
+            return { selectable };
         }
+
+        const index = this._selectedCards?.indexOf(card) ?? -1;
+        const order = index !== -1 && this.selectOrder ? index + 1 : undefined;
+
+        const result = {
+            selectable,
+            selected: index !== -1,
+            unselectable: this.selectCardMode && !selectable,
+            order
+        };
 
         return result;
     }

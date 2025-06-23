@@ -82,7 +82,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
             activePromptTitle: activePromptTitleConcrete,
             waitingPromptTitle: 'waitingPromptTitle' in this.properties
                 ? this.properties.waitingPromptTitle as string
-                : (context.ability.type === 'action' ? 'Waiting for opponent to take an action or pass' : 'Waiting for opponent'),
+                : (context.ability?.type === 'action' ? 'Waiting for opponent to take an action or pass' : 'Waiting for opponent'),
             context: context,
             source: context.source
         };

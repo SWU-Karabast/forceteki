@@ -19,7 +19,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
                 AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
-                    innerSystem: AbilityHelper.immediateEffects.forThisRoundCardEffect({
+                    immediateEffect: AbilityHelper.immediateEffects.forThisRoundCardEffect({
                         effect: AbilityHelper.ongoingEffects.loseAllAbilities(),
                         ongoingEffectDescription: 'remove all abilities from'
                     })

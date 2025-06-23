@@ -18,10 +18,11 @@ export default class CountDookuFallenJedi extends NonLeaderUnitCard {
                 // TODO: correct implementation of the rules for multiple instances of damage in the same ability
                 (context) => Helpers.asArray(context.event.costs.exploitedUnitsInformation).map((exploitedUnitInformation) =>
                     AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: `Deal ${exploitedUnitInformation.power} damage to an enemy unit (for exploiting ${exploitedUnitInformation.title})`,
                         cardTypeFilter: WildcardCardType.Unit,
                         controller: RelativePlayer.Opponent,
                         optional: true,
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: exploitedUnitInformation.power }),
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: exploitedUnitInformation.power }),
                     })
                 )
             )

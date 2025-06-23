@@ -1,5 +1,5 @@
 import { EffectName } from '../../Constants';
-import type { PrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
+import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import * as Contract from '../../utils/Contract';
 import type { Card, CardConstructor } from '../Card';
 
@@ -31,9 +31,9 @@ export function WithPrintedHp<TBaseClass extends CardConstructor>(BaseClass: TBa
 
         public getPrintedHp(): number {
             if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
-                const overrides = this.getOngoingEffectValues<PrintedAttributesOverride>(EffectName.PrintedAttributesOverride);
-                if (overrides.some((override) => override.printedHp !== undefined)) {
-                    return overrides.reduce((max, override) => (override.printedHp !== undefined ? Math.max(max, override.printedHp) : max), 0);
+                const override = getPrintedAttributesOverride('printedHp', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+                if (override != null) {
+                    return override;
                 }
             }
             return this.printedHp;

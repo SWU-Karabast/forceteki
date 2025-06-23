@@ -23,7 +23,7 @@ export default class LetTheWookieeWin extends EventCard {
                         AbilityHelper.immediateEffects.selectCard({
                             controller: RelativePlayer.Self,
                             cardTypeFilter: WildcardCardType.Unit,
-                            innerSystem: AbilityHelper.immediateEffects.sequential([
+                            immediateEffect: AbilityHelper.immediateEffects.sequential([
                                 AbilityHelper.immediateEffects.ready(),
                                 AbilityHelper.immediateEffects.attack({
                                     attacker: context.target,

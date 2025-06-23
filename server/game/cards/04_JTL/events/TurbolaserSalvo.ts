@@ -17,6 +17,7 @@ export default class TurbolaserSalvo extends EventCard {
             targetResolver: {
                 mode: TargetMode.Select,
                 activePromptTitle: 'Choose an arena',
+                showUnresolvable: true,
                 choices: {
                     ['Ground']: this.eventEffect(ZoneName.GroundArena),
                     ['Space']: this.eventEffect(ZoneName.SpaceArena),
@@ -34,11 +35,11 @@ export default class TurbolaserSalvo extends EventCard {
                 zoneFilter: ZoneName.SpaceArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 name: 'friendlySpaceUnitDamageSource',
-                innerSystem: AbilityHelper.immediateEffects.damage((damageContext) => {
+                immediateEffect: AbilityHelper.immediateEffects.damage((damageContext) => {
                     return {
-                        amount: damageContext.targets.friendlySpaceUnitDamageSource?.[0].getPower(),
+                        amount: damageContext.targets.friendlySpaceUnitDamageSource?.getPower(),
                         target: damageContext.player.opponent.getArenaUnits({ arena: arena }),
-                        source: damageContext.targets.friendlySpaceUnitDamageSource?.[0]
+                        source: damageContext.targets.friendlySpaceUnitDamageSource
                     };
                 })
             }),

@@ -54,7 +54,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
     public override getCostMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IResourceCardProperties;
-        return ['moving {0} to resources', [properties.target]];
+        return ['moving {0} to resources', [this.getTargetMessage(properties.target, context)]];
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -63,13 +63,13 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
         if (properties.targetPlayer === RelativePlayer.Self) {
             if (card === context.source) {
-                return ['move {0} to their resources', [card]];
+                return ['move {0} to their resources', [this.getTargetMessage(card, context)]];
             }
             return ['move a card to their resources', []];
         }
 
         if (card === context.source) {
-            return ['move {0} to {1}\'s resources', [card, card.controller.opponent]];
+            return ['move {0} to {1}\'s resources', [this.getTargetMessage(card, context), card.controller.opponent]];
         }
         return ['move a card to {0}\'s resources', [card.controller.opponent]];
     }

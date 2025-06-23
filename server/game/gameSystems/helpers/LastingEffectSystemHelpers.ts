@@ -6,19 +6,20 @@ import type { IOngoingCardOrPlayerEffect, IOngoingCardOrPlayerEffectGenerator, I
 import * as ChatHelpers from '../../core/chat/ChatHelpers';
 import * as Contract from '../../core/utils/Contract';
 import * as Helpers from '../../core/utils/Helpers';
-import type { IGameSystemProperties } from '../../core/gameSystem/GameSystem';
+import type { GameSystem, IGameSystemProperties } from '../../core/gameSystem/GameSystem';
 
 type Flatten<A> = A extends readonly (infer T)[] ? T : A;
 type TargetOf<T extends IGameSystemProperties> = T['target'];
 
 export function getEffectMessage<TContext extends AbilityContext, TProperties extends ILastingEffectPropertiesBase>(
+    gameSystem: GameSystem<TContext, TProperties>,
     context: TContext,
     properties: TProperties,
     additionalProperties: Partial<TProperties> = {},
     getEffectFactoriesAndProperties: (target: TargetOf<TProperties>, context: TContext, additionalProperties?: Partial<TProperties>) => { effectFactories: IOngoingCardOrPlayerEffectGenerator<Flatten<TargetOf<TProperties>>>[]; effectProperties: IOngoingCardOrPlayerEffectProps<Flatten<TargetOf<TProperties>>> | IOngoingCardOrPlayerEffectProps<Flatten<TargetOf<TProperties>>>[] },
     filterApplicableEffects: (target: Flatten<TargetOf<TProperties>>, effects: IOngoingCardOrPlayerEffect<Flatten<TargetOf<TProperties>>>[]) => IOngoingCardOrPlayerEffect<Flatten<TargetOf<TProperties>>>[] = (_target, effects) => effects,
 ): [string, any[]] {
-    const targetDescription = properties.ongoingEffectTargetDescription ?? properties.target;
+    const targetDescription = properties.ongoingEffectTargetDescription ?? gameSystem.getTargetMessage(properties.target, context);
 
     let description: FormatMessage = { format: 'apply a lasting effect to {0}', args: [targetDescription] };
     if (properties.ongoingEffectDescription) {

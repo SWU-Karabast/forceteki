@@ -6,8 +6,8 @@ describe('Nala Se, Clone Engineer', function () {
                     phase: 'action',
                     player1: {
                         leader: { card: 'nala-se#clone-engineer', deployed: true },
-                        base: 'echo-base',
-                        hand: ['batch-brothers'],
+                        base: 'shield-generator-complex',
+                        hand: ['batch-brothers', 'clone'],
                     },
                     player2: {
                         leader: 'director-krennic#aspiring-to-authority',
@@ -20,7 +20,7 @@ describe('Nala Se, Clone Engineer', function () {
 
             it('should ignore aspect penalties on friendly Clones', function () {
                 const { context } = contextRef;
-                const p1ReadyResources = context.player1.readyResourceCount;
+                let p1ReadyResources = context.player1.readyResourceCount;
                 const p2ReadyResources = context.player2.readyResourceCount;
 
                 // Should cost 3 despite a double aspect penalty
@@ -30,6 +30,12 @@ describe('Nala Se, Clone Engineer', function () {
                 // Opponent's Clone should cost 5 (1 + two aspect penalties)
                 context.player2.clickCard(context.cloneDeserter);
                 expect(context.player2.readyResourceCount).toBe(p2ReadyResources - 5);
+
+                // Should cost 7 despite cloning a non-Clone unit
+                p1ReadyResources = context.player1.readyResourceCount;
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.readyResourceCount).toBe(p1ReadyResources - 7);
             });
         });
 

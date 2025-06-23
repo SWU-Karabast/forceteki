@@ -25,6 +25,7 @@ import type { ActionAbility } from './ActionAbility.js';
 import type { CardAbility } from './CardAbility.js';
 import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { IPassAbilityHandler } from '../gameSteps/AbilityResolver.js';
+import type { MsgArg } from '../chat/GameChat.js';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
@@ -257,17 +258,16 @@ export abstract class PlayerOrCardAbility {
         }
     }
 
-    protected getCostsMessages(context: AbilityContext): { message: string | string[] }[] {
+    protected getCostsMessages(context: AbilityContext): MsgArg[] {
         return this.getCosts(context)
             .map((cost) => {
                 if (cost.getCostMessage && cost.getCostMessage(context)) {
                     let [format, args]: [string, any[]] = ['ERROR - MISSING COST MESSAGE', [' ', ' ']];
                     [format, args] = cost.getCostMessage(context);
-                    const message = this.game.gameChat.formatMessage(format, args);
-                    if (Helpers.asArray(message).every((msg) => msg.length === 0)) {
+                    if (format.length === 0) {
                         return null;
                     }
-                    return { message: message };
+                    return { format: format, args: args };
                 }
                 return null;
             })
@@ -292,7 +292,7 @@ export abstract class PlayerOrCardAbility {
         return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
     }
 
-    protected resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler?: IPassAbilityHandler, canCancel?: boolean) {
+    protected resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler?: IPassAbilityHandler, canCancel: boolean = false) {
         const targetResults = this.getDefaultTargetResults(context, canCancel);
         for (const target of targetResolvers) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
@@ -312,7 +312,7 @@ export abstract class PlayerOrCardAbility {
         return targetResults;
     }
 
-    public getDefaultTargetResults(context: AbilityContext, canCancel?: boolean): ITargetResult {
+    public getDefaultTargetResults(context: AbilityContext, canCancel: boolean = false): ITargetResult {
         return {
             canIgnoreAllCosts:
                 context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,
@@ -323,13 +323,13 @@ export abstract class PlayerOrCardAbility {
         };
     }
 
-    public resolveRemainingTargets(context: AbilityContext, nextTarget, passHandler = null) {
+    public resolveRemainingTargets(context: AbilityContext, nextTarget?: ITargetResult['delayTargeting'], passHandler = null) {
         const index = this.targetResolvers.indexOf(nextTarget);
         let targets = this.targetResolvers.slice();
         if (targets.slice(0, index).every((target) => target.checkTarget(context))) {
             targets = targets.slice(index);
         }
-        const targetResults = {};
+        const targetResults = this.getDefaultTargetResults(context, false);
         for (const target of targets) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
         }

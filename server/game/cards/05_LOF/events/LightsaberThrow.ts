@@ -24,7 +24,7 @@ export default class LightsaberThrow extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.selectCard({
                         zoneFilter: ZoneName.GroundArena,
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: 4 })
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 4 })
                     }),
                     AbilityHelper.immediateEffects.draw()
                 ])

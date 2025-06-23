@@ -24,7 +24,7 @@ export default class ShuttleTydiriumFlyCasual extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card !== this,
-                    innerSystem: AbilityHelper.immediateEffects.giveExperience()
+                    immediateEffect: AbilityHelper.immediateEffects.giveExperience()
                 })
             })
         });

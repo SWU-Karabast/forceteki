@@ -274,7 +274,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         }
 
         if (properties.revealSelected) {
-            return context.game.addMessage('{0} takes {1}', choosingPlayer, Array.from(selectedCards));
+            return context.game.addMessage('{0} takes {1}', choosingPlayer, this.getTargetMessage(Array.from(selectedCards), context));
         }
 
         context.game.addMessage(

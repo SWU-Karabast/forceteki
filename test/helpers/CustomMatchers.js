@@ -934,7 +934,131 @@ var customMatchers = {
                 return result;
             }
         };
-    }
+    },
+    toBeCloneOf: function () {
+        return {
+            compare: function (card, targetCard) {
+                if (typeof card === 'string' || typeof targetCard === 'string') {
+                    throw new TestSetupError('This expectation requires a card object, not a name');
+                }
+                if (card?.internalName !== 'clone') {
+                    throw new TestSetupError('This expectation requires an instance of a Clone card');
+                }
+
+                let failures = [];
+                if (card.title !== targetCard.title) {
+                    failures.push(`title: expected '${card.title}' but got '${targetCard.title}'`);
+                }
+                if (card.subtitle !== targetCard.subtitle) {
+                    failures.push(`subtitle: expected '${card.subtitle}' but got '${targetCard.subtitle}'`);
+                }
+                if (card.printedCost !== targetCard.printedCost) {
+                    failures.push(`printedCost: expected ${card.printedCost} but got ${targetCard.printedCost}`);
+                }
+                if (!Util.stringArraysEqual(card.aspects, targetCard.aspects)) {
+                    failures.push(`aspects: expected ${card.aspects.join(', ')} but got ${targetCard.aspects.join(', ')}`);
+                }
+                if (card.defaultArena !== targetCard.defaultArena) {
+                    failures.push(`defaultArena: expected '${card.defaultArena}' but got '${targetCard.defaultArena}'`);
+                }
+                if (card.unique !== false) {
+                    failures.push('unique: expected cloned card to not be unique but it was');
+                }
+                if (card.printedType !== targetCard.printedType) {
+                    failures.push(`printedType: expected '${card.printedType}' but got '${targetCard.printedType}'`);
+                }
+                if (!Util.setsEqual(card.getPrintedTraits(), targetCard.getPrintedTraits())) {
+                    failures.push(`printedTraits: expected ${Array.from(card.getPrintedTraits()).join(', ')} but got ${Array.from(targetCard.getPrintedTraits()).join(', ')}`);
+                }
+                if (!card.traits.has('clone')) {
+                    failures.push(`traits: expected cloned card to have the Clone trait but got ${Array.from(card.traits).join(', ')}}`);
+                }
+                if (card.getPrintedPower() !== targetCard.getPrintedPower()) {
+                    failures.push(`printedPower: expected ${card.getPrintedPower()} but got ${targetCard.getPrintedPower()}`);
+                }
+                if (card.getPrintedHp() !== targetCard.getPrintedHp()) {
+                    failures.push(`printedHp: expected ${card.getPrintedHp()} but got ${targetCard.getPrintedHp()}`);
+                }
+
+                let result = {};
+                result.pass = failures.length === 0;
+
+                if (result.pass) {
+                    result.message = `Expected ${card.internalName} not to be a clone of '${targetCard.internalName}' but it is`;
+                } else {
+                    result.message = `Expected ${card.internalName} to be a clone of '${targetCard.internalName}'`;
+                }
+
+                if (failures.length > 0) {
+                    result.message += `\n\n${failures.join('\n')}`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toBeVanillaClone: function () {
+        return {
+            compare: function (card) {
+                if (typeof card === 'string') {
+                    throw new TestSetupError('This expectation requires a card object, not a name');
+                }
+                if (card?.internalName !== 'clone') {
+                    throw new TestSetupError('This expectation requires an instance of a Clone card');
+                }
+
+                let failures = [];
+                if (card.title !== 'Clone') {
+                    failures.push(`title: expected 'Clone' but got '${card.title}'`);
+                }
+                if (card.subtitle != null) {
+                    failures.push(`subtitle: expected no subtitle but got '${card.subtitle}'`);
+                }
+                if (card.printedCost !== 7) {
+                    failures.push(`printedCost: expected 7 but got ${card.printedCost}`);
+                }
+                if (!Util.stringArraysEqual(card.aspects, ['command'])) {
+                    failures.push(`aspects: expected command but got ${card.aspects.join(', ')}`);
+                }
+                if (card.defaultArena !== 'groundArena') {
+                    failures.push(`defaultArena: expected 'groundArena' but got '${card.defaultArena}'`);
+                }
+                if (card.unique !== false) {
+                    failures.push('unique: expected cloned card to not be unique but it was');
+                }
+                if (card.printedType !== 'basicUnit') {
+                    failures.push(`printedType: expected 'basicUnit' but got '${card.printedType}'`);
+                }
+                if (!Util.setsEqual(card.getPrintedTraits(), new Set(['clone']))) {
+                    failures.push(`printedTraits: expected clone but got ${Array.from(card.getPrintedTraits()).join(', ')}`);
+                }
+                if (card.getPrintedPower() !== 0) {
+                    failures.push(`printedPower: expected 0 but got ${card.getPrintedPower()}`);
+                }
+                if (card.getPrintedHp() !== 0) {
+                    failures.push(`printedHp: expected 0 but got ${card.getPrintedHp()}`);
+                }
+                if (card.printedKeywords.length > 0) {
+                    failures.push(`printedKeywords: expected no keywords but got ${card.printedKeywords.map((keyword) => keyword.name).join(', ')}`);
+                }
+
+                let result = {};
+                result.pass = failures.length === 0;
+
+                if (result.pass) {
+                    result.message = `Expected ${card.internalName} not to be a vanilla clone but it is`;
+                } else {
+                    result.message = `Expected ${card.internalName} to be a vanilla clone`;
+                }
+
+                if (failures.length > 0) {
+                    result.message += `\n\n${failures.join('\n')}`;
+                }
+
+                return result;
+            }
+        };
+    },
 };
 
 function generatePromptHelpMessage(testContext) {

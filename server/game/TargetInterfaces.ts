@@ -63,6 +63,7 @@ export interface IDropdownListTargetResolver<TContext extends AbilityContext> ex
 
 export interface ITargetResolverBase<TContext extends AbilityContext> {
     activePromptTitle?: ((context: TContext) => string) | string;
+    waitingPromptTitle?: string;
     appendToDefaultTitle?: string;
 
     // TODO: allow this be a concrete player object as well as a RelativePlayer enum

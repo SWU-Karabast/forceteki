@@ -15,7 +15,7 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
         event.card.moveTo(ZoneName.Discard);
 
         if (event.context.stage !== Stage.Cost) {
-            event.context.game.addMessage('{0} discards {1}', event.card.owner, event.card);
+            event.context.game.addMessage('{0} discards {1}', event.card.owner, this.getTargetMessage(event.card, event.context));
         }
     }
 
@@ -27,7 +27,7 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
         const properties = this.generatePropertiesFromContext(context);
         return [
             'discard {0}',
-            [properties.target]
+            [this.getTargetMessage(properties.target, context)]
         ];
     }
 
@@ -35,7 +35,7 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
         const properties = this.generatePropertiesFromContext(context);
         return [
             'discarding {0}',
-            [properties.target]
+            [this.getTargetMessage(properties.target, context)]
         ];
     }
 
