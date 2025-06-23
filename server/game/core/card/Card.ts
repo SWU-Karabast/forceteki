@@ -1199,6 +1199,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         };
     }
 
+    public override getShortSummary() {
+        return { ...super.getShortSummary(), controllerId: this.controller.id };
+    }
+
     public override getShortSummaryForControls(activePlayer: Player): any {
         if (!this.isHiddenForPlayer(activePlayer)) {
             return { hidden: true };
