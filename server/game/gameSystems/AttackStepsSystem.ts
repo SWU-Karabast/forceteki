@@ -96,7 +96,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         this.registerAttackEffects(context, event.attackerLastingEffects, event.defenderLastingEffects, event.attack);
 
         const attack: Attack = event.attack;
-        context.game.addMessage('{0} attacks {1} with {2}', attack.attackingPlayer, attack.getAllTargets(), attack.attacker);
+        context.game.addMessage('{0} attacks {1} with {2}', attack.attackingPlayer, this.getTargetMessage(attack.getAllTargets(), event.context), attack.attacker);
         context.game.queueStep(new AttackFlow(context, attack));
     }
 
@@ -111,8 +111,8 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         return [
-            '{0} initiates attack against {1}',
-            [properties.attacker, properties.target]
+            'initiate attack against {1} with {0}',
+            [properties.attacker, this.getTargetMessage(properties.target, context)]
         ];
     }
 

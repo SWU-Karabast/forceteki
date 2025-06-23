@@ -43,7 +43,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         if (effect) {
             return [effect, effectArgs ? effectArgs(context) : []];
         }
-        return ['choose a target for {0}', [target]];
+        return ['choose a target for {0}', [this.getTargetMessage(target, context)]];
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}) {

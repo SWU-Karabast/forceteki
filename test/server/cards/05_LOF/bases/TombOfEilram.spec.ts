@@ -49,7 +49,7 @@ describe('Tomb of Eilram\'s ability', function() {
             expect(context.player1.hasTheForce).toBe(true);
             expect(context.player2.hasTheForce).toBe(false);
             expect(context.player2).toBeActivePlayer();
-            expect(context.getChatLogs(1)).toContain('player1 uses player1\'s base, exhausting Battlefield Marine to gain the Force');
+            expect(context.getChatLogs(1)).toContain('player1 uses Tomb of Eilram, exhausting Battlefield Marine to gain the Force');
         });
 
         it('should be able to gain the force multiple times', async function () {

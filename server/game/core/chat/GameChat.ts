@@ -1,4 +1,4 @@
-import { GameObject } from '../GameObject';
+import type { GameObject } from '../GameObject';
 import * as ChatHelpers from './ChatHelpers';
 
 export type MsgArg = string | FormatMessage | GameObject | MsgArg[] | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
@@ -105,8 +105,6 @@ export class GameChat {
         } else if (typeof arg === 'object') {
             if ('message' in arg && arg.message) {
                 return arg.message;
-            } else if (arg instanceof GameObject && arg.isCard() && arg.isBase()) {
-                return this.formatMessage('{0}\'s base', [arg.controller]);
             } else if ('getShortSummary' in arg && arg.getShortSummary) {
                 return arg.getShortSummary();
             } else if ('format' in arg && 'args' in arg) {

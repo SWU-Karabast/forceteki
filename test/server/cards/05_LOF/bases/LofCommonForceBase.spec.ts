@@ -41,7 +41,7 @@ describe('Common bases in Legends of the Force', function() {
                 expect(context.player1.hasTheForce).toBe(true);
                 expect(context.player2.hasTheForce).toBe(false);
                 expect(context.getChatLogs(1)).toEqual([
-                    'player1 uses player1\'s base to gain the Force',
+                    'player1 uses Shadowed Undercity to gain the Force',
                 ]);
             });
 

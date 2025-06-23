@@ -15,6 +15,7 @@ export interface IUseWhenDefeatedProperties extends ICardTargetSystemProperties 
 export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IUseWhenDefeatedProperties> {
     public override readonly name = 'use when defeated';
     public override readonly eventName = EventName.OnUseWhenDefeated;
+    public override effectDescription = 'use {0}\'s When Defeated ability';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade];
 
     protected override defaultProperties: IUseWhenDefeatedProperties = {

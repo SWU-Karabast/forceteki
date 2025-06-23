@@ -31,7 +31,7 @@ describe('Mystic Monastery\'s ability', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.mysticMonastery);
-            expect(context.getChatLogs(1)).toContain('player1 uses player1\'s base to gain the Force (2 uses left)');
+            expect(context.getChatLogs(1)).toContain('player1 uses Mystic Monastery to gain the Force (2 uses left)');
 
             expect(context.player1.hasTheForce).toBe(true);
             expect(context.player2).toBeActivePlayer();
@@ -43,7 +43,7 @@ describe('Mystic Monastery\'s ability', function() {
             context.player1.clickCard(context.mysticMonastery);
             expect(context.player1.hasTheForce).toBe(true);
             expect(context.player2).toBeActivePlayer();
-            expect(context.getChatLogs(1)).toContain('player1 uses player1\'s base to gain the Force (1 use left)');
+            expect(context.getChatLogs(1)).toContain('player1 uses Mystic Monastery to gain the Force (1 use left)');
 
             context.player2.passAction();
             context.player1.setHasTheForce(false);
@@ -51,7 +51,7 @@ describe('Mystic Monastery\'s ability', function() {
             context.player1.clickCard(context.mysticMonastery);
             expect(context.player1.hasTheForce).toBe(true);
             expect(context.player2).toBeActivePlayer();
-            expect(context.getChatLogs(1)).toContain('player1 uses player1\'s base to gain the Force (0 uses left)');
+            expect(context.getChatLogs(1)).toContain('player1 uses Mystic Monastery to gain the Force (0 uses left)');
 
             context.player2.passAction();
             context.player1.setHasTheForce(false);

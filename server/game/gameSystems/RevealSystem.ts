@@ -44,7 +44,7 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
             properties.player || event.context.player,
-            event.cards.map((card) => card.title).join(', '),
+            this.getTargetMessage(event.cards, context),
             event.context.source
         ];
         return messageArgs;

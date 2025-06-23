@@ -59,6 +59,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         return LastingEffectSystemHelpers.getEffectMessage(
+            this,
             context,
             properties,
             additionalProperties,
