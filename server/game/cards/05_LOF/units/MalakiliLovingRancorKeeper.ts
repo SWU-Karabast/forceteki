@@ -1,9 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -15,17 +13,17 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, { stateWatchers }): void {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
+    public override setupCardAbilities({ AbilityLimit, ongoingEffects }) {
         this.addConstantAbility({
             title: 'The first Creature unit you play each phase costs 1 resource less',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             targetZoneFilter: WildcardZoneName.AnyArena,
-            ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
+            ongoingEffect: ongoingEffects.decreaseCost({
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 match: (card) => this.isFirstCreaturePlayedByControllerThisPhase(card),
                 amount: 1,

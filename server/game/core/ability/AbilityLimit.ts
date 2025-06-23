@@ -2,6 +2,8 @@ import type EventEmitter from 'events';
 import { EventName } from '../Constants';
 import type { Player } from '../Player';
 import type { CardAbility } from './CardAbility';
+import { GameObjectBase } from '../GameObjectBase';
+import type Game from '../Game';
 
 export interface IAbilityLimit {
     ability?: CardAbility;
@@ -16,13 +18,13 @@ export interface IAbilityLimit {
     isEpicActionLimit(): this is EpicActionLimit;
 }
 
-export class UnlimitedAbilityLimit implements IAbilityLimit {
+export class UnlimitedAbilityLimit extends GameObjectBase implements IAbilityLimit {
     public ability?: CardAbility;
     public currentUser: null | string = null;
     private useCount = new Map<string, number>();
 
     public clone() {
-        return new UnlimitedAbilityLimit();
+        return new UnlimitedAbilityLimit(this.game);
     }
 
     public isRepeatable(): boolean {
@@ -64,15 +66,19 @@ export class UnlimitedAbilityLimit implements IAbilityLimit {
     }
 }
 
-export class PerGameAbilityLimit implements IAbilityLimit {
+export class PerGameAbilityLimit extends GameObjectBase implements IAbilityLimit {
     public ability?: CardAbility;
     public currentUser: null | string = null;
     private useCount = new Map<string, number>();
+    public max: number;
 
-    public constructor(public max: number) {}
+    public constructor(game: Game, max: number) {
+        super(game);
+        this.max = max;
+    }
 
     public clone() {
-        return new PerGameAbilityLimit(this.max);
+        return new PerGameAbilityLimit(this.game, this.max);
     }
 
     public isRepeatable(): boolean {
@@ -119,15 +125,18 @@ export class PerGameAbilityLimit implements IAbilityLimit {
 }
 
 export class RepeatableAbilityLimit extends PerGameAbilityLimit {
+    private eventName: Set<EventName>;
     public constructor(
+        game: Game,
         max: number,
-        private eventName: Set<EventName>
+        eventName: Set<EventName>
     ) {
-        super(max);
+        super(game, max);
+        this.eventName = eventName;
     }
 
     public override clone() {
-        return new RepeatableAbilityLimit(this.max, this.eventName);
+        return new RepeatableAbilityLimit(this.game, this.max, this.eventName);
     }
 
     public override isRepeatable(): boolean {
@@ -148,12 +157,12 @@ export class RepeatableAbilityLimit extends PerGameAbilityLimit {
 }
 
 export class EpicActionLimit extends PerGameAbilityLimit {
-    public constructor() {
-        super(1);
+    public constructor(game: Game) {
+        super(game, 1);
     }
 
     public override clone() {
-        return new EpicActionLimit();
+        return new EpicActionLimit(this.game);
     }
 
     public override isEpicActionLimit(): this is EpicActionLimit {
@@ -165,26 +174,33 @@ export class EpicActionLimit extends PerGameAbilityLimit {
     public override reset() {}
 }
 
-export function repeatable(max: number, eventName: EventName) {
-    return new RepeatableAbilityLimit(max, new Set([eventName]));
-}
+export class AbilityLimitInstance {
+    private readonly game: Game;
+    public constructor(game: Game) {
+        this.game = game;
+    }
 
-export function perPhase(max: number) {
-    return new RepeatableAbilityLimit(max, new Set([EventName.OnPhaseEnded]));
-}
+    public repeatable(max: number, eventName: EventName) {
+        return new RepeatableAbilityLimit(this.game, max, new Set([eventName]));
+    }
 
-export function perRound(max: number) {
-    return new RepeatableAbilityLimit(max, new Set([EventName.OnRoundEnded]));
-}
+    public perPhase(max: number) {
+        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnPhaseEnded]));
+    }
 
-export function perGame(max: number) {
-    return new PerGameAbilityLimit(max);
-}
+    public perRound(max: number) {
+        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnRoundEnded]));
+    }
 
-export function epicAction() {
-    return new EpicActionLimit();
-}
+    public perGame(max: number) {
+        return new PerGameAbilityLimit(this.game, max);
+    }
 
-export function unlimited() {
-    return new UnlimitedAbilityLimit();
+    public epicAction() {
+        return new EpicActionLimit(this.game);
+    }
+
+    public unlimited() {
+        return new UnlimitedAbilityLimit(this.game);
+    }
 }

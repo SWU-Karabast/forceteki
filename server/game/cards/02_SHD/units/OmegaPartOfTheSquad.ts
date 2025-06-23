@@ -1,5 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -15,11 +14,11 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
+    public override setupCardAbilities(_, AbilityHelper) {
         this.addConstantAbility({
             title: 'Ignore the aspect penalty on the first Clone unit you play each round',
             targetController: RelativePlayer.Self,
@@ -28,7 +27,7 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 match: (card) => this.isFirstClonePlayedByControllerThisPhase(card),
-                limit: AbilityLimit.perRound(1)
+                limit: AbilityHelper.AbilityLimit.perRound(1)
             }),
         });
 
