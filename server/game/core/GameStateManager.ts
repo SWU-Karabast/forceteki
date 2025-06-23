@@ -12,7 +12,7 @@ export interface IGameSnapshot {
 
     gameState: IGameState;
     states: IGameObjectBaseState[];
-    settings: ISnapshotSettings;
+    settings: AnySnapshotSettings;
 }
 
 export interface IGameState {
@@ -28,13 +28,29 @@ const maxPlayerSnapshots = 2; // 2 for current and previous turns.
 const maxPhaseSnapshots = 2; // 2 for current and previous of a specific phase.
 const maxRoundSnapshots = 2; // Current and previous start of round.
 
-export interface ISnapshotSettings {
-    type: SnapshotType;
-    phaseName?: string;
-    phaseOffset?: number;
+export interface IPlayerSnapshotSettings {
+    type: SnapshotType.Player;
+
+    /** Player this snapshot is taken for. Will use the current active player if not provided. */
     playerRef?: GameObjectRef<Player>;
-    round?: number;
 }
+
+export interface IPhaseSnapshotSettings {
+    type: SnapshotType.Phase;
+
+    /** Name of the phase for the snapshot. */
+    phaseName: string;
+
+    /** How many snapshots back of this phase to rollback. Only used by `rollbackTo`. */
+    phaseOffset?: number;
+}
+
+export interface IRoundSnapshotSettings {
+    type: SnapshotType.Round;
+    round: number;
+}
+
+export type AnySnapshotSettings = IPlayerSnapshotSettings | IPhaseSnapshotSettings | IRoundSnapshotSettings;
 
 export class GameStateManager {
     private readonly game: Game;
@@ -90,7 +106,7 @@ export class GameStateManager {
         this.allPlayerSnapshots.clear();
     }
 
-    public takeSnapshot(options: ISnapshotSettings): number {
+    public takeSnapshot(options: AnySnapshotSettings): number {
         const nextSnapshotId = this.lastSnapshotId + 1;
         const snapshot: IGameSnapshot = {
             id: nextSnapshotId,
@@ -135,7 +151,7 @@ export class GameStateManager {
         return snapshot.id;
     }
 
-    public rollbackTo(settings: ISnapshotSettings) {
+    public rollbackTo(settings: AnySnapshotSettings) {
         let snapshot: IGameSnapshot;
 
         if (settings.type === SnapshotType.Player) {

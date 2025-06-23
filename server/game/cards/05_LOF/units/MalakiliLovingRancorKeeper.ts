@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -43,7 +44,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         });
     }
 
-    private isFirstCreaturePlayedByControllerThisPhase(card) {
+    private isFirstCreaturePlayedByControllerThisPhase(card: Card) {
         return card.hasSomeTrait(Trait.Creature) &&
           !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
               playedCardEntry.playedBy === card.controller &&
