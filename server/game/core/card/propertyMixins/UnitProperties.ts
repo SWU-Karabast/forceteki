@@ -1100,7 +1100,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         public override addOngoingEffect(ongoingEffect: OngoingCardEffect): void {
             if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
                 this.lastPlayerToModifyHp = ongoingEffect.context.source.controller;
-                this.expiredLastingEffectChangedRemainingHp = false;
+                this.state.expiredLastingEffectChangedRemainingHp = false;
             }
             super.addOngoingEffect(ongoingEffect);
         }
@@ -1111,7 +1111,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     this.lastPlayerToModifyHp = this.game.currentAbilityResolver.context.player;
                 }
 
-                this.expiredLastingEffectChangedRemainingHp = ongoingEffect.context.ongoingEffect?.isLastingEffect ?? false;
+                this.state.expiredLastingEffectChangedRemainingHp = ongoingEffect.context.ongoingEffect?.isLastingEffect ?? false;
             }
             super.removeOngoingEffect(ongoingEffect);
         }
