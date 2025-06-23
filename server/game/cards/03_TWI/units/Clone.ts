@@ -3,7 +3,10 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Duration, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class Clone extends NonLeaderUnitCard {
-    protected override overrideNotImplemented = true;
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    protected override get overrideNotImplemented(): boolean {
+        return true;
+    }
 
     protected override getImplementationId() {
         return {
