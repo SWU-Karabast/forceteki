@@ -5,6 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
+import { constants as zlibConstants } from 'zlib';
 
 import { logger } from '../logger';
 
@@ -137,7 +138,9 @@ export class GameServer {
 
         // Setup socket server
         this.io = new IOServer(server, {
-            perMessageDeflate: {},
+            perMessageDeflate: {
+                level: zlibConstants.Z_BEST_SPEED
+            },
             path: '/ws',
             cors: {
                 origin: env.corsOrigins,
