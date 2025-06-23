@@ -125,7 +125,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly canBeUpgrade: boolean;
     protected readonly hasNonKeywordAbilityText: boolean;
     protected readonly hasImplementationFile: boolean;
-    protected readonly overrideNotImplemented: boolean = false;
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
     protected readonly backsidePrintedTraits: Set<Trait>;
@@ -152,6 +151,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     protected set movedFromZone(value: ZoneName | null) {
         this.state.movedFromZone = value;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    protected get overrideNotImplemented(): boolean {
+        return false;
     }
 
     protected get printedType(): CardType {
