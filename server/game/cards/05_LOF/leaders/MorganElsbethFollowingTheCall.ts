@@ -5,7 +5,6 @@ import { CostAdjustType } from '../../../../../server/game/core/cost/CostAdjuste
 import type { StateWatcherRegistrar } from '../../../../../server/game/core/stateWatcher/StateWatcherRegistrar';
 import { setIntersection, setUnion } from '../../../../../server/game/core/utils/Helpers';
 import type { AttacksThisPhaseWatcher } from '../../../../../server/game/stateWatchers/AttacksThisPhaseWatcher';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
     private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;
@@ -60,7 +59,7 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,
-                    limit: AbilityLimit.perGame(1),
+                    limit: AbilityHelper.limit.perGame(1),
                     amount: (card, player) => {
                         const cardKeywords = new Set(card.keywords.map((keyword) => keyword.name));
                         const inPlayKeywords = player.getArenaUnits()

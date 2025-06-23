@@ -2,7 +2,6 @@ import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import AbilityHelper from '../../../AbilityHelper';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class GeneralsBlade extends UpgradeCard {
     protected override getImplementationId() {
@@ -23,7 +22,7 @@ export default class GeneralsBlade extends UpgradeCard {
                 ongoingEffectTargetDescription: 'them',
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,
-                    limit: AbilityLimit.perGame(1),
+                    limit: AbilityHelper.limit.perGame(1),
                     amount: 2
                 })
             }),

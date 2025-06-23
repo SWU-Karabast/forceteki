@@ -13,14 +13,20 @@ import { DeployLeaderSystem } from '../../gameSystems/DeployLeaderSystem';
 import type { ActionAbility } from '../ability/ActionAbility';
 import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import { WithLeaderProperties } from './propertyMixins/LeaderProperties';
+import type { IInPlayCardState } from './baseClasses/InPlayCard';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import AbilityHelper from '../../AbilityHelper';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import type { GameObjectRef } from '../GameObjectBase';
 
-const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
+const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard<ILeaderUnitCardState>));
 
 /** Represents a deployable leader in a deployed state (i.e., is also a unit) */
 export interface ILeaderUnitCard extends ILeaderCard, IUnitCard {}
+
+export interface ILeaderUnitCardState extends IInPlayCardState {
+    deployEpicActionLimit: GameObjectRef<EpicActionLimit>;
+}
 
 /** Represents a deployable leader in an undeployed state */
 export interface IDeployableLeaderCard extends ILeaderUnitCard {
@@ -31,7 +37,11 @@ export interface IDeployableLeaderCard extends ILeaderUnitCard {
 
 export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDeployableLeaderCard {
     protected setupLeaderUnitSide;
-    protected deployEpicActionLimit: EpicActionLimit;
+
+    protected get deployEpicActionLimit() {
+        return this.game.getFromRef(this.state.deployEpicActionLimit);
+    }
+
     protected deployEpicActions: ActionAbility[];
 
     public get deployed() {
@@ -76,7 +86,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     protected override initializeStateForAbilitySetup() {
         super.initializeStateForAbilitySetup();
         this.deployEpicActions = [];
-        this.deployEpicActionLimit = new EpicActionLimit();
+        this.state.deployEpicActionLimit = new EpicActionLimit(this.game).getRef();
     }
 
     public override isUnit(): this is IUnitCard {

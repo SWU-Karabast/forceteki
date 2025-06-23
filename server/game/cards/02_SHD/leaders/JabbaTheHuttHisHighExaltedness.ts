@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -25,7 +24,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
-                                    limit: AbilityLimit.perGame(1),
+                                    limit: AbilityHelper.limit.perGame(1),
                                     amount: 1
                                 })
                             })
@@ -70,7 +69,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
-                                    limit: AbilityLimit.perGame(1),
+                                    limit: AbilityHelper.limit.perGame(1),
                                     amount: 2
                                 })
                             })

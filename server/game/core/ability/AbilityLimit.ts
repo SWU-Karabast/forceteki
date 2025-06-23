@@ -2,6 +2,7 @@ import type EventEmitter from 'events';
 import { EventName } from '../Constants';
 import type { Player } from '../Player';
 import type { CardAbility } from './CardAbility';
+import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type Game from '../Game';
 
@@ -18,10 +19,17 @@ export interface IAbilityLimit {
     isEpicActionLimit(): this is EpicActionLimit;
 }
 
-export class UnlimitedAbilityLimit extends GameObjectBase implements IAbilityLimit {
+interface IAbilityLimitState extends IGameObjectBaseState {
+    useCount: Map<string, number>;
+}
+
+export class UnlimitedAbilityLimit extends GameObjectBase<IAbilityLimitState> implements IAbilityLimit {
     public ability?: CardAbility;
     public currentUser: null | string = null;
-    private useCount = new Map<string, number>();
+
+    protected override setupDefaultState(): void {
+        this.state.useCount = new Map();
+    }
 
     public clone() {
         return new UnlimitedAbilityLimit(this.game);
@@ -37,11 +45,11 @@ export class UnlimitedAbilityLimit extends GameObjectBase implements IAbilityLim
 
     public increment(player: Player): void {
         const key = this.getKey(player.name);
-        this.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.state.useCount.set(key, this.currentForPlayer(player) + 1);
     }
 
     public reset(): void {
-        this.useCount.clear();
+        this.state.useCount.clear();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -51,7 +59,7 @@ export class UnlimitedAbilityLimit extends GameObjectBase implements IAbilityLim
     public unregisterEvents(eventEmitter: EventEmitter): void {}
 
     public currentForPlayer(player: Player) {
-        return this.useCount.get(this.getKey(player.name)) ?? 0;
+        return this.state.useCount.get(this.getKey(player.name)) ?? 0;
     }
 
     public isEpicActionLimit(): this is EpicActionLimit {
@@ -66,15 +74,18 @@ export class UnlimitedAbilityLimit extends GameObjectBase implements IAbilityLim
     }
 }
 
-export class PerGameAbilityLimit extends GameObjectBase implements IAbilityLimit {
+export class PerGameAbilityLimit extends GameObjectBase<IAbilityLimitState> implements IAbilityLimit {
     public ability?: CardAbility;
     public currentUser: null | string = null;
-    private useCount = new Map<string, number>();
     public max: number;
 
     public constructor(game: Game, max: number) {
         super(game);
         this.max = max;
+    }
+
+    protected override setupDefaultState(): void {
+        this.state.useCount = new Map();
     }
 
     public clone() {
@@ -91,11 +102,11 @@ export class PerGameAbilityLimit extends GameObjectBase implements IAbilityLimit
 
     public increment(player: Player): void {
         const key = this.getKey(player.name);
-        this.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.state.useCount.set(key, this.currentForPlayer(player) + 1);
     }
 
     public reset(): void {
-        this.useCount.clear();
+        this.state.useCount.clear();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -105,7 +116,7 @@ export class PerGameAbilityLimit extends GameObjectBase implements IAbilityLimit
     public unregisterEvents(eventEmitter: EventEmitter): void {}
 
     public currentForPlayer(player: Player) {
-        return this.useCount.get(this.getKey(player.name)) ?? 0;
+        return this.state.useCount.get(this.getKey(player.name)) ?? 0;
     }
 
     public isEpicActionLimit(): this is EpicActionLimit {
@@ -125,7 +136,7 @@ export class PerGameAbilityLimit extends GameObjectBase implements IAbilityLimit
 }
 
 export class RepeatableAbilityLimit extends PerGameAbilityLimit {
-    private eventName: Set<EventName>;
+    private readonly eventName: Set<EventName>;
     public constructor(
         game: Game,
         max: number,

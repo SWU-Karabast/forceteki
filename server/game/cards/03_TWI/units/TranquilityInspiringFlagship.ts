@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -28,7 +27,7 @@ export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     match: (card) => card.hasSomeTrait(Trait.Republic),
-                    limit: AbilityLimit.perGame(3),
+                    limit: AbilityHelper.limit.perGame(3),
                     amount: 1
                 })
             })

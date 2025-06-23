@@ -1,4 +1,3 @@
-import type { IAbilityHelper } from '../../../AbilityHelper';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import * as Contract from '../../utils/Contract';
 import type { CardConstructor, ICardState } from '../Card';
@@ -12,7 +11,7 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TSta
 
             const [Player, cardData] = this.unpackConstructorArgs(...args);
 
-            this.setupCardAbilities(this, this.game.abilityHelper);
+            this.setupCardAbilities(this);
             this.validateCardAbilities(this.triggeredAbilities as TriggeredAbility[], cardData.text);
 
             // if an implementation file is provided, enforce that all keywords requiring explicit setup have been set up
@@ -30,6 +29,6 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TSta
          * Create card abilities by calling subsequent methods with appropriate properties
          */
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        protected setupCardAbilities(sourceCard: this, AbilityHelper: IAbilityHelper) { }
+        protected setupCardAbilities(sourceCard: this) { }
     };
 }

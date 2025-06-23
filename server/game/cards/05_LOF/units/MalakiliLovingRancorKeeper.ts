@@ -1,3 +1,4 @@
+import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -13,21 +14,21 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar, { stateWatchers }): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities({ AbilityLimit, ongoingEffects }) {
+    public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'The first Creature unit you play each phase costs 1 resource less',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             targetZoneFilter: WildcardZoneName.AnyArena,
-            ongoingEffect: ongoingEffects.decreaseCost({
+            ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 match: (card) => this.isFirstCreaturePlayedByControllerThisPhase(card),
                 amount: 1,
-                limit: AbilityLimit.perRound(1)
+                limit: AbilityHelper.limit.perRound(1)
             }),
         });
 

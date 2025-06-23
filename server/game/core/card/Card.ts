@@ -45,7 +45,6 @@ import type { GameObjectRef } from '../GameObjectBase';
 import { logger } from '../../../logger';
 import type Experience from '../../cards/01_SOR/tokens/Experience';
 import { ConstantAbility } from '../ability/ConstantAbility';
-import type { IAbilityHelper } from '../../AbilityHelper';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -305,7 +304,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             );
         }
 
-        this.setupStateWatchers(this.owner.game.stateWatcherRegistrar, this.owner.game.abilityHelper);
+        this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
         this.initializeStateForAbilitySetup();
     }
 
@@ -440,7 +439,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper) {
+    protected setupStateWatchers(registrar: StateWatcherRegistrar) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

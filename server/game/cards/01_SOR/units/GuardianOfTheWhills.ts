@@ -1,5 +1,4 @@
 import AbilityHelper from '../../../AbilityHelper';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -38,7 +37,7 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
                 amount: 1,
                 match: (card, adjusterSource) => card.isUpgrade() && this.isFirstUpgradePlayedOnThisCopy(card, adjusterSource),
                 attachTargetCondition: (attachTarget, adjusterSource) => attachTarget === adjusterSource,
-                limit: AbilityLimit.perRound(1),
+                limit: AbilityHelper.limit.perRound(1),
             }),
         });
     }

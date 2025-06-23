@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Duration, TargetMode } from '../../../core/Constants';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class QiraPlayingHerPart extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -32,7 +31,7 @@ export default class QiraPlayingHerPart extends NonLeaderUnitCard {
                         effect: AbilityHelper.ongoingEffects.increaseCost({
                             amount: 3,
                             match: (card) => card.title === thenContext.select,
-                            limit: AbilityLimit.unlimited()
+                            limit: AbilityHelper.limit.unlimited()
                         })
                     }))
                 })

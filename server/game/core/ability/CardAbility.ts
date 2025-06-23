@@ -1,7 +1,6 @@
 import type { ZoneFilter } from '../Constants';
 import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, PlayType } from '../Constants';
 import * as Contract from '../utils/Contract';
-import * as AbilityLimit from './AbilityLimit';
 import * as Helpers from '../utils/Helpers';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
@@ -12,6 +11,7 @@ import * as ChatHelpers from '../chat/ChatHelpers';
 import { CardAbilityStep } from './CardAbilityStep';
 import type { AbilityContext } from './AbilityContext';
 import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility';
+import { UnlimitedAbilityLimit } from './AbilityLimit';
 
 export interface ICardAbilityState extends IPlayerOrCardAbilityState {
     placeholder?: false;
@@ -26,7 +26,7 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
     public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
 
-        this.limit = properties.limit || AbilityLimit.unlimited();
+        this.limit = properties.limit || new UnlimitedAbilityLimit(this.game);
         this.limit.registerEvents(game);
         this.limit.ability = this;
 

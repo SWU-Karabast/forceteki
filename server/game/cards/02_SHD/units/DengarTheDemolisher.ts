@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class DengarTheDemolisher extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +15,7 @@ export default class DengarTheDemolisher extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) => event.player === context.player && event.card.isUpgrade(),
             },
-            limit: AbilityLimit.unlimited(),
+            limit: AbilityHelper.limit.unlimited(),
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 1,
