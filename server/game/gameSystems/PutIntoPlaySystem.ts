@@ -21,6 +21,7 @@ export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
 export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPutIntoPlayProperties> {
     public override readonly name = 'putIntoPlay';
     public override readonly eventName = EventName.OnUnitEntersPlay;
+    public override effectDescription = 'put {0} into play';
     public override readonly costDescription = 'putting {0} into play';
 
     protected override readonly targetTypeFilter = [WildcardCardType.Unit];
@@ -42,11 +43,6 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         } else {
             event.card.exhaust();
         }
-    }
-
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { target } = this.generatePropertiesFromContext(context);
-        return ['put {0} into play', [target]];
     }
 
     public override canAffectInternal(card: Card, context: TContext): boolean {

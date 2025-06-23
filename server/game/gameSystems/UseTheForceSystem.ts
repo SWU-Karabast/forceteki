@@ -27,7 +27,7 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
             return ['use the Force', []];
         }
 
-        return ['make {0} use the Force', [properties.target]];
+        return ['make {0} use the Force', [this.getTargetMessage(properties.target, context)]];
     }
 
     public override defaultTargets(context: TContext): Player[] {

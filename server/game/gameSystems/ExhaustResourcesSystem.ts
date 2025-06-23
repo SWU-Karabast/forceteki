@@ -25,7 +25,7 @@ export class ExhaustResourcesSystem<TContext extends AbilityContext = AbilityCon
             return ['pay {0}', [ChatHelpers.pluralize(properties.amount, '1 resource', 'resources')]];
         }
 
-        return ['make {0} pay {1}', [properties.target, ChatHelpers.pluralize(properties.amount, '1 resource', 'resources')]];
+        return ['make {0} pay {1}', [this.getTargetMessage(properties.target, context), ChatHelpers.pluralize(properties.amount, '1 resource', 'resources')]];
     }
 
     public override getCostMessage(context: TContext): [string, any[]] {

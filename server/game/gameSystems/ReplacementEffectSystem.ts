@@ -71,9 +71,9 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             return [effect, []];
         }
         if (replacementImmediateEffect) {
-            return ['{0} instead of {1}', [replacementImmediateEffect.getEffectMessage(context), context.event.card]];
+            return ['{0} instead of {1}', [replacementImmediateEffect.getEffectMessage(context), this.getTargetMessage(context.event.card, context)]];
         }
-        return ['cancel the effects of {0}', [context.event.card]];
+        return ['cancel the effects of {0}', [this.getTargetMessage(context.event.card, context)]];
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}) {

@@ -16,6 +16,6 @@ export class GiveExperienceSystem<TContext extends AbilityContext = AbilityConte
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
 
-        return ['give {0} to {1}', [ChatHelpers.pluralize(properties.amount, 'an Experience token', 'Experience tokens'), properties.target]];
+        return ['give {0} to {1}', [ChatHelpers.pluralize(properties.amount, 'an Experience token', 'Experience tokens'), this.getTargetMessage(properties.target, context)]];
     }
 }

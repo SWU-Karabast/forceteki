@@ -32,7 +32,7 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
 
     public override getEffectMessage(context: TContext, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['deploy {0} and attach it to {1}', [properties.leaderPilotCard, properties.target]];
+        return ['deploy {0} and attach it to {1}', [properties.leaderPilotCard, this.getTargetMessage(properties.target, context)]];
     }
 
     public override canAffectInternal(card: Card, context: TContext): boolean {

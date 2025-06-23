@@ -31,7 +31,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
     public override getMessageArgs(event: any, context: TContext, additionalProperties: Partial<ILookAtProperties>): any[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
-            this.getPromptedPlayer(properties, context), event.cards
+            this.getPromptedPlayer(properties, context), this.getTargetMessage(event.cards, context)
         ];
         return messageArgs;
     }
