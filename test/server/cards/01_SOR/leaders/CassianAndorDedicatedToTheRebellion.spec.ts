@@ -1,6 +1,8 @@
 describe('Cassian Andor, Dedicated to the Rebellion', function() {
     integration(function(contextRef) {
         describe('Cassian Andor\'s leader ability', function() {
+            const prompt = 'If you\'ve dealt 3 or more damage to an enemy base this phase, draw a card.';
+
             it('should draw a card aftering dealing 3 damage to an enemy base with an attack', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -72,6 +74,88 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(4);
                 expect(context.player1.hand).toContain(context.openFire);
             });
+
+            it('works with overwhelm damage', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cassian-andor#dedicated-to-the-rebellion',
+                        groundArena: ['k2so#cassians-counterpart'],
+                        hand: []
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.k2so);
+                context.player1.clickCard(context.deathStarStormtrooper);
+
+                expect(context.p2Base.damage).toBe(3);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.cassianAndor);
+                context.player1.clickPrompt(prompt);
+
+                expect(context.cassianAndor.exhausted).toBeTrue();
+                expect(context.player1.hand).toHaveSize(1);
+            });
+
+            it('works with indirect damage', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cassian-andor#dedicated-to-the-rebellion',
+                        hand: ['kimogila-heavy-fighter']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.kimogilaHeavyFighter);
+                context.player1.clickPrompt('Deal indirect damage to opponent');
+
+                expect(context.p2Base.damage).toBe(3);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.cassianAndor);
+                context.player1.clickPrompt(prompt);
+
+                expect(context.cassianAndor.exhausted).toBeTrue();
+                expect(context.player1.hand).toHaveSize(1);
+            });
+
+            it('does not count damage dealt to the player\'s own base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cassian-andor#dedicated-to-the-rebellion',
+                        hand: ['kimogila-heavy-fighter']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.kimogilaHeavyFighter);
+                context.player1.clickPrompt('Deal indirect damage to yourself');
+                context.player1.setDistributeIndirectDamagePromptState(new Map([
+                    [context.p1Base, 3]
+                ]));
+
+                expect(context.p1Base.damage).toBe(3);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.cassianAndor);
+                context.player1.clickPrompt(prompt);
+
+                expect(context.player1).toHavePrompt(`The ability "${prompt}" will have no effect. Are you sure you want to use it?`);
+                context.player1.clickPrompt('Use it anyway');
+
+                expect(context.cassianAndor.exhausted).toBeTrue();
+                expect(context.player1.hand).toHaveSize(0);
+            });
         });
 
         describe('Cassian Andor\'s leader unit ability', function() {
@@ -103,6 +187,9 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCard(context.p2Base);
 
+                expect(context.player1).toHavePassAbilityPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
+
                 expect(context.player1.hand).toHaveSize(2);
                 expect(context.player1.hand).toContain(context.k2so);
                 expect(context.player1.exhaustedResourceCount).toBe(0); // no resources spent now
@@ -125,11 +212,86 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 context.player1.clickCard(context.daringRaid);
                 context.player1.clickCard(context.p2Base);
 
+                expect(context.player1).toHavePassAbilityPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
+
                 context.player2.passAction();
 
                 // Expect to have spent daring-raid and gained red three
                 expect(context.player1.hand).toHaveSize(2);
                 expect(context.player1.hand).toContain(context.redThree);
+            });
+
+            it('works with overwhelm damage', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'cassian-andor#dedicated-to-the-rebellion', deployed: true },
+                        groundArena: ['k2so#cassians-counterpart'],
+                        hand: []
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.k2so);
+                context.player1.clickCard(context.deathStarStormtrooper);
+
+                expect(context.p2Base.damage).toBe(3);
+
+                expect(context.player1).toHavePassAbilityPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1.hand).toHaveSize(1);
+            });
+
+            it('works with indirect damage', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'cassian-andor#dedicated-to-the-rebellion', deployed: true },
+                        hand: ['kimogila-heavy-fighter']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.kimogilaHeavyFighter);
+                context.player1.clickPrompt('Deal indirect damage to opponent');
+
+                expect(context.p2Base.damage).toBe(3);
+
+                expect(context.player1).toHavePassAbilityPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1.hand).toHaveSize(1);
+            });
+
+            it('does not trigger when dealing damage to the player\'s own base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'cassian-andor#dedicated-to-the-rebellion', deployed: true },
+                        hand: ['kimogila-heavy-fighter']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.kimogilaHeavyFighter);
+                context.player1.clickPrompt('Deal indirect damage to yourself');
+                context.player1.setDistributeIndirectDamagePromptState(new Map([
+                    [context.p1Base, 3]
+                ]));
+
+                expect(context.p1Base.damage).toBe(3);
+
+                // No card draw should have happened
+                expect(context.player1).not.toHavePassAbilityPrompt('Draw a card');
+                expect(context.player1.hand).toHaveSize(0);
             });
         });
     });
