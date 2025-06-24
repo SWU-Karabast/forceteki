@@ -25,7 +25,9 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
                 condition: (context) => {
                     const damageDealtToBase = this.damageDealtThisPhaseWatcher.getDamageDealtByPlayer(
                         context.player,
-                        (damage) => damage.target.isBase()
+                        (damage) =>
+                            damage.target.isBase() &&
+                            damage.target.controller !== context.player
                     ).reduce((sum, damage) => sum + damage.amount, 0);
 
                     return damageDealtToBase >= 3;
@@ -39,9 +41,11 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
         this.addTriggeredAbility({
             title: 'Draw a card',
             collectiveTrigger: true,
+            optional: true,
             when: {
                 onDamageDealt: (event, context) =>
                     event.card.isBase() &&
+                    event.card.controller !== context.player &&
                     event.damageSource.player === context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
