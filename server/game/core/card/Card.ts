@@ -1204,7 +1204,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public override getShortSummary() {
-        return { ...super.getShortSummary(), controllerId: this.controller.id };
+        return {
+            ...super.getShortSummary(),
+            controllerId: this.controller.id,
+            setId: this.setId,
+        };
     }
 
     public override getShortSummaryForControls(activePlayer: Player): any {
