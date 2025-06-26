@@ -24,6 +24,11 @@ export enum SnapshotType {
     Round = 'round'
 }
 
+export enum ChatObjectType {
+    Player = 'player',
+    Card = 'card',
+}
+
 /**
  * Helper type used when a passed ZoneName represents a move destination.
  * Used to account for moving to top or bottom of deck.
