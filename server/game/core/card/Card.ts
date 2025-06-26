@@ -13,7 +13,7 @@ import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
-import { KeywordName } from '../Constants';
+import { ChatObjectType, KeywordName } from '../Constants';
 import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { AbilityContext } from '../ability/AbilityContext';
@@ -1208,6 +1208,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             ...super.getShortSummary(),
             controllerId: this.controller.id,
             setId: this.setId,
+            type: ChatObjectType.Card,
         };
     }
 
