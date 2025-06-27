@@ -21,10 +21,11 @@ import type { IPassAbilityHandler } from '../../gameSteps/AbilityResolver';
  * Target resolver for selecting cards for the target of an effect.
  */
 export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<AbilityContext>> {
-    private immediateEffect: GameSystem;
-    private selector: BaseCardSelector<AbilityContext>;
+    private readonly immediateEffect: GameSystem;
+    private readonly selector: BaseCardSelector<AbilityContext>;
+    private readonly targetMode: TargetMode;
 
-    private static choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
+    private static readonly choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
 
     public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
         if (!zoneFilter) {
@@ -40,6 +41,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         if (this.properties.mode === TargetMode.UpTo || this.properties.mode === TargetMode.UpToVariable) {
             this.properties.canChooseNoCards = this.properties.canChooseNoCards ?? true;
         }
+
+        this.targetMode = this.properties.mode || TargetMode.Single;
 
         if ('canChooseNoCards' in this.properties) {
             this.properties.optional = this.properties.optional || this.properties.canChooseNoCards;
@@ -86,7 +89,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     protected override setTargetResult(context: AbilityContext, target: Card | Card[]): void {
-        super.setTargetResult(context, this.properties.mode === TargetMode.Single || this.properties.mode == null ? target : Helpers.asArray(target));
+        super.setTargetResult(context, this.targetMode === TargetMode.Single ? target : Helpers.asArray(target));
     }
 
     public override hasLegalTarget(context: AbilityContext) {
@@ -132,7 +135,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         ) {
             let effectiveTargetFound = false;
             for (const target of legalTargets) {
-                const contextWithTarget = this.getContextCopy(target, context, this.properties.mode);
+                const contextWithTarget = this.getContextCopy(target, context, this.targetMode);
 
                 if (this.immediateEffect.hasLegalTarget(contextWithTarget, {}, GameStateChangeRequired.MustFullyOrPartiallyResolve)) {
                     effectiveTargetFound = true;
@@ -275,7 +278,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         }
 
         return this.getAllLegalTargets(context).some((card) => {
-            const contextCopy = this.getContextCopy(card, context, this.properties.mode);
+            const contextCopy = this.getContextCopy(card, context, this.targetMode);
             if (this.properties.immediateEffect && this.properties.immediateEffect.hasTargetsChosenByPlayer(contextCopy, player)) {
                 return true;
             }
