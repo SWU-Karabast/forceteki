@@ -230,7 +230,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
      * @returns The selection mode to be used.
      */
     private getSelectCardMode(context: AbilityContext): SelectCardMode {
-        const targetMode = this.properties.mode;
+        const targetMode = this.targetMode;
         if (targetMode === TargetMode.Single) {
             return SelectCardMode.Single;
         } else if (targetMode === TargetMode.BetweenVariable && this.selector) {
