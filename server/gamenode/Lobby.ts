@@ -879,8 +879,8 @@ export class Lobby {
      */
     private async endGameUpdateStatsAsync(game: Game): Promise<void> {
         try {
-            // Only update stats if the game has a winner
-            if (!game.winner || !game.finishedAt) {
+            // Only update stats if the game has a winner and made it into the second round at least
+            if (!game.winner || !game.finishedAt || this.game.roundNumber <= 1) {
                 return;
             }
 
@@ -924,10 +924,9 @@ export class Lobby {
                 logger.error(`Lobby ${this.id}: Missing information (${player2User.deckID}) for player2 ${player2.id}`);
                 return;
             }
-            if (this.game.roundNumber > 1) {
-                await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
-                await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
-            }
+
+            await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
+            await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
 
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
         } catch (error) {
