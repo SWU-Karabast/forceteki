@@ -162,6 +162,9 @@ export class Lobby {
     }
 
     private updateUserLastActivity(id: string): void {
+        // if we received a message we know the user is connected
+        this.getUser(id).state = 'connected';
+
         const now = new Date();
         this.userLastActivity.set(id, now);
 
@@ -328,8 +331,9 @@ export class Lobby {
         } else if (remainingSeconds > -4) {
             this.matchingCountdownText = 'Waiting for opponent to connect...';
 
+            this.sendLobbyState(true);
+
             if (this.users.length === 2 && this.users.every((u) => u.state === 'connected')) {
-                this.sendLobbyState();
                 return this.onStartGameAsync();
             }
         } else {
@@ -341,7 +345,7 @@ export class Lobby {
         this.matchingCountdownTimeoutHandle =
             this.buildSafeTimeout(() => this.quickLobbyCountdownAsync(remainingSeconds - 1), 1000, 'Lobby: error during quick lobby countdown');
 
-        this.sendLobbyState();
+        this.sendLobbyState(true);
         return Promise.resolve();
     }
 
@@ -944,7 +948,7 @@ export class Lobby {
         socket.socket.send('lobbystate', this.getLobbyState());
     }
 
-    public sendGameState(game: Game): void {
+    public sendGameState(game: Game, forceSend = false): void {
         // we check here if the game ended and update the stats.
         if (game.winner && game.finishedAt && !game.statsUpdated) {
             // Update deck stats asynchronously
@@ -953,21 +957,33 @@ export class Lobby {
                 logger.error(`Lobby ${this.id}: Failed to update deck stats:`, error);
             });
         }
+
+        // we send the game state to all users and spectators
+        // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
-            if (user.state === 'connected' && user.socket) {
-                user.socket.send('gamestate', game.getState(user.id));
+            if (user.socket && (user.socket.socket.connected || forceSend)) {
+                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
             }
         }
         for (const user of this.spectators) {
-            if (user.socket) {
-                user.socket.send('gamestate', game.getState(user.id));
+            if (user.socket && (user.socket.socket.connected || forceSend)) {
+                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
             }
         }
     }
 
-    public sendLobbyState(): void {
+    private safeSetUserConnected(userId: string): void {
+        try {
+            const user = this.getUser(userId);
+            user.state = 'connected';
+        } catch (error) {
+            logger.error(`Lobby: error setting user ${userId} connected`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId });
+        }
+    }
+
+    public sendLobbyState(forceSend = false): void {
         for (const user of this.users) {
-            if (user.state === 'connected' && user.socket) {
+            if (user.socket && (user.socket.socket.connected || forceSend)) {
                 user.socket.send('lobbystate', this.getLobbyState());
             }
         }
