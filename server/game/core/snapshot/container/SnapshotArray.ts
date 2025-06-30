@@ -6,6 +6,10 @@ import type { IClearNewerSnapshotsBinding } from './SnapshotContainerBase';
 import { SnapshotContainerBase } from './SnapshotContainerBase';
 import * as Contract from '../../utils/Contract.js';
 
+/**
+ * A {@link SnaphshotContainerBase} derived class that stores snapshots in a simple array representing a linear history.
+ * The array is bounded by a maximum length, and the snapshots are indexed using a negative offset where 0 is the current action's snapshot, -1 is the previous snapshot, etc.
+ */
 export class SnapshotArray extends SnapshotContainerBase {
     public readonly maxLength: number;
 
@@ -34,9 +38,15 @@ export class SnapshotArray extends SnapshotContainerBase {
         this.snapshots.push(currentSnapshot);
     }
 
-    /** @returns The ID of the snapshot that was rolled back to, or null if the rollback failed. */
+    /**
+     * Rolls back to a snapshot at the given offset from the current action point.
+     *
+     * @param offset The offset from the current action's snapshot to roll back to. 0 is the current snapshot, -1 is the previous snapshot, etc.
+     * Cannot be greater than the maximum history length (i.e. `-maxLength`).
+     * @returns The ID of the snapshot that was rolled back to, or `null` if there is not enough snapshot history to go back that far
+     */
     public rollbackToSnapshot(offset: number): number | null {
-        Contract.assertTrue(offset < 0 && offset >= -this.snapshots.length, `Snapshot offset must be less than zero and greater than or equal than max history length (-${this.snapshots.length}), got ${offset}`);
+        Contract.assertTrue(offset < 1 && offset >= -this.snapshots.length, `Snapshot offset must be less than one and greater than or equal than max history length (-${this.snapshots.length}), got ${offset}`);
 
         if (Math.abs(offset) >= this.snapshots.length) {
             return null; // Cannot rollback further than the available snapshots

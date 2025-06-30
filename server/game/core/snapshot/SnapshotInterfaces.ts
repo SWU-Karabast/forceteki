@@ -9,7 +9,7 @@ export interface ISnapshotSettingsBase {
 
 export interface IActionSnapshotSettings extends ISnapshotSettingsBase {
     type: SnapshotType.Action;
-    playerRef: GameObjectRef<Player>;
+    playerId: string;
 }
 
 export interface IPhaseSnapshotSettings extends ISnapshotSettingsBase {
@@ -19,7 +19,7 @@ export interface IPhaseSnapshotSettings extends ISnapshotSettingsBase {
 
 export interface IPlayerSnapshotSettings extends ISnapshotSettingsBase {
     type: SnapshotType.Player;
-    playerRef: GameObjectRef<Player>;
+    playerId: string;
 }
 
 export interface IRoundSnapshotSettings extends ISnapshotSettingsBase {

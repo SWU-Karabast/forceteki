@@ -9,6 +9,14 @@ export interface IClearNewerSnapshotsBinding {
     clearNewerSnapshots: IClearNewerSnapshotsHandler;
 }
 
+/**
+ * Base class for snapshot containers.Any data structure for managing snapshots **must** inherit from this to ensure correct behavior
+ * and to avoid causing memory issues by holding references to unused snapshots.
+ *
+ * This class manages the relationship with {@link SnapshotFactory} so that derived classes can focus on the data structure
+ * and snapshot management logic. It holds a handle to the `getCurrentSnapshotFn` which is used to retrieve the current snapshot,
+ * and it sends back a handle to the {@link SnapshotFactory} which is used to clear newer snapshots when a rollback occurs.
+ */
 export abstract class SnapshotContainerBase {
     protected readonly getCurrentSnapshotFn: IGetCurrentSnapshotHandler;
 
