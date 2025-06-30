@@ -190,7 +190,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             buttons: buttons,
             mustSelect: mustSelect,
             isOpponentEffect: player === context.player.opponent,
-            selectCardMode: this.targetMode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
+            selectCardMode: this.getSelectCardMode(context),
             hideIfNoLegalTargets: this.properties.hideIfNoLegalTargets,
             immediateEffect: this.immediateEffect,
             onSelect: (card) => {
@@ -222,6 +222,23 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             }
         };
         context.game.promptForSelect(player, promptProperties);
+    }
+
+    /**
+     * Determines which SelectCardMode should be used for this target resolver
+     * @param context The current ability context
+     * @returns The selection mode to be used.
+     */
+    private getSelectCardMode(context: AbilityContext): SelectCardMode {
+        const targetMode = this.targetMode;
+        if (targetMode === TargetMode.Single) {
+            return SelectCardMode.Single;
+        } else if (targetMode === TargetMode.BetweenVariable && this.selector) {
+            if (this.selector.automaticFireOnSelect(context)) {
+                return SelectCardMode.Single;
+            }
+        }
+        return SelectCardMode.Multiple;
     }
 
     private promptForSingleOptionalTarget(context: AbilityContext, target: Card) {
