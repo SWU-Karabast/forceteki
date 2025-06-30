@@ -1643,6 +1643,7 @@ class Game extends EventEmitter {
     takeSnapshot() {
         if (this.#experimental.undo && 'takeSnapshot' in this.pipeline.currentStep) {
             return this.pipeline.currentStep.takeSnapshot();
+        }
 
         return null;
     }
