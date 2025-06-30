@@ -13,7 +13,7 @@ export interface IStep {
     queueStep?(step: IStep): void;
     cancelStep?(): void;
     isComplete?(): boolean;
-    takeManualSnapshot?(): number;
+    takeSnapshot?(): number;
     rollbackToSnapshot?(snapshotId: number | null): void;
 
     /**
