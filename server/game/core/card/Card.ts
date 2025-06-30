@@ -1209,7 +1209,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             controllerId: this.controller.id,
             setId: this.setId,
             type: ChatObjectType.Card,
-            isBase: this.isBase()
+            printedType: this.printedType
         };
     }
 
