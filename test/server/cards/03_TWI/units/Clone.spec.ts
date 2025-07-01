@@ -1450,10 +1450,57 @@ describe('Clone', function() {
                 expect(context.clone).toBeCloneOf(context.vulptex);
                 expect(context.clone.hasSomeKeyword('hidden')).toBeTrue();
 
-                // Vulptex has Hidden, so it cannot be targeted by the Battlefield Marine
+                // Vulptex has Hidden, so Clone cannot be targeted by the Battlefield Marine
                 context.player2.clickCard(context.battlefieldMarine);
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base]);
                 context.player2.clickCard(context.p1Base);
+
+                context.moveToNextActionPhase();
+                context.player1.passAction();
+
+                // Clone can now be targeted for attack since Hidden's effect has expired
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.player2).toBeAbleToSelectExactly([context.clone, context.p1Base]);
+                context.player2.clickCard(context.clone);
+
+                expect(context.clone).toBeInZone('discard', context.player1);
+            });
+
+            it('copies multiple printed Keywords', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['gor#grievouss-pet']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'consular-security-force']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.gorGrievoussPet);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.gorGrievoussPet);
+
+                // It gains Ambush
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // It gains Overwhelm
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+                expect(context.p2Base.damage).toBe(4);
+
+                // It gains Sentinel (opponent can only attack the Sentinel units)
+                context.player2.clickCard(context.consularSecurityForce);
+                expect(context.player2).toBeAbleToSelectExactly([context.clone, context.gor]);
+                context.player2.clickCard(context.clone);
             });
 
             it('does not copy Keywords that are gained by other effects', async function () {
