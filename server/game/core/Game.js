@@ -46,6 +46,7 @@ const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
 const { CostAdjuster } = require('./cost/CostAdjuster.js');
 const { logger } = require('../../logger.js');
+const { SnapshotManager } = require('./snapshot/SnapshotManager.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -53,7 +54,7 @@ class Game extends EventEmitter {
 
     /** @returns { Player | null } */
     get actionPhaseActivePlayer() {
-        return this.gameObjectManager.get(this.state.actionPhaseActivePlayer);
+        return this.snapshotManager.get(this.state.actionPhaseActivePlayer);
     }
 
     /**
@@ -69,7 +70,7 @@ class Game extends EventEmitter {
 
     /** @returns { Player | null } */
     get initialFirstPlayer() {
-        return this.gameObjectManager.get(this.state.initialFirstPlayer);
+        return this.snapshotManager.get(this.state.initialFirstPlayer);
     }
 
     /**
@@ -81,7 +82,7 @@ class Game extends EventEmitter {
 
     /** @returns { Player | null } */
     get initiativePlayer() {
-        return this.gameObjectManager.get(this.state.initiativePlayer);
+        return this.snapshotManager.get(this.state.initiativePlayer);
     }
 
     /**
@@ -141,7 +142,7 @@ class Game extends EventEmitter {
         this.started = false;
         this.statsUpdated = false;
         this.playStarted = false;
-        this.gameObjectManager = new GameStateManager(this);
+        this.snapshotManager = new SnapshotManager(this);
         this.createdAt = new Date();
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
@@ -165,7 +166,7 @@ class Game extends EventEmitter {
         this.currentActionWindow = null;
         this.currentOpenPrompt = null;
 
-        /** @type { import('./GameStateManager.js').IGameState } */
+        /** @type { import('./snapshot/SnapshotInterfaces.js').IGameState } */
         this.state = {
             initialFirstPlayer: null,
             initiativePlayer: null,
@@ -1596,7 +1597,7 @@ class Game extends EventEmitter {
      * @returns {T | null}
      */
     getCard(gameRef) {
-        return this.gameObjectManager.get(gameRef);
+        return this.snapshotManager.get(gameRef);
     }
 
     // /*

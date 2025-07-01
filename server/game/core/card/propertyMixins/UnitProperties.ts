@@ -142,7 +142,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         public get lastPlayerToModifyHp(): Player {
             Contract.assertTrue(this.isInPlay());
-            return this.game.gameObjectManager.get(this.state.lastPlayerToModifyHp);
+            return this.game.snapshotManager.get(this.state.lastPlayerToModifyHp);
         }
 
         private set lastPlayerToModifyHp(value: Player) {
@@ -166,12 +166,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         public get captureZone() {
             this.assertPropertyEnabledForZone(this.state.captureZone, 'captureZone');
-            return this.game.gameObjectManager.get(this.state.captureZone);
+            return this.game.snapshotManager.get(this.state.captureZone);
         }
 
         public get upgrades(): IUpgradeCard[] {
             this.assertPropertyEnabledForZone(this.state.upgrades, 'upgrades');
-            return this.state.upgrades.map((x) => this.game.gameObjectManager.get(x));
+            return this.state.upgrades.map((x) => this.game.snapshotManager.get(x));
         }
 
         public get defaultArena(): Arena {
@@ -1084,7 +1084,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             super.afterSetState(oldState);
             // STATE: I don't wholly trust this covers all cases, but it's a good start at least.
             if (oldState.zone?.uuid !== this.state.zone.uuid) {
-                const oldZone = this.game.gameObjectManager.get<Zone>(oldState.zone);
+                const oldZone = this.game.snapshotManager.get<Zone>(oldState.zone);
                 this.movedFromZone = oldZone?.name;
                 this.resolveAbilitiesForNewZone();
             }

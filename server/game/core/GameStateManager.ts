@@ -4,8 +4,12 @@ import type { IGameSnapshot } from './snapshot/SnapshotInterfaces';
 import * as Contract from './utils/Contract.js';
 import * as Helpers from './utils/Helpers.js';
 
+export interface IGameObjectRegistrar {
+    register(gameObject: GameObjectBase | GameObjectBase[]): void;
+    get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null;
+}
 
-export class GameStateManager {
+export class GameStateManager implements IGameObjectRegistrar {
     private readonly allGameObjects: GameObjectBase[] = [];
     private readonly game: Game;
     private readonly gameObjectMapping = new Map<string, GameObjectBase>();
