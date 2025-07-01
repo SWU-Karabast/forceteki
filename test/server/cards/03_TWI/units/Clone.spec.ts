@@ -1548,6 +1548,44 @@ describe('Clone', function() {
                 // Player 1's base was not restored because Clone does not have Restore
                 expect(context.p1Base.damage).toBe(5);
             });
+
+            it('combines gained Keywords with printed Keywords correctly', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: { card: 'echo-base', damage: 3 },
+                        hand: ['clone'],
+                        spaceArena: [
+                            'home-one#alliance-flagship',   // Friendly units gain Restore 1
+                            'red-three#unstoppable'         // Friendly Heroism units gain Raid 1
+                        ]
+                    },
+                    player2: {
+                        groundArena: [
+                            'sundari-peacekeeper' // Raid 2, Restore 2
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.sundariPeacekeeper);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.sundariPeacekeeper);
+
+                context.moveToNextActionPhase();
+
+                // Clone attacks, with Restore 3 and Raid 3
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.p1Base.damage).toBe(0);
+            });
         });
     });
 });
