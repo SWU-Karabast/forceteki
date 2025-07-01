@@ -39,6 +39,8 @@ export default class Clone extends NonLeaderUnitCard {
                             printedHp: context.target.getPrintedHp(),
                             printedPower: context.target.getPrintedPower(),
                             printedTraits: context.target.getPrintedTraits(),
+                            printedKeywords: context.target.printedKeywords
+                                .map((keyword) => keyword.duplicate(context.source)),
                         }),
                         AbilityHelper.ongoingEffects.gainTrait(Trait.Clone),
                         AbilityHelper.ongoingEffects.isClonedUnit(),
