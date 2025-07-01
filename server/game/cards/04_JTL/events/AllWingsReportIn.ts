@@ -23,7 +23,10 @@ export default class AllWingsReportIn extends EventCard {
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: 'For each unit exhausted this way, create an X-Wing token',
-                immediateEffect: AbilityHelper.immediateEffects.createXWing({ amount: ifYouDoContext.events?.filter((e) => e.resolutionStatus === 'resolved').length, target: this.controller })
+                immediateEffect: AbilityHelper.immediateEffects.createXWing((context) => ({
+                    amount: ifYouDoContext.events?.filter((e) => e.resolutionStatus === 'resolved').length,
+                    target: context.player
+                }))
             }),
         });
     }

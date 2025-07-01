@@ -34,7 +34,7 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
-                cardCondition: (card) => card.owner === this.controller,
+                cardCondition: (card, context) => card.owner === context.source.controller,
                 mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                 activePromptTitle: 'Defeat a resource you own and control',
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
