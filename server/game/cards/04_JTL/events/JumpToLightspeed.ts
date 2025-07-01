@@ -11,8 +11,8 @@ export default class JumpToLightspeed extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Return a friendly space unit and any number of non-leader upgrades on it to their owner\'s hand.',
             targetResolvers: {
                 friendlySpaceUnit: {

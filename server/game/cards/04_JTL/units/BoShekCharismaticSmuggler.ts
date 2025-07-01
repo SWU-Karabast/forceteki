@@ -10,8 +10,8 @@ export default class BoShekCharismaticSmuggler extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addPilotingAbility({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingAbility({
             title: 'Discard 2 cards from your deck. Return each of those cards with an odd cost to your hand',
             type: AbilityType.Triggered,
             when: {

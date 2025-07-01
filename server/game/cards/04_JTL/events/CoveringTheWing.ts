@@ -10,8 +10,8 @@ export default class CoveringTheWing extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Create an X-Wing token',
             immediateEffect: AbilityHelper.immediateEffects.createXWing(),
             then: (thenContext) => ({

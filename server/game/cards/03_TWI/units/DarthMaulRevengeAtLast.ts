@@ -9,8 +9,8 @@ export default class DarthMaulRevengeAtLast extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit can attack 2 units instead of 1',
             ongoingEffect: AbilityHelper.ongoingEffects.canAttackMultipleUnitsSimultaneously({
                 amount: 2

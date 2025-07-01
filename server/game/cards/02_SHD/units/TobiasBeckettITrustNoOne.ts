@@ -10,8 +10,8 @@ export default class TobiasBeckettITrustNoOne extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Exhaust a unit that costs the same as or less than the non-unit card you played',
             when: {
                 onCardPlayed: (event, context) => event.player === context.player && !event.card.isUnit(),

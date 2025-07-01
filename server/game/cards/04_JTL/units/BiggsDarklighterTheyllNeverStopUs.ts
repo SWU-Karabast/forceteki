@@ -10,18 +10,18 @@ export default class BiggsDarklighterTheyllNeverStopUs extends NonLeaderUnitCard
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingGainKeywordTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard.hasSomeTrait(Trait.Fighter),
             keyword: KeywordName.Overwhelm
         });
 
-        this.addPilotingGainKeywordTargetingAttached({
+        card.addPilotingGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard.hasSomeTrait(Trait.Speeder),
             keyword: KeywordName.Grit,
         });
 
-        this.addPilotingConstantAbilityTargetingAttached({
+        card.addPilotingConstantAbilityTargetingAttached({
             title: 'Transport attached unit gets +0/+1',
             condition: (context) => context.source.parentCard.hasSomeTrait(Trait.Transport),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({

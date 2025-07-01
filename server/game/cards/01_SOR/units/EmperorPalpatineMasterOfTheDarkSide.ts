@@ -10,8 +10,8 @@ export default class EmperorPalpatineMasterOfTheDarkSide extends NonLeaderUnitCa
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 6 damage divided as you choose among enemy units',
             immediateEffect: AbilityHelper.immediateEffects.distributeDamageAmong({
                 amountToDistribute: 6,

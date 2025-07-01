@@ -10,8 +10,8 @@ export default class KetsuOnyoOldFriend extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Defeat an upgrade that costs 2 or less.',
             optional: true,
             when: {

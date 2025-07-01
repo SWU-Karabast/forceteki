@@ -10,8 +10,8 @@ export default class YaddleAChanceToMakeThingsRight extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Each other friendly Jedi unit gains Restore 1 for this phase',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 target: context.player.getArenaUnits({ trait: Trait.Jedi, otherThan: context.source }),

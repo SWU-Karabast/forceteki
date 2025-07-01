@@ -9,8 +9,8 @@ export default class ChirrutImweBlindButNotDeaf extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Use the Force to give -2/-0 to the attacker for this attack',
             when: {
                 onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),

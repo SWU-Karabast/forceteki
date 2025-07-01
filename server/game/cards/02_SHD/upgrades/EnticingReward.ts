@@ -10,8 +10,8 @@ export default class EnticingReward extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainKeywordTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
             ability: {
                 title: 'Search the top 10 cards of your deck for 2 non-unit cards, reveal them, and draw them.',

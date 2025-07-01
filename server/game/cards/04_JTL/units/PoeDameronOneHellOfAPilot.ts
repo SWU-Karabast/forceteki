@@ -10,8 +10,8 @@ export default class PoeDameronOneHellOfAPilot extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Create a X-Wing token',
             immediateEffect: AbilityHelper.immediateEffects.createXWing({
                 amount: 1

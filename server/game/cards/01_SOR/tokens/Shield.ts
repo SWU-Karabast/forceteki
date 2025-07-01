@@ -28,8 +28,8 @@ export default class Shield extends TokenUpgradeCard {
         return true;
     }
 
-    public override setupCardAbilities() {
-        this.addReplacementEffectAbility({
+    public override setupCardAbilities(card: this) {
+        card.addReplacementEffectAbility({
             title: 'Defeat shield to prevent attached unit from taking damage',
             when: {
                 onDamageDealt: (event, context) => event.card === context.source.parentCard && !event.isIndirect,

@@ -10,8 +10,8 @@ export default class AhsokaTanoFightingForPeace extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Give a friendly unit Sentinel for this phase',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.useTheForce()],
             targetResolver: {
@@ -24,8 +24,8 @@ export default class AhsokaTanoFightingForPeace extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give a friendly unit Sentinel for this phase',
             optional: true,
             targetResolver: {

@@ -18,14 +18,14 @@ export default class GeneralHuxNoTermsNoSurrender extends NonLeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each other friendly First Order unit gains Raid 1',
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.FirstOrder),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })
         });
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Draw a card',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({

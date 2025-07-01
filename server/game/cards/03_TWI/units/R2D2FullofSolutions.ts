@@ -10,8 +10,8 @@ export default class R2D2FullofSolutions extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Discard a card from your hand. If you do, search the top 3 cards of your deck for a card and draw it.',
             optional: true,
             targetResolver: {

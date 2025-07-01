@@ -9,8 +9,8 @@ export default class TombOfEilram extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'The Force is with you',
             cost: AbilityHelper.costs.exhaustFriendlyUnit(),
             immediateEffect: AbilityHelper.immediateEffects.theForceIsWithYou()

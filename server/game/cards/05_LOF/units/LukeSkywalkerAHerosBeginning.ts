@@ -10,8 +10,8 @@ export default class LukeSkywalkerAHerosBeginning extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Use the Force to give an Experience token and a Shield token to this unit',
             when: {
                 onCardPlayed: (event, context) =>

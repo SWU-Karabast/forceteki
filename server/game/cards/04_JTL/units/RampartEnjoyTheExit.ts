@@ -10,8 +10,8 @@ export default class RampartEnjoyTheExit extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit doesn\'t ready during the regroup phase unless its power is 4 or more',
             condition: (context) => context.source.getPower() < 4,
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.DoesNotReadyDuringRegroup),

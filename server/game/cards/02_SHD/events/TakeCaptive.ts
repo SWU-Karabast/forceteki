@@ -10,8 +10,8 @@ export default class TakeCaptive extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'A friendly unit captures an enemy non-leader unit in the same arena',
             targetResolvers: {
                 friendlyUnit: {

@@ -13,8 +13,8 @@ export default class OldDakaOldestAndWisest extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Defeat a friendly Night unit not named Old Daka',
             optional: true,
             targetResolver: {

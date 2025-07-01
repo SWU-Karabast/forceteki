@@ -10,8 +10,8 @@ export default class ConsumedByTheDarkSide extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give 2 Experience tokens to a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

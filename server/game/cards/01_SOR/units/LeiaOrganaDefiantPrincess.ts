@@ -10,8 +10,8 @@ export default class LeiaOrganaDefiantPrincess extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Ready a resource or exhaust a unit',
             targetResolver: {
                 mode: TargetMode.Select,

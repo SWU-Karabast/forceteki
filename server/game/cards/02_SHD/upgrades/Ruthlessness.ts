@@ -10,8 +10,8 @@ export default class Ruthlessness extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainTriggeredAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addGainTriggeredAbilityTargetingAttached({
             title: 'Deal 2 damage to the defending player’s base',
             when: {
                 onCardDefeated: (event, context) =>

@@ -10,8 +10,8 @@ export default class InfantryOfThe212th extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'Sentinel',
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)

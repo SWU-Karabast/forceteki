@@ -10,8 +10,8 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             // TODO: how do we want to handle prompts for targeting costs (i.e. the defeat unit cost)?
             title: 'Deal 1 damage to a unit and draw a card',
             cost: [
@@ -32,8 +32,8 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Take control of a damaged non-leader unit',
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
@@ -44,7 +44,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
             }
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Defeat another friendly unit. If you do, deal 1 damage to a unit and draw a card',
             optional: true,
             targetResolver: {

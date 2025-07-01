@@ -9,8 +9,8 @@ export default class ConfederateCourier extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Create a Battle Droid token.',
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
         });

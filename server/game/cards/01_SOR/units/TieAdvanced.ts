@@ -10,8 +10,8 @@ export default class TieAdvanced extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give 2 Experience tokens to a friendly Imperial unit',
             targetResolver: {
                 controller: RelativePlayer.Self,

@@ -9,8 +9,8 @@ export default class BattleFury extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addGainOnAttackAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addGainOnAttackAbilityTargetingAttached({
             title: 'Discard a card from your hand',
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                 amount: 1,

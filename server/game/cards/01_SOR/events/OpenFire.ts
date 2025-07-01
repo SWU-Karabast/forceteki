@@ -10,8 +10,8 @@ export default class OpenFire extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 4 damage to a unit.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

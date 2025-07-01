@@ -9,12 +9,12 @@ export default class HeirloomLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
+    public override setupCardAbilities(card: this) {
         // Attach to a non-Vehicle unit
-        this.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
+        card.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
 
         // If attached unit is a Force unit, it gains Restore 1
-        this.addGainKeywordTargetingAttached({
+        card.addGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force),
             keyword: KeywordName.Restore,
             amount: 1

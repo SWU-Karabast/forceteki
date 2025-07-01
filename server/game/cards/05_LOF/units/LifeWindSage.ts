@@ -10,8 +10,8 @@ export default class LifeWindSage extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While an enemy unit is exhausted, this unit gains Raid 2',
             condition: (context) => context.player.opponent.hasSomeArenaUnit({ condition: (card) => card.isUnit() && card.exhausted }),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 })

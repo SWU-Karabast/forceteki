@@ -10,8 +10,8 @@ export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Attack with a Rebel unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             initiateAttack: {
@@ -27,8 +27,8 @@ export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Attack with another Rebel unit',
             optional: true,
             when: {

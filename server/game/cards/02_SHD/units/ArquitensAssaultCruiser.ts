@@ -11,8 +11,8 @@ export default class ArquitensAssaultCruiser extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Put the defeated unit into play as a resource under your control',
             when: {
                 onCardDefeated: (event, context) =>

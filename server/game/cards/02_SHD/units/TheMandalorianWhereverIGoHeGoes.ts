@@ -9,8 +9,8 @@ export default class TheMandalorianWhereverIGoHeGoes extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'You may heal all damage from a unit that costs 2 or less and give 2 Shield tokens to it',
             optional: true,
             targetResolver: {

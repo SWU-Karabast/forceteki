@@ -10,8 +10,8 @@ export default class TheLegacyRunDoomedDebris extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Deal 6 damage divided as you choose among enemy units',
             immediateEffect: AbilityHelper.immediateEffects.distributeDamageAmong({
                 amountToDistribute: 6,

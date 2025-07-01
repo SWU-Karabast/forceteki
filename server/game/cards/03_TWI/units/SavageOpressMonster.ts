@@ -9,8 +9,8 @@ export default class SavageOpressMonster extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Ready this unit.',
             immediateEffect: AbilityHelper.immediateEffects.conditional(
                 {

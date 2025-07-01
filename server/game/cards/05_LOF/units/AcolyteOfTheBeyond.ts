@@ -9,8 +9,8 @@ export default class AcolyteOfTheBeyond extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'The Force is with you',
             when: {
                 onAttack: true,

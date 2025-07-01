@@ -9,8 +9,8 @@ export default class DisruptiveBurst extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give each enemy unit -1/-1 for this phase',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 effect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 }),

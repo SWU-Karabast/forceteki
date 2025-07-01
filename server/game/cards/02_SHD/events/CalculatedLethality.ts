@@ -10,8 +10,8 @@ export default class CalculatedLethality extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat a non-leader unit that costs 3 or less',
             targetResolver: {
                 cardCondition: (card) => card.isNonLeaderUnit() && card.cost <= 3,

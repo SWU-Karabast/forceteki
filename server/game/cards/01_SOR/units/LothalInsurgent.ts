@@ -18,8 +18,8 @@ export default class LothalInsurgent extends NonLeaderUnitCard {
         this.cardsPlayedThisWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'The opponent draws a discard and discards a random card',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 // this card going into play a previous time this phase then being re-played with e.g. Waylay counts as a separately played card

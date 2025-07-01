@@ -10,8 +10,8 @@ export default class CloneCombatSquadron extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit gets +1/+1 for each other friendly space unit.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => {
                 const spaceArenaUnitCount = target.controller.getArenaUnits({

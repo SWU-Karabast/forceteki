@@ -10,8 +10,8 @@ export default class LeiaOrganaExtraordinary extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While this unit is in the space arena, she can\'t ready and gains "Action [use the Force]: Move this unit to the ground arena and give each friendly Heroism unit +2/+2 for this phase"',
             condition: (context) => context.source.zoneName === ZoneName.SpaceArena,
             ongoingEffect: [

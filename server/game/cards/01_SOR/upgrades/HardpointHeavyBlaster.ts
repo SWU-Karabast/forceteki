@@ -11,10 +11,10 @@ export default class HardpointHeavyBlaster extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainOnAttackAbilityTargetingAttached({
+        card.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 2 damage to a target in the defender\'s arena',
             optional: true,
             targetResolver: {

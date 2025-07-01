@@ -9,8 +9,8 @@ export default class ShadowCollectiveCamp extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Draw a card.',
             when: {
                 onLeaderDeployed: (event, context) => event.card.controller === context.player

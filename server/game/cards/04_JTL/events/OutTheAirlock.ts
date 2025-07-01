@@ -10,8 +10,8 @@ export default class OutTheAirlock extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give a unit -5/-5 for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

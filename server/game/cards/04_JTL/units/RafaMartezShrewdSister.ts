@@ -11,8 +11,8 @@ export default class RafaMartezShrewdSister extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 1 damage to a friendly unit and ready a resource',
             when: {
                 whenPlayed: true,

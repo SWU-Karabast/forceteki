@@ -10,8 +10,8 @@ export default class YoureAllClearKid extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat an enemy space unit with 3 or less remaining HP',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

@@ -11,10 +11,10 @@ export default class TheDarksaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainOnAttackAbilityTargetingAttached({
+        card.addGainOnAttackAbilityTargetingAttached({
             title: 'Give an Experience token to each other friendly Mandalorian unit',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => {
                 const mandalorians = context.player.getArenaUnits().filter((unit) => unit.hasSomeTrait(Trait.Mandalorian) && unit !== context.source);
@@ -22,7 +22,7 @@ export default class TheDarksaber extends UpgradeCard {
             })
         });
 
-        this.addIgnoreAllAspectPenaltiesAbility({
+        card.addIgnoreAllAspectPenaltiesAbility({
             title: 'Ignore aspect penalties while playing this on a Mandalorian',
             attachTargetCondition: (attachTarget) => attachTarget.hasSomeTrait(Trait.Mandalorian)
         });

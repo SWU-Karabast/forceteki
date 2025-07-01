@@ -9,8 +9,8 @@ export default class ViperProbeDroid extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Look at an opponent\'s hand.',
             immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
                 target: context.player.opponent.hand,

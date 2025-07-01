@@ -10,8 +10,8 @@ export default class SeasonedFleetAdmiral extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Give an Experience token to a unit',
             when: {
                 onCardsDrawn: (event, context) => event.player === context.player.opponent && context.game.currentPhase === PhaseName.Action,

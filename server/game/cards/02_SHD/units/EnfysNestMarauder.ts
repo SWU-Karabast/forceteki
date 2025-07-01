@@ -10,8 +10,8 @@ export default class EnfysNestMarauder extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'When a friendly unit is attacking using Ambush, the defender gets -3/-0',
             targetController: RelativePlayer.Opponent,
             matchTarget: (card, context) =>

@@ -10,14 +10,14 @@ export default class ForceChoke extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addDecreaseCostAbility({
+    public override setupCardAbilities(card: this) {
+        card.addDecreaseCostAbility({
             title: 'If you control a Force unit, this costs 1 resource less to play',
             amount: 1,
             condition: (context) => context.player.isTraitInPlay(Trait.Force)
         });
 
-        this.setEventAbility({
+        card.setEventAbility({
             title: 'Deal 5 damage to a non-vehicle unit. That unit\'s controller draws a card.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

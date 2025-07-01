@@ -10,8 +10,8 @@ export default class NamelessTerror extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Exhaust a Force unit',
             optional: true,
             targetResolver: {
@@ -21,7 +21,7 @@ export default class NamelessTerror extends NonLeaderUnitCard {
             },
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Each enemy unit loses the Force trait for this phase',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 target: context.source.controller.opponent.getArenaUnits(),

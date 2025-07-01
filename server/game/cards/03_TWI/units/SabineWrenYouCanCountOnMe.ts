@@ -11,14 +11,14 @@ export default class SabineWrenYouCanCountOnMe extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While this unit is exhausted, she can\'t be attacked',
             condition: (context) => context.source.exhausted,
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Discard the top card from your deck',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard((context) => ({

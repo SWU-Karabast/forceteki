@@ -10,8 +10,8 @@ export default class GrimValor extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainWhenDefeatedAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'Exhaust a unit',
             optional: true,
             targetResolver: {

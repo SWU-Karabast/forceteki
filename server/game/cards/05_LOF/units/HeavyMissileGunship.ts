@@ -10,8 +10,8 @@ export default class HeavyMissileGunship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Deal 2 damage to a ground unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

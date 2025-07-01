@@ -10,8 +10,8 @@ export default class DoctorPershing extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Draw a card',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),

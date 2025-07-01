@@ -10,8 +10,8 @@ export default class OnyxSquadronBrute extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Heal 2 damage from a base',
             targetResolver: {
                 cardTypeFilter: CardType.Base,

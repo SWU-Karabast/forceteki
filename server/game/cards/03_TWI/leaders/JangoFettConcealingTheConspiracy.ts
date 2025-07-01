@@ -10,11 +10,11 @@ export default class JangoFettConcealingTheConspiracy extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
+    protected override setupLeaderSideAbilities(card: this) {
         // When a friendly unit deals damage to an enemy unit:
         //     You may exhaust this leader.
         //     If you do, exhaust that enemy unit.
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Exhaust leader and exhaust the damaged enemy unit',
             optional: true,
             when: {
@@ -30,10 +30,10 @@ export default class JangoFettConcealingTheConspiracy extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
+    protected override setupLeaderUnitSideAbilities(card: this) {
         // When a friendly unit deals damage to an enemy unit:
         //     You may exhaust that unit.
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Exhaust the damaged enemy unit',
             optional: true,
             when: {

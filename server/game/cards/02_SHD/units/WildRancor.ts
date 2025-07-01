@@ -10,8 +10,8 @@ export default class WildRancor extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 2 damage to each other ground unit',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 target: context.player.getArenaUnits({ otherThan: context.source, arena: ZoneName.GroundArena }).concat(context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena })),

@@ -10,8 +10,8 @@ export default class ValLoyalToTheEnd extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Give 2 Experience tokens to a friendly unit',
             targetResolver: {
                 controller: RelativePlayer.Self,
@@ -20,7 +20,7 @@ export default class ValLoyalToTheEnd extends NonLeaderUnitCard {
             }
         });
 
-        this.addBountyAbility({
+        card.addBountyAbility({
             title: 'Deal 3 damage to a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

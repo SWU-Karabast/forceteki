@@ -10,8 +10,8 @@ export default class FivesInSearchOfTruth extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Put a Clone unit from your discard pile on the bottom of your deck. If you do, draw a card',
             when: {
                 onCardPlayed: (event, context) => event.card.isEvent() && event.player === context.player

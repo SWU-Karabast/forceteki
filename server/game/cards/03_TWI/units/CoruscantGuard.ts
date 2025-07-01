@@ -10,8 +10,8 @@ export default class CoruscantGuard extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'Gain Ambush',
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)

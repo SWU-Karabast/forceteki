@@ -11,8 +11,8 @@ export default class AllianceDispatcher extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a unit from your hand. It costs 1 less',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

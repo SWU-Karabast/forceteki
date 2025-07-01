@@ -10,8 +10,8 @@ export default class TheMandalorianWeatheredPilot extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Exhaust up to 2 ground units',
             targetResolver: {
                 mode: TargetMode.UpTo,
@@ -23,7 +23,7 @@ export default class TheMandalorianWeatheredPilot extends NonLeaderUnitCard {
             }
         });
 
-        this.addPilotingAbility({
+        card.addPilotingAbility({
             type: AbilityType.Triggered,
             title: 'Exhaust an enemy unit in this arena',
             when: {

@@ -10,8 +10,8 @@ export default class KarisWeDontLikeStrangers extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Use the Force to give a unit -2/-2 for this phase',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

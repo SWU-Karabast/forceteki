@@ -10,8 +10,8 @@ export default class CovertStrength extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Heal 2 damage from a unit and give an Experience token to it',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

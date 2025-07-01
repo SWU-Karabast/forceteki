@@ -10,8 +10,8 @@ export default class RecklessTorrent extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Triggered,
             title: 'Deal 2 damage to a friendly unit and 2 damage to an enemy unit in the same arena',
             when: {

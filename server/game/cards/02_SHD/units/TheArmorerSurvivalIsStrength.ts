@@ -10,8 +10,8 @@ export default class TheArmorerSurvivalIsStrength extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give a shield token to each of up to 3 Mandalorian units',
             targetResolver: {
                 mode: TargetMode.UpTo,

@@ -10,8 +10,8 @@ export default class TheMarauderShuttlingTheBadBatch extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Put a card into play as a resource if it shares a name with a unit you control',
             optional: true,
             targetResolver: {

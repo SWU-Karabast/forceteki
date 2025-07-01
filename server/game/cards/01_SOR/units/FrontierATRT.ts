@@ -10,8 +10,8 @@ export default class FrontierATRT extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Gain Ambush while you control another Vehicle unit',
             condition: (context) => context.player.isTraitInPlay(Trait.Vehicle, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)

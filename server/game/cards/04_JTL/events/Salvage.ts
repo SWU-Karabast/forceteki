@@ -10,8 +10,8 @@ export default class Salvage extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Play a Vehicle unit from your discard pile (paying its cost)',
             targetResolver: {
                 zoneFilter: ZoneName.Discard,

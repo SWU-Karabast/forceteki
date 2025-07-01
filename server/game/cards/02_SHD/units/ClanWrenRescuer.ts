@@ -9,8 +9,8 @@ export default class ClanWrenRescuer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give an experience token to a unit',
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()

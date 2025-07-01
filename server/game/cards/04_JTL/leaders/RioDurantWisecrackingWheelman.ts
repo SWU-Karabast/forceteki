@@ -10,10 +10,10 @@ export default class RioDurantWisecrackingWheelman extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities () {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addPilotDeploy();
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Attack with a space unit. It gets +1/+0 and gains Saboteur for this attack',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
@@ -30,12 +30,12 @@ export default class RioDurantWisecrackingWheelman extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities () {
-        this.addPilotingGainKeywordTargetingAttached({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addPilotingGainKeywordTargetingAttached({
             keyword: KeywordName.Saboteur,
         });
 
-        this.addPilotingConstantAbilityTargetingAttached({
+        card.addPilotingConstantAbilityTargetingAttached({
             title: 'This unit has +1/+0.',
             condition: (context) => context.source.parentCard.hasSomeTrait(Trait.Transport),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })

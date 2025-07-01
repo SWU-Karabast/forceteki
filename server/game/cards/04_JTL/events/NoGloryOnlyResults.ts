@@ -10,8 +10,8 @@ export default class NoGloryOnlyResults extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Take control of a non-leader unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

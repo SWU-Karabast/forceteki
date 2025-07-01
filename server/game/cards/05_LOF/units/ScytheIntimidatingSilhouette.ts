@@ -10,8 +10,8 @@ export default class ScytheIntimidatingSilhouette extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give another friendly Inquisitor unit +2/+0 for this phase',
             optional: true,
             targetResolver: {

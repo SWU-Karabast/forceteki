@@ -9,8 +9,8 @@ export default class VanguardInfantry extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Give an Experience token to a unit',
             optional: true,
             targetResolver: {

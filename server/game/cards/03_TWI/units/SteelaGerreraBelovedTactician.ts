@@ -10,8 +10,8 @@ export default class SteelaGerreraBelovedTactician extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 2 damage to your base. If you do, search the top 8 cards of your deck for a Tactic card, reveal it, and draw it',
             when: {
                 whenPlayed: true,

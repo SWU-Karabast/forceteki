@@ -14,8 +14,8 @@ export default class ThePurgilKingLeadingTheJourney extends NonLeaderUnitCard {
         return context.player.getArenaUnits().filter((card) => card.remainingHp >= 7).length;
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Draw a card for each friendly unit with 7 or more remaining HP',
             immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ amount: this.getDrawAmount(context) }))
         });

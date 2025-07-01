@@ -10,14 +10,14 @@ export default class InvincibleNavalAdversary extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addDecreaseCostAbility({
+    public override setupCardAbilities(card: this) {
+        card.addDecreaseCostAbility({
             title: 'If you control a unique Separatist card, this unit costs 1 resource less to play',
             condition: (context) => context.player.controlsCardWithTrait(Trait.Separatist, true),
             amount: 1
         });
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Return a non-leader unit that costs 3 or less to its owner\'s hand',
             when: {
                 onLeaderDeployed: (event, context) => event.context.player === context.player,

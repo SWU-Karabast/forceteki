@@ -10,8 +10,8 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Choose another friendly Underworld unit. All combat damage that would be dealt to this unit during this attack is dealt to the chosen unit instead.',
             optional: true,
             targetResolver: {

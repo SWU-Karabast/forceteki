@@ -10,8 +10,8 @@ export default class RelentlessFirespray extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Ready this unit',
             limit: AbilityLimit.perRound(1),
             immediateEffect: AbilityHelper.immediateEffects.ready((context) => ({

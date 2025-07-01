@@ -10,8 +10,8 @@ export default class AnakinsSkywalkerIllTrySpinning extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addPilotingAbility({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingAbility({
             type: AbilityType.Triggered,
             title: 'Return this upgrade to its owner\'s hand',
             when: {

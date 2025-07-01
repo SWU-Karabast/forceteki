@@ -10,8 +10,8 @@ export default class MercenaryGunship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Take control of this unit',
             cost: AbilityHelper.costs.abilityActivationResourceCost(4),
             canBeTriggeredBy: WildcardRelativePlayer.Any,

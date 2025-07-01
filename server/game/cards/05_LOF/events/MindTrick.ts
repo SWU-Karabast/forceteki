@@ -11,8 +11,8 @@ export default class MindTrick extends EventCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust any number of units with a combined power of 4 or less. If you control a Force unit, those units lose all abilities and can\'t gain abilities for this phase',
             targetResolver: {
                 mode: TargetMode.Unlimited,

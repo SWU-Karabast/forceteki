@@ -11,8 +11,8 @@ export default class TurbolaserSalvo extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose an arena',
             targetResolver: {
                 mode: TargetMode.Select,

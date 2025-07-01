@@ -10,8 +10,8 @@ export default class ItsATrap extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'If an opponent controls more space units than you, ready each space unit you control',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.getArenaUnits({ arena: ZoneName.SpaceArena }).length < context.player.opponent.getArenaUnits({ arena: ZoneName.SpaceArena }).length,

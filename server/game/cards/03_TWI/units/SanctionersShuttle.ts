@@ -10,8 +10,8 @@ export default class SanctionersShuttle extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Triggered,
             title: 'This unit captures an enemy non-leader unit that costs 3 or less. ',
             when: {

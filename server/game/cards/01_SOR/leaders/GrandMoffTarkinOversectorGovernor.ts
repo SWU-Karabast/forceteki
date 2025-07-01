@@ -10,8 +10,8 @@ export default class GrandMoffTarkinOversectorGovernor extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Give an experience token to an Imperial unit',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -22,8 +22,8 @@ export default class GrandMoffTarkinOversectorGovernor extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give an experience token to another Imperial unit',
             optional: true,
             targetResolver: {

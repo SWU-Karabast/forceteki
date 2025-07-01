@@ -9,8 +9,8 @@ export default class GeneralDravenDoingWhatMustBeDone extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Create an X-Wing token',
             when: {
                 onAttack: true,

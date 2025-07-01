@@ -9,8 +9,8 @@ export default class MiningGuildTieFighter extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Pay 2 resources to draw',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({

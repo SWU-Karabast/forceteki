@@ -10,14 +10,14 @@ export default class KyloRenKillingThePast extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addIgnoreSpecificAspectPenaltyAbility({
+    public override setupCardAbilities(card: this) {
+        card.addIgnoreSpecificAspectPenaltyAbility({
             title: 'If you control Rey, ignore the Villainy aspect when playing this',
             ignoredAspect: Aspect.Villainy,
             condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Rey')
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Give a unit +2/0 for this phase',
             targetResolver: {
                 controller: WildcardRelativePlayer.Any,

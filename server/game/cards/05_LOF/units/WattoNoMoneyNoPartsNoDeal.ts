@@ -10,8 +10,8 @@ export default class WattoNoMoneyNoPartsNoDeal extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'An opponent chooses if you give an experience token to a friendly or draw a card',
             targetResolver: {
                 mode: TargetMode.Select,

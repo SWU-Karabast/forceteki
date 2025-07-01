@@ -10,8 +10,8 @@ export default class HK87AssassinDroid extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Deal 2 damage to each ground unit',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 2,

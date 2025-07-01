@@ -9,8 +9,8 @@ export default class ReyMoreThanAScavenger extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities () {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Give an Experience token to a unit with 2 or less power',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -20,8 +20,8 @@ export default class ReyMoreThanAScavenger extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities () {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give an Experience token to a unit with 2 or less power',
             optional: true,
             targetResolver: {

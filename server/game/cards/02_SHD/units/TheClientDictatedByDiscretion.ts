@@ -10,8 +10,8 @@ export default class TheClientDictatedByDiscretion extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'For this phase, targeted unit gains: "Bounty — Heal 5 damage from a base."',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

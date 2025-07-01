@@ -10,8 +10,8 @@ export default class FaceOff extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'If no player has taken the initiative this phase, you may ready an enemy unit. If you do, ready a friendly unit in the same arena',
             // TODO: The player won't be warned that Face Off will do nothing if the initiative has been claimed because of this optional
             optional: true,

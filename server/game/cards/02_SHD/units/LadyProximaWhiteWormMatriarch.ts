@@ -10,8 +10,8 @@ export default class LadyProximaWhiteWormMatriarch extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 1 damage to a base.',
             when: {
                 onCardPlayed: (event, context) =>

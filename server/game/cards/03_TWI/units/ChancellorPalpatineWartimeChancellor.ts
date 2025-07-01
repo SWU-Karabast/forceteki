@@ -19,14 +19,14 @@ export default class ChancellorPalpatineWartimeChancellor extends NonLeaderUnitC
         this.cardsLeftPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsLeftPlayThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each token unit you create enters play ready.',
             targetController: RelativePlayer.Self,
             ongoingEffect: OngoingEffectBuilder.player.static(EffectName.TokenUnitsEnterPlayReady)
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Create a Clone Trooper token.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: () => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({}),

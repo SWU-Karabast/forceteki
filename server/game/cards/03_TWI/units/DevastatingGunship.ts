@@ -10,8 +10,8 @@ export default class DevastatingGunship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Defeat an enemy unit with 2 or less remaining HP',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

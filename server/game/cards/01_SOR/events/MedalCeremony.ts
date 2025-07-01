@@ -18,8 +18,8 @@ export default class MedalCeremony extends EventCard {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give an experience to each of up to three Rebel units that attacked this phase',
             targetResolver: {
                 mode: TargetMode.UpTo,

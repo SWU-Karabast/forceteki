@@ -17,8 +17,8 @@ export default class DeathStarPlans extends UpgradeCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'The attacking player takes control of this upgrade and attaches it to a unit they control',
             when: {
                 onAttackDeclared: (event, context) => context.source.isAttached() && event.attack.getAllTargets().includes(context.source.parentCard),
@@ -35,7 +35,7 @@ export default class DeathStarPlans extends UpgradeCard {
             }
         });
 
-        this.addGainConstantAbilityTargetingAttached({
+        card.addGainConstantAbilityTargetingAttached({
             title: 'The first unit you play each round costs 2 less',
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 amount: 2,

@@ -10,8 +10,8 @@ export default class FriskVanguardLoudmouth extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingAbility({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingAbility({
             type: AbilityType.Triggered,
             title: 'Defeat an upgrade that costs 2 or less',
             when: {

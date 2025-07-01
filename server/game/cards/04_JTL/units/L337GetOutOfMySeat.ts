@@ -11,8 +11,8 @@ export default class L337GetOutOfMySeat extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'If this unit would be defeated, you may instead attach her as an upgrade to a friendly Vehicle unit without a Pilot on it.',
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({
                 title: 'Attach to a friendly Vehicle unit without a pilot on it',

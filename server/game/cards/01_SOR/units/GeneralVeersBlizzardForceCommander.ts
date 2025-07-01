@@ -10,8 +10,8 @@ export default class GeneralVeersBlizzardForceCommander extends NonLeaderUnitCar
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Other friendly Imperial units get +1/+1',
             targetController: RelativePlayer.Self,
             matchTarget: (card, context) => card !== context.source && card.hasSomeTrait(Trait.Imperial),

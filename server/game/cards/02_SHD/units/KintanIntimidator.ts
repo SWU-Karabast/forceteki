@@ -9,8 +9,8 @@ export default class KintanIntimidator extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Exhaust the defender when attacking a unit',
             immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => ({ target: context.source.activeAttack?.getAllTargets() }))
         });

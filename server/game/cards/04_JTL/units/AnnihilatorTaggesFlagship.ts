@@ -11,8 +11,8 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Defeat an enemy unit',
             optional: true,
             when: {

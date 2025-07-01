@@ -13,8 +13,8 @@ export default class ExecuteOrder66 extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 6 damage to each Jedi unit.',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 6,

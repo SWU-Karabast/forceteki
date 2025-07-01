@@ -9,8 +9,8 @@ export default class TantiveIVFleeingTheEmpire extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Create an X-Wing token.',
             immediateEffect: AbilityHelper.immediateEffects.createXWing()
         });

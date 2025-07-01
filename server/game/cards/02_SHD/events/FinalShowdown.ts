@@ -10,8 +10,8 @@ export default class FinalShowdown extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Ready each unit you control. At the start of the regroup phase, you lose the game',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.ready((context) => ({

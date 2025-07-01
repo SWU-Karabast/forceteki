@@ -10,8 +10,8 @@ export default class MotherTalzinPowerThroughMagick extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Give a unit -1/-1 for this phase',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
@@ -26,8 +26,8 @@ export default class MotherTalzinPowerThroughMagick extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give a unit -1/-1 for this phase',
             optional: true,
             targetResolver: {

@@ -10,10 +10,10 @@ export default class BobaFettAnyMethodsNecessary extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addPilotDeploy();
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Exhaust this leader to deal 1 indirect damage to a player',
             optional: true,
             collectiveTrigger: true,
@@ -31,8 +31,8 @@ export default class BobaFettAnyMethodsNecessary extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addPilotingAbility({
             title: 'Deal up to 4 damage divided as you choose among any number of units.',
             type: AbilityType.Triggered,
             when: {

@@ -11,8 +11,8 @@ export default class ForACauseIBelieveIn extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Reveal the top 4 cards of your deck',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => {
                 const topCardsOfDeck = context.player.getTopCardsOfDeck(4);

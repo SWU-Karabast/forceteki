@@ -18,8 +18,8 @@ export default class EphantMonHeadOfSecurity extends NonLeaderUnitCard {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Choose an enemy non-leader unit that attacked your base this phase. A friendly unit in the same arena captures that unit.',
             targetResolvers: {
                 enemyUnit: {

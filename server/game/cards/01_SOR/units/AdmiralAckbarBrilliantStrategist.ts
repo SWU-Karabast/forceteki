@@ -22,8 +22,8 @@ export default class AdmiralAckbarBrilliantStrategist extends NonLeaderUnitCard 
         return arena.length;
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal damage to a unit equal to the number of units your control in its arena.',
             optional: true,
             targetResolver: {

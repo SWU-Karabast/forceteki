@@ -10,8 +10,8 @@ export default class ZiroTheHuttColorfulSchemer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Exhaust an enemy unit',
             optional: true,
             targetResolver: {
@@ -21,7 +21,7 @@ export default class ZiroTheHuttColorfulSchemer extends NonLeaderUnitCard {
             }
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Exhaust an enemy resource',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.exhaustResources({ amount: 1 }),

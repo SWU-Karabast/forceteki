@@ -9,8 +9,8 @@ export default class CassianAndorRebellionsAreBuiltOnHope extends NonLeaderUnitC
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Ready this unit',
             when: {
                 whenPlayedUsingSmuggle: true,

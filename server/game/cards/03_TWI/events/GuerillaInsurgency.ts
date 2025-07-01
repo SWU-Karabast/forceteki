@@ -10,8 +10,8 @@ export default class GuerillaInsurgency extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Each player defeats a resource they control and discards 2 cards from their hand. Deal 4 damage to each ground unit',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({

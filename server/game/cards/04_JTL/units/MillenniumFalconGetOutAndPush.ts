@@ -11,13 +11,13 @@ export default class MillenniumFalconGetOutAndPush extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'You may play or deploy 1 additional Pilot on this unit',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyPilotingLimit({ amount: 1 })
         });
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'This unit gets +1/+0 for each Pilot on it',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
                 power: target.upgrades.reduce((count: number, upgrade: Card) => count + (upgrade.hasSomeTrait(Trait.Pilot) ? 1 : 0), 0),

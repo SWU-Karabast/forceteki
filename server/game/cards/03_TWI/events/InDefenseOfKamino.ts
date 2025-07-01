@@ -10,8 +10,8 @@ export default class InDefenseOfKamino extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'For this phase, each friendly Republic unit gains Restore 2 and: "When Defeated: Create a Clone Trooper token"',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 effect: [

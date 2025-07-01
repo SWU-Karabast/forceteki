@@ -10,8 +10,8 @@ export default class GiveInToYourAnger extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 1 damage to an enemy unit. Its controller’s next action this phase must be an attack action with that unit, if able. It must attack a unit, if able.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

@@ -9,8 +9,8 @@ export default class NebulaIgnition extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat each unit that isn\'t upgraded',
             immediateEffect: AbilityHelper.immediateEffects.defeat((context) => {
                 const allUnits = context.game.getArenaUnits({

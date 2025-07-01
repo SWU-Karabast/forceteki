@@ -10,8 +10,8 @@ export default class AlwaysTwo extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose 2 friendly unique Sith units. Give 2 Shield tokens and 2 Experience tokens to each chosen unit.',
             targetResolver: {
                 mode: TargetMode.Exactly,

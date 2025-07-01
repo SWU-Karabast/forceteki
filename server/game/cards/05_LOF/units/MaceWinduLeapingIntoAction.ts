@@ -10,8 +10,8 @@ export default class MaceWinduLeapingIntoAction extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Use The Force to deal 4 damage to a unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

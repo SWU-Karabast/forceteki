@@ -21,14 +21,14 @@ export default class NalaSeCloneEngineer extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addConstantAbility(this.buildIgnoreCloneAspectAbility());
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addConstantAbility(this.buildIgnoreCloneAspectAbility());
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility(this.buildIgnoreCloneAspectAbility());
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility(this.buildIgnoreCloneAspectAbility());
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'Each friendly Clone gains When Defeated: Heal 2 damage from your base',
             matchTarget: (card, context) => card.isUnit() && card.hasSomeTrait(Trait.Clone) && card.controller === context.player,
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({

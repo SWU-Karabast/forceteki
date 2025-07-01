@@ -10,8 +10,8 @@ export default class StrikeTrue extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'A friendly unit deals damage equal to its power to an enemy unit',
             targetResolvers: {
                 friendlyUnit: {

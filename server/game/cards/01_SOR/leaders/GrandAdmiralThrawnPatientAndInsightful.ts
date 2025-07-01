@@ -10,10 +10,10 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addLookTrigger();
+    protected override setupLeaderSideAbilities(card: this) {
+        this.addLookTrigger(card);
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Reveal the top card of any player\'s deck',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -38,10 +38,10 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addLookTrigger();
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        this.addLookTrigger(card);
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Reveal the top card of any player\'s deck',
             optional: true,
             targetResolver: {
@@ -66,8 +66,8 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
         });
     }
 
-    private addLookTrigger() {
-        this.addTriggeredAbility({
+    private addLookTrigger(card: this) {
+        card.addTriggeredAbility({
             title: 'Look at the top card of each player\'s deck',
             when: {
                 onPhaseStarted: (event) => event.phase === PhaseName.Action

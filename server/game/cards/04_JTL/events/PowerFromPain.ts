@@ -10,8 +10,8 @@ export default class PowerFromPain extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give a unit +1/+0 for each damage on it',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

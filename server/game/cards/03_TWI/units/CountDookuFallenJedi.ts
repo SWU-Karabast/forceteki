@@ -11,8 +11,8 @@ export default class CountDookuFallenJedi extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'For each unit you exploited while playing this card, deal damage to an enemy unit equal to the power of the exploited unit',
             immediateEffect: AbilityHelper.immediateEffects.sequential(
                 // TODO: correct implementation of the rules for multiple instances of damage in the same ability

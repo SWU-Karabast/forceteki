@@ -10,8 +10,8 @@ export default class InsurgentSaboteurs extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Defeat an upgrade',
             optional: true,
             targetResolver: {

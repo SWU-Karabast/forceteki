@@ -10,8 +10,8 @@ export default class BobaFettFearedBountyHunter extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingAbility({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingAbility({
             type: AbilityType.Triggered,
             title: 'Deal 1 damage to a unit. If attached unit is a Transport, deal 2 damage instead.',
             when: {

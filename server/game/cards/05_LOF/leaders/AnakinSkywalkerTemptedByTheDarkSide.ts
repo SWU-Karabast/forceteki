@@ -11,8 +11,8 @@ export default class AnakinSkywalkerTemptedByTheDarkSide extends LeaderUnitCard 
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a Villainy non-unit card from your hand, ignoring its aspect penalties.',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.useTheForce()],
             targetResolver: {
@@ -27,8 +27,8 @@ export default class AnakinSkywalkerTemptedByTheDarkSide extends LeaderUnitCard 
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a Villainy non-unit card from your hand, ignoring its aspect penalties.',
             cost: AbilityHelper.costs.useTheForce(),
             targetResolver: {

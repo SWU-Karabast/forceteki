@@ -10,8 +10,8 @@ export default class RepublicCommando extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'Gain Saboteur',
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur)

@@ -10,8 +10,8 @@ export default class WingmanVictorThreeBackstabber extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingAbility({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingAbility({
             type: AbilityType.Triggered,
             title: 'Give an Experience token to another unit',
             when: {

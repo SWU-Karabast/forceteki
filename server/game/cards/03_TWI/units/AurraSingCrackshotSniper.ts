@@ -10,8 +10,8 @@ export default class AurraSingCrackshotSniper extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Ready when an enemy ground unit attack base',
             when: {
                 onAttackDeclared: (event, context) =>

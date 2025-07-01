@@ -9,8 +9,8 @@ export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'If you control Boba Fett or Jango Fett (as a leader or unit), ready this unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
@@ -20,7 +20,7 @@ export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
             })
         });
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Exhaust a non-unique unit',
             cost: AbilityHelper.costs.abilityActivationResourceCost(2),
             targetResolver: {

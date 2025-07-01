@@ -11,8 +11,8 @@ export default class CalculatingMagnaGuard extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'This unit gains Sentinel for this phase',
             when: {
                 whenPlayed: true,

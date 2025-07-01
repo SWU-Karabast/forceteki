@@ -10,8 +10,8 @@ export default class PaladinTrainingCorvette extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give an Experience token to each of up to 3 Force units',
             targetResolver: {
                 mode: TargetMode.UpTo,

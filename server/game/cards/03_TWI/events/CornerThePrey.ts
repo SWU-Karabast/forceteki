@@ -9,8 +9,8 @@ export default class CornerThePrey extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a unit. It gets +1/+0 for this attack for each damage on the defender at the start of this attack.',
             initiateAttack: {
                 attackerLastingEffects: (_context, attack) =>

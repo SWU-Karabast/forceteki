@@ -10,8 +10,8 @@ export default class PoeDameronQuickToImprovise extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Discard up to 3 cards from your hand.',
             targetResolver: {
                 mode: TargetMode.UpTo,

@@ -12,8 +12,8 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Discard a card from your hand. If you discard an Upgrade this way, draw a card',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.sequential([
@@ -31,8 +31,8 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Play any number of Upgrades from your discard pile on this unit',
             optional: true,
             when: {

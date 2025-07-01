@@ -10,8 +10,8 @@ export default class ChangeOfHeart extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Take control of a non-leader unit. At the start of the regroup phase, its owner takes control of it.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

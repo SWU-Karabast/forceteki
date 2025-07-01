@@ -9,8 +9,8 @@ export default class SabineWrenGalvanizedRevolutionary extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Deal 1 damage to each base',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
@@ -20,8 +20,8 @@ export default class SabineWrenGalvanizedRevolutionary extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Deal 1 damage to each enemy base',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 1,

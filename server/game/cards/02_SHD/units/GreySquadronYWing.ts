@@ -10,8 +10,8 @@ export default class GreySquadronYWing extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'An opponent chooses a unit or base they control. You may deal 2 damage to it',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

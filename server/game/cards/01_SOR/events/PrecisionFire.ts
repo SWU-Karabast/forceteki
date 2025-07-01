@@ -10,8 +10,8 @@ export default class PrecisionFire extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a unit. It gains Saboteur for this attack. If it’s a Trooper, it also gets +2/+0 for this attack.',
             initiateAttack: {
                 attackerLastingEffects: [

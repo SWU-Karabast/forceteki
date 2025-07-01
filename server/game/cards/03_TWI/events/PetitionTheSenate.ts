@@ -10,8 +10,8 @@ export default class PetitionTheSenate extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Draw 3 cards.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.getArenaUnits({ trait: Trait.Official }).length >= 3,

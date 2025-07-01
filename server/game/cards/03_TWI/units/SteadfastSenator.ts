@@ -9,8 +9,8 @@ export default class SteadfastSenator extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Attack with a unit. It gets +2/+0 for this attack',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(2), AbilityHelper.costs.exhaustSelf()],
             initiateAttack: {

@@ -10,8 +10,8 @@ export default class RedFiveRunningTheTrench extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Deal 2 damage to a damaged unit',
             optional: true,
             targetResolver: {

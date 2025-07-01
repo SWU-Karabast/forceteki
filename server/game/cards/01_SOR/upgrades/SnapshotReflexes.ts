@@ -9,8 +9,8 @@ export default class SnapshotReflexes extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Attack with attached unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.attack((context) => ({

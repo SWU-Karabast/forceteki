@@ -11,8 +11,8 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'The next Resistance card you play this phase costs 1 resource less',
             when: {
                 whenPlayed: true,
@@ -28,7 +28,7 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
             })
         });
 
-        this.addPilotingAbility({
+        card.addPilotingAbility({
             title: 'Search the top 5 cards of your deck for a Resistance card, reveal it, and draw it',
             type: AbilityType.Triggered,
             when: {

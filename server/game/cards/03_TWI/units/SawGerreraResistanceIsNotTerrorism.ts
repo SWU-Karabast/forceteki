@@ -10,8 +10,8 @@ export default class SawGerreraResistanceIsNotTerrorism extends NonLeaderUnitCar
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'If your base has 15 or more damage on it, deal 1 damage to each enemy ground unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.base.damage >= 15,

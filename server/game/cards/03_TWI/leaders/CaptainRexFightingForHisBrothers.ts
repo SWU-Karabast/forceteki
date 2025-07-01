@@ -18,8 +18,8 @@ export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'If a friendly unit attacked this phase, create a Clone Trooper token.',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(2), AbilityHelper.costs.exhaustSelf()],
             immediateEffect: AbilityHelper.immediateEffects.conditional({
@@ -31,8 +31,8 @@ export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Create a Clone Trooper token.',
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
@@ -40,7 +40,7 @@ export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper()
         });
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'Each other friendly Trooper unit gets +0/+1.',
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Trooper),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 0, hp: 1 })

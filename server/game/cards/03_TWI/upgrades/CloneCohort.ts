@@ -10,13 +10,13 @@ export default class CloneCohort extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainWhenDefeatedAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'Create a Clone Trooper token.',
             immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper()
         });
 
-        this.addGainKeywordTargetingAttached({
+        card.addGainKeywordTargetingAttached({
             keyword: KeywordName.Raid,
             amount: 2
         });

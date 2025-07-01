@@ -9,8 +9,8 @@ export default class PatrollingVWing extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Draw a card',
             immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
         });

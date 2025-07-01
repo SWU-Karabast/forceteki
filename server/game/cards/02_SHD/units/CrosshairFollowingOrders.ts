@@ -10,8 +10,8 @@ export default class CrosshairFollowingOrders extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Get +1/+0 for this phase',
             cost: AbilityHelper.costs.abilityActivationResourceCost(2),
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
@@ -19,7 +19,7 @@ export default class CrosshairFollowingOrders extends NonLeaderUnitCard {
             })
         });
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Deal damage equal to his power to an enemy ground unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

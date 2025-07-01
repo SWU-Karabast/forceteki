@@ -10,8 +10,8 @@ export default class GreedoSlowOnTheDraw extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Discard a card from your deck. If it\'s not a unit, deal 2 damage to a ground unit.',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({

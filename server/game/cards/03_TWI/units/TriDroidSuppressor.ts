@@ -10,8 +10,8 @@ export default class TriDroidSuppressor extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Exhaust an enemy ground unit.',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

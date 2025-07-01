@@ -9,8 +9,8 @@ export default class LandingShuttle extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Draw a card',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.draw()

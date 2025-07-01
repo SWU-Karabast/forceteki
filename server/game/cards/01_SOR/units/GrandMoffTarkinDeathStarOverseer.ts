@@ -10,8 +10,8 @@ export default class GrandMoffTarkinDeathStarOverseer extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Search the top 5 cards of your deck for up to 2 Imperial cards, then reveal and draw it.',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 selectCount: 2,

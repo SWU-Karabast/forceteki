@@ -10,8 +10,8 @@ export default class GoIntoHiding extends EventCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a unit. It cannot be attacked this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

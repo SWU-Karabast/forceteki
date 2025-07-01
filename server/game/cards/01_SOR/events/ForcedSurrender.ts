@@ -17,8 +17,8 @@ export default class ForcedSurrender extends EventCard {
         this.damageDealtThisPhaseWatcher = AbilityHelper.stateWatchers.damageDealtThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Draw 2 cards. Each opponent whose base you’ve damaged this phase discards 2 cards from their hand.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.draw({ amount: 2 }),

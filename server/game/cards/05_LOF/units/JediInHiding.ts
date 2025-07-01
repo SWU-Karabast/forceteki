@@ -9,8 +9,8 @@ export default class JediInHiding extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Use the Force to make your opponent discards a card from their hand',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

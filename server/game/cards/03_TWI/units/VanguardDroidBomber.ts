@@ -10,8 +10,8 @@ export default class VanguardDroidBomber extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 2 damage to an enemy base.',
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
                 condition: context.player.hasSomeArenaUnit({ otherThan: context.source, trait: Trait.Separatist }),

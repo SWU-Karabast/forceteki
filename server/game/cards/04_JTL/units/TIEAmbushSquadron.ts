@@ -9,8 +9,8 @@ export default class TIEAmbushSquadron extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Create a TIE Fighter token.',
             when: {
                 whenPlayed: true,

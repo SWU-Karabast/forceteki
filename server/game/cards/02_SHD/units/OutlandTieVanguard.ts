@@ -9,8 +9,8 @@ export default class OutlandTieVanguard extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give an experience to another unit that costs 3 or less',
             optional: true,
             targetResolver: {

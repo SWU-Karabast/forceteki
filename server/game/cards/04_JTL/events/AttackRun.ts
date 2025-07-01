@@ -10,8 +10,8 @@ export default class AttackRun extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with 2 space units (one at a time)',
             targetResolver: {
                 zoneFilter: ZoneName.SpaceArena,

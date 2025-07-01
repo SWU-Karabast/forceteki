@@ -10,8 +10,8 @@ export default class GroguMysteriousChild extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Heal up to 2 damage from a unit. If you do, deal that much damage to a unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.distributeHealingAmong({

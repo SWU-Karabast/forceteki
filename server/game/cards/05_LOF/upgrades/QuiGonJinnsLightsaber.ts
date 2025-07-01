@@ -18,8 +18,8 @@ export default class QuiGonJinnsLightsaber extends UpgradeCard {
         return targetCard.isUnit() && !targetCard.hasSomeTrait(Trait.Vehicle) && targetCard.controller === controller;
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Exhaust any number of units with combined cost 6 or less.',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({

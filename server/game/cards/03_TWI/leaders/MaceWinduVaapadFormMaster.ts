@@ -10,8 +10,8 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Deal 1 damage to a damaged enemy unit. Then, if it has 5 or more damage on it, deal 1 damage to it.',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
@@ -28,8 +28,8 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 2 damage to each damaged enemy unit.',
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source

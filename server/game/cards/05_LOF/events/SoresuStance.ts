@@ -10,8 +10,8 @@ export default class SoresuStance extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Play a Force unit from your hand and give a Shield token to it',
             targetResolver: {
                 zoneFilter: ZoneName.Hand,

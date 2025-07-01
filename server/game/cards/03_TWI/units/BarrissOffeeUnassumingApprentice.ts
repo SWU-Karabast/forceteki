@@ -18,8 +18,8 @@ export default class BarrissOffeeUnassumingApprentice extends NonLeaderUnitCard 
         this.unitsHealedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsHealedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each friendly unit that was healed this phase gets +1/+0.',
             targetController: RelativePlayer.Self,
             matchTarget: (card) => card.isUnit() && this.unitsHealedThisPhaseWatcher.wasHealedThisPhase(card, card.inPlayId),

@@ -10,8 +10,8 @@ export default class PeltaSupplyFrigate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Triggered,
             title: 'Create a Clone Trooper token',
             when: {

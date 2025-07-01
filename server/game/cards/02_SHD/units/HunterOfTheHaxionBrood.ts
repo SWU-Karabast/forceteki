@@ -10,8 +10,8 @@ export default class HunterOfTheHaxionBrood extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While an enemy unit has a Bounty, this unit gains Shielded',
             condition: (context) => context.player.opponent.isKeywordInPlay(KeywordName.Bounty),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Shielded),

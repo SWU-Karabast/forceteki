@@ -10,8 +10,8 @@ export default class PlanetaryInvasion extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Ready up to 3 units. Each of those units gets +1/+0 and gains Overwhelm for this phase.',
             targetResolver: {
                 mode: TargetMode.UpTo,

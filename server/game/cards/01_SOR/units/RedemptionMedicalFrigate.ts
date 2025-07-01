@@ -10,8 +10,8 @@ export default class RedemptionMedicalFrigate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Heal up to 8 total damage from any number of units and/or bases.',
             immediateEffect: AbilityHelper.immediateEffects.distributeHealingAmong({
                 amountToDistribute: 8,

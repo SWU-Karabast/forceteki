@@ -11,8 +11,8 @@ export default class StolenLandspeeder extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'An opponent takes control of it',
             when: {
                 whenPlayed: true,
@@ -25,7 +25,7 @@ export default class StolenLandspeeder extends NonLeaderUnitCard {
             })
         });
 
-        this.addBountyAbility({
+        card.addBountyAbility({
             title: 'If you own this unit, play it from your discard pile for free and give an Experience token to it',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.owner === context.player,

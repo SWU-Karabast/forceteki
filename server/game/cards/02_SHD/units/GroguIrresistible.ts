@@ -10,8 +10,8 @@ export default class GroguIrresistible extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Exhaust an enemy unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

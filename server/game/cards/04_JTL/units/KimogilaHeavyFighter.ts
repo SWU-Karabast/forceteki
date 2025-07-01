@@ -17,8 +17,8 @@ export default class KimogilaHeavyFighter extends NonLeaderUnitCard {
             .map((event) => event.card);
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 3 indirect damage to a player',
             when: {
                 whenPlayed: true,

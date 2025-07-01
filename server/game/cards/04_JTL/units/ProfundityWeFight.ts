@@ -10,8 +10,8 @@ export default class ProfundityWeFight extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Make a player discard a card from their hand',
             when: {
                 whenPlayed: true,

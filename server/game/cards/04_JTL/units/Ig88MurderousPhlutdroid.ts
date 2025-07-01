@@ -11,14 +11,14 @@ export default class Ig88MurderousPhlutdroid extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While an enemy unit is damaged, this unit gets +3/+0',
             condition: (context) => context.player.opponent.hasSomeArenaUnit({ condition: (unit: IUnitCard) => unit.damage > 0 }),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 3, hp: 0 })
         });
 
-        this.addPilotingGainAbilityTargetingAttached({
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Constant,
             title: 'While an enemy unit is damaged, this unit gets +3/+0',
             condition: (context) => context.player.opponent.hasSomeArenaUnit({ condition: (unit: IUnitCard) => unit.damage > 0 }),

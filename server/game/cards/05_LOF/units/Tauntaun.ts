@@ -10,8 +10,8 @@ export default class Tauntaun extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'You may give a Shield token to a damaged non-Vehicle unit.',
             optional: true,
             targetResolver: {

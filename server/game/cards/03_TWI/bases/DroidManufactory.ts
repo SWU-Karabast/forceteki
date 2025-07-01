@@ -9,8 +9,8 @@ export default class DroidManufactory extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Create 2 Battle Droid tokens.',
             when: {
                 onLeaderDeployed: (event, context) => event.card.controller === context.player

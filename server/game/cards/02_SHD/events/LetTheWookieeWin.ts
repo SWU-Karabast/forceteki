@@ -10,8 +10,8 @@ export default class LetTheWookieeWin extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'An opponent chooses if you ready up to 6 resources or ready a friendly unit. If it’s a Wookiee unit, attack with it. It gets +2/+0 for this attack',
             targetResolver: {
                 mode: TargetMode.Select,

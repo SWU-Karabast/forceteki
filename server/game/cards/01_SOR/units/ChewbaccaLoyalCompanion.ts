@@ -9,8 +9,8 @@ export default class ChewbaccaLoyalCompanion extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Ready Chewbacca',
             when: {
                 onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source)

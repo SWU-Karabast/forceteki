@@ -9,8 +9,8 @@ export default class ShootFirst extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a unit. It gets +1/+0 for this attack and deals its combat damage before the defender.',
             initiateAttack: {
                 attackerCondition: (card, context) => card.controller === context.player,

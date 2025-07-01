@@ -10,8 +10,8 @@ export default class UWingLander extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give 3 Experience tokens to this unit',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({
                 amount: 3,
@@ -19,7 +19,7 @@ export default class UWingLander extends NonLeaderUnitCard {
             })),
         });
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Attach an upgrade on this unit to another eligible friendly Vehicle unit',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,

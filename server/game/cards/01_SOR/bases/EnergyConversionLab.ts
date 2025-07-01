@@ -11,8 +11,8 @@ export default class EnergyConversionLab extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEpicActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEpicActionAbility({
             title: 'Play a unit that costs 6 or less from your hand. Give it ambush for this phase',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 6,

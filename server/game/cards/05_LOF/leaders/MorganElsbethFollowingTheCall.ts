@@ -21,8 +21,8 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Choose a friendly unit that attacked this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolvers: {
@@ -54,8 +54,8 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'The next unit you play this phase costs 1 resource less if it shares a Keyword with a friendly unit.',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({

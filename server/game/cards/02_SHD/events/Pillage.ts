@@ -10,8 +10,8 @@ export default class Pillage extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a player. They discard 2 cards from their hand.',
             targetResolver: {
                 mode: TargetMode.Player,

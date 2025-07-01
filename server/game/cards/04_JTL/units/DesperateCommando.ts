@@ -10,8 +10,8 @@ export default class DesperateCommando extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Give a unit -1/-1 for this phase',
             optional: true,
             targetResolver: {

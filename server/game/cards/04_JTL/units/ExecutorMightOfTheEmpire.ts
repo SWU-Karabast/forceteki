@@ -10,8 +10,8 @@ export default class ExecutorMightOfTheEmpire extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Create 3 TIE Fighter tokens.',
             when: {
                 whenPlayed: true,

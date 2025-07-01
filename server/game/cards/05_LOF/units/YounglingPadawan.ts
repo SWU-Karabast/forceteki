@@ -9,8 +9,8 @@ export default class YounglingPadawan extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'The Force is with you',
             immediateEffect: AbilityHelper.immediateEffects.theForceIsWithYou()
         });

@@ -11,14 +11,14 @@ export default class MillenniumFalconPieceOfJunk extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit enters play ready',
             sourceZoneFilter: WildcardZoneName.Any,
             ongoingEffect: OngoingEffectBuilder.card.static(EffectName.EntersPlayReady)
         });
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Either pay 1 resource or return this unit to her owner\'s hand',
             when: {
                 onRegroupPhaseReadyCards: (event) => event.resolutionStatus === 'created'

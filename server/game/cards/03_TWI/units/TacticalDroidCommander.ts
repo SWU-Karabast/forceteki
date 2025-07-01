@@ -10,8 +10,8 @@ export default class TacticalDroidCommander extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(): void {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this): void {
+        card.addTriggeredAbility({
             title: 'You may exhaust a unit that costs the same or less than the played unit.',
             optional: true,
             when: {

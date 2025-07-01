@@ -18,10 +18,10 @@ export default class DarthVaderVictorSquadronLeader extends LeaderUnitCard {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addPilotDeploy();
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Create a TIE Fighter Token',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
@@ -34,8 +34,8 @@ export default class DarthVaderVictorSquadronLeader extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addPilotingAbility({
             title: 'Create 2 TIE Fighter Tokens',
             type: AbilityType.Triggered,
             when: {

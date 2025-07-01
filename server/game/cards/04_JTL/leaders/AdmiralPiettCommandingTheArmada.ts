@@ -11,8 +11,8 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a Capital Ship unit from your hand. It costs 1 resource less',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -28,8 +28,8 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Play a Capital Ship unit from your hand. It costs 2 resources less',
             targetController: RelativePlayer.Self,
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({

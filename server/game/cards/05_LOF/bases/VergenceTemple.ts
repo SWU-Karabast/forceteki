@@ -10,8 +10,8 @@ export default class VergenceTemple extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'The Force is with you',
             when: {
                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup

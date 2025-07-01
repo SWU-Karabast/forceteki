@@ -10,8 +10,8 @@ export default class DarthVaderScourgeOfSquadrons extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingGainAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Deal 1 damage to a unit. If a unit is defeated this way, deal 1 damage to a unit or base',
             optional: true,

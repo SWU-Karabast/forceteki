@@ -10,8 +10,8 @@ export default class CommencePatrol extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Put another card in a discard pile on the bottom of its owner\'s deck. If you do, create an X-Wing token',
             targetResolver: {
                 zoneFilter: ZoneName.Discard,

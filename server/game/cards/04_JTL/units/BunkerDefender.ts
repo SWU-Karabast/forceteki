@@ -10,8 +10,8 @@ export default class BunkerDefender extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While you control a Vehicle unit, this unit gains Sentinel',
             condition: (context) => context.player.isTraitInPlay(Trait.Vehicle),
             matchTarget: (card, context) => card === context.source,

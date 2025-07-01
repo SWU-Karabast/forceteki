@@ -19,8 +19,8 @@ export default class UnnaturalLife extends EventCard {
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a unit to play that was defeated this phase from your discard pile. It costs 2 less and enters play ready.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

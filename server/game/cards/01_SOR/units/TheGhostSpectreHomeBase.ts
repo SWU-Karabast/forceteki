@@ -10,8 +10,8 @@ export default class TheGhostSpectreHomeBase extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Give a shield token to another Spectre unit',
             when: {
                 onAttack: true,

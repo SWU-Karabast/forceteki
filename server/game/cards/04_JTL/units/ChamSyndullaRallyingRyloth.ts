@@ -9,8 +9,8 @@ export default class ChamSyndullaRallyingRyloth extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Put the top card of your deck into play as a resource',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({

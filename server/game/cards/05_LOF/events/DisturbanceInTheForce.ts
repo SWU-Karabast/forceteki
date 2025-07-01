@@ -18,8 +18,8 @@ export default class DisturbanceInTheForce extends EventCard {
         this.cardsLeftPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsLeftPlayThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'If a friendly unit left play this phase, the Force is with you and you may give a Shield token to a unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({ controller: context.player }),

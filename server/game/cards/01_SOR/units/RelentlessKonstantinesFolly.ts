@@ -20,8 +20,8 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'The first event played by each opponent each round loses all abilities',
             ongoingEffect: AbilityHelper.ongoingEffects.blankEventCard(),
             targetZoneFilter: WildcardZoneName.Any,

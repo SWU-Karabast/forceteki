@@ -10,8 +10,8 @@ export default class QiraIAloneSuvived extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities () {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Deal 2 damage to a friendly unit. Then, give a Shield token to it',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
@@ -25,8 +25,8 @@ export default class QiraIAloneSuvived extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities () {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Heal all damage from each unit. Then, deal damage to each unit equal to half its remaining HP, rounded down',
             when: {
                 onLeaderDeployed: (event, context) => {

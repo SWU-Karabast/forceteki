@@ -10,10 +10,10 @@ export default class Jetpack extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addWhenPlayedAbility({
+        card.addWhenPlayedAbility({
             title: 'Give a Shield token to attached unit. At the start of the regroup phase, defeat that token.',
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.giveShield((context) => ({

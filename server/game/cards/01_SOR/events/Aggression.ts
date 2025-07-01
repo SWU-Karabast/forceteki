@@ -11,8 +11,8 @@ export default class Aggression extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Aggression modal ability:',
             immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
                 amountOfChoices: 2,

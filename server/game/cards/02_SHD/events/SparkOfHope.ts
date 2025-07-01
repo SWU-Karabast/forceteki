@@ -18,8 +18,8 @@ export default class SparkOfHope extends EventCard {
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Put into play as a resource a unit that was defeated this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

@@ -10,8 +10,8 @@ export default class DjBlatantThief extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Take control of an enemy resource. When this unit leaves play, that resource\'s owner takes control of it.',
             when: {
                 whenPlayedUsingSmuggle: true,

@@ -10,8 +10,8 @@ export default class NeverTellMeTheodds extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Discard three cards from your deck and an opponent\'s deck, then deal damage to a unit equal to the number of odd-cost cards that were discarded',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.discardFromDeck((context) => ({

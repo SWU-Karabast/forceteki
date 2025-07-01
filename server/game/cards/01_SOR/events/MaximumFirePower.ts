@@ -10,8 +10,8 @@ export default class MaximumFirePower extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'A friendly Imperial unit deals damage equal to its power to a unit.',
             targetResolvers: {
                 firstImperial: {

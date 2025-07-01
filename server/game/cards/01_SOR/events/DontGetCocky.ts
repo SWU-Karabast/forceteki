@@ -14,10 +14,10 @@ export default class DontGetCocky extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
+    public override setupCardAbilities(card: this) {
         // TODO: Consolidate this to a single prompt that includes the revealed cards and
         //       Reveal Another Card/Stop Revealing Cards options
-        this.setEventAbility({
+        card.setEventAbility({
             title: 'Choose a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit

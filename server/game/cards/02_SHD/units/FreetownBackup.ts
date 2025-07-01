@@ -10,8 +10,8 @@ export default class FreetownBackup extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give another friendly unit +2/+2',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

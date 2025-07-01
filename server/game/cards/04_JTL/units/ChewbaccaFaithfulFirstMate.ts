@@ -10,8 +10,8 @@ export default class ChewbaccaFaithfulFirstMate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addReplacementEffectAbility({
+    public override setupCardAbilities(card: this) {
+        card.addReplacementEffectAbility({
             title: 'This unit can\'t be defeated or returned to hand by enemy card abilities',
             when: {
                 onCardDefeated: (event, context) =>
@@ -25,7 +25,7 @@ export default class ChewbaccaFaithfulFirstMate extends NonLeaderUnitCard {
             }
         });
 
-        this.addPilotingGainAbilityTargetingAttached({
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.ReplacementEffect,
             title: 'This unit can\'t be defeated or returned to hand by enemy card abilities',
             when: {

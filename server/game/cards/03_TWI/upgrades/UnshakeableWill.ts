@@ -9,7 +9,7 @@ export default class UnshakeableWill extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addGainKeywordTargetingAttached({ keyword: KeywordName.Sentinel });
+    public override setupCardAbilities(card: this) {
+        card.addGainKeywordTargetingAttached({ keyword: KeywordName.Sentinel });
     }
 }

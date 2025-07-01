@@ -10,8 +10,8 @@ export default class BladeSquadronBWing extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give a Shield token to a unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.opponentHasAtLeastThreeExhausted(context),

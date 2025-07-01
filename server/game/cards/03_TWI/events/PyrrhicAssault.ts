@@ -10,8 +10,8 @@ export default class PyrrhicAssault extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'For this phase, each friendly unit gains: "When Defeated: Deal 2 damage to an enemy unit."',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 effect: AbilityHelper.ongoingEffects.gainAbility({

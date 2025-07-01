@@ -10,8 +10,8 @@ export default class SpareTheTarget extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Return an enemy non-leader unit to its owner\'s hand. Collect that unit\'s Bounties.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

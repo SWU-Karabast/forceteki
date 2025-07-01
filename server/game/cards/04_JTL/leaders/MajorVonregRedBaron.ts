@@ -17,10 +17,10 @@ export default class MajorVonregRedBaron extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addPilotDeploy();
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -44,8 +44,8 @@ export default class MajorVonregRedBaron extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingGainAbilityTargetingAttached({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Give another unit in this arena +1/+0 for this phase.',
             optional: true,

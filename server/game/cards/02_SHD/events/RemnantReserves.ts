@@ -10,8 +10,8 @@ export default class RemnantReserves extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Search the top 5 cards for up to 3 units, reveal them, and draw them',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 targetMode: TargetMode.UpTo,

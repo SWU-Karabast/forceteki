@@ -10,8 +10,8 @@ export default class Equalize extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give a unit –2/–2 for this phase. Then, if you control fewer units than that unit\'s controller, give another unit –2/–2 for this phase.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

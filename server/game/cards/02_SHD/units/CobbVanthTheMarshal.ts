@@ -9,8 +9,8 @@ export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Search the top 10 cards of your deck for a unit that costs 2 or less and discard it. For this phase, you may play that card from your discard pile for free.',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 10,

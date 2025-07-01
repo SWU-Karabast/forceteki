@@ -19,8 +19,8 @@ export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a unit from your hand. It gains Hidden for this phase',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -40,8 +40,8 @@ export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'The next unit you play this phase gains Hidden',
             immediateEffect: AbilityHelper.immediateEffects.delayedPlayerEffect({
                 title: 'The next unit you play this phase gains Hidden',

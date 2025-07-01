@@ -10,8 +10,8 @@ export default class RoseTicoDedicatedToTheCause extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Defeat a Shield token on a friendly unit. If you do, give 2 Experience tokens to that unit.',
             optional: true,
             targetResolver: {

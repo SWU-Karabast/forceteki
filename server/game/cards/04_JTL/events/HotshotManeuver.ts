@@ -12,8 +12,8 @@ export default class HotshotManeuver extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'For each “On Attack” abilities on a friendly unit, deal 2 damage to a different enemy unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

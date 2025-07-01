@@ -10,8 +10,8 @@ export default class ThereIsNoEscape extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose up to 3 units. Those units lose all abilities for this round.',
             targetResolver: {
                 mode: TargetMode.UpTo,

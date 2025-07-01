@@ -11,12 +11,12 @@ export default class ChimaeraFlagshipOfTheSeventhFleet extends NonLeaderUnitCard
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Name a card',
             targetResolver: {
                 mode: TargetMode.DropdownList,
-                options: this.game.playableCardTitles,
+                options: card.game.playableCardTitles,
                 condition: (context) => context.player.opponent.hand.length > 0   // skip ability if opponent has no cards in hand
             },
             then: (thenContext) => ({

@@ -10,8 +10,8 @@ export default class HeartlessTactics extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust a unit and give it –2/–0 for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

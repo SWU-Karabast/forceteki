@@ -10,8 +10,8 @@ export default class HeroesOnBothSides extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give each chosen unit +2/+2 and Saboteur for this phase',
             targetResolvers: {
                 republicUnit: {

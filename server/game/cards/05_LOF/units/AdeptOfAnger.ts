@@ -10,8 +10,8 @@ export default class AdeptOfAnger extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Exhaust a unit',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.useTheForce()],
             targetResolver: {

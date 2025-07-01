@@ -10,8 +10,8 @@ export default class Takedown extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat a unit with 5 or less remaining HP',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

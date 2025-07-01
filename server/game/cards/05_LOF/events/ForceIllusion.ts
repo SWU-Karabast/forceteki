@@ -10,8 +10,8 @@ export default class ForceIllusion extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust an enemy unit. A friendly unit gains Sentinel for this phase',
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.selectCard({

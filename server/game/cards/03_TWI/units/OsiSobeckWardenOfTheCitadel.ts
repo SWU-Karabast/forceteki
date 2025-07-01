@@ -10,8 +10,8 @@ export default class OsiSobeckWardenOfTheCitadel extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'This unit captures an enemy non-leader ground unit with cost equal to or less than the number of resources paid to play this unit.',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

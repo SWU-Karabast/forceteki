@@ -10,8 +10,8 @@ export default class HeavyPersuaderTank extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 2 damage to a ground unit',
             optional: true,
             targetResolver: {

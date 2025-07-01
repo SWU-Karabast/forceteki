@@ -9,8 +9,8 @@ export default class TargetingComputer extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbilityTargetingAttached({
             title: 'You assign all indirect damage dealt by this unit',
             ongoingEffect: AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit(),
         });

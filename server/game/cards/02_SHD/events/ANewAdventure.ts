@@ -12,8 +12,8 @@ export default class ANewAdventure extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Return a non-leader unit that costs 6 or less to its owner\'s hand',
             targetResolver: {
                 cardCondition: (card) => card.isNonLeaderUnit() && card.cost <= 6,

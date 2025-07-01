@@ -10,8 +10,8 @@ export default class KananJarrusHelpUsSurvive extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Give a Shield token to a Creature or Spectre unit.',
             cost: [
                 AbilityHelper.costs.abilityActivationResourceCost(1),
@@ -24,8 +24,8 @@ export default class KananJarrusHelpUsSurvive extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While you control another Creature or Spectre unit, this unit gets +2/+2.',
             condition: (context) => context.player.hasSomeArenaUnit({ trait: [Trait.Creature, Trait.Spectre], otherThan: context.source }),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })

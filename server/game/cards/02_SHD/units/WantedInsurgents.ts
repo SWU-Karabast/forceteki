@@ -10,8 +10,8 @@ export default class WantedInsurgents extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addBountyAbility({
+    public override setupCardAbilities(card: this) {
+        card.addBountyAbility({
             title: 'Deal 2 damage to a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

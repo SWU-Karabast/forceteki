@@ -9,8 +9,8 @@ export default class PrivateerCrew extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Give 3 Experience tokens to this unit',
             when: {
                 whenPlayedUsingSmuggle: true,

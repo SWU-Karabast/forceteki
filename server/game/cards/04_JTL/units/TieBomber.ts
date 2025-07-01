@@ -9,8 +9,8 @@ export default class TieBomber extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Deal 3 indirect damage to the defending player',
             immediateEffect: AbilityHelper.immediateEffects.indirectDamageToPlayer((context) => ({
                 amount: 3,

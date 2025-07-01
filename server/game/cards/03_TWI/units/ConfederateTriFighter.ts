@@ -10,8 +10,8 @@ export default class ConfederateTriFighter extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Bases can not be healed',
             targetZoneFilter: ZoneName.Base,
             targetController: WildcardRelativePlayer.Any,

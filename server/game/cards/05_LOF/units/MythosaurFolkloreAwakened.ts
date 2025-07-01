@@ -11,8 +11,8 @@ export default class MythosaurFolkloreAwakened extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Friendly upgraded units can\'t be exhausted or returned to hand by enemy card abilities',
             matchTarget: (card, context) =>
                 card.controller === context.player &&
@@ -41,7 +41,7 @@ export default class MythosaurFolkloreAwakened extends NonLeaderUnitCard {
             })
         });
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'Friendly leaders gain the Mandalorian trait',
             targetZoneFilter: WildcardZoneName.Any,
             targetController: RelativePlayer.Self,

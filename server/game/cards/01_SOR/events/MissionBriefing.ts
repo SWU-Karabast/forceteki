@@ -10,8 +10,8 @@ export default class MissionBriefing extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a player. They draw 2 cards',
             targetResolver: {
                 mode: TargetMode.Player,

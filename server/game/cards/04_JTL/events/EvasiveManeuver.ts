@@ -10,8 +10,8 @@ export default class EvasiveManeuver extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

@@ -10,8 +10,8 @@ export default class CoordinatedFront extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give a ground unit and a space unit +2/+2 for this phase',
             targetResolvers: {
                 groundUnit: {

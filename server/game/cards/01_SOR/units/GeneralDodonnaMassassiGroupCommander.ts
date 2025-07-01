@@ -10,8 +10,8 @@ export default class GeneralDodonnaMassassiGroupCommander extends NonLeaderUnitC
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Other friendly Rebel units get +1/+1',
             targetController: RelativePlayer.Self,
             matchTarget: (card, context) => card !== context.source && card.hasSomeTrait(Trait.Rebel),

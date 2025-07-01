@@ -10,12 +10,12 @@ export default class ZuckussTheFindsman extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Name a card, then discard the top card of the defending player\'s deck. If a card with that name is discarded, this unit gets +4/+0 for this attack.',
             targetResolver: {
                 mode: TargetMode.DropdownList,
-                options: this.game.playableCardTitles,
+                options: card.game.playableCardTitles,
                 condition: (context) => context.player.opponent.drawDeck.length > 0   // skip ability if opponent has no cards in deck
             },
             then: (thenContext) => ({

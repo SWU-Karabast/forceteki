@@ -10,8 +10,8 @@ export default class ShadowCasterJustBusiness extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Use the When Defeated ability again',
             optional: true,
             when: {

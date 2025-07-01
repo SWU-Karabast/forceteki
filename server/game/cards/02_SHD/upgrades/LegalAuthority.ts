@@ -17,8 +17,8 @@ export default class LegalAuthority extends UpgradeCard {
         return targetCard.isUnit() && targetCard.controller === controller;
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Attached unit captures an enemy non-leader unit with less power than it',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

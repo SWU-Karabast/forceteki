@@ -10,8 +10,8 @@ export default class RaveningGundark extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 1 damage to a ground unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

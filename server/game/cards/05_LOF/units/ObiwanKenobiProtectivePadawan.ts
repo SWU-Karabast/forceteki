@@ -10,8 +10,8 @@ export default class ObiwanKenobiProtectivePadawan extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'This unit gains Sentinel for this phase',
             when: {
                 onCardPlayed: (event, context) => event.cardTypeWhenInPlay === CardType.BasicUnit &&

@@ -18,8 +18,8 @@ export default class KylosTieSilencerRuthlesslyEfficient extends NonLeaderUnitCa
         this.cardsDiscardedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDiscardedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities () {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play Kylo\'s TIE Silencer from your discard pile',
             condition: (context) => this.cardsDiscardedThisPhaseWatcher.getCurrentValue().some((entry) =>
                 entry.discardedFromPlayer === context.player &&

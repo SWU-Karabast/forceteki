@@ -10,14 +10,14 @@ export default class HevyStaunchMartyr extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'Gain Raid 2',
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 }),
         });
 
-        this.addWhenDefeatedAbility({
+        card.addWhenDefeatedAbility({
             title: 'Deal 1 damage to each enemy ground unit.',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 1,

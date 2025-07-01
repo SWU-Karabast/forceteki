@@ -10,8 +10,8 @@ export default class MandalorianWarrior extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give 1 experience to another Mandalorian unit',
             optional: true,
             targetResolver: {

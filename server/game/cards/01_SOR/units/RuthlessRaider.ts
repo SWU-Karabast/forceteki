@@ -10,8 +10,8 @@ export default class RuthlessRaider extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 2 damage to an enemy base and 2 damage to an enemy unit',
             when: {
                 whenPlayed: true,

@@ -10,9 +10,9 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addPilotDeploy();
+        card.addActionAbility({
             title: 'Select a friendly unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
@@ -32,8 +32,8 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Choose any number of friendly units. They lose all abilities for this round.',
             targetResolver: {
                 activePromptTitle: 'Choose friendly units to lose all abilities for this round',
@@ -48,7 +48,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
             }
         });
 
-        this.addPilotingGainTriggeredAbilityTargetingAttached({
+        card.addPilotingGainTriggeredAbilityTargetingAttached({
             title: 'Choose any number of friendly units. They lose all abilities for this round.',
             when: {
                 onAttack: true,

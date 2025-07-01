@@ -10,20 +10,20 @@ export default class NabatVillage extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Draw 3 more cards in your starting hand',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStartingHandSize({
                 amount: 3
             })
         });
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'Player cannot mulligan',
             ongoingEffect: AbilityHelper.ongoingEffects.noMulligan()
         });
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Put 3 cards from your hand on the bottom of your deck',
             when: {
                 onPhaseStarted: (event) => event.phase === PhaseName.Action && event.context.game.roundNumber === 1

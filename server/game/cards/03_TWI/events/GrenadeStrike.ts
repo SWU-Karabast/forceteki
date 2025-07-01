@@ -10,8 +10,8 @@ export default class GrenadeStrike extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 2 damage to a unit. You may deal 1 damage to another unit in the same arena.',
             targetResolvers: {
                 firstUnit: {

@@ -11,8 +11,8 @@ export default class HanSoloHasHisMoments extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingAbility({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingAbility({
             title: 'Attack with attached unit. If it\'s the Millennium Falcon, it deals its combat damage before the defender.',
             type: AbilityType.Triggered,
             when: {

@@ -10,8 +10,8 @@ export default class LightsaberThrow extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Discard a Lightsaber card from your hand. If you do, deal 4 damage to a ground unit and draw a card.',
             targetResolver: {
                 controller: RelativePlayer.Self,

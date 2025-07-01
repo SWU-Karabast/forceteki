@@ -10,8 +10,8 @@ export default class VultureInterceptorWing extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give an enemy unit -1/-1 for this phase',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

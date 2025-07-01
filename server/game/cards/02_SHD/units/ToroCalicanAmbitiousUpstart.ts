@@ -10,8 +10,8 @@ export default class ToroCalicanAmbitiousUpstart extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 1 damage to the played Bounty Hunter unit to ready this unit',
             when: {
                 onCardPlayed: (event, context) =>

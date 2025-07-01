@@ -15,8 +15,8 @@ export default class DrydenVos extends NonLeaderUnitCard {
         return card.zoneName === ZoneName.Capture && card.zone.captor.controller === context.player;
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Choose a captured card guarded by a unit you control. You may play it for free under your control.',
             optional: true,
             targetResolver: {

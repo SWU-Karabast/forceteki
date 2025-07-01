@@ -9,8 +9,8 @@ export default class CoruscantDissident extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Ready a resource',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.readyResources((context) => ({

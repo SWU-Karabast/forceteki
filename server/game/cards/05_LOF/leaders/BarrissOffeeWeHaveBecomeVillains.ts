@@ -11,8 +11,8 @@ export default class BarrissOffeeWeHaveBecomeVillains extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play an event from your hand. It costs 1 resource less.',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.useTheForce()],
             targetResolver: {
@@ -28,8 +28,8 @@ export default class BarrissOffeeWeHaveBecomeVillains extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play an event from your hand. It costs 1 resource less.',
             cost: AbilityHelper.costs.useTheForce(),
             targetResolver: {

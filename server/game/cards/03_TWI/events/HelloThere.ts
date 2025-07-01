@@ -18,8 +18,8 @@ export default class HelloThere extends EventCard {
         this.enteredPlayWatcher = AbilityHelper.stateWatchers.cardsEnteredPlayThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a unit that entered play this phase. It gets -4/-4 for this phase.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

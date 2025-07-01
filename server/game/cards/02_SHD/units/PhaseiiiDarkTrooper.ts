@@ -10,8 +10,8 @@ export default class PhaseiiiDarkTrooper extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'When combat damage is dealt to this unit: Give an Experience token to this unit.',
             when: {
                 onDamageDealt: (event, context) => event.type === DamageType.Combat && event.card === context.source

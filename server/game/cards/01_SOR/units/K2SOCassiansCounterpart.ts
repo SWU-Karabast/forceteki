@@ -10,9 +10,9 @@ export default class K2SOCassiansCounterpart extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
+    public override setupCardAbilities(card: this) {
         // TODO: This doesn't support Twin Sun correctly
-        this.addWhenDefeatedAbility({
+        card.addWhenDefeatedAbility({
             title: 'Deal 3 damage to your opponent\'s base or your opponent discards a card from their hand',
             targetResolver: {
                 mode: TargetMode.Select,

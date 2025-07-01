@@ -10,8 +10,8 @@ export default class TuskenTracker extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Each enemy unit loses Hidden for this phase',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 target: context.source.controller.opponent.getArenaUnits(),

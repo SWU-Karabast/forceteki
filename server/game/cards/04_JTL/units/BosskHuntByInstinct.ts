@@ -12,13 +12,13 @@ export default class BosskHuntByInstinct extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Exhaust the defender and deal 1 damage to it (if it\'s a unit)',
             immediateEffect: this.buildAbility()
         });
 
-        this.addPilotingGainAbilityTargetingAttached({
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Exhaust the defender and deal 1 damage to it (if it\'s a unit)',
             when: {

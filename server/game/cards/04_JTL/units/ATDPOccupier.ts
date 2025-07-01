@@ -9,8 +9,8 @@ export default class ATDPOccupier extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addDecreaseCostAbility({
+    public override setupCardAbilities(card: this) {
+        card.addDecreaseCostAbility({
             title: 'This unit costs 1 resource less to play for each damaged ground unit',
             amount: (_card, player) =>
                 player.getArenaUnits({

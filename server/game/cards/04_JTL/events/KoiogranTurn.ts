@@ -10,8 +10,8 @@ export default class KoiogranTurn extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Ready a Fighter or Transport unit with 6 or less power',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.getPower() <= 6 && (card.hasSomeTrait([Trait.Fighter, Trait.Transport])),

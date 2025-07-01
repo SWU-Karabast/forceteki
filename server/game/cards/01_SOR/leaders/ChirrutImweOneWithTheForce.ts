@@ -10,8 +10,8 @@ export default class ChirrutImweOneWithTheForce extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Give a unit +0/+2 for this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -23,8 +23,8 @@ export default class ChirrutImweOneWithTheForce extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility({
             title: 'During the action phase, this unit isn\'t defeated by having no remaining HP',
             ongoingEffect: AbilityHelper.ongoingEffects.cannotBeDefeatedByDamage(),
             condition: (context) => context.game.currentPhase === PhaseName.Action

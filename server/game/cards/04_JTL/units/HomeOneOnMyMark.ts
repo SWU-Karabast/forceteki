@@ -9,8 +9,8 @@ export default class HomeOneOnMyMark extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addDecreaseCostAbility({
+    public override setupCardAbilities(card: this) {
+        card.addDecreaseCostAbility({
             title: 'This units costs 3 resources less to play',
             condition: (context) => context.player.opponent.getArenaUnits({ arena: ZoneName.SpaceArena }).length >= 3,
             amount: 3

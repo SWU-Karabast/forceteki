@@ -10,8 +10,8 @@ export default class AnakinSkywalkerChampionOfMortis extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'If there a Heroism card in your discard pile, you may give a unit -3/-3 for this phase',
             optional: true,
             targetResolver: {
@@ -25,7 +25,7 @@ export default class AnakinSkywalkerChampionOfMortis extends NonLeaderUnitCard {
             },
         });
 
-        this.addWhenPlayedAbility({
+        card.addWhenPlayedAbility({
             title: 'If there a Villainy card in your discard pile, you may give a unit -3/-3 for this phase',
             optional: true,
             targetResolver: {

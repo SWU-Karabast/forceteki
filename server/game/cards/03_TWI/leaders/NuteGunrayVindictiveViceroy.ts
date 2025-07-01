@@ -17,8 +17,8 @@ export default class NuteGunrayVindictiveViceroy extends LeaderUnitCard {
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Create a Battle Droid token.',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
@@ -28,8 +28,8 @@ export default class NuteGunrayVindictiveViceroy extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Create a Battle Droid token.',
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
         });

@@ -11,8 +11,8 @@ export default class LookTheOtherWay extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust a unit unless its controller pays 2 resources.',
             targetResolvers: {
                 targetUnit: {

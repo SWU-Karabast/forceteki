@@ -14,8 +14,8 @@ export default class TheCloneWars extends EventCard {
         return context.player.resources.filter((card) => !card.exhausted).length;
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Pay any number of resources.',
             cannotTargetFirst: true,
             targetResolver: {

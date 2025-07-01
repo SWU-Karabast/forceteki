@@ -10,8 +10,8 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Opponent chooses a non-leader unit they control to defeat',
             when: {
                 onAttack: true,

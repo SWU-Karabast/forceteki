@@ -9,8 +9,8 @@ export default class InfusedBrawler extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Use the Force to give 2 Experience tokens to this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
@@ -23,7 +23,7 @@ export default class InfusedBrawler extends NonLeaderUnitCard {
             }
         });
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Defeat an Experience token on Infused Brawler',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,

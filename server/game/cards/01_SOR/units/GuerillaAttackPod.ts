@@ -9,8 +9,8 @@ export default class GuerillaAttackPod extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'If a base has 15 or more damage on it, ready this unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.base.damage >= 15 || context.player.opponent.base.damage >= 15,

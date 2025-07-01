@@ -10,8 +10,8 @@ export default class AdmiralYularenAdvisingCaution extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each other friendly Heroism unit gets +0/+1',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,

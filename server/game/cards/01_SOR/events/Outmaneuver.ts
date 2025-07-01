@@ -11,8 +11,8 @@ export default class Outmaneuver extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust each unit in an arena',
             targetResolver: {
                 mode: TargetMode.Select,

@@ -10,8 +10,8 @@ export default class JedhaAgitator extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'If you control a leader unit, deal 2 damage to a ground unit or base',
             targetResolver: {
                 cardCondition: (card) => (card.isUnit() && card.zoneName === ZoneName.GroundArena) || card.isBase(),

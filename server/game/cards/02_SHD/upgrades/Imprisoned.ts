@@ -9,10 +9,10 @@ export default class Imprisoned extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isNonLeaderUnit());
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card) => card.isNonLeaderUnit());
 
-        this.addConstantAbilityTargetingAttached({
+        card.addConstantAbilityTargetingAttached({
             title: 'Attached unit loses its current abilities and can\'t gain abilities',
             ongoingEffect: AbilityHelper.ongoingEffects.loseAllAbilities()
         });

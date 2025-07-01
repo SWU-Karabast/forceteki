@@ -10,8 +10,8 @@ export default class GeneralKrellHeartlessTactician extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Other friendly units gain when defeated ability',
             targetController: RelativePlayer.Self,
             matchTarget: (card, context) => card !== context.source,

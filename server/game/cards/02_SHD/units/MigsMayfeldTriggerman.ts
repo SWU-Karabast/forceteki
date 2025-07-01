@@ -10,8 +10,8 @@ export default class MigsMayfeldTriggerman extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'You may deal 2 damage to a unit or base.',
             limit: AbilityHelper.limit.perRound(1),
             optional: true,

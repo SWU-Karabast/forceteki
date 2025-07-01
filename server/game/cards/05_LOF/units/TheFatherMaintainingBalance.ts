@@ -9,8 +9,8 @@ export default class TheFatherMaintainingBalance extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 1 damage to this unit. If you do, the Force is with you.',
             optional: true,
             when: {

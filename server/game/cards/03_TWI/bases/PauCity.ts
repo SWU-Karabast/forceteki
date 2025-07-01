@@ -10,8 +10,8 @@ export default class PauCity extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each leader unit you control gets +0/+1',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: CardType.LeaderUnit,

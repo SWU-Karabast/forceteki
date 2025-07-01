@@ -10,8 +10,8 @@ export default class LethalCrackdown extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat a non-leader unit. If you do, deal damage to your base equal to that unit\'s power',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

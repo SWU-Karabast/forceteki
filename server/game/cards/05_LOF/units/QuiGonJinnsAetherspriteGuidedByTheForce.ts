@@ -10,8 +10,8 @@ export default class QuiGonJinnsAetherspriteGuidedByTheForce extends NonLeaderUn
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'The next time you use a "When Played" ability this phase, you may use that ability again',
             immediateEffect: AbilityHelper.immediateEffects.delayedPlayerEffect({
                 title: 'You may use that "When Played" ability again',

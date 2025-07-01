@@ -10,8 +10,8 @@ export default class CuriousFlock extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Pay up to 6 resources. For each resource paid this way, give an Experience token to this unit',
             targetResolver: {
                 mode: TargetMode.DropdownList,

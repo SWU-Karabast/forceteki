@@ -10,8 +10,8 @@ export default class GrandInquisitorHuntingTheJedi extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Deal 2 damage to a friendly unit with 3 or less power and ready it',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -26,8 +26,8 @@ export default class GrandInquisitorHuntingTheJedi extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Deal 1 damage to another friendly unit with 3 or less power and ready it.',
             optional: true,
             targetResolver: {

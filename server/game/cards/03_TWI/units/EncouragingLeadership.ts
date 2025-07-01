@@ -9,8 +9,8 @@ export default class EncouragingLeadership extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give each friendly unit +1/+1 for this phase.',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 target: context.player.getArenaUnits(),

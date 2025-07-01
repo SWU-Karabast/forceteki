@@ -11,10 +11,10 @@ export default class HanSoloNeverTellMeTheOdds extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addPilotDeploy();
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Reveal the top card of your deck',
             immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
                 target: context.player.getTopCardOfDeck(),
@@ -41,8 +41,8 @@ export default class HanSoloNeverTellMeTheOdds extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addPilotingAbility({
             title: 'For each friendly unit or upgrade that has an odd cost, ready a resource.',
             type: AbilityType.Triggered,
             when: {

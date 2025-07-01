@@ -9,8 +9,8 @@ export default class StrategicAnalysis extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Draw 3 cards',
             immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 3 })
         });

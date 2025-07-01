@@ -10,8 +10,8 @@ export default class LandoCalrissianResponsibleBusinessman extends NonLeaderUnit
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Return up to 2 friendly resources to their owners’ hands',
             targetResolver: {
                 mode: TargetMode.UpTo,

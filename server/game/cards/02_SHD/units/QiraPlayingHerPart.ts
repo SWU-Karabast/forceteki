@@ -11,8 +11,8 @@ export default class QiraPlayingHerPart extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Look at an opponent\'s hand',
             immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
                 target: context.player.opponent.hand,
@@ -22,7 +22,7 @@ export default class QiraPlayingHerPart extends NonLeaderUnitCard {
                 title: 'Name a card',
                 targetResolver: {
                     mode: TargetMode.DropdownList,
-                    options: this.game.playableCardTitles,
+                    options: card.game.playableCardTitles,
                 },
                 then: (thenContext) => ({
                     title: 'While this unit is in play, each card with that name costs 3 resources more for your opponents to play',

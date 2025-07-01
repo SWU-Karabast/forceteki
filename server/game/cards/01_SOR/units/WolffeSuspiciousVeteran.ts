@@ -10,8 +10,8 @@ export default class WolffeSuspiciousVeteran extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Bases can\'t be healed',
             when: {
                 whenPlayed: true,

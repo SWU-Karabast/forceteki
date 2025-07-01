@@ -10,8 +10,8 @@ export default class WingmanVictorTwoMaulerMithel extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingAbility({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingAbility({
             type: AbilityType.Triggered,
             title: 'Create a TIE Fighter',
             when: {

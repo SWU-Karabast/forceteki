@@ -9,8 +9,8 @@ export default class _97thLegionKeepingThePeaceOnSullust extends NonLeaderUnitCa
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit gets +1/+1 for each resource you control.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
                 power: target.controller.resources.length,

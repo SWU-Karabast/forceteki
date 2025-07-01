@@ -10,8 +10,8 @@ export default class ReinforcementWalker extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Look at the top card of your deck. Draw it or discard it and heal 3 damage from your base.',
             when: {
                 whenPlayed: true,

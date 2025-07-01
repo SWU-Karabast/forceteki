@@ -10,8 +10,8 @@ export default class StingerMantisWhereAreWeGoing extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 2 damage to an exhausted unit',
             optional: true,
             targetResolver: {

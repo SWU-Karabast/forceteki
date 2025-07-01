@@ -10,8 +10,8 @@ export default class UnexpectedEscape extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a unit to exhaust',
             targetResolvers: {
                 exhaust: {

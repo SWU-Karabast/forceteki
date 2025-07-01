@@ -11,10 +11,10 @@ export default class HotshotDL44Blaster extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'When Smuggled, attack with attached unit',
             when: {
                 whenPlayedUsingSmuggle: true,

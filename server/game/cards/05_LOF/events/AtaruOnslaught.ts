@@ -10,8 +10,8 @@ export default class AtaruOnslaught extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Ready a Force unit with 4 or less power',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Force) && card.getPower() <= 4,

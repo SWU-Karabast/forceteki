@@ -10,8 +10,8 @@ export default class XanaduBloodCadBanesReward extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Return another friendly non-leader Underworld unit to its owner’s hand. If you do, exhaust an enemy unit or resource',
             when: {
                 whenPlayed: true,

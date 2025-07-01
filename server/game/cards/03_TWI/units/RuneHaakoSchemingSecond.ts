@@ -18,8 +18,8 @@ export default class RuneHaakoSchemingSecond extends NonLeaderUnitCard {
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'If a friendly unit was defeated this phase, you may give a unit –1/–1 for this phase',
             optional: true,
             targetResolver: {

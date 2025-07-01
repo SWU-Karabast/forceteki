@@ -10,15 +10,15 @@ export default class Foresight extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainTriggeredAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addGainTriggeredAbilityTargetingAttached({
             title: 'Name a card',
             when: {
                 onPhaseStarted: (event) => event.phase === PhaseName.Regroup
             },
             targetResolver: {
                 mode: TargetMode.DropdownList,
-                options: this.game.playableCardTitles,
+                options: card.game.playableCardTitles,
             },
             then: (thenContext) => ({
                 title: 'Look at the top card of your deck',

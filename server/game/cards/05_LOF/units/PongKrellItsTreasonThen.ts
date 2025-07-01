@@ -10,8 +10,8 @@ export default class PongKrellItsTreasonThen extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Defeat a unit with less remaining HP than this unit\'s power',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,

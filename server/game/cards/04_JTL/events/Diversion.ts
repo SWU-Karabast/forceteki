@@ -10,8 +10,8 @@ export default class Diversion extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give a unit Sentinel for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

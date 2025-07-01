@@ -11,14 +11,14 @@ export default class OggdoBogdoBoganoBrute extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit can\'t attack unless it\'s damaged',
             condition: (context) => context.source.damage === 0,
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.Attack),
         });
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Heal 2 damage from this unit',
             when: {
                 onCardDefeated: (event, context) =>

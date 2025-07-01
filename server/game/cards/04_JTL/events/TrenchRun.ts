@@ -12,8 +12,8 @@ export default class TrenchRun extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a Fighter unit. For this attack, it gets +4/+0 and gains: "On Attack: Discard 2 cards from the defending player\'s deck. Deal unpreventable damage equal to the difference in the discarded cards\' costs to this unit."',
             targetResolver: {
                 cardCondition: (card) => card.hasSomeTrait(Trait.Fighter),

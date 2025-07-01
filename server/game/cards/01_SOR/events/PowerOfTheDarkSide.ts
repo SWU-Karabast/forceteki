@@ -10,8 +10,8 @@ export default class PowerOfTheDarkSide extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'An opponent chooses a unit they control. Defeat that unit',
             targetResolver: {
                 choosingPlayer: RelativePlayer.Opponent,

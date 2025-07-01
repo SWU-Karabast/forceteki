@@ -10,8 +10,8 @@ export default class TheTragedyOfPlagueis extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a friendly unit. For this phase, it can\'t be defeated by having no remaining HP. An opponent chooses a unit they control. Defeat that unit.',
             targetResolvers: {
                 friendlyUnit: {

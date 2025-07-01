@@ -10,8 +10,8 @@ export default class MazKanataPirateQueen extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Give an experience token to Maz Kanata',
             when: {
                 onCardPlayed: (event, context) =>

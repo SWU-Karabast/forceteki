@@ -11,8 +11,8 @@ export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Play a Heroism unit from your discard pile. It costs 3 less',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Heroism),
@@ -25,7 +25,7 @@ export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
             }
         });
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'Each other friendly unit gains Restore 1.',
             matchTarget: (card, context) => card.isUnit() && card.controller === context.player && card !== context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Restore, amount: 1 })

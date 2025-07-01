@@ -10,8 +10,8 @@ export default class BountyHunterCrew extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Return an event from a discard pile',
             optional: true,
             targetResolver: {

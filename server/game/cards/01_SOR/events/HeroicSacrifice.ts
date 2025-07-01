@@ -10,8 +10,8 @@ export default class HeroicSacrifice extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Draw a card',
             immediateEffect: AbilityHelper.immediateEffects.draw(),
             then: {

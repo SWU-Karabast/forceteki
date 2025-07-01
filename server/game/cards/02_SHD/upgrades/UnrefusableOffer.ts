@@ -11,10 +11,10 @@ export default class UnrefusableOffer extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => !card.isLeaderUnit());
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card) => !card.isLeaderUnit());
 
-        this.addGainKeywordTargetingAttached({
+        card.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
             ability: {
                 title: 'Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it',

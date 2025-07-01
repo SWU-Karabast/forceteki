@@ -11,8 +11,8 @@ export default class PalpatinesReturn extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Play a unit from your discard pile. It costs 6 less. If it’s a Force unit, it costs 8 less instead.',
             targetResolver: {
                 mode: TargetMode.Single,

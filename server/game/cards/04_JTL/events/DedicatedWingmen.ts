@@ -9,8 +9,8 @@ export default class DedicatedWingmen extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Create 2 X-Wing tokens',
             immediateEffect: AbilityHelper.immediateEffects.createXWing({ amount: 2 })
         });

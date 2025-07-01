@@ -9,8 +9,8 @@ export default class KijimiPatrollers extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Create a TIE Fighter token',
             immediateEffect: AbilityHelper.immediateEffects.createTieFighter()
         });

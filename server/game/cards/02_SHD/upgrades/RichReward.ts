@@ -11,8 +11,8 @@ export default class RichReward extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainKeywordTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
             ability: {
                 title: 'Give an Experience token to each of up to 2 units',

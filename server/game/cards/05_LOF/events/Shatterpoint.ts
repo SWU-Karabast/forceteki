@@ -10,8 +10,8 @@ export default class Shatterpoint extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose one: Defeat a non-leader unit with 3 or less remaining HP or Use the Force. If you do, defeat a non-leader unit',
             immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
                 amountOfChoices: 1,

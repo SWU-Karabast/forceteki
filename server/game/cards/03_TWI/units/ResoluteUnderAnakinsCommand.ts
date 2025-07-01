@@ -10,13 +10,13 @@ export default class ResoluteUnderAnakinsCommand extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addDecreaseCostAbility({
+    public override setupCardAbilities(card: this) {
+        card.addDecreaseCostAbility({
             title: 'This unit costs 1 resource less to play for every 5 damage on your base',
             amount: (_, player) => Math.floor(player.base.damage / 5),
         });
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Deal 2 damage to an enemy unit and each other enemy unit with the same name as that unit',
             when: {
                 whenPlayed: true,

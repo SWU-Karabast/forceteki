@@ -10,8 +10,8 @@ export default class FocusDeterminesReality extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Each friendly Force unit gains Raid 1 and Saboteur for this phase.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({

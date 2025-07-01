@@ -10,8 +10,8 @@ export default class SynchronizedStrike extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal damage to an enemy unit equal to the number of units you control in its arena',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

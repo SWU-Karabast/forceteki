@@ -11,8 +11,8 @@ export default class TheyHateThatShip extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'An opponent creates 2 TIE Fighter tokens and readies them',
             immediateEffect: AbilityHelper.immediateEffects.createTieFighter((context) => ({
                 entersReady: true,

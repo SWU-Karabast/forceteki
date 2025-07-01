@@ -9,8 +9,8 @@ export default class IncineratorTrooper extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While attacking, this unit deals combat damage before the defender.',
             ongoingEffect: AbilityHelper.ongoingEffects.dealsDamageBeforeDefender(),
         });

@@ -11,8 +11,8 @@ export default class EzraBridger extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Look at the top card of your deck.',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,

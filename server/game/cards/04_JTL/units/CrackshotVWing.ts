@@ -10,8 +10,8 @@ export default class CrackshotVWing extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Defeat this unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasSomeArenaUnit({

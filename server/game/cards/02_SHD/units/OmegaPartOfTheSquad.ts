@@ -19,8 +19,8 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Ignore the aspect penalty on the first Clone unit you play each round',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: CardType.BasicUnit,
@@ -32,7 +32,7 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
             }),
         });
 
-        this.addWhenPlayedAbility({
+        card.addWhenPlayedAbility({
             title: 'Search the top 5 cards of your deck for a Clone card, then reveal and draw it.',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,

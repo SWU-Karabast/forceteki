@@ -10,8 +10,8 @@ export default class FlightOfTheInquisitor extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Return a Force unit and Lightsaber upgrade from your discard pile to your hand.',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.simultaneous(

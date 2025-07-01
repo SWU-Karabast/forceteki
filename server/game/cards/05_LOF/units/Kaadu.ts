@@ -10,8 +10,8 @@ export default class Kaadu extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             optional: true,
             title: 'Give a unit overwhelm',
             targetResolver: {

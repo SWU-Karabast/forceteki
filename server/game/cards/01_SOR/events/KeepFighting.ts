@@ -9,8 +9,8 @@ export default class KeepFighting extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Ready a unit with 3 or less power',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.getPower() <= 3,

@@ -10,8 +10,8 @@ export default class MidnightRepairs extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Heal up to 8 total damage from any number of units',
             immediateEffect: AbilityHelper.immediateEffects.distributeHealingAmong({
                 amountToDistribute: 8,

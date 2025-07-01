@@ -10,8 +10,8 @@ export default class CadBaneHeWhoNeedsNoIntroduction extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Exhaust this leader to deal 1 damage to a unit controlled by the opponent',
             optional: true,
             when: {
@@ -30,8 +30,8 @@ export default class CadBaneHeWhoNeedsNoIntroduction extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'The opponent chooses a unit they control. Deal 2 damage to it.',
             optional: true,
             when: {

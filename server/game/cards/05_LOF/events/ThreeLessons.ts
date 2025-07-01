@@ -10,8 +10,8 @@ export default class ThreeLessons extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Play a unit from your hand. It gains Hidden for this phase. Give an Experience token and a Shield token to it.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

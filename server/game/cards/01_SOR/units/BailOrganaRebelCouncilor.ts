@@ -10,8 +10,8 @@ export default class BailOrganaRebelCouncilor extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Give an Experience token to another friendly unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

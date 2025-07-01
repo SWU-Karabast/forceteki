@@ -18,8 +18,8 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Deal 1 damage to a unit and 1 damage to a base',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolvers: {
@@ -41,8 +41,8 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Deal 2 damage to a unit',
             optional: true,
             targetResolver: {

@@ -10,14 +10,14 @@ export default class LuminaraUnduliSoftSpokenMaster extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'Gain Grit',
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Grit),
         });
 
-        this.addWhenPlayedAbility({
+        card.addWhenPlayedAbility({
             title: 'Heal 1 damage from a base for each unit you control.',
             targetResolver: {
                 cardTypeFilter: CardType.Base,

@@ -9,8 +9,8 @@ export default class RushClovis extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Create a Battle Droid token.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.opponent.readyResourceCount === 0,

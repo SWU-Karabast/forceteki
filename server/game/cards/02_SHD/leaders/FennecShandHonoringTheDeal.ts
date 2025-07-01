@@ -11,8 +11,8 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a unit that costs 4 or less from your hand. Give it ambush for this phase',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             cannotTargetFirst: true,
@@ -33,8 +33,8 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a unit that costs 4 or less from your hand. Give it ambush for this phase',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,

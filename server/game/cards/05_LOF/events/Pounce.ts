@@ -10,8 +10,8 @@ export default class Pounce extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a Creature unit. It gets +4/+0 for this attack',
             initiateAttack: {
                 attackerCondition: (card) => card.hasSomeTrait(Trait.Creature),

@@ -11,8 +11,8 @@ export default class TimelyIntervention extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Play a unit from your hand. Give it ambush for this phase',
             cannotTargetFirst: true,
             targetResolver: {

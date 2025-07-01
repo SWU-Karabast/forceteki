@@ -9,8 +9,8 @@ export default class BenduDoYouFearTheStorm extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Deal 3 damage to each other unit',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 3,

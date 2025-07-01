@@ -10,8 +10,8 @@ export default class LorSanTekkaSecretKeeper extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'You may give an Experience token to a unique unit',
             optional: true,
             targetResolver: {

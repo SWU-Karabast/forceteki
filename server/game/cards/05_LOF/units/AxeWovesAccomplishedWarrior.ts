@@ -9,8 +9,8 @@ export default class AxeWovesAccomplishedWarrior extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit gets +1/+1 for each upgrade on him.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
                 power: target.upgrades.length,

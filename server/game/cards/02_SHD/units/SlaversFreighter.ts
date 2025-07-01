@@ -10,8 +10,8 @@ export default class SlaversFreighter extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'You may ready another unit with power equal to or less than the number of upgrades on enemy units',
             optional: true,
             targetResolver: {

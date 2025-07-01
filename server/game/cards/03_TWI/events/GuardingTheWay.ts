@@ -10,8 +10,8 @@ export default class GuardingTheWay extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give Sentinel for the phase. If you have the initiative, also give that unit +2/+2 for this phase.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

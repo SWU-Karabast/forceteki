@@ -17,8 +17,8 @@ export default class HoundsToothReliableAndDeadly extends NonLeaderUnitCard {
         this.cardsEnteredPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsEnteredPlayThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While attacking an exhausted unit that didn\'t enter play this phase, this unit deals combat damage before the defender',
             condition: (context) =>
                 context.source.isAttacking() &&

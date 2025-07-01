@@ -9,22 +9,22 @@ export default class ConstructedLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
 
-        this.addGainKeywordTargetingAttached({
+        card.addGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard.hasSomeAspect(Aspect.Heroism),
             keyword: KeywordName.Restore,
             amount: 2,
         });
 
-        this.addGainKeywordTargetingAttached({
+        card.addGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard.hasSomeAspect(Aspect.Villainy),
             keyword: KeywordName.Raid,
             amount: 2,
         });
 
-        this.addGainKeywordTargetingAttached({
+        card.addGainKeywordTargetingAttached({
             gainCondition: (context) => !context.source.parentCard.hasSomeAspect([Aspect.Heroism, Aspect.Villainy]),
             keyword: KeywordName.Sentinel
         });

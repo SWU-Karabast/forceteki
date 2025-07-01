@@ -11,8 +11,8 @@ export default class APrecariousPredicament extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Return an enemy non-leader unit to its owner\'s hand unless its controller says, “It could be worse”. If they do, you may play a card named It\'s Worse from your hand or resources for free',
             targetResolvers: {
                 targetUnit: {

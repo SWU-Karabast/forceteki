@@ -10,8 +10,8 @@ export default class BabuFrikHeyyy extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Attack with a friendly Droid unit. For this attack, it deals damage equal to its remaining HP instead of its power.',
             cost: AbilityHelper.costs.exhaustSelf(),
             optional: true,

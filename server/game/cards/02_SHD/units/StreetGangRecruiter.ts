@@ -10,8 +10,8 @@ export default class StreetGangRecruiter extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Return an Underworld card from your discard pile to your hand.',
             optional: true,
             targetResolver: {

@@ -11,14 +11,14 @@ export default class JangoFettRenownedBountyHunter extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While attacking a unit with Bounty, this unit gets +3/+0 and gains Overwhelm.',
             condition: (context) => context.source.isAttacking() && context.source.activeAttack?.targetIsUnit((card) => card.hasSomeKeyword(KeywordName.Bounty)),
             ongoingEffect: [AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm), AbilityHelper.ongoingEffects.modifyStats({ power: 3, hp: 0 })],
         });
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Draw a card',
             when: {
                 onCardDefeated: (event, context) =>

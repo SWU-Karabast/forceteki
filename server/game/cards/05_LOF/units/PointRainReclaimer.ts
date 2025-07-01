@@ -10,8 +10,8 @@ export default class PointRainReclaimer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'If you control a Jedi unit, give an Experience token to this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({

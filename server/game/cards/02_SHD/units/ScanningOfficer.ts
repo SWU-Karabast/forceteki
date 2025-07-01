@@ -10,8 +10,8 @@ export default class ScanningOfficer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Reveal 3 enemy resources. Defeat each resource with Smuggle that was revealed and replace it with the top card of its controllers deck.',
             immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
                 target: context.player.opponent.getRandomResources(context, 3),

@@ -10,8 +10,8 @@ export default class EvidenceOfTheCrime extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Take control of an upgrade that costs 3 or less and attach it to an eligible unit of your choice',
             targetResolvers: {
                 upgrade: {

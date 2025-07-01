@@ -10,8 +10,8 @@ export default class EliteP38Starfighter extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 1 damage to a unit',
             when: {
                 whenPlayed: true,

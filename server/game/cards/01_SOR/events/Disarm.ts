@@ -10,8 +10,8 @@ export default class Disarm extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give an enemy unit -4/-0 for the phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

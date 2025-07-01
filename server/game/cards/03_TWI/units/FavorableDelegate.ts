@@ -9,13 +9,13 @@ export default class FavorableDelegate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Draw a card.',
             immediateEffect: AbilityHelper.immediateEffects.draw()
         });
 
-        this.addWhenDefeatedAbility({
+        card.addWhenDefeatedAbility({
             title: 'Discard a card from your hand.',
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({ target: context.player, amount: 1 })),
         });

@@ -10,8 +10,8 @@ export default class CantinaBouncer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Return a non-leader unit to its owner\'s hand.',
             optional: true,
             targetResolver: {

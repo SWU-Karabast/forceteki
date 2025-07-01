@@ -10,8 +10,8 @@ export default class DelMeekoProvidingOverwatch extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each event an opponent plays costs 1 more',
             targetController: RelativePlayer.Opponent,
             ongoingEffect: AbilityHelper.ongoingEffects.increaseCost({

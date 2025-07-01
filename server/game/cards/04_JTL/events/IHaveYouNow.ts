@@ -10,8 +10,8 @@ export default class IHaveYouNow extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a Vehicle unit',
             initiateAttack: {
                 attackerCondition: (card, context) => card.controller === context.source.controller && card.hasSomeTrait(Trait.Vehicle),

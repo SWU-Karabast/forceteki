@@ -10,8 +10,8 @@ export default class SpecialForcesTIEFighter extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Ready this unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.controlsLessUnitsInSpaceArena(context),

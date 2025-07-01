@@ -10,8 +10,8 @@ export default class CR90ReliefRunner extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Heal up to 3 damage from a unit or base',
             immediateEffect: AbilityHelper.immediateEffects.distributeHealingAmong({
                 amountToDistribute: 3,

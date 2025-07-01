@@ -10,8 +10,8 @@ export default class GuildTarget extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainKeywordTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
             ability: {
                 title: 'Deal 2 damage to a base. If the Bounty unit is unique, deal 3 damage instead',

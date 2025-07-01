@@ -10,8 +10,8 @@ export default class PlanetaryBombardment extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 8 indirect damage to a player. If you control a Capital Ship unit, deal 12 indirect damage instead',
             targetResolver: {
                 mode: TargetMode.Player,

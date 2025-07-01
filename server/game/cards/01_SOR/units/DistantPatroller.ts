@@ -10,8 +10,8 @@ export default class DistantPatroller extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Give a Shield token to a Vigilance unit',
             optional: true,
             targetResolver: {

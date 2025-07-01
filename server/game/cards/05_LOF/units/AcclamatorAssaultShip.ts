@@ -10,8 +10,8 @@ export default class AcclamatorAssaultShip extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give another unit +5/+5 for this phase',
             optional: true,
             targetResolver: {

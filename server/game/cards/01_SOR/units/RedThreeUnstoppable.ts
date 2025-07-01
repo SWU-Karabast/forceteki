@@ -10,8 +10,8 @@ export default class RedThreeUnstoppable extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each other friendly Heroism unit gains Raid 1',
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeAspect(Aspect.Heroism),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })

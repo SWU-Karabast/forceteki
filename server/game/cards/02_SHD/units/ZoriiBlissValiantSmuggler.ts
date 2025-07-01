@@ -10,8 +10,8 @@ export default class ZoriiBlissValiantSmuggler extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Draw a card. At the start of the regroup phase, discard a card from your hand',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.draw(),

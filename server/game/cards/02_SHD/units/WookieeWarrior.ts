@@ -10,8 +10,8 @@ export default class WookieeWarrior extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Draw if you control an another Wookie unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.isTraitInPlay(Trait.Wookiee, context.source),

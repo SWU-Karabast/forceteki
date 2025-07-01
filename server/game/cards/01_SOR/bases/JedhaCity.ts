@@ -10,8 +10,8 @@ export default class JedhaCity extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEpicActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEpicActionAbility({
             title: 'Give a non-leader unit -4/-0 for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

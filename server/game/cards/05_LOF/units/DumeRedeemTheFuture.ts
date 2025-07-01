@@ -10,8 +10,8 @@ export default class DumeRedeemTheFuture extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Give an Experience token to each other friendly non-Vehicle unit.',
             when: {
                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup

@@ -10,8 +10,8 @@ export default class EchoRestored extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Discard a card from your hand. Give 2 Experience tokens to a unit in play with the same name as the discarded card.',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({

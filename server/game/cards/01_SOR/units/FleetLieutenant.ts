@@ -11,8 +11,8 @@ export default class FleetLieutenant extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Attack with a unit',
             optional: true,
             initiateAttack: {

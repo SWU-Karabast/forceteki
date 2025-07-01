@@ -10,8 +10,8 @@ export default class ObiWanKenobiFollowingFate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.',
             targetResolver: {
                 controller: RelativePlayer.Self,

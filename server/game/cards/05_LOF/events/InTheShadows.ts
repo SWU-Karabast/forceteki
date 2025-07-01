@@ -10,8 +10,8 @@ export default class InTheShadows extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give an Experience token to up to 3 friendly units with Hidden',
             targetResolver: {
                 mode: TargetMode.UpTo,

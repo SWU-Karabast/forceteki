@@ -18,8 +18,8 @@ export default class LastWords extends EventCard {
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'If a friendly unit has been defeated this phase, give 2 Experience tokens to a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

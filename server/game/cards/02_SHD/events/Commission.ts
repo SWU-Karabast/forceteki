@@ -10,8 +10,8 @@ export default class Commission extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Search the top 10 cards for a Bounty Hunter, Item, or Transport card, reveal it, and draw it',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 10,

@@ -10,8 +10,8 @@ export default class SupremeLeaderSnokeShadowRuler extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each enemy non-leader unit gets -2/-2',
             targetController: RelativePlayer.Opponent,
             targetCardTypeFilter: WildcardCardType.NonLeaderUnit,

@@ -10,8 +10,8 @@ export default class BreakingIn extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a unit. It gets +2/+0 and gains Saboteur for this attack.',
             initiateAttack: {
                 attackerLastingEffects: [

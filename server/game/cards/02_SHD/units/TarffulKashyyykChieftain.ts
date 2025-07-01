@@ -10,8 +10,8 @@ export default class TarffulKashyyykChieftain extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'That unit deals that much damage to an enemy ground unit',
             when: {
                 onDamageDealt: (event, context) =>

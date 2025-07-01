@@ -10,8 +10,8 @@ export default class BobaFettDaimyo extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Exhaust this leader to give a friendly unit +1/+0 for this phase',
             optional: true,
             when: {
@@ -32,8 +32,8 @@ export default class BobaFettDaimyo extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each other friendly unit that has 1 or more keywords gets +1/+0',
             targetController: RelativePlayer.Self,
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.keywords.length > 0,

@@ -18,8 +18,8 @@ export default class KitFistoFocusedJediMaster extends LeaderUnitCard {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities () {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'If you attacked with a Jedi unit this phase, deal 2 damage to a unit',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -35,8 +35,8 @@ export default class KitFistoFocusedJediMaster extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities () {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit gets +1/+0 for each other friendly Jedi unit.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => {
                 const jediUnitCount = target.controller.getArenaUnits({

@@ -10,8 +10,8 @@ export default class MaulARivalInDarkness extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Attack with a unit. It gains Overwhelm for this attack',
             cost: [AbilityHelper.costs.exhaustSelf()],
             initiateAttack: {
@@ -22,8 +22,8 @@ export default class MaulARivalInDarkness extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each other friendly unit gains Overwhelm',
             matchTarget: (card, context) => card.isUnit() && card.controller === context.player && card !== context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Overwhelm })

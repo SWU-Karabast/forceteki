@@ -10,8 +10,8 @@ export default class WolfPackEscort extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Return a friendly non-leader, non-Vehicle unit to its owner\'s hand.',
             optional: true,
             targetResolver: {

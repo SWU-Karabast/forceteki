@@ -10,8 +10,8 @@ export default class MomentOfGlory extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give a unit +4/+4 for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

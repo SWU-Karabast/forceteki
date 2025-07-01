@@ -10,8 +10,8 @@ export default class CalKestisICantKeepHiding extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'An opponent chooses a ready unit they control. Exhaust that unit',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.useTheForce()],
             targetResolver: {
@@ -24,8 +24,8 @@ export default class CalKestisICantKeepHiding extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'An opponent chooses a ready unit they control. Exhaust that unit',
             targetResolver: {
                 choosingPlayer: RelativePlayer.Opponent,

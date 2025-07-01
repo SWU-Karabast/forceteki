@@ -10,8 +10,8 @@ export default class PremonitionOfDoom extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'The next time you take the initiative this phase, exhaust all units',
             immediateEffect: AbilityHelper.immediateEffects.delayedPlayerEffect({
                 title: 'Exhaust all units',

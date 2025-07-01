@@ -10,8 +10,8 @@ export default class AirSuperiority extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 4 damage to a enemy ground unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.getArenaUnits({ arena: ZoneName.SpaceArena }).length > context.player.opponent.getArenaUnits({ arena: ZoneName.SpaceArena }).length,

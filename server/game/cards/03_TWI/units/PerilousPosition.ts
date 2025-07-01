@@ -9,8 +9,8 @@ export default class PerilousPosition extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Exhaust attached unit.',
             immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => ({
                 target: context.source.isInPlay() ? context.source.parentCard : null
