@@ -33,7 +33,7 @@ export default class PhantomIiModifiedToDock extends NonLeaderUnitCard {
         this.addActionAbility({
             title: 'Attach this as an upgrade to The Ghost',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1)],
-            condition: () => this.isUnit(),
+            condition: (context) => context.source.isUnit(),
             targetResolver: {
                 cardCondition: (card) => card.title === 'The Ghost',
                 immediateEffect: AbilityHelper.immediateEffects.attachUpgrade((context) => ({
@@ -46,7 +46,7 @@ export default class PhantomIiModifiedToDock extends NonLeaderUnitCard {
         this.addPilotingAbility({
             title: 'Attached unit gets +3/+3 and gains Grit',
             type: AbilityType.Constant,
-            condition: () => this.isAttached(),
+            condition: (context) => context.source.isAttached(),
             matchTarget: (card, context) => card === context.source.parentCard,
             targetController: WildcardRelativePlayer.Any,
             ongoingEffect: [
