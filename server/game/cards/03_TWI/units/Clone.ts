@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Duration, Trait, WildcardCardType } from '../../../core/Constants';
+import { Duration, KeywordName, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class Clone extends NonLeaderUnitCard {
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -40,6 +40,11 @@ export default class Clone extends NonLeaderUnitCard {
                             printedPower: context.target.getPrintedPower(),
                             printedTraits: context.target.getPrintedTraits(),
                             printedKeywords: context.target.printedKeywords
+                                // TODO: Manually exclude Bounty and Coordinate keywords until support for card abilities is added
+                                .filter((keyword) => !(
+                                    keyword.name === KeywordName.Bounty &&
+                                    keyword.name === KeywordName.Coordinate
+                                ))
                                 .map((keyword) => keyword.duplicate(context.source)),
                         }),
                         AbilityHelper.ongoingEffects.gainTrait(Trait.Clone),

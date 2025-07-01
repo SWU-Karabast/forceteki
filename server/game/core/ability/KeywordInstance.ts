@@ -53,14 +53,6 @@ export class KeywordInstance {
     }
 
     public duplicate(card: Card): KeywordInstance {
-        if (this.hasNumericValue()) {
-            return new KeywordWithNumericValue(this.name, card, this.value);
-        } else if (this.hasCostValue()) {
-            return new KeywordWithCostValues(this.name, card, this.cost, this.aspects, this.additionalCosts);
-        } else if (this.hasAbilityDefinition()) {
-            return new KeywordWithAbilityDefinition(this.name, card, this.abilityProps);
-        }
-
         return new KeywordInstance(this.name, card);
     }
 }
@@ -77,6 +69,10 @@ export class KeywordWithNumericValue extends KeywordInstance {
     public override hasNumericValue(): this is KeywordWithNumericValue {
         return true;
     }
+
+    public override duplicate(card: Card): KeywordInstance {
+        return new KeywordWithNumericValue(this.name, card, this.value);
+    }
 }
 
 export class KeywordWithCostValues extends KeywordInstance {
@@ -92,6 +88,10 @@ export class KeywordWithCostValues extends KeywordInstance {
 
     public override hasCostValue(): this is KeywordWithCostValues {
         return true;
+    }
+
+    public override duplicate(card: Card): KeywordInstance {
+        return new KeywordWithCostValues(this.name, card, this.cost, this.aspects, this.additionalCosts);
     }
 }
 
@@ -111,6 +111,12 @@ export class KeywordWithAbilityDefinition<
 
     public override hasAbilityDefinition(): this is KeywordWithAbilityDefinition {
         return true;
+    }
+
+    public override duplicate(card: Card): KeywordInstance {
+        // Ability properties cannot be duplicated and applied to a new card, so we explicitly set it to null.
+        // The ability definition needs to be set up manually on the new card, then added to this keyword instance.
+        return new KeywordWithAbilityDefinition(this.name, card, null);
     }
 
     public override get isFullyImplemented(): boolean {
