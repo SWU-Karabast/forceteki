@@ -979,6 +979,12 @@ var customMatchers = {
                 if (card.getPrintedHp() !== targetCard.getPrintedHp()) {
                     failures.push(`printedHp: expected ${card.getPrintedHp()} but got ${targetCard.getPrintedHp()}`);
                 }
+                if (!Util.stringArraysEqual(
+                    card.printedKeywords.map((keyword) => keyword.name),
+                    targetCard.printedKeywords.map((keyword) => keyword.name)
+                )) {
+                    failures.push(`printedKeywords: expected ${card.printedKeywords.map((keyword) => keyword.name).join(', ')} but got ${targetCard.printedKeywords.map((keyword) => keyword.name).join(', ')}`);
+                }
 
                 let result = {};
                 result.pass = failures.length === 0;
