@@ -16,7 +16,7 @@ enum SwuSet {
     LOF = 'lof'
 }
 
-const legalSets = [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI, SwuSet.JTL];
+const legalSets = [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI, SwuSet.JTL, SwuSet.LOF];
 
 const bannedCards = new Map([
     ['4626028465', 'boba-fett#collecting-the-bounty'],
