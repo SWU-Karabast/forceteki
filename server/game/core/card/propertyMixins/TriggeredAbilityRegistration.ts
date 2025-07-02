@@ -10,6 +10,7 @@ export interface ICardWithTriggeredAbilities {
     addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string;
     removeGainedTriggeredAbility(removeAbilityUuid: string): void;
     removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
+    removePrintedTriggeredAbility(removeAbilityUuid: string): void;
 }
 
 /** Mixin function that adds the ability to register triggered abilities to a base card class. */
@@ -29,13 +30,13 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
         }
 
         protected addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
-            const ability = this.createTriggeredAbility(properties);
+            const ability = this.createTriggeredAbility({ ...properties, printedAbility: true });
             this.triggeredAbilities.push(ability);
             return ability;
         }
 
         protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): ReplacementEffectAbility {
-            const ability = this.createReplacementEffectAbility(properties);
+            const ability = this.createReplacementEffectAbility({ ...properties, printedAbility: true });
 
             // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
             this.triggeredAbilities.push(ability);
@@ -76,11 +77,23 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
 
         /** Removes a dynamically gained triggered ability and unregisters its effects */
         public removeGainedTriggeredAbility(removeAbilityUuid: string): void {
+            this.removeTriggeredAbility(removeAbilityUuid, false);
+        }
+
+        public removeGainedReplacementEffectAbility(removeAbilityUuid: string): void {
+            this.removeGainedTriggeredAbility(removeAbilityUuid);
+        }
+
+        public removePrintedTriggeredAbility(removeAbilityUuid: string): void {
+            this.removeTriggeredAbility(removeAbilityUuid, true);
+        }
+
+        public removeTriggeredAbility(removeAbilityUuid: string, printedAbility: boolean): void {
             let abilityToRemove: TriggeredAbility = null;
             const remainingAbilities: TriggeredAbility[] = [];
 
             for (const triggeredAbility of this.triggeredAbilities) {
-                if (triggeredAbility.uuid === removeAbilityUuid) {
+                if (triggeredAbility.uuid === removeAbilityUuid && triggeredAbility.printedAbility === printedAbility) {
                     if (abilityToRemove) {
                         Contract.fail(`Expected to find one instance of gained ability '${abilityToRemove.abilityIdentifier}' on card ${this.internalName} to remove but instead found multiple`);
                     }
@@ -97,10 +110,6 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
 
             this.triggeredAbilities = remainingAbilities;
             abilityToRemove.unregisterEvents();
-        }
-
-        public removeGainedReplacementEffectAbility(removeAbilityUuid: string): void {
-            this.removeGainedTriggeredAbility(removeAbilityUuid);
         }
     };
 }

@@ -1,9 +1,13 @@
 import * as Contract from '../../utils/Contract';
 import type { CardConstructor, ICardState } from '../Card';
 
+export interface ICardWithStandardAbilitySetup {
+    setupCardAbilities(card: this): void;
+}
+
 /** Mixin function that creates a version of the base class that is a Token. */
 export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
-    return class WithStandardAbilitySetup extends BaseClass {
+    return class WithStandardAbilitySetup extends BaseClass implements ICardWithStandardAbilitySetup {
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
@@ -24,10 +28,14 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TSta
             }
         }
 
+        public override hasStandardAbilitySetup(): this is ICardWithStandardAbilitySetup {
+            return true;
+        }
+
         /**
          * Create card abilities by calling subsequent methods with appropriate properties
          */
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        protected setupCardAbilities(card: this) { }
+        public setupCardAbilities(card: this) { }
     };
 }
