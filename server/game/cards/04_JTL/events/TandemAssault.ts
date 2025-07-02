@@ -10,8 +10,8 @@ export default class TandemAssault extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a space unit. If you do, attack with a ground unit, that unit gets +2/+0 for this attack',
             initiateAttack: {
                 attackerCondition: (card) => card.zoneName === ZoneName.SpaceArena

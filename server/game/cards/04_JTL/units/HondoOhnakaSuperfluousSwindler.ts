@@ -10,8 +10,8 @@ export default class HondoOhnakaSuperfluousSwindler extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Take control of a non-Pilot upgrade on a unit and attach it to a different eligible unit',
             optional: true,
             targetResolvers: {

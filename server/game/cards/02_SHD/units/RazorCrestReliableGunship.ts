@@ -10,8 +10,8 @@ export default class RazorCrestReliableGunship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Return an upgrade from your discard pile to your hand.',
             optional: true,
             targetResolver: {

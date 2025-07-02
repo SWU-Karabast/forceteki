@@ -9,8 +9,8 @@ export default class JamCommunications extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Look at an opponent\'s hand and discard an event from it',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
                 target: context.player.opponent.hand,

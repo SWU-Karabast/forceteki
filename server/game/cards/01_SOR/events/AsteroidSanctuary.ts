@@ -10,8 +10,8 @@ export default class AsteroidSanctuary extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust an enemy unit and give a shield to a friendly unit that costs 3 or less',
             targetResolvers: {
                 exhaust: {

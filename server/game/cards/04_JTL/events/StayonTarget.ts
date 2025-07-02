@@ -11,8 +11,8 @@ export default class StayonTarget extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a Vehicle unit. For this attack, it gets +2/+0 and gains: "When this unit deals damage to a base: Draw a card"',
             initiateAttack: {
                 attackerCondition: (card) => card.hasSomeTrait(Trait.Vehicle),

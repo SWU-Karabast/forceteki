@@ -11,8 +11,8 @@ export default class TripleDarkRaid extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Search the top 7 cards of your deck for a Vehicle and play it. It costs 5 less and enters play ready. Return it to its owner\'s hand at the end of the phase',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 7,

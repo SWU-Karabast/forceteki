@@ -11,8 +11,8 @@ export default class TempleOfDestruction extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'The Force is with you',
             when: {
                 onDamageDealt: (event, context) => this.dealtThreeBaseDamage(event, context)

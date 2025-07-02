@@ -11,10 +11,10 @@ export default class CorruptedSaber extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainOnAttackAbilityTargetingAttached({
+        card.addGainOnAttackAbilityTargetingAttached({
             title: 'The defender gets -2/-0 for this attack',
             gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force),
             immediateEffect: AbilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({

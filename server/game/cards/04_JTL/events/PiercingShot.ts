@@ -10,8 +10,8 @@ export default class PiercingShot extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat all Shield tokens on a unit. Deal 3 damage to that unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

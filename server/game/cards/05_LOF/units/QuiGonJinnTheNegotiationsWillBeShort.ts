@@ -10,8 +10,8 @@ export default class QuiGonJinnTheNegotiationsWillBeShort extends NonLeaderUnitC
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Choose a non-leader ground unit. Its owner puts it on the top or bottom of their deck',
             targetResolvers: {
                 unit: {

@@ -18,8 +18,8 @@ export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             title: 'Draw 2 cards',
             type: AbilityType.Triggered,
             optional: true,

@@ -10,8 +10,8 @@ export default class RebelliousHammerhead extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal damage to a unit equal to the number of cards in your hand',
             optional: true,
             targetResolver: {

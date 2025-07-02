@@ -9,8 +9,8 @@ export default class DilapidatedSkiSpeeder extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 3 damage to this unit',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 target: context.source,

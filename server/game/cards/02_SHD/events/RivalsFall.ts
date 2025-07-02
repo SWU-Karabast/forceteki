@@ -10,8 +10,8 @@ export default class RivalsFall extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

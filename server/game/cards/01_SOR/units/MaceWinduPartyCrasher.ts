@@ -10,8 +10,8 @@ export default class MaceWinduPartyCrasher extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Ready Mace Windu',
             when: {
                 onCardDefeated: (event, context) =>

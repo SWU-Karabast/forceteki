@@ -10,10 +10,10 @@ export default class MysticMonastery extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
+    public override setupCardAbilities(card: this) {
         const limit = AbilityHelper.limit.perGame(3);
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'The Force is with you',
             limit: limit,
             effect: 'gain the Force ({1} left)',

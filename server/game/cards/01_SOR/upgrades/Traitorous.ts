@@ -9,8 +9,8 @@ export default class Traitorous extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Take control of attached unit',
             when: {
                 onUpgradeAttached: (event, context) => event.upgradeCard === context.source &&
@@ -23,7 +23,7 @@ export default class Traitorous extends UpgradeCard {
             }))
         });
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'That unit’s owner takes control of it',
             when: {
                 onUpgradeUnattached: (event, context) => event.upgradeCard === context.source,

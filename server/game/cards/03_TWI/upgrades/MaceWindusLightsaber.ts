@@ -11,10 +11,10 @@ export default class MaceWindusLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addWhenPlayedAbility({
+        card.addWhenPlayedAbility({
             title: 'Draw 2 cards',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.parentCard?.title === 'Mace Windu',

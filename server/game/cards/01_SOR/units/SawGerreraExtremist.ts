@@ -11,8 +11,8 @@ export default class SawGerreraExtremist extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'As an additional cost for each opponent to play an event, they must deal 2 damage to their base',
             targetController: RelativePlayer.Opponent,
             sourceZoneFilter: ZoneName.GroundArena,

@@ -20,8 +20,8 @@ export default class ShienFlurry extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Play a Force unit from your hand. It gains Ambush for this phase. The next time it would be dealt damage this phase prevent 2 of that damage',
             cannotTargetFirst: true,
             targetResolver: {

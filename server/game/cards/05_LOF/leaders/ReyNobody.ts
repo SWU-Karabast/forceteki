@@ -18,8 +18,8 @@ export default class ReyNobody extends LeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Deal 1 damage to a unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -32,8 +32,8 @@ export default class ReyNobody extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Discard your hand',
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source

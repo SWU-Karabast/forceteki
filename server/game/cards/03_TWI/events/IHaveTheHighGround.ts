@@ -10,8 +10,8 @@ export default class IHaveTheHighGround extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a friendly unit. Each enemy unit gets -4/-0 while attacking that unit this phase.',
             targetResolver: {
                 controller: RelativePlayer.Self,

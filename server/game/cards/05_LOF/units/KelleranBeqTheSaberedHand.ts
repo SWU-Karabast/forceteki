@@ -11,8 +11,8 @@ export default class KelleranBeqTheSaberedHand extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Search the top 7 cards of your deck for a unit, reveal it, and play it. It costs 3 resources less',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 7,

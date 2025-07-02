@@ -9,8 +9,8 @@ export default class Resupply extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Put this event into play as a resource',
             immediateEffect: AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.source }))
         });

@@ -11,8 +11,8 @@ export default class RadiantVIIAmbassadorsArrival extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 5 indirect damage to a player',
             targetResolver: {
                 mode: TargetMode.Player,
@@ -20,7 +20,7 @@ export default class RadiantVIIAmbassadorsArrival extends NonLeaderUnitCard {
             },
         });
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'Each enemy non-leader unit gets –1/–0 for each damage on it',
             targetController: RelativePlayer.Opponent,
             targetCardTypeFilter: WildcardCardType.NonLeaderUnit,

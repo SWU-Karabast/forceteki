@@ -11,8 +11,8 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -33,8 +33,8 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.',
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before

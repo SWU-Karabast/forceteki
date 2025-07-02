@@ -9,8 +9,8 @@ export default class TipTheScale extends EventCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Look at an opponents hand. Discard a non-unit card from it.',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
                 target: context.player.opponent.hand,

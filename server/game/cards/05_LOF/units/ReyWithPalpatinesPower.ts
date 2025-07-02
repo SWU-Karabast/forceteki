@@ -11,8 +11,8 @@ export default class ReyWithPalpatinesPower extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Reveal Rey to deal 2 damage to a unit and 2 damage to a base.',
             optional: true,
             when: {

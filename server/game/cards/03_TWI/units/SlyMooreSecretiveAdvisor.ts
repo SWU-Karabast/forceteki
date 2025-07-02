@@ -10,8 +10,8 @@ export default class SlyMooreSecretiveAdvisor extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Take control of an enemy token unit and ready it. At the start of the regroup phase, that token unit\'s owner takes control of it.',
             targetResolver: {
                 cardTypeFilter: CardType.TokenUnit,

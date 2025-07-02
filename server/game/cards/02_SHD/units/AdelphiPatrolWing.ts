@@ -9,8 +9,8 @@ export default class AdelphiPatrolWing extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Attack with a unit. If you have the initiative, it gets +2/+0 for this attack.',
             optional: true,
             initiateAttack: {

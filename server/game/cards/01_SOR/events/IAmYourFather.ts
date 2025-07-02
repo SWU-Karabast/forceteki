@@ -10,8 +10,8 @@ export default class IAmYourFather extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 7 damage to an enemy unit unless its controller says "no"',
             targetResolvers: {
                 targetUnit: {

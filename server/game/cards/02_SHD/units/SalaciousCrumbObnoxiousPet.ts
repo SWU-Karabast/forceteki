@@ -10,8 +10,8 @@ export default class SalaciousCrumbObnoxiousPet extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Heal 1 damage from your base',
             immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
                 amount: 1,
@@ -19,7 +19,7 @@ export default class SalaciousCrumbObnoxiousPet extends NonLeaderUnitCard {
             }))
         });
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Deal 1 damage to a ground unit',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),

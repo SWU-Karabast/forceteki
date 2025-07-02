@@ -10,8 +10,8 @@ export default class MedicalFrigate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Heal 2 damage from another unit',
             optional: true,
             targetResolver: {

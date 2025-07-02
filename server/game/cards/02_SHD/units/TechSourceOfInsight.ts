@@ -10,8 +10,8 @@ export default class TechSourceOfInsight extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each friendly resource gains Smuggle',
             targetZoneFilter: ZoneName.Resource,
             targetController: RelativePlayer.Self,

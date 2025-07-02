@@ -10,8 +10,8 @@ export default class DroidMissilePlatform extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Deal 3 indirect damage to a player',
             targetResolver: {
                 mode: TargetMode.Player,

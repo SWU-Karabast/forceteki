@@ -9,8 +9,8 @@ export default class StolenATHauler extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'For this phase, your opponent may play this unit from its owner\'s discard pile for free',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({

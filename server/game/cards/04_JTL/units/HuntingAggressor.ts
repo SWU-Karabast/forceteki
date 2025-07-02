@@ -9,8 +9,8 @@ export default class HuntingAggressor extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Indirect damage you deal to opponents is increased by 1',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyIndirectDamage({
                 amount: 1,

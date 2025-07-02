@@ -10,8 +10,8 @@ export default class AtAtSuppressor extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Exhaust all ground units',
             immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => {
                 const opponentGroundUnits = context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena });

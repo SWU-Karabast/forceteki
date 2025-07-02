@@ -10,8 +10,8 @@ export default class CloneHeavyGunner extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'This unit gets +2/+0',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })

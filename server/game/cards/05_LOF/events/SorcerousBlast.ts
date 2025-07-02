@@ -10,8 +10,8 @@ export default class SorcerousBlast extends EventCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Use the Force to deal 3 damage to a unit',
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {

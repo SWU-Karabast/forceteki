@@ -11,12 +11,12 @@ export default class InspiringMentor extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
+    public override setupCardAbilities(card: this) {
         this.disableWhenDefeatedCheck = true;
 
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+        card.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainTriggeredAbilityTargetingAttached({
+        card.addGainTriggeredAbilityTargetingAttached({
             title: 'Give an Experience token to another friendly unit',
             when: {
                 onAttack: true,

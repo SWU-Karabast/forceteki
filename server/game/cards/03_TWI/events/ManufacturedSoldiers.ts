@@ -10,8 +10,8 @@ export default class ManufacturedSoldiers extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Create 2 Clone Trooper tokens or 3 Battle Droid tokens',
             targetResolver: {
                 mode: TargetMode.Select,

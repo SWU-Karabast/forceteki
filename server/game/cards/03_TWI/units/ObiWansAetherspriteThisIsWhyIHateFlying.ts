@@ -10,8 +10,8 @@ export default class ObiWansAetherspriteThisIsWhyIHateFlying extends NonLeaderUn
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 1 damage to this unit',
             optional: true,
             when: {

@@ -10,8 +10,8 @@ export default class OverwhelmingBarrage extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give a friendly unit +2/+2 for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

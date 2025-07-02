@@ -10,8 +10,8 @@ export default class JediKnight extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 2 damage to an enemy ground unit.',
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,

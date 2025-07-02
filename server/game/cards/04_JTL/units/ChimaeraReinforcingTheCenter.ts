@@ -10,13 +10,13 @@ export default class ChimaeraReinforcingTheCenter extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Create 2 TIE Fighters',
             immediateEffect: AbilityHelper.immediateEffects.createTieFighter({ amount: 2 })
         });
 
-        this.addWhenPlayedAbility({
+        card.addWhenPlayedAbility({
             title: 'Use a When Defeated ability on another unit',
             optional: true,
             targetResolver: {

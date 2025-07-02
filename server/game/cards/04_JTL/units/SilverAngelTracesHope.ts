@@ -10,8 +10,8 @@ export default class SilverAngelTracesHope extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 1 damage to a space unit',
             when: {
                 onDamageHealed: (event, context) => event.card === context.source

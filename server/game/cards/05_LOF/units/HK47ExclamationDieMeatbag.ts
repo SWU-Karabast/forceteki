@@ -10,8 +10,8 @@ export default class HK47ExclamationDieMeatbag extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 1 damage to its controller\'s base',
             when: {
                 onCardDefeated: (event, context) => EnumHelpers.isUnit(event.lastKnownInformation.type) &&

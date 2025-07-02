@@ -10,15 +10,15 @@ export default class ShaakTiUnityWinsWars extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each friendly token unit gets +1/+0.',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: CardType.TokenUnit,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Create a Clone Trooper token.',
             immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper()
         });

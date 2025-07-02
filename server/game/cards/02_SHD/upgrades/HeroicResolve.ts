@@ -10,8 +10,8 @@ export default class HeroicResolve extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainActionAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addGainActionAbilityTargetingAttached({
             title: 'Attack with this unit. It gains +4/+0 and Overwhelm for this attack.',
             cost: [
                 AbilityHelper.costs.abilityActivationResourceCost(2),

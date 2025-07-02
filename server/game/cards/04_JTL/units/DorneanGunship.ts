@@ -10,8 +10,8 @@ export default class DorneanGunship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal indirect damage to a player equal to the number of Vehicle units you control',
             targetResolver: {
                 mode: TargetMode.Player,

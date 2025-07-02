@@ -10,8 +10,8 @@ export default class TheForceIsWithMe extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give 2 Experience, a Shield if you control a Force unit, and optionally attack',
             targetResolver: {
                 controller: RelativePlayer.Self,

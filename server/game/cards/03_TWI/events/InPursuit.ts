@@ -10,8 +10,8 @@ export default class InPursuit extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust a friendly unit. If you do, exhaust an enemy unit',
             targetResolver: {
                 controller: RelativePlayer.Self,

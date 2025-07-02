@@ -10,8 +10,8 @@ export default class AstromechPilot extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addPilotingAbility({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingAbility({
             title: 'Heal 2 damage from a unit',
             type: AbilityType.Triggered,
             when: {

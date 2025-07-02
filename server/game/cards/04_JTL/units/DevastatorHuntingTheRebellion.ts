@@ -9,13 +9,13 @@ export default class DevastatorHuntingTheRebellion extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'You assign all indirect damage you deal to opponents',
             ongoingEffect: AbilityHelper.ongoingEffects.assignIndirectDamageDealtToOpponents(),
         });
 
-        this.addWhenPlayedAbility({
+        card.addWhenPlayedAbility({
             title: 'Deal 4 indirect damage to each opponent',
             immediateEffect: AbilityHelper.immediateEffects.indirectDamageToPlayer((context) => ({
                 amount: 4,

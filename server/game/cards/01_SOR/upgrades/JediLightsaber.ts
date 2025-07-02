@@ -12,10 +12,10 @@ export default class JediLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainOnAttackAbilityTargetingAttached({
+        card.addGainOnAttackAbilityTargetingAttached({
             title: 'Give the defender -2/-2 for this phase',
             gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force),
 

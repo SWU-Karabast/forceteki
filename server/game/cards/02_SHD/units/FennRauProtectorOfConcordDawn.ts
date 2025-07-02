@@ -11,8 +11,8 @@ export default class FennRauProtectorOfConcordDawn extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Play an upgrade from your hand. It costs 2 less',
             optional: true,
             targetResolver: {
@@ -26,7 +26,7 @@ export default class FennRauProtectorOfConcordDawn extends NonLeaderUnitCard {
             }
         });
 
-        this.addTriggeredAbility({
+        card.addTriggeredAbility({
             title: 'Give an enemy unit -2/-2 for this phase.',
             when: {
                 onCardPlayed: (event, context) => event.attachTarget === context.source && event.card.isUpgrade()

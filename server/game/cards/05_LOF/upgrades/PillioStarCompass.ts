@@ -10,10 +10,10 @@ export default class PillioStarCompass extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addWhenPlayedAbility({
+        card.addWhenPlayedAbility({
             title: 'Search the top 3 cards of your deck for a unit, reveal it, and draw it',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 selectCount: 1,

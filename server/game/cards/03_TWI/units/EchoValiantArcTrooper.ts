@@ -10,8 +10,8 @@ export default class EchoValiantArcTrooper extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'This unit gets +2/+2.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ hp: 2, power: 2 })

@@ -18,8 +18,8 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities () {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'If you attacked with a Mandalorian unit this phase, deal 1 damage to a unit',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -35,8 +35,8 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities () {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'You may deal 1 damage to a unit. If you attacked with another Mandalorian unit this phase, you may deal 1 damage to a unit',
             // TODO: correct implementation of the rules for multiple instances of damage in the same ability
             immediateEffect: AbilityHelper.immediateEffects.sequential([

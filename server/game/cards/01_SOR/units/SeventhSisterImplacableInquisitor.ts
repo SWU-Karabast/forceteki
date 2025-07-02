@@ -11,8 +11,8 @@ export default class SeventhSisterImplacableInquisitor extends NonLeaderUnitCard
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 3 damage to a ground unit that opponent controls',
             when: {
                 onDamageDealt: (event, context) =>

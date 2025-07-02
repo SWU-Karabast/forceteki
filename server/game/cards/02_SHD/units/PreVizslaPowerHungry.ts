@@ -10,8 +10,8 @@ export default class PreVizslaPowerHungry extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Pay the cost of an upgrade attached to another non-Vehicle unit',
             when: {
                 whenPlayed: true,

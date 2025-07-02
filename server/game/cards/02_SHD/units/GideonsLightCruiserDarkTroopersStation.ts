@@ -11,8 +11,8 @@ export default class GideonsLightCruiserDarkTroopersStation extends NonLeaderUni
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'If you control Moff Gideon, play a Villainy unit that costs 3 or less from your hand or discard pile for free.',
             targetResolver: {
                 controller: RelativePlayer.Self,

@@ -10,8 +10,8 @@ export default class SatineKryzeCommittedToPeace extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each unit gains action: \'Exhaust this to discard cards from an opponent\'s deck equal to half its remaining HP, rounded up\'',
             targetController: WildcardRelativePlayer.Any,
             matchTarget: (card) => card.isUnit(),

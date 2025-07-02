@@ -9,8 +9,8 @@ export default class RuggedSurvivors extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Draw a card if you control a leader unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({

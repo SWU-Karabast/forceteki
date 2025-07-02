@@ -10,14 +10,14 @@ export default class SizeMattersNot extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addDecreaseCostAbility({
+    public override setupCardAbilities(card: this) {
+        card.addDecreaseCostAbility({
             title: 'If you control a Force unit, this upgrade costs 1 less to play.',
             amount: 1,
             condition: (context) => context.player.getArenaUnits({ trait: Trait.Force }).length > 0,
         });
 
-        this.addConstantAbilityTargetingAttached({
+        card.addConstantAbilityTargetingAttached({
             title: 'Attached unit\'s printed power and printed HP are considered to be 5',
             ongoingEffect: AbilityHelper.ongoingEffects.overridePrintedAttributes({
                 printedPower: 5,

@@ -11,8 +11,8 @@ export default class CaughtInTheCrossfire extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose 2 enemy units in the same arena. Each of those units deals damage equal to its power to the other.',
             targetResolver: {
                 activePromptTitle: 'Choose 2 enemy units in the same arena',

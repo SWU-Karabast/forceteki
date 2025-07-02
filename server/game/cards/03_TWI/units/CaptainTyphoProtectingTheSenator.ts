@@ -10,8 +10,8 @@ export default class CaptainTyphoProtectingTheSenator extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Give a unit Sentinel for this phase',
             optional: false,
             when: {

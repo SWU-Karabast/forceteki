@@ -10,8 +10,8 @@ export default class PunishingOne extends NonLeaderUnitCard {
     }
 
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Ready this unit',
             when: {
                 onCardDefeated: (event, context) =>

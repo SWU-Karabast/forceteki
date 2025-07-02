@@ -10,8 +10,8 @@ export default class Vigilance extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Vigilance modal ability:',
             immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
                 amountOfChoices: 2,

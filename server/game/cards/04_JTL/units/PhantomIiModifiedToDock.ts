@@ -29,8 +29,8 @@ export default class PhantomIiModifiedToDock extends NonLeaderUnitCard {
         return;
     }
 
-    public override setupCardAbilities () {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Attach this as an upgrade to The Ghost',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1)],
             condition: (context) => context.source.isUnit(),
@@ -43,7 +43,7 @@ export default class PhantomIiModifiedToDock extends NonLeaderUnitCard {
         });
 
         // TODO: rework things a bit so we don't have to declare this as a piloting ability when it technically isn't
-        this.addPilotingAbility({
+        card.addPilotingAbility({
             title: 'Attached unit gets +3/+3 and gains Grit',
             type: AbilityType.Constant,
             condition: (context) => context.source.isAttached(),

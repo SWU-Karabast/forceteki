@@ -28,6 +28,6 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TSta
          * Create card abilities by calling subsequent methods with appropriate properties
          */
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        protected setupCardAbilities(sourceCard: this) { }
+        protected setupCardAbilities(card: this) { }
     };
 }

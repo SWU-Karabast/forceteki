@@ -10,8 +10,8 @@ export default class ForceSpeed extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a unit. For this attack, it gains: "On Attack: Return any number of non-unique upgrades attached to the defender to their owners\' hands."',
             initiateAttack: {
                 attackerLastingEffects: (_context, attack) => ({

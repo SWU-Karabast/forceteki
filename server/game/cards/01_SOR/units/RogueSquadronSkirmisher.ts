@@ -10,8 +10,8 @@ export default class RogueSquadronSkirmisher extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Return a unit that costs 2 or less from your discard pile to your hand.',
             targetResolver: {
                 controller: RelativePlayer.Self,

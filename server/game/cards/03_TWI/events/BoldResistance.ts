@@ -12,8 +12,8 @@ export default class BoldResistance extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose up to 3 units that share the same Trait. Each of those units gets +2/+0 for this phase.',
             targetResolver: {
                 mode: TargetMode.UpTo,

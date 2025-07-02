@@ -17,8 +17,8 @@ export default class DecimatorOfDissidents extends NonLeaderUnitCard {
         this.damageDealtThisPhaseWatcher = AbilityHelper.stateWatchers.damageDealtThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addDecreaseCostAbility({
+    public override setupCardAbilities(card: this) {
+        card.addDecreaseCostAbility({
             title: 'If you dealt indirect damage this phase, this unit costs 1 resource less to play',
             condition: (context) => this.damageDealtThisPhaseWatcher.playerHasDealtDamage(context.player, (e) => e.isIndirect),
             amount: 1

@@ -18,10 +18,10 @@ export default class LandoCalrissianBuyingTime extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addPilotDeploy();
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Play a unit from your hand. If you do and you control a ground unit and a space unit, give a Shield token to a unit',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -40,10 +40,10 @@ export default class LandoCalrissianBuyingTime extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingGainKeywordTargetingAttached({ keyword: KeywordName.Sentinel });
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addPilotingGainKeywordTargetingAttached({ keyword: KeywordName.Sentinel });
 
-        this.addPilotingAbility({
+        card.addPilotingAbility({
             title: 'Give a Shield token to a unit in a different arena',
             type: AbilityType.Triggered,
             zoneFilter: WildcardZoneName.AnyArena,

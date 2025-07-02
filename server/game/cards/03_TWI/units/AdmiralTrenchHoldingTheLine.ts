@@ -18,8 +18,8 @@ export default class AdmiralTrenchHoldingTheLine extends NonLeaderUnitCard {
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Return up to 3 units that were defeated this phase from your discard pile to your hand.',
             targetResolver: {
                 mode: TargetMode.UpTo,

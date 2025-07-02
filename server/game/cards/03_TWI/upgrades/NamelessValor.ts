@@ -10,8 +10,8 @@ export default class NamelessValor extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => card.isToken());
-        this.addGainKeywordTargetingAttached({ keyword: KeywordName.Overwhelm });
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => card.isToken());
+        card.addGainKeywordTargetingAttached({ keyword: KeywordName.Overwhelm });
     }
 }

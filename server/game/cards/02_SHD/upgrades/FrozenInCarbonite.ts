@@ -11,17 +11,17 @@ export default class FrozenInCarbonite extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => card.isNonLeaderUnit());
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => card.isNonLeaderUnit());
 
-        this.addWhenPlayedAbility({
+        card.addWhenPlayedAbility({
             title: 'Exhaust attached unit',
             immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => ({
                 target: context.source.parentCard
             }))
         });
 
-        this.addConstantAbilityTargetingAttached({
+        card.addConstantAbilityTargetingAttached({
             title: 'Attached unit can\'t ready',
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.Ready)
         });

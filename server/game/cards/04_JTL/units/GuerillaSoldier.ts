@@ -12,8 +12,8 @@ export default class GuerillaSoldier extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 3 indirect damage to a player. If a base is damaged this way, ready this unit',
             targetResolver: {
                 activePromptTitle: 'Choose a player to deal 3 indirect damage to',

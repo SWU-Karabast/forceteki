@@ -9,8 +9,8 @@ export default class AcademyGraduate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingGainKeywordTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingGainKeywordTargetingAttached({
             keyword: KeywordName.Sentinel
         });
     }

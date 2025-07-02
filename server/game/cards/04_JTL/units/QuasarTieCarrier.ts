@@ -9,8 +9,8 @@ export default class QuasarTieCarrier extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Create a TIE Fighter token',
             immediateEffect: AbilityHelper.immediateEffects.createTieFighter()
         });

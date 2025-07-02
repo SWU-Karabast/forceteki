@@ -11,8 +11,8 @@ export default class Headhunting extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with up to 3 units',
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 this.buildBountyHunterAttackEffect(),

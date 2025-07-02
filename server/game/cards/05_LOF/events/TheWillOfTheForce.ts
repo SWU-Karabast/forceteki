@@ -10,8 +10,8 @@ export default class TheWillOfTheForce extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Return a non-leader unit to its owner\'s hand and use the Force to make that player discard a card',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({

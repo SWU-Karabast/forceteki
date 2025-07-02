@@ -10,8 +10,8 @@ export default class DevastatorInescapable extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'You may deal damage to a unit equal to the number of resources you control',
             optional: true,
             targetResolver: {

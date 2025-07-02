@@ -10,12 +10,12 @@ export default class GrievoussWheelBike extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainKeywordTargetingAttached({ keyword: KeywordName.Overwhelm });
+        card.addGainKeywordTargetingAttached({ keyword: KeywordName.Overwhelm });
 
-        this.addDecreaseCostAbility({
+        card.addDecreaseCostAbility({
             title: 'While playing this upgrade on General Grievous, it costs 2 resources less to play',
             amount: 2,
             attachTargetCondition: (card) => card.title === 'General Grievous'

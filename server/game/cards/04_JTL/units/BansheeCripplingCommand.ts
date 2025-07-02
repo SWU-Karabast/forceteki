@@ -10,8 +10,8 @@ export default class BansheeCripplingCommand extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Deal damage to a unit equal to the amount of damage on this unit',
             optional: true,
             targetResolver: {

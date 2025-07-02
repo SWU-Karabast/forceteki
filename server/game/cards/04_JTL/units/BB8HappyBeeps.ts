@@ -10,8 +10,8 @@ export default class BB8HappyBeeps extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingAbility({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingAbility({
             type: AbilityType.Triggered,
             when: {
                 whenPlayed: true,

@@ -10,8 +10,8 @@ export default class BenthicTwoTubes extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give Raid 2 to a friendly Aggression unit',
             targetResolver: {
                 controller: RelativePlayer.Self,

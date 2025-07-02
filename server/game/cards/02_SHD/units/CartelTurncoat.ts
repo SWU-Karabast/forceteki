@@ -9,8 +9,8 @@ export default class CartelTurncoat extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addBountyAbility({
+    public override setupCardAbilities(card: this) {
+        card.addBountyAbility({
             title: 'Draw a card',
             immediateEffect: AbilityHelper.immediateEffects.draw()
         });

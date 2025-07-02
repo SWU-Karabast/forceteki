@@ -11,8 +11,8 @@ export default class AdmiralHoldoWereNotAlone extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Give a Resistance unit or a unit with a Resistance upgrade on it +2/+2 for this phase',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -25,8 +25,8 @@ export default class AdmiralHoldoWereNotAlone extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give another Resistance unit or a unit with a Resistance upgrade on it +2/+2 for this phase',
             optional: true,
             targetResolver: {

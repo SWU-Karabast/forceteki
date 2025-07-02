@@ -10,9 +10,9 @@ export default class JediHolocron extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
-        this.addGainOnAttackAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
+        card.addGainOnAttackAbilityTargetingAttached({
             title: 'You may heal 3 damage from another unit.',
             optional: true,
             targetResolver: {

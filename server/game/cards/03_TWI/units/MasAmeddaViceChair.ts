@@ -10,8 +10,8 @@ export default class MasAmeddaViceChair extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Exhaust this unit to search the top 4 cards of your deck for a unit, reveal it, and draw it',
             when: {
                 onCardPlayed: (event, context) =>

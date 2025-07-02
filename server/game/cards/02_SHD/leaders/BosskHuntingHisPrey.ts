@@ -10,8 +10,8 @@ export default class BosskHuntingHisPrey extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Deal 1 damage to a unit with a Bounty. You may give it +1/+0 for this phase.',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -31,8 +31,8 @@ export default class BosskHuntingHisPrey extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Collect the Bounty again',
             optional: true,
             when: {

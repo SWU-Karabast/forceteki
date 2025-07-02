@@ -10,8 +10,8 @@ export default class CatAndMouse extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust an enemy unit. If you do, ready a friendly unit in the same arena with power equal to or less than that enemy unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

@@ -10,8 +10,8 @@ export default class DaughterOfDathomir extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While this unit is undamaged, it gains Restore 2',
             condition: (context) => context.source.damage === 0,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Restore, amount: 2 })

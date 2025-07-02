@@ -10,8 +10,8 @@ export default class LightspeedAssault extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat a friendly space unit and deal damage equal to its power to an enemy space unit. If you do, deal indirect damage equal to the enemy unit\'s power to its controller',
             targetResolver: {
                 controller: RelativePlayer.Self,

@@ -10,12 +10,12 @@ export default class RegionalGovernor extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Name a card',
             targetResolver: {
                 mode: TargetMode.DropdownList,
-                options: this.game.playableCardTitles,
+                options: card.game.playableCardTitles,
             },
             then: (thenContext) => ({
                 title: 'While this unit is in play, opponents can\'t play the named card',

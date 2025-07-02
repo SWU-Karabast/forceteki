@@ -9,8 +9,8 @@ export default class SuperlaserBlast extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat all units',
             immediateEffect: AbilityHelper.immediateEffects.defeat((context) => {
                 const allUnits = context.game.getArenaUnits();

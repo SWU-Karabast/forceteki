@@ -10,8 +10,8 @@ export default class BlockadeRunner extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Give an Experience token to this unit',
             optional: true,
             when: {

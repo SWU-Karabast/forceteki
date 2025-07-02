@@ -10,8 +10,8 @@ export default class LowAltitudeGunship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 1 damage to an enemy unit for each friendly Republic unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

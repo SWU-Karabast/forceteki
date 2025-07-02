@@ -17,8 +17,8 @@ export default class DarthMaulsLightsaber extends UpgradeCard {
         return targetCard.isUnit() && !targetCard.hasSomeTrait(Trait.Vehicle) && targetCard.controller === controller;
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Attack with Darth Maul. For this attack, he gains overwhelm and can\'t attack bases.',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({

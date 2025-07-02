@@ -10,8 +10,8 @@ export default class CaptainPhasmaOnMyCommand extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Give another First Order unit +2/+2 for this phase',
             optional: true,
             when: {

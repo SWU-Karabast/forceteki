@@ -9,8 +9,8 @@ export default class BazineNetalSpyForTheFirstOrder extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Look at an opponent\'s hand',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
                 target: context.player.opponent.hand,

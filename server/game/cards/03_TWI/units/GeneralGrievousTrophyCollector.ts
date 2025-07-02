@@ -10,8 +10,8 @@ export default class GeneralGrievousTrophyCollector extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Ignore the aspect penalty on each Lightsaber upgrade you play on this unit',
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: WildcardCardType.Playable,
@@ -20,7 +20,7 @@ export default class GeneralGrievousTrophyCollector extends NonLeaderUnitCard {
             })
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Defeat 4 enemy units',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.upgrades.filter((upgrade) => upgrade.hasSomeTrait(Trait.Lightsaber)).length >= 4,

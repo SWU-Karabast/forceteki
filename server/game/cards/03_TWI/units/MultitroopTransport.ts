@@ -9,8 +9,8 @@ export default class MultitroopTransport extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Create a Battle Droid token',
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
         });

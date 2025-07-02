@@ -10,8 +10,8 @@ export default class IG88RuthlessBountyHunter extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Attack with a unit. If you control more units than the defending player, the attacker gets +1/+0 for this attack',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -27,8 +27,8 @@ export default class IG88RuthlessBountyHunter extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each other friendly unit gains Raid 1',
             matchTarget: (card, context) => card !== context.source && card.isUnit(),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({

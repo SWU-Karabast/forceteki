@@ -10,8 +10,8 @@ export default class InTheHeatOfBattle extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Each unit gains Sentinel and loses Saboteur for this phase.',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 target: context.game.getArenaUnits(),

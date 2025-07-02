@@ -9,8 +9,8 @@ export default class ObiWanKenobiCourageMakesHeroes extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Give an Experience token to a unit without an Experience token on it',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
@@ -23,8 +23,8 @@ export default class ObiWanKenobiCourageMakesHeroes extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give an Experience token to another unit without an Experience token on it',
             optional: true,
             targetResolver: {

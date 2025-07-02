@@ -9,8 +9,8 @@ export default class ArdentSympathizer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While you have the initiative, this unit gets +2/+0.',
             condition: (context) => context.player.hasInitiative(),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })

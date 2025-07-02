@@ -10,8 +10,8 @@ export default class FleetInterdictor extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Defeat a space unit that costs 3 or less',
             optional: true,
             targetResolver: {

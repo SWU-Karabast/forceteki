@@ -10,8 +10,8 @@ export default class EnterprisingLackeys extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Defeat a friendly resource. If you do, put this unit into play as a resource.',
             optional: true,
             targetResolver: {

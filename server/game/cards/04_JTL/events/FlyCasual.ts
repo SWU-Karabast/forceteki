@@ -10,8 +10,8 @@ export default class FlyCasual extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Ready a Vehicle unit. It can\'t attack bases for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

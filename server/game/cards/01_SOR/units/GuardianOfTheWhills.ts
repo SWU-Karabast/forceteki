@@ -31,8 +31,8 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
         );
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'The first upgrade you play on this unit each round costs 1 resource less.',
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 amount: 1,

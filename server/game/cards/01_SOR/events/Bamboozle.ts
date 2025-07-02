@@ -22,8 +22,8 @@ export default class Bamboozle extends EventCard {
         return super.buildPlayCardActions(playType, propertyOverrides).concat(bamboozleAction);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust a unit and return each upgrade on it to its owner\'s hand',
             cannotTargetFirst: true,
             targetResolver: {

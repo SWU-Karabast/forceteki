@@ -9,8 +9,8 @@ export default class FellTheDragon extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat a non-leader unit with 5 or more power',
             targetResolver: {
                 cardCondition: (card, _) => card.isNonLeaderUnit() && card.getPower() >= 5,

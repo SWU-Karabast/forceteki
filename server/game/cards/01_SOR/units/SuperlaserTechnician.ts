@@ -9,8 +9,8 @@ export default class SuperlaserTechnician extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Put Superlaser Technician into play as a resource and ready it',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.source, readyResource: true }))

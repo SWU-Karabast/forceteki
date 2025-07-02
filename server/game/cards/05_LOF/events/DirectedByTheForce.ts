@@ -10,8 +10,8 @@ export default class DirectedByTheForce extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Gain the Force and you may play a unit from your hand',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.theForceIsWithYou(),

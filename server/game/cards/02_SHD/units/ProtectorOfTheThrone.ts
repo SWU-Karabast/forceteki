@@ -10,8 +10,8 @@ export default class ProtectorOfTheThrone extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Gain sentinel while upgraded',
             condition: (context) => context.source.isUpgraded(),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)

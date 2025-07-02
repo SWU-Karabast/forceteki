@@ -10,8 +10,8 @@ export default class ObiWanKenobiPatientMentor extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Heal 1 damage from a unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -21,8 +21,8 @@ export default class ObiWanKenobiPatientMentor extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Heal 1 damage from a unit. If you do, deal 1 damage to a different unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

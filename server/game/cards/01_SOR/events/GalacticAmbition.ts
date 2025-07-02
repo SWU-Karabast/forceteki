@@ -11,8 +11,8 @@ export default class GalacticAmbition extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Play a non-Heroism unit from your hand for free. if you do, deal damage to your base equal to its cost',
             targetResolver: {
                 controller: RelativePlayer.Self,

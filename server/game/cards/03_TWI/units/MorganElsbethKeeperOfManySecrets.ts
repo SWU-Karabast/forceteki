@@ -10,8 +10,8 @@ export default class MorganElsbethKeeperOfManySecrets extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Defeat another friendly unit. If you do, draw a card.',
             optional: true,
             targetResolver: {

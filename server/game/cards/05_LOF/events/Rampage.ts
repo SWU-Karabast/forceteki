@@ -10,8 +10,8 @@ export default class Rampage extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give all friendly Creature units +2/+2 for the phase',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 target: context.player.getArenaUnits({ trait: Trait.Creature }),

@@ -10,8 +10,8 @@ export default class LuxBonteriRenegadeSeparatist extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Ready or exhaust a unit',
             when: {
                 onCardPlayed: (event, context) =>

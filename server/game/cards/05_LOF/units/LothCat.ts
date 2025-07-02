@@ -10,8 +10,8 @@ export default class LothCat extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Exhaust a ground unit',
             optional: true,
             when: {

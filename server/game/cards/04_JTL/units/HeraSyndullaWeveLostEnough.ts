@@ -9,8 +9,8 @@ export default class HeraSyndullaWeveLostEnough extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingGainKeywordTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingGainKeywordTargetingAttached({
             keyword: KeywordName.Restore,
             amount: 1
         });

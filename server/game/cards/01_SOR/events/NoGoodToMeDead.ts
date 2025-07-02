@@ -10,8 +10,8 @@ export default class NoGoodToMeDead extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust a unit. That unit can\'t ready this round (including during the regroup phase)',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

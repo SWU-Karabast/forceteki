@@ -10,8 +10,8 @@ export default class TrandoshanHunters extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'If an enemy unit has a Bounty, give an Experience token to this unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.opponent.isKeywordInPlay(KeywordName.Bounty),

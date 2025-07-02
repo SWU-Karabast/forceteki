@@ -10,8 +10,8 @@ export default class CloneCommanderCodyCommandingThe212th extends NonLeaderUnitC
         };
     }
 
-    public override setupCardAbilities() {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             title: 'Each other friendly unit gets +1/+1 and gains Overwhelm',
             type: AbilityType.Constant,
             matchTarget: (card, context) => card !== context.source,

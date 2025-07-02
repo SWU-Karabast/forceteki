@@ -19,8 +19,8 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Attack with a unit. If you played an event this phase, it gets +1/+0 for this attack',
             cost: AbilityHelper.costs.exhaustSelf(),
             initiateAttack: {
@@ -32,8 +32,8 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'If you played an event this phase, this unit gets +1/+0 for this attack and deals combat damage before the defender',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.hasPlayedAnEventThisPhase(context.player),

@@ -9,8 +9,8 @@ export default class LothWolf extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit can\'t attack',
             ongoingEffect: AbilityHelper.ongoingEffects.cannotAttack()
         });

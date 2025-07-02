@@ -9,8 +9,8 @@ export default class MomentOfPeace extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give a shield token to a unit',
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.giveShield()

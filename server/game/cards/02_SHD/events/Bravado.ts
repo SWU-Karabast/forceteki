@@ -17,14 +17,14 @@ export default class Bravado extends EventCard {
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addDecreaseCostAbility({
+    public override setupCardAbilities(card: this) {
+        card.addDecreaseCostAbility({
             title: 'If you\'ve defeated an enemy unit this phase, this event costs 2 resources less to play',
             condition: (context) => this.unitsDefeatedThisPhaseWatcher.playerDefeatedEnemyUnit(context.source.controller),
             amount: 2
         });
 
-        this.setEventAbility({
+        card.setEventAbility({
             title: 'Ready a unit',
             targetResolver: {
                 cardCondition: (card) => card.isUnit(),

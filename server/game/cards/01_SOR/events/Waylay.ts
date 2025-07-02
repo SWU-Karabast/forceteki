@@ -10,8 +10,8 @@ export default class Waylay extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Return a non-leader unit to its owner\'s hand',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

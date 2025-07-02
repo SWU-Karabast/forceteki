@@ -11,8 +11,8 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs 1 resource less."',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -36,8 +36,8 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Another friendly unit captures an enemy non-leader unit',
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
@@ -57,7 +57,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
             }
         });
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs 2 resources less."',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

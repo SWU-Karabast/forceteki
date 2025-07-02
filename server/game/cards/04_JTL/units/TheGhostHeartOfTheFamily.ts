@@ -10,8 +10,8 @@ export default class TheGhostHeartOfTheFamily extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each other friendly Spectre unit gains this unit\'s keywords',
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Spectre),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeywords((target, context) => {
@@ -21,7 +21,7 @@ export default class TheGhostHeartOfTheFamily extends NonLeaderUnitCard {
             })
         });
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'Gain sentinel while upgraded',
             condition: (context) => context.source.isUpgraded(),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)

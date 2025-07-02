@@ -9,8 +9,8 @@ export default class BattleDroidEscort extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Create a Battle Droid token.',
             when: {
                 whenPlayed: true,

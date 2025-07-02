@@ -9,8 +9,8 @@ export default class CrippleAuthority extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Draw a card. Each opponent who controls more resources than you discards a card from their hand',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous(
                 (context) => [

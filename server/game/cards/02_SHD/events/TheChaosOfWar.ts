@@ -9,8 +9,8 @@ export default class TheChaosOfWar extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal damage to each player’s base equal to the number of cards in that player’s hand.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.damage((context) => ({

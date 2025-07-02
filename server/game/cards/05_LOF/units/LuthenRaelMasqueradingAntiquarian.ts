@@ -10,8 +10,8 @@ export default class LuthenRaelMasqueradingAntiquarian extends NonLeaderUnitCard
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Search the top 5 of your deck for an item upgrade',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,

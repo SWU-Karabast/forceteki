@@ -9,8 +9,8 @@ export default class ConcordDawnInterceptors extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit gets +2/+0 while defending',
             condition: (context) => context.source.isDefending(),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })

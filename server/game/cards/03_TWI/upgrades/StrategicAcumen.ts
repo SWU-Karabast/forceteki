@@ -11,8 +11,8 @@ export default class StrategicAcumen extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addGainActionAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addGainActionAbilityTargetingAttached({
             title: 'Play a unit from your hand. It costs 1 less',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

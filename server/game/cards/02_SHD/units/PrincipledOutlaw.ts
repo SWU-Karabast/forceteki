@@ -10,8 +10,8 @@ export default class PrincipledOutlaw extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Exhaust a ground unit.',
             optional: true,
             targetResolver: {

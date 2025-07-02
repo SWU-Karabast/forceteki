@@ -10,8 +10,8 @@ export default class TopTarget extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainKeywordTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
             ability: {
                 title: 'Heal 4 damage from a unit or base. If the Bounty unit is unique, heal 6 damage instead.',

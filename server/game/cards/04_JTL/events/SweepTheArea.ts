@@ -11,8 +11,8 @@ export default class SweepTheArea extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Return up to 2 non-leader units in the same arena with a combined cost 3 or less to their owners\' hands.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

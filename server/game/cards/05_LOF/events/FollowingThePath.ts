@@ -10,8 +10,8 @@ export default class FollowingThePath extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Search the top 8 cards for up to 2 Force units, reveal them, and put them on top of your deck in any order',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 targetMode: TargetMode.UpTo,

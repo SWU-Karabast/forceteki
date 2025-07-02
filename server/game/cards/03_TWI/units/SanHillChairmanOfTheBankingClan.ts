@@ -17,8 +17,8 @@ export default class SanHillChairmanOfTheBankingClan extends NonLeaderUnitCard {
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'For each friendly unit that was defeated this phase, ready a friendly resource.',
             immediateEffect: AbilityHelper.immediateEffects.readyResources((context) => ({
                 target: context.player,

@@ -10,8 +10,8 @@ export default class EighthBrotherHuntTogether extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Use the Force to give a unit +2/+2',
             when: {
                 onCardPlayed: (event, context) =>

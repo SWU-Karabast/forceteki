@@ -10,8 +10,8 @@ export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Exhaust this leader to use the When Defeated ability again',
             optional: true,
             when: {
@@ -30,8 +30,8 @@ export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Use When Defeated ability again',
             optional: true,
             when: {

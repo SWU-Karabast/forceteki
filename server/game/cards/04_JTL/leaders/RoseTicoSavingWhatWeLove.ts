@@ -18,8 +18,8 @@ export default class RoseTicoSavingWhatWeLove extends LeaderUnitCard {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Heal 2 damage from a Vehicle unit that attacked this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -33,8 +33,8 @@ export default class RoseTicoSavingWhatWeLove extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Heal 2 damage from a Vehicle unit',
             optional: true,
             targetResolver: {

@@ -10,8 +10,8 @@ export default class AaylaSecuraMasterOfTheBlade extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Triggered,
             title: 'Prevent all combat damage that would be dealt to this unit for this attack.',
             when: {

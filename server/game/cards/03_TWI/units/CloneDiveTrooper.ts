@@ -11,8 +11,8 @@ export default class CloneDiveTrooper extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'While this unit is attacking, the defender gets -2/-0.',
             targetController: RelativePlayer.Opponent,

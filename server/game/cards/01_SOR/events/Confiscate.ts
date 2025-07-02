@@ -10,8 +10,8 @@ export default class Confiscate extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat an upgrade',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,

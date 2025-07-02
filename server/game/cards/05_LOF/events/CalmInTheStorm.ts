@@ -10,8 +10,8 @@ export default class CalmInTheStorm extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Exhaust a friendly unit. If you do, give a Shield token and 2 Experience tokens to it.',
             targetResolvers: {
                 friendlyUnit: {

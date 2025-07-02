@@ -10,8 +10,8 @@ export default class MagnaguardWingLeader extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Attack with a Droid unit',
             limit: AbilityHelper.limit.perRound(1),
             targetResolver: {

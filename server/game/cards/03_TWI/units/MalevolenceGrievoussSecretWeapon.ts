@@ -10,8 +10,8 @@ export default class MalevolenceGrievoussSecretWeapon extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give an enemy unit -4/-0 for this phase. It can\'t attack this phase',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

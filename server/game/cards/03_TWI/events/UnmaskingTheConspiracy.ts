@@ -9,8 +9,8 @@ export default class UnmaskingTheConspirancy extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Discard a card from your hand. If you do, look at your opponent\'s hand and discard a card from it',
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                 target: context.player,

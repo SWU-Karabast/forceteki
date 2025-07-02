@@ -19,10 +19,10 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addPilotDeploy();
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Play a card from your hand using Piloting. It costs 1 less.',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -38,8 +38,8 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingGainAbilityTargetingAttached({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'The next Pilot you play this phase costs 1 less',
             when: {

@@ -10,8 +10,8 @@ export default class CureWounds extends EventCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Use the Force to heal 6 damage from a unit',
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {

@@ -10,8 +10,8 @@ export default class OwenLarsDevotedUncle extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Search the top 5 of your deck for a Force unit then reveal it and draw it',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,

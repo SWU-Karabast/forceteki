@@ -21,8 +21,8 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
         return super.buildPlayCardActions(playType, propertyOverrides).concat(firstLightSmuggleAction);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each other friendly non-leader unit gains Grit',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.NonLeaderUnit,

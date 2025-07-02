@@ -9,8 +9,8 @@ export default class GrandInquisitorStoriesTravelQuickly extends LeaderUnitCard 
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Attack with a unit. The defender gets -2/-0 for this attack',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
@@ -24,8 +24,8 @@ export default class GrandInquisitorStoriesTravelQuickly extends LeaderUnitCard 
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'The defender gets -2/-0 for this attack',
             immediateEffect: AbilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({
                 target: context.event.attack.getAllTargets(),

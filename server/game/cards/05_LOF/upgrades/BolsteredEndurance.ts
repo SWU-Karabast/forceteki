@@ -9,7 +9,7 @@ export default class BolsteredEndurance extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
     }
 }

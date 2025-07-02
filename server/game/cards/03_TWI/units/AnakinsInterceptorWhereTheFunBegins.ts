@@ -9,8 +9,8 @@ export default class AnakinsInterceptorWhereTheFunBegins extends NonLeaderUnitCa
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While your base has 15 or more damage on it, this unit gets +2/+0.',
             condition: (context) => context.player.base.damage >= 15,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })

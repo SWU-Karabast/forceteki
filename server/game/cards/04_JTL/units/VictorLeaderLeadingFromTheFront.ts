@@ -10,8 +10,8 @@ export default class VictorLeaderLeadingFromTheFront extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each other friendly space unit gets +1/+1',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,

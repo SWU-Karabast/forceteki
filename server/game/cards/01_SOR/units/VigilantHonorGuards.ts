@@ -10,8 +10,8 @@ export default class VigilantHonorGuards extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Gain sentinel while undamaged',
             condition: (context) => context.source.damage === 0,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)

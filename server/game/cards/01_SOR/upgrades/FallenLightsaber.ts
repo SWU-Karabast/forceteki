@@ -11,10 +11,10 @@ export default class FallenLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainOnAttackAbilityTargetingAttached({
+        card.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 1 damage to each ground unit the defending player controls',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) =>
                 ({ target: context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena }), amount: 1 })

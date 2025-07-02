@@ -10,8 +10,8 @@ export default class DarthVaderTwilightOfTheApprentice extends NonLeaderUnitCard
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give a Shield token to a friendly unit and to an enemy unit',
             targetResolvers: {
                 friendlyUnit: {
@@ -25,7 +25,7 @@ export default class DarthVaderTwilightOfTheApprentice extends NonLeaderUnitCard
             }
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Defeat an enemy unit with a Shield token on it',
             targetResolvers: {
                 enemyUnit: {

@@ -10,8 +10,8 @@ export default class RebelAssault extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a Rebel unit. It gets +1/+0 for this attack',
             initiateAttack: {
                 attackerCondition: (card) => card.hasSomeTrait(Trait.Rebel),

@@ -10,8 +10,8 @@ export default class HuyangEnduringInstructor extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Choose another friendly unit. While this unit is in play, the chosen unit gets +2/+2.',
             targetResolver: {
                 controller: RelativePlayer.Self,

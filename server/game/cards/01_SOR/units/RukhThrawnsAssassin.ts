@@ -10,8 +10,8 @@ export default class RukhThrawnsAssassin extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Defeat unit being attacked',
             when: {
                 onDamageDealt: (event, context) =>

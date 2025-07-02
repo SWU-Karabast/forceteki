@@ -9,8 +9,8 @@ export default class Outflank extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with two units (one at a time)',
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.attack()
