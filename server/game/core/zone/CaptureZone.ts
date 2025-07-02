@@ -29,6 +29,6 @@ export class CaptureZone extends SimpleZone<IUnitCard> {
     }
 
     public override toString() {
-        return `${this.owner.name}:${this.captor.internalName}:${this.name}`;
+        return `${'game' in this.owner ? `${this.owner.name}:` : ''}:${this.captor.internalName}:${this.name}`;
     }
 }

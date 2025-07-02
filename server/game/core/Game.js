@@ -135,7 +135,6 @@ class Game extends EventEmitter {
         this.gameChat = new GameChat(details.pushUpdate);
         this.pipeline = new GamePipeline();
         this.id = details.id;
-        this.name = details.name;
         this.allowSpectators = details.allowSpectators;
         this.owner = details.owner;
         this.started = false;
@@ -1614,7 +1613,6 @@ class Game extends EventEmitter {
                 playerUpdate: activePlayer.name,
                 id: this.id,
                 manualMode: this.manualMode,
-                name: this.name,
                 owner: this.owner,
                 players: playerState,
                 phase: this.currentPhase,
