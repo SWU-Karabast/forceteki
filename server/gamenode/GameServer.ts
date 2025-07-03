@@ -370,6 +370,33 @@ export class GameServer {
             }
         });
 
+        app.post('/api/save-sound-preferences', authMiddleware(), async (req, res, next) => {
+            try {
+                const { soundPreferences } = req.body;
+                const user = req.user as User;
+
+                // Check if user is authenticated
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to save sound preferences'
+                    });
+                }
+
+                // Update user preferences with sound preferences
+                await this.userFactory.updateUserPreferencesAsync(user.getId(), { sound: soundPreferences });
+
+                return res.status(200).json({
+                    success: true,
+                    message: 'Sound preferences saved successfully'
+                });
+            } catch (err) {
+                logger.error('GameServer (save-sound-preferences) Server error:', err);
+                next(err);
+            }
+        });
+
         // user DECKS
         app.post('/api/get-decks', authMiddleware('get-decks'), async (req, res, next) => {
             try {

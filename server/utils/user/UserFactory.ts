@@ -6,7 +6,22 @@ import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
-import type { IUserDataEntity } from '../../services/DynamoDBInterfaces';
+import type { IUserDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
+
+
+const getDefaultSoundPreferences = () => ({
+    muteAllSound: false,
+    volume: 0.8,
+    muteCardClickSound: false,
+    muteMenuButtonsSound: false,
+    muteChatSound: false,
+    muteOpponentFoundSound: false,
+});
+
+const getDefaultPreferences = (): UserPreferences => ({
+    cardback: null,
+    sound: getDefaultSoundPreferences()
+});
 
 
 /**
@@ -227,7 +242,23 @@ export class UserFactory {
     public async updateUserPreferencesAsync(userId: string, preferences: Record<string, any>): Promise<void> {
         try {
             const dbService = await this.dbServicePromise;
-            await dbService.saveUserSettingsAsync(userId, preferences);
+
+            // Get existing user preferences
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            const currentPreferences = userProfile?.preferences || {};
+
+            // Merge sound preferences with defaults if they don't exist
+            const mergedPreferences = {
+                ...currentPreferences,
+                ...preferences,
+                sound: {
+                    ...getDefaultSoundPreferences(),
+                    ...currentPreferences.sound,
+                    ...preferences.sound
+                }
+            };
+
+            await dbService.saveUserSettingsAsync(userId, mergedPreferences);
         } catch (error) {
             logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack } });
             throw error;
@@ -296,7 +327,7 @@ export class UserFactory {
                 createdAt: new Date().toISOString(),
                 usernameLastUpdatedAt: new Date().toISOString(),
                 showWelcomeMessage: true,
-                preferences: { cardback: null },
+                preferences: getDefaultPreferences(),
                 needsUsernameChange: false
             };
 
