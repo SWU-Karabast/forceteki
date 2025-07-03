@@ -10,8 +10,8 @@ export default class ForceLightning extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a unit. It loses all abilities for this phase.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

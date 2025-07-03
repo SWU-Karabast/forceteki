@@ -10,8 +10,8 @@ export default class ContractedHunter extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Defeat this unit',
             when: {
                 onPhaseStarted: (event) => event.phase === PhaseName.Regroup

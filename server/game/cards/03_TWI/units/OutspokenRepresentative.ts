@@ -10,14 +10,14 @@ export default class OutspokenRepresentative extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While you control another Republic unit, this unit gains Sentinel.',
             condition: (context) => context.player.isTraitInPlay(Trait.Republic, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel })
         });
 
-        this.addWhenDefeatedAbility({
+        card.addWhenDefeatedAbility({
             title: 'Create a Clone Trooper token.',
             immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper()
         });

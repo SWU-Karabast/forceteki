@@ -10,8 +10,8 @@ export default class PoggleTheLesserArchdukeOfTheStalgasinHive extends NonLeader
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Exhaust this unit to create a Battle Droid token',
             when: {
                 onCardPlayed: (event, context) =>

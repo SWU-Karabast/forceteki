@@ -9,8 +9,8 @@ export default class TIEDaggerVanguard extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 2 damage to a damaged unit',
             optional: true,
             targetResolver: {

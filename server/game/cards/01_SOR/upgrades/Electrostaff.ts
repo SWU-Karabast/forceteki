@@ -11,10 +11,10 @@ export default class Electrostaff extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'While attached unit is defending, the attacker gets -1/-0',
             targetController: RelativePlayer.Opponent,
             matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isAttacking() && card.activeAttack.getAllTargets().includes(context.source.parentCard),

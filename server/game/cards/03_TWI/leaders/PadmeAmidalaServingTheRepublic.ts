@@ -12,8 +12,8 @@ export default class PadmeAmidalaServingTheRepublic extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addCoordinateAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Action,
             title: 'Search the top 3 cards of your deck for a Republic card, reveal it, and draw it',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
@@ -21,8 +21,8 @@ export default class PadmeAmidalaServingTheRepublic extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addCoordinateAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Triggered,
             title: 'Search the top 3 cards of your deck for a Republic card, reveal it, and draw it',
             when: {

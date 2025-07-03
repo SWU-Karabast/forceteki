@@ -11,8 +11,8 @@ export default class YoureMyOnlyHope extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Look at the top card of your deck',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndChooseOption(
                 (context) => {

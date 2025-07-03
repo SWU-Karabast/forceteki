@@ -10,8 +10,8 @@ export default class WingGuardSecurityTeam extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give a Shield token to each of up to 2 Fringe units',
             targetResolver: {
                 mode: TargetMode.UpTo,

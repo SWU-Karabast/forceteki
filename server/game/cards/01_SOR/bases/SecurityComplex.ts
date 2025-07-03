@@ -10,8 +10,8 @@ export default class SecurityComplex extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEpicActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEpicActionAbility({
             title: 'Give a Shield token to a non-leader unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

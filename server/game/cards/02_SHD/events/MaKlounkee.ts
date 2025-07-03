@@ -10,8 +10,8 @@ export default class MaKlounkee extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Return a friendly non-leader Underworld unit to its owner\'s hand. If you do, deal 3 damage to a unit',
             targetResolver: {
                 controller: RelativePlayer.Self,

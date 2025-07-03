@@ -10,8 +10,8 @@ export default class JediStarfighter extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Deal 1 damage to a space unit',
             optional: true,
             targetResolver: {

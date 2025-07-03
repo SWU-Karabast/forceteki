@@ -10,8 +10,8 @@ export default class DengarTheDemolisher extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 1 damage to the upgraded unit',
             when: {
                 onCardPlayed: (event, context) => event.player === context.player && event.card.isUpgrade(),

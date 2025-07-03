@@ -10,8 +10,8 @@ export default class SupportingEta2 extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give a ground unit +2/+0 for this phase',
             optional: true,
             targetResolver: {

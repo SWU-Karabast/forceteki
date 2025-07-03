@@ -10,8 +10,8 @@ export default class ApologyAccepted extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat a friendly unit',
             targetResolver: {
                 controller: RelativePlayer.Self,

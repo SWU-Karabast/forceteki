@@ -16,15 +16,15 @@ export default class NienNunbLoyalCoPilot extends NonLeaderUnitCard {
         return context.source.controller.getArenaCards({ trait: Trait.Pilot, otherThan: this }).length;
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit gets +1/+0 for each other friendly Pilot unit and upgrade.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((_target, context) => ({
                 power: this.getOtherFriendlyPilotUnitsAndUpgradesCount(context), hp: 0
             }))
         });
 
-        this.addPilotingConstantAbilityTargetingAttached({
+        card.addPilotingConstantAbilityTargetingAttached({
             title: 'Attached unit gets +1/+0 for each other friendly Pilot unit and upgrade.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((_target, context) => ({
                 power: this.getOtherFriendlyPilotUnitsAndUpgradesCount(context), hp: 0

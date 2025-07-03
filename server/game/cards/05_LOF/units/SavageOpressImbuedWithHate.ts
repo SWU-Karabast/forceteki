@@ -9,8 +9,8 @@ export default class SavageOpressImbuedWithHate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Use the Force. If you don\'t, deal 9 damage to your base.',
             when: {
                 whenPlayed: true,

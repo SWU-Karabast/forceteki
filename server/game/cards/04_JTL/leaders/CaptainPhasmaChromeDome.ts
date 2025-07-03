@@ -18,8 +18,8 @@ export default class CaptainPhasmaChromeDome extends LeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'If you played a First Order card this phase, deal 1 damage to a base',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -32,8 +32,8 @@ export default class CaptainPhasmaChromeDome extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Deal 1 damage to a unit. If you do, deal 1 damage to a base',
             optional: true,
             targetResolver: {

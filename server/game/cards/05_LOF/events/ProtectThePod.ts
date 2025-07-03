@@ -10,8 +10,8 @@ export default class ProtectThePod extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'A friendly non-Vehicle unit deals damage equal to its remaining HP to an enemy unit',
             targetResolvers: {
                 friendlyUnit: {

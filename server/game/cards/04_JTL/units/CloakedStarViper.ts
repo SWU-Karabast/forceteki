@@ -9,8 +9,8 @@ export default class CloakedStarViper extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give 2 Shield tokens to this unit',
             immediateEffect: AbilityHelper.immediateEffects.giveShield((context) => ({
                 target: context.source,

@@ -10,8 +10,8 @@ export default class FrontierTrader extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Return a resource you control to your hand. If you do, put the top card of your deck into play as a resource.',
             optional: true,
             targetResolver: {

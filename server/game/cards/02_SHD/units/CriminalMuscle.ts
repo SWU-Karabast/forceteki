@@ -10,8 +10,8 @@ export default class CriminalMuscle extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Return a non-unique upgrade to its owner\'s hand.',
             optional: true,
             targetResolver: {

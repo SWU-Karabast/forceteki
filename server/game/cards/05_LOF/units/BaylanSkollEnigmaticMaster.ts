@@ -12,8 +12,8 @@ export default class BaylanSkollEnigmaticMaster extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Use the Force to return a non-leader unit that costs 4 or less to its owner\'s hand',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

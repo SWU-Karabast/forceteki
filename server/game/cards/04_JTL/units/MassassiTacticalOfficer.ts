@@ -10,8 +10,8 @@ export default class MassassiTacticalOfficer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Attack with a Fighter unit. It get +2/+0 for this attack',
             cost: AbilityHelper.costs.exhaustSelf(),
             initiateAttack: {

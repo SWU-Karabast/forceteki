@@ -10,8 +10,8 @@ export default class ImproprietyAmongThieves extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a ready non-leader unit controlled by each player.',
             targetResolvers: {
                 friendlyUnit: {

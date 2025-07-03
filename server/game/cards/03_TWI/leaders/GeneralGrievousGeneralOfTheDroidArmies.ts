@@ -10,8 +10,8 @@ export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCa
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Give a Droid unit Sentinel for this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -24,8 +24,8 @@ export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCa
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give a Droid unit +1/+0 and Sentinel for this phase',
             optional: true,
             targetResolver: {

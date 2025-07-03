@@ -9,8 +9,8 @@ export default class AtTeVanguard extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Create 2 Clone Trooper tokens',
             immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper({ amount: 2 })
         });

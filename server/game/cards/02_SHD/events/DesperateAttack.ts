@@ -9,8 +9,8 @@ export default class DesperateAttack extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a damaged unit. It gets +2/+0 for this attack',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.damage !== 0,

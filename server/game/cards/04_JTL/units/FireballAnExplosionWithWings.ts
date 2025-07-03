@@ -10,8 +10,8 @@ export default class FireballAnExplosionWithWings extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 1 damage to this unit.',
             when: {
                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup

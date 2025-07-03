@@ -10,13 +10,13 @@ export default class TheInvisibleHandImposingFlagship extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities(): void {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this): void {
+        card.addWhenPlayedAbility({
             title: 'Create 4 Battle Droid tokens.',
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid({ amount: 4 }),
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Exhaust any number of friendly Separatist units',
             optional: true,
             targetResolver: {

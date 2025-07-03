@@ -10,8 +10,8 @@ export default class YodaOldMaster extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Choose any number of players to draw 1 card',
             targetResolver: {
                 mode: TargetMode.MultiplePlayers,

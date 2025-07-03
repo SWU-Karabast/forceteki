@@ -17,8 +17,8 @@ export default class TheMandaloriansRifle extends UpgradeCard {
         return targetCard.isUnit() && !targetCard.hasSomeTrait(Trait.Vehicle) && targetCard.controller === controller;
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'If attached unit is The Mandalorian, he captures an exhausted enemy non-leader unit',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

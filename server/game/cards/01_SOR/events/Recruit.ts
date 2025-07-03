@@ -9,8 +9,8 @@ export default class Recruit extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Search the top 5 cards for a unit, reveal it, and draw it',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,

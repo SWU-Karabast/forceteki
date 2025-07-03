@@ -10,8 +10,8 @@ export default class EnfysNestChampionOfJustice extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Return an enemy non-leader unit with less power than this unit to its owner\'s hand',
             when: {
                 whenPlayed: true,

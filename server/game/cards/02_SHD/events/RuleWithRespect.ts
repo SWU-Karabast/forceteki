@@ -18,8 +18,8 @@ export default class RuleWithRespect extends EventCard {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'A friendly unit captures each enemy non-leader unit that attacked your base this phase',
             targetResolver: {
                 controller: RelativePlayer.Self,

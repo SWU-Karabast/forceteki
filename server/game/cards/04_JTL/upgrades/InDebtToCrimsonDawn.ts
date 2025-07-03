@@ -11,8 +11,8 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Exhaust it unless its controller pay 2 resources',
             when: {
                 onCardReadied: (event, context) => context.source.parentCard === event.card

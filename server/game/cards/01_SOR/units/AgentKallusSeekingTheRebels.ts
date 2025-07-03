@@ -10,8 +10,8 @@ export default class AgentKallusSeekingTheRebels extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Draw a card',
             optional: true,
             when: {

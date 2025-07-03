@@ -10,8 +10,8 @@ export default class _41stEliteCorps extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'This unit gets +0/+3',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 0, hp: 3 })

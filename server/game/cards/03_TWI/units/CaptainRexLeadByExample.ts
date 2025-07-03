@@ -9,8 +9,8 @@ export default class CaptainRexLeadByExample extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Create 2 Clone Trooper tokens.',
             immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper({ amount: 2 })
         });

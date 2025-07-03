@@ -8,8 +8,8 @@ export default class Dogfight extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a unit, even if it\'s exhausted. That unit can\'t attack bases for this attack.',
             initiateAttack: {
                 targetCondition: (target) => target.isUnit(),

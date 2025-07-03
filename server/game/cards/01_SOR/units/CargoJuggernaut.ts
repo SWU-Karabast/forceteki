@@ -10,8 +10,8 @@ export default class CargoJuggernaut extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'If you control another Vigilance unit, heal 4 damage from your base',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasSomeArenaUnit({ otherThan: context.source, aspect: Aspect.Vigilance }),

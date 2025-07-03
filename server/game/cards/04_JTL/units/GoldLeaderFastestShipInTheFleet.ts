@@ -10,8 +10,8 @@ export default class GoldLeaderFastestShipInTheFleet extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While this unit is defending, the attacker gets -1/-0',
             targetController: RelativePlayer.Opponent,
             matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isAttacking() && card.activeAttack.getAllTargets().includes(context.source),

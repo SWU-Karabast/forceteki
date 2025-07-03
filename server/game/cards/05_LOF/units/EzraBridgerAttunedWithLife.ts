@@ -10,8 +10,8 @@ export default class EzraBridgerAttunedWithLife extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give an Experience token to another Creature or Spectre unit.',
             optional: true,
             targetResolver: {

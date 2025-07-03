@@ -10,8 +10,8 @@ export default class SpecForceSoldier extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'A unit loses sentinel for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

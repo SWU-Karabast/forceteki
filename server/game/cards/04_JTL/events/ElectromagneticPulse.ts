@@ -10,8 +10,8 @@ export default class ElectromagneticPulse extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 2 damage to a Droid or Vehicle unit and exhaust it.',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait([Trait.Droid, Trait.Vehicle]),

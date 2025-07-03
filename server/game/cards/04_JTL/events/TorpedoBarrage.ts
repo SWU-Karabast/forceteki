@@ -10,8 +10,8 @@ export default class TorpedoBarrage extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 5 indirect damage to a player',
             targetResolver: {
                 mode: TargetMode.Player,

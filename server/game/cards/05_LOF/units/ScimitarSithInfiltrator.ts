@@ -9,8 +9,8 @@ export default class ScimitarSithInfiltrator extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While this unit is damaged, it gets +3/+0',
             condition: (context) => context.source.damage > 0,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 3, hp: 0 })

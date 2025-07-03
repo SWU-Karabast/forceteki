@@ -9,8 +9,8 @@ export default class JesseHardFightingPatriot extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'An opponent creates 2 Battle Droid tokens.',
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid((context) => ({
                 amount: 2,

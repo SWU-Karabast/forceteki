@@ -10,8 +10,8 @@ export default class IndependentSmuggler extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addPilotingConstantAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingConstantAbilityTargetingAttached({
             title: 'Attached unit gains Raid 1',
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })
         });

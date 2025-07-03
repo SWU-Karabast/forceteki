@@ -11,8 +11,8 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addReplacementEffectAbility({
+    public override setupCardAbilities(card: this) {
+        card.addReplacementEffectAbility({
             title: 'If this unit would be captured, defeat him and deal 3 damage to each enemy ground unit instead',
             when: {
                 onCardCaptured: (event, context) => event.card === context.source
@@ -36,7 +36,7 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
             effectArgs: (context) => [context.source],
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Deal 3 damage to a damaged ground unit',
             optional: true,
             targetResolver: {

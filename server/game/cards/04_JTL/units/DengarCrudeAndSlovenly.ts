@@ -10,8 +10,8 @@ export default class DengarCrudeAndSlovenly extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingGainAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Deal 2 indirect damage to a player. If attached unit is Underworld, deal 3 indirect damage instead.',
             when: {

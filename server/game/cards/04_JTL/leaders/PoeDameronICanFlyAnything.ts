@@ -10,8 +10,8 @@ export default class PoeDameronICanFlyAnything extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: `Flip ${this.title} and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it`,
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
@@ -28,8 +28,8 @@ export default class PoeDameronICanFlyAnything extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addPilotingAbility({
             type: AbilityType.Action,
             title: 'Attach this upgrade to a friendly Vehicle unit without a Pilot on it',
             cost: AbilityHelper.costs.abilityActivationResourceCost(1),

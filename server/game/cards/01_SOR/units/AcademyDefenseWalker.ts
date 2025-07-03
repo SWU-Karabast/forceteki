@@ -10,8 +10,8 @@ export default class AcademyDefenseWalker extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give an Experience token to each friendly damaged unit',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({
                 target: context.player.getArenaUnits({ condition: (unit: IUnitCard) => unit.damage > 0 })

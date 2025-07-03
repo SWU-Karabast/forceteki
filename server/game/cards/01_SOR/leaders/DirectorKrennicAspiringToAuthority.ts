@@ -17,11 +17,11 @@ export default class DirectorKrennicAspiringToAuthority extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addConstantAbility(this.buildKrennicAbilityProperties());
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addConstantAbility(this.buildKrennicAbilityProperties());
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility(this.buildKrennicAbilityProperties());
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility(this.buildKrennicAbilityProperties());
     }
 }

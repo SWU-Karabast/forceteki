@@ -20,8 +20,8 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'If a friendly unit was defeated this phase, give a unit +2/+2 for this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -31,8 +31,8 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'If a friendly unit was defeated this phase, give a unit +2/+2 for this phase',
             optional: true,
             targetResolver: {

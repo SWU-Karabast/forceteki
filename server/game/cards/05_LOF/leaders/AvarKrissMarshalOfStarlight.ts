@@ -25,16 +25,16 @@ export default class AvarKrissMarshalOfStarlight extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'The Force is with you',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.theForceIsWithYou()
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While the Force is with you, this units gets +4/+0 and gains Overwhelm',
             condition: (context) => context.player.hasTheForce,
             ongoingEffect: [

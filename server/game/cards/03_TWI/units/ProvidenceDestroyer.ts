@@ -10,8 +10,8 @@ export default class ProvidenceDestroyer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give an enemy space unit -2/-2 for this phase.',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

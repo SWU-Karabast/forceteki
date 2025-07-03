@@ -11,13 +11,13 @@ export default class StrafingGunship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit can attack units in the ground arena',
             ongoingEffect: OngoingEffectBuilder.card.static(EffectName.CanAttackGroundArenaFromSpaceArena)
         });
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'While this unit is attacking a ground unit, the defender gets –2/–0.',
             condition: (context) => context.source.isAttacking() && context.source.activeAttack?.targetIsUnit((card) => card.zoneName === ZoneName.GroundArena),
             targetController: RelativePlayer.Opponent,

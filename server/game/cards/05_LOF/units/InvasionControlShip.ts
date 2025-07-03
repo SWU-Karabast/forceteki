@@ -10,8 +10,8 @@ export default class InvasionControlShip extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Friendly Droid units gain Raid 2',
             targetController: RelativePlayer.Self,
             matchTarget: (card) => card.hasSomeTrait(Trait.Droid),

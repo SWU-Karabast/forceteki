@@ -15,8 +15,8 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Choose any number of friendly units',
             targetResolver: {
                 activePromptTitle: 'Choose friendly units that will capture enemy units in the same arena',

@@ -10,8 +10,8 @@ export default class MercilessContest extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Each player chooses a non-leader unit they control. Defeat those units.',
             targetResolvers: {
                 opponentChoice: {

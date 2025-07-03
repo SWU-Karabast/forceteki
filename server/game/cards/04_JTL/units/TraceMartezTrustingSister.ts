@@ -10,8 +10,8 @@ export default class TraceMartezTrustingSister extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingGainAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Heal 2 total damage from any number of units',
             when: {

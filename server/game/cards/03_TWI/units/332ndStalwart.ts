@@ -10,8 +10,8 @@ export default class _332ndStalwart extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'This unit gets +1/+1',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 })

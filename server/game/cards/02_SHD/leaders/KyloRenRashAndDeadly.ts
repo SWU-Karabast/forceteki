@@ -10,8 +10,8 @@ export default class KyloRenRashAndDeadly extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Discard a card from your hand, give a unit +2/+0 for this phase',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
@@ -28,8 +28,8 @@ export default class KyloRenRashAndDeadly extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility({
             title: 'This unit gets -1/-0 for each card in your hand.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target, context) => {
                 const powerDiff = -1 * context.player.hand.length;

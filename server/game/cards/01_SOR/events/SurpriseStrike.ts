@@ -9,8 +9,8 @@ export default class SurpriseStrike extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a unit. It gets +3/+0 for this attack.',
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.attack({

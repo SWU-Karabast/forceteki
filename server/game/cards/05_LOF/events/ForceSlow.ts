@@ -10,8 +10,8 @@ export default class ForceSlow extends EventCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give an exhausted unit -8/-0 for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

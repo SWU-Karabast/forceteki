@@ -20,8 +20,8 @@ export default class SifoDyasCommissioningAnArmy extends NonLeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Search the top 8 cards of your deck for any number of Clone units with combined cost 4 or less and discard them. For this phase, you may play those cards from your discard pile for free.',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,

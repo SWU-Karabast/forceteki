@@ -9,8 +9,8 @@ export default class T6Shuttle1974StayClose extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Give an experience token to this unit',
             when: {
                 onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),

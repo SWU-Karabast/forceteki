@@ -10,8 +10,8 @@ export default class DarthMaulSithRevealed extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Deal 1 damage to a unit and 1 damage to a different unit',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
@@ -29,8 +29,8 @@ export default class DarthMaulSithRevealed extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Deal 1 damage to a unit and 1 damage to a different unit',
             targetResolver: {
                 activePromptTitle: 'Choose units to deal 1 damage to',

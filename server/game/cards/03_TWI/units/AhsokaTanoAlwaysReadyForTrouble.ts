@@ -10,8 +10,8 @@ export default class AhsokaTanoAlwaysReadyForTrouble extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Return to hand',
             cost: AbilityHelper.costs.abilityActivationResourceCost(2),
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
@@ -22,7 +22,7 @@ export default class AhsokaTanoAlwaysReadyForTrouble extends NonLeaderUnitCard {
             ])
         });
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'Gain Ambush',
             condition: (context) => {
                 const player = context.player;

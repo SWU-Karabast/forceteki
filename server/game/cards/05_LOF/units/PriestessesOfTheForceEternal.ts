@@ -10,8 +10,8 @@ export default class PriestessesOfTheForceEternal extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Use the Force to give a shield token to each of up to 5 units',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

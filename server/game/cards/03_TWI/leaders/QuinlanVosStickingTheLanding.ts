@@ -10,8 +10,8 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Exhaust this leader to deal 1 damage to an enemy unit that costs the same as the played unit',
             when: {
                 onCardPlayed: (event, context) =>
@@ -32,8 +32,8 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Deal 1 damage to an enemy unit that costs the same as or less than the played unit',
             when: {
                 onCardPlayed: (event, context) =>

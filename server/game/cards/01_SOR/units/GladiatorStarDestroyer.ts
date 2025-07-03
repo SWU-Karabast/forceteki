@@ -10,8 +10,8 @@ export default class GladiatorStarDestroyer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give a unit sentinel for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

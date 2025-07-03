@@ -9,8 +9,8 @@ export default class RicketyQuadjumper extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Reveal a card. If it’s not a unit, give an Experience token to another unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({

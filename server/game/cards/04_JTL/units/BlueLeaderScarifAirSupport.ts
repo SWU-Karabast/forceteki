@@ -9,8 +9,8 @@ export default class BlueLeaderScarifAirSupport extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({

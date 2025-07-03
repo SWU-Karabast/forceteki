@@ -10,14 +10,14 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addIgnoreSpecificAspectPenaltyAbility({
+    public override setupCardAbilities(card: this) {
+        card.addIgnoreSpecificAspectPenaltyAbility({
             title: 'While playing this unit, ignore her Heroism aspect penalty if you control Kylo Ren',
             ignoredAspect: Aspect.Heroism,
             condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Kylo Ren')
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'You may heal 2 damage from a unit. If it’s a non-Heroism unit, give a Shield token to it',
             optional: true,
             targetResolver: {

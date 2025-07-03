@@ -12,8 +12,8 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Search the top 8 cards of your deck for a Droid unit, reveal it, and draw it. If it costs 2 or less, you may play it for free.',
             when: {
                 whenPlayed: true,

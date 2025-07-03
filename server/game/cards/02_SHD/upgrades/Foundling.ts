@@ -10,8 +10,8 @@ export default class Foundling extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbilityTargetingAttached({
             title: 'Give the Mandalorian trait to the attached card',
             ongoingEffect: AbilityHelper.ongoingEffects.gainTrait(Trait.Mandalorian),
         });

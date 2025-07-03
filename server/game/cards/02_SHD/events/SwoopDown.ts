@@ -11,8 +11,8 @@ export default class SwoopDown extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a space unit. It gains Saboteur and can attack ground units for this attack. If it attacks a ground unit, it gets +2/+0 and the defender gets –2/–0 for this attack.',
             initiateAttack: {
                 attackerCondition: (card) => card.zoneName === ZoneName.SpaceArena,

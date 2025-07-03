@@ -10,8 +10,8 @@ export default class Snowspeeder extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Exhaust an enemy Vehicle ground unit',
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,

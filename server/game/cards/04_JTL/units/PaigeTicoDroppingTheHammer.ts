@@ -10,8 +10,8 @@ export default class PaigeTicoDroppingTheHammer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingGainAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Give an Experience token to this unit, then deal 1 damage to it',
             when: {

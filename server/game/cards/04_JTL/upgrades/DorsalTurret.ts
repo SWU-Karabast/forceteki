@@ -11,10 +11,10 @@ export default class DorsalTurret extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainTriggeredAbilityTargetingAttached({
+        card.addGainTriggeredAbilityTargetingAttached({
             title: 'Defeat that unit.',
             when: {
                 onDamageDealt: (event, context) =>

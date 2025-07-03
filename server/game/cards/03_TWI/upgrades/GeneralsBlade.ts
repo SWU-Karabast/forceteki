@@ -12,10 +12,10 @@ export default class GeneralsBlade extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainOnAttackAbilityTargetingAttached({
+        card.addGainOnAttackAbilityTargetingAttached({
             title: 'The next unit you play this phase costs 2 resources less',
             gainCondition: (context) => context.source.parentCard.hasSomeTrait(Trait.Jedi),
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({

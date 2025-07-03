@@ -9,8 +9,8 @@ export default class ChewbaccaPykesbane extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Defeat a unit with 5 or less remaining HP',
             optional: true,
             targetResolver: {

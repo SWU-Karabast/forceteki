@@ -10,16 +10,16 @@ export default class MillenniumFalconLandosPride extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(sourceCard: this) {
+    public override setupCardAbilities(card: this) {
         let lastPlayedFromHandId: number | null = null;
 
-        this.game.on(EventName.OnCardPlayed, (event) => {
-            if (event.card === sourceCard && event.playType === PlayType.PlayFromHand) {
+        card.game.on(EventName.OnCardPlayed, (event) => {
+            if (event.card === card && event.playType === PlayType.PlayFromHand) {
                 lastPlayedFromHandId = event.card.inPlayId;
             }
         });
 
-        this.addConstantAbility({
+        card.addConstantAbility({
             title: 'This unit gains Ambush if it was played from hand',
             condition: (context) => context.source.isInPlay() && lastPlayedFromHandId === context.source.inPlayId,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)

@@ -9,8 +9,8 @@ export default class SkywayCloudCar extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Return a non-leader unit with 2 or less power to its owner\'s hand',
             optional: true,
             targetResolver: {

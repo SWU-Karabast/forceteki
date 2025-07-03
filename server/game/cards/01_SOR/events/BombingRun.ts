@@ -11,8 +11,8 @@ export default class BombingRun extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 3 damage to each unit in an arena',
             targetResolver: {
                 mode: TargetMode.Select,

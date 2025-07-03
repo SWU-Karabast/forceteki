@@ -11,8 +11,8 @@ export default class DeceptiveShade extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'The next unit you play this phase gains Ambush for this phase',
             immediateEffect: AbilityHelper.immediateEffects.delayedPlayerEffect({
                 title: 'The next unit you play this phase gains Ambush',

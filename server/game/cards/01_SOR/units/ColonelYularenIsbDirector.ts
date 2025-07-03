@@ -10,8 +10,8 @@ export default class ColonelYularenIsbDirector extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Heal 1 damage from your base',
             when: {
                 onCardPlayed: (event, context) =>

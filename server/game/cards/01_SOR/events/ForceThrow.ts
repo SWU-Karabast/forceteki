@@ -10,8 +10,8 @@ export default class ForceThrow extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a player. That player discards a card from their hand',
             targetResolver: {
                 mode: TargetMode.Player,

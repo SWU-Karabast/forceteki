@@ -9,8 +9,8 @@ export default class DroidDeployment extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Create 2 Battle Droid tokens',
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid({ amount: 2 })
         });

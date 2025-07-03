@@ -10,8 +10,8 @@ export default class FugitiveWookiee extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addBountyAbility({
+    public override setupCardAbilities(card: this) {
+        card.addBountyAbility({
             title: 'Exhaust a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

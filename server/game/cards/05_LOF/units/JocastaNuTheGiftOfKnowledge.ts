@@ -10,8 +10,8 @@ export default class JocastaNuTheGiftOfKnowledge extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Attach a friendly upgrade on a friendly unit to a different eligible unit',
             optional: true,
             targetResolvers: {

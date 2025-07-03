@@ -10,8 +10,8 @@ export default class PloKoonKohtoyah extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'Gain Raid 3',
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 3 }),

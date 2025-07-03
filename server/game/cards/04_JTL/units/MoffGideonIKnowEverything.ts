@@ -11,8 +11,8 @@ export default class MoffGideonIKnowEverything extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Each unit that opponent plays this phase costs 1 resource more',
             when: {
                 onDamageDealt: (event, context) =>

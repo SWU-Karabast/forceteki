@@ -9,8 +9,8 @@ export default class NoBargain extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Each opponent discards a card from their hand. Draw a card.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({ target: context.player.opponent, amount: 1 })),

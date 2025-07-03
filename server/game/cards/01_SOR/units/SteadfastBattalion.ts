@@ -10,8 +10,8 @@ export default class SteadfastBattalion extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'If you control a leader unit, give a friendly unit +2/+2 for this phase',
             targetResolver: {
                 controller: RelativePlayer.Self,

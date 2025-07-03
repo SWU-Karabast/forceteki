@@ -10,8 +10,8 @@ export default class AlteringTheDeal extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Discard a captured card guarded by a friendly unit',
             targetResolver: {
                 zoneFilter: ZoneName.Capture,

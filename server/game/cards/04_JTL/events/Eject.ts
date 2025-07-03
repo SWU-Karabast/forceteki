@@ -10,8 +10,8 @@ export default class Eject extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Detach a Pilot upgrade, move it to the ground arena as a unit, and exhaust it. Draw a card.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.UnitUpgrade,

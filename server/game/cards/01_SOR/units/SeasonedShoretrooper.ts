@@ -9,8 +9,8 @@ export default class SeasonedShoretrooper extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While you control 6 or more resources, this unit gets +2/+0',
             matchTarget: (card, context) => card === context.source,
             condition: (context) => context.player.resources.length >= 6,

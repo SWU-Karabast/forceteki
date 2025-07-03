@@ -10,14 +10,14 @@ export default class ForTheRepublic extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addDecreaseCostAbility({
+    public override setupCardAbilities(card: this) {
+        card.addDecreaseCostAbility({
             title: 'If you control 3 or more Republic units, this upgrade costs 2 less to play.',
             amount: 2,
             condition: (context) => context.player.getArenaUnits({ trait: Trait.Republic }).length >= 3,
         });
 
-        this.addGainKeywordTargetingAttached({
+        card.addGainKeywordTargetingAttached({
             keyword: KeywordName.Coordinate,
             ability: {
                 title: 'Gain Restore 2',

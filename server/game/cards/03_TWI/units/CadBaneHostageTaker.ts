@@ -11,8 +11,8 @@ export default class CadBaneHostageTaker extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'This unit captures up to 3 enemy non-leader units with a total of 8 or less remaining HP',
             targetResolver: {
                 activePromptTitle: 'Choose up to 3 enemy non-leader units with a total of 8 or less remaining HP',
@@ -26,7 +26,7 @@ export default class CadBaneHostageTaker extends NonLeaderUnitCard {
             }
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Rescue a card you own captured by Cad Bane and the opponent draws 2 cards',
             optional: true,
             playerChoosingOptional: RelativePlayer.Opponent,

@@ -10,8 +10,8 @@ export default class RogerRoger extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenDefeatedAbility({
             title: 'Attach to a friendly Battle Droid token',
             targetResolver: {
                 controller: RelativePlayer.Self,

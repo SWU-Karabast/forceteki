@@ -10,8 +10,8 @@ export default class ZuckussBountyHunterForHire extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each friendly unit named 4-LOM gets +1/+1 and gains Saboteur',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,

@@ -19,10 +19,10 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addPilotDeploy();
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -38,8 +38,8 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addPilotingAbility({
             type: AbilityType.ReplacementEffect,
             title: 'This upgrade can\'t be defeated by enemy card abilities',
             zoneFilter: WildcardZoneName.AnyArena,
@@ -51,7 +51,7 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
             }
         });
 
-        this.addPilotingGainAbilityTargetingAttached({
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Deal 3 damage to a unit',
             optional: true,

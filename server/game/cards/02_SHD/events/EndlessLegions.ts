@@ -14,8 +14,8 @@ export default class EndlessLegions extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Reveal any number of resources you control',
             targetResolver: {
                 mode: TargetMode.Unlimited,

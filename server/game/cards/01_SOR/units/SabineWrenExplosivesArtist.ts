@@ -11,14 +11,14 @@ export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Cannot be attacked if friendly units have at least 3 unique aspects',
             condition: (context) => Helpers.countUniqueAspects(context.source.controller.getArenaUnits({ otherThan: context.source })) >= 3,
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Deal 1 damage to the defender or a base',
             targetResolver: {
                 cardCondition: (card, context) => card.isBase() || context.event.attack.getAllTargets().includes(card),

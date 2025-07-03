@@ -11,8 +11,8 @@ export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Return a Republic unit from your discard pile to your hand',
             optional: true,
             targetResolver: {
@@ -23,7 +23,7 @@ export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
             }
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Each of the next 3 Republic cards you play this phase costs 1 resource less',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({

@@ -11,10 +11,10 @@ export default class SquadSupport extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.isLeader());
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => !card.isLeader());
 
-        this.addGainConstantAbilityTargetingAttached({
+        card.addGainConstantAbilityTargetingAttached({
             title: 'This unit gets +1/+1 for each Trooper unit you control.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => {
                 const trooperUnits = target.controller.getArenaUnits({ trait: Trait.Trooper });

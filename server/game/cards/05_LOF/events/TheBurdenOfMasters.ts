@@ -10,8 +10,8 @@ export default class TheBurdenOfMasters extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Put a Force unit from your discard on the bottom of your deck. If you do, play a unit from your hand and give 2 Experience tokens to it',
             targetResolver: {
                 zoneFilter: ZoneName.Discard,

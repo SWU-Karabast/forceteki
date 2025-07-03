@@ -11,8 +11,8 @@ export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a unit that costs 3 or less. It gains sentinel for this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

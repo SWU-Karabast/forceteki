@@ -12,8 +12,8 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Put a card from your hand into play as a resource and ready it. At the start of the next action phase, defeat a resource you control.',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
@@ -30,8 +30,8 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Put the top card of your deck into play as a resource and ready it. At the start of the next action phase, defeat a resource you control.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.resourceCard((context) => ({

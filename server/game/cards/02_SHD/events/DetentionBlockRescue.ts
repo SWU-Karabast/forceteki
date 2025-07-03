@@ -11,8 +11,8 @@ export default class DetentionBlockRescue extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 2 damage to a unit or base',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

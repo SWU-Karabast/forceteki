@@ -21,14 +21,14 @@ export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addConstantAbility(this.buildHeraAbilityProperties());
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addConstantAbility(this.buildHeraAbilityProperties());
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility(this.buildHeraAbilityProperties());
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility(this.buildHeraAbilityProperties());
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Give an experience token to another unique unit',
             optional: true,
             targetResolver: {

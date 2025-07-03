@@ -10,8 +10,8 @@ export default class AsajjVentressHardenYourHeart extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Give another friendly Force unit +2/+0 for this phase',
             when: {
                 whenPlayed: true,

@@ -10,8 +10,8 @@ export default class BD1BeepBooBooBweep extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Choose another friendly unit. While this unit is in play, the chosen unit gets +1/+0 and gains Saboteur.',
             targetResolver: {
                 controller: RelativePlayer.Self,

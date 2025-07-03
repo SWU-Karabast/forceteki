@@ -10,8 +10,8 @@ export default class MysticReflection extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give an enemy unit –2/–0 for this phase. If you control a Force unit, give the enemy unit –2/–2 for this phase instead.',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

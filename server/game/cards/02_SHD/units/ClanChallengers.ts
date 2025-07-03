@@ -10,8 +10,8 @@ export default class ClanChallengers extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While this unit is upgraded, it gains Overwhelm',
             condition: (context) => context.source.isUpgraded(),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm)

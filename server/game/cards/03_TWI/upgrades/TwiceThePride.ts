@@ -9,8 +9,8 @@ export default class TwiceThePride extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 2 damage to attached unit',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 2,

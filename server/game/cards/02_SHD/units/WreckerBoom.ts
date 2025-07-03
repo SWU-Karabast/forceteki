@@ -10,8 +10,8 @@ export default class WreckerBoom extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Defeat a friendly resource. If you do, deal 5 damage to a ground unit',
             optional: true,
             targetResolver: {

@@ -10,8 +10,8 @@ export default class AnakinSkywalkerMaverickMentor extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(card: this) {
+        card.addCoordinateAbility({
             type: AbilityType.Triggered,
             title: 'Draw a card',
             when: {

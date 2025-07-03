@@ -10,8 +10,8 @@ export default class DirectHit extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat a non-leader Vehicle unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

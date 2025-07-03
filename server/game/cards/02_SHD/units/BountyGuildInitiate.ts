@@ -10,8 +10,8 @@ export default class BountyGuildInitiate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 2 damage to a ground unit if you control another Bounty Hunter unit',
             optional: true,
             targetResolver: {

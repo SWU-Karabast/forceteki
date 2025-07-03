@@ -9,8 +9,8 @@ export default class VernestraRwohPrecociousKnight extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Use the Force to ready this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

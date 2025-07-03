@@ -9,8 +9,8 @@ export default class ScrambleFighters extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Create and ready 8 TIE Fighters. They cannot attack bases this phase.',
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.createTieFighter({ amount: 8, entersReady: true }),

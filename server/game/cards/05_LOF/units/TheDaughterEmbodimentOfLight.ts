@@ -9,8 +9,8 @@ export default class TheDaughterEmbodimentOfLight extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Use the Force to heal 2 damage from your base',
             when: {
                 onDamageDealt: (event, context) => event.card === context.player.base

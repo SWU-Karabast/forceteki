@@ -10,8 +10,8 @@ export default class AnakinSkywalkerWhatItTakesToWin extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Deal 2 damage to your base to attack with a unit. If it is attacking a unit, it gets +2 attack for the attack',
             cost: (context) => [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.dealDamageSpecific(2, context.player.base)],
             targetResolver: {
@@ -27,8 +27,8 @@ export default class AnakinSkywalkerWhatItTakesToWin extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Gain +1/+0 for every 5 damage on your base',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
                 power: Math.floor(target.controller.base.damage / 5),

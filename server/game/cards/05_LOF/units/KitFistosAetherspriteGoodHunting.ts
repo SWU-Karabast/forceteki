@@ -10,8 +10,8 @@ export default class KitFistosAetherspriteGoodHunting extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Defeat any number of upgrades on a unit',
             targetResolvers: {
                 selectedUnit: {

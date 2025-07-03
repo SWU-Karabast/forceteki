@@ -10,8 +10,8 @@ export default class AdmiralPiettCaptainOfTheExecutor extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each friendly non-leader unit that costs 6 or more gains Ambush',
             targetController: RelativePlayer.Self,
             matchTarget: (card) => card.isNonLeaderUnit() && card.cost >= 6,

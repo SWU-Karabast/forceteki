@@ -10,8 +10,8 @@ export default class TamRyvoraSearchingForPurpose extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingGainAbilityTargetingAttached({
+    public override setupCardAbilities(card: this) {
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Give an enemy unit in this arena –1/–1 for this phase',
             when: {

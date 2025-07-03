@@ -9,8 +9,8 @@ export default class SearchYourFeelings extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Search your deck for a card, draw it, then shuffle',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 shuffleWhenDone: true,

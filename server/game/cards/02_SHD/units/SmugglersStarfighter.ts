@@ -10,8 +10,8 @@ export default class SmugglersStarfighter extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Give -3/-0 to an enemy unit if you control another Underworld unit',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

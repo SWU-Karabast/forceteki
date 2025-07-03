@@ -10,8 +10,8 @@ export default class MarchionRoEyeOfTheNihil extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each friendly unit\'s Raid is doubled.',
             matchTarget: (card, context) => card.isUnit() && card.controller === context.player,
             ongoingEffect: AbilityHelper.ongoingEffects.multiplyNumericKeyword({

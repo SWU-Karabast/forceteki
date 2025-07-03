@@ -10,8 +10,8 @@ export default class PeliMottoIShouldChargeYouMore extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Give an Experience token to a friendly Vehicle or Droid unit.',
             targetResolver: {
                 controller: RelativePlayer.Self,

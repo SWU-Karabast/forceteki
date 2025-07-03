@@ -10,8 +10,8 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Ready this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
@@ -20,7 +20,7 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
             })
         });
 
-        this.addOnAttackAbility({
+        card.addOnAttackAbility({
             title: 'Deal 1 damage to a unit for each damage on this unit',
             optional: true,
             targetResolver: {

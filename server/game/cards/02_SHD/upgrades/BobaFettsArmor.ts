@@ -11,10 +11,10 @@ export default class BobaFettsArmor extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(card: this) {
+        card.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addReplacementEffectAbility({
+        card.addReplacementEffectAbility({
             title: 'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
             when: {
                 onDamageDealt: (event, context) => event.card === context.source.parentCard &&

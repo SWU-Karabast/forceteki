@@ -10,10 +10,10 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addPilotDeploy();
 
-        this.addActionAbility({
+        card.addActionAbility({
             title: 'Deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -36,12 +36,12 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingGainKeywordTargetingAttached({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addPilotingGainKeywordTargetingAttached({
             keyword: KeywordName.Grit,
         });
 
-        this.addPilotingGainAbilityTargetingAttached({
+        card.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.',
             optional: true,

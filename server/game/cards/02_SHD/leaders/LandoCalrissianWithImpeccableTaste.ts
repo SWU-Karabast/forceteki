@@ -42,8 +42,8 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control.',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: this.buildSmuggleCardAbility(),
@@ -51,8 +51,8 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control. Use this ability only once each round',
             limit: AbilityHelper.limit.perRound(1),
             targetResolver: this.buildSmuggleCardAbility(),

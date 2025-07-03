@@ -10,8 +10,8 @@ export default class ChooseSides extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Choose a friendly non-leader unit and an enemy non-leader unit. Exchange control of those units.',
             targetResolvers: {
                 friendlyUnit: {

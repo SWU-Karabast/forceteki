@@ -10,8 +10,8 @@ export default class BarrelRoll extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Attack with a space unit',
             targetResolver: {
                 zoneFilter: ZoneName.SpaceArena,

@@ -10,8 +10,8 @@ export default class TacticalAdvantage extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Give a unit +2/+2 for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

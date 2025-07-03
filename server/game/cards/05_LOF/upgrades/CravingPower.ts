@@ -17,8 +17,8 @@ export default class CravingPower extends UpgradeCard {
         return targetCard.isUnit() && targetCard.controller === controller;
     }
 
-    protected override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal damage to an enemy unit equal to attached unit\'s power',
             targetResolver: {
                 controller: RelativePlayer.Opponent,

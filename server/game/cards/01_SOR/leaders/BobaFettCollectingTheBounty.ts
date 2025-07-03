@@ -18,8 +18,8 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
         this.cardsLeftPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsLeftPlayThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Exhaust Boba Fett to ready a resource',
             when: {
                 onCardLeavesPlay: (event, context) =>
@@ -38,8 +38,8 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'Ready 2 resources',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,

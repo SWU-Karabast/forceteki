@@ -10,8 +10,8 @@ export default class GentleGiant extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Heal damage from another unit equal to the damage on this unit',
             optional: true,
             targetResolver: {

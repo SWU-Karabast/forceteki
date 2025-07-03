@@ -19,8 +19,8 @@ export default class ZebOrreliosHeadstrongWarrior extends NonLeaderUnitCard {
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(card: this) {
+        card.addTriggeredAbility({
             title: 'If the defender was defeated, you may deal 4 damage to a ground unit',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,

@@ -10,8 +10,8 @@ export default class MisterBonesIPerformedViolence extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Deal 3 damage to a ground unit',
             optional: true,
             targetResolver: {

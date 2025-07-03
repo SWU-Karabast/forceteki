@@ -10,8 +10,8 @@ export default class HyenaBomber extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(card: this) {
+        card.addWhenPlayedAbility({
             title: 'Deal 2 damage to a ground unit if you control another aggression unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({

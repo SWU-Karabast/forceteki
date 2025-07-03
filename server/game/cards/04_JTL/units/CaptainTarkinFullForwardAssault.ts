@@ -10,8 +10,8 @@ export default class CaptainTarkinFullForwardAssault extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'Each friendly Vehicle unit gets +1/+0 and gains Overwhelm',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,

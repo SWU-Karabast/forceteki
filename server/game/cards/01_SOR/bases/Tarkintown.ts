@@ -9,8 +9,8 @@ export default class Tarkintown extends BaseCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEpicActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEpicActionAbility({
             title: 'Deal 3 damage to a damaged non-leader unit',
             targetResolver: {
                 cardCondition: (card) => card.isNonLeaderUnit() && card.damage !== 0,

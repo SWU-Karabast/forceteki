@@ -9,8 +9,8 @@ export default class DoctorEvazanWantedOnTwelveSystems extends NonLeaderUnitCard
         };
     }
 
-    public override setupCardAbilities () {
-        this.addBountyAbility({
+    public override setupCardAbilities(card: this) {
+        card.addBountyAbility({
             title: 'Ready up to 12 resources',
             // force resolution of this just to skip prompting the player. we can safely assume they will always want to ready  all resources
             optional: false,

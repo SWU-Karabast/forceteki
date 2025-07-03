@@ -12,8 +12,8 @@ export default class AsIHaveForeseen extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Look at the top card of your deck',
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => {
                 const topCardOfDeck = context.player.getTopCardOfDeck();

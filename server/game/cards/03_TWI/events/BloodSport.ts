@@ -10,8 +10,8 @@ export default class BloodSport extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal 2 damage to each ground unit',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 2,

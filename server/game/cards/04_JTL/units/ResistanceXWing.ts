@@ -10,8 +10,8 @@ export default class ResistanceXWing extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While this unit has a Pilot on it, it gets +1/+1',
             condition: (context) => context.source.isUpgraded() && context.source.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot)),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 })

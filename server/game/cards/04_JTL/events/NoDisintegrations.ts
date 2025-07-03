@@ -10,8 +10,8 @@ export default class NoDisintegrations extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Deal damage to a non-leader unit equal to 1 less than its remaining HP',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

@@ -9,8 +9,8 @@ export default class UnityOfPurpose extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'For each friendly unit with a different name, give each unit you control +1/+1 for this phase',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => {
                 const differentNameCount = new Set(context.player.getArenaUnits().map((x) => x.title)).size;

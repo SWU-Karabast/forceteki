@@ -11,8 +11,8 @@ export default class JediConsular extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(card: this) {
+        card.addActionAbility({
             title: 'Play a unit from your hand. It costs 2 less',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),

@@ -10,8 +10,8 @@ export default class SoullessOneCustomizedForGrievous extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(card: this) {
+        card.addOnAttackAbility({
             title: 'Exhaust a friendly Droid unit or General Grievous. If you do, this unit gets +2/+0 for this attack',
             optional: true,
             targetResolver: {

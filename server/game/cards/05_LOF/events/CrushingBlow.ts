@@ -10,8 +10,8 @@ export default class CrushingBlow extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(card: this) {
+        card.setEventAbility({
             title: 'Defeat a non-leader unit that costs 2 or less',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

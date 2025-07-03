@@ -9,8 +9,8 @@ export default class FollowerOfTheWay extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(card: this) {
+        card.addConstantAbility({
             title: 'While this unit is upgraded, it gets +1/+1',
             condition: (context) => context.source.isUpgraded(),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 })
