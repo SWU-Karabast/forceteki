@@ -60,7 +60,7 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,
-                    limit: AbilityLimit.perGame(1),
+                    limit: AbilityLimit.perPlayerPerGame(1),
                     amount: (card, player) => {
                         const cardKeywords = new Set(card.keywords.map((keyword) => keyword.name));
                         const inPlayKeywords = player.getArenaUnits()

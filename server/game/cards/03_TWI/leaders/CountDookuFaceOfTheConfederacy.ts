@@ -32,7 +32,7 @@ export default class CountDookuFaceOfTheConfederacy extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.addExploit({
                     match: (card) => card.hasSomeTrait(Trait.Separatist),
-                    limit: AbilityHelper.limit.perGame(1),
+                    limit: AbilityHelper.limit.perPlayerPerGame(1),
                     exploitKeywordAmount: 3
                 })
             })

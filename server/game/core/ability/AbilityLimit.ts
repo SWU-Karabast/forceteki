@@ -67,12 +67,54 @@ export class UnlimitedAbilityLimit implements IAbilityLimit {
 export class PerGameAbilityLimit implements IAbilityLimit {
     public ability?: CardAbility;
     public currentUser: null | string = null;
-    private useCount = new Map<string, number>();
+    private useCount = 0;
 
     public constructor(public max: number) {}
 
     public clone() {
         return new PerGameAbilityLimit(this.max);
+    }
+
+    public isRepeatable(): boolean {
+        return false;
+    }
+
+    public isAtMax(player: Player): boolean {
+        return this.useCount >= this.max;
+    }
+
+    public increment(player: Player): void {
+        this.useCount++;
+    }
+
+    public reset(): void {
+        this.useCount = 0;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public registerEvents(eventEmitter: EventEmitter): void {}
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public unregisterEvents(eventEmitter: EventEmitter): void {}
+
+    public currentForPlayer(): number {
+        return this.useCount;
+    }
+
+    public isEpicActionLimit(): this is EpicActionLimit {
+        return false;
+    }
+}
+
+export class PerPlayerPerGameAbilityLimit implements IAbilityLimit {
+    public ability?: CardAbility;
+    public currentUser: null | string = null;
+    private useCount = new Map<string, number>();
+
+    public constructor(public max: number) {}
+
+    public clone() {
+        return new PerPlayerPerGameAbilityLimit(this.max);
     }
 
     public isRepeatable(): boolean {
@@ -118,7 +160,7 @@ export class PerGameAbilityLimit implements IAbilityLimit {
     }
 }
 
-export class RepeatableAbilityLimit extends PerGameAbilityLimit {
+export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
     public constructor(
         max: number,
         private eventName: Set<EventName>
@@ -147,7 +189,7 @@ export class RepeatableAbilityLimit extends PerGameAbilityLimit {
     }
 }
 
-export class EpicActionLimit extends PerGameAbilityLimit {
+export class EpicActionLimit extends PerPlayerPerGameAbilityLimit {
     public constructor() {
         super(1);
     }
@@ -177,8 +219,28 @@ export function perRound(max: number) {
     return new RepeatableAbilityLimit(max, new Set([EventName.OnRoundEnded]));
 }
 
+/**
+ * A per-game ability limit that is tracked regardless of player.
+ *
+ * Use this ability for card effects whose limit applies to a card,
+ * rather than to a player.
+ *
+ * @param max The maximum number of times this ability can be used in a game.
+ */
 export function perGame(max: number) {
     return new PerGameAbilityLimit(max);
+}
+
+/**
+ * A per-game ability limit that is tracked for each player.
+ *
+ * Use this ability for card effects whose limit applies to a player,
+ * rather than to a specific card.
+ *
+ * @param max The maximum number of times this ability can be used by a player in a game.
+ */
+export function perPlayerPerGame(max: number) {
+    return new PerPlayerPerGameAbilityLimit(max);
 }
 
 export function epicAction() {
