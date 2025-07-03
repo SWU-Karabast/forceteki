@@ -48,7 +48,7 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     match: (card) => card.hasSomeTrait(Trait.Pilot),
-                    limit: AbilityHelper.limit.perGame(1),
+                    limit: AbilityHelper.limit.perPlayerPerGame(1),
                     amount: 1
                 })
             })
