@@ -239,7 +239,7 @@ export class UserFactory {
      * @param preferences The updated preferences object
      * @returns True if update was successful
      */
-    public async updateUserPreferencesAsync(userId: string, preferences: Record<string, any>): Promise<void> {
+    public async updateUserPreferencesAsync(userId: string, preferences: Record<string, any>): Promise<UserPreferences> {
         try {
             const dbService = await this.dbServicePromise;
 
@@ -257,8 +257,8 @@ export class UserFactory {
                     ...preferences.sound
                 }
             };
-
             await dbService.saveUserSettingsAsync(userId, mergedPreferences);
+            return mergedPreferences;
         } catch (error) {
             logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack } });
             throw error;

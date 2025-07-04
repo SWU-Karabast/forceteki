@@ -258,7 +258,7 @@ export class GameServer {
 
         app.post('/api/get-user', authMiddleware('get-user'), async (req, res, next) => {
             try {
-                const { decks } = req.body;
+                const { decks, preferences } = req.body;
                 const user = req.user as User;
                 // We try to sync the decks first
                 if (decks.length > 0) {
@@ -267,6 +267,13 @@ export class GameServer {
                     } catch (err) {
                         logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
                         next(err);
+                    }
+                }
+                if (preferences) {
+                    try {
+                        user.setPreferences(await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences));
+                    } catch (err) {
+                        logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
                     }
                 }
                 return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange() } });
