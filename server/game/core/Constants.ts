@@ -19,6 +19,7 @@ export enum DeckZoneDestination {
 }
 
 export enum SnapshotType {
+    Action = 'action',
     Player = 'player',
     Phase = 'phase',
     Round = 'round'
