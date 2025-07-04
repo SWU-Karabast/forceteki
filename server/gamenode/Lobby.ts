@@ -134,7 +134,8 @@ export class Lobby {
                 importDeckErrors: u.importDeckValidationErrors,
                 unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist()),
                 minDeckSize: u.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(u.deck?.base.id) : 50,
-                maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format)
+                maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format),
+                authenticated: u.socket?.user.isDevTestUser() || u.socket?.user.isAuthenticatedUser()
             })),
             spectators: this.spectators.map((s) => ({
                 id: s.id,
