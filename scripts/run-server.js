@@ -9,7 +9,7 @@ function createEnvFile() {
         GAME_NODE_NAME: 'test1',
         GAME_NODE_SOCKET_IO_PORT: '9500',
         ENVIRONMENT: 'development',
-        SECRET: 'verysecret',
+        NEXTAUTH_SECRET: 'verysecret',
         // set this to "true" to force the local client to pull card data jsons from AWS instead of local folder
         FORCE_REMOTE_CARD_DATA: 'false',
         DISCORD_BUG_REPORT_WEBHOOK_URL: '',
