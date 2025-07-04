@@ -26,6 +26,13 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
             return true;
         }
 
+        protected override getAbilityRegistrar() {
+            return {
+                ...super.getAbilityRegistrar(),
+                addConstantAbility: (properties: IConstantAbilityProps<this>) => this.addConstantAbility(properties)
+            };
+        }
+
         // ******************************************** ABILITY STATE MANAGEMENT ********************************************
         /**
              * Adds a dynamically gained constant ability to the card and immediately registers its triggers. Used for "gain ability" effects.

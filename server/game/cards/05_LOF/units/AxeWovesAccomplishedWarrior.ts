@@ -9,6 +9,11 @@ export default class AxeWovesAccomplishedWarrior extends NonLeaderUnitCard {
         };
     }
 
+    // the argument type here is correctly inferred as { addTriggeredAbility: (properties: ITriggeredAbilityProps<this>) => void } if there is only one mixin,
+    // but "any" if there are more than one unfortunately
+    protected override testSetupCardAbilities(abilityRegistrar: ReturnType<typeof this.getAbilityRegistrar>) {
+    }
+
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'This unit gets +1/+1 for each upgrade on him.',

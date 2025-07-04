@@ -29,5 +29,8 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TSta
          */
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         protected setupCardAbilities(sourceCard: this) { }
+
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        protected testSetupCardAbilities(abilityRegistrar: ReturnType<typeof this.getAbilityRegistrar>) {}
     };
 }
