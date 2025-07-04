@@ -132,5 +132,46 @@ describe('Shien Flurry', function() {
             expect(context.getChatLogs(3)).toContain('player1 uses Obi-Wan Kenobi\'s gained ability from Shien Flurry to prevent 2 damage to Obi-Wan Kenobi');
             expect(context.getChatLogs(3)).toContain('player2 uses The Legacy Run to deal 4 damage to Obi-Wan Kenobi');
         });
+
+        it('Shien Flurry\'s ability should prevent damage only once, even if the unit changes control', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: [
+                        'shien-flurry',
+                        'obiwan-kenobi#following-fate'
+                    ],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    leader: 'emperor-palpatine#galactic-ruler',
+                    groundArena: ['fallen-jedi']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Shien Flurry to ambush with Obi-Wan Kenobi and prevent 2 damage
+            context.player1.clickCard(context.shienFlurry);
+            context.player1.clickCard(context.obiwanKenobi);
+
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.fallenJedi); // 3 power
+
+            expect(context.obiwanKenobi.damage).toBe(1);
+
+            // Deploy Emperor Palpatine to take control of Obi-Wan Kenobi
+            context.player2.clickCard(context.emperorPalpatine);
+            context.player2.clickPrompt('Deploy Emperor Palpatine');
+            context.player2.clickCard(context.obiwanKenobi);
+
+            expect(context.obiwanKenobi).toBeInZone('groundArena', context.player2);
+
+            // Battlefield Marine attacks Obi-Wan Kenobi, and no damage should be prevented
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.obiwanKenobi);
+
+            expect(context.obiwanKenobi.damage).toBe(4);
+        });
     });
 });

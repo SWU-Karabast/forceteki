@@ -25,7 +25,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
-                                    limit: AbilityLimit.perGame(1),
+                                    limit: AbilityLimit.perPlayerPerGame(1),
                                     amount: 1
                                 })
                             })
@@ -70,7 +70,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
-                                    limit: AbilityLimit.perGame(1),
+                                    limit: AbilityLimit.perPlayerPerGame(1),
                                     amount: 2
                                 })
                             })

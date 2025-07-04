@@ -45,7 +45,7 @@ export default class JumpToLightspeed extends EventCard {
                             const selectedCard = Helper.asArray(ifYouDoContext.targets.friendlySpaceUnit)[0];
                             return selectedCard.title === card.title && selectedCard.subtitle === card.subtitle;
                         },
-                        limit: AbilityHelper.limit.perGame(1)
+                        limit: AbilityHelper.limit.perPlayerPerGame(1)
                     })
                 })
             })
