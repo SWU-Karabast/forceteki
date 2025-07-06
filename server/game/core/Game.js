@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -1642,20 +1642,29 @@ class Game extends EventEmitter {
         return {};
     }
 
-    takeSnapshot() {
-        if (this.#experimental.undo && 'takeSnapshot' in this.pipeline.currentStep) {
-            return this.pipeline.currentStep.takeSnapshot();
+    /**
+     * Takes a manual snapshot of the current game state for the given player
+     *
+     * @param {Player} player - The player for whom the snapshot is taken
+     */
+    takeSnapshot(player) {
+        if (this.#experimental.undo) {
+            this.snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId: player.id });
         }
-
-        return null;
     }
 
     /**
-     * @param {number | null} snapshotId
+     * Restores the given player's most recent manual snapshot, if available
+     *
+     * @param {Player} player - The player owning the snapshot to restore
+     * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshot(snapshotId) {
-        if (this.#experimental.undo && 'rollbackToSnapshot' in this.pipeline.currentStep) {
-            this.pipeline.currentStep.rollbackToSnapshot(snapshotId);
+    rollbackToSnapshot(player) {
+        if (this.#experimental.undo && 'postRollbackOperations' in this.pipeline.currentStep) {
+            this.snapshotManager.rollbackTo({ type: SnapshotType.Manual, playerId: player.id });
+
+            this.pipeline.currentStep.postRollbackOperations();
+
             return true;
         }
 

@@ -74,35 +74,35 @@ export class Player extends GameObject<IPlayerState> {
 
     // TODO: Convert all Zones to Refs and let the GameStateManager keep them there alone?
     public get handZone(): HandZone {
-        return this.game.snapshotManager.get(this.state.handZone);
+        return this.game.gameStateManager.get(this.state.handZone);
     }
 
     public get resourceZone(): ResourceZone {
-        return this.game.snapshotManager.get(this.state.resourceZone);
+        return this.game.gameStateManager.get(this.state.resourceZone);
     }
 
     public get discardZone(): DiscardZone {
-        return this.game.snapshotManager.get(this.state.discardZone);
+        return this.game.gameStateManager.get(this.state.discardZone);
     }
 
     public get outsideTheGameZone(): OutsideTheGameZone {
-        return this.game.snapshotManager.get(this.state.outsideTheGameZone);
+        return this.game.gameStateManager.get(this.state.outsideTheGameZone);
     }
 
     public get baseZone(): BaseZone | null {
-        return this.game.snapshotManager.get(this.state.baseZone);
+        return this.game.gameStateManager.get(this.state.baseZone);
     }
 
     public get deckZone(): DeckZone {
-        return this.game.snapshotManager.get(this.state.deckZone);
+        return this.game.gameStateManager.get(this.state.deckZone);
     }
 
     public get leader(): ILeaderCard {
-        return this.game.snapshotManager.get(this.state.leader);
+        return this.game.gameStateManager.get(this.state.leader);
     }
 
     public get base(): IBaseCard {
-        return this.game.snapshotManager.get(this.state.base);
+        return this.game.gameStateManager.get(this.state.base);
     }
 
     public get passedActionPhase() {
@@ -1299,7 +1299,6 @@ export class Player extends GameObject<IPlayerState> {
             // stats: this.getStats(),
             user: safeUser,
             promptState: promptState,
-            canUndo: this.game.snapshotManager.canUndo(this),
             isActionPhaseActivePlayer,
             clock: undefined,
             aspects: this.getAspects(),

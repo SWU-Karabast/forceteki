@@ -149,7 +149,7 @@ global.undoIt = function(expectation, assertion, timeout) {
         // If the game setup was in a beforeEach before this was called, take a snapshot.
         if (context.hasSetupGame) {
             context.snapshotId = context.game.enableUndo(() => {
-                return context.game.takeSnapshot();
+                return context.game.takeSnapshot(context.game.getActivePlayer());
             });
         }
 

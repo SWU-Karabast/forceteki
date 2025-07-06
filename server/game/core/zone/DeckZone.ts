@@ -28,15 +28,15 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
     public override readonly name: ZoneName.Deck;
 
     public override get cards(): IPlayableCard[] {
-        return this.state.deck.concat(this.state.searchingCards).map((x) => this.game.snapshotManager.get(x));
+        return this.state.deck.concat(this.state.searchingCards).map((x) => this.game.gameStateManager.get(x));
     }
 
     public get deck(): IPlayableCard[] {
-        return this.state.deck.map((x) => this.game.snapshotManager.get(x));
+        return this.state.deck.map((x) => this.game.gameStateManager.get(x));
     }
 
     public get searchingCards(): IPlayableCard[] {
-        return this.state.searchingCards.map((x) => this.game.snapshotManager.get(x));
+        return this.state.searchingCards.map((x) => this.game.gameStateManager.get(x));
     }
 
     public override get count() {
@@ -44,7 +44,7 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
     }
 
     public get topCard(): IPlayableCard | null {
-        return this.state.deck.length > 0 ? this.game.snapshotManager.get(this.state.deck[0]) : null;
+        return this.state.deck.length > 0 ? this.game.gameStateManager.get(this.state.deck[0]) : null;
     }
 
     public constructor(game: Game, owner: Player) {
@@ -117,7 +117,7 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
 
     public removeTopCard(): IPlayableCard | null {
         const card = this.state.deck.pop();
-        return this.game.snapshotManager.get(card);
+        return this.game.gameStateManager.get(card);
     }
 
     public removeCard(card: Card) {

@@ -1,4 +1,4 @@
-import { EffectName, PhaseName, SnapshotType } from '../../Constants';
+import { EffectName, PhaseName } from '../../Constants';
 import type Game from '../../Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
@@ -26,9 +26,6 @@ export class ActionPhase extends Phase {
     }
 
     public queueNextAction() {
-        if (this.game.isUndoEnabled) {
-            this.game.queueSimpleStep(() => this.game.snapshotManager.takeSnapshot({ type: SnapshotType.Manual }), 'actionTakeSnapshot');
-        }
         this.game.queueStep(new ActionWindow(this.game, 'Action Window', 'action', this.prevPlayerPassed, this.passStatusHandler));
         this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
     }
@@ -62,14 +59,10 @@ export class ActionPhase extends Phase {
         this.pipeline.clearSteps();
     }
 
-    public takeSnapshot() {
-        return this.game.snapshotManager.takeSnapshot({ type: SnapshotType.Phase, phaseName: 'Action' });
-    }
-
-    public rollbackToSnapshot(snapshotId: number | null) {
-        this.game.snapshotManager.rollbackToSnapshot(snapshotId);
+    public postRollbackOperations() {
         this.resetPhase();
         this.queueNextAction();
+
         // continue the action phase again.
         this.continue();
     }

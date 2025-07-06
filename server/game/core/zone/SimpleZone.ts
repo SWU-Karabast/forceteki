@@ -45,7 +45,7 @@ export abstract class SimpleZone<TCard extends Card = Card, TState extends IZone
     }
 
     public override get cards(): TCard[] {
-        return this.state.cards.map((x) => this.game.snapshotManager.get(x));
+        return this.state.cards.map((x) => this.game.gameStateManager.get(x));
     }
 
     protected override setupDefaultState() {

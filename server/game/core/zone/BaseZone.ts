@@ -35,7 +35,7 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard, IBaseZoneState> {
     }
 
     public get leader(): ILeaderCard | null {
-        return this.game.snapshotManager.get(this.state.leader);
+        return this.game.gameStateManager.get(this.state.leader);
     }
 
     private set leader(value: ILeaderCard | null) {
@@ -43,7 +43,7 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard, IBaseZoneState> {
     }
 
     public get forceToken(): ITokenCard | null {
-        return this.game.snapshotManager.get(this.state.forceToken);
+        return this.game.gameStateManager.get(this.state.forceToken);
     }
 
     private set forceToken(value: ITokenCard | null) {

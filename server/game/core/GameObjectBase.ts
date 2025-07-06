@@ -46,7 +46,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         this.state = {};
         // All state defaults *must* happen before registration, so we can't rely on the derived constructor to set the defaults as register will already be called.
         this.setupDefaultState();
-        this.game.snapshotManager.register(this);
+        this.game.gameStateManager.register(this);
     }
 
     /** A overridable method so a child can set defaults for it's state. Always ensure to call super.onSetupGameState() as the first line if you do override this.  */
@@ -91,6 +91,6 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     /** Shortcut to get the Game Object from a Ref */
     public getObject<T extends GameObjectBase>(ref: GameObjectRef<T>): T {
-        return this.game.snapshotManager.get(ref);
+        return this.game.gameStateManager.get(ref);
     }
 }
