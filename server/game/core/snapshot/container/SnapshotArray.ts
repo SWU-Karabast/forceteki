@@ -46,7 +46,7 @@ export class SnapshotArray extends SnapshotContainerBase {
      * @returns The ID of the snapshot that was rolled back to, or `null` if there is not enough snapshot history to go back that far
      */
     public rollbackToSnapshot(offset: number): number | null {
-        Contract.assertTrue(offset < 1 && offset >= -this.snapshots.length, `Snapshot offset must be less than one and greater than or equal than max history length (-${this.snapshots.length}), got ${offset}`);
+        Contract.assertTrue(offset < 1 && offset >= -this.maxLength, `Snapshot offset must be less than one and greater than or equal than max history length (-${this.maxLength}), got ${offset}`);
 
         if (Math.abs(offset) >= this.snapshots.length) {
             return null; // Cannot rollback further than the available snapshots

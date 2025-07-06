@@ -54,7 +54,7 @@ class Game extends EventEmitter {
 
     /** @returns { Player | null } */
     get actionPhaseActivePlayer() {
-        return this.snapshotManager.get(this.state.actionPhaseActivePlayer);
+        return this.gameStateManager.get(this.state.actionPhaseActivePlayer);
     }
 
     /**
@@ -70,7 +70,7 @@ class Game extends EventEmitter {
 
     /** @returns { Player | null } */
     get initialFirstPlayer() {
-        return this.snapshotManager.get(this.state.initialFirstPlayer);
+        return this.gameStateManager.get(this.state.initialFirstPlayer);
     }
 
     /**
@@ -82,7 +82,7 @@ class Game extends EventEmitter {
 
     /** @returns { Player | null } */
     get initiativePlayer() {
-        return this.snapshotManager.get(this.state.initiativePlayer);
+        return this.gameStateManager.get(this.state.initiativePlayer);
     }
 
     /**
@@ -143,6 +143,7 @@ class Game extends EventEmitter {
         this.statsUpdated = false;
         this.playStarted = false;
         this.snapshotManager = new SnapshotManager(this);
+        this.gameStateManager = this.snapshotManager.gameStateManager;
         this.createdAt = new Date();
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
@@ -1597,7 +1598,7 @@ class Game extends EventEmitter {
      * @returns {T | null}
      */
     getCard(gameRef) {
-        return this.snapshotManager.get(gameRef);
+        return this.gameStateManager.get(gameRef);
     }
 
     // /*

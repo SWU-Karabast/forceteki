@@ -27,7 +27,7 @@ export class ActionPhase extends Phase {
 
     public queueNextAction() {
         if (this.game.isUndoEnabled) {
-            this.game.queueSimpleStep(() => this.game.snapshotManager.takeSnapshot({ type: SnapshotType.Player }), 'actionTakeSnapshot');
+            this.game.queueSimpleStep(() => this.game.snapshotManager.takeSnapshot({ type: SnapshotType.Manual }), 'actionTakeSnapshot');
         }
         this.game.queueStep(new ActionWindow(this.game, 'Action Window', 'action', this.prevPlayerPassed, this.passStatusHandler));
         this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');

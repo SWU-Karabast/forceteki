@@ -6,6 +6,7 @@ import * as Contract from '../utils/Contract.js';
 import { SnapshotArray } from './container/SnapshotArray';
 import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler, SnapshotContainerBase } from './container/SnapshotContainerBase';
 import { SnapshotMap } from './container/SnapshotMap';
+import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
 
@@ -51,6 +52,18 @@ export class SnapshotFactory {
     public createSnapshotMap<T>(): SnapshotMap<T> {
         return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
             new SnapshotMap<T>(
+                this.game,
+                this.gameStateManager,
+                () => this.getCurrentActionSnapshot(),
+                clearNewerSnapshotsBinding
+            )
+        );
+    }
+
+    public createSnapshotHistoryMap<T>(maxHistoryLength: number): SnapshotHistoryMap<T> {
+        return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
+            new SnapshotHistoryMap<T>(
+                maxHistoryLength,
                 this.game,
                 this.gameStateManager,
                 () => this.getCurrentActionSnapshot(),

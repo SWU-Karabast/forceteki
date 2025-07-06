@@ -1,16 +1,17 @@
 import type { PhaseName } from '../Constants';
 import { SnapshotType } from '../Constants';
 import type Game from '../Game';
+import type { IGameObjectRegistrar } from '../GameStateManager';
 import { GameStateManager } from '../GameStateManager';
 import type { IGetSnapshotSettings, ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
 import type { SnapshotArray } from './container/SnapshotArray';
-import type { SnapshotMap } from './container/SnapshotMap';
+import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 
-// const maxPlayerSnapshots = 5; // Number of manual player snapshots
-// const maxActionSnapshots = 2; // Number of actions saved for undo in a turn (per player)
-// const maxPhaseSnapshots = 2; // Current and previous of a specific phase
+const maxManualSnapshots = 5; // Number of manual player snapshots
+const maxActionSnapshots = 2; // Number of actions saved for undo in a turn (per player)
+const maxPhaseSnapshots = 2; // Current and previous of a specific phase
 const maxRoundSnapshots = 2; // Current and previous start of round
 
 /**
@@ -21,18 +22,26 @@ const maxRoundSnapshots = 2; // Current and previous start of round
  * Also manages the GameStateManager which is used to manage GameObjects and overall game state.
  */
 export class SnapshotManager {
-    private readonly gameStateManager: GameStateManager;
+    private readonly _gameStateManager: GameStateManager;
     private readonly snapshotFactory: SnapshotFactory;
 
-    private readonly phaseSnapshots: SnapshotMap<PhaseName>;
+    private readonly actionSnapshots: SnapshotHistoryMap<string>;
+    private readonly manualSnapshots: SnapshotHistoryMap<string>;
+    private readonly phaseSnapshots: SnapshotHistoryMap<PhaseName>;
     private readonly roundStartSnapshots: SnapshotArray;
 
-    public constructor(game: Game) {
-        this.gameStateManager = new GameStateManager(game);
-        this.snapshotFactory = new SnapshotFactory(game, this.gameStateManager);
+    /** Exposes a version of GameStateManager that doesn't have access to rollback functionality */
+    public get gameStateManager(): IGameObjectRegistrar {
+        return this._gameStateManager;
+    }
 
-        // TODO: extend the phase snapshots data structure to allow for more than one snapshot of a given phase type (e.g. last two action phases)
-        this.phaseSnapshots = this.snapshotFactory.createSnapshotMap<PhaseName>();
+    public constructor(game: Game) {
+        this._gameStateManager = new GameStateManager(game);
+        this.snapshotFactory = new SnapshotFactory(game, this._gameStateManager);
+
+        this.actionSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(maxActionSnapshots);
+        this.manualSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(maxManualSnapshots);
+        this.phaseSnapshots = this.snapshotFactory.createSnapshotHistoryMap<PhaseName>(maxPhaseSnapshots);
         this.roundStartSnapshots = this.snapshotFactory.createSnapshotArray(maxRoundSnapshots);
     }
 
@@ -43,6 +52,12 @@ export class SnapshotManager {
 
     public takeSnapshot(settings: ISnapshotSettings): void {
         switch (settings.type) {
+            case SnapshotType.Action:
+                this.actionSnapshots.takeSnapshot(settings.playerId);
+                break;
+            case SnapshotType.Manual:
+                this.manualSnapshots.takeSnapshot(settings.playerId);
+                break;
             case SnapshotType.Round:
                 this.roundStartSnapshots.takeSnapshot();
                 break;
@@ -50,24 +65,30 @@ export class SnapshotManager {
                 this.phaseSnapshots.takeSnapshot(settings.phaseName);
                 break;
             default:
-                throw new Error(`Unimplemented snapshot type: ${settings.type}`);
+                throw new Error(`Unimplemented snapshot type: ${(settings as any).type}`);
         }
     }
 
     public rollbackTo(settings: IGetSnapshotSettings) {
         const offset = settings.offset ?? -1;
-        Contract.assertTrue(offset < 0, `Snapshot offset must be negative, got ${offset}.`);
+        Contract.assertTrue(offset <= 0, `Snapshot offset must be negative or 0, got ${offset}.`);
 
         let rolledBackSnapshotIdx: number = null;
         switch (settings.type) {
+            case SnapshotType.Action:
+                rolledBackSnapshotIdx = this.actionSnapshots.rollbackToSnapshot(settings.playerId, offset);
+                break;
+            case SnapshotType.Manual:
+                rolledBackSnapshotIdx = this.manualSnapshots.rollbackToSnapshot(settings.playerId, offset);
+                break;
             case SnapshotType.Round:
                 rolledBackSnapshotIdx = this.roundStartSnapshots.rollbackToSnapshot(offset);
                 break;
             case SnapshotType.Phase:
-                rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName);
+                rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName, offset);
                 break;
             default:
-                throw new Error(`Unimplemented snapshot type: ${settings.type}`);
+                throw new Error(`Unimplemented snapshot type: ${(settings as any).type}`);
         }
 
         if (rolledBackSnapshotIdx != null) {
