@@ -41,6 +41,7 @@ export type IGetSnapshotSettings = ISnapshotSettings & {
 export interface IGameSnapshot {
     id: number;
     lastGameObjectId: number;
+    actionNumber: number;
 
     gameState: IGameState;
     states: IGameObjectBaseState[];
@@ -53,4 +54,5 @@ export interface IGameState {
     actionPhaseActivePlayer: GameObjectRef<Player> | null;
     isInitiativeClaimed: boolean;
     allCards: GameObjectRef<Card>[];
+    actionNumber: number;
 }

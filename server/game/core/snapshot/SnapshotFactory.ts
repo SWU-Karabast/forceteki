@@ -32,6 +32,11 @@ export class SnapshotFactory {
 
     private lastSnapshotId = -1;
 
+    public get currentSnapshottedAction(): number {
+        Contract.assertNotNullLike(this.currentActionSnapshot, 'Attempting to read current snapshotted action before any is set, meaning the game is likely not initialized');
+        return this.currentActionSnapshot.actionNumber;
+    }
+
     public constructor(game: Game, gameStateManager: GameStateManager) {
         this.game = game;
         this.gameStateManager = gameStateManager;
@@ -96,8 +101,8 @@ export class SnapshotFactory {
 
         const snapshot: IGameSnapshot = {
             id: nextSnapshotId,
-
             lastGameObjectId: this.gameStateManager.lastGameObjectId,
+            actionNumber: this.game.actionNumber,
             gameState: structuredClone(this.game.state),
             states: this.allGameObjects.map((x) => x.getState()),
         };

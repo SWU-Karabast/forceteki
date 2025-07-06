@@ -28,7 +28,7 @@ if (!jasmine.getEnv().configuration().random) {
 
 const gameStateBuilder = new GameStateBuilder();
 
-global.integration = function (definitions) {
+global.integration = function (definitions, enableUndo = false) {
     describe('- integration -', function () {
         /**
          * @type {SwuTestContextRef}
@@ -51,7 +51,8 @@ global.integration = function (definitions) {
                 gameStateBuilder.cardDataGetter,
                 gameRouter,
                 { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
-                { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } }
+                { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } },
+                enableUndo
             );
 
             /** @type {SwuTestContext} */
@@ -137,6 +138,11 @@ global.integration = function (definitions) {
 
         definitions(contextRef);
     });
+};
+
+const originalIntegration = global.integration;
+global.undoIntegration = function (definitions) {
+    global.integration(definitions, true);
 };
 
 const jit = it;

@@ -22,6 +22,8 @@ const maxRoundSnapshots = 2; // Current and previous start of round
  * Also manages the GameStateManager which is used to manage GameObjects and overall game state.
  */
 export class SnapshotManager {
+    public readonly undoEnabled: boolean;
+
     private readonly _gameStateManager: GameStateManager;
     private readonly snapshotFactory: SnapshotFactory;
 
@@ -30,14 +32,20 @@ export class SnapshotManager {
     private readonly phaseSnapshots: SnapshotHistoryMap<PhaseName>;
     private readonly roundStartSnapshots: SnapshotArray;
 
+    public get currentSnapshottedAction(): number {
+        return this.snapshotFactory.currentSnapshottedAction;
+    }
+
     /** Exposes a version of GameStateManager that doesn't have access to rollback functionality */
     public get gameStateManager(): IGameObjectRegistrar {
         return this._gameStateManager;
     }
 
-    public constructor(game: Game) {
+    public constructor(game: Game, enableUndo: boolean) {
         this._gameStateManager = new GameStateManager(game);
         this.snapshotFactory = new SnapshotFactory(game, this._gameStateManager);
+
+        this.undoEnabled = enableUndo;
 
         this.actionSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(maxActionSnapshots);
         this.manualSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(maxManualSnapshots);
@@ -47,10 +55,18 @@ export class SnapshotManager {
 
     /** Indicates that we're on a new action and that new snapshots can be taken */
     public moveToNextAction() {
+        if (!this.undoEnabled) {
+            return;
+        }
+
         this.snapshotFactory.createSnapshotForCurrentAction();
     }
 
     public takeSnapshot(settings: ISnapshotSettings): void {
+        if (!this.undoEnabled) {
+            return;
+        }
+
         switch (settings.type) {
             case SnapshotType.Action:
                 this.actionSnapshots.takeSnapshot(settings.playerId);
@@ -70,6 +86,10 @@ export class SnapshotManager {
     }
 
     public rollbackTo(settings: IGetSnapshotSettings) {
+        if (!this.undoEnabled) {
+            return;
+        }
+
         const offset = settings.offset ?? -1;
         Contract.assertTrue(offset <= 0, `Snapshot offset must be negative or 0, got ${offset}.`);
 

@@ -9,15 +9,38 @@ import type { IPlayerPromptStateProperties } from '../PlayerPromptState.js';
 import type { AbilityResolver } from './AbilityResolver.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import { PromptType, type IButton } from './PromptInterfaces.js';
+import type { SnapshotManager } from '../snapshot/SnapshotManager.js';
 
 export class ActionWindow extends UiPrompt {
-    private activePlayer: Player;
+    public readonly title: string;
+    public readonly windowName: string;
 
-    public constructor(game: Game, public title: string, public windowName: string, private prevPlayerPassed: boolean, private setPassStatus: (passed: boolean) => boolean, activePlayer?: Player) {
+    private readonly actionNumber: number;
+    private readonly activePlayer: Player;
+    private readonly prevPlayerPassed: boolean;
+    private readonly setPassStatus: (passed: boolean) => boolean;
+    private readonly snapshotManager: SnapshotManager;
+
+    public constructor(
+        game: Game,
+        title: string,
+        windowName: string,
+        prevPlayerPassed: boolean,
+        setPassStatus: (passed: boolean) => boolean,
+        actionNumber: number,
+        snapshotManager: SnapshotManager,
+        activePlayer?: Player
+    ) {
         super(game);
 
-        this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
+        this.title = title;
+        this.windowName = windowName;
+        this.prevPlayerPassed = prevPlayerPassed;
+        this.setPassStatus = setPassStatus;
+        this.snapshotManager = snapshotManager;
+        this.actionNumber = actionNumber;
 
+        this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
         this.activePlayer.actionTimer.stop();
 
         Contract.assertNotNullLike(this.activePlayer);
@@ -74,6 +97,11 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override continue() {
+        // take a snapshot for the current action if it doesn't already exist
+        if (this.snapshotManager.currentSnapshottedAction !== this.actionNumber) {
+            this.snapshotManager.moveToNextAction();
+        }
+
         // TODO: do we need promptedActionWindows?
         if (!this.activePlayer.promptedActionWindows[this.windowName]) {
             this.pass();

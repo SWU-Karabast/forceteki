@@ -3,14 +3,24 @@ import type Game from '../../Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ActionWindow } from '../ActionWindow';
+import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 
 export class ActionPhase extends Phase {
+    private readonly getNextActionNumber: () => number;
+
     // each ActionWindow will use this handler to indicate if the window was passed or not
     private readonly passStatusHandler = (passed: boolean) => this.prevPlayerPassed = passed;
+
+    private readonly snapshotManager: SnapshotManager;
+
     private prevPlayerPassed = false;
 
-    public constructor(game: Game) {
+    public constructor(game: Game, getNextActionNumber: () => number, snapshotManager: SnapshotManager) {
         super(game, PhaseName.Action);
+
+        this.snapshotManager = snapshotManager;
+        this.getNextActionNumber = getNextActionNumber;
+
         this.initialise([
             new SimpleStep(this.game, () => this.setupActionPhase(), 'setupActionPhase'),
             new SimpleStep(this.game, () => this.queueNextAction(), 'queueNextAction'),
@@ -26,7 +36,16 @@ export class ActionPhase extends Phase {
     }
 
     public queueNextAction() {
-        this.game.queueStep(new ActionWindow(this.game, 'Action Window', 'action', this.prevPlayerPassed, this.passStatusHandler));
+        this.game.queueStep(new ActionWindow(
+            this.game,
+            'Action Window',
+            'action',
+            this.prevPlayerPassed,
+            this.passStatusHandler,
+            this.getNextActionNumber(),
+            this.snapshotManager
+        ));
+
         this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
     }
 

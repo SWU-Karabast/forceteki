@@ -14,7 +14,7 @@ class GameFlowWrapper {
      * @param {PlayerInfo} player1Info
      * @param {PlayerInfo} player2Info
      */
-    constructor(cardDataGetter, router, player1Info, player2Info) {
+    constructor(cardDataGetter, router, player1Info, player2Info, enableUndo = false) {
         /** @type {import('../../server/game/core/GameInterfaces.js').GameConfiguration} */
         var details = {
             name: `${player1Info.username}'s game`,
@@ -34,6 +34,10 @@ class GameFlowWrapper {
 
         this.game = new Game(details, { router });
         this.game.started = true;
+
+        if (enableUndo) {
+            this.game.enableUndoForGame();
+        }
 
         this.player1Id = player1Info.id;
         this.player2Id = player2Info.id;

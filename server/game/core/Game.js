@@ -105,7 +105,7 @@ class Game extends EventEmitter {
     }
 
     set roundNumber(value) {
-        Contract.assertNonNegative(value, 'Round Number must be non-zero: ' + value);
+        Contract.assertNonNegative(value, 'Round number must be non-negative: ' + value);
         this.state.roundNumber = value;
     }
 
@@ -114,7 +114,20 @@ class Game extends EventEmitter {
     }
 
     get isUndoEnabled() {
-        return this.#experimental.undo;
+        return this.snapshotManager.undoEnabled;
+    }
+
+    get actionNumber() {
+        return this.state.actionNumber;
+    }
+
+    set actionNumber(value) {
+        Contract.assertNonNegative(value, 'Action number must be non-negative: ' + value);
+        this.state.actionNumber = value;
+    }
+
+    get gameStateManager() {
+        return this.snapshotManager.gameStateManager;
     }
 
     /**
@@ -142,9 +155,10 @@ class Game extends EventEmitter {
         this.started = false;
         this.statsUpdated = false;
         this.playStarted = false;
-        this.snapshotManager = new SnapshotManager(this);
-        this.gameStateManager = this.snapshotManager.gameStateManager;
         this.createdAt = new Date();
+
+        /** @private */
+        this.snapshotManager = new SnapshotManager(this, details.enableUndo);
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
@@ -155,7 +169,7 @@ class Game extends EventEmitter {
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this.#debug = { pipeline: false };
         // Experimental flags, intended only for manual testing. Use the enable methods to temporarily flag these on during tests.
-        this.#experimental = { undo: false };
+        this.#experimental = { };
 
         this.manualMode = false;
         this.gameMode = details.gameMode;
@@ -174,7 +188,8 @@ class Game extends EventEmitter {
             actionPhaseActivePlayer: null,
             roundNumber: 0,
             isInitiativeClaimed: false,
-            allCards: []
+            allCards: [],
+            actionNumber: 0,
         };
 
         this.tokenFactories = null;
@@ -208,8 +223,6 @@ class Game extends EventEmitter {
                 details.useActionTimer ?? false
             );
         });
-
-        // TODO: checks for required detail values (cardDataGetter, etc.) and an interface for the details object
 
         details.spectators?.forEach((spectator) => {
             this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator);
@@ -1053,7 +1066,7 @@ class Game extends EventEmitter {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
         this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers);
-        this.queueStep(new ActionPhase(this));
+        this.queueStep(new ActionPhase(this, () => this.getNextActionNumber(), this.snapshotManager));
         this.queueStep(new RegroupPhase(this));
         this.queueSimpleStep(() => this.roundEnded(), 'roundEnded');
         this.queueSimpleStep(() => this.beginRound(), 'beginRound');
@@ -1068,6 +1081,10 @@ class Game extends EventEmitter {
                 this.removeTokenFromPlay(token);
             }
         }
+    }
+
+    getNextActionNumber() {
+        return this.actionNumber++;
     }
 
     /**
@@ -1648,7 +1665,7 @@ class Game extends EventEmitter {
      * @param {Player} player - The player for whom the snapshot is taken
      */
     takeSnapshot(player) {
-        if (this.#experimental.undo) {
+        if (this.isUndoEnabled) {
             this.snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId: player.id });
         }
     }
@@ -1660,7 +1677,7 @@ class Game extends EventEmitter {
      * @returns True if a snapshot was restored, false otherwise
      */
     rollbackToSnapshot(player) {
-        if (this.#experimental.undo && 'postRollbackOperations' in this.pipeline.currentStep) {
+        if (this.isUndoEnabled && 'postRollbackOperations' in this.pipeline.currentStep) {
             this.snapshotManager.rollbackTo({ type: SnapshotType.Manual, playerId: player.id });
 
             this.pipeline.currentStep.postRollbackOperations();
@@ -1707,11 +1724,13 @@ class Game extends EventEmitter {
      * @param {() => any} fcn
      */
     enableUndo(fcn) {
-        this.#experimental.undo = Helpers.isDevelopment();
+        const currUndo = this.undoEnabled;
+
+        this.undoEnabled = Helpers.isDevelopment();
         try {
             return fcn();
         } finally {
-            this.#experimental.undo = false;
+            this.undoEnabled = currUndo;
         }
     }
 
