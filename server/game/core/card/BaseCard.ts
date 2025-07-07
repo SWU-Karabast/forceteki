@@ -15,6 +15,7 @@ import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityReg
 import { WithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import { EpicActionAbility } from '../../abilities/EpicActionAbility';
+import type { IBaseAbilityRegistrar } from './AbilityRegistrationInterfaces';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
@@ -92,4 +93,13 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
             isDefender: this.isDefending(),
         };
     }
+
+    protected override callSetupWithRegistrar() {
+        const registrar: IBaseAbilityRegistrar = this.getAbilityRegistrar() as IBaseAbilityRegistrar;
+
+        this.setupCardAbilities(registrar);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected override setupCardAbilities(registrar: IBaseAbilityRegistrar) { }
 }

@@ -40,6 +40,19 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
             return ability;
         }
 
+        protected override getAbilityRegistrar() {
+            const registrar: ITriggeredAbilityRegistrar<this> = {
+                addTriggeredAbility: (properties: ITriggeredAbilityProps<this>) => this.addTriggeredAbility(properties),
+                addGainedTriggeredAbility: (properties: ITriggeredAbilityProps<this>) => this.addGainedTriggeredAbility(properties),
+                addGainedReplacementEffectAbility: (properties: IReplacementEffectAbilityProps<this>) => this.addGainedReplacementEffectAbility(properties)
+            };
+
+            return {
+                ...super.getAbilityRegistrar(),
+                ...registrar
+            };
+        }
+
         protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): ReplacementEffectAbility {
             const ability = this.createReplacementEffectAbility(properties);
 

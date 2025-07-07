@@ -26,6 +26,18 @@ export function WithActionAbilities<TBaseClass extends CardConstructor<TState>, 
             return true;
         }
 
+        protected override getAbilityRegistrar() {
+            const registrar: IActionAbilityRegistrar<this> = {
+                addActionAbility: (properties: IActionAbilityProps<this>) => this.addActionAbility(properties),
+                addGainedActionAbility: (properties: IActionAbilityProps<this>) => this.addGainedActionAbility(properties)
+            };
+
+            return {
+                ...super.getAbilityRegistrar(),
+                ...registrar
+            };
+        }
+
         // ******************************************** ABILITY STATE MANAGEMENT ********************************************
         /**
              * Adds a dynamically gained action ability to the card. Used for "gain ability" effects.

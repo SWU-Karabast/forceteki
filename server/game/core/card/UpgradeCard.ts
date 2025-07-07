@@ -15,6 +15,7 @@ import type { IUnitCard } from './propertyMixins/UnitProperties';
 import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { ICardCanChangeControllers, IUpgradeCard } from './CardInterfaces';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import type { IUpgradeAbilityRegistrar } from './AbilityRegistrationInterfaces';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
 
@@ -196,4 +197,13 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
                 break;
         }
     }
+
+    protected override callSetupWithRegistrar() {
+        const registrar: IUpgradeAbilityRegistrar = this.getAbilityRegistrar() as IUpgradeAbilityRegistrar;
+
+        this.setupCardAbilities(registrar);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) { }
 }

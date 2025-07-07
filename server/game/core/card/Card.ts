@@ -500,6 +500,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
+    protected getAbilityRegistrar() {
+        return { };
+    }
+
     protected buildGeneralAbilityProps(abilityTypeDescriptor: string) {
         return {
             cardName: this.title,

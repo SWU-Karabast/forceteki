@@ -10,11 +10,11 @@ export default class MillenniumFalconLandosPride extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(sourceCard: this) {
+    public override setupCardAbilities() {
         let lastPlayedFromHandId: number | null = null;
 
         this.game.on(EventName.OnCardPlayed, (event) => {
-            if (event.card === sourceCard && event.playType === PlayType.PlayFromHand) {
+            if (event.card === this && event.playType === PlayType.PlayFromHand) {
                 lastPlayedFromHandId = event.card.inPlayId;
             }
         });
