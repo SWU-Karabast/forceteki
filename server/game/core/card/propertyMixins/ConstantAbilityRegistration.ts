@@ -1,11 +1,17 @@
 import type { IConstantAbilityProps } from '../../../Interfaces';
 import { WildcardZoneName } from '../../Constants';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
-import type { CardConstructor, ICardState } from '../Card';
+import type { Card, CardConstructor, ICardState } from '../Card';
 import * as Contract from '../../utils/Contract';
 
-export interface ICardWithConstantAbilities {
-    addGainedConstantAbility(properties: IConstantAbilityProps): string;
+
+export interface IConstantAbilityRegistrar<T extends Card> {
+    addConstantAbility(properties: IConstantAbilityProps<T>): IConstantAbility;
+    addGainedConstantAbility(properties: IConstantAbilityProps<T>): string;
+}
+
+export interface ICardWithConstantAbilities<T extends Card> {
+    addGainedConstantAbility(properties: IConstantAbilityProps<T>): string;
     removeGainedConstantAbility(removeAbilityUuid: string): void;
 }
 
@@ -22,7 +28,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
             return ability;
         }
 
-        public override canRegisterConstantAbilities(): this is ICardWithConstantAbilities {
+        public override canRegisterConstantAbilities(): this is ICardWithConstantAbilities<this> {
             return true;
         }
 
@@ -32,7 +38,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
              *
              * @returns The uuid of the created triggered ability
              */
-        public addGainedConstantAbility(properties: IConstantAbilityProps): string {
+        public addGainedConstantAbility(properties: IConstantAbilityProps<this>): string {
             const addedAbility = this.createConstantAbility(properties);
             this.constantAbilities.push(addedAbility);
             addedAbility.registeredEffects = this.addEffectToEngine(addedAbility);

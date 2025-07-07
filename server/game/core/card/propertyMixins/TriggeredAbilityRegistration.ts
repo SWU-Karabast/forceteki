@@ -4,10 +4,16 @@ import type TriggeredAbility from '../../ability/TriggeredAbility';
 import type { Card, CardConstructor, ICardState } from '../Card';
 import * as Contract from '../../utils/Contract';
 
-export interface ICardWithTriggeredAbilities {
+export interface ITriggeredAbilityRegistrar<T extends Card> {
+    addTriggeredAbility(properties: ITriggeredAbilityProps<T>): TriggeredAbility;
+    addGainedTriggeredAbility(properties: ITriggeredAbilityProps<T>): string;
+    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): string;
+}
+
+export interface ICardWithTriggeredAbilities<T extends Card> {
+    addGainedTriggeredAbility(properties: ITriggeredAbilityProps<T>): string;
+    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): string;
     getTriggeredAbilities(): TriggeredAbility[];
-    addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string;
-    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string;
     removeGainedTriggeredAbility(removeAbilityUuid: string): void;
     removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
 }
@@ -24,7 +30,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
             return this.triggeredAbilities;
         }
 
-        public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
+        public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities<this> {
             return true;
         }
 
@@ -53,7 +59,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
              *
              * @returns The uuid of the created triggered ability
              */
-        public addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string {
+        public addGainedTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): string {
             const addedAbility = this.createTriggeredAbility(properties);
             this.triggeredAbilities.push(addedAbility);
             addedAbility.registerEvents();
@@ -66,7 +72,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
              *
              * @returns The uuid of the created triggered ability
              */
-        public addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string {
+        public addGainedReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): string {
             const addedAbility = this.createReplacementEffectAbility(properties);
             this.triggeredAbilities.push(addedAbility);
             addedAbility.registerEvents();

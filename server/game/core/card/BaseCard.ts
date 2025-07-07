@@ -18,7 +18,7 @@ import { EpicActionAbility } from '../../abilities/EpicActionAbility';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
-export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities, ICardWithTriggeredAbilities {
+export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities<IBaseCard>, ICardWithTriggeredAbilities<IBaseCard> {
     get epicActionSpent(): boolean;
 }
 
@@ -55,7 +55,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return super.getActionAbilities();
     }
 
-    public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
+    public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities<this> {
         return true;
     }
 

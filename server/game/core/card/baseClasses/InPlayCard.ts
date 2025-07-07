@@ -37,7 +37,7 @@ export interface IInPlayCardState extends IPlayableOrDeployableCardState {
     parentCard: GameObjectRef<IUnitCard> | null;
 }
 
-export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities, ICardWithConstantAbilities, ICardWithTriggeredAbilities {
+export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities<IInPlayCard>, ICardWithConstantAbilities<IInPlayCard>, ICardWithTriggeredAbilities<IInPlayCard> {
     readonly printedUpgradeHp: number;
     readonly printedUpgradePower: number;
     get disableOngoingEffectsForDefeat(): boolean;
