@@ -1,5 +1,5 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { EventName, EffectName } from '../Constants.js';
+import { EventName, EffectName, SnapshotType } from '../Constants.js';
 import * as EnumHelpers from '../utils/EnumHelpers.js';
 import * as Contract from '../utils/Contract.js';
 import type Game from '../Game.js';
@@ -100,6 +100,10 @@ export class ActionWindow extends UiPrompt {
         // take a snapshot for the current action if it doesn't already exist
         if (this.snapshotManager.currentSnapshottedAction !== this.actionNumber) {
             this.snapshotManager.moveToNextAction();
+            this.snapshotManager.takeSnapshot({
+                type: SnapshotType.Action,
+                playerId: this.activePlayer.id
+            });
         }
 
         // TODO: do we need promptedActionWindows?

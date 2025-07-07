@@ -9,14 +9,29 @@ type Game = import('../../server/game/core/Game');
 type Player = import('../../server/game/core/Player');
 type GameFlowWrapper = import('./GameFlowWrapper');
 type PlayerInteractionWrapper = import('./PlayerInteractionWrapper');
+type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
+type SnapshotType = import('../../server/game/core/Constants').SnapshotType;
+type IGetSnapshotSettings = import('../../server/game/core/snapshot/SnapshotInterfaces').IGetSnapshotSettings;
 
 declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
 
 declare let undoIntegration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
 
+type SnapshotTypeValue = `${SnapshotType}`;
+
+interface ITestGetSnapshotSettings {
+    type: SnapshotTypeValue;
+    offset?: number;
+    playerId?: string;
+    phaseName?: PhaseName;
+}
+
 interface SwuTestContextRef {
     context: SwuTestContext;
     snapshotId?: number;
+    readonly currentSnapshotId?: number;
+    readonly currentSnapshottedAction?: number;
+    rollbackToSnapshot?: (settings: ITestGetSnapshotSettings) => boolean;
     setupTestAsync: (options?: SwuSetupTestOptions) => Promise;
 
     buildImportAllCardsTools: () => {

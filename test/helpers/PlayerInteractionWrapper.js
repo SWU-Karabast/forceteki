@@ -24,6 +24,10 @@ class PlayerInteractionWrapper {
         return this.player.user.username;
     }
 
+    get id() {
+        return this.player.id;
+    }
+
     /**
      * Moves all cards other than leader + base to the RemovedFromTheGame zone so they can
      * be moved into their proper starting zones for the test.

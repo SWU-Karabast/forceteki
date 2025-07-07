@@ -59,12 +59,14 @@ global.integration = function (definitions, enableUndo = false) {
             const newContext = {};
             this.contextRef = contextRef;
             contextRef.context = newContext;
+            contextRef.currentSnapshotId = () => gameFlowWrapper.snapshotManager.currentSnapshotId;
+            contextRef.currentSnapshottedAction = () => gameFlowWrapper.snapshotManager.currentSnapshottedAction;
+            contextRef.rollbackToSnapshot = (settings) => gameFlowWrapper.snapshotManager.rollbackTo(settings);
 
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
             gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
 
             /**
-             *
              * @param {SwuSetupTestOptions} options
              */
             const setupGameStateWrapperAsync = async (options) => {

@@ -30,10 +30,14 @@ export class SnapshotFactory {
     /** Caches the snapshot for the current action  */
     private currentActionSnapshot: IGameSnapshot;
 
-    private lastSnapshotId = -1;
+    private lastAssignedSnapshotId = -1;
 
     public get currentSnapshottedAction(): number | null {
         return this.currentActionSnapshot?.actionNumber ?? null;
+    }
+
+    public get currentSnapshotId(): number | null {
+        return this.lastAssignedSnapshotId < 0 ? null : this.lastAssignedSnapshotId;
     }
 
     public constructor(game: Game, gameStateManager: GameStateManager) {
@@ -96,7 +100,7 @@ export class SnapshotFactory {
         // TODO: add a guard here that will fail if the current action is already snapshotted,
         // this should be called exactly once per action
 
-        const nextSnapshotId = this.lastSnapshotId + 1;
+        const nextSnapshotId = this.lastAssignedSnapshotId + 1;
 
         const snapshot: IGameSnapshot = {
             id: nextSnapshotId,
@@ -106,7 +110,7 @@ export class SnapshotFactory {
             states: this.allGameObjects.map((x) => x.getState()),
         };
 
-        this.lastSnapshotId = nextSnapshotId;
+        this.lastAssignedSnapshotId = nextSnapshotId;
 
         this.currentActionSnapshot = snapshot;
     }

@@ -32,7 +32,11 @@ export class SnapshotManager {
     private readonly phaseSnapshots: SnapshotHistoryMap<PhaseName>;
     private readonly roundStartSnapshots: SnapshotArray;
 
-    public get currentSnapshottedAction(): number {
+    public get currentSnapshotId(): number | null {
+        return this.snapshotFactory.currentSnapshotId;
+    }
+
+    public get currentSnapshottedAction(): number | null {
         return this.snapshotFactory.currentSnapshottedAction;
     }
 
@@ -91,7 +95,7 @@ export class SnapshotManager {
         }
 
         const offset = settings.offset ?? -1;
-        Contract.assertTrue(offset <= 0, `Snapshot offset must be negative or 0, got ${offset}.`);
+        Contract.assertTrue(offset < 0, `Snapshot offset must be negative, got ${offset}.`);
 
         let rolledBackSnapshotIdx: number = null;
         switch (settings.type) {

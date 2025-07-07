@@ -42,6 +42,8 @@ class GameFlowWrapper {
         this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerById(this.player1Id), this);
         this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerById(this.player2Id), this);
         this.allPlayers = [this.player1, this.player2];
+
+        this.snapshotManager = this.game.snapshotManager;
     }
 
     getPlayableCardTitles() {
