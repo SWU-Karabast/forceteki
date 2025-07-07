@@ -1,5 +1,5 @@
 describe('Undo', function() {
-    integration(function(contextRef) {
+    undoIntegration(function(contextRef) {
         describe('Death Trooper\'s When Played ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({

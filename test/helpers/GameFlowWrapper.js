@@ -30,14 +30,11 @@ class GameFlowWrapper {
             pushUpdate: () => true,
             buildSafeTimeout: () => undefined,
             userTimeoutDisconnect: () => undefined,
+            enableUndo,
         };
 
         this.game = new Game(details, { router });
         this.game.started = true;
-
-        if (enableUndo) {
-            this.game.enableUndoForGame();
-        }
 
         this.player1Id = player1Info.id;
         this.player2Id = player2Info.id;

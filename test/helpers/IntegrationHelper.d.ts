@@ -12,6 +12,8 @@ type PlayerInteractionWrapper = import('./PlayerInteractionWrapper');
 
 declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
 
+declare let undoIntegration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
+
 interface SwuTestContextRef {
     context: SwuTestContext;
     snapshotId?: number;

@@ -142,7 +142,7 @@ global.integration = function (definitions, enableUndo = false) {
 
 const originalIntegration = global.integration;
 global.undoIntegration = function (definitions) {
-    global.integration(definitions, true);
+    originalIntegration(definitions, true);
 };
 
 const jit = it;
