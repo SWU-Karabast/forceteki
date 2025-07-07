@@ -1,4 +1,4 @@
-describe('Common bases in Legens of the Force', function() {
+describe('Common bases in Legends of the Force', function() {
     integration(function(contextRef) {
         describe('Triggered ability', function() {
             beforeEach(function () {

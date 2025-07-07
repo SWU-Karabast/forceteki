@@ -11,6 +11,7 @@ export class CaptureZone extends SimpleZone<IUnitCard> {
     public readonly captor: IUnitCard;
     public override readonly hiddenForPlayers: null;
     public override readonly name: ZoneName.Capture;
+    public override readonly owner: Player;
 
     public constructor(game: Game, owner: Player, captor: Card) {
         Contract.assertTrue(captor.isUnit(), `Attempting to create a capture zone with card ${captor.internalName} but it is not a unit card`);

@@ -34,7 +34,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
             ? 'from the space arena to the ground arena'
             : 'from the ground arena to the space arena';
 
-        return ['move {0} ' + moveTypeString, [target]];
+        return [`move {0} ${moveTypeString}`, [this.getTargetMessage(target, context)]];
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IMoveUnitBetweenArenasProperties>): void {

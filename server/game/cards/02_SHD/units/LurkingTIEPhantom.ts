@@ -30,7 +30,7 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
             title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot({
                 cannot: AbilityRestriction.ReceiveDamage,
-                restrictedActionCondition: (context) => !context.ability.isAttackAction() && context.ability.controller !== this.controller,
+                restrictedActionCondition: (context, source) => !context.ability.isAttackAction() && context.ability.controller !== source.controller,
             })
         });
     }

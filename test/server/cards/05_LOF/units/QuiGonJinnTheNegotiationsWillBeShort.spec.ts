@@ -108,5 +108,34 @@ describe('Qui-Gon Jinn, The Negotiations Will Be Short', () => {
             // Verify Wampa is on top of player2's deck
             expect(context.wampa).toBeInBottomOfDeck(context.player2, 1);
         });
+
+        it('Qui-Gon Jinn\'s when defeated ability, when targeting a stolen unit, will prompt the owner to choose top or bottom of their deck', async () => {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['quigon-jinn#the-negotiations-will-be-short'],
+                },
+                player2: {
+                    groundArena: ['krayt-dragon', { card: 'wampa', owner: 'player1' }]
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.quigonJinn);
+            context.player1.clickCard(context.kraytDragon);
+
+            // Choose a unit
+            expect(context.player1).toBeAbleToSelectExactly([context.kraytDragon, context.wampa]);
+            expect(context.player1).toHaveChooseNothingButton();
+            context.player1.clickCard(context.wampa);
+
+            // Player 1 should be prompted to choose top or bottom of deck since they are the owner of Wampa
+            expect(context.player1).toHaveExactPromptButtons(['Move Wampa to top of your deck', 'Move Wampa to bottom of your deck']);
+            context.player1.clickPrompt('Move Wampa to bottom of your deck');
+
+            // Verify Wampa is on bottom of player1's deck
+            expect(context.wampa).toBeInBottomOfDeck(context.player1, 1);
+        });
     });
 });

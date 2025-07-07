@@ -1,3 +1,4 @@
+import type { KeywordInstance } from '../../ability/KeywordInstance';
 import type { Arena, Aspect, CardType, Trait } from '../../Constants';
 
 export interface PrintedAttributesOverride {
@@ -10,6 +11,7 @@ export interface PrintedAttributesOverride {
     printedPower?: number;
     printedHp?: number;
     printedTraits?: Set<Trait>;
+    printedKeywords?: KeywordInstance[];
 }
 
 export function getPrintedAttributesOverride<K extends keyof PrintedAttributesOverride>(

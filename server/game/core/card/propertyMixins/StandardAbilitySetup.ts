@@ -15,7 +15,7 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TSta
 
             // if an implementation file is provided, enforce that all keywords requiring explicit setup have been set up
             if (this.hasImplementationFile) {
-                const keywordsMissingImpl = this.printedKeywords.filter((keyword) => !keyword.isFullyImplemented);
+                const keywordsMissingImpl = this._printedKeywords.filter((keyword) => !keyword.isFullyImplemented);
                 if (keywordsMissingImpl.length > 0) {
                     const missingKeywordNames = new Set(keywordsMissingImpl.map((keyword) => keyword.name));
 

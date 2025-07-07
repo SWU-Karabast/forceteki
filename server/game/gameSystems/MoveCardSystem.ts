@@ -16,7 +16,7 @@ import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { AttachedUpgradeOverrideHandler } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import type { FormatMessage } from '../core/chat/GameChat';
+import type { FormatMessage, MsgArg } from '../core/chat/GameChat';
 
 /**
  * Properties for moving a card within the game.
@@ -99,7 +99,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         }
 
         if (properties.destination === ZoneName.Hand) {
-            let target: Card | Card[] | string | FormatMessage = properties.target;
+            let target: MsgArg | MsgArg[] = this.getTargetMessage(properties.target, context);
             if (Helpers.asArray(properties.target).some((card) => card.zoneName === ZoneName.Resource)) {
                 const targets = Helpers.asArray(properties.target);
                 target = ChatHelpers.pluralize(targets.length, 'a resource', 'resources');
@@ -110,7 +110,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
                 return [`${ChatHelpers.verb(properties, 'shuffle', 'shuffling')} {0} into {1}`, [properties.target, destination]];
             }
             const targets = Helpers.asArray(properties.target);
-            let target: Card | Card[] | string | FormatMessage = properties.target;
+            let target: MsgArg | MsgArg[] = this.getTargetMessage(targets, context);
             if (targets.some((target) => EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self))) {
                 target = ChatHelpers.pluralize(targets.length, 'a card', 'cards');
             }
@@ -118,7 +118,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         }
         return [
             `${ChatHelpers.verb(properties, 'move', 'moving')} {0} to {1}`,
-            [properties.target, properties.destination]
+            [this.getTargetMessage(properties.target, context), properties.destination]
         ];
     }
 

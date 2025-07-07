@@ -25,6 +25,7 @@ import type { ActionAbility } from './ActionAbility.js';
 import type { CardAbility } from './CardAbility.js';
 import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { IPassAbilityHandler } from '../gameSteps/AbilityResolver.js';
+import type { MsgArg } from '../chat/GameChat.js';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
@@ -257,17 +258,16 @@ export abstract class PlayerOrCardAbility {
         }
     }
 
-    protected getCostsMessages(context: AbilityContext): { message: string | string[] }[] {
+    protected getCostsMessages(context: AbilityContext): MsgArg[] {
         return this.getCosts(context)
             .map((cost) => {
                 if (cost.getCostMessage && cost.getCostMessage(context)) {
                     let [format, args]: [string, any[]] = ['ERROR - MISSING COST MESSAGE', [' ', ' ']];
                     [format, args] = cost.getCostMessage(context);
-                    const message = this.game.gameChat.formatMessage(format, args);
-                    if (Helpers.asArray(message).every((msg) => msg.length === 0)) {
+                    if (format.length === 0) {
                         return null;
                     }
-                    return { message: message };
+                    return { format: format, args: args };
                 }
                 return null;
             })

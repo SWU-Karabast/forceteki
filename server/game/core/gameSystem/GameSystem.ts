@@ -9,6 +9,7 @@ import { TriggerHandlingMode } from '../event/EventWindow';
 import * as Contract from '../utils/Contract';
 import type { GameObject } from '../GameObject';
 import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
+import type { MsgArg } from '../chat/GameChat';
 
 export type PlayerOrCard = Player | Card;
 
@@ -181,12 +182,21 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
 
     public getCostMessage?(context: TContext): [string, any[]] {
         const { target } = this.generatePropertiesFromContext(context);
-        return [this.costDescription, [target]];
+        return [this.costDescription, [this.getTargetMessage(target, context)]];
     }
 
     public getEffectMessage(context: TContext, additionalProperties: Partial<TProperties> = {}): [string, any[]] {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
-        return [this.effectDescription, [target]];
+        return [this.effectDescription, [this.getTargetMessage(target, context)]];
+    }
+
+    public getTargetMessage(targets: PlayerOrCard | PlayerOrCard[], context: TContext): MsgArg[] {
+        return Helpers.asArray(targets).map((target) => {
+            if (target.isCard() && target.isBase()) {
+                return { format: '{0}\'s base', args: [target.controller] };
+            }
+            return target;
+        });
     }
 
     // TODO: is there a type we can provide for 'target'? Is it more than just players and cards?

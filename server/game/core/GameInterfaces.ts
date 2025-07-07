@@ -6,7 +6,6 @@ import * as Contract from './utils/Contract';
 
 export interface GameConfiguration {
     id: string;
-    name: string;
     owner: string;
     players: IUser[];
     spectators?: IUser[];
@@ -22,7 +21,6 @@ export interface GameConfiguration {
 
 export function validateGameConfiguration(configuration: GameConfiguration): void {
     Contract.assertNotNullLike(configuration.id);
-    Contract.assertNotNullLike(configuration.name);
     Contract.assertNotNullLike(configuration.owner);
     Contract.assertNotNullLike(configuration.players);
     Contract.assertNotNullLike(configuration.gameMode);

@@ -19,6 +19,7 @@ import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
 import { AlertType } from '../game/core/Constants';
+import { v4 as uuidv4 } from 'uuid';
 
 interface LobbySpectator {
     id: string;
@@ -133,7 +134,8 @@ export class Lobby {
                 importDeckErrors: u.importDeckValidationErrors,
                 unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist()),
                 minDeckSize: u.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(u.deck?.base.id) : 50,
-                maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format)
+                maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format),
+                authenticated: u.socket?.user.isDevTestUser() || u.socket?.user.isAuthenticatedUser()
             })),
             spectators: this.spectators.map((s) => ({
                 id: s.id,
@@ -162,6 +164,9 @@ export class Lobby {
     }
 
     private updateUserLastActivity(id: string): void {
+        // if we received a message we know the user is connected
+        this.getUser(id).state = 'connected';
+
         const now = new Date();
         this.userLastActivity.set(id, now);
 
@@ -328,8 +333,9 @@ export class Lobby {
         } else if (remainingSeconds > -4) {
             this.matchingCountdownText = 'Waiting for opponent to connect...';
 
+            this.sendLobbyState(true);
+
             if (this.users.length === 2 && this.users.every((u) => u.state === 'connected')) {
-                this.sendLobbyState();
                 return this.onStartGameAsync();
             }
         } else {
@@ -341,7 +347,7 @@ export class Lobby {
         this.matchingCountdownTimeoutHandle =
             this.buildSafeTimeout(() => this.quickLobbyCountdownAsync(remainingSeconds - 1), 1000, 'Lobby: error during quick lobby countdown');
 
-        this.sendLobbyState();
+        this.sendLobbyState(true);
         return Promise.resolve();
     }
 
@@ -444,28 +450,6 @@ export class Lobby {
         logger.info(`Lobby: user ${user.username} updating deck`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         this.updateUserLastActivity(user.id);
-    }
-
-    private useForceBase(socket: Socket) {
-        const user = this.getUser(socket.user.getId());
-        const userDeck = user.deck;
-        const baseId = userDeck.base.id;
-        const blueBase = ['SOR_019', 'SOR_020', 'SOR_021', 'SHD_019', 'SHD_020', 'TWI_019', 'TWI_020', 'TWI_021', 'JTL_019', 'JTL_020', 'JTL_021'];
-        const greenBase = ['SOR_022', 'SOR_023', 'SOR_024', 'SHD_021', 'SHD_022', 'TWI_022', 'TWI_023', 'TWI_024', 'JTL_022', 'JTL_023', 'JTL_024'];
-        const redBase = ['SOR_025', 'SOR_026', 'SOR_027', 'SHD_023', 'SHD_024', 'TWI_025', 'TWI_026', 'TWI_027', 'JTL_025', 'JTL_026', 'JTL_027'];
-        const yellowBase = ['SOR_028', 'SOR_029', 'SOR_030', 'SHD_025', 'SHD_026', 'TWI_028', 'TWI_029', 'TWI_030', 'JTL_028', 'JTL_029', 'JTL_030'];
-
-        if (blueBase.includes(baseId)) {
-            userDeck.base.id = 'LOF_021';
-        } else if (greenBase.includes(baseId)) {
-            userDeck.base.id = 'LOF_023';
-        } else if (redBase.includes(baseId)) {
-            userDeck.base.id = 'LOF_025';
-        } else if (yellowBase.includes(baseId)) {
-            userDeck.base.id = 'LOF_027';
-        }
-
-        this.sendLobbyState();
     }
 
     private getUser(id: string) {
@@ -692,8 +676,7 @@ export class Lobby {
         );
 
         return {
-            id: '0001',
-            name: 'Test Game',
+            id: uuidv4(),
             allowSpectators: false,
             owner: 'Order66',
             gameMode: GameMode.Premier,
@@ -879,8 +862,8 @@ export class Lobby {
      */
     private async endGameUpdateStatsAsync(game: Game): Promise<void> {
         try {
-            // Only update stats if the game has a winner
-            if (!game.winner || !game.finishedAt) {
+            // Only update stats if the game has a winner and made it into the second round at least
+            if (!game.winner || !game.finishedAt || this.game.roundNumber <= 1) {
                 return;
             }
 
@@ -924,10 +907,9 @@ export class Lobby {
                 logger.error(`Lobby ${this.id}: Missing information (${player2User.deckID}) for player2 ${player2.id}`);
                 return;
             }
-            if (this.game.roundNumber > 1) {
-                await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
-                await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
-            }
+
+            await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
+            await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
 
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
         } catch (error) {
@@ -945,7 +927,7 @@ export class Lobby {
         socket.socket.send('lobbystate', this.getLobbyState());
     }
 
-    public sendGameState(game: Game): void {
+    public sendGameState(game: Game, forceSend = false): void {
         // we check here if the game ended and update the stats.
         if (game.winner && game.finishedAt && !game.statsUpdated) {
             // Update deck stats asynchronously
@@ -954,21 +936,33 @@ export class Lobby {
                 logger.error(`Lobby ${this.id}: Failed to update deck stats:`, error);
             });
         }
+
+        // we send the game state to all users and spectators
+        // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
-            if (user.state === 'connected' && user.socket) {
-                user.socket.send('gamestate', game.getState(user.id));
+            if (user.socket && (user.socket.socket.connected || forceSend)) {
+                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
             }
         }
         for (const user of this.spectators) {
-            if (user.socket) {
-                user.socket.send('gamestate', game.getState(user.id));
+            if (user.socket && (user.socket.socket.connected || forceSend)) {
+                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
             }
         }
     }
 
-    public sendLobbyState(): void {
+    private safeSetUserConnected(userId: string): void {
+        try {
+            const user = this.getUser(userId);
+            user.state = 'connected';
+        } catch (error) {
+            logger.error(`Lobby: error setting user ${userId} connected`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId });
+        }
+    }
+
+    public sendLobbyState(forceSend = false): void {
         for (const user of this.users) {
-            if (user.state === 'connected' && user.socket) {
+            if (user.socket && (user.socket.socket.connected || forceSend)) {
                 user.socket.send('lobbystate', this.getLobbyState());
             }
         }

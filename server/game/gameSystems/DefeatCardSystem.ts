@@ -40,6 +40,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     public override readonly name = 'defeat';
     public override readonly eventName = EventName.OnCardDefeated;
     public override readonly costDescription = 'defeating {0}';
+    public override effectDescription = 'defeat {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
     protected override readonly defaultProperties: Partial<IDefeatCardPropertiesBase> = {
@@ -81,11 +82,6 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         } else {
             card.moveTo(ZoneName.Discard);
         }
-    }
-
-    public override getEffectMessage(context: TContext, additionalProperties: Partial<TProperties> = {}): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return ['defeat {0}', [properties.target]];
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

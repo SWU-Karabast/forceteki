@@ -1,5 +1,5 @@
 import type { CardDataGetter } from '../cardData/CardDataGetter';
-import { cards } from '../../game/cards/Index';
+import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
 import type { CardType } from '../../game/core/Constants';
 import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
@@ -16,7 +16,7 @@ enum SwuSet {
     LOF = 'lof'
 }
 
-const legalSets = [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI, SwuSet.JTL];
+const legalSets = [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI, SwuSet.JTL, SwuSet.LOF];
 
 const bannedCards = new Map([
     ['4626028465', 'boba-fett#collecting-the-bounty'],
@@ -62,6 +62,7 @@ export class DeckValidator {
 
     private constructor(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>) {
         const implementedCardIds = new Set(cards.keys());
+        const overrideNotImplementedCardIds = new Set(overrideNotImplementedCards.keys());
 
         this.cardData = new Map<string, ICardCheckData>();
         this.setCodeToId = setCodeToId;
@@ -73,7 +74,7 @@ export class DeckValidator {
                 type: Card.buildTypeFromPrinted(cardData.types),
                 set: EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0],
                 banned: bannedCards.has(cardData.id),
-                implemented: !Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id),
+                implemented: !overrideNotImplementedCardIds.has(cardData.id) && (!Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id)),
                 minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
                 maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
             };

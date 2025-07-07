@@ -13,13 +13,13 @@ import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
-import { KeywordName } from '../Constants';
+import { ChatObjectType, KeywordName } from '../Constants';
 import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
-import type { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
+import type { KeywordInstance, KeywordWithCostValues, KeywordWithNumericValue } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import { v4 as uuidv4 } from 'uuid';
@@ -121,12 +121,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly _title: string;
     protected readonly _unique: boolean;
     protected readonly _printedType: CardType;
+    protected readonly _printedKeywords: KeywordInstance[];
 
     protected readonly canBeUpgrade: boolean;
     protected readonly hasNonKeywordAbilityText: boolean;
     protected readonly hasImplementationFile: boolean;
-    protected readonly overrideNotImplemented: boolean = false;
-    protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
     protected readonly backsidePrintedTraits: Set<Trait>;
 
@@ -152,6 +151,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     protected set movedFromZone(value: ZoneName | null) {
         this.state.movedFromZone = value;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    protected get overrideNotImplemented(): boolean {
+        return false;
     }
 
     protected get printedType(): CardType {
@@ -199,6 +203,17 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     public get internalName(): string {
         return this._internalName;
+    }
+
+    public get printedKeywords(): KeywordInstance[] {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const override = getPrintedAttributesOverride('printedKeywords', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
+            }
+        }
+
+        return this._printedKeywords;
     }
 
     public get keywords(): KeywordInstance[] {
@@ -303,7 +318,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.backsidePrintedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.backSideTraits, Trait));
 
         // TODO: add validation that if the card has the Piloting trait, the right cardData properties are set
-        this.printedKeywords = KeywordHelpers.parseKeywords(
+        this._printedKeywords = KeywordHelpers.parseKeywords(
             this,
             cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
@@ -312,7 +327,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
         // repeat keyword parsing for pilot ability text if present
         if (this.printedType === CardType.Leader) {
-            this.printedKeywords.push(
+            this._printedKeywords.push(
                 ...KeywordHelpers.parseKeywords(
                     this,
                     cardData.keywords,
@@ -655,6 +670,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         Contract.assertTrue(keywordsWithoutCostValues.length === 0, 'Found at least one keyword with missing cost values');
 
         return keywords as KeywordWithCostValues[];
+    }
+
+    public getKeywordsWithNumericValues(keywordName: KeywordName): KeywordWithNumericValue[] {
+        const keywords = this.getKeywords().filter((keyword) => keyword.valueOf() === keywordName);
+
+        const keywordsWithoutNumericValues = keywords.filter((keyword) => !keyword.hasNumericValue());
+        Contract.assertTrue(keywordsWithoutNumericValues.length === 0, 'Found at least one keyword with missing numeric values');
+
+        return keywords as KeywordWithNumericValue[];
     }
 
     public hasSomeKeyword(keywords: Set<KeywordName> | KeywordName | KeywordName[]): boolean {
@@ -1196,6 +1220,16 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             internalName: this.internalName,
             controllerId: this.controller.id,
             type: this.type
+        };
+    }
+
+    public override getShortSummary() {
+        return {
+            ...super.getShortSummary(),
+            controllerId: this.controller.id,
+            setId: this.setId,
+            type: ChatObjectType.Card,
+            printedType: this.printedType
         };
     }
 
