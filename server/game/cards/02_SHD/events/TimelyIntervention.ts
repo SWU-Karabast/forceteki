@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { CardType, KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class TimelyIntervention extends EventCard {
@@ -11,8 +12,8 @@ export default class TimelyIntervention extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Play a unit from your hand. Give it ambush for this phase',
             cannotTargetFirst: true,
             targetResolver: {

@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { ZoneName } from '../../../core/Constants';
 
 export default class CommencePatrol extends EventCard {
@@ -10,8 +11,8 @@ export default class CommencePatrol extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Put another card in a discard pile on the bottom of its owner\'s deck. If you do, create an X-Wing token',
             targetResolver: {
                 zoneFilter: ZoneName.Discard,

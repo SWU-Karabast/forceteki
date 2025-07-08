@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer } from '../../../core/Constants';
 
 export default class PoliticalPressure extends EventCard {
@@ -10,8 +11,8 @@ export default class PoliticalPressure extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Discard a random card from your hand. If you do not, the opponent creates 2 Battle Droid Tokens',
             optional: true,
             playerChoosingOptional: RelativePlayer.Opponent,

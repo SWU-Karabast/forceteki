@@ -1,4 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class Dogfight extends EventCard {
     protected override getImplementationId() {
@@ -8,8 +9,8 @@ export default class Dogfight extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Attack with a unit, even if it\'s exhausted. That unit can\'t attack bases for this attack.',
             initiateAttack: {
                 targetCondition: (target) => target.isUnit(),
