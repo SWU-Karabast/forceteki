@@ -15,7 +15,7 @@ import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityReg
 import { WithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import { EpicActionAbility } from '../../abilities/EpicActionAbility';
-import type { IBaseAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityRegistrationInterfaces';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
@@ -76,7 +76,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return ability;
     }
 
-    protected setEpicActionAbility(properties: IEpicActionProps<this>): void {
+    private setEpicActionAbility(properties: IEpicActionProps<this>): void {
         Contract.assertIsNullLike(this._epicActionAbility, 'Epic action ability already set');
 
         this._epicActionAbility = new EpicActionAbility(this.game, this, properties);
@@ -95,7 +95,10 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     }
 
     protected override callSetupWithRegistrar() {
-        const registrar: IBaseAbilityRegistrar = this.getAbilityRegistrar() as IBaseAbilityRegistrar;
+        const registrar: IBaseAbilityRegistrar = {
+            ...this.getAbilityRegistrar() as IBasicAbilityRegistrar<BaseCard>,
+            setEpicActionAbility: (properties: IEpicActionProps<this>) => this.setEpicActionAbility(properties),
+        };
 
         this.setupCardAbilities(registrar);
     }

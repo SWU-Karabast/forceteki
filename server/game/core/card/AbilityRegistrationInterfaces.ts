@@ -1,3 +1,4 @@
+import type { IEpicActionProps } from '../../Interfaces';
 import type { BaseCard } from './BaseCard';
 import type { Card } from './Card';
 import type { INonLeaderUnitCard } from './NonLeaderUnitCard';
@@ -15,4 +16,6 @@ export type INonLeaderUnitAbilityRegistrar = IBasicAbilityRegistrar<INonLeaderUn
 
 export type IUpgradeAbilityRegistrar = IBasicAbilityRegistrar<UpgradeCard>;
 
-export type IBaseAbilityRegistrar = IBasicAbilityRegistrar<BaseCard>;
+export type IBaseAbilityRegistrar = IBasicAbilityRegistrar<BaseCard> & {
+    setEpicActionAbility(properties: IEpicActionProps<BaseCard>): void;
+};
