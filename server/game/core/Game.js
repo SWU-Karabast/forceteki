@@ -188,7 +188,7 @@ class Game extends EventEmitter {
             roundNumber: 0,
             isInitiativeClaimed: false,
             allCards: [],
-            actionNumber: 0,
+            actionNumber: -1,
         };
 
         this.tokenFactories = null;
@@ -1083,7 +1083,8 @@ class Game extends EventEmitter {
     }
 
     getNextActionNumber() {
-        return this.actionNumber++;
+        this.actionNumber++;
+        return this.actionNumber;
     }
 
     /**

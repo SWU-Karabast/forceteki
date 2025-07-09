@@ -1,5 +1,4 @@
 import type Game from '../Game';
-import type { GameObjectBase } from '../GameObjectBase';
 import type { GameStateManager } from '../GameStateManager';
 import type { IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
@@ -22,7 +21,6 @@ export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
  * snapshot containers to clear any snapshots that are newer than the given snapshot ID.
  */
 export class SnapshotFactory {
-    private readonly allGameObjects: GameObjectBase[] = [];
     private readonly clearNewerSnapshotsHandlers: IClearNewerSnapshotsHandler[] = [];
     private readonly game: Game;
     private readonly gameStateManager: GameStateManager;
@@ -107,7 +105,7 @@ export class SnapshotFactory {
             lastGameObjectId: this.gameStateManager.lastGameObjectId,
             actionNumber: this.game.actionNumber,
             gameState: structuredClone(this.game.state),
-            states: this.allGameObjects.map((x) => x.getState()),
+            states: this.gameStateManager.getAllGameStates(),
         };
 
         this.lastAssignedSnapshotId = nextSnapshotId;

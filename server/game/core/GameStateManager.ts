@@ -1,5 +1,5 @@
 import type Game from './Game';
-import type { GameObjectBase, GameObjectRef } from './GameObjectBase';
+import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from './GameObjectBase';
 import type { IGameSnapshot } from './snapshot/SnapshotInterfaces';
 import * as Contract from './utils/Contract.js';
 import * as Helpers from './utils/Helpers.js';
@@ -48,6 +48,10 @@ export class GameStateManager implements IGameObjectRegistrar {
             this.allGameObjects.push(go);
             this.gameObjectMapping.set(go.uuid, go);
         }
+    }
+
+    public getAllGameStates(): IGameObjectBaseState[] {
+        return this.allGameObjects.map((go) => go.getState());
     }
 
     public rollbackToSnapshot(snapshot: IGameSnapshot) {

@@ -66,7 +66,7 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
             return null;    // Cannot rollback further than the available snapshots for this key
         }
 
-        const snapshot = snapshotHistory[snapshotHistory.length + offset];
+        const snapshot = snapshotHistory[snapshotHistory.length + offset - 1];
         super.rollbackToSnapshotInternal(snapshot);
 
         return snapshot.id;

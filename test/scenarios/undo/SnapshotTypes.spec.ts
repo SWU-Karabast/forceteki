@@ -73,8 +73,8 @@ describe('Snapshot types', function() {
 
                 expect(context.deathTrooper).toBeInZone('hand');
                 expect(context.wampa.damage).toEqual(0);
-                expect(context.p1Base.damage).toEqual(0);
-                expect(context.p2Base.damage).toEqual(0);
+                expect(context.p1Base.damage).toEqual(2);
+                expect(context.p2Base.damage).toEqual(2);
             });
         });
     });
