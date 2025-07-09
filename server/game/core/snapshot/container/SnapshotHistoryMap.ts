@@ -40,6 +40,10 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
         }
 
         snapshotHistory.push(currentSnapshot);
+
+        if (snapshotHistory.length > this.maxHistoryLength) {
+            snapshotHistory.shift();
+        }
     }
 
     public removeSnapshot(key: T): void {
@@ -50,12 +54,12 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
      * Rolls back to the snapshot at the given key with the specified offset, if it exists.
      *
      * @param key The key of the snapshot to roll back to if possible
-     * @param offset The offset from the key's latest snapshot to roll back to. -1 is the most recent snapshot (before current), -2 is the previous snapshot, etc.
+     * @param offset The offset from the key's latest snapshot to roll back to. 0 is current snapshot, -1 is the most recent snapshot before current, -2 is the previous snapshot, etc.
      * Cannot be greater than the maximum history length (i.e. `-maxHistoryLength`).
      * @returns The ID of the snapshot that was rolled back to, or `null` if it does not exist
      */
     public rollbackToSnapshot(key: T, offset: number): number | null {
-        Contract.assertTrue(offset < 0 && offset >= -this.maxHistoryLength, `Snapshot offset must be less than one and greater than or equal than max history length (-${this.maxHistoryLength}), got ${offset}`);
+        Contract.assertTrue(offset <= 0 && offset > -this.maxHistoryLength, `Snapshot offset must be less than 1 and greater than than max history length (-${this.maxHistoryLength}), got ${offset}`);
 
         const snapshotHistory = this.snapshots.get(key);
         if (!snapshotHistory) {

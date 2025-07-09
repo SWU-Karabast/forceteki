@@ -31,9 +31,9 @@ export type ISnapshotSettings = IActionSnapshotSettings | IPhaseSnapshotSettings
 export type IGetSnapshotSettings = ISnapshotSettings & {
 
     /**
-     * Optional offset to indicate how far back in the list to go. -1 is the most recent snapshot (before current), -2 is the previous snapshot, etc.
+     * Optional offset to indicate how far back in the list to go. 0 is current snapshot, -1 is the most recent snapshot before current, -2 is the previous snapshot, etc.
      *
-     * Defaults to -1 (most recent before current).
+     * Defaults to 0 (most recent / current snapshot).
      */
     offset?: number;
 };

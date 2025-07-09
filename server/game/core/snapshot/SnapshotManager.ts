@@ -10,7 +10,7 @@ import type { SnapshotArray } from './container/SnapshotArray';
 import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 
 const maxManualSnapshots = 5; // Number of manual player snapshots
-const maxActionSnapshots = 2; // Number of actions saved for undo in a turn (per player)
+const maxActionSnapshots = 3; // Number of actions saved for undo in a turn (per player)
 const maxPhaseSnapshots = 2; // Current and previous of a specific phase
 const maxRoundSnapshots = 2; // Current and previous start of round
 
@@ -94,8 +94,8 @@ export class SnapshotManager {
             return;
         }
 
-        const offset = settings.offset ?? -1;
-        Contract.assertTrue(offset < 0, `Snapshot offset must be negative, got ${offset}.`);
+        const offset = settings.offset ?? 0;
+        Contract.assertTrue(offset < 1, `Snapshot offset must be less than 1, got ${offset}.`);
 
         let rolledBackSnapshotIdx: number = null;
         switch (settings.type) {
