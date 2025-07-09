@@ -1,3 +1,4 @@
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName } from '../../../core/Constants';
 
@@ -9,8 +10,8 @@ export default class InfiltratorsSkill extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addGainKeywordTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addGainKeywordTargetingAttached({
             keyword: KeywordName.Saboteur
         });
     }

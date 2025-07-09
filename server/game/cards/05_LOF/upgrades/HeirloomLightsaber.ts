@@ -1,3 +1,4 @@
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, Trait } from '../../../core/Constants';
 
@@ -9,12 +10,12 @@ export default class HeirloomLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
         // Attach to a non-Vehicle unit
-        this.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
 
         // If attached unit is a Force unit, it gains Restore 1
-        this.addGainKeywordTargetingAttached({
+        registrar.addGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force),
             keyword: KeywordName.Restore,
             amount: 1

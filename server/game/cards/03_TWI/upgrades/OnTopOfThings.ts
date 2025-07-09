@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { AbilityRestriction } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class OnTopOfThings extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Attached unit can not be attacked this phase',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 target: context.source.parentCard,

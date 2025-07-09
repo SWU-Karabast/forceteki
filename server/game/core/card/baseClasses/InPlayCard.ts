@@ -13,6 +13,7 @@ import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as Helpers from '../../utils/Helpers';
+import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import { InitializeCardStateOption, type Card } from '../Card';
 import type { ICardWithActionAbilities } from '../propertyMixins/ActionAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
@@ -268,6 +269,21 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     // ********************************************* ABILITY SETUP *********************************************
+    protected override getAbilityRegistrar(): any {
+        const registrar: IInPlayCardAbilityRegistrar<this> = {
+            addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties),
+            addWhenPlayedAbility: (properties) => this.addWhenPlayedAbility(properties),
+            addWhenDefeatedAbility: (properties) => this.addWhenDefeatedAbility(properties),
+            addIgnoreAllAspectPenaltiesAbility: (properties) => this.addIgnoreAllAspectPenaltiesAbility(properties),
+            addIgnoreSpecificAspectPenaltyAbility: (properties) => this.addIgnoreSpecificAspectPenaltyAbility(properties),
+        };
+
+        return {
+            ...super.getAbilityRegistrar(),
+            ...registrar
+        };
+    }
+
     protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenPlayed]: true };
         return this.addTriggeredAbility({ ...properties, when });

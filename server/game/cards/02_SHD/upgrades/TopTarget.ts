@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CardType, KeywordName, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class TopTarget extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainKeywordTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
             ability: {
                 title: 'Heal 4 damage from a unit or base. If the Bounty unit is unique, heal 6 damage instead.',

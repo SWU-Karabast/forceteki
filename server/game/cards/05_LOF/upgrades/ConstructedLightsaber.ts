@@ -1,3 +1,4 @@
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Aspect, KeywordName, Trait } from '../../../core/Constants';
 
@@ -9,22 +10,22 @@ export default class ConstructedLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
 
-        this.addGainKeywordTargetingAttached({
+        registrar.addGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard.hasSomeAspect(Aspect.Heroism),
             keyword: KeywordName.Restore,
             amount: 2,
         });
 
-        this.addGainKeywordTargetingAttached({
+        registrar.addGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard.hasSomeAspect(Aspect.Villainy),
             keyword: KeywordName.Raid,
             amount: 2,
         });
 
-        this.addGainKeywordTargetingAttached({
+        registrar.addGainKeywordTargetingAttached({
             gainCondition: (context) => !context.source.parentCard.hasSomeAspect([Aspect.Heroism, Aspect.Villainy]),
             keyword: KeywordName.Sentinel
         });

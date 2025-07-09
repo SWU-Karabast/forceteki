@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { TargetMode } from '../../../core/Constants';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
@@ -11,8 +12,8 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Exhaust it unless its controller pay 2 resources',
             when: {
                 onCardReadied: (event, context) => context.source.parentCard === event.card

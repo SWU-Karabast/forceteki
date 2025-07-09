@@ -1,3 +1,4 @@
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
@@ -10,9 +11,9 @@ export default class JediHolocron extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
-        this.addGainOnAttackAbilityTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
+        registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'You may heal 3 damage from another unit.',
             optional: true,
             targetResolver: {

@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 
@@ -11,12 +12,12 @@ export default class InspiringMentor extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
         this.disableWhenDefeatedCheck = true;
 
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainTriggeredAbilityTargetingAttached({
+        registrar.addGainTriggeredAbilityTargetingAttached({
             title: 'Give an Experience token to another friendly unit',
             when: {
                 onAttack: true,

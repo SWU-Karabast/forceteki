@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
 
@@ -11,10 +12,10 @@ export default class LukesLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addWhenPlayedAbility({
+        registrar.addWhenPlayedAbility({
             title: 'Heal all damage from Luke and give him a shield token',
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
                 target: context.source.parentCard,

@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class OldAccessCodes extends UpgradeCard {
@@ -9,8 +10,8 @@ export default class OldAccessCodes extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Draw a card',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.getArenaUnits().length < context.player.opponent.getArenaUnits().length,

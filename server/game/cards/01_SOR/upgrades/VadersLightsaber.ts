@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { ZoneName, Trait, WildcardCardType } from '../../../core/Constants';
 
@@ -11,10 +12,10 @@ export default class VadersLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addWhenPlayedAbility({
+        registrar.addWhenPlayedAbility({
             title: 'Deal 4 damage to a ground unit',
             optional: true,
             targetResolver: {

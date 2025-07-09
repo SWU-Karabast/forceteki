@@ -1,3 +1,4 @@
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { DamageType, Trait } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
@@ -11,10 +12,10 @@ export default class BobaFettsArmor extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addReplacementEffectAbility({
+        registrar.addReplacementEffectAbility({
             title: 'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
             when: {
                 onDamageDealt: (event, context) => event.card === context.source.parentCard &&

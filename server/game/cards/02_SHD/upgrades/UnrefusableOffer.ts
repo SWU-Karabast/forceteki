@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, PhaseName, PlayType, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -11,10 +12,10 @@ export default class UnrefusableOffer extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => !card.isLeaderUnit());
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card) => !card.isLeaderUnit());
 
-        this.addGainKeywordTargetingAttached({
+        registrar.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
             ability: {
                 title: 'Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it',

@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { KeywordName, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
@@ -12,8 +13,8 @@ export default class BountyHuntersQuarry extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainKeywordTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
             ability: {
                 title: 'Search the top 5 cards of your deck, or 10 cards instead if this unit is unique, for a unit that costs 3 or less and play it for free.',

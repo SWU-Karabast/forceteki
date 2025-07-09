@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class TwinLaserTurret extends UpgradeCard {
@@ -11,10 +12,10 @@ export default class TwinLaserTurret extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainOnAttackAbilityTargetingAttached({
+        registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 1 damage to each of up to 2 units in this arena.',
             targetResolver: {
                 mode: TargetMode.UpTo,

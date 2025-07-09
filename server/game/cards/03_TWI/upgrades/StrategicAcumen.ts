@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -11,8 +12,8 @@ export default class StrategicAcumen extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addGainActionAbilityTargetingAttached({
+    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addGainActionAbilityTargetingAttached({
             title: 'Play a unit from your hand. It costs 1 less',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

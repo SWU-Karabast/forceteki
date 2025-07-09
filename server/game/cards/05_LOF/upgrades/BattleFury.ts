@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class BattleFury extends UpgradeCard {
@@ -9,8 +10,8 @@ export default class BattleFury extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addGainOnAttackAbilityTargetingAttached({
+    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Discard a card from your hand',
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                 amount: 1,

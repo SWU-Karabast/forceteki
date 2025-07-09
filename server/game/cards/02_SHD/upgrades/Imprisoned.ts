@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class Imprisoned extends UpgradeCard {
@@ -9,10 +10,10 @@ export default class Imprisoned extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isNonLeaderUnit());
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card) => card.isNonLeaderUnit());
 
-        this.addConstantAbilityTargetingAttached({
+        registrar.addConstantAbilityTargetingAttached({
             title: 'Attached unit loses its current abilities and can\'t gain abilities',
             ongoingEffect: AbilityHelper.ongoingEffects.loseAllAbilities()
         });

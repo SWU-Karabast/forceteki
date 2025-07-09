@@ -6,6 +6,7 @@ import * as Contract from '../../utils/Contract';
 
 export interface ITriggeredAbilityRegistrar<T extends Card> {
     addTriggeredAbility(properties: ITriggeredAbilityProps<T>): TriggeredAbility;
+    addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): ReplacementEffectAbility;
     addGainedTriggeredAbility(properties: ITriggeredAbilityProps<T>): string;
     addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): string;
 }
@@ -43,6 +44,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
         protected override getAbilityRegistrar() {
             const registrar: ITriggeredAbilityRegistrar<this> = {
                 addTriggeredAbility: (properties: ITriggeredAbilityProps<this>) => this.addTriggeredAbility(properties),
+                addReplacementEffectAbility: (properties: IReplacementEffectAbilityProps<this>) => this.addReplacementEffectAbility(properties),
                 addGainedTriggeredAbility: (properties: ITriggeredAbilityProps<this>) => this.addGainedTriggeredAbility(properties),
                 addGainedReplacementEffectAbility: (properties: IReplacementEffectAbilityProps<this>) => this.addGainedReplacementEffectAbility(properties)
             };

@@ -1,3 +1,4 @@
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, Trait } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
@@ -10,12 +11,12 @@ export default class GrievoussWheelBike extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainKeywordTargetingAttached({ keyword: KeywordName.Overwhelm });
+        registrar.addGainKeywordTargetingAttached({ keyword: KeywordName.Overwhelm });
 
-        this.addDecreaseCostAbility({
+        registrar.addDecreaseCostAbility({
             title: 'While playing this upgrade on General Grievous, it costs 2 resources less to play',
             amount: 2,
             attachTargetCondition: (card) => card.title === 'General Grievous'

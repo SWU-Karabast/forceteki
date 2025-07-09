@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
@@ -11,10 +12,10 @@ export default class MandalorianArmor extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addWhenPlayedAbility({
+        registrar.addWhenPlayedAbility({
             title: 'Give a Shield token to attached unit.',
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
                 condition: context.source.parentCard?.hasSomeTrait(Trait.Mandalorian),

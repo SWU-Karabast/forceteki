@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class TargetingComputer extends UpgradeCard {
@@ -9,8 +10,8 @@ export default class TargetingComputer extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbilityTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addConstantAbilityTargetingAttached({
             title: 'You assign all indirect damage dealt by this unit',
             ongoingEffect: AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit(),
         });

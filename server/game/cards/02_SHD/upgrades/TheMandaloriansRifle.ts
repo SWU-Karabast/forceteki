@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
@@ -17,8 +18,8 @@ export default class TheMandaloriansRifle extends UpgradeCard {
         return targetCard.isUnit() && !targetCard.hasSomeTrait(Trait.Vehicle) && targetCard.controller === controller;
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'If attached unit is The Mandalorian, he captures an exhausted enemy non-leader unit',
             targetResolver: {
                 controller: RelativePlayer.Opponent,
