@@ -387,7 +387,7 @@ export class GameServer {
                     logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences`);
                     return res.status(401).json({
                         success: false,
-                        message: 'Authentication required to save sound preferences'
+                        message: 'Error attempting to save sound preferences'
                     });
                 }
 

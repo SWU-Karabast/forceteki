@@ -29,8 +29,8 @@ export interface UserPreferences {
     sound?: {
         muteAllSound?: boolean;
         volume?: number;
-        muteCardClickSound?: boolean;
-        muteMenuButtonsSound?: boolean;
+        muteCardAndButtonClickSound?: boolean;
+        muteYourTurn?: boolean;
         muteChatSound?: boolean;
         muteOpponentFoundSound?: boolean;
     };

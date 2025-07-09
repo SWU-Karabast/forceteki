@@ -12,9 +12,9 @@ import type { IUserDataEntity, UserPreferences } from '../../services/DynamoDBIn
 const getDefaultSoundPreferences = () => ({
     muteAllSound: false,
     volume: 0.8,
-    muteCardClickSound: false,
-    muteMenuButtonsSound: false,
+    muteCardAndButtonClickSound: false,
     muteChatSound: false,
+    muteYourTurn: false,
     muteOpponentFoundSound: false,
 });
 
