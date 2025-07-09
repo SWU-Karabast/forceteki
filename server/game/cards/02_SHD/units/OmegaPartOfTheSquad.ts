@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -19,8 +20,8 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'Ignore the aspect penalty on the first Clone unit you play each round',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: CardType.BasicUnit,
@@ -32,7 +33,7 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
             }),
         });
 
-        this.addWhenPlayedAbility({
+        registrar.addWhenPlayedAbility({
             title: 'Search the top 5 cards of your deck for a Clone card, then reveal and draw it.',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,

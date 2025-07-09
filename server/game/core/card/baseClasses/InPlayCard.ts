@@ -46,6 +46,8 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get mostRecentInPlayId(): number;
     get parentCard(): IUnitCard;
     get pendingDefeat(): boolean;
+    getUpgradeHp(): number;
+    getUpgradePower(): number;
     isInPlay(): boolean;
     registerPendingUniqueDefeat();
     checkUnique();

@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class AllegiantGeneralPrydeRuthlessAndLoyal extends NonLeaderUnit
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Defeat a non-unique upgrade on the unit',
             when: {
                 onDamageDealt: (event) => event.isIndirect && event.card.isUnit(),
@@ -24,7 +25,7 @@ export default class AllegiantGeneralPrydeRuthlessAndLoyal extends NonLeaderUnit
             }
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Deal 2 indirect damage to a player',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasInitiative(),

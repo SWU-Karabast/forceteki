@@ -1,3 +1,4 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
@@ -10,8 +11,8 @@ export default class PongKrellItsTreasonThen extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Defeat a unit with less remaining HP than this unit\'s power',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,

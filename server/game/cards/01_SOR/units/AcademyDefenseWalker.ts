@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 
@@ -10,8 +11,8 @@ export default class AcademyDefenseWalker extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Give an Experience token to each friendly damaged unit',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({
                 target: context.player.getArenaUnits({ condition: (unit: IUnitCard) => unit.damage > 0 })

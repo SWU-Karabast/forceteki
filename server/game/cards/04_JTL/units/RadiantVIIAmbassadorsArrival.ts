@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
@@ -11,8 +12,8 @@ export default class RadiantVIIAmbassadorsArrival extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Deal 5 indirect damage to a player',
             targetResolver: {
                 mode: TargetMode.Player,
@@ -20,7 +21,7 @@ export default class RadiantVIIAmbassadorsArrival extends NonLeaderUnitCard {
             },
         });
 
-        this.addConstantAbility({
+        registrar.addConstantAbility({
             title: 'Each enemy non-leader unit gets –1/–0 for each damage on it',
             targetController: RelativePlayer.Opponent,
             targetCardTypeFilter: WildcardCardType.NonLeaderUnit,

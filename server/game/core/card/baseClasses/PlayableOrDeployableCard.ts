@@ -16,6 +16,7 @@ import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
 import type { ICardState } from '../Card';
 import { Card } from '../Card';
+import type { ICardCanChangeControllers } from '../CardInterfaces';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
@@ -46,8 +47,8 @@ export interface ICardWithExhaustProperty extends Card {
     ready();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty {}
+
+export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty, ICardCanChangeControllers {}
 
 export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
     getPlayCardActions(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction[];

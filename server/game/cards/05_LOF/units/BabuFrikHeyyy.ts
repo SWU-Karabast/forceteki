@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class BabuFrikHeyyy extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addActionAbility({
+    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Attack with a friendly Droid unit. For this attack, it deals damage equal to its remaining HP instead of its power.',
             cost: AbilityHelper.costs.exhaustSelf(),
             optional: true,

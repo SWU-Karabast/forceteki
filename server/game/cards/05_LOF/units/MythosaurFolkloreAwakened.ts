@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, EventName, RelativePlayer, Trait, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
 import { ExhaustSourceType } from '../../../IDamageOrDefeatSource';
@@ -11,8 +12,8 @@ export default class MythosaurFolkloreAwakened extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'Friendly upgraded units can\'t be exhausted or returned to hand by enemy card abilities',
             matchTarget: (card, context) =>
                 card.controller === context.player &&
@@ -41,7 +42,7 @@ export default class MythosaurFolkloreAwakened extends NonLeaderUnitCard {
             })
         });
 
-        this.addConstantAbility({
+        registrar.addConstantAbility({
             title: 'Friendly leaders gain the Mandalorian trait',
             targetZoneFilter: WildcardZoneName.Any,
             targetController: RelativePlayer.Self,

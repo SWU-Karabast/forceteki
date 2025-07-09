@@ -6,14 +6,16 @@ import type { EventCard } from './EventCard';
 import type { INonLeaderUnitCard } from './NonLeaderUnitCard';
 import type { IActionAbilityRegistrar } from './propertyMixins/ActionAbilityRegistration';
 import type { IConstantAbilityRegistrar } from './propertyMixins/ConstantAbilityRegistration';
+import type { IPreEnterPlayAbilityRegistrar } from './propertyMixins/PreEnterPlayAbilityRegistration';
 import type { ITriggeredAbilityRegistrar } from './propertyMixins/TriggeredAbilityRegistration';
-import type { IUnitCard } from './propertyMixins/UnitProperties';
+import type { IUnitAbilityRegistrar, IUnitCard } from './propertyMixins/UnitProperties';
 import type { UpgradeCard } from './UpgradeCard';
 
 export type IBasicAbilityRegistrar<T extends Card> =
   ITriggeredAbilityRegistrar<T> &
   IConstantAbilityRegistrar<T> &
-  IActionAbilityRegistrar<T>;
+  IActionAbilityRegistrar<T> &
+  IPreEnterPlayAbilityRegistrar<T>;
 
 export interface IInPlayCardAbilityRegistrar<T extends Card> {
     addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<T>): void;
@@ -23,7 +25,7 @@ export interface IInPlayCardAbilityRegistrar<T extends Card> {
     addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreSpecificAspectPenaltyProps<T>): void;
 }
 
-export type INonLeaderUnitAbilityRegistrar = IBasicAbilityRegistrar<INonLeaderUnitCard>;
+export type INonLeaderUnitAbilityRegistrar = IBasicAbilityRegistrar<INonLeaderUnitCard> & IUnitAbilityRegistrar<INonLeaderUnitCard>;
 
 export type IUpgradeAbilityRegistrar = IBasicAbilityRegistrar<UpgradeCard> &
   IInPlayCardAbilityRegistrar<UpgradeCard> & {

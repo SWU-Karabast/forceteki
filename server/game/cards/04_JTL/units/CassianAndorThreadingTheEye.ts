@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class CassianAndorThreadingTheEye extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addPilotingGainAbilityTargetingAttached({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Discard a card from the defending player\'s deck. If that card costs 3 or less, draw a card',
             when: {

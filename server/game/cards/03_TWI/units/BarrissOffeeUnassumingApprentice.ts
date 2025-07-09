@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -18,8 +19,8 @@ export default class BarrissOffeeUnassumingApprentice extends NonLeaderUnitCard 
         this.unitsHealedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsHealedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'Each friendly unit that was healed this phase gets +1/+0.',
             targetController: RelativePlayer.Self,
             matchTarget: (card) => card.isUnit() && this.unitsHealedThisPhaseWatcher.wasHealedThisPhase(card, card.inPlayId),
