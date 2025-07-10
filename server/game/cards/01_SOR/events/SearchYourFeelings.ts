@@ -14,6 +14,7 @@ export default class SearchYourFeelings extends EventCard {
 
     // TODO: since the card display prompt can't handle showing the full deck currently, we instead use a dropdown list of card names
     // once the prompt is fixed, we can go back to using that for deck search like other cards do
+    // TODO: the dropdown list prompt doesn't have support for "optional" currently, so the player will be forced to choose a card
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Choose the name of a card from your deck to draw',
