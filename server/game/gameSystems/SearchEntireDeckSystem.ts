@@ -9,7 +9,7 @@ import { GameSystem } from '../core/gameSystem/GameSystem.js';
 import { SearchDeckSystem, type ISearchDeckProperties } from './SearchDeckSystem.js';
 
 export type ISearchEntireDeckProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISearchDeckProperties<TContext>, 'searchCount' | 'multiSelectCondition' | 'remainingCardsHandler'> & {
-    targetMode?: TargetMode.UpTo | TargetMode.Single;
+    targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.Unlimited;
 };
 
 /**
