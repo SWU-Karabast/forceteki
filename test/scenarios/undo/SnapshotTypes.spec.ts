@@ -218,11 +218,13 @@ describe('Snapshot types', function() {
             it('can revert back two actions for the active player', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id,
                     offset: -2
                 });
+
+                expect(rollbackResult).toBeTrue();
 
                 assertP1Action1State(context);
 
@@ -243,11 +245,13 @@ describe('Snapshot types', function() {
             it('can revert back one action for the active player', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id,
                     offset: -1
                 });
+
+                expect(rollbackResult).toBeTrue();
 
                 assertP1Action2State(context);
 
@@ -260,11 +264,13 @@ describe('Snapshot types', function() {
             it('can revert back to beginning of current action for the active player', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id,
                     offset: 0
                 });
+
+                expect(rollbackResult).toBeTrue();
 
                 assertP1Action3State(context);
 
@@ -276,10 +282,12 @@ describe('Snapshot types', function() {
             it('will revert to beginning of current action as the default for the active player', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id
                 });
+
+                expect(rollbackResult).toBeTrue();
 
                 assertP1Action3State(context);
 
@@ -303,19 +311,21 @@ describe('Snapshot types', function() {
             it('cannot revert back further than the total history for the active player (1 + 2)', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id,
                     offset: -1
                 });
 
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                expect(rollbackResult1).toBeTrue();
+
+                const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id,
                     offset: -2
                 });
 
-                expect(rollbackResult).toBeFalse();
+                expect(rollbackResult2).toBeFalse();
 
                 assertP1Action2State(context);
             });
@@ -323,19 +333,21 @@ describe('Snapshot types', function() {
             it('cannot revert back further than the total history for the active player (2 + 1)', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id,
                     offset: -2
                 });
 
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                expect(rollbackResult1).toBeTrue();
+
+                const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id,
                     offset: -1
                 });
 
-                expect(rollbackResult).toBeFalse();
+                expect(rollbackResult2).toBeFalse();
 
                 assertP1Action1State(context);
             });
@@ -343,11 +355,13 @@ describe('Snapshot types', function() {
             it('can revert back three actions for the non-active player', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
                     offset: -2
                 });
+
+                expect(rollbackResult).toBeTrue();
 
                 assertP2Action1State(context);
 
@@ -360,11 +374,13 @@ describe('Snapshot types', function() {
             it('can revert back two actions for the non-active player', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
                     offset: -1
                 });
+
+                expect(rollbackResult).toBeTrue();
 
                 assertP2Action2State(context);
 
@@ -377,11 +393,13 @@ describe('Snapshot types', function() {
             it('can revert back one action for the non-active player', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
                     offset: 0
                 });
+
+                expect(rollbackResult).toBeTrue();
 
                 assertP2Action3State(context);
 
@@ -394,10 +412,12 @@ describe('Snapshot types', function() {
             it('can revert back one action for the non-active player as the default', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id
                 });
+
+                expect(rollbackResult).toBeTrue();
 
                 assertP2Action3State(context);
 
@@ -422,19 +442,21 @@ describe('Snapshot types', function() {
             it('cannot revert back further than the total history for the non-active player (1 + 2)', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
                     offset: -1
                 });
 
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                expect(rollbackResult1).toBeTrue();
+
+                const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
                     offset: -2
                 });
 
-                expect(rollbackResult).toBeFalse();
+                expect(rollbackResult2).toBeFalse();
 
                 assertP2Action2State(context);
             });
@@ -442,19 +464,21 @@ describe('Snapshot types', function() {
             it('cannot revert back further than the total history for the non-active player (2 + 1)', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.rollbackToSnapshot({
+                const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
                     offset: -2
                 });
 
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                expect(rollbackResult1).toBeTrue();
+
+                const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
                     offset: -1
                 });
 
-                expect(rollbackResult).toBeFalse();
+                expect(rollbackResult2).toBeFalse();
 
                 assertP2Action1State(context);
             });
@@ -463,6 +487,7 @@ describe('Snapshot types', function() {
 
     // TODO THIS PR:
     // - undo to furthest-back action, walk through the whole phase again, then undo again
+    // - walk back through the undos one step at a time for both players
     // - confirm that rollbacks of different types (action, manual, phase) will remove newer snapshots of other types
     // - test the current round and current phase snapshots
     // - test some manual snapshots
