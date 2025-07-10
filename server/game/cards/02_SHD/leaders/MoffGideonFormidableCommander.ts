@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, WildcardZoneName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class MoffGideonFormidableCommander extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Attack with a unit that costs 3 or less. If it\'s attacking a unit, it gets +1/+0 for this attack',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -26,8 +27,8 @@ export default class MoffGideonFormidableCommander extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'Each friendly unit that costs 3 or less gets +1/+0 and gains Overwhelm while attacking an enemy unit',
             targetZoneFilter: WildcardZoneName.AnyArena,
             matchTarget: (card, context) => card.isUnit() && card.isAttacking() && card.controller === context.player && card.cost <= 3 && card.activeAttack?.getSingleTarget().isUnit(),

@@ -13,7 +13,7 @@ import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as Helpers from '../../utils/Helpers';
-import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
+import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import { InitializeCardStateOption, type Card } from '../Card';
 import type { ICardWithActionAbilities } from '../propertyMixins/ActionAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
@@ -271,8 +271,9 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     // ********************************************* ABILITY SETUP *********************************************
-    protected override getAbilityRegistrar(): any {
+    protected override getAbilityRegistrar() {
         const registrar: IInPlayCardAbilityRegistrar<this> = {
+            ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<this>,
             addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties),
             addWhenPlayedAbility: (properties) => this.addWhenPlayedAbility(properties),
             addWhenDefeatedAbility: (properties) => this.addWhenDefeatedAbility(properties),
@@ -280,10 +281,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
             addIgnoreSpecificAspectPenaltyAbility: (properties) => this.addIgnoreSpecificAspectPenaltyAbility(properties),
         };
 
-        return {
-            ...super.getAbilityRegistrar(),
-            ...registrar
-        };
+        return registrar;
     }
 
     protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {

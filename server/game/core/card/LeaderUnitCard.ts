@@ -2,7 +2,7 @@ import type { Player } from '../Player';
 import type { ZoneFilter } from '../Constants';
 import { CardType, DeployType, RelativePlayer, Trait, WildcardCardType } from '../Constants';
 import { AbilityType, ZoneName } from '../Constants';
-import type { IUnitCard } from './propertyMixins/UnitProperties';
+import type { IUnitAbilityRegistrar, IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, IAbilityPropsWithType } from '../../Interfaces';
@@ -16,6 +16,7 @@ import { WithLeaderProperties } from './propertyMixins/LeaderProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import AbilityHelper from '../../AbilityHelper';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from './AbilityRegistrationInterfaces';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
@@ -60,7 +61,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         }));
 
         this.setupLeaderUnitSide = true;
-        this.setupLeaderUnitSideAbilities(this);
+        this.setupLeaderUnitSideAbilities(this.getLeaderUnitAbilityRegistrar());
         this.validateCardAbilities(this.triggeredAbilities, cardData.deployBox);
     }
 
@@ -132,11 +133,25 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         this.moveTo(ZoneName.Base);
     }
 
+    protected getLeaderUnitAbilityRegistrar(): ILeaderUnitAbilityRegistrar & ILeaderUnitLeaderSideAbilityRegistrar {
+        return {
+            ...this.getAbilityRegistrar() as IUnitAbilityRegistrar<ILeaderUnitCard>,
+            addPilotDeploy: () => this.addPilotDeploy(),
+        };
+    }
+
+    protected override callSetupLeaderWithRegistrar() {
+        this.setupLeaderSideAbilities(this.getLeaderUnitAbilityRegistrar());
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {}
+
     /**
      * Create card abilities for the leader unit side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderUnitSideAbilities(sourceCard: this) {
+    protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
     }
 
     protected addPilotDeploy(makeAttachedUnitALeader: boolean = true) {
