@@ -1663,7 +1663,7 @@ class Game extends EventEmitter {
      *
      * @param {Player} player - The player for whom the snapshot is taken
      */
-    takeSnapshot(player) {
+    takeManualSnapshot(player) {
         if (this.isUndoEnabled) {
             this.snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId: player.id });
         }
@@ -1672,12 +1672,12 @@ class Game extends EventEmitter {
     /**
      * Restores the given player's most recent manual snapshot, if available
      *
-     * @param {Player} player - The player owning the snapshot to restore
+     * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
      * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshot(player) {
+    rollbackToSnapshot(settings) {
         if (this.isUndoEnabled && 'postRollbackOperations' in this.pipeline.currentStep) {
-            this.snapshotManager.rollbackTo({ type: SnapshotType.Manual, playerId: player.id });
+            this.snapshotManager.rollbackTo(settings);
 
             this.pipeline.currentStep.postRollbackOperations();
 

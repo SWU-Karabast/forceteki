@@ -35,18 +35,26 @@ export class ActionPhase extends Phase {
         }
     }
 
-    public queueNextAction() {
+    public queueNextAction(postUndo = false) {
+        if (postUndo) {
+            // TODO: this is a hack to get around the fact that the pipeline queueing isn't set up to handle being cleared in the middle of a phase.
+            // will be fixed in the next PR which will address the phase logic during undo
+            this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
+        }
+
         this.game.queueStep(new ActionWindow(
             this.game,
             'Action Window',
             'action',
             this.prevPlayerPassed,
             this.passStatusHandler,
-            this.getNextActionNumber(),
+            postUndo ? this.game.actionNumber : this.getNextActionNumber(),
             this.snapshotManager
         ));
 
-        this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
+        if (!postUndo) {
+            this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
+        }
     }
 
     private rotateActiveQueueNextAction() {
@@ -80,7 +88,7 @@ export class ActionPhase extends Phase {
 
     public postRollbackOperations() {
         this.resetPhase();
-        this.queueNextAction();
+        this.queueNextAction(true);
 
         // continue the action phase again.
         this.continue();

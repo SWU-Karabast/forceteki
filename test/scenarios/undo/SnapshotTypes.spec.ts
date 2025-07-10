@@ -38,8 +38,8 @@ describe('Snapshot types', function() {
                 // Death Trooper in hand
                 // No damage on units
 
-                context.p2Action1SnapshotId = contextRef.currentSnapshotId;
-                context.p2Action1ActionId = contextRef.currentSnapshottedAction;
+                context.p2Action1SnapshotId = contextRef.snapshot.currentSnapshotId;
+                context.p2Action1ActionId = contextRef.snapshot.currentSnapshottedAction;
 
                 context.player2.clickCard(context.superlaserTechnician);
                 context.player2.clickCard(context.p1Base);
@@ -51,8 +51,8 @@ describe('Snapshot types', function() {
                 // Death Trooper in hand
                 // No damage on units
 
-                context.p1Action1SnapshotId = contextRef.currentSnapshotId;
-                context.p1Action1ActionId = contextRef.currentSnapshottedAction;
+                context.p1Action1SnapshotId = contextRef.snapshot.currentSnapshotId;
+                context.p1Action1ActionId = contextRef.snapshot.currentSnapshottedAction;
 
                 // Play Death Trooper
                 context.player1.clickCard(context.deathTrooper);
@@ -73,8 +73,8 @@ describe('Snapshot types', function() {
                 // Death Trooper damage: 2
                 // Wampa damage: 2
 
-                context.p2Action2SnapshotId = contextRef.currentSnapshotId;
-                context.p2Action2ActionId = contextRef.currentSnapshottedAction;
+                context.p2Action2SnapshotId = contextRef.snapshot.currentSnapshotId;
+                context.p2Action2ActionId = contextRef.snapshot.currentSnapshottedAction;
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.p1Base);
@@ -87,8 +87,8 @@ describe('Snapshot types', function() {
                 // Death Trooper damage: 2
                 // Wampa damage: 2
 
-                context.p1Action2SnapshotId = contextRef.currentSnapshotId;
-                context.p1Action2ActionId = contextRef.currentSnapshottedAction;
+                context.p1Action2SnapshotId = contextRef.snapshot.currentSnapshotId;
+                context.p1Action2ActionId = contextRef.snapshot.currentSnapshottedAction;
 
                 context.player1.clickCard(context.secretiveSage);
                 context.player1.clickCard(context.p2Base);
@@ -101,8 +101,8 @@ describe('Snapshot types', function() {
                 // Death Trooper damage: 2
                 // Wampa damage: 2
 
-                context.p2Action3SnapshotId = contextRef.currentSnapshotId;
-                context.p2Action3ActionId = contextRef.currentSnapshottedAction;
+                context.p2Action3SnapshotId = contextRef.snapshot.currentSnapshotId;
+                context.p2Action3ActionId = contextRef.snapshot.currentSnapshottedAction;
 
                 context.player2.clickCard(context.tielnFighter);
                 context.player2.clickCard(context.p1Base);
@@ -115,40 +115,63 @@ describe('Snapshot types', function() {
                 // Death Trooper damage: 2
                 // Wampa damage: 2
 
-                context.finalSnapshotId = contextRef.currentSnapshotId;
-                context.finalActionId = contextRef.currentSnapshottedAction;
+                context.finalSnapshotId = contextRef.snapshot.currentSnapshotId;
+                context.finalActionId = contextRef.snapshot.currentSnapshottedAction;
+            });
+
+            it('are counted correctly for both players', function () {
+                const { context } = contextRef;
+
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(3);
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(3);
             });
 
             it('can revert back two actions for the active player', function () {
                 const { context } = contextRef;
 
-                contextRef.rollbackToSnapshot({
+                contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id,
                     offset: -2
                 });
 
-                expect(contextRef.currentSnapshotId).toEqual(context.p1Action1SnapshotId);
-                expect(contextRef.currentSnapshottedAction).toEqual(context.p1Action1ActionId);
+                expect(contextRef.snapshot.currentSnapshotId).toEqual(context.p1Action1SnapshotId);
+                expect(contextRef.snapshot.currentSnapshottedAction).toEqual(context.p1Action1ActionId);
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('hand');
                 expect(context.wampa.damage).toEqual(0);
                 expect(context.p1Base.damage).toEqual(2);
                 expect(context.p2Base.damage).toEqual(2);
+
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(1);
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(1);
+
+                // repeat action to ensure we can continue from this point
+
+                // Play Death Trooper
+                context.player1.clickCard(context.deathTrooper);
+
+                // Choose Friendly
+                context.player1.clickCard(context.deathTrooper);
+
+                // Choose Enemy
+                context.player1.clickCard(context.wampa);
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
             });
 
             it('can revert back one action for the active player', function () {
                 const { context } = contextRef;
 
-                contextRef.rollbackToSnapshot({
+                contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id,
                     offset: -1
                 });
 
-                expect(contextRef.currentSnapshotId).toEqual(context.p1Action2SnapshotId);
-                expect(contextRef.currentSnapshottedAction).toEqual(context.p1Action2ActionId);
+                expect(contextRef.snapshot.currentSnapshotId).toEqual(context.p1Action2SnapshotId);
+                expect(contextRef.snapshot.currentSnapshottedAction).toEqual(context.p1Action2ActionId);
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('groundArena');
@@ -156,19 +179,27 @@ describe('Snapshot types', function() {
                 expect(context.wampa.damage).toEqual(2);
                 expect(context.p1Base.damage).toEqual(6);
                 expect(context.p2Base.damage).toEqual(2);
+
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(2);
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(2);
+
+                // repeat action to ensure we can continue from this point
+                context.player1.clickCard(context.secretiveSage);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toEqual(4);
             });
 
             it('can revert back to beginning of current action for the active player', function () {
                 const { context } = contextRef;
 
-                contextRef.rollbackToSnapshot({
+                contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id,
                     offset: 0
                 });
 
-                expect(contextRef.currentSnapshotId).toEqual(context.p1Action2SnapshotId);
-                expect(contextRef.currentSnapshottedAction).toEqual(context.p1Action2ActionId);
+                expect(contextRef.snapshot.currentSnapshotId).toEqual(context.p1Action2SnapshotId);
+                expect(contextRef.snapshot.currentSnapshottedAction).toEqual(context.p1Action2ActionId);
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('groundArena');
@@ -176,18 +207,25 @@ describe('Snapshot types', function() {
                 expect(context.wampa.damage).toEqual(2);
                 expect(context.p1Base.damage).toEqual(8);
                 expect(context.p2Base.damage).toEqual(4);
+
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(3);
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(3);
+
+                // do a new action to ensure we can continue from this point
+                context.player1.passAction();
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('will revert to beginning of current action as the default for the active player', function () {
                 const { context } = contextRef;
 
-                contextRef.rollbackToSnapshot({
+                contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id
                 });
 
-                expect(contextRef.currentSnapshotId).toEqual(context.p1Action2SnapshotId);
-                expect(contextRef.currentSnapshottedAction).toEqual(context.p1Action2ActionId);
+                expect(contextRef.snapshot.currentSnapshotId).toEqual(context.p1Action2SnapshotId);
+                expect(contextRef.snapshot.currentSnapshottedAction).toEqual(context.p1Action2ActionId);
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('groundArena');
@@ -195,13 +233,20 @@ describe('Snapshot types', function() {
                 expect(context.wampa.damage).toEqual(2);
                 expect(context.p1Base.damage).toEqual(8);
                 expect(context.p2Base.damage).toEqual(4);
+
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(3);
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(3);
+
+                // do a new action to ensure we can continue from this point
+                context.player1.passAction();
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('cannot revert back more than two actions for the active player', function () {
                 const { context } = contextRef;
 
                 expect(() => {
-                    contextRef.rollbackToSnapshot({
+                    contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
                         offset: -3
@@ -212,33 +257,41 @@ describe('Snapshot types', function() {
             it('can revert back three actions for the non-active player', function () {
                 const { context } = contextRef;
 
-                contextRef.rollbackToSnapshot({
+                contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
                     offset: -2
                 });
 
-                expect(contextRef.currentSnapshotId).toEqual(context.p2Action1SnapshotId);
-                expect(contextRef.currentSnapshottedAction).toEqual(context.p2Action1ActionId);
+                expect(contextRef.snapshot.currentSnapshotId).toEqual(context.p2Action1SnapshotId);
+                expect(contextRef.snapshot.currentSnapshottedAction).toEqual(context.p2Action1ActionId);
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('hand');
                 expect(context.wampa.damage).toEqual(0);
                 expect(context.p1Base.damage).toEqual(0);
                 expect(context.p2Base.damage).toEqual(2);
+
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(0);
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(1);
+
+                // repeat action to ensure we can continue from this point
+                context.player2.clickCard(context.superlaserTechnician);
+                context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toEqual(2);
             });
 
             it('can revert back two actions for the non-active player', function () {
                 const { context } = contextRef;
 
-                contextRef.rollbackToSnapshot({
+                contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
                     offset: -1
                 });
 
-                expect(contextRef.currentSnapshotId).toEqual(context.p2Action2SnapshotId);
-                expect(contextRef.currentSnapshottedAction).toEqual(context.p2Action2ActionId);
+                expect(contextRef.snapshot.currentSnapshotId).toEqual(context.p2Action2SnapshotId);
+                expect(contextRef.snapshot.currentSnapshottedAction).toEqual(context.p2Action2ActionId);
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('groundArena');
@@ -246,19 +299,27 @@ describe('Snapshot types', function() {
                 expect(context.wampa.damage).toEqual(2);
                 expect(context.p1Base.damage).toEqual(2);
                 expect(context.p2Base.damage).toEqual(2);
+
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(1);
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(2);
+
+                // repeat action to ensure we can continue from this point
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toEqual(6);
             });
 
             it('can revert back one action for the non-active player', function () {
                 const { context } = contextRef;
 
-                contextRef.rollbackToSnapshot({
+                contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
                     offset: 0
                 });
 
-                expect(contextRef.currentSnapshotId).toEqual(context.p2Action3SnapshotId);
-                expect(contextRef.currentSnapshottedAction).toEqual(context.p2Action3ActionId);
+                expect(contextRef.snapshot.currentSnapshotId).toEqual(context.p2Action3SnapshotId);
+                expect(contextRef.snapshot.currentSnapshottedAction).toEqual(context.p2Action3ActionId);
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('groundArena');
@@ -266,13 +327,21 @@ describe('Snapshot types', function() {
                 expect(context.wampa.damage).toEqual(2);
                 expect(context.p1Base.damage).toEqual(6);
                 expect(context.p2Base.damage).toEqual(4);
+
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(2);
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(3);
+
+                // repeat action to ensure we can continue from this point
+                context.player2.clickCard(context.tielnFighter);
+                context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toEqual(8);
             });
 
             it('cannot revert back more than three actions for the non-active player', function () {
                 const { context } = contextRef;
 
                 expect(() => {
-                    contextRef.rollbackToSnapshot({
+                    contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
                         offset: -3
@@ -281,4 +350,13 @@ describe('Snapshot types', function() {
             });
         });
     });
+
+    // TODO THIS PR:
+    // - try to roll back further than current history (should just return false)
+    // - undo to furthest-back action, walk through the whole phase again, then undo again
+    // - confirm that rollbacks of different types (action, manual, phase) will remove newer snapshots of other types
+    // - test the current round and current phase snapshots
+    // - test some manual snapshots
+
+    // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file
 });

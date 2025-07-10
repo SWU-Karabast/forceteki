@@ -8,6 +8,7 @@ import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
+export type IUpdateCurrentSnapshotHandler = (snapshot: IGameSnapshot) => void;
 
 /**
  * This class is the point of coordination for all snapshot creation and storage.
@@ -50,6 +51,7 @@ export class SnapshotFactory {
                 this.game,
                 this.gameStateManager,
                 () => this.getCurrentActionSnapshot(),
+                (snapshot: IGameSnapshot) => this.updateCurrentActionSnapshot(snapshot),
                 clearNewerSnapshotsBinding
             )
         );
@@ -61,6 +63,7 @@ export class SnapshotFactory {
                 this.game,
                 this.gameStateManager,
                 () => this.getCurrentActionSnapshot(),
+                (snapshot: IGameSnapshot) => this.updateCurrentActionSnapshot(snapshot),
                 clearNewerSnapshotsBinding
             )
         );
@@ -73,6 +76,7 @@ export class SnapshotFactory {
                 this.game,
                 this.gameStateManager,
                 () => this.getCurrentActionSnapshot(),
+                (snapshot: IGameSnapshot) => this.updateCurrentActionSnapshot(snapshot),
                 clearNewerSnapshotsBinding
             )
         );
@@ -120,6 +124,15 @@ export class SnapshotFactory {
         Contract.assertNotNullLike(this.currentActionSnapshot, 'Attempting to read action snapshot before any is set, meaning the game is likely not initialized');
 
         return this.currentActionSnapshot;
+    }
+
+    /**
+     * Helper method to facilitate snapshot updating the current snapshot after a rollback
+     */
+    private updateCurrentActionSnapshot(snapshot: IGameSnapshot): void {
+        Contract.assertNotNullLike(this.currentActionSnapshot, 'Attempting to read action snapshot before any is set, meaning the game is likely not initialized');
+
+        this.currentActionSnapshot = snapshot;
     }
 
     /** Helper method for correctly building snapshot containers in a way that they can pass back a handle for calling the `clearNewerSnapshots()` method */

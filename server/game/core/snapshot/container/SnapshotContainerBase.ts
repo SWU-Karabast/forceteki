@@ -1,4 +1,4 @@
-import type { IGetCurrentSnapshotHandler } from '../SnapshotFactory';
+import type { IGetCurrentSnapshotHandler, IUpdateCurrentSnapshotHandler } from '../SnapshotFactory';
 import type { GameStateManager } from '../../GameStateManager';
 import type Game from '../../Game';
 import type { IGameSnapshot } from '../SnapshotInterfaces';
@@ -19,6 +19,7 @@ export interface IClearNewerSnapshotsBinding {
  */
 export abstract class SnapshotContainerBase {
     protected readonly getCurrentSnapshotFn: IGetCurrentSnapshotHandler;
+    protected readonly updateCurrentSnapshotFn: IUpdateCurrentSnapshotHandler;
 
     private readonly game: Game;
     private readonly gameStateManager: GameStateManager;
@@ -27,11 +28,13 @@ export abstract class SnapshotContainerBase {
         game: Game,
         gameStateManager: GameStateManager,
         getCurrentSnapshotFn: IGetCurrentSnapshotHandler,
+        updateCurrentSnapshotFn: IUpdateCurrentSnapshotHandler,
         clearNewerSnapshotsBinding: IClearNewerSnapshotsBinding
     ) {
         this.game = game;
         this.gameStateManager = gameStateManager;
         this.getCurrentSnapshotFn = getCurrentSnapshotFn;
+        this.updateCurrentSnapshotFn = updateCurrentSnapshotFn;
 
         clearNewerSnapshotsBinding.clearNewerSnapshots = (snapshotId: number) => this.clearNewerSnapshots(snapshotId);
     }
@@ -41,5 +44,6 @@ export abstract class SnapshotContainerBase {
 
     protected rollbackToSnapshotInternal(snapshot: IGameSnapshot): void {
         this.gameStateManager.rollbackToSnapshot(snapshot);
+        this.updateCurrentSnapshotFn(snapshot);
     }
 }

@@ -1,6 +1,6 @@
 import type Game from '../../Game';
 import type { GameStateManager } from '../../GameStateManager';
-import type { IGetCurrentSnapshotHandler } from '../SnapshotFactory';
+import type { IGetCurrentSnapshotHandler, IUpdateCurrentSnapshotHandler } from '../SnapshotFactory';
 import type { IGameSnapshot } from '../SnapshotInterfaces';
 import type { IClearNewerSnapshotsBinding } from './SnapshotContainerBase';
 import { SnapshotContainerBase } from './SnapshotContainerBase';
@@ -21,14 +21,20 @@ export class SnapshotArray extends SnapshotContainerBase {
         game: Game,
         gameStateManager: GameStateManager,
         getCurrentSnapshotFn: IGetCurrentSnapshotHandler,
+        updateCurrentSnapshotFn: IUpdateCurrentSnapshotHandler,
         clearNewerSnapshotsBinding: IClearNewerSnapshotsBinding
     ) {
-        super(game, gameStateManager, getCurrentSnapshotFn, clearNewerSnapshotsBinding);
+        super(game, gameStateManager, getCurrentSnapshotFn, updateCurrentSnapshotFn, clearNewerSnapshotsBinding);
         this.maxLength = maxLength;
     }
 
     public takeSnapshot(): void {
         const currentSnapshot = this.getCurrentSnapshotFn();
+
+        if (this.snapshots.length > 0 && this.snapshots[this.snapshots.length - 1].id === currentSnapshot.id) {
+            // If the current snapshot is identical to the last one, do not add it again
+            return;
+        }
 
         // the array is bounded at maxLength + 1 to allow for the current snapshot
         if (this.snapshots.length >= this.maxLength + 1) {

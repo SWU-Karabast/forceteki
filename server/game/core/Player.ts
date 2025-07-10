@@ -63,6 +63,7 @@ export interface IPlayerState extends IGameObjectState {
     passedActionPhase: boolean;
     // IDeckList is made up of arrays and GameObjectRefs, so it's serializable.
     decklist: IDeckList;
+    promptState: PlayerPromptState;
 }
 
 export class Player extends GameObject<IPlayerState> {

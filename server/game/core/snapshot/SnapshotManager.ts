@@ -121,7 +121,7 @@ export class SnapshotManager {
         }
     }
 
-    // public canUndo(player: Player) {
-    //     return !!this.getSnapshotForPlayer(player.getRef());
-    // }
+    public countAvailableActionSnapshots(playerId: string): number {
+        return this.actionSnapshots.getSnapshotCount(playerId);
+    }
 }

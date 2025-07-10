@@ -13,6 +13,7 @@ const GameStateBuilder = require('./GameStateBuilder.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const { cards } = require('../../server/game/cards/Index.js');
 const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
+const { SnapshotType } = require('../../server/game/core/Constants.js');
 
 // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
 if (!jasmine.getEnv().configuration().random) {
@@ -59,9 +60,13 @@ global.integration = function (definitions, enableUndo = false) {
             const newContext = {};
             this.contextRef = contextRef;
             contextRef.context = newContext;
-            contextRef.currentSnapshotId = () => gameFlowWrapper.snapshotManager.currentSnapshotId;
-            contextRef.currentSnapshottedAction = () => gameFlowWrapper.snapshotManager.currentSnapshottedAction;
-            contextRef.rollbackToSnapshot = (settings) => gameFlowWrapper.snapshotManager.rollbackTo(settings);
+
+            contextRef.snapshot = {
+                currentSnapshotId: () => gameFlowWrapper.snapshotManager?.currentSnapshotId,
+                currentSnapshottedAction: () => gameFlowWrapper.snapshotManager?.currentSnapshottedAction,
+                rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshot(settings),
+                countAvailableActionSnapshots: (playerId) => gameFlowWrapper.snapshotManager?.countAvailableActionSnapshots(playerId),
+            };
 
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
             gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
@@ -71,13 +76,17 @@ global.integration = function (definitions, enableUndo = false) {
              */
             const setupGameStateWrapperAsync = async (options) => {
                 // If this isn't an Undo Test, or this is an Undo Test that has the setup within the undoIt call rather than a beforeEach, run the setup.
-                if (!newContext.isUndoTest || newContext.snapshotId) {
+                // this is to prevent repeated setup calls when we run the test twice in an Undo test.
+                if (!newContext.isUndoTest || newContext.snapshot.snapshotId) {
                     await gameStateBuilder.setupGameStateAsync(newContext, options);
                     gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
+
                     newContext.hasSetupGame = true;
+
                     if (newContext.isUndoTest) {
-                        newContext.snapshotId = newContext.game.enableUndo(() => {
-                            return newContext.game.takeSnapshot();
+                        newContext.snapshot.snapshotPlayer = newContext.game.getActivePlayer();
+                        newContext.snapshot.snapshotId = newContext.game.enableUndo(() => {
+                            return newContext.game.takeManualSnapshot(newContext.snapshotPlayer);
                         });
                     }
                 }
@@ -152,26 +161,31 @@ global.undoIt = function(expectation, assertion, timeout) {
     jit(expectation + ' (with Undo)', async function() {
         /** @type {SwuTestContext} */
         const context = this.contextRef.context;
+        const snapshotUtils = this.contextRef.snapshot;
         context.isUndoTest = true;
 
         // If the game setup was in a beforeEach before this was called, take a snapshot.
         if (context.hasSetupGame) {
-            context.snapshotId = context.game.enableUndo(() => {
-                return context.game.takeSnapshot(context.game.getActivePlayer());
+            snapshotUtils.snapshotPlayer = this.game.getActivePlayer();
+            snapshotUtils.snapshotId = context.game.enableUndo(() => {
+                return context.game.takeManualSnapshot(snapshotUtils.snapshotPlayer);
             });
         }
 
-        if (context.snapshotId === -1) {
+        if (snapshotUtils.snapshotId === -1) {
             throw new Error('Snapshot ID invalid');
         }
 
         await assertion();
-        if (context.snapshotId == null) {
+        if (snapshotUtils.snapshotId == null) {
             // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
             return;
         }
         const rolledBack = context.game.enableUndo(() => {
-            return context.game.rollbackToSnapshot(context.snapshotId);
+            return context.game.rollbackToSnapshot({
+                type: SnapshotType.Manual,
+                playerId: snapshotUtils.snapshotPlayer.id,
+            });
         });
         if (!rolledBack) {
             // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.

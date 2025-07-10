@@ -12,6 +12,7 @@ type PlayerInteractionWrapper = import('./PlayerInteractionWrapper');
 type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
 type SnapshotType = import('../../server/game/core/Constants').SnapshotType;
 type IGetSnapshotSettings = import('../../server/game/core/snapshot/SnapshotInterfaces').IGetSnapshotSettings;
+type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
 
 declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
 
@@ -26,12 +27,20 @@ interface ITestGetSnapshotSettings {
     phaseName?: PhaseName;
 }
 
+interface SnapshotUtils {
+    snapshotPlayer?: Player;
+    snapshotId?: number;
+
+    readonly currentSnapshotId: number | null;
+    readonly currentSnapshottedAction: number | null;
+
+    countAvailableActionSnapshots: (playerId: string) => number;
+    rollbackToSnapshot: (settings: ITestGetSnapshotSettings) => boolean;
+}
+
 interface SwuTestContextRef {
     context: SwuTestContext;
-    snapshotId?: number;
-    readonly currentSnapshotId?: number;
-    readonly currentSnapshottedAction?: number;
-    rollbackToSnapshot?: (settings: ITestGetSnapshotSettings) => boolean;
+    snapshot?: SnapshotUtils;
     setupTestAsync: (options?: SwuSetupTestOptions) => Promise;
 
     buildImportAllCardsTools: () => {
@@ -54,7 +63,6 @@ interface SwuTestContext {
     p1Leader: ILeaderCard;
     p2Base: IBaseCard;
     p2Leader: ILeaderCard;
-    snapshotId?: number;
 
     ignoreUnresolvedActionPhasePrompts: boolean;
     requireResolvedRegroupPhasePrompts: boolean;
