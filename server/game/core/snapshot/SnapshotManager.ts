@@ -54,7 +54,6 @@ export class SnapshotManager {
         this.actionSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(maxActionSnapshots);
         this.manualSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(maxManualSnapshots);
         this.phaseSnapshots = this.snapshotFactory.createSnapshotHistoryMap<PhaseName>(maxPhaseSnapshots);
-        this.roundStartSnapshots = this.snapshotFactory.createSnapshotArray(maxRoundSnapshots);
     }
 
     /** Indicates that we're on a new action and that new snapshots can be taken */
@@ -77,9 +76,6 @@ export class SnapshotManager {
                 break;
             case SnapshotType.Manual:
                 this.manualSnapshots.takeSnapshot(settings.playerId);
-                break;
-            case SnapshotType.Round:
-                this.roundStartSnapshots.takeSnapshot();
                 break;
             case SnapshotType.Phase:
                 this.phaseSnapshots.takeSnapshot(settings.phaseName);
@@ -104,9 +100,6 @@ export class SnapshotManager {
                 break;
             case SnapshotType.Manual:
                 rolledBackSnapshotIdx = this.manualSnapshots.rollbackToSnapshot(settings.playerId, offset);
-                break;
-            case SnapshotType.Round:
-                rolledBackSnapshotIdx = this.roundStartSnapshots.rollbackToSnapshot(offset);
                 break;
             case SnapshotType.Phase:
                 rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName, offset);

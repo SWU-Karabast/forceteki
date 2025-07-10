@@ -22,11 +22,7 @@ export interface IPhaseSnapshotSettings extends ISnapshotSettingsBase {
     phaseName: PhaseName;
 }
 
-export interface IRoundSnapshotSettings extends ISnapshotSettingsBase {
-    type: SnapshotType.Round;
-}
-
-export type ISnapshotSettings = IActionSnapshotSettings | IPhaseSnapshotSettings | IManualSnapshotSettings | IRoundSnapshotSettings;
+export type ISnapshotSettings = IActionSnapshotSettings | IPhaseSnapshotSettings | IManualSnapshotSettings;
 
 export type IGetSnapshotSettings = ISnapshotSettings & {
 
