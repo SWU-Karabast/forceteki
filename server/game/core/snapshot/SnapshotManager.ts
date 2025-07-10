@@ -91,7 +91,7 @@ export class SnapshotManager {
 
     public rollbackTo(settings: IGetSnapshotSettings) {
         if (!this.undoEnabled) {
-            return;
+            return false;
         }
 
         const offset = settings.offset ?? 0;
@@ -118,7 +118,10 @@ export class SnapshotManager {
         if (rolledBackSnapshotIdx != null) {
             // Throw out all snapshots after the rollback snapshot.
             this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
+            return true;
         }
+
+        return false;
     }
 
     public countAvailableActionSnapshots(playerId: string): number {
