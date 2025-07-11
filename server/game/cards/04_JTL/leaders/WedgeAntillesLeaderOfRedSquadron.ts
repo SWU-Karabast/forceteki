@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import {
     AbilityType,
@@ -19,10 +20,10 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addPilotDeploy();
 
-        this.addActionAbility({
+        registrar.addActionAbility({
             title: 'Play a card from your hand using Piloting. It costs 1 less.',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -38,8 +39,8 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingGainAbilityTargetingAttached({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'The next Pilot you play this phase costs 1 less',
             when: {

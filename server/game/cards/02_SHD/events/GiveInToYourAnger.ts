@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Duration, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class GiveInToYourAnger extends EventCard {
@@ -10,8 +11,8 @@ export default class GiveInToYourAnger extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Deal 1 damage to an enemy unit. Its controller’s next action this phase must be an attack action with that unit, if able. It must attack a unit, if able.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

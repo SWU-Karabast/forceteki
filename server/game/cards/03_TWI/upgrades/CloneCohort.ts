@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { KeywordName } from '../../../core/Constants';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class CloneCohort extends UpgradeCard {
@@ -10,13 +11,13 @@ export default class CloneCohort extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainWhenDefeatedAbilityTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'Create a Clone Trooper token.',
             immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper()
         });
 
-        this.addGainKeywordTargetingAttached({
+        registrar.addGainKeywordTargetingAttached({
             keyword: KeywordName.Raid,
             amount: 2
         });

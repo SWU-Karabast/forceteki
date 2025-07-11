@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { AbilityType, DamageType } from '../../../core/Constants';
 
 export default class HeroicSacrifice extends EventCard {
@@ -10,8 +11,8 @@ export default class HeroicSacrifice extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Draw a card',
             immediateEffect: AbilityHelper.immediateEffects.draw(),
             then: {

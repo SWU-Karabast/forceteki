@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { RelativePlayer, TargetMode, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 
@@ -11,8 +12,8 @@ export default class PalpatinesReturn extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Play a unit from your discard pile. It costs 6 less. If it’s a Force unit, it costs 8 less instead.',
             targetResolver: {
                 mode: TargetMode.Single,

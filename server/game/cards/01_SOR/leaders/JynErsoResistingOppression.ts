@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class JynErsoResistingOppression extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Attack with a unit. The defender gets -1/-0 for this attack.',
             cost: AbilityHelper.costs.exhaustSelf(),
             initiateAttack: {
@@ -22,8 +23,8 @@ export default class JynErsoResistingOppression extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'While a friendly unit is attacking, the defender gets -1/-0.',
             targetController: RelativePlayer.Opponent,
             matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isDefending() && card.activeAttack.attacker.controller === context.player,

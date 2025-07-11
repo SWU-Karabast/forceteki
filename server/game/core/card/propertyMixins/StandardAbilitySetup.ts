@@ -1,4 +1,5 @@
 import * as Contract from '../../utils/Contract';
+import type { IBasicAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { CardConstructor, ICardState } from '../Card';
 
 /** Mixin function that creates a version of the base class that is a Token. */
@@ -10,7 +11,7 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TSta
 
             const [Player, cardData] = this.unpackConstructorArgs(...args);
 
-            this.setupCardAbilities(this);
+            this.callSetupWithRegistrar();
             this.validateCardAbilities(this.triggeredAbilities, cardData.text);
 
             // if an implementation file is provided, enforce that all keywords requiring explicit setup have been set up
@@ -24,10 +25,14 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TSta
             }
         }
 
+        protected callSetupWithRegistrar() {
+            throw new Error('This method should be overridden in the subclass (such as UnitCard) to set up card abilities with the correct ability registrar type.');
+        }
+
         /**
          * Create card abilities by calling subsequent methods with appropriate properties
          */
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        protected setupCardAbilities(sourceCard: this) { }
+        protected setupCardAbilities(registrar: IBasicAbilityRegistrar<this>) { }
     };
 }

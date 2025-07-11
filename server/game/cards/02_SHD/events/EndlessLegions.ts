@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { GameStateChangeRequired, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -14,8 +15,8 @@ export default class EndlessLegions extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Reveal any number of resources you control',
             targetResolver: {
                 mode: TargetMode.Unlimited,

@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class AllWingsReportIn extends EventCard {
@@ -10,8 +11,8 @@ export default class AllWingsReportIn extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Exhaust up to 2 friendly space units. For each unit exhausted this way, create an X-Wing token',
             targetResolver: {
                 mode: TargetMode.UpTo,

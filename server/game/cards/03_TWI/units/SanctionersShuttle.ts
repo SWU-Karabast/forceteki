@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, RelativePlayer } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class SanctionersShuttle extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addCoordinateAbility({
             type: AbilityType.Triggered,
             title: 'This unit captures an enemy non-leader unit that costs 3 or less. ',
             when: {

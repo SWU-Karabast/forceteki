@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -11,8 +12,8 @@ export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Play a Heroism unit from your discard pile. It costs 3 less',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Heroism),
@@ -25,7 +26,7 @@ export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
             }
         });
 
-        this.addConstantAbility({
+        registrar.addConstantAbility({
             title: 'Each other friendly unit gains Restore 1.',
             matchTarget: (card, context) => card.isUnit() && card.controller === context.player && card !== context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Restore, amount: 1 })

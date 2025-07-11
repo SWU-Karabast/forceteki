@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class BenduDoYouFearTheStorm extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class BenduDoYouFearTheStorm extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'Deal 3 damage to each other unit',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 3,

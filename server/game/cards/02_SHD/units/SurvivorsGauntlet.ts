@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
 
@@ -11,8 +12,8 @@ export default class SurvivorsGauntlet extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Attach an upgrade on a unit to another eligible unit controlled by the same player',
             optional: true,
             when: {

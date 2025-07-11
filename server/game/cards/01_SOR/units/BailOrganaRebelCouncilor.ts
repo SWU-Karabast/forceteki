@@ -1,3 +1,4 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
@@ -10,8 +11,8 @@ export default class BailOrganaRebelCouncilor extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addActionAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Give an Experience token to another friendly unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {

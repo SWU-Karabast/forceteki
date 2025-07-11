@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { PlayType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class HondoOhnakaThatsGoodBusiness extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Exhaust this leader to give an Experience token to a unit',
             optional: true,
             when: {
@@ -27,8 +28,8 @@ export default class HondoOhnakaThatsGoodBusiness extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Give an Experience token to a unit',
             optional: true,
             when: {

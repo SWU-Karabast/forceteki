@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class MercilessContest extends EventCard {
@@ -10,8 +11,8 @@ export default class MercilessContest extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Each player chooses a non-leader unit they control. Defeat those units.',
             targetResolvers: {
                 opponentChoice: {

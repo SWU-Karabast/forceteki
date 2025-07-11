@@ -1,3 +1,4 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { AbilityRestriction } from '../../../core/Constants';
@@ -11,8 +12,8 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addReplacementEffectAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addReplacementEffectAbility({
             title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
             when: {
                 onCardCaptured: (event, context) =>
@@ -26,7 +27,7 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
         });
 
         // TODO: Update damage prevention using replacement effects
-        this.addConstantAbility({
+        registrar.addConstantAbility({
             title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot({
                 cannot: AbilityRestriction.ReceiveDamage,
