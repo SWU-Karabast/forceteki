@@ -1679,9 +1679,12 @@ class Game extends EventEmitter {
         if (this.isUndoEnabled && 'postRollbackOperations' in this.pipeline.currentStep) {
             const result = this.snapshotManager.rollbackTo(settings);
 
-            this.pipeline.currentStep.postRollbackOperations();
+            if (!result) {
+                return false;
+            }
 
-            return result;
+            this.pipeline.currentStep.postRollbackOperations();
+            return true;
         }
 
         return false;

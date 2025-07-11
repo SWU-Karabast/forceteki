@@ -42,6 +42,8 @@ export abstract class SnapshotContainerBase {
     /** Delete any snapshots newer than the given snapshotId. Used with undo to remove snapshots that are now invalid. */
     protected abstract clearNewerSnapshots(snapshotId: number): void;
 
+    public abstract clearAllSnapshots(): void;
+
     protected rollbackToSnapshotInternal(snapshot: IGameSnapshot): void {
         this.gameStateManager.rollbackToSnapshot(snapshot);
         this.updateCurrentSnapshotFn(snapshot);

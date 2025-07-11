@@ -6,6 +6,7 @@ import { SnapshotArray } from './container/SnapshotArray';
 import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler, SnapshotContainerBase } from './container/SnapshotContainerBase';
 import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
+import type { PhaseName } from '../Constants';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
 export type IUpdateCurrentSnapshotHandler = (snapshot: IGameSnapshot) => void;
@@ -35,8 +36,16 @@ export class SnapshotFactory {
         return this.currentActionSnapshot?.actionNumber ?? null;
     }
 
+    public get currentSnapshottedPhase(): PhaseName | null {
+        return this.currentActionSnapshot?.phase ?? null;
+    }
+
+    public get currentSnapshottedRound(): number | null {
+        return this.currentActionSnapshot?.roundNumber ?? null;
+    }
+
     public get currentSnapshotId(): number | null {
-        return this.lastAssignedSnapshotId < 0 ? null : this.lastAssignedSnapshotId;
+        return this.currentActionSnapshot?.id ?? null;
     }
 
     public constructor(game: Game, gameStateManager: GameStateManager) {
@@ -82,12 +91,16 @@ export class SnapshotFactory {
         );
     }
 
+    public clearCurrentSnapshot(): void {
+        this.currentActionSnapshot = null;
+    }
+
     /**
      * Notifies all snapshot containers to clear any snapshots that were taken after the given snapshot ID.
      * @param snapshotId - The ID of the snapshot to clear newer snapshots for.
      */
     public clearNewerSnapshots(snapshotId: number): void {
-        Contract.assertPositiveNonZero(snapshotId);
+        Contract.assertNonNegative(snapshotId);
 
         for (const clearNewerSnapshots of this.clearNewerSnapshotsHandlers) {
             clearNewerSnapshots(snapshotId);
@@ -108,6 +121,8 @@ export class SnapshotFactory {
             id: nextSnapshotId,
             lastGameObjectId: this.gameStateManager.lastGameObjectId,
             actionNumber: this.game.actionNumber,
+            roundNumber: this.game.roundNumber,
+            phase: this.game.currentPhase,
             gameState: structuredClone(this.game.state),
             states: this.gameStateManager.getAllGameStates(),
         };

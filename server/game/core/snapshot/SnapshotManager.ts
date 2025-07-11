@@ -6,13 +6,11 @@ import { GameStateManager } from '../GameStateManager';
 import type { IGetSnapshotSettings, ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
-import type { SnapshotArray } from './container/SnapshotArray';
 import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 
 const maxManualSnapshots = 5; // Number of manual player snapshots
 const maxActionSnapshots = 3; // Number of actions saved for undo in a turn (per player)
 const maxPhaseSnapshots = 2; // Current and previous of a specific phase
-const maxRoundSnapshots = 2; // Current and previous start of round
 
 /**
  * The "interface" class for managing snapshots in the game.
@@ -25,12 +23,11 @@ export class SnapshotManager {
     public readonly undoEnabled: boolean;
 
     private readonly _gameStateManager: GameStateManager;
-    private readonly snapshotFactory: SnapshotFactory;
+    protected readonly snapshotFactory: SnapshotFactory;
 
-    private readonly actionSnapshots: SnapshotHistoryMap<string>;
-    private readonly manualSnapshots: SnapshotHistoryMap<string>;
-    private readonly phaseSnapshots: SnapshotHistoryMap<PhaseName>;
-    private readonly roundStartSnapshots: SnapshotArray;
+    protected readonly actionSnapshots: SnapshotHistoryMap<string>;
+    protected readonly manualSnapshots: SnapshotHistoryMap<string>;
+    protected readonly phaseSnapshots: SnapshotHistoryMap<PhaseName>;
 
     public get currentSnapshotId(): number | null {
         return this.snapshotFactory.currentSnapshotId;
@@ -38,6 +35,14 @@ export class SnapshotManager {
 
     public get currentSnapshottedAction(): number | null {
         return this.snapshotFactory.currentSnapshottedAction;
+    }
+
+    public get currentSnapshottedPhase(): PhaseName | null {
+        return this.snapshotFactory.currentSnapshottedPhase;
+    }
+
+    public get currentSnapshottedRound(): number | null {
+        return this.snapshotFactory.currentSnapshottedRound;
     }
 
     /** Exposes a version of GameStateManager that doesn't have access to rollback functionality */
@@ -119,5 +124,12 @@ export class SnapshotManager {
 
     public countAvailableActionSnapshots(playerId: string): number {
         return this.actionSnapshots.getSnapshotCount(playerId);
+    }
+
+    public clearAllSnapshots(): void {
+        this.actionSnapshots.clearAllSnapshots();
+        this.manualSnapshots.clearAllSnapshots();
+        this.phaseSnapshots.clearAllSnapshots();
+        this.snapshotFactory.clearCurrentSnapshot();
     }
 }

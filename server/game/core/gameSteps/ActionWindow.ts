@@ -1,5 +1,5 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { EventName, EffectName, SnapshotType } from '../Constants.js';
+import { EventName, EffectName, SnapshotType, PhaseName } from '../Constants.js';
 import * as EnumHelpers from '../utils/EnumHelpers.js';
 import * as Contract from '../utils/Contract.js';
 import type Game from '../Game.js';
@@ -97,14 +97,7 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override continue() {
-        // take a snapshot for the current action if it doesn't already exist
-        if (this.snapshotManager.currentSnapshottedAction !== this.actionNumber) {
-            this.snapshotManager.moveToNextAction();
-            this.snapshotManager.takeSnapshot({
-                type: SnapshotType.Action,
-                playerId: this.activePlayer.id
-            });
-        }
+        this.checkUpdateSnapshots();
 
         // TODO: do we need promptedActionWindows?
         if (!this.activePlayer.promptedActionWindows[this.windowName]) {
@@ -120,6 +113,28 @@ export class ActionWindow extends UiPrompt {
             this.game.currentActionWindow = null;
         }
         return completed;
+    }
+
+    private checkUpdateSnapshots() {
+        const needsActionSnapshot = this.snapshotManager.currentSnapshottedAction !== this.actionNumber;
+        const needsActionPhaseStartSnapshot =
+            this.snapshotManager.currentSnapshottedPhase !== this.game.currentPhase ||
+            this.snapshotManager.currentSnapshottedRound !== this.game.roundNumber;
+
+        if (needsActionSnapshot) {
+            this.snapshotManager.moveToNextAction();
+            this.snapshotManager.takeSnapshot({
+                type: SnapshotType.Action,
+                playerId: this.activePlayer.id
+            });
+        }
+
+        if (needsActionPhaseStartSnapshot) {
+            this.snapshotManager.takeSnapshot({
+                type: SnapshotType.Phase,
+                phaseName: PhaseName.Action
+            });
+        }
     }
 
     private stopActionTimer() {

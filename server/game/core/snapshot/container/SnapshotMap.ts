@@ -39,4 +39,8 @@ export class SnapshotMap<T> extends SnapshotContainerBase {
 
         this.snapshots = new Map(snapshotsWithKeys.filter(([, snapshot]) => snapshot.id <= snapshotId));
     }
+
+    public override clearAllSnapshots(): void {
+        this.snapshots.clear();
+    }
 }

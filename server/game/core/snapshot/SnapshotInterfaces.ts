@@ -38,6 +38,8 @@ export interface IGameSnapshot {
     id: number;
     lastGameObjectId: number;
     actionNumber: number;
+    roundNumber: number;
+    phase: PhaseName;
 
     gameState: IGameState;
     states: IGameObjectBaseState[];

@@ -12,7 +12,7 @@ export abstract class Phase extends BaseStepWithPipeline {
 
     public constructor(
         game: Game,
-        private name: PhaseName
+        protected name: PhaseName
     ) {
         super(game);
     }

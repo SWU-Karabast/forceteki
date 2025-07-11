@@ -67,4 +67,8 @@ export class SnapshotArray extends SnapshotContainerBase {
     public override clearNewerSnapshots(snapshotId: number): void {
         this.snapshots = this.snapshots.filter((snapshot) => snapshot.id <= snapshotId);
     }
+
+    public override clearAllSnapshots(): void {
+        this.snapshots = [];
+    }
 }

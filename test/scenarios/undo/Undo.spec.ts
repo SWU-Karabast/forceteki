@@ -62,8 +62,7 @@ describe('Undo', function() {
                     },
                     player2: {
                         groundArena: [{ card: 'wampa', damage: 2 }]
-                    },
-                    testUndo: true
+                    }
                 });
             });
 

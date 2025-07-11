@@ -62,8 +62,8 @@ global.integration = function (definitions, enableUndo = false) {
             contextRef.context = newContext;
 
             contextRef.snapshot = {
-                currentSnapshotId: () => gameFlowWrapper.snapshotManager?.currentSnapshotId,
-                currentSnapshottedAction: () => gameFlowWrapper.snapshotManager?.currentSnapshottedAction,
+                getCurrentSnapshotId: () => gameFlowWrapper.snapshotManager?.currentSnapshotId,
+                getCurrentSnapshottedAction: () => gameFlowWrapper.snapshotManager?.currentSnapshottedAction,
                 rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshot(settings),
                 countAvailableActionSnapshots: (playerId) => gameFlowWrapper.snapshotManager?.countAvailableActionSnapshots(playerId),
             };

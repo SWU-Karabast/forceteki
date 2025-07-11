@@ -203,6 +203,9 @@ class GameStateBuilder {
             context.cardPropertyNames.push(card.propertyName);
         });
 
+        context.game.snapshotManager.clearAllSnapshots();
+        context.game.continue();
+
         Util.refreshGameState(context.game);
 
         this.attachAbbreviatedContextInfo(context, context);

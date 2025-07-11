@@ -96,4 +96,8 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
             this.snapshots.set(key, filteredSnapshots);
         }
     }
+
+    public override clearAllSnapshots(): void {
+        this.snapshots.clear();
+    }
 }

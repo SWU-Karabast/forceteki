@@ -24,15 +24,15 @@ interface ITestGetSnapshotSettings {
     type: SnapshotTypeValue;
     offset?: number;
     playerId?: string;
-    phaseName?: PhaseName;
+    phaseName?: string;
 }
 
 interface SnapshotUtils {
     snapshotPlayer?: Player;
     snapshotId?: number;
 
-    readonly currentSnapshotId: number | null;
-    readonly currentSnapshottedAction: number | null;
+    getCurrentSnapshotId(): number | null;
+    getCurrentSnapshottedAction(): number | null;
 
     countAvailableActionSnapshots: (playerId: string) => number;
     rollbackToSnapshot: (settings: ITestGetSnapshotSettings) => boolean;
