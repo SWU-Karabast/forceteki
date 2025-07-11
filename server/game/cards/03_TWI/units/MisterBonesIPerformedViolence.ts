@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class MisterBonesIPerformedViolence extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'Deal 3 damage to a ground unit',
             optional: true,
             targetResolver: {

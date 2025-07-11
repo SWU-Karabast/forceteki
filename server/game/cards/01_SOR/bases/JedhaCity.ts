@@ -1,6 +1,7 @@
 import { BaseCard } from '../../../core/card/BaseCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { WildcardCardType } from '../../../core/Constants';
+import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class JedhaCity extends BaseCard {
     protected override getImplementationId () {
@@ -10,8 +11,8 @@ export default class JedhaCity extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEpicActionAbility({
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar) {
+        registrar.setEpicActionAbility({
             title: 'Give a non-leader unit -4/-0 for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

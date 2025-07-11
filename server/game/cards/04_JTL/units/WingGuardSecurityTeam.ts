@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class WingGuardSecurityTeam extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Give a Shield token to each of up to 2 Fringe units',
             targetResolver: {
                 mode: TargetMode.UpTo,

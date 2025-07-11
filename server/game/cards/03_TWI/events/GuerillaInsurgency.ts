@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { GameStateChangeRequired, RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class GuerillaInsurgency extends EventCard {
@@ -10,8 +11,8 @@ export default class GuerillaInsurgency extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Each player defeats a resource they control and discards 2 cards from their hand. Deal 4 damage to each ground unit',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({

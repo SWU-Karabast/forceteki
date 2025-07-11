@@ -2,6 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TargetMode } from '../../../core/Constants';
 
 export default class SearchYourFeelings extends EventCard {
@@ -15,8 +16,8 @@ export default class SearchYourFeelings extends EventCard {
     // TODO: since the card display prompt can't handle showing the full deck currently, we instead use a dropdown list of card names
     // once the prompt is fixed, we can go back to using that for deck search like other cards do
     // TODO: the dropdown list prompt doesn't have support for "optional" currently, so the player will be forced to choose a card
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Choose the name of a card from your deck to draw',
             targetResolver: {
                 mode: TargetMode.DropdownList,

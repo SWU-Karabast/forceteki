@@ -1,4 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import AbilityHelper from '../../../AbilityHelper';
 
 export default class CornerThePrey extends EventCard {
@@ -9,8 +10,8 @@ export default class CornerThePrey extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Attack with a unit. It gets +1/+0 for this attack for each damage on the defender at the start of this attack.',
             initiateAttack: {
                 attackerLastingEffects: (_context, attack) =>

@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType, ZoneName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class ResistanceBlueSquadron extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Deal damage to a unit equal to the number of friendly space units',
             optional: true,
             targetResolver: {

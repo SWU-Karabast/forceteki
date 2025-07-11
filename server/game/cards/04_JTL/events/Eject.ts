@@ -1,4 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait, WildcardCardType } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 
@@ -10,8 +11,8 @@ export default class Eject extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Detach a Pilot upgrade, move it to the ground arena as a unit, and exhaust it. Draw a card.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.UnitUpgrade,

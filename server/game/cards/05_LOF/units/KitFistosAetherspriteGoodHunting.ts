@@ -1,3 +1,4 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
@@ -10,8 +11,8 @@ export default class KitFistosAetherspriteGoodHunting extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Defeat any number of upgrades on a unit',
             targetResolvers: {
                 selectedUnit: {

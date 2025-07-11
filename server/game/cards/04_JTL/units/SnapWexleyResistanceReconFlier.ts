@@ -1,3 +1,4 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, Trait, WildcardCardType } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
@@ -11,8 +12,8 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'The next Resistance card you play this phase costs 1 resource less',
             when: {
                 whenPlayed: true,
@@ -28,7 +29,7 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
             })
         });
 
-        this.addPilotingAbility({
+        registrar.addPilotingAbility({
             title: 'Search the top 5 cards of your deck for a Resistance card, reveal it, and draw it',
             type: AbilityType.Triggered,
             when: {

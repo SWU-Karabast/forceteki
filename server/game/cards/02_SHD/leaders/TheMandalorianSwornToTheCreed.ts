@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class TheMandalorianSwornToTheCreed extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Exhaust this leader to exhaust an enemy unit with 4 or less remaining HP',
             optional: true,
             when: {
@@ -29,8 +30,8 @@ export default class TheMandalorianSwornToTheCreed extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Exhaust an enemy unit with 6 or less remaining HP',
             optional: true,
             when: {

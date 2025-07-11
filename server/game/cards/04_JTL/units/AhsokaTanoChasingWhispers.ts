@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
@@ -11,8 +12,8 @@ export default class AhsokaTanoChasingWhispers extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'An opponent discards a card from their hand. If it\'s a unit, exhaust a unit',
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                 amount: 1,

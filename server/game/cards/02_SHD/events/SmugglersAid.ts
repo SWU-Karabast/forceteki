@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class SmugglersAid extends EventCard {
     protected override getImplementationId() {
@@ -9,8 +10,8 @@ export default class SmugglersAid extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Heal 3 damage from your base',
             immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
                 amount: 3,

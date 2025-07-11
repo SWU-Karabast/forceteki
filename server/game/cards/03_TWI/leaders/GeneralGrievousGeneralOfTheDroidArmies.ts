@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, Trait, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCa
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Give a Droid unit Sentinel for this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -24,8 +25,8 @@ export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCa
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'Give a Droid unit +1/+0 and Sentinel for this phase',
             optional: true,
             targetResolver: {

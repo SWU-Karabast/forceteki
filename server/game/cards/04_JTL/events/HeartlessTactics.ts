@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { WildcardCardType } from '../../../core/Constants';
 
 export default class HeartlessTactics extends EventCard {
@@ -10,8 +11,8 @@ export default class HeartlessTactics extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Exhaust a unit and give it –2/–0 for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

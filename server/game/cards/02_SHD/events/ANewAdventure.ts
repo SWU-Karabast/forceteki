@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { WildcardCardType } from '../../../core/Constants';
 
@@ -12,8 +13,8 @@ export default class ANewAdventure extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Return a non-leader unit that costs 6 or less to its owner\'s hand',
             targetResolver: {
                 cardCondition: (card) => card.isNonLeaderUnit() && card.cost <= 6,

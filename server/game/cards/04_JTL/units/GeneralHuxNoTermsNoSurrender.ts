@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, Trait } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -18,14 +19,14 @@ export default class GeneralHuxNoTermsNoSurrender extends NonLeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'Each other friendly First Order unit gains Raid 1',
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.FirstOrder),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })
         });
 
-        this.addActionAbility({
+        registrar.addActionAbility({
             title: 'Draw a card',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({

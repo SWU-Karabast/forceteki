@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class SpareTheTarget extends EventCard {
@@ -10,8 +11,8 @@ export default class SpareTheTarget extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Return an enemy non-leader unit to its owner\'s hand. Collect that unit\'s Bounties.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

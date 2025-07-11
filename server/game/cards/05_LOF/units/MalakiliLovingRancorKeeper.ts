@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -19,8 +20,8 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'The first Creature unit you play each phase costs 1 resource less',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
@@ -33,7 +34,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
             }),
         });
 
-        this.addReplacementEffectAbility({
+        registrar.addReplacementEffectAbility({
             title: 'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage',
             when: {
                 onDamageDealt: (event, context) =>

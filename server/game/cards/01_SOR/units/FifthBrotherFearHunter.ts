@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, WildcardCardType, ZoneName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class FifthBrotherFearHunter extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addOnAttackAbility({
+    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'Deal 1 damage to this unit and 1 damage to another ground unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
@@ -28,7 +29,7 @@ export default class FifthBrotherFearHunter extends NonLeaderUnitCard {
             ])
         });
 
-        this.addConstantAbility({
+        registrar.addConstantAbility({
             title: 'This unit gains Raid 1 for each damage on him',
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(
                 (target) => ({ keyword: KeywordName.Raid, amount: target.damage })

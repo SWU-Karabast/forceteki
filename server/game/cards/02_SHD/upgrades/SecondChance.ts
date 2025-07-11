@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class SecondChance extends UpgradeCard {
@@ -9,9 +10,9 @@ export default class SecondChance extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isNonLeaderUnit());
-        this.addGainWhenDefeatedAbilityTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card) => card.isNonLeaderUnit());
+        registrar.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'For this phase, this unit\'s owner may play it from their discard pile for free.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.forThisPhaseCardEffect({

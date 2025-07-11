@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as KeywordHelpers from '../../../core/ability/KeywordHelpers';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, KeywordName, RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 import type { KeywordNameOrProperties } from '../../../Interfaces';
@@ -12,8 +13,8 @@ export default class AdmiralYularenFleetCoordinator extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: `Choose Grit, Restore 1, Sentinel, or Shielded. While ${this.title} is in play, each friendly Vehicle unit gains the chosen keyword.`,
             targetResolver: {
                 mode: TargetMode.Select,

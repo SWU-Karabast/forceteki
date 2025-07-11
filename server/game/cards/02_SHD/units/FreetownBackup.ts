@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class FreetownBackup extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'Give another friendly unit +2/+2',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

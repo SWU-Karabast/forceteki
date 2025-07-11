@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class ForceIllusion extends EventCard {
@@ -10,8 +11,8 @@ export default class ForceIllusion extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Exhaust an enemy unit. A friendly unit gains Sentinel for this phase',
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.selectCard({

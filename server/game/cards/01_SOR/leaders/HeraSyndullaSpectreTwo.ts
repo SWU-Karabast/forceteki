@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
@@ -21,14 +22,14 @@ export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addConstantAbility(this.buildHeraAbilityProperties());
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addConstantAbility(this.buildHeraAbilityProperties());
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility(this.buildHeraAbilityProperties());
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility(this.buildHeraAbilityProperties());
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Give an experience token to another unique unit',
             optional: true,
             targetResolver: {

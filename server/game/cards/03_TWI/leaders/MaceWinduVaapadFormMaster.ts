@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Deal 1 damage to a damaged enemy unit. Then, if it has 5 or more damage on it, deal 1 damage to it.',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
@@ -28,8 +29,8 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Deal 2 damage to each damaged enemy unit.',
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source

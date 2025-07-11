@@ -1,3 +1,4 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -23,8 +24,8 @@ export default class MistHunterTheFindsmansPursuit extends NonLeaderUnitCard {
         return this.cardsPlayedThisPhaseWatcher.someCardPlayed((entry) => entry.playedBy === controller && entry.card.hasSomeTrait([Trait.BountyHunter, Trait.Pilot]));
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'Draw a card',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({

@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class JediInHiding extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class JediInHiding extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenDefeatedAbility({
             title: 'Use the Force to make your opponent discards a card from their hand',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

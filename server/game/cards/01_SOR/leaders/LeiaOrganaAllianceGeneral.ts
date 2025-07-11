@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Trait } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Attack with a Rebel unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             initiateAttack: {
@@ -27,8 +28,8 @@ export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Attack with another Rebel unit',
             optional: true,
             when: {

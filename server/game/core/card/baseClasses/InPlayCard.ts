@@ -13,6 +13,7 @@ import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as Helpers from '../../utils/Helpers';
+import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import { InitializeCardStateOption, type Card } from '../Card';
 import type { ICardWithActionAbilities } from '../propertyMixins/ActionAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
@@ -37,7 +38,7 @@ export interface IInPlayCardState extends IPlayableOrDeployableCardState {
     parentCard: GameObjectRef<IUnitCard> | null;
 }
 
-export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities, ICardWithConstantAbilities, ICardWithTriggeredAbilities {
+export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities<IInPlayCard>, ICardWithConstantAbilities<IInPlayCard>, ICardWithTriggeredAbilities<IInPlayCard> {
     readonly printedUpgradeHp: number;
     readonly printedUpgradePower: number;
     get disableOngoingEffectsForDefeat(): boolean;
@@ -45,6 +46,8 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get mostRecentInPlayId(): number;
     get parentCard(): IUnitCard;
     get pendingDefeat(): boolean;
+    getUpgradeHp(): number;
+    getUpgradePower(): number;
     isInPlay(): boolean;
     registerPendingUniqueDefeat();
     checkUnique();
@@ -268,6 +271,19 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     // ********************************************* ABILITY SETUP *********************************************
+    protected override getAbilityRegistrar() {
+        const registrar: IInPlayCardAbilityRegistrar<this> = {
+            ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<this>,
+            addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties),
+            addWhenPlayedAbility: (properties) => this.addWhenPlayedAbility(properties),
+            addWhenDefeatedAbility: (properties) => this.addWhenDefeatedAbility(properties),
+            addIgnoreAllAspectPenaltiesAbility: (properties) => this.addIgnoreAllAspectPenaltiesAbility(properties),
+            addIgnoreSpecificAspectPenaltyAbility: (properties) => this.addIgnoreSpecificAspectPenaltyAbility(properties),
+        };
+
+        return registrar;
+    }
+
     protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenPlayed]: true };
         return this.addTriggeredAbility({ ...properties, when });

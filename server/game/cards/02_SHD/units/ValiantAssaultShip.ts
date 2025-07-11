@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class ValiantAssaultShip extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class ValiantAssaultShip extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'If the defending player controls more resources than you, this unit gets +2/+0 for this attack',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.resources.length < context.player.opponent.resources.length,

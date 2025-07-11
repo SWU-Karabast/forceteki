@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, CardType, KeywordName } from '../../../core/Constants';
 
@@ -10,14 +11,14 @@ export default class LuminaraUnduliSoftSpokenMaster extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'Gain Grit',
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Grit),
         });
 
-        this.addWhenPlayedAbility({
+        registrar.addWhenPlayedAbility({
             title: 'Heal 1 damage from a base for each unit you control.',
             targetResolver: {
                 cardTypeFilter: CardType.Base,

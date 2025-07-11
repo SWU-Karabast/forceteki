@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import * as Helpers from '../../../core/utils/Helpers';
@@ -11,8 +12,8 @@ export default class CountDookuFallenJedi extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'For each unit you exploited while playing this card, deal damage to an enemy unit equal to the power of the exploited unit',
             immediateEffect: AbilityHelper.immediateEffects.sequential(
                 // TODO: correct implementation of the rules for multiple instances of damage in the same ability

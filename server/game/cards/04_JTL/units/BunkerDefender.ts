@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, Trait } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class BunkerDefender extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'While you control a Vehicle unit, this unit gains Sentinel',
             condition: (context) => context.player.isTraitInPlay(Trait.Vehicle),
             matchTarget: (card, context) => card === context.source,

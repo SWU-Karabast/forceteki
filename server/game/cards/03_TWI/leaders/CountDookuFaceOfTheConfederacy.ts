@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class CountDookuFaceOfTheConfederacy extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Play a Separatist card from your hand. It gains Exploit 1.',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -26,8 +27,8 @@ export default class CountDookuFaceOfTheConfederacy extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'The next Separatist card you play this phase gains Exploit 3',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.addExploit({

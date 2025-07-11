@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
 import { WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class LethalCrackdown extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Defeat a non-leader unit. If you do, deal damage to your base equal to that unit\'s power',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

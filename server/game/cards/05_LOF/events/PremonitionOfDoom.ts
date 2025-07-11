@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Duration } from '../../../core/Constants';
 
 export default class PremonitionOfDoom extends EventCard {
@@ -10,8 +11,8 @@ export default class PremonitionOfDoom extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'The next time you take the initiative this phase, exhaust all units',
             immediateEffect: AbilityHelper.immediateEffects.delayedPlayerEffect({
                 title: 'Exhaust all units',

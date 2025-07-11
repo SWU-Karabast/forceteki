@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class MaceWinduLeapingIntoAction extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Use The Force to deal 4 damage to a unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

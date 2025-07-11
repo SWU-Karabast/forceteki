@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class FennecShandLoyalSharpshooter extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class FennecShandLoyalSharpshooter extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'Deal 1 damage to the defender (if it\'s a unit) for each different cost among cards in your discard pile',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.event.attack.targetIsUnit(),

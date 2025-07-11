@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardZoneName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class SlaversFreighter extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'You may ready another unit with power equal to or less than the number of upgrades on enemy units',
             optional: true,
             targetResolver: {

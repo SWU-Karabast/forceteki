@@ -1,3 +1,4 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 
@@ -9,8 +10,8 @@ export default class AxeWovesAccomplishedWarrior extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'This unit gets +1/+1 for each upgrade on him.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
                 power: target.upgrades.length,

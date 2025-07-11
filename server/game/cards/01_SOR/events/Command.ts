@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { CardType, RelativePlayer, WildcardCardType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../../core/Constants';
 
 export default class Command extends EventCard {
@@ -10,8 +11,8 @@ export default class Command extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Command modal ability:',
             immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
                 amountOfChoices: 2,
