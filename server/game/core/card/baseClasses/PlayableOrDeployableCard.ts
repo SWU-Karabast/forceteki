@@ -47,7 +47,6 @@ export interface ICardWithExhaustProperty extends Card {
     ready();
 }
 
-
 export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty, ICardCanChangeControllers {}
 
 export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
