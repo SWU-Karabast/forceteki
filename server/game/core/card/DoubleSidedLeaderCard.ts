@@ -6,7 +6,7 @@ import { WithLeaderProperties, type ILeaderCard } from './propertyMixins/LeaderP
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { WithAllAbilityTypes } from './propertyMixins/AllAbilityTypeRegistrations';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
-import type { IBasicAbilityRegistrar, IDoubleSidedLeaderAbilityRegistrar, ILeaderAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import type { IDoubleSidedLeaderAbilityRegistrar, ILeaderAbilityRegistrar } from './AbilityRegistrationInterfaces';
 
 const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -53,7 +53,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
     }
 
     protected override getAbilityRegistrar(): IDoubleSidedLeaderAbilityRegistrar {
-        return super.getAbilityRegistrar() as IBasicAbilityRegistrar<DoubleSidedLeaderCard>;
+        return super.getAbilityRegistrar() as ILeaderAbilityRegistrar<DoubleSidedLeaderCard>;
     }
 
     protected override callSetupLeaderWithRegistrar() {
