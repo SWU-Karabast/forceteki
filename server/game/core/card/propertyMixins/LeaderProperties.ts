@@ -46,7 +46,7 @@ export function WithLeaderProperties<TState extends IPlayableOrDeployableCardSta
          * Create card abilities for the leader (non-unit) side by calling subsequent methods with appropriate properties
          */
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        protected setupLeaderSideAbilities(sourceCard: ILeaderAbilityRegistrar<ILeaderCard>) { }
+        protected setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<ILeaderCard>) { }
 
         // TODO TYPE REFACTOR: separate out the Leader types from the playable types
         public override getPlayCardActions() {
