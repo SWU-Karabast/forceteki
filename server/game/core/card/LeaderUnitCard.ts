@@ -154,7 +154,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
     }
 
-    protected addPilotDeploy(makeAttachedUnitALeader: boolean = true) {
+    private addPilotDeploy(makeAttachedUnitALeader: boolean = true) {
         Contract.assertNotNullLike(this.printedUpgradeHp, `Leader ${this.title} is missing upgrade HP.`);
         Contract.assertNotNullLike(this.printedUpgradePower, `Leader ${this.title} is missing upgrade power.`);
 
