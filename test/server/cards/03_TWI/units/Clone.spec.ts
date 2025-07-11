@@ -523,11 +523,11 @@ describe('Clone', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(14);
                 expect(clone1).toBeInZone('groundArena');
                 expect(clone1).toBeCloneOf(context.veteranFleetOfficer);
-                expect(clone1.isClone).toBeTrue();
+                expect(clone1.isClonedUnit).toBeTrue();
                 expect(clone2).toBeInZone('groundArena');
                 expect(clone2).toBeCloneOf(context.veteranFleetOfficer);
                 expect(clone2).toBeCloneOf(clone1);
-                expect(clone2.isClone).toBeTrue();
+                expect(clone2.isClonedUnit).toBeTrue();
                 expect(context.player1.findCardsByName('xwing').length).toBe(2);
             });
 
@@ -564,8 +564,8 @@ describe('Clone', function() {
                 expect(handClone).toBeInZone('groundArena');
                 expect(handClone).toBeCloneOf(groundClone);
                 expect(handClone).toBeVanillaClone();
-                expect(groundClone.isClone).toBeFalse();
-                expect(handClone.isClone).toBeTrue();
+                expect(groundClone.isClonedUnit).toBeFalse();
+                expect(handClone.isClonedUnit).toBeTrue();
 
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(handClone);
@@ -580,8 +580,8 @@ describe('Clone', function() {
                 expect(handClone).toBeInZone('groundArena');
                 expect(handClone).toBeCloneOf(groundClone);
                 expect(handClone).toBeVanillaClone();
-                expect(groundClone.isClone).toBeFalse();
-                expect(handClone.isClone).toBeTrue();
+                expect(groundClone.isClonedUnit).toBeFalse();
+                expect(handClone.isClonedUnit).toBeTrue();
             });
 
             it('is not defeated if blanked', async function () {
@@ -684,7 +684,7 @@ describe('Clone', function() {
                 context.player1.clickPrompt('Pass');
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.clone).toBeInZone('discard');
-                expect(context.clone.isClone).toBeFalse();
+                expect(context.clone.isClonedUnit).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -713,7 +713,7 @@ describe('Clone', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.clone).toBeInZone('groundArena');
                 expect(context.clone.getHp()).toBe(1);
-                expect(context.clone.isClone).toBeFalse();
+                expect(context.clone.isClonedUnit).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });
         });

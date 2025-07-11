@@ -33,8 +33,7 @@ export class CloneUnitEffect extends OngoingEffectValueWrapper<ICardWithStandard
     public override apply(target: IUnitCard): void {
         super.apply(target);
 
-        Contract.assertTrue(target.isUnit());
-        Contract.assertTrue(target.hasStandardAbilitySetup());
+        Contract.assertTrue(target.isClone(), 'CloneUnitEffect can only be use to clone a Clone');
         Contract.assertDoesNotHaveKey(this.printedActionAbilitiesUuidByTargetCard, target, `Attempting to clone action abilities with ${target.internalName} twice`);
         Contract.assertDoesNotHaveKey(this.printedTriggeredAbilitiesUuidByTargetCard, target, `Attempting to clone triggered abilities with ${target.internalName} twice`);
         Contract.assertDoesNotHaveKey(this.printedConstantAbilitiesUuidByTargetCard, target, `Attempting to clone constant abilities with ${target.internalName} twice`);

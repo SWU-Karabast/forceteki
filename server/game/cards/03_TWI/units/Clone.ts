@@ -16,6 +16,14 @@ export default class Clone extends NonLeaderUnitCard {
         };
     }
 
+    public override isClone(): this is Clone {
+        return true;
+    }
+
+    public override getAbilityRegistrar(): INonLeaderUnitAbilityRegistrar {
+        return super.getAbilityRegistrar();
+    }
+
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar): void {
         registrar.addPreEnterPlayAbility({
             title: 'This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique',

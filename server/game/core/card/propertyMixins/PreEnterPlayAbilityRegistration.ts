@@ -35,7 +35,7 @@ export function WithPreEnterPlayAbilities<TBaseClass extends PlayableOrDeployabl
             return true;
         }
 
-        public override getAbilityRegistrar() {
+        protected override getAbilityRegistrar() {
             const registrar: IPreEnterPlayAbilityRegistrar<this> = {
                 addPreEnterPlayAbility: (properties) => this.addPreEnterPlayAbility(properties),
             };

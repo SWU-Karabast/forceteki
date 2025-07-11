@@ -33,7 +33,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
             return true;
         }
 
-        public override getAbilityRegistrar() {
+        protected override getAbilityRegistrar() {
             const registrar: IConstantAbilityRegistrar<this> = {
                 addConstantAbility: (properties: IConstantAbilityProps<this>) => this.addConstantAbility(properties),
                 addGainedConstantAbility: (properties: IConstantAbilityProps<this>) => this.addGainedConstantAbility(properties)

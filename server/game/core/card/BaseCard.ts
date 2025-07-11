@@ -94,7 +94,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         };
     }
 
-    public override getAbilityRegistrar(): IBaseAbilityRegistrar {
+    protected override getAbilityRegistrar(): IBaseAbilityRegistrar {
         return {
             ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<BaseCard>,
             setEpicActionAbility: (properties: IEpicActionProps<this>) => this.setEpicActionAbility(properties),

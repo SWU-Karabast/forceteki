@@ -99,7 +99,7 @@ export class EventCard extends EventCardParent {
         }
     }
 
-    public override getAbilityRegistrar(): IEventAbilityRegistrar {
+    protected override getAbilityRegistrar(): IEventAbilityRegistrar {
         return {
             ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<EventCard>,
             setEventAbility: (properties: IEventAbilityProps) => this.setEventAbility(properties),

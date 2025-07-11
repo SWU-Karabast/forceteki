@@ -27,7 +27,7 @@ export function WithActionAbilities<TBaseClass extends CardConstructor<TState>, 
             return true;
         }
 
-        public override getAbilityRegistrar() {
+        protected override getAbilityRegistrar() {
             const registrar: IActionAbilityRegistrar<this> = {
                 addActionAbility: (properties: IActionAbilityProps<this>) => this.addActionAbility(properties),
                 addGainedActionAbility: (properties: IActionAbilityProps<this>) => this.addGainedActionAbility(properties)

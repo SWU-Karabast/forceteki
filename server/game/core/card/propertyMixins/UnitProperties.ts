@@ -44,6 +44,7 @@ import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/Lea
 import AbilityHelper from '../../../AbilityHelper';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
+import type Clone from '../../../cards/03_TWI/units/Clone';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -71,8 +72,9 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     get capturedUnits(): IUnitCard[];
     get captureZone(): CaptureZone;
     get lastPlayerToModifyHp(): Player;
-    get isClone(): boolean;
+    get isClonedUnit(): boolean;
     readonly upgrades: IUpgradeCard[];
+    isClone(): this is Clone;
     getCaptor(): IUnitCard | null;
     isAttacking(): boolean;
     isCaptured(): boolean;
@@ -196,8 +198,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return this._defaultArena;
         }
 
-        public get isClone(): boolean {
+        public get isClonedUnit(): boolean {
             return this.hasOngoingEffect(EffectName.CloneUnit);
+        }
+
+        public isClone(): this is Clone {
+            return false;
         }
 
         public getCaptor(): IUnitCard | null {
@@ -372,7 +378,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         // ***************************************** ABILITY HELPERS *****************************************
-        public override getAbilityRegistrar(): IUnitAbilityRegistrar<this> {
+        protected override getAbilityRegistrar(): IUnitAbilityRegistrar<this> {
             const registrar: IUnitAbilityRegistrar<this> = {
                 ...super.getAbilityRegistrar() as IInPlayCardAbilityRegistrar<this>,
                 addOnAttackAbility: (properties) => this.addOnAttackAbility(properties),

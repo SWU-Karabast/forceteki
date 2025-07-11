@@ -272,7 +272,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     // ********************************************* ABILITY SETUP *********************************************
-    public override getAbilityRegistrar() {
+    protected override getAbilityRegistrar() {
         const registrar: IInPlayCardAbilityRegistrar<this> = {
             ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<this>,
             addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties),

@@ -198,7 +198,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         }
     }
 
-    public override getAbilityRegistrar(): IUpgradeAbilityRegistrar {
+    protected override getAbilityRegistrar(): IUpgradeAbilityRegistrar {
         return {
             ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<UpgradeCard> & IInPlayCardAbilityRegistrar<UpgradeCard>,
             addConstantAbilityTargetingAttached: (properties) => this.addConstantAbilityTargetingAttached(properties),

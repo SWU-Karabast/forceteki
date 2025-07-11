@@ -52,7 +52,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         return traits;
     }
 
-    public override getAbilityRegistrar(): IDoubleSidedLeaderAbilityRegistrar {
+    protected override getAbilityRegistrar(): IDoubleSidedLeaderAbilityRegistrar {
         return super.getAbilityRegistrar() as ILeaderAbilityRegistrar<DoubleSidedLeaderCard>;
     }
 
