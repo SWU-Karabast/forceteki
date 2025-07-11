@@ -214,7 +214,7 @@ export class GameServer {
         this.deckValidator = deckValidator;
         this.bugReportHandler = new BugReportHandler();
         // set up queue heartbeat once a second
-        setInterval(() => this.queue.sendHeartbeat(), 1000);
+        setInterval(() => this.queue.sendHeartbeat(), 500);
     }
 
     private setupAppRoutes(app: express.Application) {
