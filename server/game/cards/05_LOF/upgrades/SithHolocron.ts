@@ -1,4 +1,4 @@
-import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';

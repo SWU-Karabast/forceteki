@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';

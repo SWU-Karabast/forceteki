@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
 import { Trait } from '../../../core/Constants';
-import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class AhsokasPadawanLightsaber extends UpgradeCard {

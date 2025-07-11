@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, WildcardRelativePlayer } from '../../../core/Constants';
 import { TargetMode } from '../../../core/Constants';

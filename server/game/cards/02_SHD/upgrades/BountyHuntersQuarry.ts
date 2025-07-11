@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { KeywordName, TargetMode, WildcardCardType } from '../../../core/Constants';
-import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 

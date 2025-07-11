@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { Attack } from '../../../core/attack/Attack';
-import { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
 
