@@ -59,6 +59,7 @@ export interface IDropdownListTargetResolver<TContext extends AbilityContext> ex
     mode: TargetMode.DropdownList;
     options: string[] | ((context: TContext) => string[]);
     condition?: (context: AbilityContext) => boolean;
+    logSelection?: boolean;
 }
 
 export interface ITargetResolverBase<TContext extends AbilityContext> {
