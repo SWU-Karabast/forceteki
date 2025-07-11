@@ -6,7 +6,7 @@ import { EffectName } from '../../Constants';
 import type { ICardWithStandardAbilitySetup } from '../../card/propertyMixins/StandardAbilitySetup';
 import type { IUnitAbilityRegistrar, IUnitCard } from '../../card/propertyMixins/UnitProperties';
 
-export class CloneUnitEffect extends OngoingEffectValueWrapper<Card & ICardWithStandardAbilitySetup<Card>> {
+export class CloneUnitEffect extends OngoingEffectValueWrapper<ICardWithStandardAbilitySetup<Card>> {
     private printedActionAbilitiesUuidByTargetCard = new Map<Card, Set<string>>();
     private printedTriggeredAbilitiesUuidByTargetCard = new Map<Card, Set<string>>();
     private printedConstantAbilitiesUuidByTargetCard = new Map<Card, Set<string>>();

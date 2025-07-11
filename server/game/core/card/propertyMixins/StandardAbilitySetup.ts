@@ -2,7 +2,7 @@ import * as Contract from '../../utils/Contract';
 import type { IBasicAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { Card, CardConstructor, ICardState } from '../Card';
 
-export interface ICardWithStandardAbilitySetup<T extends Card> {
+export interface ICardWithStandardAbilitySetup<T extends Card> extends Card {
     setupCardAbilities(registrar: IBasicAbilityRegistrar<T>): void;
 }
 
