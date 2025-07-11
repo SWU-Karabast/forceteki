@@ -14,7 +14,7 @@ import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
 import { InitializeCardStateOption } from '../Card';
 import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard, Zone } from '../../../Interfaces';
-import { BountyKeywordInstance } from '../../ability/KeywordInstance';
+import type { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
@@ -197,7 +197,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public get isClone(): boolean {
-            return this.hasOngoingEffect(EffectName.IsClonedUnit);
+            return this.hasOngoingEffect(EffectName.CloneUnit);
         }
 
         public getCaptor(): IUnitCard | null {
@@ -372,7 +372,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         // ***************************************** ABILITY HELPERS *****************************************
-        protected override getAbilityRegistrar(): IUnitAbilityRegistrar<this> {
+        public override getAbilityRegistrar(): IUnitAbilityRegistrar<this> {
             const registrar: IUnitAbilityRegistrar<this> = {
                 ...super.getAbilityRegistrar() as IInPlayCardAbilityRegistrar<this>,
                 addOnAttackAbility: (properties) => this.addOnAttackAbility(properties),
@@ -426,7 +426,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             const bountyAbilityToAssign = bountyKeywordsWithoutImpl[0];
 
             // TODO: see if there's a better way using discriminating unions to avoid needing a cast when getting keyword instances
-            Contract.assertTrue(bountyAbilityToAssign instanceof BountyKeywordInstance);
+            Contract.assertTrue(bountyAbilityToAssign.isBounty());
             bountyAbilityToAssign.setAbilityProps(properties);
         }
 

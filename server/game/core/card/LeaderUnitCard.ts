@@ -133,7 +133,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         this.moveTo(ZoneName.Base);
     }
 
-    protected override getAbilityRegistrar(): ILeaderUnitAbilityRegistrar & ILeaderUnitLeaderSideAbilityRegistrar {
+    public override getAbilityRegistrar(): ILeaderUnitAbilityRegistrar & ILeaderUnitLeaderSideAbilityRegistrar {
         return {
             ...super.getAbilityRegistrar() as IUnitAbilityRegistrar<LeaderUnitCardInternal>,
             addPilotDeploy: () => this.addPilotDeploy(),

@@ -88,7 +88,7 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
 export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
     protected override state: never;
 
-    protected override getAbilityRegistrar(): INonLeaderUnitAbilityRegistrar {
+    public override getAbilityRegistrar(): INonLeaderUnitAbilityRegistrar {
         return super.getAbilityRegistrar();
     }
 
@@ -97,5 +97,5 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) { }
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) { }
 }

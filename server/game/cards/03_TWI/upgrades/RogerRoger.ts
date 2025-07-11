@@ -11,7 +11,7 @@ export default class RogerRoger extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
         registrar.addWhenDefeatedAbility({
             title: 'Attach to a friendly Battle Droid token',
             targetResolver: {

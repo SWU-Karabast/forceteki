@@ -20,6 +20,7 @@ import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistratio
 import type { ICardWithConstantAbilities } from '../propertyMixins/ConstantAbilityRegistration';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import { WithCost } from '../propertyMixins/Cost';
+import type { ICardWithPreEnterPlayAbilities } from '../propertyMixins/PreEnterPlayAbilityRegistration';
 import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './PlayableOrDeployableCard';
@@ -38,7 +39,7 @@ export interface IInPlayCardState extends IPlayableOrDeployableCardState {
     parentCard: GameObjectRef<IUnitCard> | null;
 }
 
-export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities<IInPlayCard>, ICardWithConstantAbilities<IInPlayCard>, ICardWithTriggeredAbilities<IInPlayCard> {
+export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities<IInPlayCard>, ICardWithConstantAbilities<IInPlayCard>, ICardWithTriggeredAbilities<IInPlayCard>, ICardWithPreEnterPlayAbilities {
     readonly printedUpgradeHp: number;
     readonly printedUpgradePower: number;
     get disableOngoingEffectsForDefeat(): boolean;
@@ -271,7 +272,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     // ********************************************* ABILITY SETUP *********************************************
-    protected override getAbilityRegistrar() {
+    public override getAbilityRegistrar() {
         const registrar: IInPlayCardAbilityRegistrar<this> = {
             ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<this>,
             addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties),

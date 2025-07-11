@@ -48,6 +48,7 @@ import { logger } from '../../../logger';
 import type Experience from '../../cards/01_SOR/tokens/Experience';
 import { getPrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPlayAbilityRegistration';
+import type { ICardWithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -377,12 +378,24 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.isBlank() ? epicActionAbilities : deduplicatedActionAbilities;
     }
 
+    public getPrintedActionAbilities(): ActionAbility[] {
+        return this.actionAbilities.filter((action) => action.printedAbility);
+    }
+
     /**
      * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
      * don’t have any special text styling
      */
     public getConstantAbilities(): IConstantAbility[] {
         return this.constantAbilities;
+    }
+
+    public getPrintedConstantAbilities(): IConstantAbility[] {
+        return this.constantAbilities.filter((constant) => constant.printedAbility);
+    }
+
+    public getPrintedTriggeredAbilities(): TriggeredAbility[] {
+        return this.triggeredAbilities.filter((triggered) => triggered.printedAbility);
     }
 
     /**
@@ -500,7 +513,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
-    protected getAbilityRegistrar() {
+    public getAbilityRegistrar() {
         return { };
     }
 
@@ -603,6 +616,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public hasCost(): this is ICardWithCostProperty {
+        return false;
+    }
+
+    public hasStandardAbilitySetup(): this is ICardWithStandardAbilitySetup<this> {
         return false;
     }
 

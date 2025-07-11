@@ -198,7 +198,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         }
     }
 
-    protected override getAbilityRegistrar(): IUpgradeAbilityRegistrar {
+    public override getAbilityRegistrar(): IUpgradeAbilityRegistrar {
         return {
             ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<UpgradeCard> & IInPlayCardAbilityRegistrar<UpgradeCard>,
             addConstantAbilityTargetingAttached: (properties) => this.addConstantAbilityTargetingAttached(properties),
@@ -218,5 +218,5 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) { }
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) { }
 }

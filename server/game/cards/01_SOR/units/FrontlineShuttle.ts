@@ -10,7 +10,7 @@ export default class FrontlineShuttle extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addActionAbility({
             title: 'Attack with a unit, even if it’s exhausted. It can’t attack bases for this attack.',
             cost: AbilityHelper.costs.defeatSelf(),
