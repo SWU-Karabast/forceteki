@@ -310,7 +310,7 @@ describe('Snapshot types', function() {
                     expect(context.player2).toBeActivePlayer();
                 });
 
-                it('cannot revert back more than two actions for the active player', function () {
+                it('cannot attempt to revert back more than two actions for the active player', function () {
                     const { context } = contextRef;
 
                     expect(() => {
@@ -433,7 +433,7 @@ describe('Snapshot types', function() {
                     expect(context.p1Base.damage).toEqual(8);
                 });
 
-                it('cannot revert back more than three actions for the non-active player', function () {
+                it('cannot attempt to revert back more than three actions for the non-active player', function () {
                     const { context } = contextRef;
 
                     expect(() => {
@@ -623,7 +623,7 @@ describe('Snapshot types', function() {
             });
 
             describe('phase snapshots', function () {
-                it('can revert back to the beginning of the action phase', function () {
+                it('can revert back to the beginning of the current action phase', function () {
                     const { context } = contextRef;
 
                     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
@@ -638,13 +638,50 @@ describe('Snapshot types', function() {
                     // do a new action to ensure we can continue from this point
                     context.player2.clickCard(context.battlefieldMarine);
                 });
+
+                it('can revert back to the beginning of the current action phase as the default', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'phase',
+                        phaseName: 'action'
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertActionPhaseStartState(context);
+
+                    // do a new action to ensure we can continue from this point
+                    context.player2.clickCard(context.battlefieldMarine);
+                });
+
+                it('cannot attempt to revert back more than two phases', function () {
+                    expect(() => {
+                        contextRef.snapshot.rollbackToSnapshot({
+                            type: 'phase',
+                            phaseName: 'action',
+                            offset: -2
+                        });
+                    }).toThrowError(Error, 'Contract assertion failure: Snapshot offset must be less than 1 and greater than than max history length (-2), got -2');
+                });
+
+                it('cannot revert back further than the available phase history (2)', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'phase',
+                        phaseName: 'action',
+                        offset: -1
+                    });
+                    expect(rollbackResult).toBeFalse();
+
+                    assertP1Action3State(context);
+                });
             });
         });
     });
 
     // TODO THIS PR:
     // - start the phase and do only 1 or 2 actions then confirm you can't go back further than that
-    // - walk back through the undos one step at a time for both players
     // - confirm that rollbacks of different types (action, manual, phase) will remove newer snapshots of other types
     // - test the current action phase snapshots
     // - test some manual snapshots
