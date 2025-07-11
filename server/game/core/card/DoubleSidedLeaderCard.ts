@@ -6,6 +6,7 @@ import { WithLeaderProperties, type ILeaderCard } from './propertyMixins/LeaderP
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { WithAllAbilityTypes } from './propertyMixins/AllAbilityTypeRegistrations';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import type { IDoubleSidedLeaderAbilityRegistrar, ILeaderAbilityRegistrar } from './AbilityRegistrationInterfaces';
 
 const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -22,7 +23,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         super(owner, cardData);
 
         this.setupLeaderBackSide = true;
-        this.setupLeaderBackSideAbilities(this);
+        this.setupLeaderBackSideAbilities(this.getAbilityRegistrar());
     }
 
     protected override setupDefaultState() {
@@ -51,11 +52,22 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         return traits;
     }
 
+    protected override getAbilityRegistrar(): IDoubleSidedLeaderAbilityRegistrar {
+        return super.getAbilityRegistrar() as ILeaderAbilityRegistrar<DoubleSidedLeaderCard>;
+    }
+
+    protected override callSetupLeaderWithRegistrar() {
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar());
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected override setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<IDoubleSidedLeaderCard>) {}
+
     /**
      * Create card abilities for the second leader side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderBackSideAbilities(sourceCard: this) {
+    protected setupLeaderBackSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar) {
     }
 
     public flipLeader() {

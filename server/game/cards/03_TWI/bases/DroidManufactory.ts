@@ -1,5 +1,6 @@
 import { BaseCard } from '../../../core/card/BaseCard';
 import AbilityHelper from '../../../AbilityHelper';
+import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class DroidManufactory extends BaseCard {
     protected override getImplementationId () {
@@ -9,8 +10,8 @@ export default class DroidManufactory extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Create 2 Battle Droid tokens.',
             when: {
                 onLeaderDeployed: (event, context) => event.card.controller === context.player

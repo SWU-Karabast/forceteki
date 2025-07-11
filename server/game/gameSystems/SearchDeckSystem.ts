@@ -22,8 +22,12 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable | TargetMode.Unlimited;
     activePromptTitle?: string;
 
-    /** The number of cards from the top of the deck to search, or a function to determine how many cards to search. Default is -1, which indicates the whole deck. */
-    searchCount?: number | ((context: TContext) => number);
+    /**
+     * The number of cards from the top of the deck to search, or a function to determine how many cards to search. Default is -1, which indicates the whole deck.
+     *
+     * This is currently required while SearchEntireDeckSystem exists, but once the prompt UI issue is fixed we can remove that system and make this optional again.
+     */
+    searchCount: number | ((context: TContext) => number);
     canChooseFewer?: boolean;
 
     /** The number of cards to select from the search, or a function to determine how many cards to select. Default is 1. The targetMode will interact with this to determine the min/max number of cards to retrieve. */
@@ -166,18 +170,22 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
             }
         }
 
-        context.game.promptDisplayCardsForSelection(
-            choosingPlayer,
-            this.buildPromptProperties(
-                cards,
-                properties,
-                context,
-                title,
-                selectAmount,
-                event,
-                additionalProperties
-            )
+        const promptProperties = this.buildPromptProperties(
+            cards,
+            properties,
+            context,
+            title,
+            selectAmount,
+            event,
+            additionalProperties
         );
+
+        if (promptProperties) {
+            context.game.promptDisplayCardsForSelection(
+                choosingPlayer,
+                promptProperties
+            );
+        }
     }
 
     protected buildPromptProperties(
@@ -188,7 +196,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         selectAmount: number,
         event: any,
         additionalProperties: Partial<TProperties>
-    ): IDisplayCardsSelectProperties {
+    ): IDisplayCardsSelectProperties | null {
         return {
             activePromptTitle: title,
             source: context.source,
@@ -205,7 +213,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         };
     }
 
-    private onSearchComplete(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Card[], allCards: Card[]): void {
+    protected onSearchComplete(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Card[], allCards: Card[]): void {
         event.selectedCards = selectedCards;
         context.selectedPromptCards = Array.from(selectedCards);
 
@@ -274,7 +282,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         }
 
         if (properties.revealSelected) {
-            return context.game.addMessage('{0} takes {1}', choosingPlayer, Array.from(selectedCards));
+            return context.game.addMessage('{0} takes {1}', choosingPlayer, this.getTargetMessage(Array.from(selectedCards), context));
         }
 
         context.game.addMessage(

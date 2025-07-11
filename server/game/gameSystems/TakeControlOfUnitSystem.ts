@@ -52,9 +52,9 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { newController, target } = this.generatePropertiesFromContext(context);
         if (newController === context.player) {
-            return ['take control of {0}', [target]];
+            return ['take control of {0}', [this.getTargetMessage(target, context)]];
         }
-        return ['give control of {0} to {1}', [target, newController]];
+        return ['give control of {0} to {1}', [this.getTargetMessage(target, context), newController]];
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<ITakeControlOfUnitProperties>): void {
@@ -73,7 +73,7 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
             if (event.card.isLeader() && event.newController !== event.card.controller) {
                 context.game.addMessage(
                     '{0} would take control of {1}, but it is a leader unit so it is defeated instead',
-                    event.newController, event.card
+                    event.newController, this.getTargetMessage(event.card, context)
                 );
 
                 return [

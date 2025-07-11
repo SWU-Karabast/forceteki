@@ -5,6 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
+import { constants as zlibConstants } from 'zlib';
 
 import { logger } from '../logger';
 
@@ -137,7 +138,9 @@ export class GameServer {
 
         // Setup socket server
         this.io = new IOServer(server, {
-            perMessageDeflate: false,
+            perMessageDeflate: {
+                level: zlibConstants.Z_BEST_SPEED
+            },
             path: '/ws',
             cors: {
                 origin: env.corsOrigins,
@@ -1232,7 +1235,7 @@ export class GameServer {
 
                     // Check if the user is still disconnected after the timer
                     if (lobby?.isDisconnected(id, socket.id)) {
-                        logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than 20s, removing from lobby`, { userId: id, lobbyId: lobby.id });
+                        logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than ${timeoutSeconds}s, removing from lobby`, { userId: id, lobbyId: lobby.id });
 
                         this.userLobbyMap.delete(id);
 

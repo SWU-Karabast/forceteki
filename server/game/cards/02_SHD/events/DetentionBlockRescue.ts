@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 import { WildcardCardType } from '../../../core/Constants';
 
@@ -11,8 +12,8 @@ export default class DetentionBlockRescue extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Deal 2 damage to a unit or base',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

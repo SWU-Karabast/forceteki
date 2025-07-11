@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EventName, TargetMode } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class ZuckussTheFindsman extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'Name a card, then discard the top card of the defending player\'s deck. If a card with that name is discarded, this unit gets +4/+0 for this attack.',
             targetResolver: {
                 mode: TargetMode.DropdownList,

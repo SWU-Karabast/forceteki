@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { CardType, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 import * as Helper from '../../../core/utils/Helpers';
 
@@ -11,8 +12,8 @@ export default class JumpToLightspeed extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Return a friendly space unit and any number of non-leader upgrades on it to their owner\'s hand.',
             targetResolvers: {
                 friendlySpaceUnit: {
@@ -45,7 +46,7 @@ export default class JumpToLightspeed extends EventCard {
                             const selectedCard = Helper.asArray(ifYouDoContext.targets.friendlySpaceUnit)[0];
                             return selectedCard.title === card.title && selectedCard.subtitle === card.subtitle;
                         },
-                        limit: AbilityHelper.limit.perGame(1)
+                        limit: AbilityHelper.limit.perPlayerPerGame(1)
                     })
                 })
             })

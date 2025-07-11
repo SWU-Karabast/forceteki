@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs 1 resource less."',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -24,7 +25,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
-                                    limit: AbilityHelper.limit.perGame(1),
+                                    limit: AbilityLimit.perPlayerPerGame(1),
                                     amount: 1
                                 })
                             })
@@ -35,8 +36,8 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Another friendly unit captures an enemy non-leader unit',
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
@@ -56,7 +57,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
             }
         });
 
-        this.addActionAbility({
+        registrar.addActionAbility({
             title: 'Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs 2 resources less."',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -69,7 +70,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
-                                    limit: AbilityHelper.limit.perGame(1),
+                                    limit: AbilityLimit.perPlayerPerGame(1),
                                     amount: 2
                                 })
                             })

@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { Attack } from '../../../core/attack/Attack';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait } from '../../../core/Constants';
 
 export default class Headhunting extends EventCard {
@@ -11,8 +12,8 @@ export default class Headhunting extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Attack with up to 3 units',
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 this.buildBountyHunterAttackEffect(),

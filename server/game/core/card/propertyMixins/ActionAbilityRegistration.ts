@@ -1,10 +1,15 @@
 import type { IActionAbilityProps } from '../../../Interfaces';
 import type { ActionAbility } from '../../ability/ActionAbility';
-import type { CardConstructor, ICardState } from '../Card';
+import type { Card, CardConstructor, ICardState } from '../Card';
 import * as Contract from '../../utils/Contract';
 
-export interface ICardWithActionAbilities {
-    addGainedActionAbility(properties: IActionAbilityProps): string;
+export interface IActionAbilityRegistrar<T extends Card> {
+    addActionAbility(properties: IActionAbilityProps<T>): ActionAbility;
+    addGainedActionAbility(properties: IActionAbilityProps<T>): string;
+}
+
+export interface ICardWithActionAbilities<T extends Card> {
+    addGainedActionAbility(properties: IActionAbilityProps<T>): string;
     removeGainedActionAbility(removeAbilityUuid: string): void;
 }
 
@@ -17,8 +22,20 @@ export function WithActionAbilities<TBaseClass extends CardConstructor<TState>, 
             return ability;
         }
 
-        public override canRegisterActionAbilities(): this is ICardWithActionAbilities {
+        public override canRegisterActionAbilities(): this is ICardWithActionAbilities<this> {
             return true;
+        }
+
+        protected override getAbilityRegistrar() {
+            const registrar: IActionAbilityRegistrar<this> = {
+                addActionAbility: (properties: IActionAbilityProps<this>) => this.addActionAbility(properties),
+                addGainedActionAbility: (properties: IActionAbilityProps<this>) => this.addGainedActionAbility(properties)
+            };
+
+            return {
+                ...super.getAbilityRegistrar(),
+                ...registrar
+            };
         }
 
         // ******************************************** ABILITY STATE MANAGEMENT ********************************************

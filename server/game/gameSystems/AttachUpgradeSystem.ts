@@ -37,7 +37,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['attach {1} to {0}', [properties.target, properties.upgrade]];
+        return ['attach {1} to {0}', [this.getTargetMessage(properties.target, context), properties.upgrade]];
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IAttachUpgradeProperties> = {}): boolean {

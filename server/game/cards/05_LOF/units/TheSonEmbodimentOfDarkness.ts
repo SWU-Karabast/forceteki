@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class TheSonEmbodimentOfDarkness extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class TheSonEmbodimentOfDarkness extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'While the Force is with you, each friendly unit gets +2/+0',
             condition: (context) => context.player.hasTheForce,
             matchTarget: (card) => card.isUnit(),

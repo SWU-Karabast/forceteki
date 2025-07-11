@@ -10,6 +10,7 @@ import * as Contract from './utils/Contract';
 import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
 import {
     AlertType,
+    ChatObjectType,
     EffectName,
     PlayType,
     RelativePlayer,
@@ -1258,6 +1259,13 @@ export class Player extends GameObject<IPlayerState> {
     //         politicalRemaining: this.getRemainingConflictOpportunitiesForType(ConflictTypes.Political)
     //     };
     // }
+
+    public override getShortSummary() {
+        return {
+            ...super.getShortSummary(),
+            type: ChatObjectType.Player,
+        };
+    }
 
     // TODO STATE SAVE: clean this up
     // /**

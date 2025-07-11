@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { KeywordName, TargetMode, RelativePlayer } from '../../../core/Constants';
 
 export default class InTheShadows extends EventCard {
@@ -10,8 +11,8 @@ export default class InTheShadows extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Give an Experience token to up to 3 friendly units with Hidden',
             targetResolver: {
                 mode: TargetMode.UpTo,

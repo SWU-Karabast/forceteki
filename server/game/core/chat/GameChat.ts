@@ -42,7 +42,7 @@ export class GameChat {
         this.pushUpdate();
     }
 
-    public formatMessage(format: string, args: MsgArg[]): string | string[] {
+    private formatMessage(format: string, args: MsgArg[]): string | string[] {
         if (!format) {
             return '';
         }

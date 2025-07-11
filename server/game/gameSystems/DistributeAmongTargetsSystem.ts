@@ -81,7 +81,7 @@ export abstract class DistributeAmongTargetsSystem<
             if (amount !== 0) {
                 targets.push({
                     format: '{0} {1} to {2}',
-                    args: [`${amount}`, this.getDistributionType(amount), individualEvent.card],
+                    args: [`${amount}`, this.getDistributionType(amount), this.getTargetMessage(individualEvent.card, context)],
                 });
             }
         }

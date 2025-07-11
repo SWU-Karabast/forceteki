@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { IDoubleSidedLeaderAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { DoubleSidedLeaderCard } from '../../../core/card/DoubleSidedLeaderCard';
 import { Aspect } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -20,8 +21,8 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'If a friendly Heroism unit was defeated this phase, draw a card, heal 2 damage from your base, then flip this leader.',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
@@ -35,8 +36,8 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
         });
     }
 
-    protected override setupLeaderBackSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderBackSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'If you played a Villainy card this phase, create a Clone Trooper, deal 2 damage to each enemy base, and then flip this leader.',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({

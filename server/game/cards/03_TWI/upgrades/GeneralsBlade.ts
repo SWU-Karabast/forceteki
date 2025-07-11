@@ -1,7 +1,9 @@
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import AbilityHelper from '../../../AbilityHelper';
+import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class GeneralsBlade extends UpgradeCard {
     protected override getImplementationId() {
@@ -11,10 +13,10 @@ export default class GeneralsBlade extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainOnAttackAbilityTargetingAttached({
+        registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'The next unit you play this phase costs 2 resources less',
             gainCondition: (context) => context.source.parentCard.hasSomeTrait(Trait.Jedi),
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
@@ -22,7 +24,7 @@ export default class GeneralsBlade extends UpgradeCard {
                 ongoingEffectTargetDescription: 'them',
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,
-                    limit: AbilityHelper.limit.perGame(1),
+                    limit: AbilityLimit.perPlayerPerGame(1),
                     amount: 2
                 })
             }),

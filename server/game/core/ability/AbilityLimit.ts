@@ -2,12 +2,14 @@ import type EventEmitter from 'events';
 import { EventName } from '../Constants';
 import type { Player } from '../Player';
 import type { CardAbility } from './CardAbility';
-import type { IGameObjectBaseState } from '../GameObjectBase';
+import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type Game from '../Game';
 
 export interface IAbilityLimit {
-    ability?: CardAbility;
+    get ability(): CardAbility;
+    set ability(value: CardAbility);
+    // I think this is unused?
     currentUser: null | string;
     clone(): IAbilityLimit;
     isRepeatable(): boolean;
@@ -20,12 +22,27 @@ export interface IAbilityLimit {
 }
 
 interface IAbilityLimitState extends IGameObjectBaseState {
+    ability: GameObjectRef<CardAbility> | undefined;
+}
+
+interface IPerPlayerAbilityLimitState extends IAbilityLimitState {
     useCount: Map<string, number>;
 }
 
-export class UnlimitedAbilityLimit extends GameObjectBase<IAbilityLimitState> implements IAbilityLimit {
-    public ability?: CardAbility;
+interface IPerGameAbilityLimitState extends IAbilityLimitState {
+    useCount: 0;
+}
+
+export class UnlimitedAbilityLimit extends GameObjectBase<IPerPlayerAbilityLimitState> implements IAbilityLimit {
     public currentUser: null | string = null;
+
+    public get ability() {
+        return this.game.getFromRef(this.state.ability);
+    }
+
+    public set ability(value) {
+        this.state.ability = value.getRef();
+    }
 
     protected override setupDefaultState(): void {
         this.state.useCount = new Map();
@@ -74,10 +91,17 @@ export class UnlimitedAbilityLimit extends GameObjectBase<IAbilityLimitState> im
     }
 }
 
-export class PerGameAbilityLimit extends GameObjectBase<IAbilityLimitState> implements IAbilityLimit {
-    public ability?: CardAbility;
+export class PerGameAbilityLimit extends GameObjectBase<IPerGameAbilityLimitState> implements IAbilityLimit {
     public currentUser: null | string = null;
-    public max: number;
+    public readonly max: number;
+
+    public get ability() {
+        return this.game.getFromRef(this.state.ability);
+    }
+
+    public set ability(value) {
+        this.state.ability = value.getRef();
+    }
 
     public constructor(game: Game, max: number) {
         super(game);
@@ -85,11 +109,65 @@ export class PerGameAbilityLimit extends GameObjectBase<IAbilityLimitState> impl
     }
 
     protected override setupDefaultState(): void {
-        this.state.useCount = new Map();
+        this.state.useCount = 0;
     }
 
     public clone() {
         return new PerGameAbilityLimit(this.game, this.max);
+    }
+
+    public isRepeatable(): boolean {
+        return false;
+    }
+
+    public isAtMax(player: Player): boolean {
+        return this.state.useCount >= this.max;
+    }
+
+    public increment(player: Player): void {
+        this.state.useCount++;
+    }
+
+    public reset(): void {
+        this.state.useCount = 0;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public registerEvents(eventEmitter: EventEmitter): void {}
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public unregisterEvents(eventEmitter: EventEmitter): void {}
+
+    public currentForPlayer(): number {
+        return this.state.useCount;
+    }
+
+    public isEpicActionLimit(): this is EpicActionLimit {
+        return false;
+    }
+}
+
+
+export class PerPlayerPerGameAbilityLimit extends GameObjectBase<IPerPlayerAbilityLimitState> implements IAbilityLimit {
+    public currentUser: null | string = null;
+    private useCount = new Map<string, number>();
+    public readonly max: number;
+
+    public get ability() {
+        return this.game.getFromRef(this.state.ability);
+    }
+
+    public set ability(value) {
+        this.state.ability = value.getRef();
+    }
+
+    public constructor(game: Game, max: number) {
+        super(game);
+        this.max = max;
+    }
+
+    public clone() {
+        return new PerPlayerPerGameAbilityLimit(this.game, this.max);
     }
 
     public isRepeatable(): boolean {
@@ -102,11 +180,11 @@ export class PerGameAbilityLimit extends GameObjectBase<IAbilityLimitState> impl
 
     public increment(player: Player): void {
         const key = this.getKey(player.name);
-        this.state.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.useCount.set(key, this.currentForPlayer(player) + 1);
     }
 
     public reset(): void {
-        this.state.useCount.clear();
+        this.useCount.clear();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -116,7 +194,7 @@ export class PerGameAbilityLimit extends GameObjectBase<IAbilityLimitState> impl
     public unregisterEvents(eventEmitter: EventEmitter): void {}
 
     public currentForPlayer(player: Player) {
-        return this.state.useCount.get(this.getKey(player.name)) ?? 0;
+        return this.useCount.get(this.getKey(player.name)) ?? 0;
     }
 
     public isEpicActionLimit(): this is EpicActionLimit {
@@ -131,12 +209,14 @@ export class PerGameAbilityLimit extends GameObjectBase<IAbilityLimitState> impl
     }
 
     private getModifiedMax(player: Player): number {
-        return this.ability ? this.ability.card.getModifiedAbilityLimitMax(player, this.ability, this.max) : this.max;
+        const ability = this.game.getFromRef(this.state.ability);
+        return ability ? ability.card.getModifiedAbilityLimitMax(player, ability, this.max) : this.max;
     }
 }
 
-export class RepeatableAbilityLimit extends PerGameAbilityLimit {
+export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
     private readonly eventName: Set<EventName>;
+
     public constructor(
         game: Game,
         max: number,
@@ -167,7 +247,7 @@ export class RepeatableAbilityLimit extends PerGameAbilityLimit {
     }
 }
 
-export class EpicActionLimit extends PerGameAbilityLimit {
+export class EpicActionLimit extends PerPlayerPerGameAbilityLimit {
     public constructor(game: Game) {
         super(game, 1);
     }
@@ -203,6 +283,14 @@ export class AbilityLimitInstance {
         return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnRoundEnded]));
     }
 
+    /**
+     * A per-game ability limit that is tracked regardless of player.
+     *
+     * Use this ability for card effects whose limit applies to a card,
+     * rather than to a player.
+     *
+     * @param max The maximum number of times this ability can be used in a game.
+     */
     public perGame(max: number) {
         return new PerGameAbilityLimit(this.game, max);
     }

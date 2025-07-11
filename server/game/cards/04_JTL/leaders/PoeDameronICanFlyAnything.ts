@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, Trait, AbilityType, WildcardZoneName, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class PoeDameronICanFlyAnything extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: `Flip ${this.title} and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it`,
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
@@ -28,8 +29,8 @@ export default class PoeDameronICanFlyAnything extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addPilotingAbility({
             type: AbilityType.Action,
             title: 'Attach this upgrade to a friendly Vehicle unit without a Pilot on it',
             cost: AbilityHelper.costs.abilityActivationResourceCost(1),

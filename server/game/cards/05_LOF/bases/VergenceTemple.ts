@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { BaseCard } from '../../../core/card/BaseCard';
 import { PhaseName } from '../../../core/Constants';
+import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class VergenceTemple extends BaseCard {
     protected override getImplementationId () {
@@ -10,8 +11,8 @@ export default class VergenceTemple extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'The Force is with you',
             when: {
                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup

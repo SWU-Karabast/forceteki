@@ -1,5 +1,8 @@
+
 describe('Clone', function() {
     integration(function(contextRef) {
+        const clonePrompt = 'This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique';
+
         describe('when played from hand', function() {
             it('should enter play as non-unique copy of another friendly unit', async function () {
                 await contextRef.setupTestAsync({
@@ -21,7 +24,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -52,7 +55,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.gracefulPurrgil]);
 
@@ -82,7 +85,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.wampa);
@@ -112,7 +115,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.gracefulPurrgil);
@@ -147,7 +150,7 @@ describe('Clone', function() {
                 context.player2.chooseListOption('Clone');
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.battlefieldMarine);
@@ -178,7 +181,7 @@ describe('Clone', function() {
 
                 context.player1.clickCard(context.palpatinesReturn);
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -209,7 +212,7 @@ describe('Clone', function() {
                 context.player1.clickCard(context.unexpectedEscape);
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -238,7 +241,7 @@ describe('Clone', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana, context.tech]);
 
@@ -271,7 +274,7 @@ describe('Clone', function() {
                 context.player1.clickCard(context.uwingReinforcement);
                 context.player1.clickCardInDisplayCardPrompt(context.clone);
                 context.player1.clickPrompt('Play cards in selection order');
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -303,7 +306,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana]);
 
@@ -320,7 +323,7 @@ describe('Clone', function() {
                 context.player1.clickCard(context.unexpectedEscape);
                 context.player1.clickCard(context.cadBane);
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana, context.cadBane]);
 
@@ -335,7 +338,7 @@ describe('Clone', function() {
 
                 context.player1.clickCard(context.palpatinesReturn);
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana, context.cadBane]);
 
@@ -350,7 +353,7 @@ describe('Clone', function() {
 
                 context.player1.readyResources(7);
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.grandInquisitor, context.leiaOrgana, context.cadBane]);
 
@@ -392,7 +395,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -422,7 +425,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cloneTrooper, context.enfysNest, context.leiaOrgana]);
 
@@ -457,7 +460,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
 
@@ -496,7 +499,7 @@ describe('Clone', function() {
                 expect(clone2).toBeVanillaClone();
 
                 context.player1.clickCard(clone1);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
 
@@ -510,7 +513,7 @@ describe('Clone', function() {
                 context.player2.passAction();
 
                 context.player1.clickCard(clone2);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, clone1]);
 
@@ -548,7 +551,7 @@ describe('Clone', function() {
                 expect(groundClone).toBeVanillaClone();
 
                 context.player1.clickCard(handClone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cloneCommanderCody, groundClone]);
 
@@ -582,7 +585,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -618,7 +621,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.ploKoon]);
 
@@ -655,7 +658,7 @@ describe('Clone', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickPrompt('Pass');
@@ -683,7 +686,7 @@ describe('Clone', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickPrompt('Pass');
@@ -717,7 +720,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.enfysNest, context.leiaOrgana]);
 
@@ -763,7 +766,7 @@ describe('Clone', function() {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.shaakTi);
@@ -793,7 +796,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.shaakTi);
@@ -829,7 +832,7 @@ describe('Clone', function() {
                 context.player2.clickCard(context.battlefieldMarine);
 
                 context.player1.clickCard(context.clone);
-                expect(context.player1).toHavePrompt('This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique');
+                expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.battlefieldMarine);
@@ -909,6 +912,8 @@ describe('Clone', function() {
 
                 context.player2.clickCard(context.annihilator);
                 context.player2.clickCard(context.clone);
+                context.player2.clickPrompt('Done');
+                context.player2.clickCardInDisplayCardPrompt(inDeckWampa);
                 context.player2.clickPrompt('Done');
                 expect(context.clone).toBeInZone('discard');
                 expect(context.clone).toBeVanillaClone();
@@ -1088,6 +1093,500 @@ describe('Clone', function() {
                 context.player1.clickPrompt('Deal 1 damage to the defender or a base');
                 context.player1.clickCard(context.p2Base);
                 expect(context.clone).toHaveExactUpgradeNames(['experience']);
+            });
+        });
+
+        describe('Keywords', function() {
+            it('copies Ambush and can attack when played', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['syndicate-lackeys'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.syndicateLackeys);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.syndicateLackeys);
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.clone.damage).toBe(3);
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+            });
+
+            it('copies Grit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['scout-bike-pursuer'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.scoutBikePursuer);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.scoutBikePursuer);
+                expect(context.clone.getPower()).toBe(1);
+
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.clone);
+
+                expect(context.clone.damage).toBe(3);
+                expect(context.clone.getPower()).toBe(4);
+            });
+
+            it('copies Overwhelm', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.wampa);
+
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+                expect(context.p2Base.damage).toBe(1);
+            });
+
+            it('copies Raid and the raid value', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['nihil-marauder'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.nihilMarauder);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.nihilMarauder);
+                expect(context.clone.getPower()).toBe(1); // Power is 1
+
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(4); // Raid value is 3
+            });
+
+            it('copies Restore and the restore value', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: { card: 'echo-base', damage: 2 },
+                        hand: ['clone'],
+                        groundArena: ['regional-sympathizers'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.regionalSympathizers);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.regionalSympathizers);
+
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(3); // Attacks for 3
+                expect(context.p1Base.damage).toBe(0); // Restore value is 2
+            });
+
+            it('copies Saboteur', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone']
+                    },
+                    player2: {
+                        groundArena: [
+                            'depa-billaba#a-higher-purpose',
+                            'echo-base-defender',
+                            { card: 'battlefield-marine', upgrades: ['shield', 'shield'] },
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.depaBillaba);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.depaBillaba);
+
+                // Ambushes with Saboteur, ignoring the Sentinel, and defeating the Battlefield Marine's shields
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+
+                // Can target any enemy ground unit
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.depaBillaba,
+                    context.echoBaseDefender,
+                    context.battlefieldMarine
+                ]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toHavePrompt('Saboteur: defeat all shields');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Shields are defeated, and the Battlefield Marine is defeated
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+                expect(context.clone.damage).toBe(3);
+            });
+
+            it('copies Sentinel', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['syndicate-lackeys']
+                    },
+                    player2: {
+                        groundArena: [
+                            'niima-outpost-constables'
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.niimaOutpostConstables);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.niimaOutpostConstables);
+
+                // Player 2's ground unit can only attack clone because it is Sentinel
+                context.player2.clickCard(context.niimaOutpostConstables);
+                expect(context.player2).toBeAbleToSelectExactly([context.clone]);
+                context.player2.clickCard(context.clone);
+
+                expect(context.clone.damage).toBe(2);
+                expect(context.niimaOutpostConstables.damage).toBe(2);
+            });
+
+            it('copies Shielded and enters play with a shield', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['outer-rim-outlaws']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.outerRimOutlaws);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.outerRimOutlaws);
+                expect(context.clone).toHaveExactUpgradeNames(['shield']);
+            });
+
+            it('copies Smuggle and its cost value (but does not affect how the card is played)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['tobias-beckett#i-trust-no-one']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.tobiasBeckett);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.tobiasBeckett);
+
+                const keywordsWithCostValues = context.clone.getKeywordsWithCostValues('smuggle');
+
+                expect(keywordsWithCostValues.length).toBe(1);
+                expect(keywordsWithCostValues[0].name).toBe('smuggle');
+                expect(keywordsWithCostValues[0].cost).toBe(5);
+                expect(keywordsWithCostValues[0].aspects).toEqual(['vigilance']);
+            });
+
+            // TODO: Add test for Bounty when card ability setup is implemented
+            // TODO: Add test for Coordinate when card ability setup is implemented
+
+            it('copies Exploit and its numeric value (but does not affect how the card is played)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['droideka-security']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.droidekaSecurity);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.droidekaSecurity);
+
+                const keywordsWithNumericValues = context.clone.getKeywordsWithNumericValues('exploit');
+
+                expect(keywordsWithNumericValues.length).toBe(1);
+                expect(keywordsWithNumericValues[0].name).toBe('exploit');
+                expect(keywordsWithNumericValues[0].value).toBe(2);
+            });
+
+            it('copies Piloting and its cost value (but does not affect how the card is played)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: [
+                            { card: 'the-mandalorian#weathered-pilot', exhausted: true },
+                        ],
+                        spaceArena: ['razor-crest#ride-for-hire'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.theMandalorian);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.theMandalorian);
+
+                const keywordsWithCostValues = context.clone.getKeywordsWithCostValues('piloting');
+
+                expect(keywordsWithCostValues.length).toBe(1);
+                expect(keywordsWithCostValues[0].name).toBe('piloting');
+                expect(keywordsWithCostValues[0].cost).toBe(2);
+                expect(keywordsWithCostValues[0].aspects).toEqual(['cunning']);
+            });
+
+            it('copies Hidden', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'vulptex']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.vulptex);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.vulptex);
+                expect(context.clone.hasSomeKeyword('hidden')).toBeTrue();
+
+                // Vulptex has Hidden, so Clone cannot be targeted by the Battlefield Marine
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base]);
+                context.player2.clickCard(context.p1Base);
+
+                context.moveToNextActionPhase();
+                context.player1.passAction();
+
+                // Clone can now be targeted for attack since Hidden's effect has expired
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.player2).toBeAbleToSelectExactly([context.clone, context.p1Base]);
+                context.player2.clickCard(context.clone);
+
+                expect(context.clone).toBeInZone('discard', context.player1);
+            });
+
+            it('copies multiple printed Keywords', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['gor#grievouss-pet']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'consular-security-force']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.gorGrievoussPet);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.gorGrievoussPet);
+
+                // It gains Ambush
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // It gains Overwhelm
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+                expect(context.p2Base.damage).toBe(4);
+
+                // It gains Sentinel (opponent can only attack the Sentinel units)
+                context.player2.clickCard(context.consularSecurityForce);
+                expect(context.player2).toBeAbleToSelectExactly([context.clone, context.gor]);
+                context.player2.clickCard(context.clone);
+            });
+
+            it('does not copy Keywords that are gained by other effects', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone']
+                    },
+                    player2: {
+                        groundArena: [
+                            {
+                                card: 'battlefield-marine',
+                                upgrades: [
+                                    'devotion', // Attached unit gains Restore 2
+                                    'protector' // Attached unit gains Sentinel
+                                ]
+                            }
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.battlefieldMarine);
+                expect(context.clone.hasSomeKeyword('restore')).toBeFalse();
+                expect(context.clone.hasSomeKeyword('sentinel')).toBeFalse();
+
+                // Battlefield Marine can attack base because Clone does not have Sentinel
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.player2).toBeAbleToSelectExactly([context.clone, context.p1Base]);
+                context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(5);
+
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Player 1's base was not restored because Clone does not have Restore
+                expect(context.p1Base.damage).toBe(5);
+            });
+
+            it('combines gained Keywords with printed Keywords correctly', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: { card: 'echo-base', damage: 3 },
+                        hand: ['clone'],
+                        spaceArena: [
+                            'home-one#alliance-flagship',   // Friendly units gain Restore 1
+                            'red-three#unstoppable'         // Friendly Heroism units gain Raid 1
+                        ]
+                    },
+                    player2: {
+                        groundArena: [
+                            'sundari-peacekeeper' // Raid 2, Restore 2
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.sundariPeacekeeper);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.sundariPeacekeeper);
+
+                context.moveToNextActionPhase();
+
+                // Clone attacks, with Restore 3 and Raid 3
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.p1Base.damage).toBe(0);
             });
         });
     });

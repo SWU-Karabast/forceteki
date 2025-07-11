@@ -184,7 +184,7 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
             // to
             messageArgs.push(' to ');
             // discard Stoic Gunso
-            messageArgs.push({ message: this.game.gameChat.formatMessage(effectMessage, effectArgs) });
+            messageArgs.push({ format: effectMessage, args: effectArgs });
         }
         this.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }

@@ -106,16 +106,18 @@ export class PlayerPromptState {
     public getCardSelectionState(card: Card): ICardSelectionState {
         const selectable = this._selectableCards.includes(card);
 
+        const index = this._selectedCards?.indexOf(card) ?? -1;
+        const selected = index !== -1;
+
         if (!selectable) {
-            return { selectable };
+            return { selectable, selected: selected ? true : undefined };
         }
 
-        const index = this._selectedCards?.indexOf(card) ?? -1;
         const order = index !== -1 && this.selectOrder ? index + 1 : undefined;
 
         const result = {
             selectable,
-            selected: index !== -1,
+            selected,
             unselectable: this.selectCardMode && !selectable,
             order
         };

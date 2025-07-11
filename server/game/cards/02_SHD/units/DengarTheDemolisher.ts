@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class DengarTheDemolisher extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class DengarTheDemolisher extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Deal 1 damage to the upgraded unit',
             when: {
                 onCardPlayed: (event, context) => event.player === context.player && event.card.isUpgrade(),

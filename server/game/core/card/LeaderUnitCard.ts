@@ -2,7 +2,7 @@ import type { Player } from '../Player';
 import type { ZoneFilter } from '../Constants';
 import { CardType, DeployType, RelativePlayer, Trait, WildcardCardType } from '../Constants';
 import { AbilityType, ZoneName } from '../Constants';
-import type { IUnitCard } from './propertyMixins/UnitProperties';
+import type { IUnitAbilityRegistrar, IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, IAbilityPropsWithType } from '../../Interfaces';
@@ -17,6 +17,7 @@ import type { IInPlayCardState } from './baseClasses/InPlayCard';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import AbilityHelper from '../../AbilityHelper';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { GameObjectRef } from '../GameObjectBase';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard<ILeaderUnitCardState>));
@@ -70,7 +71,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         }));
 
         this.setupLeaderUnitSide = true;
-        this.setupLeaderUnitSideAbilities(this);
+        this.setupLeaderUnitSideAbilities(this.getAbilityRegistrar());
         this.validateCardAbilities(this.triggeredAbilities, cardData.deployBox);
     }
 
@@ -142,14 +143,28 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         this.moveTo(ZoneName.Base);
     }
 
+    protected override getAbilityRegistrar(): ILeaderUnitAbilityRegistrar & ILeaderUnitLeaderSideAbilityRegistrar {
+        return {
+            ...super.getAbilityRegistrar() as IUnitAbilityRegistrar<LeaderUnitCardInternal>,
+            addPilotDeploy: () => this.addPilotDeploy(),
+        };
+    }
+
+    protected override callSetupLeaderWithRegistrar() {
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar());
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {}
+
     /**
      * Create card abilities for the leader unit side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderUnitSideAbilities(sourceCard: this) {
+    protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
     }
 
-    protected addPilotDeploy(makeAttachedUnitALeader: boolean = true) {
+    private addPilotDeploy(makeAttachedUnitALeader: boolean = true) {
         Contract.assertNotNullLike(this.printedUpgradeHp, `Leader ${this.title} is missing upgrade HP.`);
         Contract.assertNotNullLike(this.printedUpgradePower, `Leader ${this.title} is missing upgrade power.`);
 

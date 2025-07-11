@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { KeywordName } from '../../../core/Constants';
 
 export default class GrimResolve extends EventCard {
@@ -10,8 +11,8 @@ export default class GrimResolve extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Attack with a non-leader unit. It gains Grit for this attack',
             initiateAttack: {
                 attackerCondition: (card) => card.isNonLeaderUnit(),

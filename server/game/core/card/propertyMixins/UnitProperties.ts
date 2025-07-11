@@ -43,6 +43,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
 import type { OngoingCardEffect } from '../../ongoingEffect/OngoingCardEffect';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
+import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -66,6 +67,17 @@ export interface IUnitPropertiesCardState extends IInPlayCardState {
 }
 
 type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IAbilityPropsWithType<TTarget> & IGainCondition<TSource>;
+
+export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardAbilityRegistrar<T> {
+    addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
+    addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<T>, 'canBeTriggeredBy'>): void;
+    addCoordinateAbility(properties: IAbilityPropsWithType<T>): void;
+    addPilotingAbility(properties: IAbilityPropsWithType<T>): void;
+    addPilotingConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<T>, 'title' | 'condition' | 'ongoingEffect'>): void;
+    addPilotingGainKeywordTargetingAttached(properties: IKeywordPropertiesWithGainCondition<T>): void;
+    addPilotingGainAbilityTargetingAttached(properties: IAbilityPropsWithGainCondition<T, IUnitCard>): void;
+    addPilotingGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<T, IUnitCard>): void;
+}
 
 export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty {
     get defaultArena(): Arena;
@@ -396,6 +408,22 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         // ***************************************** ABILITY HELPERS *****************************************
+        protected override getAbilityRegistrar(): IUnitAbilityRegistrar<this> {
+            const registrar: IUnitAbilityRegistrar<this> = {
+                ...super.getAbilityRegistrar() as IInPlayCardAbilityRegistrar<this>,
+                addOnAttackAbility: (properties) => this.addOnAttackAbility(properties),
+                addBountyAbility: (properties) => this.addBountyAbility(properties),
+                addCoordinateAbility: (properties) => this.addCoordinateAbility(properties),
+                addPilotingAbility: (properties) => this.addPilotingAbility(properties),
+                addPilotingConstantAbilityTargetingAttached: (properties) => this.addPilotingConstantAbilityTargetingAttached(properties),
+                addPilotingGainKeywordTargetingAttached: (properties) => this.addPilotingGainKeywordTargetingAttached(properties),
+                addPilotingGainAbilityTargetingAttached: (properties) => this.addPilotingGainAbilityTargetingAttached(properties),
+                addPilotingGainTriggeredAbilityTargetingAttached: (properties) => this.addPilotingGainTriggeredAbilityTargetingAttached(properties),
+            };
+
+            return registrar;
+        }
+
         public override getActions() {
             if (EnumHelpers.isUnitUpgrade(this.getType())) {
                 return this.pilotingActionAbilities as ActionAbility[];

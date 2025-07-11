@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { PhaseName, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class Commandeer extends EventCard {
@@ -10,8 +11,8 @@ export default class Commandeer extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Take control of a non-leader Vehicle unit that costs 6 or less without a Pilot on it and ready it. At the start of the regroup phase, return that unit to its owner\'s hand.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

@@ -73,6 +73,7 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         return LastingEffectSystemHelpers.getEffectMessage(
+            this,
             context,
             properties,
             additionalProperties,

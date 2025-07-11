@@ -3,6 +3,7 @@ import * as Contract from '../../../core/utils/Contract';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import type { Card } from '../../../core/card/Card';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { ZoneName } from '../../../core/Constants';
 import { EventName, RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
@@ -15,8 +16,8 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Choose any number of friendly units',
             targetResolver: {
                 activePromptTitle: 'Choose friendly units that will capture enemy units in the same arena',

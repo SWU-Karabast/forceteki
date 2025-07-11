@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class InfusedBrawler extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class InfusedBrawler extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Use the Force to give 2 Experience tokens to this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
@@ -23,7 +24,7 @@ export default class InfusedBrawler extends NonLeaderUnitCard {
             }
         });
 
-        this.addTriggeredAbility({
+        registrar.addTriggeredAbility({
             title: 'Defeat an Experience token on Infused Brawler',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,

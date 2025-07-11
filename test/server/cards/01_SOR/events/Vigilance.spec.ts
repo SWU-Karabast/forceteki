@@ -92,7 +92,7 @@ describe('Vigilance', function() {
 
                 // check board state
                 expect(context.p1Base.damage).toEqual(1);
-                expect(context.getChatLogs(1)).toContain('player1 uses Vigilance to heal 5 damage from Echo Base');
+                expect(context.getChatLogs(1)).toContain('player1 uses Vigilance to heal 5 damage from player1\'s base');
             });
         });
         describe('Vigilance\'s ability', function() {

@@ -43,9 +43,9 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { captor, target } = this.generatePropertiesFromContext(context);
         if (captor === context.source) {
-            return ['capture {0}', [target]];
+            return ['capture {0}', [this.getTargetMessage(target, context)]];
         }
-        return ['capture {0} with {1}', [target, captor]];
+        return ['capture {0} with {1}', [this.getTargetMessage(target, context), captor]];
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<TProperties>): void {

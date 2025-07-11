@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect, PlayType, WildcardCardType } from '../../../core/Constants';
 import { PlayEventAction } from '../../../actions/PlayEventAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
@@ -22,8 +23,8 @@ export default class Bamboozle extends EventCard {
         return super.buildPlayCardActions(playType, propertyOverrides).concat(bamboozleAction);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Exhaust a unit and return each upgrade on it to its owner\'s hand',
             cannotTargetFirst: true,
             targetResolver: {

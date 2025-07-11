@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { PerGameAbilityLimit, type IAbilityLimit } from '../core/ability/AbilityLimit';
+import { PerPlayerPerGameAbilityLimit, type IAbilityLimit } from '../core/ability/AbilityLimit';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Duration, EventName, GameStateChangeRequired } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -67,7 +67,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<IDelayedEffectProperties>): [string, any[]] {
         const { effectDescription, target } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        return [effectDescription ?? this.effectDescription, [target]];
+        return [effectDescription ?? this.effectDescription, [this.getTargetMessage(target, context)]];
     }
 
     public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<IDelayedEffectProperties>): void {
@@ -94,7 +94,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
                 title,
                 when,
                 immediateEffect,
-                limit: limit ?? new PerGameAbilityLimit(context.game, 1),
+                limit: limit ?? new PerPlayerPerGameAbilityLimit(context.game, 1),
             })
         };
 

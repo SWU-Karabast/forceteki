@@ -1,3 +1,4 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { WildcardCardType } from '../../../core/Constants';
@@ -10,8 +11,8 @@ export default class KarisWeDontLikeStrangers extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenDefeatedAbility({
             title: 'Use the Force to give a unit -2/-2 for this phase',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

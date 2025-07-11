@@ -21,7 +21,7 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { amount, target } = this.generatePropertiesFromContext(context);
 
-        return ['heal {0} damage from {1}', [amount, target]];
+        return ['heal {0} damage from {1}', [amount, this.getTargetMessage(target, context)]];
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IHealProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

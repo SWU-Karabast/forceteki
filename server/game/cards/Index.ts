@@ -22,6 +22,7 @@ function allJsFiles(path: string): string[] {
 
 // card.name
 const cardsMap = new Map<string, any>();
+const overrideNotImplementedCardsMap = new Map<string, any>();
 const cardClassNames = new Set<string>();
 for (const filepath of allJsFiles(__dirname)) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -43,6 +44,11 @@ for (const filepath of allJsFiles(__dirname)) {
 
     cardsMap.set(cardId.id, card);
     cardClassNames.add(card.name);
+
+    if (card.prototype.overrideNotImplemented) {
+        overrideNotImplementedCardsMap.set(cardId.id, card);
+    }
 }
 
 export const cards = cardsMap;
+export const overrideNotImplementedCards = overrideNotImplementedCardsMap;

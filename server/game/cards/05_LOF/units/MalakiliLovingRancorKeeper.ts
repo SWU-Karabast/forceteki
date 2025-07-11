@@ -1,9 +1,10 @@
 import AbilityHelper from '../../../AbilityHelper';
-import type { Card } from '../../../core/card/Card';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -19,8 +20,8 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'The first Creature unit you play each phase costs 1 resource less',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
@@ -29,11 +30,11 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 match: (card) => this.isFirstCreaturePlayedByControllerThisPhase(card),
                 amount: 1,
-                limit: AbilityHelper.limit.perRound(1)
+                limit: AbilityLimit.perRound(1)
             }),
         });
 
-        this.addReplacementEffectAbility({
+        registrar.addReplacementEffectAbility({
             title: 'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage',
             when: {
                 onDamageDealt: (event, context) =>
@@ -44,7 +45,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         });
     }
 
-    private isFirstCreaturePlayedByControllerThisPhase(card: Card) {
+    private isFirstCreaturePlayedByControllerThisPhase(card) {
         return card.hasSomeTrait(Trait.Creature) &&
           !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
               playedCardEntry.playedBy === card.controller &&

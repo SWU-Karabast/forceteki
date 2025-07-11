@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { KeywordName } from '../../../core/Constants';
 
 export default class TimelyReinforcements extends EventCard {
@@ -10,8 +11,8 @@ export default class TimelyReinforcements extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'For every 2 resources your opponent control, create an X-Wing token.',
             immediateEffect: AbilityHelper.immediateEffects.createXWing((context) => ({
                 amount: Math.floor(context.player.opponent.resources.length / 2),

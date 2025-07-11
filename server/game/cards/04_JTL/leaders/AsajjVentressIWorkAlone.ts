@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { AbilityType, KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
@@ -10,10 +11,10 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addPilotDeploy();
 
-        this.addActionAbility({
+        registrar.addActionAbility({
             title: 'Deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -36,12 +37,12 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingGainKeywordTargetingAttached({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addPilotingGainKeywordTargetingAttached({
             keyword: KeywordName.Grit,
         });
 
-        this.addPilotingGainAbilityTargetingAttached({
+        registrar.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.',
             optional: true,

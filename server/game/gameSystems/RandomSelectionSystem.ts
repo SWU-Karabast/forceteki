@@ -52,18 +52,8 @@ export class RandomSelectionSystem<TContext extends AbilityContext = AbilityCont
         const target = context.targets.randomTarget;
 
         const [innerEffectMessage, innerEffectArgs] = properties.innerSystem.getEffectMessage(context, additionalProperties);
-        const innerMessage = context.game.gameChat.formatMessage(innerEffectMessage, innerEffectArgs);
 
-        const messageArgs = [
-            'randomly select ',
-            target,
-            ' from ',
-            options,
-            ', and to ',
-            ...innerMessage
-        ];
-
-        return [this.generateFormatString(messageArgs), messageArgs];
+        return ['randomly select {0} from {1}, and to {2}', [this.getTargetMessage(target, context), this.getTargetMessage(options, context), { format: innerEffectMessage, args: innerEffectArgs }]];
     }
 
     public override canAffectInternal(target: Player | Card, context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

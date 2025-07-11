@@ -51,6 +51,10 @@ export class KeywordInstance {
     public valueOf() {
         return this.name;
     }
+
+    public duplicate(card: Card): KeywordInstance {
+        return new KeywordInstance(this.name, card);
+    }
 }
 
 export class KeywordWithNumericValue extends KeywordInstance {
@@ -64,6 +68,10 @@ export class KeywordWithNumericValue extends KeywordInstance {
 
     public override hasNumericValue(): this is KeywordWithNumericValue {
         return true;
+    }
+
+    public override duplicate(card: Card): KeywordInstance {
+        return new KeywordWithNumericValue(this.name, card, this.value);
     }
 }
 
@@ -81,10 +89,17 @@ export class KeywordWithCostValues extends KeywordInstance {
     public override hasCostValue(): this is KeywordWithCostValues {
         return true;
     }
+
+    public override duplicate(card: Card): KeywordInstance {
+        return new KeywordWithCostValues(this.name, card, this.cost, this.aspects, this.additionalCosts);
+    }
 }
 
-export class BountyKeywordInstance<TSource extends Card = Card> extends KeywordInstance {
-    private _abilityProps?: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'> = null;
+export class KeywordWithAbilityDefinition<
+    TSource extends Card = Card,
+    TAbilityProps = IAbilityPropsWithType<TSource>
+> extends KeywordInstance {
+    private _abilityProps?: TAbilityProps = null;
 
     public get abilityProps() {
         if (this._abilityProps == null) {
@@ -98,37 +113,10 @@ export class BountyKeywordInstance<TSource extends Card = Card> extends KeywordI
         return true;
     }
 
-    public override get isFullyImplemented(): boolean {
-        return this._abilityProps != null;
-    }
-
-    /** @param abilityProps Optional, but if not provided must be provided via `abilityProps` */
-    public constructor(name: KeywordName, card: Card, abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'> = null) {
-        super(name, card);
-        this._abilityProps = abilityProps;
-    }
-
-    public setAbilityProps(abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>) {
-        Contract.assertNotNullLike(abilityProps, `Attempting to set null ability definition for ${this.name}`);
-        Contract.assertIsNullLike(this._abilityProps, `Attempting to set ability definition for ${this.name} but it already has a value`);
-
-        this._abilityProps = abilityProps;
-    }
-}
-
-export class KeywordWithAbilityDefinition<TSource extends Card = Card> extends KeywordInstance {
-    private _abilityProps?: IAbilityPropsWithType<TSource> = null;
-
-    public get abilityProps() {
-        if (this._abilityProps == null) {
-            Contract.fail(`Attempting to read property 'abilityProps' on a ${this.name} ability before it is defined`);
-        }
-
-        return this._abilityProps;
-    }
-
-    public override hasAbilityDefinition(): this is KeywordWithAbilityDefinition {
-        return true;
+    public override duplicate(card: Card): KeywordInstance {
+        // Ability properties cannot be duplicated and applied to a new card, so we explicitly set it to null.
+        // The ability definition needs to be set up manually on the new card, then added to this keyword instance.
+        return new KeywordWithAbilityDefinition(this.name, card, null);
     }
 
     public override get isFullyImplemented(): boolean {
@@ -136,15 +124,18 @@ export class KeywordWithAbilityDefinition<TSource extends Card = Card> extends K
     }
 
     /** @param abilityProps Optional, but if not provided must be provided via `abilityProps` */
-    public constructor(name: KeywordName, card: Card, abilityProps: IAbilityPropsWithType<TSource> = null) {
+    public constructor(name: KeywordName, card: Card, abilityProps: TAbilityProps = null) {
         super(name, card);
         this._abilityProps = abilityProps;
     }
 
-    public setAbilityProps(abilityProps: IAbilityPropsWithType<TSource>) {
+    public setAbilityProps(abilityProps: TAbilityProps) {
         Contract.assertNotNullLike(abilityProps, `Attempting to set null ability definition for ${this.name}`);
         Contract.assertIsNullLike(this._abilityProps, `Attempting to set ability definition for ${this.name} but it already has a value`);
 
         this._abilityProps = abilityProps;
     }
 }
+
+export class BountyKeywordInstance<TSource extends Card = Card>
+    extends KeywordWithAbilityDefinition<TSource, Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>> {}

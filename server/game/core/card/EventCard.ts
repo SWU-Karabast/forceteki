@@ -15,6 +15,7 @@ import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 import type { ICardCanChangeControllers } from './CardInterfaces';
 import type { InitializeCardStateOption } from './Card';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import type { IBasicAbilityRegistrar, IEventAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { GameObjectRef } from '../GameObjectBase';
 
 // STATE TODO: This needs the eventAbility to be converted to state.
@@ -106,13 +107,28 @@ export class EventCard extends EventCardParent implements IEventCard {
         }
     }
 
-    protected setEventAbility(properties: IEventAbilityProps) {
+    protected override getAbilityRegistrar(): IEventAbilityRegistrar {
+        return {
+            ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<EventCard>,
+            setEventAbility: (properties: IEventAbilityProps) => this.setEventAbility(properties),
+            addDecreaseCostAbility: (properties: IDecreaseCostAbilityProps<EventCard>) => this.addDecreaseCostAbility(properties),
+        };
+    }
+
+    protected override callSetupWithRegistrar() {
+        this.setupCardAbilities(this.getAbilityRegistrar());
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) { }
+
+    private setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;
         this.state.eventAbility = new EventAbility(this.game, this, properties).getRef();
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
-    protected addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>): void {
+    private addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<EventCard>): void {
         this.state.constantAbilities.push(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)).getRef());
     }
 }
