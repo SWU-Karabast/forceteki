@@ -61,7 +61,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         }));
 
         this.setupLeaderUnitSide = true;
-        this.setupLeaderUnitSideAbilities(this.getLeaderUnitAbilityRegistrar());
+        this.setupLeaderUnitSideAbilities(this.getAbilityRegistrar());
         this.validateCardAbilities(this.triggeredAbilities, cardData.deployBox);
     }
 
@@ -133,15 +133,15 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         this.moveTo(ZoneName.Base);
     }
 
-    protected getLeaderUnitAbilityRegistrar(): ILeaderUnitAbilityRegistrar & ILeaderUnitLeaderSideAbilityRegistrar {
+    protected override getAbilityRegistrar(): ILeaderUnitAbilityRegistrar & ILeaderUnitLeaderSideAbilityRegistrar {
         return {
-            ...this.getAbilityRegistrar() as IUnitAbilityRegistrar<ILeaderUnitCard>,
+            ...super.getAbilityRegistrar() as IUnitAbilityRegistrar<LeaderUnitCardInternal>,
             addPilotDeploy: () => this.addPilotDeploy(),
         };
     }
 
     protected override callSetupLeaderWithRegistrar() {
-        this.setupLeaderSideAbilities(this.getLeaderUnitAbilityRegistrar());
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar());
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

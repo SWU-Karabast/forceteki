@@ -88,10 +88,12 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
 export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
     protected override state: never;
 
-    protected override callSetupWithRegistrar() {
-        const registrar: INonLeaderUnitAbilityRegistrar = this.getAbilityRegistrar() as INonLeaderUnitAbilityRegistrar;
+    protected override getAbilityRegistrar(): INonLeaderUnitAbilityRegistrar {
+        return super.getAbilityRegistrar();
+    }
 
-        this.setupCardAbilities(registrar);
+    protected override callSetupWithRegistrar() {
+        this.setupCardAbilities(this.getAbilityRegistrar());
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

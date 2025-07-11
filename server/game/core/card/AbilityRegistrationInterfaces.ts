@@ -2,10 +2,10 @@ import type { IAbilityPropsWithType, IActionAbilityPropsWithGainCondition, ICons
 import type { BaseCard } from './BaseCard';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './baseClasses/PlayableOrDeployableCard';
 import type { Card } from './Card';
-import type { IDoubleSidedLeaderCard } from './DoubleSidedLeaderCard';
+import type { DoubleSidedLeaderCard } from './DoubleSidedLeaderCard';
 import type { EventCard } from './EventCard';
-import type { ILeaderUnitCard } from './LeaderUnitCard';
-import type { INonLeaderUnitCard } from './NonLeaderUnitCard';
+import type { LeaderUnitCard, LeaderUnitCardInternal } from './LeaderUnitCard';
+import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import type { IActionAbilityRegistrar } from './propertyMixins/ActionAbilityRegistration';
 import type { IConstantAbilityRegistrar } from './propertyMixins/ConstantAbilityRegistration';
 import type { ILeaderCard } from './propertyMixins/LeaderProperties';
@@ -30,16 +30,16 @@ export interface IInPlayCardAbilityRegistrar<T extends Card> extends IBasicAbili
 
 export type ILeaderAbilityRegistrar<T extends ILeaderCard> = IBasicAbilityRegistrar<T>;
 
-export type INonLeaderUnitAbilityRegistrar = IBasicAbilityRegistrar<INonLeaderUnitCard> & IUnitAbilityRegistrar<INonLeaderUnitCard>;
+export type INonLeaderUnitAbilityRegistrar = IBasicAbilityRegistrar<NonLeaderUnitCard> & IUnitAbilityRegistrar<NonLeaderUnitCard>;
 
-export type ILeaderUnitLeaderSideAbilityRegistrar = ILeaderAbilityRegistrar<ILeaderUnitCard> & {
-    addCoordinateAbility(properties: IAbilityPropsWithType<ILeaderUnitCard>): void;
+export type ILeaderUnitLeaderSideAbilityRegistrar = ILeaderAbilityRegistrar<LeaderUnitCard> & {
+    addCoordinateAbility(properties: IAbilityPropsWithType<LeaderUnitCard>): void;
     addPilotDeploy(): void;
 };
 
-export type ILeaderUnitAbilityRegistrar = ILeaderAbilityRegistrar<ILeaderUnitCard> & IUnitAbilityRegistrar<ILeaderUnitCard>;
+export type ILeaderUnitAbilityRegistrar = ILeaderAbilityRegistrar<LeaderUnitCardInternal> & IUnitAbilityRegistrar<LeaderUnitCardInternal>;
 
-export type IDoubleSidedLeaderAbilityRegistrar = ILeaderAbilityRegistrar<IDoubleSidedLeaderCard>;
+export type IDoubleSidedLeaderAbilityRegistrar = ILeaderAbilityRegistrar<DoubleSidedLeaderCard>;
 
 export type IUpgradeAbilityRegistrar = IBasicAbilityRegistrar<UpgradeCard> &
   IInPlayCardAbilityRegistrar<UpgradeCard> & {

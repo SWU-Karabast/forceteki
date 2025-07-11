@@ -198,9 +198,9 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         }
     }
 
-    protected override callSetupWithRegistrar() {
-        const registrar: IUpgradeAbilityRegistrar = {
-            ...this.getAbilityRegistrar() as IBasicAbilityRegistrar<UpgradeCard> & IInPlayCardAbilityRegistrar<UpgradeCard>,
+    protected override getAbilityRegistrar(): IUpgradeAbilityRegistrar {
+        return {
+            ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<UpgradeCard> & IInPlayCardAbilityRegistrar<UpgradeCard>,
             addConstantAbilityTargetingAttached: (properties) => this.addConstantAbilityTargetingAttached(properties),
             addGainConstantAbilityTargetingAttached: (properties) => this.addGainConstantAbilityTargetingAttached(properties),
             addGainTriggeredAbilityTargetingAttached: (properties) => this.addGainTriggeredAbilityTargetingAttached(properties),
@@ -211,8 +211,10 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             addGainKeywordTargetingAttached: (properties) => this.addGainKeywordTargetingAttached(properties),
             setAttachCondition: (attachCondition) => this.setAttachCondition(attachCondition),
         };
+    }
 
-        this.setupCardAbilities(registrar);
+    protected override callSetupWithRegistrar() {
+        this.setupCardAbilities(this.getAbilityRegistrar());
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

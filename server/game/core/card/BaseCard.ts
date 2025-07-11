@@ -94,13 +94,15 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         };
     }
 
-    protected override callSetupWithRegistrar() {
-        const registrar: IBaseAbilityRegistrar = {
-            ...this.getAbilityRegistrar() as IBasicAbilityRegistrar<BaseCard>,
+    protected override getAbilityRegistrar(): IBaseAbilityRegistrar {
+        return {
+            ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<BaseCard>,
             setEpicActionAbility: (properties: IEpicActionProps<this>) => this.setEpicActionAbility(properties),
         };
+    }
 
-        this.setupCardAbilities(registrar);
+    protected override callSetupWithRegistrar() {
+        this.setupCardAbilities(this.getAbilityRegistrar());
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

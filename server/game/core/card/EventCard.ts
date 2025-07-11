@@ -99,14 +99,16 @@ export class EventCard extends EventCardParent {
         }
     }
 
-    protected override callSetupWithRegistrar() {
-        const registrar: IEventAbilityRegistrar = {
-            ...this.getAbilityRegistrar() as IBasicAbilityRegistrar<EventCard>,
+    protected override getAbilityRegistrar(): IEventAbilityRegistrar {
+        return {
+            ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<EventCard>,
             setEventAbility: (properties: IEventAbilityProps) => this.setEventAbility(properties),
             addDecreaseCostAbility: (properties: IDecreaseCostAbilityProps<EventCard>) => this.addDecreaseCostAbility(properties),
         };
+    }
 
-        this.setupCardAbilities(registrar);
+    protected override callSetupWithRegistrar() {
+        this.setupCardAbilities(this.getAbilityRegistrar());
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

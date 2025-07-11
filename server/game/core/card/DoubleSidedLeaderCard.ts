@@ -23,7 +23,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         super(owner, cardData);
 
         this.setupLeaderBackSide = true;
-        this.setupLeaderBackSideAbilities(this.getDoubleSidedLeaderAbilityRegistrar());
+        this.setupLeaderBackSideAbilities(this.getAbilityRegistrar());
     }
 
     protected override setupDefaultState() {
@@ -52,12 +52,12 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         return traits;
     }
 
-    private getDoubleSidedLeaderAbilityRegistrar(): IDoubleSidedLeaderAbilityRegistrar {
-        return this.getAbilityRegistrar() as IBasicAbilityRegistrar<IDoubleSidedLeaderCard>;
+    protected override getAbilityRegistrar(): IDoubleSidedLeaderAbilityRegistrar {
+        return super.getAbilityRegistrar() as IBasicAbilityRegistrar<DoubleSidedLeaderCard>;
     }
 
     protected override callSetupLeaderWithRegistrar() {
-        this.setupLeaderSideAbilities(this.getDoubleSidedLeaderAbilityRegistrar());
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar());
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
