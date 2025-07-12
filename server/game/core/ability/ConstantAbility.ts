@@ -51,41 +51,35 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
     public constructor(game: Game, card: Card, properties: IConstantAbilityProps) {
         super(game);
 
-        // this.phase = properties.phase ?? PhaseName.Action;
         this.title = properties.title;
         this.abilityIdentifier = properties.abilityIdentifier;
         this.duration = Duration.Persistent;
         this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
-        this.condition = properties.condition;
-        this.matchTarget = properties.matchTarget;
-        this.targetController = properties.targetController;
-        this.targetZoneFilter = properties.targetZoneFilter;
-        this.targetCardTypeFilter = properties.targetCardTypeFilter;
-        this.cardName = properties.cardName;
-        this.ongoingEffect = properties.ongoingEffect;
-        this.createCopies = properties.createCopies;
 
-        // this.doesNotTarget = (properties as any).doesNotTarget;
-
-        // Uh, so this wasn't part of the original Constant Ability creation, and I assumed it would work; but apparently EventCards have constants but don't have the override.
-        // if (!card.canRegisterConstantAbilities()) {
-        //     throw Error(`Card '${card.internalName}' cannot have constant abilities`);
-        // }
+        // This object is destructured later and these properties will be to override defaults when the OngoingEffect is created. If these fields exist at all, even if undefined, it'll override the defaults when they shouldn't be.
+        if (properties.condition) {
+            this.condition = properties.condition;
+        }
+        if (properties.matchTarget) {
+            this.matchTarget = properties.matchTarget;
+        }
+        if (properties.targetController) {
+            this.targetController = properties.targetController;
+        }
+        if (properties.targetController) {
+            this.targetZoneFilter = properties.targetZoneFilter;
+        }
+        if (properties.targetCardTypeFilter) {
+            this.targetCardTypeFilter = properties.targetCardTypeFilter;
+        }
+        if (properties.cardName) {
+            this.cardName = properties.cardName;
+        }
+        if (properties.ongoingEffect) {
+            this.ongoingEffect = properties.ongoingEffect;
+        }
+        if (properties.createCopies) {
+            this.createCopies = properties.createCopies;
+        }
     }
-
-    // public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = [], thisStepOnly = false) {
-    //     if (!ignoredRequirements.includes('zone') && !this.isInValidZone(context)) {
-    //         return 'zone';
-    //     }
-
-    //     if (!ignoredRequirements.includes('phase') && this.phase !== 'any' && this.phase !== this.game.currentPhase) {
-    //         return 'phase';
-    //     }
-
-    //     if (!ignoredRequirements.includes('condition') && this.condition && !this.condition(context)) {
-    //         return 'condition';
-    //     }
-
-    //     return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
-    // }
 }
