@@ -384,7 +384,7 @@ export class GameServer {
 
                 // Check if user is authenticated
                 if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences`);
+                    logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences to dynamodb`);
                     return res.status(401).json({
                         success: false,
                         message: 'Error attempting to save sound preferences'
