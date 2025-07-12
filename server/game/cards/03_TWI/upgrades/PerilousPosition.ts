@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class PerilousPosition extends UpgradeCard {
@@ -9,8 +10,8 @@ export default class PerilousPosition extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Exhaust attached unit.',
             immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => ({
                 target: context.source.isInPlay() ? context.source.parentCard : null

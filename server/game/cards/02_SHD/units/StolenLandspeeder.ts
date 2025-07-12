@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { PlayType, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -11,8 +12,8 @@ export default class StolenLandspeeder extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'An opponent takes control of it',
             when: {
                 whenPlayed: true,
@@ -25,7 +26,7 @@ export default class StolenLandspeeder extends NonLeaderUnitCard {
             })
         });
 
-        this.addBountyAbility({
+        registrar.addBountyAbility({
             title: 'If you own this unit, play it from your discard pile for free and give an Experience token to it',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.owner === context.player,

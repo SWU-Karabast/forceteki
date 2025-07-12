@@ -1,3 +1,4 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { CardType, Trait } from '../../../core/Constants';
@@ -10,8 +11,8 @@ export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'Each Trick event you play costs 1 resource less',
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 amount: 1,
@@ -20,7 +21,7 @@ export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
             })
         });
 
-        this.addWhenPlayedAbility({
+        registrar.addWhenPlayedAbility({
             title: 'Search the top 8 cards of your deck for a Trick event, reveal it, and draw it',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,

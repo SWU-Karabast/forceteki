@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class CalculatedLethality extends EventCard {
@@ -10,8 +11,8 @@ export default class CalculatedLethality extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Defeat a non-leader unit that costs 3 or less',
             targetResolver: {
                 cardCondition: (card) => card.isNonLeaderUnit() && card.cost <= 3,

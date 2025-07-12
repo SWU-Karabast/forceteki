@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { WildcardCardType } from '../../../core/Constants';
 
@@ -11,8 +12,8 @@ export default class YoureMyOnlyHope extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Look at the top card of your deck',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndChooseOption(
                 (context) => {

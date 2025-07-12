@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Search the top 5 cards of your deck for an upgrade, then reveal and draw it.',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,

@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { GameStateChangeRequired, PhaseName, RelativePlayer, ZoneName } from '../../../core/Constants';
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
@@ -12,8 +13,8 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Put a card from your hand into play as a resource and ready it. At the start of the next action phase, defeat a resource you control.',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
@@ -30,8 +31,8 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'Put the top card of your deck into play as a resource and ready it. At the start of the next action phase, defeat a resource you control.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.resourceCard((context) => ({

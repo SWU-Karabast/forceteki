@@ -1,6 +1,11 @@
 import type { IActionAbilityProps } from '../../../Interfaces';
 import type PreEnterPlayAbility from '../../ability/PreEnterPlayAbility';
 import { type IPlayableOrDeployableCardState, type PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
+import type { Card } from '../Card';
+
+export interface IPreEnterPlayAbilityRegistrar<T extends Card> {
+    addPreEnterPlayAbility(properties: IActionAbilityProps<T>): PreEnterPlayAbility;
+}
 
 export interface ICardWithPreEnterPlayAbilities {
     getPreEnterPlayAbilities(): PreEnterPlayAbility[];
@@ -21,6 +26,17 @@ export function WithPreEnterPlayAbilities<TBaseClass extends PlayableOrDeployabl
 
         public override canRegisterPreEnterPlayAbilities(): this is ICardWithPreEnterPlayAbilities {
             return true;
+        }
+
+        protected override getAbilityRegistrar() {
+            const registrar: IPreEnterPlayAbilityRegistrar<this> = {
+                addPreEnterPlayAbility: (properties) => this.addPreEnterPlayAbility(properties),
+            };
+
+            return {
+                ...super.getAbilityRegistrar(),
+                ...registrar
+            };
         }
     };
 }

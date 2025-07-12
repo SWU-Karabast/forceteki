@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class PriceOnYourHead extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainKeywordTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
             ability: {
                 title: 'Put the top card of your deck into play as a resource',

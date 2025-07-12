@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { GameStateChangeRequired, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -11,8 +12,8 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -33,8 +34,8 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.',
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before

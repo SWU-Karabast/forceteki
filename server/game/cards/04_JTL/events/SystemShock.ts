@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { WildcardCardType } from '../../../core/Constants';
 
 export default class SystemShock extends EventCard {
@@ -10,8 +11,8 @@ export default class SystemShock extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Defeat a non-leader upgrade attached to a unit. If you do, deal 1 damage to that unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUpgrade,

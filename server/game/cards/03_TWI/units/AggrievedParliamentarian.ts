@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName } from '../../../core/Constants';
 
@@ -10,9 +11,9 @@ export default class AggrievedParliamentarian extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         // TODO need a target resolver for twin suns
-        this.addWhenPlayedAbility({
+        registrar.addWhenPlayedAbility({
             title: 'Your opponent shuffle their discard pile and put it on the bottom of their deck',
             immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck((context) => ({
                 target: context.player.opponent.getCardsInZone(ZoneName.Discard),

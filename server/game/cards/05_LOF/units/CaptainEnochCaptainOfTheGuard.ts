@@ -1,3 +1,4 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { Trait } from '../../../core/Constants';
@@ -10,8 +11,8 @@ export default class CaptainEnochCaptainOfTheGuard extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'This unit gets +1/+0 for each Trooper unit in your discard pile',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
                 power: target.controller.discardZone.cards.filter((x) => x.isUnit() && x.hasSomeTrait(Trait.Trooper)).length,

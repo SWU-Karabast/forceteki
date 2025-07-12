@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class AhsokaTanoAlwaysReadyForTrouble extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addActionAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Return to hand',
             cost: AbilityHelper.costs.abilityActivationResourceCost(2),
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
@@ -22,7 +23,7 @@ export default class AhsokaTanoAlwaysReadyForTrouble extends NonLeaderUnitCard {
             ])
         });
 
-        this.addConstantAbility({
+        registrar.addConstantAbility({
             title: 'Gain Ambush',
             condition: (context) => {
                 const player = context.player;

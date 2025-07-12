@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class OnyxSquadronBrute extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenDefeatedAbility({
             title: 'Heal 2 damage from a base',
             targetResolver: {
                 cardTypeFilter: CardType.Base,

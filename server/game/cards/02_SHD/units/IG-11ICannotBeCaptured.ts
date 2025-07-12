@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName } from '../../../core/Constants';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
@@ -11,8 +12,8 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addReplacementEffectAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addReplacementEffectAbility({
             title: 'If this unit would be captured, defeat him and deal 3 damage to each enemy ground unit instead',
             when: {
                 onCardCaptured: (event, context) => event.card === context.source
@@ -36,7 +37,7 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
             effectArgs: (context) => [context.source],
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Deal 3 damage to a damaged ground unit',
             optional: true,
             targetResolver: {

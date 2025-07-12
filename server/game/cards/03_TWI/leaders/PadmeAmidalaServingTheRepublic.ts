@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { AbilityType, Trait } from '../../../core/Constants';
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
@@ -12,8 +13,8 @@ export default class PadmeAmidalaServingTheRepublic extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addCoordinateAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addCoordinateAbility({
             type: AbilityType.Action,
             title: 'Search the top 3 cards of your deck for a Republic card, reveal it, and draw it',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
@@ -21,8 +22,8 @@ export default class PadmeAmidalaServingTheRepublic extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addCoordinateAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addCoordinateAbility({
             type: AbilityType.Triggered,
             title: 'Search the top 3 cards of your deck for a Republic card, reveal it, and draw it',
             when: {

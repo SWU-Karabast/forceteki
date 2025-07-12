@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 
@@ -11,8 +12,8 @@ export default class MindTrick extends EventCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setEventAbility({
+    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Exhaust any number of units with a combined power of 4 or less. If you control a Force unit, those units lose all abilities and can\'t gain abilities for this phase',
             targetResolver: {
                 mode: TargetMode.Unlimited,

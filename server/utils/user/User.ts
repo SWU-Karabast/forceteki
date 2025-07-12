@@ -15,6 +15,11 @@ export abstract class User {
     public abstract isAnonymousUser(): boolean;
 
     /**
+     * Checks if the user is a local dev test user
+     */
+    public abstract isDevTestUser(): boolean;
+
+    /**
      * Gets the user's ID (either authenticated user ID or anonymous ID)
      */
     public abstract getId(): string;
@@ -63,6 +68,10 @@ export class AuthenticatedUser extends User {
     }
 
     public isAnonymousUser(): boolean {
+        return false;
+    }
+
+    public isDevTestUser(): boolean {
         return false;
     }
 
@@ -121,6 +130,13 @@ export class AnonymousUser extends User {
 
     public isAnonymousUser(): boolean {
         return true;
+    }
+
+    public isDevTestUser(): boolean {
+        if (process.env.NODE_ENV === 'development') {
+            return this.id === 'exe66' || this.id === 'th3w4y';
+        }
+        return false;
     }
 
     public getId(): string {

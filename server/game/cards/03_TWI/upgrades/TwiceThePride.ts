@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class TwiceThePride extends UpgradeCard {
@@ -9,8 +10,8 @@ export default class TwiceThePride extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Deal 2 damage to attached unit',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 2,

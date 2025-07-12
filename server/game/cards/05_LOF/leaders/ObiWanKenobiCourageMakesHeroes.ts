@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 
 export default class ObiWanKenobiCourageMakesHeroes extends LeaderUnitCard {
@@ -9,8 +10,8 @@ export default class ObiWanKenobiCourageMakesHeroes extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Give an Experience token to a unit without an Experience token on it',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
@@ -23,8 +24,8 @@ export default class ObiWanKenobiCourageMakesHeroes extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'Give an Experience token to another unit without an Experience token on it',
             optional: true,
             targetResolver: {

@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class WhirlwindOfPower extends EventCard {
@@ -10,8 +11,8 @@ export default class WhirlwindOfPower extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Give a unit –2/–2 for this phase. If you control a Force unit, give it –3/–3 instead.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

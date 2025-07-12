@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
@@ -11,10 +12,10 @@ export default class HardpointHeavyBlaster extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainOnAttackAbilityTargetingAttached({
+        registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 2 damage to a target in the defender\'s arena',
             optional: true,
             targetResolver: {

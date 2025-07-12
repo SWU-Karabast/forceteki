@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../../../server/game/AbilityHelper';
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
 import { Duration, EventName } from '../../../../../server/game/core/Constants';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class QuiGonJinnsAetherspriteGuidedByTheForce extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -10,8 +11,8 @@ export default class QuiGonJinnsAetherspriteGuidedByTheForce extends NonLeaderUn
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addOnAttackAbility({
+    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'The next time you use a "When Played" ability this phase, you may use that ability again',
             immediateEffect: AbilityHelper.immediateEffects.delayedPlayerEffect({
                 title: 'You may use that "When Played" ability again',

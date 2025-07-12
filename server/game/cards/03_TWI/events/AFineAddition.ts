@@ -1,4 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import AbilityHelper from '../../../AbilityHelper';
 import { WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
@@ -30,8 +31,8 @@ export default class AFineAddition extends EventCard {
         return card.zoneName === ZoneName.Discard || (card.zoneName === ZoneName.Hand && card.controller === controllingPlayer);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'If an enemy unit was defeated this phase, play an upgrade from your hand or from any player\'s discard pile, ignoring its aspect penalty.',
             targetResolver: {
                 zoneFilter: [ZoneName.Discard, ZoneName.Hand],

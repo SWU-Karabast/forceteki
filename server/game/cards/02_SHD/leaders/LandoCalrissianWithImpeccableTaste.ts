@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { GameStateChangeRequired, KeywordName, PlayType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -42,8 +43,8 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control.',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: this.buildSmuggleCardAbility(),
@@ -51,8 +52,8 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control. Use this ability only once each round',
             limit: AbilityHelper.limit.perRound(1),
             targetResolver: this.buildSmuggleCardAbility(),

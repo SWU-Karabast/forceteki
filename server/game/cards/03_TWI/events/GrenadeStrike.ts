@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { WildcardCardType } from '../../../core/Constants';
 
 export default class GrenadeStrike extends EventCard {
@@ -10,8 +11,8 @@ export default class GrenadeStrike extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Deal 2 damage to a unit. You may deal 1 damage to another unit in the same arena.',
             targetResolvers: {
                 firstUnit: {

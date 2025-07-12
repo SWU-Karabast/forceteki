@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { Arena } from '../../../core/Constants';
 import { TargetMode, ZoneName } from '../../../core/Constants';
 
@@ -11,8 +12,8 @@ export default class BombingRun extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Deal 3 damage to each unit in an arena',
             targetResolver: {
                 mode: TargetMode.Select,

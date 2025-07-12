@@ -2,6 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { PlayUnitAction } from '../../../actions/PlayUnitAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, PlayType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
@@ -21,8 +22,8 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
         return super.buildPlayCardActions(playType, propertyOverrides).concat(firstLightSmuggleAction);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'Each other friendly non-leader unit gains Grit',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.NonLeaderUnit,

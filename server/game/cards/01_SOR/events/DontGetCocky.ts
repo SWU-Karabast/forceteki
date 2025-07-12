@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
@@ -14,10 +15,10 @@ export default class DontGetCocky extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
         // TODO: Consolidate this to a single prompt that includes the revealed cards and
         //       Reveal Another Card/Stop Revealing Cards options
-        this.setEventAbility({
+        registrar.setEventAbility({
             title: 'Choose a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit

@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class SupremeLeaderSnokeShadowRuler extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'Each enemy non-leader unit gets -2/-2',
             targetController: RelativePlayer.Opponent,
             targetCardTypeFilter: WildcardCardType.NonLeaderUnit,

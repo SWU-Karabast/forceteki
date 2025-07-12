@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TargetMode } from '../../../core/Constants';
 
 export default class TorpedoBarrage extends EventCard {
@@ -10,8 +11,8 @@ export default class TorpedoBarrage extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Deal 5 indirect damage to a player',
             targetResolver: {
                 mode: TargetMode.Player,

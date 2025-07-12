@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class TheFatherMaintainingBalance extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class TheFatherMaintainingBalance extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Deal 1 damage to this unit. If you do, the Force is with you.',
             optional: true,
             when: {

@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName, RelativePlayer, TargetMode } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class LandoCalrissianResponsibleBusinessman extends NonLeaderUnit
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Return up to 2 friendly resources to their owners’ hands',
             targetResolver: {
                 mode: TargetMode.UpTo,
