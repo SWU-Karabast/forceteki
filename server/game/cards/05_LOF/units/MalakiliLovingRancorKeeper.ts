@@ -4,6 +4,7 @@ import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../..
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { Card } from '../../../core/card/Card';
 
 export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -44,7 +45,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         });
     }
 
-    private isFirstCreaturePlayedByControllerThisPhase(card) {
+    private isFirstCreaturePlayedByControllerThisPhase(card: Card) {
         return card.hasSomeTrait(Trait.Creature) &&
           !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
               playedCardEntry.playedBy === card.controller &&

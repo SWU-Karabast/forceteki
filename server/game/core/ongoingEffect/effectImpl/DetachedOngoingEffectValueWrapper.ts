@@ -4,11 +4,13 @@ import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 
 export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapper<TValue> {
     private targetStates: Record<string, any> = {};
+    public readonly applyFunc: any;
+    public readonly unapplyFunc: any;
 
     public constructor(
         game: Game,
-        public applyFunc,
-        public unapplyFunc
+        applyFunc,
+        unapplyFunc
     ) {
         super(game, null);
         this.applyFunc = applyFunc;

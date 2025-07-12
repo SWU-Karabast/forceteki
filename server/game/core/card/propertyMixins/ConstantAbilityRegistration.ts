@@ -19,7 +19,7 @@ export interface ICardWithConstantAbilities<T extends Card> {
 /** Mixin function that adds the ability to register constant abilities to a base card class. */
 export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
     return class WithConstantAbilities extends BaseClass {
-        protected addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
+        protected addConstantAbility(properties: IConstantAbilityProps<this>): ConstantAbility {
             const ability = this.createConstantAbility(properties);
             // This check is necessary to make sure on-play cost-reduction effects are registered
             if (ability.sourceZoneFilter === WildcardZoneName.Any) {
