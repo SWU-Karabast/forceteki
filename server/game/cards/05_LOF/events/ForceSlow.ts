@@ -11,7 +11,7 @@ export default class ForceSlow extends EventCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
         registrar.setEventAbility({
             title: 'Give an exhausted unit -8/-0 for this phase',
             targetResolver: {

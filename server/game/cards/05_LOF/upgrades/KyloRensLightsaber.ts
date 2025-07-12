@@ -11,7 +11,7 @@ export default class KyloRensLightsaber extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
         registrar.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
 
         registrar.addReplacementEffectAbilityTargetingAttached({

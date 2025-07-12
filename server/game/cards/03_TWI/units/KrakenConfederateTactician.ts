@@ -10,7 +10,7 @@ export default class KrakenConfederateTactician extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addWhenPlayedAbility({
             title: 'Create 2 Battle Droid tokens.',
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid({ amount: 2 })

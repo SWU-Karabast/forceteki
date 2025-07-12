@@ -12,7 +12,7 @@ export default class FleetLieutenant extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addWhenPlayedAbility({
             title: 'Attack with a unit',
             optional: true,

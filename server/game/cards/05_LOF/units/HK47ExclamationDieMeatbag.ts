@@ -11,7 +11,7 @@ export default class HK47ExclamationDieMeatbag extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addTriggeredAbility({
             title: 'Deal 1 damage to its controller\'s base',
             when: {

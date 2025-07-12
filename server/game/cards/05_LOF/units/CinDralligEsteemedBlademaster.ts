@@ -12,7 +12,7 @@ export default class CinDralligEsteemedBlademaster extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addWhenPlayedAbility({
             title: 'You may play a Lightsaber upgrade from your hand for free on this unit',
             targetResolver: {

@@ -10,7 +10,7 @@ export default class TrustYourInstincts extends EventCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
         registrar.setEventAbility({
             title: 'Use the Force to attack with a unit and give +2/+0 and deal combat damage first',
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

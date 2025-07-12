@@ -10,7 +10,7 @@ export default class KnightOfTheRepublic extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addTriggeredAbility({
             title: 'Create a Clone Trooper token.',
             when: {

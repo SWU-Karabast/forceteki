@@ -10,7 +10,7 @@ export default class ChewbaccaLoyalCompanion extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addTriggeredAbility({
             title: 'Ready Chewbacca',
             when: {

@@ -11,7 +11,7 @@ export default class JediVector extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addConstantAbility({
             title: 'While you control another Jedi unit, this unit gets +1/+0',
             condition: (context) => context.player.hasSomeArenaUnit({ otherThan: context.source, trait: Trait.Jedi }),

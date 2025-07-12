@@ -10,7 +10,7 @@ export default class DQarCargoFrigate extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addConstantAbility({
             title: 'This unit gets -1/-0 for each damage on it.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
