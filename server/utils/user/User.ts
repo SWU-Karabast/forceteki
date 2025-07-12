@@ -40,6 +40,11 @@ export abstract class User {
     public abstract getPreferences(): UserPreferences;
 
     /**
+     * Sets the user's preferences
+     */
+    public abstract setPreferences(preferences: UserPreferences): void;
+
+    /**
      * Gets the object representation of the user for sending to the client
      */
     public abstract toJSON(): Record<string, any>;
@@ -84,6 +89,10 @@ export class AuthenticatedUser extends User {
 
     public getPreferences(): UserPreferences {
         return this.userData.preferences;
+    }
+
+    public setPreferences(preferences: UserPreferences) {
+        this.userData.preferences = preferences;
     }
 
     public needsUsernameChange(): boolean {
@@ -144,6 +153,10 @@ export class AnonymousUser extends User {
 
     public getPreferences(): UserPreferences {
         return null;
+    }
+
+    public setPreferences(_preferences: UserPreferences) {
+        throw new Error('Anonymous users do not support preferences. Check supportsPreferences() before calling this method.');
     }
 
     public override getShowWelcomeMessage(): boolean {
