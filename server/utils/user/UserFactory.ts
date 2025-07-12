@@ -11,7 +11,6 @@ import type { IUserDataEntity, UserPreferences } from '../../services/DynamoDBIn
 
 const getDefaultSoundPreferences = () => ({
     muteAllSound: false,
-    volume: 0.8,
     muteCardAndButtonClickSound: false,
     muteChatSound: false,
     muteYourTurn: false,
@@ -236,10 +235,10 @@ export class UserFactory {
     /**
      * Update user preferences
      * @param userId The user ID
-     * @param preferences The updated preferences object
+     * @param updatedPreferences The updated preferences object
      * @returns True if update was successful
      */
-    public async updateUserPreferencesAsync(userId: string, preferences: Record<string, any>): Promise<UserPreferences> {
+    public async updateUserPreferencesAsync(userId: string, updatedPreferences: Record<string, any>): Promise<UserPreferences> {
         try {
             const dbService = await this.dbServicePromise;
 
@@ -249,12 +248,13 @@ export class UserFactory {
 
             // Merge sound preferences with defaults if they don't exist
             const mergedPreferences = {
+                ...getDefaultPreferences(),
                 ...currentPreferences,
-                ...preferences,
+                ...updatedPreferences,
                 sound: {
                     ...getDefaultSoundPreferences(),
                     ...currentPreferences.sound,
-                    ...preferences.sound
+                    ...updatedPreferences.sound
                 }
             };
             await dbService.saveUserSettingsAsync(userId, mergedPreferences);
