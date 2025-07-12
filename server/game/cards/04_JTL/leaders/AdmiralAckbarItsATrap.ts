@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class AdmiralAckbarItsATrap extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Exhaust a non-leader unit. If you do, its controller creates an X-Wing token',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
@@ -26,7 +26,7 @@ export default class AdmiralAckbarItsATrap extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Exhaust a non-leader unit. If you do, its controller creates an X-Wing token',
             optional: true,

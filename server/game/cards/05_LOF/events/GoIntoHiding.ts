@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { AbilityRestriction, WildcardCardType } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class GoIntoHiding extends EventCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    protected override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Choose a unit. It cannot be attacked this phase',
             targetResolver: {

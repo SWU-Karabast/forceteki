@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             // TODO: how do we want to handle prompts for targeting costs (i.e. the defeat unit cost)?
             title: 'Deal 1 damage to a unit and draw a card',
@@ -33,7 +33,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Take control of a damaged non-leader unit',
             when: {

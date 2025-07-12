@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class Pounce extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Attack with a Creature unit. It gets +4/+0 for this attack',
             initiateAttack: {

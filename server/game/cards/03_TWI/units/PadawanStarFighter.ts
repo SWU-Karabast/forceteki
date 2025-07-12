@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class PadawanStarFighter extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'While you control a Force unit or a Force upgrade, this unit gets +1/+1',
             condition: (context) => context.player.hasSomeArenaCard({ trait: Trait.Force }),

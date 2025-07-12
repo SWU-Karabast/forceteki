@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
@@ -12,7 +12,7 @@ export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Play a unit that costs 3 or less. It gains sentinel for this phase',
             cost: AbilityHelper.costs.exhaustSelf(),

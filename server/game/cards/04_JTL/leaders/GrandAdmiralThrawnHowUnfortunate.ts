@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { EventName } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Exhaust this leader to use the When Defeated ability again',
             optional: true,
@@ -31,7 +31,7 @@ export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Use When Defeated ability again',
             optional: true,

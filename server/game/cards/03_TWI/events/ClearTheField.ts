@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
 
@@ -10,7 +10,7 @@ export default class ClearTheField extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Choose a non-leader that costs 3 or less. Return it and each enemy non-leader unit with the same name as it to their owner\'s hand.',
             targetResolver: {

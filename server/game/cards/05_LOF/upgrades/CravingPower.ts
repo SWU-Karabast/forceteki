@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
@@ -18,7 +18,7 @@ export default class CravingPower extends UpgradeCard {
         return targetCard.isUnit() && targetCard.controller === controller;
     }
 
-    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Deal damage to an enemy unit equal to attached unit\'s power',
             targetResolver: {

@@ -2,6 +2,7 @@ import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistr
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import type { Card } from '../../../core/card/Card';
 import { KeywordName } from '../../../core/Constants';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class NamelessValor extends UpgradeCard {
     protected override getImplementationId() {
@@ -11,7 +12,7 @@ export default class NamelessValor extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setAttachCondition((card: Card) => card.isToken());
         registrar.addGainKeywordTargetingAttached({ keyword: KeywordName.Overwhelm });
     }

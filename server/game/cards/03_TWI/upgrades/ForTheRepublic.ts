@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { AbilityType, KeywordName, Trait } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class ForTheRepublic extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
             title: 'If you control 3 or more Republic units, this upgrade costs 2 less to play.',
             amount: 2,

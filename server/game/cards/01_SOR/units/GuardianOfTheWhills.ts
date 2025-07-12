@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
@@ -17,7 +17,7 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
@@ -31,7 +31,7 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
         );
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'The first upgrade you play on this unit each round costs 1 resource less.',
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({

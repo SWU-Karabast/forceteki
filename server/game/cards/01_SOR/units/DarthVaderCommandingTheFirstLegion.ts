@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
@@ -13,7 +13,7 @@ export default class DarthVaderCommandingTheFirstLegion extends NonLeaderUnitCar
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Search the top 10 cards of your deck for any number of Villainy units with combined cost 3 or less and play each of them for free',
             immediateEffect: AbilityHelper.immediateEffects.playMultipleCardsFromDeck({

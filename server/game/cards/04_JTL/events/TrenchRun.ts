@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
@@ -13,7 +13,7 @@ export default class TrenchRun extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Attack with a Fighter unit. For this attack, it gets +4/+0 and gains: "On Attack: Discard 2 cards from the defending player\'s deck. Deal unpreventable damage equal to the difference in the discarded cards\' costs to this unit."',
             targetResolver: {

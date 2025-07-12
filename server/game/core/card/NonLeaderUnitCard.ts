@@ -12,6 +12,7 @@ import type { ICardCanChangeControllers } from './CardInterfaces';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { INonLeaderUnitAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import { type IAbilityHelper } from '../../AbilityHelper';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
@@ -93,9 +94,9 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar());
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) { }
+    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
 }

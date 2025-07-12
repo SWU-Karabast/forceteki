@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class MaKlounkee extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Return a friendly non-leader Underworld unit to its owner\'s hand. If you do, deal 3 damage to a unit',
             targetResolver: {

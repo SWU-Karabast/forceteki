@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -17,34 +17,34 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'If a friendly unit was defeated this phase, give a unit +2/+2 for this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: this.getWatTamborEffect()
+                immediateEffect: this.getWatTamborEffect(AbilityHelper)
             }
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'If a friendly unit was defeated this phase, give a unit +2/+2 for this phase',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => card !== context.source,
-                immediateEffect: this.getWatTamborEffect(),
+                immediateEffect: this.getWatTamborEffect(AbilityHelper),
             }
         });
     }
 
-    private getWatTamborEffect(): GameSystem<TriggeredAbilityContext<this>> {
+    private getWatTamborEffect(AbilityHelper: IAbilityHelper): GameSystem<TriggeredAbilityContext<this>> {
         return AbilityHelper.immediateEffects.conditional({
             condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
             onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({

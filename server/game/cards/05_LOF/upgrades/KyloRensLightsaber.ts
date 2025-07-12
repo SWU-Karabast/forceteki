@@ -1,3 +1,4 @@
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
@@ -11,7 +12,7 @@ export default class KyloRensLightsaber extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
 
         registrar.addReplacementEffectAbilityTargetingAttached({

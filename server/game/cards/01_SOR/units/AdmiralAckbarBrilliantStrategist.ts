@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
@@ -23,7 +23,7 @@ export default class AdmiralAckbarBrilliantStrategist extends NonLeaderUnitCard 
         return arena.length;
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Deal damage to a unit equal to the number of units your control in its arena.',
             optional: true,

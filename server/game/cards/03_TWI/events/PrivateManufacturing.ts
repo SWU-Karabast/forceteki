@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { GameStateChangeRequired, RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
 
 export default class PrivateManufacturing extends EventCard {
@@ -11,7 +11,7 @@ export default class PrivateManufacturing extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Draw 2 cards. If you control no token units, put 2 cards from your hand on the bottom of your deck in any order.',
             immediateEffect: AbilityHelper.immediateEffects.sequential([

@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName } from '../../../core/Constants';
@@ -12,7 +12,7 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addReplacementEffectAbility({
             title: 'If this unit would be captured, defeat him and deal 3 damage to each enemy ground unit instead',
             when: {

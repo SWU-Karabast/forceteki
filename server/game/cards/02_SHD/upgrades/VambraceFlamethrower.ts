@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { ZoneName, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
@@ -12,7 +12,7 @@ export default class VambraceFlamethrower extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
         registrar.addGainOnAttackAbilityTargetingAttached({

@@ -48,6 +48,7 @@ const { CostAdjuster } = require('./cost/CostAdjuster.js');
 const { logger } = require('../../logger.js');
 const AbilityHelper = require('../AbilityHelper.js');
 const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
+const { getAbilityHelper } = require('../AbilityHelper.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -134,7 +135,8 @@ class Game extends EventEmitter {
         this.gameObjectManager = new GameStateManager(this);
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
-        AbilityHelper.limit = new AbilityLimitInstance(this);
+        /** @type {import('../AbilityHelper.js').IAbilityHelper} */
+        this.abilityHelper = getAbilityHelper(this);
 
         /** @type { {[key: string]: Player | Spectator} } */
         this.playersAndSpectators = {};

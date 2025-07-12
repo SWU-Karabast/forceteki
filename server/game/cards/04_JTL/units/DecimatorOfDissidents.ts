@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -14,11 +14,11 @@ export default class DecimatorOfDissidents extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.damageDealtThisPhaseWatcher = AbilityHelper.stateWatchers.damageDealtThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
             title: 'If you dealt indirect damage this phase, this unit costs 1 resource less to play',
             condition: (context) => this.damageDealtThisPhaseWatcher.playerHasDealtDamage(context.player, (e) => e.isIndirect),

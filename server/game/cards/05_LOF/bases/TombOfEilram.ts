@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { BaseCard } from '../../../core/card/BaseCard';
 import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
@@ -10,7 +10,7 @@ export default class TombOfEilram extends BaseCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IBaseAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'The Force is with you',
             cost: AbilityHelper.costs.exhaustFriendlyUnit(),

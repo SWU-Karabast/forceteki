@@ -39,7 +39,6 @@ import type { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
 import type { GameObjectRef } from '../../GameObjectBase';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/LeadersDeployedThisPhaseWatcher';
-import AbilityHelper from '../../../AbilityHelper';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
 import type { OngoingCardEffect } from '../../ongoingEffect/OngoingCardEffect';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
@@ -308,8 +307,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
             }
 
-            this._cardsPlayedThisWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(this.owner.game.stateWatcherRegistrar, this);
-            this._leadersDeployedThisPhaseWatcher = AbilityHelper.stateWatchers.leadersDeployedThisPhase(this.owner.game.stateWatcherRegistrar, this);
+            this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase(this.owner.game.stateWatcherRegistrar, this);
+            this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase(this.owner.game.stateWatcherRegistrar, this);
         }
 
         protected override setupDefaultState() {
@@ -677,7 +676,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
                     title: 'Hidden',
                     condition: (context) => context.source.isInPlay() && this.wasPlayedThisPhase(context.source),
-                    ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
+                    ongoingEffect: this.game.abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
                 };
 
                 const hiddenKeywordAbility = this.createConstantAbility(hiddenKeywordAbilityProps);

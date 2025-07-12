@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
@@ -12,7 +12,7 @@ export default class ReyWithPalpatinesPower extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Reveal Rey to deal 2 damage to a unit and 2 damage to a base.',
             optional: true,

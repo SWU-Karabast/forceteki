@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Attack } from '../../../core/attack/Attack';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
@@ -12,7 +12,7 @@ export default class CorruptedSaber extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
 
         registrar.addGainOnAttackAbilityTargetingAttached({

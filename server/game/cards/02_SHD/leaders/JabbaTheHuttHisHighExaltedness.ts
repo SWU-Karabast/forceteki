@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs 1 resource less."',
             cost: AbilityHelper.costs.exhaustSelf(),
@@ -25,7 +25,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
-                                    limit: AbilityLimit.perPlayerPerGame(1),
+                                    limit: AbilityHelper.AbilityLimit.perPlayerPerGame(1),
                                     amount: 1
                                 })
                             })
@@ -36,7 +36,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Another friendly unit captures an enemy non-leader unit',
             when: {
@@ -70,7 +70,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
-                                    limit: AbilityLimit.perPlayerPerGame(1),
+                                    limit: AbilityHelper.AbilityLimit.perPlayerPerGame(1),
                                     amount: 2
                                 })
                             })

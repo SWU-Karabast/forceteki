@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
@@ -10,7 +10,7 @@ export default class DroidCohort extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'Create a Battle Droid token.',
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()

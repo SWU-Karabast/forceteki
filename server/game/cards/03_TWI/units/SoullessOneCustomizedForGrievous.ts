@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class SoullessOneCustomizedForGrievous extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Exhaust a friendly Droid unit or General Grievous. If you do, this unit gets +2/+0 for this attack',
             optional: true,

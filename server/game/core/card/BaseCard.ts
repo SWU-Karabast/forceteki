@@ -16,6 +16,7 @@ import { WithActionAbilities } from './propertyMixins/ActionAbilityRegistration'
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import { EpicActionAbility } from '../../abilities/EpicActionAbility';
 import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../AbilityHelper';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
@@ -102,9 +103,9 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar());
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupCardAbilities(registrar: IBaseAbilityRegistrar) { }
+    protected override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
 }

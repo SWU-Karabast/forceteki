@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CardType, RelativePlayer } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class RogerRoger extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
             title: 'Attach to a friendly Battle Droid token',
             targetResolver: {

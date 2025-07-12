@@ -17,6 +17,7 @@ import type { InitializeCardStateOption } from './Card';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IBasicAbilityRegistrar, IEventAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { GameObjectRef } from '../GameObjectBase';
+import type { IAbilityHelper } from '../../AbilityHelper';
 
 // STATE TODO: This needs the eventAbility to be converted to state.
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard<IEventCardState>));
@@ -116,11 +117,11 @@ export class EventCard extends EventCardParent implements IEventCard {
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar());
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) { }
+    protected override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
 
     private setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;

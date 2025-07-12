@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Duration, RelativePlayer, WildcardCardType } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class GiveInToYourAnger extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Deal 1 damage to an enemy unit. Its controller’s next action this phase must be an attack action with that unit, if able. It must attack a unit, if able.',
             targetResolver: {

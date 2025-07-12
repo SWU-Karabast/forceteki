@@ -295,6 +295,10 @@ export class AbilityLimitInstance {
         return new PerGameAbilityLimit(this.game, max);
     }
 
+    public perPlayerPerGame(max: number) {
+        return new PerPlayerPerGameAbilityLimit(this.game, max);
+    }
+
     public epicAction() {
         return new EpicActionLimit(this.game);
     }

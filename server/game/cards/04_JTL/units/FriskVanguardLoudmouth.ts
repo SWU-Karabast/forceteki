@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class FriskVanguardLoudmouth extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addPilotingAbility({
             type: AbilityType.Triggered,
             title: 'Defeat an upgrade that costs 2 or less',

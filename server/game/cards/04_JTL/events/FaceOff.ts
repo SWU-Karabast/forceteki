@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class FaceOff extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'If no player has taken the initiative this phase, you may ready an enemy unit. If you do, ready a friendly unit in the same arena',
             // TODO: The player won't be warned that Face Off will do nothing if the initiative has been claimed because of this optional

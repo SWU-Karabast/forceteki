@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { BaseCard } from '../../../core/card/BaseCard';
 import * as ChatHelpers from '../../../core/chat/ChatHelpers';
 import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
@@ -11,8 +11,8 @@ export default class MysticMonastery extends BaseCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IBaseAbilityRegistrar) {
-        const limit = AbilityHelper.limit.perPlayerPerGame(3);
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        const limit = AbilityHelper.AbilityLimit.perPlayerPerGame(3);
 
         registrar.addActionAbility({
             title: 'The Force is with you',

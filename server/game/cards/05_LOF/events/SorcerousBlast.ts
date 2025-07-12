@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { WildcardCardType } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class SorcerousBlast extends EventCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    protected override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Use the Force to deal 3 damage to a unit',
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

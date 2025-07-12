@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { PhaseName, WildcardCardType } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class LiberatedByDarkness extends EventCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    protected override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Use the Force. If you do, take control of a non-leader unit. At the start of the regroup phase, its owner takes control of it',
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

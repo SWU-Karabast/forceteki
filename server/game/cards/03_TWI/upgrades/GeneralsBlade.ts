@@ -2,8 +2,7 @@ import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistr
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
-import AbilityHelper from '../../../AbilityHelper';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class GeneralsBlade extends UpgradeCard {
     protected override getImplementationId() {
@@ -13,7 +12,7 @@ export default class GeneralsBlade extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
         registrar.addGainOnAttackAbilityTargetingAttached({
@@ -24,7 +23,7 @@ export default class GeneralsBlade extends UpgradeCard {
                 ongoingEffectTargetDescription: 'them',
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,
-                    limit: AbilityLimit.perPlayerPerGame(1),
+                    limit: AbilityHelper.AbilityLimit.perPlayerPerGame(1),
                     amount: 2
                 })
             }),

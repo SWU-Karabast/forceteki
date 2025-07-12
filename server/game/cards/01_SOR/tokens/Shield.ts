@@ -1,5 +1,5 @@
 import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
 import type { Player } from '../../../core/Player';
 
@@ -28,7 +28,7 @@ export default class Shield extends TokenUpgradeCard {
         return true;
     }
 
-    public override setupCardAbilities() {
+    public override setupCardAbilities(registar, AbilityHelper: IAbilityHelper) {
         this.addReplacementEffectAbility({
             title: 'Defeat shield to prevent attached unit from taking damage',
             when: {
