@@ -979,6 +979,12 @@ var customMatchers = {
                 if (card.getPrintedHp() !== targetCard.getPrintedHp()) {
                     failures.push(`printedHp: expected ${card.getPrintedHp()} but got ${targetCard.getPrintedHp()}`);
                 }
+                if ((card.printedUpgradePower != null || targetCard.printedUpgradePower != null) && card.printedUpgradePower !== targetCard.printedUpgradePower) {
+                    failures.push(`printedUpgradePower: expected ${card.printedUpgradePower} but got ${targetCard.printedUpgradePower}`);
+                }
+                if ((card.printedUpgradeHp != null || targetCard.printedUpgradeHp != null) && card.printedUpgradeHp !== targetCard.printedUpgradeHp) {
+                    failures.push(`printedUpgradeHp: expected ${card.printedUpgradeHp} but got ${targetCard.printedUpgradeHp}`);
+                }
                 if (card.printedKeywords.length !== targetCard.printedKeywords.length || !card.printedKeywords.every((keyword, index) => {
                     const otherKeyword = targetCard.printedKeywords[index];
                     if (keyword.name !== otherKeyword.name) {
@@ -1061,6 +1067,12 @@ var customMatchers = {
                 }
                 if (card.getPrintedHp() !== 0) {
                     failures.push(`printedHp: expected 0 but got ${card.getPrintedHp()}`);
+                }
+                if (card.printedUpgradePower != null) {
+                    failures.push(`printedUpgradePower: expected null but got ${card.printedUpgradePower}`);
+                }
+                if (card.printedUpgradeHp != null) {
+                    failures.push(`printedUpgradeHp: expected null but got ${card.printedUpgradeHp}`);
                 }
                 if (card.printedKeywords.length > 0) {
                     failures.push(`printedKeywords: expected no keywords but got ${card.printedKeywords.map((keyword) => keyword.name).join(', ')}`);

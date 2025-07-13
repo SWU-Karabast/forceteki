@@ -47,6 +47,8 @@ export default class Clone extends NonLeaderUnitCard {
                             printedCost: context.target.printedCost,
                             printedHp: context.target.getPrintedHp(),
                             printedPower: context.target.getPrintedPower(),
+                            printedUpgradeHp: context.target.printedUpgradeHp,
+                            printedUpgradePower: context.target.printedUpgradePower,
                             printedTraits: context.target.getPrintedTraits(),
                             printedKeywords: context.target.printedKeywords.map((keyword) => keyword.duplicate(context.source)),
                         }),

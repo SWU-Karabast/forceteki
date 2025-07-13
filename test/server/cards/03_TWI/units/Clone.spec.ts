@@ -1879,5 +1879,71 @@ describe('Clone', function() {
                 expect(context.player1.handSize).toBe(2);
             });
         });
+
+        describe('when it copiees a pilot unit with a pilot ability', function () {
+            it('copies pilot triggered abilities', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                    },
+                    player2: {
+                        hand: ['disabling-fang-fighter'],
+                        groundArena: ['pantoran-starship-thief'],
+                        spaceArena: ['omicron-strike-craft'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.pantoranStarshipThief);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.omicronStrikeCraft);
+
+                expect(context.omicronStrikeCraft).toHaveExactUpgradeNames(['clone']);
+                expect(context.omicronStrikeCraft).toBeInZone('spaceArena', context.player1);
+                expect(context.clone).toBeCloneOf(context.pantoranStarshipThief);
+                expect(context.player1.exhaustedResourceCount).toBe(10);
+
+                context.player2.clickCard(context.disablingFangFighter);
+                context.player2.clickCard(context.clone);
+
+                expect(context.clone).toBeVanillaClone();
+                expect(context.clone).toBeInZone('discard', context.player1);
+                expect(context.omicronStrikeCraft).toBeInZone('spaceArena', context.player2);
+            });
+
+            it('copies pilot constant abilities', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone', 'corvus#inferno-squadron-raider'],
+                        groundArena: ['nien-nunb#loyal-copilot'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.nienNunb);
+
+                expect(context.clone).toBeCloneOf(context.nienNunb);
+                expect(context.clone.getPower()).toBe(2);
+                expect(context.nienNunb.getPower()).toBe(2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.corvus);
+                context.player1.clickCard(context.clone);
+
+                expect(context.clone).toBeCloneOf(context.nienNunb);
+                expect(context.corvus).toHaveExactUpgradeNames(['clone']);
+                expect(context.corvus.getPower()).toBe(6);
+                expect(context.nienNunb.getPower()).toBe(2);
+            });
+        });
     });
 });

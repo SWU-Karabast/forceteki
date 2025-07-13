@@ -124,7 +124,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly _printedType: CardType;
     protected readonly _printedKeywords: KeywordInstance[];
 
-    protected readonly canBeUpgrade: boolean;
     protected readonly hasNonKeywordAbilityText: boolean;
     protected readonly hasImplementationFile: boolean;
     protected readonly printedTraits: Set<Trait>;
@@ -314,7 +313,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
         this.controller = owner;
         this.id = cardData.id;
-        this.canBeUpgrade = cardData.upgradeHp != null && cardData.upgradePower != null;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.backsidePrintedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.backSideTraits, Trait));
 
