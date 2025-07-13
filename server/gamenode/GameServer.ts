@@ -258,7 +258,7 @@ export class GameServer {
 
         app.post('/api/get-user', authMiddleware('get-user'), async (req, res, next) => {
             try {
-                const { decks } = req.body;
+                const { decks, preferences } = req.body;
                 const user = req.user as User;
                 // We try to sync the decks first
                 if (decks.length > 0) {
@@ -267,6 +267,13 @@ export class GameServer {
                     } catch (err) {
                         logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
                         next(err);
+                    }
+                }
+                if (preferences) {
+                    try {
+                        user.setPreferences(await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences));
+                    } catch (err) {
+                        logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
                     }
                 }
                 return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange() } });
@@ -366,6 +373,33 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (change-username) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/save-sound-preferences', authMiddleware(), async (req, res, next) => {
+            try {
+                const { soundPreferences } = req.body;
+                const user = req.user as User;
+
+                // Check if user is authenticated
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences to dynamodb`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Error attempting to save sound preferences'
+                    });
+                }
+
+                // Update user preferences with sound preferences
+                await this.userFactory.updateUserPreferencesAsync(user.getId(), { sound: soundPreferences });
+
+                return res.status(200).json({
+                    success: true,
+                    message: 'Sound preferences saved successfully'
+                });
+            } catch (err) {
+                logger.error('GameServer (save-sound-preferences) Server error:', err);
                 next(err);
             }
         });
