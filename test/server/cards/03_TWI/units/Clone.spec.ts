@@ -1438,6 +1438,7 @@ describe('Clone', function() {
                         ]
                     },
                     player2: {
+                        hand: ['takedown'],
                         groundArena: ['crafty-smuggler']
                     }
                 });
@@ -1465,6 +1466,16 @@ describe('Clone', function() {
                 // Battlefield Marine receives the +1/+1 buff from both Clone and Commander Cody
                 expect(context.battlefieldMarine.getPower()).toBe(5);
                 expect(context.battlefieldMarine.getHp()).toBe(5);
+
+                // Player 2 defeats a unit and coordinates is deactivated
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.clone.getPower()).toBe(4);
+                expect(context.clone.getHp()).toBe(4);
+                expect(context.cloneCommanderCody.getPower()).toBe(4);
+                expect(context.cloneCommanderCody.getHp()).toBe(4);
             });
 
             it('copies Exploit and its numeric value (but does not affect how the card is played)', async function () {
