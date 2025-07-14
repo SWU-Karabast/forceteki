@@ -985,6 +985,8 @@ var customMatchers = {
                 if ((card.printedUpgradeHp != null || targetCard.printedUpgradeHp != null) && card.printedUpgradeHp !== targetCard.printedUpgradeHp) {
                     failures.push(`printedUpgradeHp: expected ${card.printedUpgradeHp} but got ${targetCard.printedUpgradeHp}`);
                 }
+                // Note: this relies on the fact that printed keywords are copied in order, if that stops being the case this will need to be updated
+                // because keywords don't need to be in the same order for the Clone ability to work correctly
                 if (card.printedKeywords.length !== targetCard.printedKeywords.length || !card.printedKeywords.every((keyword, index) => {
                     const otherKeyword = targetCard.printedKeywords[index];
                     if (keyword.name !== otherKeyword.name) {
