@@ -122,5 +122,30 @@ describe('Count Dooku, Fallen Jedi', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Count Doouk\'s when played ability', function () {
+            it('should do nothing if triggered by Clone', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: [{ card: 'wampa', upgrades: ['experience'] }, 'battle-droid', 'count-dooku#fallen-jedi'],
+                        spaceArena: ['tie-advanced']
+                    },
+                    player2: {
+                        groundArena: ['atst'],
+                        spaceArena: ['cartel-spacer']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.countDooku);
+
+                expect(context.clone).toBeCloneOf(context.countDooku);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
