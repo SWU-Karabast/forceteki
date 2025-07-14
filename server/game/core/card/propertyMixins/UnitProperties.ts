@@ -1067,6 +1067,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             if (this.isInPlay()) {
                 const hasSentinel = this.hasSomeKeyword(KeywordName.Sentinel);
                 const isHidden = !hasSentinel && this.hasSomeKeyword(KeywordName.Hidden) && this.wasPlayedThisPhase();
+                const clonedCardSetId = this.hasOngoingEffect(EffectName.CloneUnit) ? this.getOngoingEffectValues<Card>(EffectName.CloneUnit)[0].setId : null;
 
                 return {
                     ...super.getSummary(activePlayer),
@@ -1076,6 +1077,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     hidden: isHidden,
                     isAttacker: this.isInPlay() && this.isUnit() && (this.isAttacking() || this.controller.getAttackerHighlightingState(this)),
                     isDefender: this.isInPlay() && this.isUnit() && this.isDefending(),
+                    clonedCardId: clonedCardSetId,
                 };
             }
 
