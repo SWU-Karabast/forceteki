@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class FellTheDragon extends EventCard {
     protected override getImplementationId () {
@@ -9,8 +10,8 @@ export default class FellTheDragon extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Defeat a non-leader unit with 5 or more power',
             targetResolver: {
                 cardCondition: (card, _) => card.isNonLeaderUnit() && card.getPower() >= 5,

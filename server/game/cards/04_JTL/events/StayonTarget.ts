@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait, AbilityType } from '../../../core/Constants';
 import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 
@@ -11,8 +12,8 @@ export default class StayonTarget extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Attack with a Vehicle unit. For this attack, it gets +2/+0 and gains: "When this unit deals damage to a base: Draw a card"',
             initiateAttack: {
                 attackerCondition: (card) => card.hasSomeTrait(Trait.Vehicle),

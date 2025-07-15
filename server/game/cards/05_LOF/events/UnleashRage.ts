@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { WildcardCardType, RelativePlayer } from '../../../core/Constants';
 
 export default class UnleashRage extends EventCard {
@@ -10,8 +11,8 @@ export default class UnleashRage extends EventCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setEventAbility({
+    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Use the Force to give a friendly unit +3/+0',
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {

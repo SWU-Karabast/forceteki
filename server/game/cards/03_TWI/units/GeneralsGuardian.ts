@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class GeneralsGuardian extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class GeneralsGuardian extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addTriggeredAbility({
+    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Create a Battle Droid token.',
             when: {
                 onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),

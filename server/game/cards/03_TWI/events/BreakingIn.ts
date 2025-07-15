@@ -1,4 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import AbilityHelper from '../../../AbilityHelper';
 import { KeywordName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class BreakingIn extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Attack with a unit. It gets +2/+0 and gains Saboteur for this attack.',
             initiateAttack: {
                 attackerLastingEffects: [

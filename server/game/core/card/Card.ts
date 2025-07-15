@@ -500,6 +500,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
+    protected getAbilityRegistrar() {
+        return { };
+    }
+
     protected buildGeneralAbilityProps(abilityTypeDescriptor: string) {
         return {
             cardName: this.title,
@@ -605,21 +609,21 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     /**
      * Returns true if the card is a type that can legally have triggered abilities.
      */
-    public canRegisterActionAbilities(): this is ICardWithActionAbilities {
+    public canRegisterActionAbilities(): this is ICardWithActionAbilities<this> {
         return false;
     }
 
     /**
      * Returns true if the card is a type that can legally have triggered abilities.
      */
-    public canRegisterConstantAbilities(): this is ICardWithConstantAbilities {
+    public canRegisterConstantAbilities(): this is ICardWithConstantAbilities<this> {
         return false;
     }
 
     /**
      * Returns true if the card is a type that can legally have triggered abilities.
      */
-    public canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
+    public canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities<this> {
         return false;
     }
 

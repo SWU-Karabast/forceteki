@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { WildcardCardType } from '../../../core/Constants';
 
 export default class ConsumedByTheDarkSide extends EventCard {
@@ -10,8 +11,8 @@ export default class ConsumedByTheDarkSide extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Give 2 Experience tokens to a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

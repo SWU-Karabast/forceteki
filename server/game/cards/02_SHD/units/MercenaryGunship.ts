@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardRelativePlayer } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class MercenaryGunship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Take control of this unit',
             cost: AbilityHelper.costs.abilityActivationResourceCost(4),
             canBeTriggeredBy: WildcardRelativePlayer.Any,

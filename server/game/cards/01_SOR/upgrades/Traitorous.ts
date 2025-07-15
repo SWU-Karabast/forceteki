@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class Traitorous extends UpgradeCard {
@@ -9,8 +10,8 @@ export default class Traitorous extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Take control of attached unit',
             when: {
                 onUpgradeAttached: (event, context) => event.upgradeCard === context.source &&
@@ -23,7 +24,7 @@ export default class Traitorous extends UpgradeCard {
             }))
         });
 
-        this.addTriggeredAbility({
+        registrar.addTriggeredAbility({
             title: 'That unit’s owner takes control of it',
             when: {
                 onUpgradeUnattached: (event, context) => event.upgradeCard === context.source,

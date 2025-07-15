@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class ForceLightning extends EventCard {
@@ -10,8 +11,8 @@ export default class ForceLightning extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Choose a unit. It loses all abilities for this phase.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

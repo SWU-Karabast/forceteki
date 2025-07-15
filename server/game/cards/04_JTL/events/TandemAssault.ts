@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { ZoneName } from '../../../core/Constants';
 
 export default class TandemAssault extends EventCard {
@@ -10,8 +11,8 @@ export default class TandemAssault extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Attack with a space unit. If you do, attack with a ground unit, that unit gets +2/+0 for this attack',
             initiateAttack: {
                 attackerCondition: (card) => card.zoneName === ZoneName.SpaceArena

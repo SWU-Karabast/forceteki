@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class VernestraRwohPrecociousKnight extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class VernestraRwohPrecociousKnight extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Use the Force to ready this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

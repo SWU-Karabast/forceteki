@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class Entrenched extends UpgradeCard {
@@ -9,8 +10,8 @@ export default class Entrenched extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbilityTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addConstantAbilityTargetingAttached({
             title: 'Attached unit cannot attack bases',
             ongoingEffect: AbilityHelper.ongoingEffects.cannotAttackBase(),
         });

@@ -520,7 +520,7 @@ export class Lobby {
             return user.socket?.id === socketId && user.state === 'disconnected';
         }
         const spectator = this.spectators.find((u) => u.id === id);
-        return spectator.socket?.id === socketId && spectator?.state === 'disconnected';
+        return spectator?.socket?.id === socketId && spectator?.state === 'disconnected';
     }
 
     public isFilled(): boolean {

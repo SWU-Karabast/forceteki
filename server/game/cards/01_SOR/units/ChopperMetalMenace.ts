@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, Trait } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class ChopperMetalMenace extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackAbility({
             title: 'Discard a card from the defending player\'s deck. If the card is an event, exhaust a resource that player controls.',
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.discardFromDeck((context) => ({
@@ -26,7 +27,7 @@ export default class ChopperMetalMenace extends NonLeaderUnitCard {
             ])
         });
 
-        this.addConstantAbility({
+        registrar.addConstantAbility({
             title: 'While you control another Spectre unit, Chopper gains Raid 1',
             condition: (context) => context.player.hasSomeArenaUnit({ otherThan: context.source, trait: Trait.Spectre }),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })

@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait } from '../../../core/Constants';
 
 export default class AtaruOnslaught extends EventCard {
@@ -10,8 +11,8 @@ export default class AtaruOnslaught extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Ready a Force unit with 4 or less power',
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Force) && card.getPower() <= 4,

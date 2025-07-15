@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { AbilityType, DamageType, DeployType, TargetMode, WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
 
@@ -10,10 +11,10 @@ export default class BobaFettAnyMethodsNecessary extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addPilotDeploy();
 
-        this.addTriggeredAbility({
+        registrar.addTriggeredAbility({
             title: 'Exhaust this leader to deal 1 indirect damage to a player',
             optional: true,
             collectiveTrigger: true,
@@ -31,8 +32,8 @@ export default class BobaFettAnyMethodsNecessary extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addPilotingAbility({
             title: 'Deal up to 4 damage divided as you choose among any number of units.',
             type: AbilityType.Triggered,
             when: {

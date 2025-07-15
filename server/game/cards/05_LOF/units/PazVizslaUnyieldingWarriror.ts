@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class PazVizslaUnyieldingWarrior extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class PazVizslaUnyieldingWarrior extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addConstantAbility({
+    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'This unit gets +2/+0 for each damage on him',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
                 power: (target.damage * 2), hp: 0

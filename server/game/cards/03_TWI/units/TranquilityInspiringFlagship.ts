@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
@@ -11,8 +12,8 @@ export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Return a Republic unit from your discard pile to your hand',
             optional: true,
             targetResolver: {
@@ -23,7 +24,7 @@ export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
             }
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Each of the next 3 Republic cards you play this phase costs 1 resource less',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({

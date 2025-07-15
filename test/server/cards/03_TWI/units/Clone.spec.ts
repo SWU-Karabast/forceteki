@@ -913,6 +913,8 @@ describe('Clone', function() {
                 context.player2.clickCard(context.annihilator);
                 context.player2.clickCard(context.clone);
                 context.player2.clickPrompt('Done');
+                context.player2.clickCardInDisplayCardPrompt(inDeckWampa);
+                context.player2.clickPrompt('Done');
                 expect(context.clone).toBeInZone('discard');
                 expect(context.clone).toBeVanillaClone();
                 expect(inHandWampa).toBeInZone('discard');
