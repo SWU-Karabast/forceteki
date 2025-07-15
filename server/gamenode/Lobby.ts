@@ -675,6 +675,10 @@ export class Lobby {
             })
         );
 
+        const useActionTimer =
+            (this.gameType === MatchType.Quick || this.gameType === MatchType.Custom) &&
+            process.env.ENVIRONMENT !== 'development';
+
         return {
             id: uuidv4(),
             allowSpectators: false,
@@ -682,7 +686,7 @@ export class Lobby {
             gameMode: GameMode.Premier,
             players,
             cardDataGetter: this.cardDataGetter,
-            useActionTimer: this.gameType === MatchType.Quick || this.gameType === MatchType.Custom,
+            useActionTimer,
             pushUpdate: () => this.sendGameState(this.game),
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
                 this.buildSafeTimeout(callback, delayMs, errorMessage),
