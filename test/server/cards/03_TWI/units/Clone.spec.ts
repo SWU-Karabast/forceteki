@@ -1011,33 +1011,58 @@ describe('Clone', function() {
                 expect(context.clone.exhausted).toBeFalse(); // Readied by Palpatine's ability because Clone is a token unit
             });
 
-            it('has the cost of the copied card', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'han-solo#never-tell-me-the-odds',
-                        deck: ['luke-skywalker#jedi-knight'],
-                        hand: ['clone'],
-                        groundArena: ['echo-base-defender'],
-                    }
+            describe('copied cost attribute', function() {
+                it('works correctly with JTL Han Solo leader ability', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            leader: 'han-solo#never-tell-me-the-odds',
+                            deck: ['luke-skywalker#jedi-knight'],
+                            hand: ['clone'],
+                            groundArena: ['echo-base-defender'],
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.clone);
+                    context.player1.clickCard(context.echoBaseDefender);
+                    expect(context.clone).toBeInZone('groundArena');
+                    expect(context.clone).toBeCloneOf(context.echoBaseDefender);
+
+                    context.player2.passAction();
+
+                    context.readyCard(context.clone);
+                    context.player1.clickCard(context.hanSolo);
+                    context.player1.clickPrompt('Reveal the top card of your deck');
+                    context.player1.clickPrompt('Done');
+                    context.player1.clickCard(context.clone);
+                    context.player1.clickCard(context.p2Base);
+                    expect(context.p2Base.damage).toBe(5); // 4 printed power + 1 from Han Solo's ability
                 });
 
-                const { context } = contextRef;
+                it('works correctly with Krayt Dragon\'s triggered ability', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['clone']
+                        },
+                        player2: {
+                            groundArena: ['krayt-dragon'],
+                        }
+                    });
 
-                context.player1.clickCard(context.clone);
-                context.player1.clickCard(context.echoBaseDefender);
-                expect(context.clone).toBeInZone('groundArena');
-                expect(context.clone).toBeCloneOf(context.echoBaseDefender);
+                    const { context } = contextRef;
 
-                context.player2.passAction();
+                    context.player1.clickCard(context.clone);
+                    expect(context.player1).toHavePrompt(clonePrompt);
+                    context.player1.clickCard(context.kraytDragon);
 
-                context.readyCard(context.clone);
-                context.player1.clickCard(context.hanSolo);
-                context.player1.clickPrompt('Reveal the top card of your deck');
-                context.player1.clickPrompt('Done');
-                context.player1.clickCard(context.clone);
-                context.player1.clickCard(context.p2Base);
-                expect(context.p2Base.damage).toBe(5); // 4 printed power + 1 from Han Solo's ability
+                    expect(context.player2).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
+                    context.player2.clickCard(context.p1Base);
+
+                    expect(context.p1Base.damage).toBe(9);
+                });
             });
 
             it('has the power of the copied card', async function () {
