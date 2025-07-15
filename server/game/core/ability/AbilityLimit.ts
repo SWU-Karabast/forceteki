@@ -209,7 +209,7 @@ export class PerPlayerPerGameAbilityLimit extends GameObjectBase<IPerPlayerAbili
     }
 
     private getModifiedMax(player: Player): number {
-        const ability = this.game.getFromRef(this.state.ability);
+        const ability = this.ability;
         return ability ? ability.card.getModifiedAbilityLimitMax(player, ability, this.max) : this.max;
     }
 }
