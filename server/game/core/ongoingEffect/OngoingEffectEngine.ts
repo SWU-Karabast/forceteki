@@ -266,17 +266,10 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
     }
 
     public override afterSetAllState(prevState: IOngoingEffectState) {
-        // for (const prevEffect of prevState.effects) {
-        //     if (!this.state.effects.some((x) => x.uuid === prevEffect.uuid)) {
-        //         this.unapplyEffect(this.game.gameObjectManager.get(prevEffect));
-        //     }
-        // }
-
         for (const currEffect of this.state.effects) {
             if (!prevState.effects.some((x) => x.uuid === currEffect.uuid)) {
                 const effect = this.getObject(currEffect);
                 if (effect.duration === Duration.Custom) {
-                    // POTENTIAL ISSUE: Does this cause some kind of game changing event to trigger? this.game.on(eventName, handler) is a little suspicious
                     this.registerCustomDurationEvents(effect);
                 }
             }

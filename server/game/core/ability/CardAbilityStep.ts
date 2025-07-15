@@ -11,6 +11,7 @@ import type { GameEvent } from '../event/GameEvent.js';
 import type { Player } from '../Player.js';
 import type { AbilityContext } from './AbilityContext.js';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
+import type Game from '../Game.js';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
@@ -20,7 +21,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
     private handler: (context: AbilityContext) => void;
 
     /** @param card The card this ability is attached to. */
-    public constructor(game, card: Card, properties, type = AbilityType.Action) {
+    public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         Contract.assertFalse(
             properties.targetResolvers != null && properties.initiateAttack != null,
             'Cannot create ability with targetResolvers and initiateAttack properties'

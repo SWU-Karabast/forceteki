@@ -158,10 +158,6 @@ describe('Undo', function() {
                 context.game.enableUndo(() => {
                     const snapshotId = context.game.takeSnapshot();
 
-                    // TODO: A dumb check, but are the player 2 game objects created after player 1?
-                    //          Right now the ability is removed immediately after snoke's state is set, but I don't know
-                    //          how snoke's ability effects the health/power, IE does it directly effect the state or is it a modifier?
-                    //          Basically, do we need afterSetState.afterSetState to be moved to afterSetAllState to ensure all objects are up to date?
                     context.player1.clickCard(context.supremeLeaderSnoke);
 
                     // Allied BM should not be affected.
@@ -300,6 +296,7 @@ describe('Undo', function() {
                 });
             });
 
+            // PARTIAL TEST: We cannot move to the next phase yet so this is only a partial test.
             it('should give each friendly unit, "When Defeated: Deal 2 damage to an enemy unit."', function () {
                 const { context } = contextRef;
 
@@ -351,8 +348,7 @@ describe('Undo', function() {
             });
 
             const { context } = contextRef;
-
-            rollback(context, function() {
+            rollback(context, function leavesPlay() {
                 context.player1.clickCard(context.huyang);
                 expect(context.player1).toBeAbleToSelect(context.wampa);
                 context.player1.clickCard(context.wampa);
@@ -368,7 +364,7 @@ describe('Undo', function() {
 
                 expect(context.wampa.getPower()).toBe(4);
                 expect(context.wampa.getHp()).toBe(5);
-            }, function alt() {
+            }, function checkForLingeringEffects() {
                 // Verify that Wampa is at printed stats
                 expect(context.wampa.getPower()).toBe(4);
                 expect(context.wampa.getHp()).toBe(5);
@@ -385,6 +381,80 @@ describe('Undo', function() {
                 // Ensure that Wampa still remains at same power. Testing that there aren't lingering effects from previous rollback that target this card.
                 expect(context.wampa.getPower()).toBe(4);
                 expect(context.wampa.getHp()).toBe(5);
+            });
+        });
+
+        describe('Huyang\'s ability', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['huyang#enduring-instructor'],
+                        groundArena: ['wampa', 'death-star-stormtrooper']
+                    },
+                    player2: {
+                        groundArena: ['atst'],
+                    }
+                });
+            });
+
+            it('gives another friendly unit +2/+2 until he leaves play', function () {
+                const { context } = contextRef;
+                rollback(context, function leavesPlay() {
+                    context.player1.clickCard(context.huyang);
+                    expect(context.player1).toBeAbleToSelect(context.wampa);
+                    context.player1.clickCard(context.wampa);
+
+                    expect(context.wampa.getPower()).toBe(6);
+                    expect(context.wampa.getHp()).toBe(7);
+                    expect(context.huyang.getPower()).toBe(2);
+                    expect(context.huyang.getHp()).toBe(4);
+
+                    // Defeat Huyang, effect goes away
+                    context.player2.clickCard(context.atst);
+                    context.player2.clickCard(context.huyang);
+
+                    expect(context.wampa.getPower()).toBe(4);
+                    expect(context.wampa.getHp()).toBe(5);
+                }, function checkForLingeringEffects() {
+                    // Verify that Wampa is at printed stats
+                    expect(context.wampa.getPower()).toBe(4);
+                    expect(context.wampa.getHp()).toBe(5);
+
+                    // Pick a card other than Wampa
+                    context.player1.clickCard(context.huyang);
+                    expect(context.player1).toBeAbleToSelect(context.deathStarStormtrooper);
+                    context.player1.clickCard(context.deathStarStormtrooper);
+
+                    // Defeat Huyang, effect goes away
+                    context.player2.clickCard(context.atst);
+                    context.player2.clickCard(context.huyang);
+
+                    // Ensure that Wampa still remains at same power. Testing that there aren't lingering effects from previous rollback that target this card.
+                    expect(context.wampa.getPower()).toBe(4);
+                    expect(context.wampa.getHp()).toBe(5);
+                });
+            });
+
+            it('should rollback properly if Huyang remains in play', function () {
+                const { context } = contextRef;
+                rollback(context, function() {
+                    expect(context.wampa.getPower()).toBe(4);
+                    expect(context.wampa.getHp()).toBe(5);
+
+                    context.player1.clickCard(context.huyang);
+                    expect(context.player1).toBeAbleToSelect(context.wampa);
+                    context.player1.clickCard(context.wampa);
+
+                    expect(context.wampa.getPower()).toBe(6);
+                    expect(context.wampa.getHp()).toBe(7);
+                    expect(context.huyang.getPower()).toBe(2);
+                    expect(context.huyang.getHp()).toBe(4);
+
+                    // Defeat Huyang, effect goes away
+                    context.player2.clickCard(context.atst);
+                    context.player2.clickCard(context.huyang);
+                });
             });
         });
 
@@ -412,7 +482,7 @@ describe('Undo', function() {
             it('should take control of a resource until he leaves play, taking a ready resource if available', function () {
                 const { context } = contextRef;
 
-                rollback(context, () => {
+                rollback(context, function leavesPlay() {
                     context.player1.clickCard(context.djBlatantThief);
 
                     expect(context.player1.resources.length).toBe(11);
@@ -449,6 +519,33 @@ describe('Undo', function() {
 
                     expect(stolenResource.controller).toBe(context.player2Object);
                     expect(stolenResource.exhausted).toBeTrue();
+                }, function staysInPlay() {
+                    context.player1.clickCard(context.djBlatantThief);
+
+                    expect(context.player1.resources.length).toBe(11);
+                    expect(context.player2.resources.length).toBe(9);
+                    expect(context.player1.readyResourceCount).toBe(4);
+                    expect(context.player1.exhaustedResourceCount).toBe(7);
+                    expect(context.player2.readyResourceCount).toBe(9);
+                    expect(context.player2.exhaustedResourceCount).toBe(0);
+
+                    // check that stolen resource maintained its ready state
+                    const stolenResourceList = context.player1.resources.filter((resource) => resource.owner === context.player2Object);
+                    expect(stolenResourceList.length).toBe(1);
+                    const stolenResource = stolenResourceList[0];
+                    expect(stolenResource.exhausted).toBeFalse();
+
+                    // confirm that player1 can spend with it
+                    context.player2.passAction();
+                    expect(context.player1.readyResourceCount).toBe(4);
+                    context.player1.clickCard(context.strafingGunship);
+                    expect(context.strafingGunship).toBeInZone('spaceArena');
+                    expect(context.player1.exhaustedResourceCount).toBe(11);
+                    expect(stolenResource.exhausted).toBeTrue();
+
+                    // DJ is defeated, resource goes back to owner's resource zone and stays exhausted
+                    context.player2.clickCard(context.atatSuppressor);
+                    context.player2.clickCard(context.dj);
                 });
             });
 
@@ -494,10 +591,41 @@ describe('Undo', function() {
                     // expect(stolenResource.exhausted).toBeFalse();
                 });
             });
+
+            it('should rollback properly if DJ remains in play', function () {
+                const { context } = contextRef;
+
+                rollback(context, function() {
+                    expect(context.player1.resources.length).toBe(10);
+                    expect(context.player2.resources.length).toBe(10);
+
+                    context.player1.clickCard(context.djBlatantThief);
+
+                    expect(context.player1.resources.length).toBe(11);
+                    expect(context.player2.resources.length).toBe(9);
+                    expect(context.player1.readyResourceCount).toBe(4);
+                    expect(context.player1.exhaustedResourceCount).toBe(7);
+                    expect(context.player2.readyResourceCount).toBe(9);
+                    expect(context.player2.exhaustedResourceCount).toBe(0);
+
+                    // check that stolen resource maintained its ready state
+                    const stolenResourceList = context.player1.resources.filter((resource) => resource.owner === context.player2Object);
+                    expect(stolenResourceList.length).toBe(1);
+                    const stolenResource = stolenResourceList[0];
+                    expect(stolenResource.exhausted).toBeFalse();
+
+                    // confirm that player1 can spend with it
+                    context.player2.passAction();
+                    expect(context.player1.readyResourceCount).toBe(4);
+                    context.player1.clickCard(context.strafingGunship);
+                    expect(context.strafingGunship).toBeInZone('spaceArena');
+                    expect(context.player1.exhaustedResourceCount).toBe(11);
+                    expect(stolenResource.exhausted).toBeTrue();
+                });
+            });
         });
 
         describe('War Juggernaut\'s constant ability', function() {
-            // ISSUE: Might have broken due to partial ongoing effect changes.
             it('should get +1/0 for each damaged unit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -525,7 +653,6 @@ describe('Undo', function() {
                 });
             });
 
-            // ISSUE: Might have broken due to partial ongoing effect changes.
             it('should not get +1/0 because there are no damaged units', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -584,7 +711,6 @@ describe('Undo', function() {
                 });
             });
 
-            // ISSUE: Might have broken due to partial ongoing effect changes.
             it('should be able to rollback from inactive to active', function () {
                 const { context } = contextRef;
                 expect(context.echo.getPower()).toBe(2);
@@ -724,6 +850,7 @@ describe('Undo', function() {
                 });
             });
 
+            // PARTIAL TEST: We cannot move to the next phase yet so this is only a partial test.
             it('should decrease the cost of the next non-Heroism, non-Villainy played by the controller by 2', function () {
                 const { context } = contextRef;
 

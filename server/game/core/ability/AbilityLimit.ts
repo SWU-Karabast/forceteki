@@ -9,8 +9,6 @@ import type Game from '../Game';
 export interface IAbilityLimit {
     get ability(): CardAbility;
     set ability(value: CardAbility);
-    // I think this is unused?
-    currentUser: null | string;
     clone(): IAbilityLimit;
     isRepeatable(): boolean;
     isAtMax(player: Player): boolean;
@@ -34,8 +32,6 @@ interface IPerGameAbilityLimitState extends IAbilityLimitState {
 }
 
 export class UnlimitedAbilityLimit extends GameObjectBase<IPerPlayerAbilityLimitState> implements IAbilityLimit {
-    public currentUser: null | string = null;
-
     public get ability() {
         return this.game.getFromRef(this.state.ability);
     }
@@ -84,9 +80,6 @@ export class UnlimitedAbilityLimit extends GameObjectBase<IPerPlayerAbilityLimit
     }
 
     private getKey(player: string): string {
-        if (this.currentUser) {
-            return player + this.currentUser;
-        }
         return player;
     }
 }
@@ -149,7 +142,6 @@ export class PerGameAbilityLimit extends GameObjectBase<IPerGameAbilityLimitStat
 
 
 export class PerPlayerPerGameAbilityLimit extends GameObjectBase<IPerPlayerAbilityLimitState> implements IAbilityLimit {
-    public currentUser: null | string = null;
     private useCount = new Map<string, number>();
     public readonly max: number;
 
@@ -202,9 +194,6 @@ export class PerPlayerPerGameAbilityLimit extends GameObjectBase<IPerPlayerAbili
     }
 
     private getKey(player: string): string {
-        if (this.currentUser) {
-            return player + this.currentUser;
-        }
         return player;
     }
 

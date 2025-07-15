@@ -33,9 +33,7 @@ export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilit
 };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IPlayerOrCardAbilityState extends IGameObjectBaseState {
-
-}
+export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
 
 /**
  * Base class representing an ability that can be done by the player
