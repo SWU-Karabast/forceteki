@@ -44,7 +44,7 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
     public readonly targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     public readonly cardName?: string;
     public readonly ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
-    public readonly createCopies?: boolean;
+    public readonly printedAbility?: boolean;
 
     public registeredEffects?: OngoingEffect[];
 
@@ -78,8 +78,8 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
         if (properties.ongoingEffect) {
             this.ongoingEffect = properties.ongoingEffect;
         }
-        if (properties.createCopies) {
-            this.createCopies = properties.createCopies;
+        if (properties.printedAbility) {
+            this.printedAbility = properties.printedAbility;
         }
     }
 }

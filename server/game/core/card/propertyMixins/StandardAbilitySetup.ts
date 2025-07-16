@@ -4,7 +4,7 @@ import type { IBasicAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { Card, CardConstructor, ICardState } from '../Card';
 
 export interface ICardWithStandardAbilitySetup<T extends Card> extends Card {
-    setupCardAbilities(registrar: IBasicAbilityRegistrar<T>): void;
+    setupCardAbilities(registrar: IBasicAbilityRegistrar<T>, AbilityHelper: IAbilityHelper): void;
 }
 
 /** Mixin function that creates a version of the base class that is a Token. */
