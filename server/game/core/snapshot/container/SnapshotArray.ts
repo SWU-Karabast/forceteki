@@ -7,6 +7,8 @@ import { SnapshotContainerBase } from './SnapshotContainerBase';
 import * as Contract from '../../utils/Contract.js';
 
 /**
+ * @deprecated This is implemented but not currently used or tested
+ *
  * A {@link SnaphshotContainerBase} derived class that stores snapshots in a simple array representing a linear history.
  * The array is bounded by a maximum length, and the snapshots are indexed using a negative offset where 0 is the current action's snapshot, -1 is the previous snapshot, etc.
  */

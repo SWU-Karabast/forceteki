@@ -203,6 +203,7 @@ class GameStateBuilder {
             context.cardPropertyNames.push(card.propertyName);
         });
 
+        // reset snapshot history after setup so that the history doesn't hold any snapshots of the game state before setup
         context.game.snapshotManager.clearAllSnapshots();
         context.game.continue();
 

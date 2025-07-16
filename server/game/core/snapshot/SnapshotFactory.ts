@@ -53,6 +53,7 @@ export class SnapshotFactory {
         this.gameStateManager = gameStateManager;
     }
 
+    /** @deprecated This is implemented but not currently used or tested */
     public createSnapshotArray(maxLength: number): SnapshotArray {
         return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
             new SnapshotArray(
@@ -66,6 +67,7 @@ export class SnapshotFactory {
         );
     }
 
+    /** @deprecated This is implemented but not currently used or tested */
     public createSnapshotMap<T>(): SnapshotMap<T> {
         return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
             new SnapshotMap<T>(
