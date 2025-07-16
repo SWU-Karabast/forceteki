@@ -5,8 +5,13 @@ import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../Inter
 import type { Card, ICardState } from '../card/Card.js';
 import type Game from '../Game.js';
 import type { OngoingEffect } from '../ongoingEffect/OngoingEffect.js';
+import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase.js';
 import { GameObjectBase } from '../GameObjectBase.js';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility.js';
+
+export interface IConstantAbilityState extends IGameObjectBaseState {
+    registeredEffects?: GameObjectRef<OngoingEffect>[];
+}
 
 /**
  * Represents an action ability provided by card text.
@@ -30,9 +35,10 @@ import type { IConstantAbility } from '../ongoingEffect/IConstantAbility.js';
  * clickToActivate - boolean that indicates the action should be activated when
  *                   the card is clicked.
  */
-export class ConstantAbility extends GameObjectBase implements IConstantAbility {
+export class ConstantAbility extends GameObjectBase<IConstantAbilityState> implements IConstantAbility {
     public readonly title: string;
     public readonly abilityIdentifier?: string;
+    public readonly printedAbility: boolean;
 
     public readonly duration: Duration;
     public readonly sourceZoneFilter?: ZoneFilter | ZoneFilter[];
@@ -44,9 +50,16 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
     public readonly targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     public readonly cardName?: string;
     public readonly ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
-    public readonly printedAbility?: boolean;
 
-    public registeredEffects?: OngoingEffect[];
+    public readonly properties?: IConstantAbilityProps;
+
+    public get registeredEffects(): (OngoingEffect[]) | undefined {
+        return this.state.registeredEffects?.map((x) => this.game.getFromRef(x));
+    }
+
+    public set registeredEffects(value: OngoingEffect[] | undefined) {
+        this.state.registeredEffects = value?.map((x) => x.getRef());
+    }
 
     public constructor(game: Game, card: Card, properties: IConstantAbilityProps) {
         super(game);
@@ -55,6 +68,7 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
         this.abilityIdentifier = properties.abilityIdentifier;
         this.duration = Duration.Persistent;
         this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
+        this.printedAbility = properties.printedAbility ?? true;
 
         // This object is destructured later and these properties will be to override defaults when the OngoingEffect is created. If these fields exist at all, even if undefined, it'll override the defaults when they shouldn't be.
         if (properties.condition) {
@@ -77,9 +91,6 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
         }
         if (properties.ongoingEffect) {
             this.ongoingEffect = properties.ongoingEffect;
-        }
-        if (properties.printedAbility) {
-            this.printedAbility = properties.printedAbility;
         }
     }
 }
