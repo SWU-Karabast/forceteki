@@ -14,7 +14,7 @@ enum SwuSet {
     TWI = 'twi',
     JTL = 'jtl',
     LOF = 'lof',
-    IDH = 'idh',
+    IBH = 'ibh',
 }
 
 const legalSets = [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI, SwuSet.JTL, SwuSet.LOF];
