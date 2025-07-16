@@ -66,6 +66,8 @@ global.integration = function (definitions, enableUndo = false) {
                 getCurrentSnapshottedAction: () => gameFlowWrapper.snapshotManager?.currentSnapshottedAction,
                 rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshot(settings),
                 countAvailableActionSnapshots: (playerId) => gameFlowWrapper.snapshotManager?.countAvailableActionSnapshots(playerId),
+                countAvailableManualSnapshots: (playerId) => gameFlowWrapper.snapshotManager?.countAvailableManualSnapshots(playerId),
+                takeManualSnapshot: (playerId) => newContext.game.takeManualSnapshot(playerId),
             };
 
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');

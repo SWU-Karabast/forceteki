@@ -35,7 +35,9 @@ interface SnapshotUtils {
     getCurrentSnapshottedAction(): number | null;
 
     countAvailableActionSnapshots: (playerId: string) => number;
+    countAvailableManualSnapshots: (playerId: string) => number;
     rollbackToSnapshot: (settings: ITestGetSnapshotSettings) => boolean;
+    takeManualSnapshot: (playerId: string) => void;
 }
 
 interface SwuTestContextRef {

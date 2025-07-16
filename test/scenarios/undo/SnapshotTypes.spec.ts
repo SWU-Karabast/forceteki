@@ -30,6 +30,10 @@ describe('Snapshot types', function() {
                 context.actionPhaseStartSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
                 context.actionPhaseStartActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
+                contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.p1ManualSnapshot1Id = contextRef.snapshot.getCurrentSnapshotId();
+                context.p1ManualSnapshot1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
                 context.player2.clickCard(context.battlefieldMarine);
 
                 context.player1.clickCard(context.cartelSpacer);
@@ -77,6 +81,10 @@ describe('Snapshot types', function() {
                 // Death Trooper damage: 2
                 // Wampa damage: 2
 
+                contextRef.snapshot.takeManualSnapshot(context.player2Object);
+                context.p2ManualSnapshot1Id = contextRef.snapshot.getCurrentSnapshotId();
+                context.p2ManualSnapshot1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
                 context.p2Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
                 context.p2Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
@@ -119,11 +127,15 @@ describe('Snapshot types', function() {
                 // Death Trooper damage: 2
                 // Wampa damage: 2
 
+                contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.p1ManualSnapshot2Id = contextRef.snapshot.getCurrentSnapshotId();
+                context.p1ManualSnapshot2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
                 context.p1Action3SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
                 context.p1Action3ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
             });
 
-            const assertActionPhaseStartState = (context) => {
+            const assertActionPhaseStartState = (context, checkManualSnapshots = true) => {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.actionPhaseStartSnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.actionPhaseStartActionId);
 
@@ -135,9 +147,14 @@ describe('Snapshot types', function() {
 
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(0);
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(0);
+
+                if (checkManualSnapshots) {
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player1.id)).toEqual(1);
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player2.id)).toEqual(0);
+                }
             };
 
-            const assertP1Action1State = (context, snapshotId = null) => {
+            const assertP1Action1State = (context, snapshotId = null, checkManualSnapshots = true) => {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p1Action1SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action1ActionId);
 
@@ -149,9 +166,14 @@ describe('Snapshot types', function() {
 
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(1);
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(1);
+
+                if (checkManualSnapshots) {
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player1.id)).toEqual(1);
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player2.id)).toEqual(0);
+                }
             };
 
-            const assertP1Action2State = (context, snapshotId = null) => {
+            const assertP1Action2State = (context, snapshotId = null, checkManualSnapshots = true) => {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p1Action2SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action2ActionId);
 
@@ -164,9 +186,14 @@ describe('Snapshot types', function() {
 
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(2);
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(2);
+
+                if (checkManualSnapshots) {
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player1.id)).toEqual(1);
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player2.id)).toEqual(1);
+                }
             };
 
-            const assertP1Action3State = (context, snapshotId = null) => {
+            const assertP1Action3State = (context, snapshotId = null, checkManualSnapshots = true) => {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p1Action3SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action3ActionId);
 
@@ -179,9 +206,14 @@ describe('Snapshot types', function() {
 
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(3);
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(3);
+
+                if (checkManualSnapshots) {
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player1.id)).toEqual(2);
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player2.id)).toEqual(1);
+                }
             };
 
-            const assertP2Action1State = (context, snapshotId = null) => {
+            const assertP2Action1State = (context, snapshotId = null, checkManualSnapshots = true) => {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p2Action1SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2Action1ActionId);
 
@@ -193,9 +225,14 @@ describe('Snapshot types', function() {
 
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(0);
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(1);
+
+                if (checkManualSnapshots) {
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player1.id)).toEqual(1);
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player2.id)).toEqual(0);
+                }
             };
 
-            const assertP2Action2State = (context, snapshotId = null) => {
+            const assertP2Action2State = (context, snapshotId = null, checkManualSnapshots = true) => {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p2Action2SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2Action2ActionId);
 
@@ -208,9 +245,14 @@ describe('Snapshot types', function() {
 
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(1);
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(2);
+
+                if (checkManualSnapshots) {
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player1.id)).toEqual(1);
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player2.id)).toEqual(1);
+                }
             };
 
-            const assertP2Action3State = (context, snapshotId = null) => {
+            const assertP2Action3State = (context, snapshotId = null, checkManualSnapshots = true) => {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p2Action3SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2Action3ActionId);
 
@@ -223,6 +265,11 @@ describe('Snapshot types', function() {
 
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(2);
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(3);
+
+                if (checkManualSnapshots) {
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player1.id)).toEqual(1);
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player2.id)).toEqual(1);
+                }
             };
 
             describe('action snapshots', function () {
@@ -515,7 +562,7 @@ describe('Snapshot types', function() {
                     context.player2.clickCard(context.tielnFighter);
                     context.player2.clickCard(context.p1Base);
 
-                    assertP1Action3State(context, contextRef.snapshot.getCurrentSnapshotId());
+                    assertP1Action3State(context, contextRef.snapshot.getCurrentSnapshotId(), false);
 
                     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
@@ -524,7 +571,7 @@ describe('Snapshot types', function() {
                     });
                     expect(rollbackResult2).toBeTrue();
 
-                    assertP1Action1State(context, contextRef.snapshot.getCurrentSnapshotId());
+                    assertP1Action1State(context, contextRef.snapshot.getCurrentSnapshotId(), false);
                 });
 
                 it('can undo to earliest available action for the non-active player, repeat the actions, then undo again', function () {
@@ -560,7 +607,7 @@ describe('Snapshot types', function() {
                     context.player2.clickCard(context.tielnFighter);
                     context.player2.clickCard(context.p1Base);
 
-                    assertP1Action3State(context, contextRef.snapshot.getCurrentSnapshotId());
+                    assertP1Action3State(context, contextRef.snapshot.getCurrentSnapshotId(), false);
 
                     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
@@ -569,7 +616,7 @@ describe('Snapshot types', function() {
                     });
                     expect(rollbackResult2).toBeTrue();
 
-                    assertP2Action1State(context, contextRef.snapshot.getCurrentSnapshotId());
+                    assertP2Action1State(context, contextRef.snapshot.getCurrentSnapshotId(), false);
                 });
 
                 it('can walk back through the action history, alternating player actions', function () {
@@ -654,6 +701,33 @@ describe('Snapshot types', function() {
                     context.player2.clickCard(context.battlefieldMarine);
                 });
 
+                it('cannot revert any player actions after rolling back to start of phase if there have been too many actions since start of phase', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'phase',
+                        phaseName: 'action',
+                        offset: 0
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertActionPhaseStartState(context);
+
+                    const p1RollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        offset: 0
+                    });
+                    expect(p1RollbackResult).toBeFalse();
+
+                    const p2RollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player2.id,
+                        offset: 0
+                    });
+                    expect(p2RollbackResult).toBeFalse();
+                });
+
                 it('cannot attempt to revert back more than two phases', function () {
                     expect(() => {
                         contextRef.snapshot.rollbackToSnapshot({
@@ -664,7 +738,7 @@ describe('Snapshot types', function() {
                     }).toThrowError(Error, 'Contract assertion failure: Snapshot offset must be less than 1 and greater than than max history length (-2), got -2');
                 });
 
-                it('cannot revert back further than the available phase history (2)', function () {
+                it('cannot revert back further than the available phase history', function () {
                     const { context } = contextRef;
 
                     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
@@ -678,13 +752,96 @@ describe('Snapshot types', function() {
                 });
             });
         });
+
+        describe('During a short action phase,', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['death-trooper'],
+                        groundArena: ['secretive-sage'],
+                        spaceArena: ['cartel-spacer']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'superlaser-technician'],
+                        spaceArena: ['tieln-fighter'],
+                        hand: ['battlefield-marine'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.actionPhaseStartSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.actionPhaseStartActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+
+                context.p2Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p2Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.player2.clickCard(context.superlaserTechnician);
+                context.player2.clickCard(context.p1Base);
+
+                context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+            });
+
+            it('action snapshots cannot revert back further than the beginning of the phase for the non-active player', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player2.id,
+                    offset: -2
+                });
+                expect(rollbackResult).toBeFalse();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Action2SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action2ActionId);
+            });
+
+            it('action snapshots cannot revert back further than the beginning of the phase for the active player', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player1.id,
+                    offset: -2
+                });
+                expect(rollbackResult).toBeFalse();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Action2SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action2ActionId);
+            });
+
+            it('action snapshots can revert back to the first action of the phase', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player2.id,
+                    offset: -1
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p2Action1SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2Action1ActionId);
+            });
+        });
     });
 
     // TODO THIS PR:
-    // - start the phase and do only 1 or 2 actions then confirm you can't go back further than that
-    // - confirm that rollbacks of different types (action, manual, phase) will remove newer snapshots of other types
-    // - test the current action phase snapshots
-    // - test some manual snapshots
+    // - in-depth tests for manual snapshots
 
     // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file
     // TODO: regroup phase and previous action phase snapshot tests

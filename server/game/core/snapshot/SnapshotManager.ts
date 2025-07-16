@@ -126,6 +126,10 @@ export class SnapshotManager {
         return this.actionSnapshots.getSnapshotCount(playerId);
     }
 
+    public countAvailableManualSnapshots(playerId: string): number {
+        return this.manualSnapshots.getSnapshotCount(playerId);
+    }
+
     public clearAllSnapshots(): void {
         this.actionSnapshots.clearAllSnapshots();
         this.manualSnapshots.clearAllSnapshots();

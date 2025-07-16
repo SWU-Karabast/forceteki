@@ -1665,6 +1665,7 @@ class Game extends EventEmitter {
      */
     takeManualSnapshot(player) {
         if (this.isUndoEnabled) {
+            Contract.assertHasProperty(player, 'id', 'Player must have an id to take a manual snapshot');
             this.snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId: player.id });
         }
     }
