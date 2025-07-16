@@ -25,7 +25,7 @@ export function WithPreEnterPlayAbilities<TBaseClass extends PlayableOrDeployabl
             return this.preEnterPlayAbilities.filter((ability) => ability.printedAbility);
         }
 
-        protected addPreEnterPlayAbility(properties: IActionAbilityProps<this>): PreEnterPlayAbility {
+        private addPreEnterPlayAbility(properties: IActionAbilityProps<this>): PreEnterPlayAbility {
             const ability = this.createPreEnterPlayAbility({ ...properties, printedAbility: true });
             this.preEnterPlayAbilities.push(ability);
             return ability;

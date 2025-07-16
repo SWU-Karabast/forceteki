@@ -36,7 +36,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
             return true;
         }
 
-        protected addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
+        private addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
             const ability = this.createTriggeredAbility({ ...properties, printedAbility: true });
             this.triggeredAbilities.push(ability);
             return ability;
@@ -56,7 +56,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
             };
         }
 
-        protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): ReplacementEffectAbility {
+        private addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): ReplacementEffectAbility {
             const ability = this.createReplacementEffectAbility({ ...properties, printedAbility: true });
 
             // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability

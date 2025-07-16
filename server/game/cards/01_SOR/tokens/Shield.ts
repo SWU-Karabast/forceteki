@@ -1,5 +1,6 @@
 import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
 import AbilityHelper from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
 import type { Player } from '../../../core/Player';
 
@@ -28,8 +29,8 @@ export default class Shield extends TokenUpgradeCard {
         return true;
     }
 
-    public override setupCardAbilities() {
-        this.addReplacementEffectAbility({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addReplacementEffectAbility({
             title: 'Defeat shield to prevent attached unit from taking damage',
             when: {
                 onDamageDealt: (event, context) => event.card === context.source.parentCard && !event.isIndirect,

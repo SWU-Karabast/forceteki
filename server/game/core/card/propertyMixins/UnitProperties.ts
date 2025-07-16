@@ -44,6 +44,7 @@ import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/Lea
 import AbilityHelper from '../../../AbilityHelper';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
+import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
 import type Clone from '../../../cards/03_TWI/units/Clone';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
@@ -379,9 +380,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         // ***************************************** ABILITY HELPERS *****************************************
         protected override getAbilityRegistrar(): IUnitAbilityRegistrar<this> {
-            const registrar: IUnitAbilityRegistrar<this> = {
-                ...super.getAbilityRegistrar() as IInPlayCardAbilityRegistrar<this>,
-                addOnAttackAbility: (properties) => this.addOnAttackAbility(properties),
+            const registrar = super.getAbilityRegistrar() as IInPlayCardAbilityRegistrar<this>;
+
+            return {
+                ...registrar,
+                addOnAttackAbility: (properties) => this.addOnAttackAbility(properties, registrar),
                 addBountyAbility: (properties) => this.addBountyAbility(properties),
                 addCoordinateAbility: (properties) => this.addCoordinateAbility(properties),
                 addPilotingAbility: (properties) => this.addPilotingAbility(properties),
@@ -390,8 +393,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 addPilotingGainAbilityTargetingAttached: (properties) => this.addPilotingGainAbilityTargetingAttached(properties),
                 addPilotingGainTriggeredAbilityTargetingAttached: (properties) => this.addPilotingGainTriggeredAbilityTargetingAttached(properties),
             };
-
-            return registrar;
         }
 
         public override getActions() {
@@ -410,12 +411,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return actions;
         }
 
-        protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
+        private addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
             const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.OnAttack]: true };
-            this.addTriggeredAbility({ ...properties, when });
+            registar.addTriggeredAbility({ ...properties, when });
         }
 
-        protected addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<this>, 'canBeTriggeredBy'>): void {
+        private addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<this>, 'canBeTriggeredBy'>): void {
             const bountyKeywords = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Bounty);
             const bountyKeywordsWithoutImpl = bountyKeywords.filter((keyword) => !keyword.isFullyImplemented);
 
@@ -436,7 +437,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             bountyAbilityToAssign.setAbilityProps(properties);
         }
 
-        protected addCoordinateAbility(properties: IAbilityPropsWithType<this>): void {
+        protected createCoordinateAbilityProps(properties: IAbilityPropsWithType<this>): IAbilityPropsWithType<this> {
+            return properties;
+        }
+
+        private addCoordinateAbility(properties: IAbilityPropsWithType<this>): void {
             const coordinateKeywords = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Coordinate);
             Contract.assertTrue(
                 coordinateKeywords.length > 0,
@@ -453,10 +458,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             // TODO: see if there's a better way using discriminating unions to avoid needing a cast when getting keyword instances
             Contract.assertTrue(coordinateAbilityToAssign instanceof KeywordWithAbilityDefinition);
-            coordinateAbilityToAssign.setAbilityProps(properties);
+            coordinateAbilityToAssign.setAbilityProps(this.createCoordinateAbilityProps(properties));
         }
 
-        protected addPilotingAbility(properties: IAbilityPropsWithType<this>): void {
+        private addPilotingAbility(properties: IAbilityPropsWithType<this>): void {
             this.checkIsAttachable();
 
             switch (properties.type) {
@@ -487,7 +492,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return changedController;
         }
 
-        protected addPilotingConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'ongoingEffect'>) {
+        private addPilotingConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'ongoingEffect'>) {
             this.addPilotingAbility({
                 type: AbilityType.Constant,
                 title: properties.title,
@@ -498,7 +503,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             });
         }
 
-        public addPilotingGainKeywordTargetingAttached(properties: IKeywordPropertiesWithGainCondition<this>) {
+        private addPilotingGainKeywordTargetingAttached(properties: IKeywordPropertiesWithGainCondition<this>) {
             const { gainCondition, ...gainedKeywordProperties } = properties;
 
             this.addPilotingConstantAbilityTargetingAttached({
@@ -508,7 +513,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             });
         }
 
-        public addPilotingGainAbilityTargetingAttached(properties: IAbilityPropsWithGainCondition<this, IUnitCard>) {
+        private addPilotingGainAbilityTargetingAttached(properties: IAbilityPropsWithGainCondition<this, IUnitCard>) {
             const { gainCondition, ...gainedAbilityProperties } = properties;
 
             this.addPilotingConstantAbilityTargetingAttached({
@@ -518,7 +523,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             });
         }
 
-        public addPilotingGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<this, IUnitCard>) {
+        private addPilotingGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<this, IUnitCard>) {
             this.addPilotingGainAbilityTargetingAttached({
                 type: AbilityType.Triggered,
                 title: 'Give triggered ability to the attached card',
