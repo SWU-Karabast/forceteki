@@ -26,6 +26,13 @@ export interface IDeckStatsEntity {
 
 export interface UserPreferences {
     cardback?: string;
+    sound?: {
+        muteAllSound?: boolean;
+        muteCardAndButtonClickSound?: boolean;
+        muteYourTurn?: boolean;
+        muteChatSound?: boolean;
+        muteOpponentFoundSound?: boolean;
+    };
 }
 
 // Define user interface
