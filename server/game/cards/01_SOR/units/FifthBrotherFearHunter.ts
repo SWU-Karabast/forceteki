@@ -11,7 +11,7 @@ export default class FifthBrotherFearHunter extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addOnAttackAbility({
             title: 'Deal 1 damage to this unit and 1 damage to another ground unit',
             optional: true,

@@ -11,7 +11,7 @@ export default class UnleashRage extends EventCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
         registrar.setEventAbility({
             title: 'Use the Force to give a friendly unit +3/+0',
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),

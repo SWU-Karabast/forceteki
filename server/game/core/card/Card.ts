@@ -48,6 +48,7 @@ import { logger } from '../../../logger';
 import type Experience from '../../cards/01_SOR/tokens/Experience';
 import { getPrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPlayAbilityRegistration';
+import type { ICardWithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -123,7 +124,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly _printedType: CardType;
     protected readonly _printedKeywords: KeywordInstance[];
 
-    protected readonly canBeUpgrade: boolean;
     protected readonly hasNonKeywordAbilityText: boolean;
     protected readonly hasImplementationFile: boolean;
     protected readonly printedTraits: Set<Trait>;
@@ -313,7 +313,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
         this.controller = owner;
         this.id = cardData.id;
-        this.canBeUpgrade = cardData.upgradeHp != null && cardData.upgradePower != null;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.backsidePrintedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.backSideTraits, Trait));
 
@@ -377,12 +376,24 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.isBlank() ? epicActionAbilities : deduplicatedActionAbilities;
     }
 
+    public getPrintedActionAbilities(): ActionAbility[] {
+        return this.actionAbilities.filter((action) => action.printedAbility);
+    }
+
     /**
      * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
      * don’t have any special text styling
      */
     public getConstantAbilities(): IConstantAbility[] {
         return this.constantAbilities;
+    }
+
+    public getPrintedConstantAbilities(): IConstantAbility[] {
+        return this.constantAbilities.filter((constant) => constant.printedAbility);
+    }
+
+    public getPrintedTriggeredAbilities(): TriggeredAbility[] {
+        return this.triggeredAbilities.filter((triggered) => triggered.printedAbility);
     }
 
     /**
@@ -603,6 +614,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public hasCost(): this is ICardWithCostProperty {
+        return false;
+    }
+
+    public hasStandardAbilitySetup(): this is ICardWithStandardAbilitySetup<this> {
         return false;
     }
 

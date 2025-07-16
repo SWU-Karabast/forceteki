@@ -11,7 +11,7 @@ export default class RogueSquadronSkirmisher extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addWhenPlayedAbility({
             title: 'Return a unit that costs 2 or less from your discard pile to your hand.',
             targetResolver: {

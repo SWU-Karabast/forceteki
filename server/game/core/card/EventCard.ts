@@ -112,7 +112,7 @@ export class EventCard extends EventCardParent {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) { }
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) { }
 
     private setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;

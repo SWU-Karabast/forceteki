@@ -33,6 +33,7 @@ describe('Clone', function() {
                 expect(context.clone.exhausted).toBeTrue();
                 expect(context.clone).toBeInZone('groundArena');
                 expect(context.clone).toBeCloneOf(context.wampa);
+                expect(context.getChatLogs(1)).toContain('player1 uses Clone to clone Wampa');
             });
 
             it('should enter play as non-unique copy of another enemy unit', async function () {
@@ -482,7 +483,7 @@ describe('Clone', function() {
                     player1: {
                         base: 'echo-base',
                         hand: ['clone', 'clone'],
-                        groundArena: ['wampa'],
+                        groundArena: ['veteran-fleet-officer'],
                     },
                     player2: {
                         groundArena: ['atst'],
@@ -501,31 +502,33 @@ describe('Clone', function() {
                 context.player1.clickCard(clone1);
                 expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                expect(context.player1).toBeAbleToSelectExactly([context.veteranFleetOfficer]);
 
-                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.veteranFleetOfficer);
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(clone1).toBeInZone('groundArena');
-                expect(clone1).toBeCloneOf(context.wampa);
+                expect(clone1).toBeCloneOf(context.veteranFleetOfficer);
                 expect(clone2).toBeInZone('hand');
                 expect(clone2).toBeVanillaClone();
+                expect(context.player1.findCardsByName('xwing').length).toBe(1);
 
                 context.player2.passAction();
 
                 context.player1.clickCard(clone2);
                 expect(context.player1).toHavePrompt(clonePrompt);
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, clone1]);
+                expect(context.player1).toBeAbleToSelectExactly([context.veteranFleetOfficer, clone1]);
 
                 context.player1.clickCard(clone1);
                 expect(context.player1.exhaustedResourceCount).toBe(14);
                 expect(clone1).toBeInZone('groundArena');
-                expect(clone1).toBeCloneOf(context.wampa);
-                expect(clone1.isClone).toBeTrue();
+                expect(clone1).toBeCloneOf(context.veteranFleetOfficer);
+                expect(clone1.isClonedUnit).toBeTrue();
                 expect(clone2).toBeInZone('groundArena');
-                expect(clone2).toBeCloneOf(context.wampa);
+                expect(clone2).toBeCloneOf(context.veteranFleetOfficer);
                 expect(clone2).toBeCloneOf(clone1);
-                expect(clone2.isClone).toBeTrue();
+                expect(clone2.isClonedUnit).toBeTrue();
+                expect(context.player1.findCardsByName('xwing').length).toBe(2);
             });
 
             it('can copy another vanilla clone', async function () {
@@ -537,6 +540,7 @@ describe('Clone', function() {
                         groundArena: ['wampa', 'clone', 'clone-commander-cody#commanding-the-212th'],
                     },
                     player2: {
+                        hand: ['waylay'],
                         groundArena: ['atst'],
                         leader: { card: 'kanan-jarrus#help-us-survive', deployed: true },
                     }
@@ -560,8 +564,24 @@ describe('Clone', function() {
                 expect(handClone).toBeInZone('groundArena');
                 expect(handClone).toBeCloneOf(groundClone);
                 expect(handClone).toBeVanillaClone();
-                expect(groundClone.isClone).toBeFalse();
-                expect(handClone.isClone).toBeTrue();
+                expect(groundClone.isClonedUnit).toBeFalse();
+                expect(handClone.isClonedUnit).toBeTrue();
+
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(handClone);
+
+                context.player1.clickCard(handClone);
+                expect(context.player1).toHavePrompt(clonePrompt);
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cloneCommanderCody, groundClone]);
+
+                context.player1.clickCard(groundClone);
+                expect(context.player1.exhaustedResourceCount).toBe(14);
+                expect(handClone).toBeInZone('groundArena');
+                expect(handClone).toBeCloneOf(groundClone);
+                expect(handClone).toBeVanillaClone();
+                expect(groundClone.isClonedUnit).toBeFalse();
+                expect(handClone.isClonedUnit).toBeTrue();
             });
 
             it('is not defeated if blanked', async function () {
@@ -664,7 +684,7 @@ describe('Clone', function() {
                 context.player1.clickPrompt('Pass');
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.clone).toBeInZone('discard');
-                expect(context.clone.isClone).toBeFalse();
+                expect(context.clone.isClonedUnit).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -693,7 +713,7 @@ describe('Clone', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.clone).toBeInZone('groundArena');
                 expect(context.clone.getHp()).toBe(1);
-                expect(context.clone.isClone).toBeFalse();
+                expect(context.clone.isClonedUnit).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });
         });
@@ -991,33 +1011,58 @@ describe('Clone', function() {
                 expect(context.clone.exhausted).toBeFalse(); // Readied by Palpatine's ability because Clone is a token unit
             });
 
-            it('has the cost of the copied card', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'han-solo#never-tell-me-the-odds',
-                        deck: ['luke-skywalker#jedi-knight'],
-                        hand: ['clone'],
-                        groundArena: ['echo-base-defender'],
-                    }
+            describe('copied cost attribute', function() {
+                it('works correctly with JTL Han Solo leader ability', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            leader: 'han-solo#never-tell-me-the-odds',
+                            deck: ['luke-skywalker#jedi-knight'],
+                            hand: ['clone'],
+                            groundArena: ['echo-base-defender'],
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.clone);
+                    context.player1.clickCard(context.echoBaseDefender);
+                    expect(context.clone).toBeInZone('groundArena');
+                    expect(context.clone).toBeCloneOf(context.echoBaseDefender);
+
+                    context.player2.passAction();
+
+                    context.readyCard(context.clone);
+                    context.player1.clickCard(context.hanSolo);
+                    context.player1.clickPrompt('Reveal the top card of your deck');
+                    context.player1.clickPrompt('Done');
+                    context.player1.clickCard(context.clone);
+                    context.player1.clickCard(context.p2Base);
+                    expect(context.p2Base.damage).toBe(5); // 4 printed power + 1 from Han Solo's ability
                 });
 
-                const { context } = contextRef;
+                it('works correctly with Krayt Dragon\'s triggered ability', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['clone']
+                        },
+                        player2: {
+                            groundArena: ['krayt-dragon'],
+                        }
+                    });
 
-                context.player1.clickCard(context.clone);
-                context.player1.clickCard(context.echoBaseDefender);
-                expect(context.clone).toBeInZone('groundArena');
-                expect(context.clone).toBeCloneOf(context.echoBaseDefender);
+                    const { context } = contextRef;
 
-                context.player2.passAction();
+                    context.player1.clickCard(context.clone);
+                    expect(context.player1).toHavePrompt(clonePrompt);
+                    context.player1.clickCard(context.kraytDragon);
 
-                context.readyCard(context.clone);
-                context.player1.clickCard(context.hanSolo);
-                context.player1.clickPrompt('Reveal the top card of your deck');
-                context.player1.clickPrompt('Done');
-                context.player1.clickCard(context.clone);
-                context.player1.clickCard(context.p2Base);
-                expect(context.p2Base.damage).toBe(5); // 4 printed power + 1 from Han Solo's ability
+                    expect(context.player2).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
+                    context.player2.clickCard(context.p1Base);
+
+                    expect(context.p1Base.damage).toBe(9);
+                });
             });
 
             it('has the power of the copied card', async function () {
@@ -1371,8 +1416,92 @@ describe('Clone', function() {
                 expect(keywordsWithCostValues[0].aspects).toEqual(['vigilance']);
             });
 
-            // TODO: Add test for Bounty when card ability setup is implemented
-            // TODO: Add test for Coordinate when card ability setup is implemented
+            it('copies Bounty and its ability properties', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['wanted-insurgents'] // Bounty - Deal 2 damage to a unit
+                    },
+                    player2: {
+                        groundArena: ['chain-code-collector']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.wantedInsurgents);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.wantedInsurgents);
+                expect(context.clone.hasSomeKeyword('bounty')).toBeTrue();
+
+                // Player 2 attacks Clone with Chain Code Collector
+                context.player2.clickCard(context.chainCodeCollector);
+                context.player2.clickCard(context.clone);
+
+                // Chain Code Collector's ability gives Clone -4/-0 for the attack because it has a Bounty
+                expect(context.chainCodeCollector.damage).toBe(0);
+                expect(context.clone).toBeInZone('discard', context.player1);
+
+                expect(context.player2).toHavePrompt('Collect Bounty: Deal 2 damage to a unit');
+                context.player2.clickCard(context.wantedInsurgents);
+                expect(context.wantedInsurgents.damage).toBe(2);
+            });
+
+            it('copies Coordinate and its ability properties', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: [
+                            'battlefield-marine',
+                            'clone-commander-cody#commanding-the-212th'
+                        ]
+                    },
+                    player2: {
+                        hand: ['takedown'],
+                        groundArena: ['crafty-smuggler']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Sanity Check: Cody is 4/4
+                expect(context.cloneCommanderCody.getPower()).toBe(4);
+                expect(context.cloneCommanderCody.getHp()).toBe(4);
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.cloneCommanderCody);
+
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.cloneCommanderCody);
+                expect(context.clone.hasSomeKeyword('coordinate')).toBeTrue();
+
+                // Clone and Commander Cody give each other the +1/+1 buff
+                expect(context.clone.getPower()).toBe(5);
+                expect(context.clone.getHp()).toBe(5);
+                expect(context.cloneCommanderCody.getPower()).toBe(5);
+                expect(context.cloneCommanderCody.getHp()).toBe(5);
+
+                // Battlefield Marine receives the +1/+1 buff from both Clone and Commander Cody
+                expect(context.battlefieldMarine.getPower()).toBe(5);
+                expect(context.battlefieldMarine.getHp()).toBe(5);
+
+                // Player 2 defeats a unit and coordinates is deactivated
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.clone.getPower()).toBe(4);
+                expect(context.clone.getHp()).toBe(4);
+                expect(context.cloneCommanderCody.getPower()).toBe(4);
+                expect(context.cloneCommanderCody.getHp()).toBe(4);
+            });
 
             it('copies Exploit and its numeric value (but does not affect how the card is played)', async function () {
                 await contextRef.setupTestAsync({
@@ -1587,6 +1716,269 @@ describe('Clone', function() {
 
                 expect(context.p2Base.damage).toBe(4);
                 expect(context.p1Base.damage).toBe(0);
+            });
+        });
+
+        describe('when it copies a unit with an ability', function () {
+            it('copies printed when played abilities', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                    },
+                    player2: {
+                        groundArena: ['count-dooku#darth-tyranus'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.countDooku);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.countDooku);
+
+                context.player1.clickPrompt('Defeat a unit with 4 or less remaining HP');
+                expect(context.player1).toBeAbleToSelectExactly([context.clone, context.countDooku]);
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.countDooku);
+                expect(context.countDooku).toBeInZone('discard');
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toHaveExactUpgradeNames(['shield']);
+            });
+
+            it('copies printed when defeated abilities', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        hasForceToken: true,
+                    },
+                    player2: {
+                        hand: ['power-of-the-dark-side'],
+                        groundArena: [{ card: 'eeth-koth#spiritual-warrior', upgrades: ['clone-cohort'] }],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.eethKoth);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.eethKoth);
+                expect(context.clone.hasSomeKeyword('raid')).toBeFalse();
+
+                context.player2.clickCard(context.powerOfTheDarkSide);
+                context.player1.clickCard(context.clone);
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force to put Eeth Koth into play as a resource');
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.clone).toBeInZone('resource', context.player1);
+                expect(context.clone.exhausted).toBe(true);
+                expect(context.player1.findCardsByName('clone-trooper').length).toBe(0);
+            });
+
+            it('copies printed on attack abilities', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                    },
+                    player2: {
+                        groundArena: [{ card: 'darth-vader#twilight-of-the-apprentice', upgrades: ['sith-holocron'] }],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.darthVader);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.darthVader);
+
+                // When Played ability
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.darthVader);
+                expect(context.clone).toHaveExactUpgradeNames(['shield']);
+                expect(context.darthVader).toHaveExactUpgradeNames(['shield', 'sith-holocron']);
+
+                context.moveToNextActionPhase();
+
+                // On Attack ability
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.darthVader]);
+
+                context.player1.clickCard(context.darthVader);
+                expect(context.darthVader).toBeInZone('discard', context.player2);
+                expect(context.p2Base.damage).toBe(5);
+            });
+
+            it('copies printed replacement effects abilities', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                    player2: {
+                        hand: ['power-of-the-dark-side'],
+                        groundArena: ['chewbacca#faithful-first-mate'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.chewbacca);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.chewbacca);
+
+                context.player2.clickCard(context.powerOfTheDarkSide);
+                context.player1.clickCard(context.clone);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.powerOfTheDarkSide).toBeInZone('discard');
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('copies printed constant effects abilities', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['battlefield-marine', 'general-dodonna#massassi-group-commander'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+                expect(context.battlefieldMarine.getPower()).toBe(4);
+                expect(context.battlefieldMarine.getHp()).toBe(4);
+                expect(context.generalDodonna.getPower()).toBe(4);
+                expect(context.generalDodonna.getHp()).toBe(4);
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.generalDodonna);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.generalDodonna);
+                expect(context.battlefieldMarine.getPower()).toBe(5);
+                expect(context.battlefieldMarine.getHp()).toBe(5);
+                expect(context.generalDodonna.getPower()).toBe(5);
+                expect(context.generalDodonna.getHp()).toBe(5);
+                expect(context.clone.getPower()).toBe(5);
+                expect(context.clone.getHp()).toBe(5);
+            });
+
+            it('works correctly with state watchers', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone', 'wampa'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                    player2: {
+                        hand: ['kiadimundi#composed-and-confident', 'atst'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.clone).toBeVanillaClone();
+
+                // First card played by player1
+                context.player1.clickCard(context.wampa);
+
+                // First card played by player2
+                context.player2.clickCard(context.kiadimundi);
+
+                // Second card played by player1
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.kiadimundi);
+                expect(context.clone).toBeInZone('groundArena');
+                expect(context.clone).toBeCloneOf(context.kiadimundi);
+
+                // Second card played by player2
+                context.player2.clickCard(context.atst);
+                expect(context.player1).toHavePassAbilityPrompt('Draw 2 cards');
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1.handSize).toBe(2);
+            });
+        });
+
+        describe('when it copiees a pilot unit with a pilot ability', function () {
+            it('copies pilot triggered abilities', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                    },
+                    player2: {
+                        hand: ['disabling-fang-fighter'],
+                        groundArena: ['pantoran-starship-thief'],
+                        spaceArena: ['omicron-strike-craft'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.pantoranStarshipThief);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.omicronStrikeCraft);
+
+                expect(context.omicronStrikeCraft).toHaveExactUpgradeNames(['clone']);
+                expect(context.omicronStrikeCraft).toBeInZone('spaceArena', context.player1);
+                expect(context.clone).toBeCloneOf(context.pantoranStarshipThief);
+                expect(context.player1.exhaustedResourceCount).toBe(10);
+
+                context.player2.clickCard(context.disablingFangFighter);
+                context.player2.clickCard(context.clone);
+
+                expect(context.clone).toBeVanillaClone();
+                expect(context.clone).toBeInZone('discard', context.player1);
+                expect(context.omicronStrikeCraft).toBeInZone('spaceArena', context.player2);
+            });
+
+            it('copies pilot constant abilities', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone', 'corvus#inferno-squadron-raider'],
+                        groundArena: ['nien-nunb#loyal-copilot'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.nienNunb);
+
+                expect(context.clone).toBeCloneOf(context.nienNunb);
+                expect(context.clone.getPower()).toBe(2);
+                expect(context.nienNunb.getPower()).toBe(2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.corvus);
+                context.player1.clickCard(context.clone);
+
+                expect(context.clone).toBeCloneOf(context.nienNunb);
+                expect(context.corvus).toHaveExactUpgradeNames(['clone']);
+                expect(context.corvus.getPower()).toBe(6);
+                expect(context.nienNunb.getPower()).toBe(2);
             });
         });
     });

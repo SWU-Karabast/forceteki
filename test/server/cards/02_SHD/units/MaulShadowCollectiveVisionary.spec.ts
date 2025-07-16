@@ -273,6 +273,38 @@ describe('Maul, Shadow Collective Visionary', function() {
                 // Overwhelm damage should be on base
                 expect(context.p2Base.damage).toBe(4);
             });
+
+            it('works correctly with Clone', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['maul#shadow-collective-visionary']
+                    },
+                    player2: {
+                        groundArena: ['colonel-yularen#isb-director'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.maul);
+                expect(context.clone).toBeCloneOf(context.maul);
+
+                // Choose target for ambush
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.colonelYularen);
+
+                // Choose target for redirect
+                expect(context.player1).toBeAbleToSelectExactly([context.maul]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.maul);
+
+                expect(context.maul.damage).toBe(2);
+                expect(context.clone.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(4);
+            });
         });
     });
 });

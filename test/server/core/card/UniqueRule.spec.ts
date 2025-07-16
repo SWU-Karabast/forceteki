@@ -5,15 +5,13 @@ describe('Uniqueness rule', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['chopper#metal-menace'],
+                        hand: ['chopper#metal-menace', 'clone'],
                         groundArena: ['chopper#metal-menace'],
                     },
                     player2: {
+                        hand: ['takedown'],
                         groundArena: ['chopper#metal-menace']
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -25,6 +23,11 @@ describe('Uniqueness rule', function() {
 
             it('the player should be prompted to choose a copy to defeat', function () {
                 const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.chopperInPlay);
+                expect(context.clone).toBeCloneOf(context.chopperInPlay);
+                context.player2.passAction();
 
                 context.player1.clickCard(context.chopperInHand);
 
@@ -38,6 +41,7 @@ describe('Uniqueness rule', function() {
                 context.player1.clickCard(context.chopperInPlay);
                 expect(context.chopperInHand).toBeInZone('groundArena');
                 expect(context.chopperInPlay).toBeInZone('discard');
+                expect(context.clone).toBeInZone('groundArena');
                 expect(context.p2Chopper).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.getChatLogs(1)).toContain('player1 defeats 1 copy of Chopper due to the uniqueness rule');
@@ -58,6 +62,25 @@ describe('Uniqueness rule', function() {
                 context.player1.clickCard(context.chopperInHand);
                 expect(context.chopperInPlay).toBeInZone('groundArena');
                 expect(context.chopperInHand).toBeInZone('discard');
+                expect(context.p2Chopper).toBeInZone('groundArena');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('the player should not be prompted to defeat a copy if the first one has been defeated already', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.chopperInPlay);
+                expect(context.clone).toBeCloneOf(context.chopperInPlay);
+
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.chopperInPlay);
+                expect(context.chopperInPlay).toBeInZone('discard');
+
+                context.player1.clickCard(context.chopperInHand);
+                expect(context.chopperInHand).toBeInZone('groundArena');
+                expect(context.chopperInPlay).toBeInZone('discard');
+                expect(context.clone).toBeInZone('groundArena');
                 expect(context.p2Chopper).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
             });

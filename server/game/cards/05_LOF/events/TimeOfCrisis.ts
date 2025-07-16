@@ -11,7 +11,7 @@ export default class TimeOfCrisis extends EventCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
         registrar.setEventAbility({
             title: 'Each player chooses a unit they control. Deal 3 damage to each unit not chosen this way',
             targetResolvers: {

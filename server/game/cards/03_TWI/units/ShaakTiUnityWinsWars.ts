@@ -11,7 +11,7 @@ export default class ShaakTiUnityWinsWars extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addConstantAbility({
             title: 'Each friendly token unit gets +1/+0.',
             targetController: RelativePlayer.Self,

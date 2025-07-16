@@ -106,5 +106,5 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupCardAbilities(registrar: IBaseAbilityRegistrar) { }
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar) { }
 }

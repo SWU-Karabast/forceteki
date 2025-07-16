@@ -11,7 +11,7 @@ export default class PadawanStarFighter extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addConstantAbility({
             title: 'While you control a Force unit or a Force upgrade, this unit gets +1/+1',
             condition: (context) => context.player.hasSomeArenaCard({ trait: Trait.Force }),

@@ -11,7 +11,7 @@ export default class GoIntoHiding extends EventCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
         registrar.setEventAbility({
             title: 'Choose a unit. It cannot be attacked this phase',
             targetResolver: {
