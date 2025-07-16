@@ -244,7 +244,7 @@ function buildCardLists(cards) {
     const seenNames = [];
     var duplicatesWithSetCode = {};
     const uniqueCardsMap = new Map();
-    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3], ['JTL', 4], ['LOF', 5]]);
+    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3], ['JTL', 4], ['LOF', 5], ['IDH', 6]]);
 
     for (const card of cards) {
         // creates a map of set code + card number to card id. removes reprints when done since we don't need that in the card data
