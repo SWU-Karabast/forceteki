@@ -13,7 +13,7 @@ import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
 import { InitializeCardStateOption } from '../Card';
 import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard } from '../../../Interfaces';
-import { BountyKeywordInstance } from '../../ability/KeywordInstance';
+import type { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
@@ -43,6 +43,7 @@ import type { ConstantAbility } from '../../ability/ConstantAbility';
 import type { OngoingCardEffect } from '../../ongoingEffect/OngoingCardEffect';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
+import type Clone from '../../../cards/03_TWI/units/Clone';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -83,8 +84,9 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     get capturedUnits(): IUnitCard[];
     get captureZone(): CaptureZone;
     get lastPlayerToModifyHp(): Player;
-    get isClone(): boolean;
+    get isClonedUnit(): boolean;
     readonly upgrades: IUpgradeCard[];
+    isClone(): this is Clone;
     getCaptor(): IUnitCard | null;
     isAttacking(): boolean;
     isCaptured(): boolean;
@@ -228,8 +230,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return this._defaultArena;
         }
 
-        public get isClone(): boolean {
-            return this.hasOngoingEffect(EffectName.IsClonedUnit);
+        public get isClonedUnit(): boolean {
+            return this.hasOngoingEffect(EffectName.CloneUnit);
+        }
+
+        public isClone(): this is Clone {
+            return false;
         }
 
         public getCaptor(): IUnitCard | null {
@@ -461,7 +467,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             const bountyAbilityToAssign = bountyKeywordsWithoutImpl[0];
 
             // TODO: see if there's a better way using discriminating unions to avoid needing a cast when getting keyword instances
-            Contract.assertTrue(bountyAbilityToAssign instanceof BountyKeywordInstance);
+            Contract.assertTrue(bountyAbilityToAssign.isBounty());
             bountyAbilityToAssign.setAbilityProps(properties);
         }
 
@@ -1096,6 +1102,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             if (this.isInPlay()) {
                 const hasSentinel = this.hasSomeKeyword(KeywordName.Sentinel);
                 const isHidden = !hasSentinel && this.hasSomeKeyword(KeywordName.Hidden) && this.wasPlayedThisPhase();
+                const clonedCardSetId = this.hasOngoingEffect(EffectName.CloneUnit) ? this.getOngoingEffectValues<Card>(EffectName.CloneUnit)[0].setId : null;
 
                 return {
                     ...super.getSummary(activePlayer),
@@ -1105,6 +1112,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     hidden: isHidden,
                     isAttacker: this.isInPlay() && this.isUnit() && (this.isAttacking() || this.controller.getAttackerHighlightingState(this)),
                     isDefender: this.isInPlay() && this.isUnit() && this.isDefending(),
+                    clonedCardId: clonedCardSetId,
                 };
             }
 

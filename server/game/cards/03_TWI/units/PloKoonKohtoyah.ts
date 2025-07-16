@@ -11,7 +11,7 @@ export default class PloKoonKohtoyah extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'Gain Raid 3',

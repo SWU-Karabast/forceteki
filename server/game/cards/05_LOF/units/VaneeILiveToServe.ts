@@ -11,7 +11,7 @@ export default class VaneeILiveToServe extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Defeat an Experience token on a friendly unit. If you do, give an Experience token to a friendly unit.',
             when: {

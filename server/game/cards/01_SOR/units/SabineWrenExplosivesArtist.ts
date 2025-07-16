@@ -12,7 +12,7 @@ export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'Cannot be attacked if friendly units have at least 3 unique aspects',
             condition: (context) => Helpers.countUniqueAspects(context.source.controller.getArenaUnits({ otherThan: context.source })) >= 3,

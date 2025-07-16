@@ -10,6 +10,8 @@ export interface PrintedAttributesOverride {
     printedCost?: number;
     printedPower?: number;
     printedHp?: number;
+    printedUpgradePower?: number;
+    printedUpgradeHp?: number;
     printedTraits?: Set<Trait>;
     printedKeywords?: KeywordInstance[];
 }

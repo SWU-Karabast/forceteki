@@ -148,6 +148,40 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
                 const xwings = context.player2.findCardsByName('xwing');
                 expect(xwings[0]).not.toHaveExactUpgradeNames(['shield']);
             });
+
+            it('works correctly with Clone', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['admiral-yularen#fleet-coordinator', 'clone'],
+                        spaceArena: ['tieln-fighter']
+                    },
+                    player2: {
+                        spaceArena: ['concord-dawn-interceptors']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.tielnFighter.hasSomeKeyword('sentinel')).toBeFalse();
+                expect(context.tielnFighter.hasSomeKeyword('grit')).toBeFalse();
+
+                context.player1.clickCard(context.admiralYularen);
+                context.player1.clickPrompt('Sentinel');
+                expect(context.getChatLogs(1)[0]).toContain('to give Sentinel to each friendly Vehicle unit while in play');
+                expect(context.tielnFighter.hasSomeKeyword('sentinel')).toBeTrue();
+                expect(context.tielnFighter.hasSomeKeyword('grit')).toBeFalse();
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.admiralYularen);
+                context.player1.clickPrompt('Grit');
+                expect(context.getChatLogs(1)[0]).toContain('to give Grit to each friendly Vehicle unit while in play');
+                expect(context.tielnFighter.hasSomeKeyword('sentinel')).toBeTrue();
+                expect(context.tielnFighter.hasSomeKeyword('grit')).toBeTrue();
+                expect(context.clone).toBeCloneOf(context.admiralYularen);
+            });
         });
     });
 });

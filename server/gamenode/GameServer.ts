@@ -56,7 +56,7 @@ export class GameServer {
         let testGameBuilder: any = null;
 
         console.log('SETUP: Initiating server start.');
-        console.log('SETUP: Retreiving card data.');
+        console.log('SETUP: Retrieving card data.');
         if (process.env.ENVIRONMENT === 'development') {
             testGameBuilder = this.getTestGameBuilder();
 

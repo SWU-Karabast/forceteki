@@ -135,6 +135,70 @@ describe('DJ, Blatant Thief', function() {
             expect(context.player2.resources.length).toBe(20);
         });
 
+        it('DJ\'s when played ability should work when cloned by Clone', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'echo-base',
+                    leader: 'han-solo#audacious-smuggler',
+                    hand: ['village-tender'],
+                    groundArena: ['dj#blatant-thief', 'tech#source-of-insight'],
+                    // 10 resources total
+                    resources: [
+                        'clone', 'atst', 'atst', 'atst', 'atst',
+                        'atst', 'atst', 'atst', 'atst', 'atst'
+                    ]
+                },
+                player2: {
+                    groundArena: ['atat-suppressor'],
+                    resources: 10
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.clone);
+            context.player1.clickCard(context.djBlatantThief);
+
+            expect(context.player1.resources.length).toBe(11);
+            expect(context.player2.resources.length).toBe(9);
+            expect(context.player1.readyResourceCount).toBe(1);
+            expect(context.player1.exhaustedResourceCount).toBe(10);
+            expect(context.player2.readyResourceCount).toBe(9);
+            expect(context.player2.exhaustedResourceCount).toBe(0);
+            expect(context.getChatLogs(2)).toContain(
+                'player1 uses DJ to take control of a resource from player2 and then to apply a delayed effect'
+            );
+
+            // check that stolen resource maintained its ready state
+            const stolenResourceList = context.player1.resources.filter((resource) => resource.owner === context.player2Object);
+            expect(stolenResourceList.length).toBe(1);
+            const stolenResource = stolenResourceList[0];
+            expect(stolenResource.exhausted).toBeFalse();
+
+            // confirm that player1 can spend with it
+            context.player2.passAction();
+            expect(context.player1.readyResourceCount).toBe(1);
+            context.player1.clickCard(context.villageTender);
+            expect(context.villageTender).toBeInZone('groundArena');
+            expect(context.player1.exhaustedResourceCount).toBe(11);
+            expect(stolenResource.exhausted).toBeTrue();
+
+            // Clone is defeated, resource goes back to owner's resource zone and stays exhausted
+            context.player2.clickCard(context.atatSuppressor);
+            context.player2.clickCard(context.clone);
+
+            expect(context.player1.resources.length).toBe(10);
+            expect(context.player2.resources.length).toBe(10);
+            expect(context.player2.exhaustedResourceCount).toBe(1);
+            expect(context.player2.readyResourceCount).toBe(9);
+            expect(context.player1.exhaustedResourceCount).toBe(10);
+            expect(context.player1.readyResourceCount).toBe(0);
+
+            expect(stolenResource.controller).toBe(context.player2Object);
+            expect(stolenResource.exhausted).toBeTrue();
+        });
+
         // TODO: test with Endless Legions to confirm that DJ doesn't take control of the card back after it's played
         // TODO: test with Endless Legions to confirm that the DJ ability doesn't trigger if he is played
     });

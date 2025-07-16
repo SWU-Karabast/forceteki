@@ -48,6 +48,10 @@ export class KeywordInstance {
         return false;
     }
 
+    public isBounty(): this is BountyKeywordInstance {
+        return false;
+    }
+
     public valueOf() {
         return this.name;
     }
@@ -138,4 +142,14 @@ export class KeywordWithAbilityDefinition<
 }
 
 export class BountyKeywordInstance<TSource extends Card = Card>
-    extends KeywordWithAbilityDefinition<TSource, Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>> {}
+    extends KeywordWithAbilityDefinition<TSource, Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>> {
+    public override isBounty(): this is BountyKeywordInstance {
+        return true;
+    }
+
+    public override duplicate(card: Card): KeywordInstance {
+        // Ability properties cannot be duplicated and applied to a new card, so we explicitly set it to null.
+        // The ability definition needs to be set up manually on the new card, then added to this keyword instance.
+        return new BountyKeywordInstance(this.name, card, null);
+    }
+}

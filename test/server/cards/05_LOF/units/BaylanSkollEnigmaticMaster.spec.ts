@@ -5,7 +5,7 @@ describe('Baylan Skoll, Enigmatic Master', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['baylan-skoll#enigmatic-master'],
+                        hand: ['baylan-skoll#enigmatic-master', 'clone'],
                         groundArena: ['salacious-crumb#obnoxious-pet', 'atat-suppressor'],
                         spaceArena: ['cartel-spacer'],
                         leader: 'asajj-ventress#unparalleled-adversary',
@@ -80,6 +80,31 @@ describe('Baylan Skoll, Enigmatic Master', function() {
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should work with Clone when cloning a 4 cost unit', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.wampa);
+                expect(context.clone).toBeCloneOf(context.wampa);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.baylanSkollEnigmaticMaster);
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.salaciousCrumb, context.cartelSpacer, context.wampa, context.patrollingVwing, context.clone]);
+
+                context.player1.clickCard(context.clone);
+                expect(context.clone).toBeInZone('hand');
+                expect(context.player1).toHavePassAbilityPrompt('Play Clone for free');
+
+                // Player 1 decides to play Clone for free
+                const exhaustedResourceCount = context.player1.exhaustedResourceCount;
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.baylanSkoll);
+                expect(context.clone).toBeCloneOf(context.baylanSkoll);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCount);
             });
         });
 

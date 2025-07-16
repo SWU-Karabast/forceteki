@@ -14,13 +14,14 @@ export interface IConstantAbilityRegistrar<T extends Card> {
 export interface ICardWithConstantAbilities<T extends Card> {
     addGainedConstantAbility(properties: IConstantAbilityProps<T>): string;
     removeGainedConstantAbility(removeAbilityUuid: string): void;
+    removePrintedConstantAbility(removeAbilityUuid: string): void;
 }
 
 /** Mixin function that adds the ability to register constant abilities to a base card class. */
 export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
     return class WithConstantAbilities extends BaseClass {
         protected addConstantAbility(properties: IConstantAbilityProps<this>): ConstantAbility {
-            const ability = this.createConstantAbility(properties);
+            const ability = this.createConstantAbility({ ...properties, printedAbility: true });
             // This check is necessary to make sure on-play cost-reduction effects are registered
             if (ability.sourceZoneFilter === WildcardZoneName.Any) {
                 ability.registeredEffects = this.addEffectToEngine(ability);
@@ -52,7 +53,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
              * @returns The uuid of the created triggered ability
              */
         public addGainedConstantAbility(properties: IConstantAbilityProps<this>): string {
-            const addedAbility = this.createConstantAbility(properties);
+            const addedAbility = this.createConstantAbility({ ...properties, printedAbility: false });
             this.state.constantAbilities.push(addedAbility.getRef());
             addedAbility.registeredEffects = this.addEffectToEngine(addedAbility);
 
@@ -61,11 +62,19 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
 
         /** Removes a dynamically gained constant ability and unregisters its effects */
         public removeGainedConstantAbility(removeAbilityUuid: string): void {
+            this.removeConstantAbility(removeAbilityUuid, false);
+        }
+
+        public removePrintedConstantAbility(removeAbilityUuid: string): void {
+            this.removeConstantAbility(removeAbilityUuid, true);
+        }
+
+        private removeConstantAbility(removeAbilityUuid: string, printedAbility: boolean): void {
             let abilityToRemove: ConstantAbility = null;
             const remainingAbilities: ConstantAbility[] = [];
 
             for (const constantAbility of this.constantAbilities) {
-                if (constantAbility.uuid === removeAbilityUuid) {
+                if (constantAbility.uuid === removeAbilityUuid && constantAbility.printedAbility === printedAbility) {
                     if (abilityToRemove) {
                         Contract.fail(`Expected to find one instance of gained ability '${abilityToRemove.abilityIdentifier}' on card ${this.internalName} to remove but instead found multiple`);
                     }

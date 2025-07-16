@@ -10,7 +10,7 @@ export default class TipTheScale extends EventCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Look at an opponents hand. Discard a non-unit card from it.',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({

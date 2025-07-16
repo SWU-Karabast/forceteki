@@ -12,7 +12,7 @@ export default class StrategicAcumen extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addGainActionAbilityTargetingAttached({
             title: 'Play a unit from your hand. It costs 1 less',
             cost: AbilityHelper.costs.exhaustSelf(),

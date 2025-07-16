@@ -31,6 +31,8 @@ import StatsModifierWrapper from '../core/ongoingEffect/effectImpl/StatsModifier
 import { OngoingEffectValueWrapper } from '../core/ongoingEffect/effectImpl/OngoingEffectValueWrapper';
 import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/NumericKeywordMultiplier';
 import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl/PrintedAttributesOverride';
+import type { Card } from '../core/card/Card';
+import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -111,7 +113,7 @@ export = {
     // fateCostToAttack: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
-    isClonedUnit: () => OngoingEffectBuilder.card.static(EffectName.IsClonedUnit),
+    cloneUnit: (target: Card) => OngoingEffectBuilder.card.static(EffectName.CloneUnit, new CloneUnitEffect(target)),
     isLeader: () => OngoingEffectBuilder.card.static(EffectName.IsLeader),
     gainAbility: (properties: IAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),

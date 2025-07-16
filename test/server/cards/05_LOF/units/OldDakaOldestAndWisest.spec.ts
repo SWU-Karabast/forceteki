@@ -152,6 +152,38 @@ describe('Old Daka, Oldest and Wisest', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        // TODO: test with Clone
+        it('works correctly with Clone', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['clone'],
+                    hasForceToken: true,
+                    groundArena: ['talzins-assassin', 'wampa', 'old-daka#oldest-and-wisest'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.clone);
+            context.player1.clickCard(context.oldDaka);
+            expect(context.player1).toBeAbleToSelectExactly([context.talzinsAssassin]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickCard(context.talzinsAssassin);
+
+            const p1ResourceCount = context.player1.readyResourceCount;
+            expect(context.talzinsAssassin).toBeInZone('discard');
+            expect(context.player1).toHavePassAbilityPrompt('Play Talzin\'s Assassin from your discard pile for free');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.talzinsAssassin).toBeInZone('groundArena');
+            expect(context.player1.readyResourceCount).toBe(p1ResourceCount);
+
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.talzinsAssassin, context.oldDaka, context.clone]);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa.getPower()).toBe(1);
+            expect(context.wampa.getHp()).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

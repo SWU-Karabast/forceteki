@@ -10,7 +10,7 @@ export default class PazVizslaUnyieldingWarrior extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'This unit gets +2/+0 for each damage on him',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({

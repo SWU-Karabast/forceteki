@@ -4,7 +4,7 @@ import { BaseCard } from '../../../core/card/BaseCard';
 import { Trait } from '../../../core/Constants';
 
 export abstract class LofCommonForceBase extends BaseCard {
-    protected override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'The Force is with you',
             when: {

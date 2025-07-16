@@ -11,7 +11,7 @@ export default class CureWounds extends EventCard {
         };
     }
 
-    protected override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Use the Force to heal 6 damage from a unit',
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
