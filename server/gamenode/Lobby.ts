@@ -677,7 +677,7 @@ export class Lobby {
 
         const useActionTimer =
             (this.gameType === MatchType.Quick || this.gameType === MatchType.Custom) &&
-            process.env.ENVIRONMENT !== 'development';
+            (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_ACTION_TIMER === 'true');
 
         return {
             id: uuidv4(),
@@ -732,6 +732,11 @@ export class Lobby {
             }
 
             this.updateUserLastActivity(socket.user.getId());
+
+            // this command is a no-op since we reset the timer just above
+            if (command === 'resetActionTimer') {
+                return;
+            }
 
             // if (command === 'leavegame') {
             //     return this.onLeaveGame(socket);
