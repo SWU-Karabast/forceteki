@@ -87,9 +87,8 @@ global.integration = function (definitions, enableUndo = false) {
 
                     if (newContext.isUndoTest) {
                         newContext.snapshot.snapshotPlayer = newContext.game.getActivePlayer();
-                        newContext.snapshot.snapshotId = newContext.game.enableUndo(() => {
-                            return newContext.game.takeManualSnapshot(newContext.snapshotPlayer);
-                        });
+                        // TODO: do we need snapshotId anymore?
+                        newContext.snapshot.snapshotId = newContext.game.takeManualSnapshot(newContext.snapshotPlayer);
                     }
                 }
             };
@@ -169,9 +168,7 @@ global.undoIt = function(expectation, assertion, timeout) {
         // If the game setup was in a beforeEach before this was called, take a snapshot.
         if (context.hasSetupGame) {
             snapshotUtils.snapshotPlayer = this.game.getActivePlayer();
-            snapshotUtils.snapshotId = context.game.enableUndo(() => {
-                return context.game.takeManualSnapshot(snapshotUtils.snapshotPlayer);
-            });
+            snapshotUtils.snapshotId = context.game.takeManualSnapshot(snapshotUtils.snapshotPlayer);
         }
 
         if (snapshotUtils.snapshotId === -1) {
@@ -183,11 +180,9 @@ global.undoIt = function(expectation, assertion, timeout) {
             // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
             return;
         }
-        const rolledBack = context.game.enableUndo(() => {
-            return context.game.rollbackToSnapshot({
-                type: SnapshotType.Manual,
-                playerId: snapshotUtils.snapshotPlayer.id,
-            });
+        const rolledBack = context.game.rollbackToSnapshot({
+            type: SnapshotType.Manual,
+            playerId: snapshotUtils.snapshotPlayer.id,
         });
         if (!rolledBack) {
             // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.

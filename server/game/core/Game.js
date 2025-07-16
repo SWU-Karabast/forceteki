@@ -1723,21 +1723,6 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
-     * @param {() => any} fcn
-     */
-    enableUndo(fcn) {
-        const currUndo = this.undoEnabled;
-
-        this.undoEnabled = Helpers.isDevelopment();
-        try {
-            return fcn();
-        } finally {
-            this.undoEnabled = currUndo;
-        }
-    }
-
-    /**
      * Captures the current game state for a bug report
      * @param reportingPlayer
      * @returns A simplified game state representation
