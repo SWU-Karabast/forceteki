@@ -1,4 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import AbilityHelper from '../../../AbilityHelper';
 import { TargetMode, Trait } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class FollowingThePath extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Search the top 8 cards for up to 2 Force units, reveal them, and put them on top of your deck in any order',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 targetMode: TargetMode.UpTo,

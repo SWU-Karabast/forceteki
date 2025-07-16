@@ -15,10 +15,11 @@ import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityReg
 import { WithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import { EpicActionAbility } from '../../abilities/EpicActionAbility';
+import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityRegistrationInterfaces';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
-export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities, ICardWithTriggeredAbilities {
+export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities<IBaseCard>, ICardWithTriggeredAbilities<IBaseCard> {
     get epicActionSpent(): boolean;
 }
 
@@ -55,7 +56,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return super.getActionAbilities();
     }
 
-    public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
+    public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities<this> {
         return true;
     }
 
@@ -75,7 +76,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return ability;
     }
 
-    protected setEpicActionAbility(properties: IEpicActionProps<this>): void {
+    private setEpicActionAbility(properties: IEpicActionProps<this>): void {
         Contract.assertIsNullLike(this._epicActionAbility, 'Epic action ability already set');
 
         this._epicActionAbility = new EpicActionAbility(this.game, this, properties);
@@ -92,4 +93,18 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
             isDefender: this.isDefending(),
         };
     }
+
+    protected override getAbilityRegistrar(): IBaseAbilityRegistrar {
+        return {
+            ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<BaseCard>,
+            setEpicActionAbility: (properties: IEpicActionProps<this>) => this.setEpicActionAbility(properties),
+        };
+    }
+
+    protected override callSetupWithRegistrar() {
+        this.setupCardAbilities(this.getAbilityRegistrar());
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar) { }
 }

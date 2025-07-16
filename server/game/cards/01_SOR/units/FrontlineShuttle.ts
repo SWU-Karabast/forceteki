@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class FrontlineShuttle extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class FrontlineShuttle extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addActionAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Attack with a unit, even if it’s exhausted. It can’t attack bases for this attack.',
             cost: AbilityHelper.costs.defeatSelf(),
             initiateAttack: {

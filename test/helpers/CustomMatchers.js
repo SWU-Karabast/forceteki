@@ -979,11 +979,37 @@ var customMatchers = {
                 if (card.getPrintedHp() !== targetCard.getPrintedHp()) {
                     failures.push(`printedHp: expected ${card.getPrintedHp()} but got ${targetCard.getPrintedHp()}`);
                 }
-                if (!Util.stringArraysEqual(
-                    card.printedKeywords.map((keyword) => keyword.name),
-                    targetCard.printedKeywords.map((keyword) => keyword.name)
-                )) {
+                if ((card.printedUpgradePower != null || targetCard.printedUpgradePower != null) && card.printedUpgradePower !== targetCard.printedUpgradePower) {
+                    failures.push(`printedUpgradePower: expected ${card.printedUpgradePower} but got ${targetCard.printedUpgradePower}`);
+                }
+                if ((card.printedUpgradeHp != null || targetCard.printedUpgradeHp != null) && card.printedUpgradeHp !== targetCard.printedUpgradeHp) {
+                    failures.push(`printedUpgradeHp: expected ${card.printedUpgradeHp} but got ${targetCard.printedUpgradeHp}`);
+                }
+                // Note: this relies on the fact that printed keywords are copied in order, if that stops being the case this will need to be updated
+                // because keywords don't need to be in the same order for the Clone ability to work correctly
+                if (card.printedKeywords.length !== targetCard.printedKeywords.length || !card.printedKeywords.every((keyword, index) => {
+                    const otherKeyword = targetCard.printedKeywords[index];
+                    if (keyword.name !== otherKeyword.name) {
+                        return false;
+                    }
+                    if ((keyword.hasNumericValue() || otherKeyword.hasNumericValue()) && keyword.value !== otherKeyword.value) {
+                        return false;
+                    }
+                    if ((keyword.hasAbilityDefinition() || otherKeyword.hasAbilityDefinition()) && keyword.abilityProps == null) {
+                        return false;
+                    }
+                    return true;
+                })) {
                     failures.push(`printedKeywords: expected ${card.printedKeywords.map((keyword) => keyword.name).join(', ')} but got ${targetCard.printedKeywords.map((keyword) => keyword.name).join(', ')}`);
+                }
+                if (card.getPrintedActionAbilities().length !== targetCard.getPrintedActionAbilities().length) {
+                    failures.push(`expected ${card.getPrintedActionAbilities().length} action abilities but got ${targetCard.getPrintedActionAbilities().length}`);
+                }
+                if (card.getPrintedTriggeredAbilities().length !== targetCard.getPrintedTriggeredAbilities().length) {
+                    failures.push(`expected ${card.getPrintedTriggeredAbilities().length} triggered abilities but got ${targetCard.getPrintedTriggeredAbilities().length}`);
+                }
+                if (card.getPrintedConstantAbilities().length !== targetCard.getPrintedConstantAbilities().length) {
+                    failures.push(`expected ${card.getPrintedConstantAbilities().length} constant abilities but got ${targetCard.getPrintedConstantAbilities().length}`);
                 }
 
                 let result = {};
@@ -1044,8 +1070,26 @@ var customMatchers = {
                 if (card.getPrintedHp() !== 0) {
                     failures.push(`printedHp: expected 0 but got ${card.getPrintedHp()}`);
                 }
+                if (card.printedUpgradePower != null) {
+                    failures.push(`printedUpgradePower: expected null but got ${card.printedUpgradePower}`);
+                }
+                if (card.printedUpgradeHp != null) {
+                    failures.push(`printedUpgradeHp: expected null but got ${card.printedUpgradeHp}`);
+                }
                 if (card.printedKeywords.length > 0) {
                     failures.push(`printedKeywords: expected no keywords but got ${card.printedKeywords.map((keyword) => keyword.name).join(', ')}`);
+                }
+                if (card.getPrintedActionAbilities().length > 0) {
+                    failures.push(`expected no action abilities but got ${card.getPrintedActionAbilities().length}`);
+                }
+                if (card.getPrintedTriggeredAbilities().length > 0) {
+                    failures.push(`expected no triggered abilities but got ${card.getPrintedTriggeredAbilities().length}`);
+                }
+                if (card.getPrintedConstantAbilities().length > 0) {
+                    failures.push(`expected no constant abilities but got ${card.getPrintedConstantAbilities().length}`);
+                }
+                if (!card.canRegisterPreEnterPlayAbilities() || card.getPreEnterPlayAbilities().length !== 1) {
+                    failures.push(`expected 1 pre-enter play abilities but got ${card.canRegisterPreEnterPlayAbilities() ? card.getPreEnterPlayAbilities().length : 0}`);
                 }
 
                 let result = {};

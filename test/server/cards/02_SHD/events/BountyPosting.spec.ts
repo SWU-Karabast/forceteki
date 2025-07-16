@@ -21,7 +21,7 @@ describe('Bounty Posting', function() {
                 context.player1.clickCard(context.bountyPosting);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.deathMark, context.topTarget],
-                    invalid: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
+                    // invalid: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]   // TODO: uncomment when we re-enable full deck search
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -62,7 +62,7 @@ describe('Bounty Posting', function() {
                 context.player1.clickCard(context.bountyPosting);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.deathMark, context.topTarget],
-                    invalid: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
+                    // invalid: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]   // TODO: uncomment when we re-enable full deck search
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -88,12 +88,14 @@ describe('Bounty Posting', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.bountyPosting);
-                expect(context.player1).toHaveExactDisplayPromptCards({
-                    invalid: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
-                });
-                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt('Take nothing');
+                // TODO: uncomment when we re-enable full deck search
+                // expect(context.player1).toHaveExactDisplayPromptCards({
+                //     invalid: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
+                // });
+                // expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+                // context.player1.clickPrompt('Take nothing');
+
                 expect(context.player2).toBeActivePlayer();
             });
         });

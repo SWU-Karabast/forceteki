@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, RelativePlayer } from '../../../core/Constants';
 
@@ -11,8 +12,8 @@ export default class CloneDiveTrooper extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addCoordinateAbility({
             type: AbilityType.Constant,
             title: 'While this unit is attacking, the defender gets -2/-0.',
             targetController: RelativePlayer.Opponent,

@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class ArmedToTheTeeth extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainOnAttackAbilityTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+        registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Give another friendly unit +2/+0 for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

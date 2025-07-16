@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
@@ -11,8 +12,8 @@ export default class CaughtInTheCrossfire extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Choose 2 enemy units in the same arena. Each of those units deals damage equal to its power to the other.',
             targetResolver: {
                 activePromptTitle: 'Choose 2 enemy units in the same arena',

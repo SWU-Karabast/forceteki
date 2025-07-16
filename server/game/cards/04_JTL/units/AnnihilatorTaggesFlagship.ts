@@ -1,7 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { EventName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { EventName, RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -11,8 +12,8 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Defeat an enemy unit',
             optional: true,
             when: {
@@ -46,19 +47,14 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                             ];
                         }),
                     }),
-                    AbilityHelper.immediateEffects.conditional((context) => {
-                        const opponentDeck = context.player.opponent.drawDeck;
-                        return {
-                            condition: opponentDeck.length > 0,
-                            onTrue: AbilityHelper.immediateEffects.simultaneous(() => {
-                                const matchingCardNames = opponentDeck.filter((card) => card.title === this.getTargetTitle(ifYouDoContext));
-                                return matchingCardNames.map((target) =>
-                                    AbilityHelper.immediateEffects.discardSpecificCard({
-                                        target: target
-                                    })
-                                );
-                            }),
-                        };
+                    AbilityHelper.immediateEffects.entireDeckSearch({
+                        cardCondition: (card) => card.title === this.getTargetTitle(ifYouDoContext),
+                        selectedCardsImmediateEffect: AbilityHelper.immediateEffects.discardSpecificCard(),
+                        shuffleWhenDone: true,
+                        targetMode: TargetMode.Unlimited,
+                        activePromptTitle: `Select which cards named ${this.getTargetTitle(ifYouDoContext)} to discard from the opponent's deck`,
+                        player: ifYouDoContext.player.opponent,
+                        choosingPlayer: ifYouDoContext.player
                     })
                 ])
             })

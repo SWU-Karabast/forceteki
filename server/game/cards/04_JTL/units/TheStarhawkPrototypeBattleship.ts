@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class TheStarhawkPrototypeBattleship extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class TheStarhawkPrototypeBattleship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'While paying costs, you pay half as many resources, rounded up',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyPayStageCost({
                 amount: (_card, _player, _context, amount) => -Math.floor(amount / 2),

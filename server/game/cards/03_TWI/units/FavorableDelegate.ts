@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class FavorableDelegate extends NonLeaderUnitCard {
@@ -9,13 +10,13 @@ export default class FavorableDelegate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Draw a card.',
             immediateEffect: AbilityHelper.immediateEffects.draw()
         });
 
-        this.addWhenDefeatedAbility({
+        registrar.addWhenDefeatedAbility({
             title: 'Discard a card from your hand.',
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({ target: context.player, amount: 1 })),
         });

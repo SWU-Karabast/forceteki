@@ -1,4 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import AbilityHelper from '../../../AbilityHelper';
 
 export default class NoBargain extends EventCard {
@@ -9,8 +10,8 @@ export default class NoBargain extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Each opponent discards a card from their hand. Draw a card.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({ target: context.player.opponent, amount: 1 })),

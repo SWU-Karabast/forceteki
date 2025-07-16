@@ -691,5 +691,39 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.cantinaBraggart).toBeInZone('discard');
             expect(context.p2Base.damage).toBe(18);
         });
+
+        it('works correctly with Clone', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['clone', 'timely-intervention'],
+                    groundArena: ['darth-maul#revenge-at-last'],
+                    base: 'echo-base',
+                },
+                player2: {
+                    groundArena: ['moisture-farmer', 'wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.timelyIntervention);
+            context.player1.clickCard(context.clone);
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickPrompt('Trigger');
+            expect(context.clone).toBeCloneOf(context.darthMaul);
+            expect(context.player1).not.toHaveEnabledPromptButton('Done');
+            expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa]);
+
+            context.player1.clickCard(context.moistureFarmer);
+            expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa]);
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickPrompt('Done');
+            expect(context.clone.damage).toBe(4);
+            expect(context.moistureFarmer).toBeInZone('discard');
+            expect(context.wampa).toBeInZone('discard');
+            expect(context.p2Base.damage).toBe(0);
+        });
     });
 });

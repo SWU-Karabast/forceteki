@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 
 export default class DirectorKrennicAspiringToAuthority extends LeaderUnitCard {
@@ -17,11 +18,11 @@ export default class DirectorKrennicAspiringToAuthority extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addConstantAbility(this.buildKrennicAbilityProperties());
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addConstantAbility(this.buildKrennicAbilityProperties());
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility(this.buildKrennicAbilityProperties());
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility(this.buildKrennicAbilityProperties());
     }
 }

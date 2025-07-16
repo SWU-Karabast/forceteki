@@ -76,14 +76,14 @@ describe('Krayt Dragon', function () {
                 context.player1.clickCard(context.changeOfHeart);
                 context.player1.clickCard(context.kraytDragon);
                 expect(context.kraytDragon).toBeInZone('groundArena', context.player1);
-                expect(context.player2).toHavePrompt('Deal damage equal to that card’s cost to their base or a ground unit they control');
+                expect(context.player2).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.kraytDragon]);
 
                 context.player2.clickCard(context.p1Base);
                 expect(context.p1Base.damage).toBe(6);
 
                 context.player2.clickCard(context.greenSquadronAwing);
-                expect(context.player1).toHavePrompt('Deal damage equal to that card’s cost to their base or a ground unit they control');
+                expect(context.player1).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base]);
 
                 context.player1.clickCard(context.p2Base);
@@ -113,14 +113,14 @@ describe('Krayt Dragon', function () {
                 context.player1.clickCard(context.kraytDragon);
                 expect(context.kraytDragon).toBeInZone('groundArena', context.player1);
                 expect(context.battlefieldMarine).toBeInZone('groundArena', context.player2);
-                expect(context.player2).toHavePrompt('Deal damage equal to that card’s cost to their base or a ground unit they control');
+                expect(context.player2).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.kraytDragon]);
 
                 context.player2.clickCard(context.kraytDragon);
                 expect(context.kraytDragon.damage).toBe(7);
 
                 context.player2.clickCard(context.greenSquadronAwing);
-                expect(context.player1).toHavePrompt('Deal damage equal to that card’s cost to their base or a ground unit they control');
+                expect(context.player1).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.p2Base);
@@ -161,28 +161,61 @@ describe('Krayt Dragon', function () {
                 context.player1.clickPrompt('Play cards in selection order');
 
                 // Trigger for Wampa
-                expect(context.player2).toHavePrompt('Deal damage equal to that card’s cost to their base or a ground unit they control');
+                expect(context.player2).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.wampa]);
                 context.player2.clickCard(context.wampa);
                 expect(context.wampa.damage).toBe(4);
 
                 // Trigger for Battlefield Marine
-                expect(context.player2).toHavePrompt('Deal damage equal to that card’s cost to their base or a ground unit they control');
+                expect(context.player2).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.wampa, context.battlefieldMarine]);
                 context.player2.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.damage).toBe(2);
 
                 // // Trigger for Vanguard Infantry
-                expect(context.player2).toHavePrompt('Deal damage equal to that card’s cost to their base or a ground unit they control');
+                expect(context.player2).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.wampa, context.battlefieldMarine, context.vanguardInfantry]);
                 context.player2.clickCardNonChecking(context.vanguardInfantry);
                 expect(context.vanguardInfantry.damage).toBe(1);
 
                 // Trigger for U-Wing Reinforcement
-                expect(context.player2).toHavePrompt('Deal damage equal to that card’s cost to their base or a ground unit they control');
+                expect(context.player2).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.wampa, context.battlefieldMarine, context.vanguardInfantry]);
                 context.player2.clickCard(context.p1Base);
                 expect(context.p1Base.damage).toBe(7);
+            });
+
+            it('should work correctly with Clone', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        hand: ['clone'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                    player2: {
+                        hand: ['green-squadron-awing'],
+                        groundArena: ['krayt-dragon'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.kraytDragon);
+                expect(context.clone).toBeCloneOf(context.kraytDragon);
+                expect(context.player2).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.battlefieldMarine, context.clone]);
+
+                context.player2.clickCard(context.clone);
+                expect(context.clone.damage).toBe(9);
+
+                context.player2.clickCard(context.greenSquadronAwing);
+                expect(context.player1).toHavePrompt('Deal damage equal to that card\'s cost to their base or a ground unit they control');
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.kraytDragon]);
+
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
             });
         });
     });

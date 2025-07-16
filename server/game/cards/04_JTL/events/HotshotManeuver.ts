@@ -2,6 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class HotshotManeuver extends EventCard {
@@ -12,8 +13,8 @@ export default class HotshotManeuver extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'For each “On Attack” abilities on a friendly unit, deal 2 damage to a different enemy unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

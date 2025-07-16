@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Trait } from '../../../core/Constants';
 import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
@@ -18,8 +19,8 @@ export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'If a friendly unit attacked this phase, create a Clone Trooper token.',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(2), AbilityHelper.costs.exhaustSelf()],
             immediateEffect: AbilityHelper.immediateEffects.conditional({
@@ -31,8 +32,8 @@ export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Create a Clone Trooper token.',
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
@@ -40,7 +41,7 @@ export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper()
         });
 
-        this.addConstantAbility({
+        registrar.addConstantAbility({
             title: 'Each other friendly Trooper unit gets +0/+1.',
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Trooper),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 0, hp: 1 })

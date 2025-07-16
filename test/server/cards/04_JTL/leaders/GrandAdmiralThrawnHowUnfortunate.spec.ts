@@ -74,6 +74,42 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
+            it('should allow a clone When Defeated ability to be used a second time', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-admiral-thrawn#how-unfortunate',
+                        groundArena: ['oomseries-officer'],
+                        hand: ['clone'],
+                    },
+                    player2: {
+                        hand: ['rivals-fall']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.oomseriesOfficer);
+                expect(context.clone).toBeCloneOf(context.oomseriesOfficer);
+
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.clone);
+
+                // Clone resolves, prompting Thrawn
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                context.player1.clickPrompt('Trigger');
+                expect(context.grandAdmiralThrawn.exhausted).toBe(true);
+
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(4);
+
+                expect(context.player1).toBeActivePlayer();
+            });
+
             it('should not allow a unit with a When Played/When Defeated ability to be used when played', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class Cunning extends EventCard {
@@ -10,8 +11,8 @@ export default class Cunning extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Cunning modal ability:',
             immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
                 amountOfChoices: 2,

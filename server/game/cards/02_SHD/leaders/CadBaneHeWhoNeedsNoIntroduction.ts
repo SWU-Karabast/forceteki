@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class CadBaneHeWhoNeedsNoIntroduction extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Exhaust this leader to deal 1 damage to a unit controlled by the opponent',
             optional: true,
             when: {
@@ -30,8 +31,8 @@ export default class CadBaneHeWhoNeedsNoIntroduction extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'The opponent chooses a unit they control. Deal 2 damage to it.',
             optional: true,
             when: {

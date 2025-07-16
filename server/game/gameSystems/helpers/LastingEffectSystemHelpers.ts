@@ -27,6 +27,7 @@ export function getEffectMessage<TContext extends AbilityContext, TProperties ex
     } else if (properties.target && Array.isArray(properties.target)) {
         const { effectFactories, effectProperties } = getEffectFactoriesAndProperties(properties.target, context, additionalProperties);
         const abilityRestrictions: FormatMessage[] = [];
+        const cloneEffects: FormatMessage[] = [];
         const otherEffects: FormatMessage[] = [];
         for (const factory of effectFactories) {
             for (const [i, props] of Helpers.asArray(effectProperties).entries()) {
@@ -34,6 +35,8 @@ export function getEffectMessage<TContext extends AbilityContext, TProperties ex
                 if (effect.impl.effectDescription && filterApplicableEffects(properties.target[i] as any, [effect]).length > 0) {
                     if (effect.impl.type === EffectName.AbilityRestrictions) {
                         abilityRestrictions.push(effect.impl.effectDescription);
+                    } else if (effect.impl.type === EffectName.CloneUnit) {
+                        cloneEffects.push(effect.impl.effectDescription);
                     } else {
                         otherEffects.push(effect.impl.effectDescription);
                     }
@@ -43,6 +46,15 @@ export function getEffectMessage<TContext extends AbilityContext, TProperties ex
         }
 
         const effectDescriptions: FormatMessage[] = [];
+        if (cloneEffects.length > 0) {
+            effectDescriptions.push({
+                format: '{0}',
+                args: [
+                    { format: ChatHelpers.formatWithLength(cloneEffects.length, 'to '), args: cloneEffects },
+                ]
+            });
+        }
+
         if (otherEffects.length > 0) {
             effectDescriptions.push({
                 format: '{0} to {1}',

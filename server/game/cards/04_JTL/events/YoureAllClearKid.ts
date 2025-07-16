@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class YoureAllClearKid extends EventCard {
@@ -10,8 +11,8 @@ export default class YoureAllClearKid extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Defeat an enemy space unit with 3 or less remaining HP',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

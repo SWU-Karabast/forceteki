@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class PowerOfTheDarkSide extends EventCard {
@@ -10,8 +11,8 @@ export default class PowerOfTheDarkSide extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'An opponent chooses a unit they control. Defeat that unit',
             targetResolver: {
                 choosingPlayer: RelativePlayer.Opponent,

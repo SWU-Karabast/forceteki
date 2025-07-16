@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
@@ -10,8 +11,8 @@ export default class DrengirSpawn extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Give a number of Experience tokens to this unit equal to the defeated unit\'s cost',
             when: {
                 onCardDefeated: (event, context) =>

@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { PhaseName, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class SeasonedFleetAdmiral extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Give an Experience token to a unit',
             when: {
                 onCardsDrawn: (event, context) => event.player === context.player.opponent && context.game.currentPhase === PhaseName.Action,

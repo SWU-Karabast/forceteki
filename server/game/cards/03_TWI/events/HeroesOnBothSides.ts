@@ -1,4 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import AbilityHelper from '../../../AbilityHelper';
 import { KeywordName, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class HeroesOnBothSides extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Give each chosen unit +2/+2 and Saboteur for this phase',
             targetResolvers: {
                 republicUnit: {

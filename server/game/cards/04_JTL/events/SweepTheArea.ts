@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 
@@ -11,8 +12,8 @@ export default class SweepTheArea extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Return up to 2 non-leader units in the same arena with a combined cost 3 or less to their owners\' hands.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

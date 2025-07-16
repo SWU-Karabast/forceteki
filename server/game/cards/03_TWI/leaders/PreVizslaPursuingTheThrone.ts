@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -18,8 +19,8 @@ export default class PreVizslaPursuingTheThrone extends LeaderUnitCard {
         this.cardsDrawnThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDrawnThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+        registrar.addActionAbility({
             title: 'Deal damage to a unit equal to the number of cards you\'ve drawn this phase',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
@@ -31,14 +32,14 @@ export default class PreVizslaPursuingTheThrone extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addConstantAbility({
             title: 'While you have 3 or more cards in your hand, this unit gains Saboteur',
             condition: (context) => context.player.hand.length >= 3,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur)
         });
 
-        this.addConstantAbility({
+        registrar.addConstantAbility({
             title: 'While you have 6 or more cards in your hand, this unit gets +2/+0',
             condition: (context) => context.player.hand.length >= 6,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })

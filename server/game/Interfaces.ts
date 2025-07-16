@@ -154,8 +154,8 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     cardName?: string;
     uuid?: string;
     ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
-    createCopies?: boolean;
     abilityIdentifier?: string;
+    printedAbility?: boolean;
 }
 
 export type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {

@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class TrustYourInstincts extends EventCard {
     protected override getImplementationId() {
@@ -9,8 +10,8 @@ export default class TrustYourInstincts extends EventCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'Use the Force to attack with a unit and give +2/+0 and deal combat damage first',
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {

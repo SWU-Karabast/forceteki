@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { ZoneName } from '../../../core/Constants';
 
 export default class ItsATrap extends EventCard {
@@ -10,8 +11,8 @@ export default class ItsATrap extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'If an opponent controls more space units than you, ready each space unit you control',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.getArenaUnits({ arena: ZoneName.SpaceArena }).length < context.player.opponent.getArenaUnits({ arena: ZoneName.SpaceArena }).length,

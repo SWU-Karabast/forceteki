@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, Trait, WildcardRelativePlayer } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class PantoranStarshipThief extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addWhenPlayedAbility({
             title: 'Pay 3 resources to attach this unit as an upgrade to a Fighter or Transport unit without a Pilot on it. Take control of that unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
@@ -37,7 +38,7 @@ export default class PantoranStarshipThief extends NonLeaderUnitCard {
             }
         });
 
-        this.addPilotingAbility({
+        registrar.addPilotingAbility({
             type: AbilityType.Triggered,
             title: 'That unit’s owner takes control of it',
             when: {

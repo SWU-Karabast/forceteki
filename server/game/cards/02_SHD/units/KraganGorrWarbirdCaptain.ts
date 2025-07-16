@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class KraganGorrWarbirdCaptain extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class KraganGorrWarbirdCaptain extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+        registrar.addTriggeredAbility({
             title: 'Give a Shield token to a friendly unit in the same arena as the attacker',
             when: {
                 onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.player.base),

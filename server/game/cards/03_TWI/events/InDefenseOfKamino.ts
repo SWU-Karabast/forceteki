@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { AbilityType, KeywordName, Trait } from '../../../core/Constants';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class InDefenseOfKamino extends EventCard {
     protected override getImplementationId() {
@@ -10,8 +11,8 @@ export default class InDefenseOfKamino extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+        registrar.setEventAbility({
             title: 'For this phase, each friendly Republic unit gains Restore 2 and: "When Defeated: Create a Clone Trooper token"',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 effect: [
