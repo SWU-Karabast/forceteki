@@ -28,7 +28,7 @@ export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     match: (card) => card.hasSomeTrait(Trait.Republic),
-                    limit: AbilityHelper.AbilityLimit.perPlayerPerGame(3),
+                    limit: AbilityHelper.limit.perPlayerPerGame(3),
                     amount: 1
                 })
             })

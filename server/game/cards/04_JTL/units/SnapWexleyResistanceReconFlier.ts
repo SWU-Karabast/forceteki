@@ -22,7 +22,7 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     match: (card) => card.hasSomeTrait(Trait.Resistance),
                     cardTypeFilter: WildcardCardType.Playable,
-                    limit: AbilityHelper.AbilityLimit.perPlayerPerGame(1),
+                    limit: AbilityHelper.limit.perPlayerPerGame(1),
                     amount: 1
                 })
             })

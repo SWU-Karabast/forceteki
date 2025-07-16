@@ -50,7 +50,7 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
                     event.damageSource.player === context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
-            limit: AbilityHelper.AbilityLimit.perRound(1)
+            limit: AbilityHelper.limit.perRound(1)
         });
     }
 }

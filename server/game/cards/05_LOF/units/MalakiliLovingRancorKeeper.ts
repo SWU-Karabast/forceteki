@@ -30,7 +30,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 match: (card) => this.isFirstCreaturePlayedByControllerThisPhase(card),
                 amount: 1,
-                limit: AbilityHelper.AbilityLimit.perRound(1)
+                limit: AbilityHelper.limit.perRound(1)
             }),
         });
 

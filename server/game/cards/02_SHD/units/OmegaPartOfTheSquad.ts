@@ -28,7 +28,7 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 match: (card) => this.isFirstClonePlayedByControllerThisPhase(card),
-                limit: AbilityHelper.AbilityLimit.perRound(1)
+                limit: AbilityHelper.limit.perRound(1)
             }),
         });
 

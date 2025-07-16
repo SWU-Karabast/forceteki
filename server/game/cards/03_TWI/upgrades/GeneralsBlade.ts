@@ -23,7 +23,7 @@ export default class GeneralsBlade extends UpgradeCard {
                 ongoingEffectTargetDescription: 'them',
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,
-                    limit: AbilityHelper.AbilityLimit.perPlayerPerGame(1),
+                    limit: AbilityHelper.limit.perPlayerPerGame(1),
                     amount: 2
                 })
             }),
