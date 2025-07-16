@@ -189,6 +189,7 @@ global.undoIt = function(expectation, assertion, timeout) {
         const rolledBack = context.game.rollbackToSnapshot({
             type: SnapshotType.Manual,
             playerId: snapshotUtils.startOfTestSnapshot.player.id,
+            offset: -(snapshotUtils.countAvailableManualSnapshots(snapshotUtils.startOfTestSnapshot.player.id) - 1),
         });
         if (!rolledBack) {
             // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
