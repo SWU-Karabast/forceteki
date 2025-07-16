@@ -28,8 +28,7 @@ interface ITestGetSnapshotSettings {
 }
 
 interface SnapshotUtils {
-    snapshotPlayer?: Player;
-    snapshotId?: number;
+    startOfTestSnapshot?: { player: Player; snapshotId: number };
 
     getCurrentSnapshotId(): number | null;
     getCurrentSnapshottedAction(): number | null;

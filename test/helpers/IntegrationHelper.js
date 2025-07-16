@@ -29,6 +29,15 @@ if (!jasmine.getEnv().configuration().random) {
 
 const gameStateBuilder = new GameStateBuilder();
 
+function buildStartOfTestSnapshot(game) {
+    const activePlayer = game.getActivePlayer();
+
+    return {
+        player: activePlayer,
+        snapshotId: game.takeManualSnapshot(activePlayer)
+    };
+}
+
 global.integration = function (definitions, enableUndo = false) {
     describe('- integration -', function () {
         /**
@@ -79,16 +88,14 @@ global.integration = function (definitions, enableUndo = false) {
             const setupGameStateWrapperAsync = async (options) => {
                 // If this isn't an Undo Test, or this is an Undo Test that has the setup within the undoIt call rather than a beforeEach, run the setup.
                 // this is to prevent repeated setup calls when we run the test twice in an Undo test.
-                if (!newContext.isUndoTest || newContext.snapshot.snapshotId) {
+                if (!newContext.isUndoTest || newContext.snapshot.startOfTestSnapshot) {
                     await gameStateBuilder.setupGameStateAsync(newContext, options);
                     gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
 
                     newContext.hasSetupGame = true;
 
                     if (newContext.isUndoTest) {
-                        newContext.snapshot.snapshotPlayer = newContext.game.getActivePlayer();
-                        // TODO: do we need snapshotId anymore?
-                        newContext.snapshot.snapshotId = newContext.game.takeManualSnapshot(newContext.snapshotPlayer);
+                        contextRef.snapshot.startOfTestSnapshot = buildStartOfTestSnapshot(newContext.game);
                     }
                 }
             };
@@ -167,22 +174,21 @@ global.undoIt = function(expectation, assertion, timeout) {
 
         // If the game setup was in a beforeEach before this was called, take a snapshot.
         if (context.hasSetupGame) {
-            snapshotUtils.snapshotPlayer = this.game.getActivePlayer();
-            snapshotUtils.snapshotId = context.game.takeManualSnapshot(snapshotUtils.snapshotPlayer);
+            snapshotUtils.startOfTestSnapshot = buildStartOfTestSnapshot(context.game);
         }
 
-        if (snapshotUtils.snapshotId === -1) {
+        if (snapshotUtils.startOfTestSnapshot?.snapshotId === -1) {
             throw new Error('Snapshot ID invalid');
         }
 
         await assertion();
-        if (snapshotUtils.snapshotId == null) {
+        if (snapshotUtils.startOfTestSnapshot?.snapshotId == null) {
             // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
             return;
         }
         const rolledBack = context.game.rollbackToSnapshot({
             type: SnapshotType.Manual,
-            playerId: snapshotUtils.snapshotPlayer.id,
+            playerId: snapshotUtils.startOfTestSnapshot.player.id,
         });
         if (!rolledBack) {
             // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
