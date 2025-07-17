@@ -12,7 +12,7 @@ export interface IGameSnapshot {
 
     gameState: IGameState;
     states: IGameObjectBaseState[];
-    settings: ISnapshotSettings;
+    settings: AnySnapshotSettings;
 }
 
 export interface IGameState {
@@ -28,13 +28,29 @@ const maxPlayerSnapshots = 2; // 2 for current and previous turns.
 const maxPhaseSnapshots = 2; // 2 for current and previous of a specific phase.
 const maxRoundSnapshots = 2; // Current and previous start of round.
 
-export interface ISnapshotSettings {
-    type: SnapshotType;
-    phaseName?: string;
-    phaseOffset?: number;
+export interface IPlayerSnapshotSettings {
+    type: SnapshotType.Player;
+
+    /** Player this snapshot is taken for. Will use the current active player if not provided. */
     playerRef?: GameObjectRef<Player>;
-    round?: number;
 }
+
+export interface IPhaseSnapshotSettings {
+    type: SnapshotType.Phase;
+
+    /** Name of the phase for the snapshot. */
+    phaseName: string;
+
+    /** How many snapshots back of this phase to rollback. Only used by `rollbackTo`. */
+    phaseOffset?: number;
+}
+
+export interface IRoundSnapshotSettings {
+    type: SnapshotType.Round;
+    round: number;
+}
+
+export type AnySnapshotSettings = IPlayerSnapshotSettings | IPhaseSnapshotSettings | IRoundSnapshotSettings;
 
 export class GameStateManager {
     private readonly game: Game;
@@ -65,7 +81,7 @@ export class GameStateManager {
         }
 
         const ref = this.gameObjectMapping.get(gameObjectRef.uuid);
-        Contract.assertNotNullLike(ref, `Tried to get a Game Object but the UUID is not registered ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`);
+        Contract.assertNotNullLike(ref, `Tried to get a Game Object but the UUID is not registered: ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`);
         return ref as T;
     }
 
@@ -78,7 +94,7 @@ export class GameStateManager {
             );
 
             const nextId = this.lastId + 1;
-            go.uuid = 'GameObject_' + nextId;
+            go.uuid = go.getGameObjectName() + '_' + nextId;
             this.lastId = nextId;
             this.allGameObjects.push(go);
             this.gameObjectMapping.set(go.uuid, go);
@@ -90,7 +106,7 @@ export class GameStateManager {
         this.allPlayerSnapshots.clear();
     }
 
-    public takeSnapshot(options: ISnapshotSettings): number {
+    public takeSnapshot(options: AnySnapshotSettings): number {
         const nextSnapshotId = this.lastSnapshotId + 1;
         const snapshot: IGameSnapshot = {
             id: nextSnapshotId,
@@ -135,7 +151,7 @@ export class GameStateManager {
         return snapshot.id;
     }
 
-    public rollbackTo(settings: ISnapshotSettings) {
+    public rollbackTo(settings: AnySnapshotSettings) {
         let snapshot: IGameSnapshot;
 
         if (settings.type === SnapshotType.Player) {
@@ -214,28 +230,34 @@ export class GameStateManager {
         this.game.state = structuredClone(snapshot.gameState);
 
         const removals: { index: number; uuid: string }[] = [];
+        const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+
         // Indexes in last to first for the purpose of removal.
         for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
             const go = this.allGameObjects[i];
+
+            // NOTE: We aren't removing GameObjects, but this makes room for it.
             const updatedState = snapshot.states.find((x) => x.uuid === go.uuid);
             if (!updatedState) {
                 removals.push({ index: i, uuid: go.uuid });
                 continue;
             }
 
+            updates.push({ go, oldState: go.getState() });
             go.setState(updatedState);
         }
 
-        // Because it's reversed we don't have to worry about deleted indexes shifting the array.
+        // Inform GOs that all states have been updated.
+        updates.forEach((update) => update.go.afterSetAllState(update.oldState));
+
+        // Remove GOs that hadn't yet been created by this point.
+        // Because the for loop to determine removals is done from end to beginning, we don't have to worry about deleted indexes causing a problem when the array shifts.
         for (const removed of removals) {
             this.allGameObjects.splice(removed.index, 1);
             this.gameObjectMapping.delete(removed.uuid);
         }
 
         this.lastId = snapshot.lastId;
-
-        // Inform GOs that all states have been updated.
-        this.allGameObjects.forEach((x) => x.afterSetAllState());
 
         // Throw out all snapshots after the rollback snapshot.
         this.snapshots.splice(snapshotIdx + 1);
@@ -275,6 +297,11 @@ export class GameStateManager {
                 this.roundSnapshots.splice(i, 1);
             }
         }
+    }
+
+    private afterTakeSnapshot() {
+        // TODO: We want this to be able to go through
+        //          and remove any unused OngoingEffects from the list once they are no longer needed by any snapshots.
     }
 
     private getLatestSnapshot(offset = 0) {

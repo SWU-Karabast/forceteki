@@ -172,3 +172,23 @@ global.undoIt = function(expectation, assertion, timeout) {
         await assertion();
     }, timeout);
 };
+
+/**
+ * A shortcut to do
+ * @param {SwuTestContext} context
+ * @param {() => void} assertion
+ * @param {() => void} altAssertion
+ */
+global.rollback = function(context, assertion, altAssertion) {
+    context.game.enableUndo(() => {
+        const snapshotId = context.game.takeSnapshot();
+        expect(snapshotId).not.toBeNull('Snapshot ID was null, unable to rollback.');
+        assertion();
+        context.game.rollbackToSnapshot(snapshotId);
+        assertion();
+        if (altAssertion) {
+            context.game.rollbackToSnapshot(snapshotId);
+            altAssertion();
+        }
+    });
+};

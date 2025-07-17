@@ -19,7 +19,7 @@ export function WithActionAbilities<TBaseClass extends CardConstructor<TState>, 
     return class WithActionAbilities extends BaseClass {
         private addActionAbility(properties: IActionAbilityProps<this>): ActionAbility {
             const ability = this.createActionAbility({ ...properties, printedAbility: true });
-            this.actionAbilities.push(ability);
+            this.state.actionAbilities.push(ability.getRef());
             return ability;
         }
 
@@ -50,7 +50,7 @@ export function WithActionAbilities<TBaseClass extends CardConstructor<TState>, 
         */
         public addGainedActionAbility(properties: IActionAbilityProps): string {
             const addedAbility = this.createActionAbility({ ...properties, printedAbility: false });
-            this.actionAbilities.push(addedAbility);
+            this.state.actionAbilities.push(addedAbility.getRef());
 
             return addedAbility.uuid;
         }
@@ -69,7 +69,7 @@ export function WithActionAbilities<TBaseClass extends CardConstructor<TState>, 
             const updatedAbilityList = this.actionAbilities.filter((ability) => !(ability.uuid === removeAbilityUuid && ability.printedAbility === printedAbility));
             Contract.assertEqual(updatedAbilityList.length, this.actionAbilities.length - 1, `Expected to find one instance of gained action ability to remove but instead found ${this.actionAbilities.length - updatedAbilityList.length}`);
 
-            this.actionAbilities = updatedAbilityList;
+            this.state.actionAbilities = updatedAbilityList.map((x) => x.getRef());
         }
     };
 }

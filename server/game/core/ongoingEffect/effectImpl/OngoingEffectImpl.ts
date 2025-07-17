@@ -1,13 +1,19 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { FormatMessage } from '../../chat/GameChat';
 import type { Duration, EffectName } from '../../Constants';
+import type Game from '../../Game';
+import type { IGameObjectBaseState } from '../../GameObjectBase';
+import { GameObjectBase } from '../../GameObjectBase';
 
-export abstract class OngoingEffectImpl<TValue> {
+export abstract class OngoingEffectImpl<TValue, TState extends IGameObjectBaseState = IGameObjectBaseState> extends GameObjectBase<TState> {
     public duration?: Duration = null;
     public isConditional = false;
     protected context?: AbilityContext = null;
+    public readonly type: EffectName;
 
-    public constructor(public readonly type: EffectName) {
+    public constructor(game: Game, type: EffectName) {
+        super(game);
+        this.type = type;
     }
 
     public get effectDescription(): FormatMessage | undefined {
@@ -16,8 +22,8 @@ export abstract class OngoingEffectImpl<TValue> {
 
     // TODO: add type union in constants.ts for ability targets (player or card, anything else?)
     public abstract getValue(target?): TValue;
-    public abstract apply(target): void;
-    public abstract unapply(target): void;
+    public abstract apply(effect, target): void;
+    public abstract unapply(effect, target): void;
     public abstract recalculate(target): boolean;
 
     public setContext(context: AbilityContext): void {
@@ -28,5 +34,9 @@ export abstract class OngoingEffectImpl<TValue> {
         return {
             type: this.type
         };
+    }
+
+    public override getGameObjectName() {
+        return 'OngoingEffectImpl';
     }
 }

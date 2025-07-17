@@ -1,5 +1,5 @@
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { CardType, RelativePlayer } from '../../../core/Constants';
 
@@ -11,7 +11,7 @@ export default class QuinlanVosDarkDisciple extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Deal 2 damage to an enemy base',
             optional: true,

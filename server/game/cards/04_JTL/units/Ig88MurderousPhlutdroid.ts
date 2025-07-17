@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
@@ -12,7 +12,7 @@ export default class Ig88MurderousPhlutdroid extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'While an enemy unit is damaged, this unit gets +3/+0',
             condition: (context) => context.player.opponent.hasSomeArenaUnit({ condition: (unit: IUnitCard) => unit.damage > 0 }),

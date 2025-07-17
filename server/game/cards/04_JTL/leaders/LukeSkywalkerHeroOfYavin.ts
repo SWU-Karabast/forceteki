@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { AbilityType, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
@@ -16,11 +16,11 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers (registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers (registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addPilotDeploy();
 
         registrar.addActionAbility({
@@ -39,7 +39,7 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addPilotingAbility({
             type: AbilityType.ReplacementEffect,
             title: 'This upgrade can\'t be defeated by enemy card abilities',

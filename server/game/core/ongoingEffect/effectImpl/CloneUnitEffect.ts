@@ -5,6 +5,7 @@ import type { FormatMessage } from '../../chat/GameChat';
 import { EffectName } from '../../Constants';
 import type { ICardWithStandardAbilitySetup } from '../../card/propertyMixins/StandardAbilitySetup';
 import type { IUnitAbilityRegistrar, IUnitCard } from '../../card/propertyMixins/UnitProperties';
+import type Game from '../../Game';
 
 export class CloneUnitEffect extends OngoingEffectValueWrapper<ICardWithStandardAbilitySetup<Card>> {
     private printedActionAbilitiesUuidByTargetCard?: Set<string>;
@@ -12,7 +13,7 @@ export class CloneUnitEffect extends OngoingEffectValueWrapper<ICardWithStandard
     private printedConstantAbilitiesUuidByTargetCard?: Set<string>;
     private printedPreEnterPlayAbilitiesUuidByTargetCard?: Set<string>;
 
-    public constructor(clonedUnit: Card) {
+    public constructor(game: Game, clonedUnit: Card) {
         // If we are cloning a unit that is itself a clone, we need to find the original unit
         // to ensure that we clone the correct abilities
         while (clonedUnit.hasOngoingEffect(EffectName.CloneUnit)) {
@@ -27,7 +28,7 @@ export class CloneUnitEffect extends OngoingEffectValueWrapper<ICardWithStandard
         Contract.assertTrue(clonedUnit.isUnit(), 'Only units can be cloned');
         Contract.assertTrue(clonedUnit.hasStandardAbilitySetup(), 'Only units with standard ability setup can be cloned');
 
-        super(clonedUnit, effectDescription);
+        super(game, clonedUnit, effectDescription);
     }
 
     public override apply(target: IUnitCard): void {
@@ -48,7 +49,7 @@ export class CloneUnitEffect extends OngoingEffectValueWrapper<ICardWithStandard
 
         // Avoid cloning abilities from the same card to prevent duplication
         if (target.internalName !== clonedUnit.internalName) {
-            clonedUnit.setupCardAbilities(target.getAbilityRegistrar() as IUnitAbilityRegistrar<IUnitCard>);
+            clonedUnit.setupCardAbilities(target.getAbilityRegistrar() as IUnitAbilityRegistrar<IUnitCard>, this.game.abilityHelper);
         }
     }
 

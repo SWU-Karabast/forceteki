@@ -1,8 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { DamageType, WildcardCardType } from '../../../core/Constants';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class MoffGideonIKnowEverything extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -12,7 +11,7 @@ export default class MoffGideonIKnowEverything extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Each unit that opponent plays this phase costs 1 resource more',
             when: {
@@ -26,7 +25,7 @@ export default class MoffGideonIKnowEverything extends NonLeaderUnitCard {
                 effect: AbilityHelper.ongoingEffects.increaseCost({
                     cardTypeFilter: WildcardCardType.Unit,
                     amount: 1,
-                    limit: AbilityLimit.unlimited()
+                    limit: AbilityHelper.limit.unlimited()
                 })
             })),
         });
