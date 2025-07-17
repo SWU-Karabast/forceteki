@@ -47,13 +47,9 @@ describe('Jedha Agitator', function() {
                 // ************** CASE 1: deal damage to a ground unit **************
                 context.player1.clickCard(context.jedhaAgitator);
                 context.player1.clickCard(context.p2Base);
-
-                expect(context.player1).toHaveEnabledPromptButton('If you control a leader unit, deal 2 damage to a ground unit or base');
-                expect(context.player1).toHaveEnabledPromptButton('(No effect) Saboteur: defeat all shields');
                 expect(context.jedhaAgitator.exhausted).toBe(true);
-
-                context.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.jedhaAgitator, context.battlefieldMarine, context.p1Base, context.p2Base, context.hunter]);
+
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa.damage).toBe(2);
                 expect(context.p2Base.damage).toBe(2);
@@ -65,7 +61,6 @@ describe('Jedha Agitator', function() {
                 // ************** CASE 2: deal damage to base **************
                 context.player1.clickCard(context.jedhaAgitator);
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
                 context.player1.clickCard(context.p1Base);
                 expect(context.jedhaAgitator.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(2);
@@ -77,7 +72,6 @@ describe('Jedha Agitator', function() {
                 // ************** CASE 3: deal damage to self **************
                 context.player1.clickCard(context.jedhaAgitator);
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('If you control a leader unit, deal 2 damage to a ground unit or base');
                 context.player1.clickCard(context.jedhaAgitator);
                 expect(context.jedhaAgitator).toBeInZone('discard');
                 expect(context.p1Base.damage).toBe(2);
