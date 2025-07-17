@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class CreativeThinking extends EventCard {
@@ -11,7 +11,7 @@ export default class CreativeThinking extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Exhaust a non-unique unit. Create a Clone Trooper token.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([

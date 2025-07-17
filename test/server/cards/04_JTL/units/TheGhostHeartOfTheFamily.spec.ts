@@ -104,8 +104,7 @@ describe('The Ghost, Heart of the Family', () => {
                 context.player1.clickCard(context.sabineWren);
                 expect(context.player1).toBeAbleToSelectExactly([context.cloudCityWingGuard, context.p2Base]);
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('Deal 1 damage to the defender or a base'); // Resolve Sabine's ability
-                context.player1.clickCard(context.p2Base);
+                context.player1.clickCard(context.p2Base); // Resolve Sabine's ability
             });
 
             it('Raid 1, it shares that keyword with other friendly Spectre units', function() {
@@ -319,8 +318,7 @@ describe('The Ghost, Heart of the Family', () => {
                 context.player1.clickCard(context.sabineWren);
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.cloudCityWingGuard, context.specforceSoldier]);
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('Deal 1 damage to the defender or a base'); // Resolve Sabine's ability
-                context.player1.clickCard(context.p2Base);
+                context.player1.clickCard(context.p2Base); // Resolve Sabine's ability
 
                 // Cloud City Wing Guard can attack base because Sabine is not Sentinel
                 context.player2.clickCard(context.cloudCityWingGuard);

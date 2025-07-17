@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
@@ -13,7 +13,7 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Put a card from your hand into play as a resource and ready it. At the start of the next action phase, defeat a resource you control.',
             cost: AbilityHelper.costs.exhaustSelf(),
@@ -26,12 +26,12 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
                         readyResource: true
                     })
                 }),
-                this.buildHanDelayedEffect()
+                this.buildHanDelayedEffect(AbilityHelper)
             ])
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Put the top card of your deck into play as a resource and ready it. At the start of the next action phase, defeat a resource you control.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
@@ -39,12 +39,12 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
                     target: context.player.getTopCardOfDeck(),
                     readyResource: true
                 })),
-                this.buildHanDelayedEffect()
+                this.buildHanDelayedEffect(AbilityHelper)
             ])
         });
     }
 
-    private buildHanDelayedEffect(): GameSystem<TriggeredAbilityContext<this>> {
+    private buildHanDelayedEffect(AbilityHelper: IAbilityHelper): GameSystem<TriggeredAbilityContext<this>> {
         const defaultActivePromptTitle = 'Choose a resource to defeat';
         return AbilityHelper.immediateEffects.delayedPlayerEffect({
             title: 'Defeat a resource you control',

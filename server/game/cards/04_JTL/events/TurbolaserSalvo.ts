@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { Arena } from '../../../core/Constants';
@@ -12,7 +12,7 @@ export default class TurbolaserSalvo extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Choose an arena',
             targetResolver: {
@@ -20,14 +20,14 @@ export default class TurbolaserSalvo extends EventCard {
                 activePromptTitle: 'Choose an arena',
                 showUnresolvable: true,
                 choices: {
-                    ['Ground']: this.eventEffect(ZoneName.GroundArena),
-                    ['Space']: this.eventEffect(ZoneName.SpaceArena),
+                    ['Ground']: this.eventEffect(ZoneName.GroundArena, AbilityHelper),
+                    ['Space']: this.eventEffect(ZoneName.SpaceArena, AbilityHelper),
                 }
             }
         });
     }
 
-    private eventEffect(arena: Arena) {
+    private eventEffect(arena: Arena, AbilityHelper: IAbilityHelper) {
         return AbilityHelper.immediateEffects.conditional((context) => ({
             condition: context.player.hasSomeArenaUnit({ arena: ZoneName.SpaceArena }),
             onTrue: AbilityHelper.immediateEffects.selectCard({

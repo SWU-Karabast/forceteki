@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventName, WildcardCardType } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class NeverTellMeTheodds extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Discard three cards from your deck and an opponent\'s deck, then deal damage to a unit equal to the number of odd-cost cards that were discarded',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([

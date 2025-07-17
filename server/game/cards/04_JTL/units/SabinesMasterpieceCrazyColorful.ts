@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, CardType, WildcardCardType } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'If you control: a vigilance unit, heal 2 damage from a base, a command unit, give an Experience token to a unit, a aggression unit, deal 1 damage to a unit or base, a cunning unit, exhaust or ready a resource',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([

@@ -1,8 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -12,7 +11,7 @@ export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Return a Republic unit from your discard pile to your hand',
             optional: true,
@@ -29,7 +28,7 @@ export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     match: (card) => card.hasSomeTrait(Trait.Republic),
-                    limit: AbilityLimit.perPlayerPerGame(3),
+                    limit: AbilityHelper.limit.perPlayerPerGame(3),
                     amount: 1
                 })
             })

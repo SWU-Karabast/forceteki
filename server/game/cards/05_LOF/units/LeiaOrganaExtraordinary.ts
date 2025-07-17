@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityRestriction, AbilityType, Aspect, ZoneName } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class LeiaOrganaExtraordinary extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'While this unit is in the space arena, she can\'t ready and gains "Action [use the Force]: Move this unit to the ground arena and give each friendly Heroism unit +2/+2 for this phase"',
             condition: (context) => context.source.zoneName === ZoneName.SpaceArena,

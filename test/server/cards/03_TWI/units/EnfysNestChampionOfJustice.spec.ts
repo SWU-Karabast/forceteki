@@ -36,7 +36,6 @@ describe('Enfys Nest, Champion of Justice', function () {
 
                 context.player1.clickCard(context.enfysNest);
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('Return an enemy non-leader unit with less power than this unit to its owner\'s hand');
 
                 // can bounce back unit which have power less or equal than 6
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.atst]);

@@ -14,7 +14,7 @@ import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { ChatObjectType, KeywordName } from '../Constants';
-import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
@@ -22,8 +22,6 @@ import type Shield from '../../cards/01_SOR/tokens/Shield';
 import type { KeywordInstance, KeywordWithCostValues, KeywordWithNumericValue } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
-import { v4 as uuidv4 } from 'uuid';
-import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import TriggeredAbility from '../ability/TriggeredAbility';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import type { IEventCard } from './EventCard';
@@ -46,9 +44,11 @@ import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilit
 import type { GameObjectRef } from '../GameObjectBase';
 import { logger } from '../../../logger';
 import type Experience from '../../cards/01_SOR/tokens/Experience';
+import { ConstantAbility } from '../ability/ConstantAbility';
 import { getPrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPlayAbilityRegistration';
 import type { ICardWithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
+import type { IAbilityHelper } from '../../AbilityHelper';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -64,6 +64,10 @@ export interface ICardState extends IOngoingEffectSourceState {
     zone: GameObjectRef<Zone> | null;
     movedFromZone: ZoneName | null;
     nextAbilityIdx: number;
+
+    actionAbilities: GameObjectRef<ActionAbility>[];
+    constantAbilities: GameObjectRef<ConstantAbility>[];
+    triggeredAbilities: GameObjectRef<TriggeredAbility>[];
 }
 
 export enum InitializeCardStateOption {
@@ -129,13 +133,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly printedTraits: Set<Trait>;
     protected readonly backsidePrintedTraits: Set<Trait>;
 
-    protected actionAbilities: ActionAbility[] = [];
-    protected constantAbilities: IConstantAbility[] = [];
     protected disableWhenDefeatedCheck = false;
     protected disableOnAttackCheck = false;
     protected disableWhenPlayedCheck = false;
     protected disableWhenPlayedUsingSmuggleCheck = false;
-    protected triggeredAbilities: TriggeredAbility[] = [];
 
     protected get hiddenForController() {
         return this.state.hiddenForController;
@@ -156,6 +157,18 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     protected get overrideNotImplemented(): boolean {
         return false;
+    }
+
+    protected get actionAbilities(): readonly ActionAbility[] {
+        return this.state.actionAbilities.map((x) => this.game.getFromRef(x));
+    }
+
+    protected get constantAbilities(): readonly ConstantAbility[] {
+        return this.state.constantAbilities.map((x) => this.game.getFromRef(x));
+    }
+
+    protected get triggeredAbilities(): readonly TriggeredAbility[] {
+        return this.state.triggeredAbilities.map((x) => this.game.getFromRef(x));
     }
 
     protected get printedType(): CardType {
@@ -336,7 +349,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             );
         }
 
-        this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
+        this.setupStateWatchers(this.owner.game.stateWatcherRegistrar, this.game.abilityHelper);
         this.initializeStateForAbilitySetup();
     }
 
@@ -348,6 +361,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.hiddenForOpponent = false;
         this.state.movedFromZone = null;
         this.state.nextAbilityIdx = 0;
+
+        this.state.actionAbilities = [];
+        this.state.constantAbilities = [];
+        this.state.triggeredAbilities = [];
     }
 
     // ******************************************* ABILITY GETTERS *******************************************
@@ -384,11 +401,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
      * don’t have any special text styling
      */
-    public getConstantAbilities(): IConstantAbility[] {
-        return this.constantAbilities;
+    public getConstantAbilities(): ConstantAbility[] {
+        return this.constantAbilities as ConstantAbility[];
     }
 
-    public getPrintedConstantAbilities(): IConstantAbility[] {
+    public getPrintedConstantAbilities(): ConstantAbility[] {
         return this.constantAbilities.filter((constant) => constant.printedAbility);
     }
 
@@ -479,7 +496,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupStateWatchers(registrar: StateWatcherRegistrar) {
+    protected setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -487,7 +504,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected validateCardAbilities(abilities: TriggeredAbility[], cardText?: string) {
+    protected validateCardAbilities(abilities: readonly TriggeredAbility[], cardText?: string) {
     }
 
     // ******************************************* ABILITY HELPERS *******************************************
@@ -495,16 +512,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
     }
 
-    public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
-        const sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
-
-        return {
-            duration: Duration.Persistent,
-            sourceZoneFilter,
-            ...properties,
-            ...this.buildGeneralAbilityProps('constant'),
-            uuid: uuidv4()
-        };
+    public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): ConstantAbility {
+        return new ConstantAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('constant'), properties));
     }
 
     protected createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
@@ -529,7 +538,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.nextAbilityIdx++;
         return this.state.nextAbilityIdx - 1;
     }
-
 
     // ******************************************* CARD TYPE HELPERS *******************************************
     public isEvent(): this is IEventCard {
@@ -936,7 +944,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected updateActionAbilitiesForZone(from: ZoneName, to: ZoneName) {
-        this.updateActionAbilitiesForZoneInternal(this.actionAbilities, from, to);
+        this.updateActionAbilitiesForZoneInternal(this.actionAbilities as ActionAbility[], from, to);
     }
 
     protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbility[], from: ZoneName, to: ZoneName) {
@@ -950,10 +958,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected updateTriggeredAbilitiesForZone(from: ZoneName, to: ZoneName) {
-        this.updateTriggeredAbilityEventsInternal(this.triggeredAbilities, from, to);
+        this.updateTriggeredAbilityEventsInternal(this.triggeredAbilities as TriggeredAbility[], from, to);
     }
 
     protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbility[], from: ZoneName, to: ZoneName) {
+        // STATE TODO: Gonna be a little hard to track, but also not a big blocker.
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const triggeredAbility of triggeredAbilities) {
                 if (triggeredAbility.limit) {
@@ -962,6 +971,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             }
         }
 
+        // STATE TODO: Can we move these registrations into state themselves? Another instane of game.on()...
         for (const triggeredAbility of triggeredAbilities) {
             if (EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && !EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
                 triggeredAbility.registerEvents();
@@ -975,7 +985,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.updateConstantAbilityEffectsInternal(this.constantAbilities, from, to);
     }
 
-    protected updateConstantAbilityEffectsInternal(constantAbilities: IConstantAbility[], from: ZoneName, to: ZoneName, allowIdempotentUnregistration = false) {
+    protected updateConstantAbilityEffectsInternal(constantAbilities: readonly ConstantAbility[], from: ZoneName, to: ZoneName, allowIdempotentUnregistration = false) {
         if (!EnumHelpers.isArena(to) || from === ZoneName.Discard || from === ZoneName.Capture) {
             this.removeLastingEffects();
         }
@@ -1269,6 +1279,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                 Contract.fail(`Unknown player: ${player}`);
                 return false;
         }
+    }
+
+    public override getGameObjectName(): string {
+        return 'Card';
     }
 
     /**

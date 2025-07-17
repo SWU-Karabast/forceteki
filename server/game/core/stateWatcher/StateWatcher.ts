@@ -22,6 +22,8 @@ import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 export abstract class StateWatcher<TState> {
     private readonly registrationKey: string;
     private stateUpdaters: IStateListenerProperties<TState>[] = [];
+    public readonly name: StateWatcherName;
+    private readonly registrar: StateWatcherRegistrar;
 
     // the state reset trigger is the end of the phase
     private stateResetTrigger: IStateListenerResetProperties = {
@@ -31,10 +33,12 @@ export abstract class StateWatcher<TState> {
     };
 
     public constructor(
-        public readonly name: StateWatcherName,
-        private readonly registrar: StateWatcherRegistrar,
+        name: StateWatcherName,
+        registrar: StateWatcherRegistrar,
         card: Card
     ) {
+        this.name = name;
+        this.registrar = registrar;
         this.registrationKey = card.internalName + '.' + name;
 
         if (registrar.isRegistered(this.registrationKey)) {

@@ -30,7 +30,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         }
 
         const ref = this.gameObjectMapping.get(gameObjectRef.uuid);
-        Contract.assertNotNullLike(ref, `Tried to get a Game Object but the UUID is not registered ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`);
+        Contract.assertNotNullLike(ref, `Tried to get a Game Object but the UUID is not registered: ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`);
         return ref as T;
     }
 
@@ -43,7 +43,7 @@ export class GameStateManager implements IGameObjectRegistrar {
             );
 
             const nextId = this._lastGameObjectId + 1;
-            go.uuid = 'GameObject_' + nextId;
+            go.uuid = go.getGameObjectName() + '_' + nextId;
             this._lastGameObjectId = nextId;
             this.allGameObjects.push(go);
             this.gameObjectMapping.set(go.uuid, go);
@@ -60,27 +60,38 @@ export class GameStateManager implements IGameObjectRegistrar {
         this.game.state = structuredClone(snapshot.gameState);
 
         const removals: { index: number; uuid: string }[] = [];
+        const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+
         // Indexes in last to first for the purpose of removal.
         for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
             const go = this.allGameObjects[i];
+
+            // NOTE: We aren't removing GameObjects, but this makes room for it.
             const updatedState = snapshot.states.find((x) => x.uuid === go.uuid);
             if (!updatedState) {
                 removals.push({ index: i, uuid: go.uuid });
                 continue;
             }
 
+            updates.push({ go, oldState: go.getState() });
             go.setState(updatedState);
         }
 
-        // Because it's reversed we don't have to worry about deleted indexes shifting the array.
+        // Inform GOs that all states have been updated.
+        updates.forEach((update) => update.go.afterSetAllState(update.oldState));
+
+        // Remove GOs that hadn't yet been created by this point.
+        // Because the for loop to determine removals is done from end to beginning, we don't have to worry about deleted indexes causing a problem when the array shifts.
         for (const removed of removals) {
             this.allGameObjects.splice(removed.index, 1);
             this.gameObjectMapping.delete(removed.uuid);
         }
 
         this._lastGameObjectId = snapshot.lastGameObjectId;
+    }
 
-        // Inform GOs that all states have been updated.
-        this.allGameObjects.forEach((x) => x.afterSetAllState());
+    private afterTakeSnapshot() {
+        // TODO: We want this to be able to go through
+        //          and remove any unused OngoingEffects from the list once they are no longer needed by any snapshots.
     }
 }

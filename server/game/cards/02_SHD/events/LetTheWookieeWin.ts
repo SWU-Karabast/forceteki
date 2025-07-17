@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class LetTheWookieeWin extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'An opponent chooses if you ready up to 6 resources or ready a friendly unit. If it’s a Wookiee unit, attack with it. It gets +2/+0 for this attack',
             targetResolver: {
