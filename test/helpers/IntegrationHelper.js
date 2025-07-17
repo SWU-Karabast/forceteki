@@ -91,7 +91,7 @@ global.integration = function (definitions, enableUndo = false) {
             const setupGameStateWrapperAsync = async (options) => {
                 // If this isn't an Undo Test, or this is an Undo Test that has the setup within the undoIt call rather than a beforeEach, run the setup.
                 // this is to prevent repeated setup calls when we run the test twice in an Undo test.
-                if (!newContext.isUndoTest || newContext.snapshot?.startOfTestSnapshot) {
+                if (!newContext.isUndoTest || this.contextRef.snapshot?.startOfTestSnapshot == null) {
                     await gameStateBuilder.setupGameStateAsync(newContext, options);
                     gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
 
