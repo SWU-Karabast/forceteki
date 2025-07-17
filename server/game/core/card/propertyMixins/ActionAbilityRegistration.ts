@@ -17,7 +17,7 @@ export interface ICardWithActionAbilities<T extends Card> {
 /** Mixin function that adds the ability to register action abilities to a base card class. */
 export function WithActionAbilities<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
     return class WithActionAbilities extends BaseClass {
-        protected addActionAbility(properties: IActionAbilityProps<this>): ActionAbility {
+        private addActionAbility(properties: IActionAbilityProps<this>): ActionAbility {
             const ability = this.createActionAbility({ ...properties, printedAbility: true });
             this.state.actionAbilities.push(ability.getRef());
             return ability;
