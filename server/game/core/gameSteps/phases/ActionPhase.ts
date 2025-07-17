@@ -75,6 +75,7 @@ export class ActionPhase extends Phase {
         }, 'check active player queue next action');
     }
 
+    // --------------------- TODO: these methods are a pretty hacky way of resetting the action, need to investigate to see if there's a better way ---------------
     private tearDownActionPhase() {
         for (const player of this.game.getPlayers()) {
             player.cleanupFromActionPhase();

@@ -115,6 +115,7 @@ export class ActionWindow extends UiPrompt {
         return completed;
     }
 
+    // TODO: see if there's better logic for determining when and how to advance the turn, take new snapshots, etc.
     private checkUpdateSnapshots() {
         const needsActionSnapshot = this.snapshotManager.currentSnapshottedAction !== this.actionNumber;
         const needsActionPhaseStartSnapshot =

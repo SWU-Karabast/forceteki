@@ -53,7 +53,7 @@ export class SnapshotManager {
         return this._gameStateManager;
     }
 
-    public constructor(game: Game, enableUndo: boolean) {
+    public constructor(game: Game, enableUndo = false) {
         this._gameStateManager = new GameStateManager(game);
         this.snapshotFactory = new SnapshotFactory(game, this._gameStateManager);
 
