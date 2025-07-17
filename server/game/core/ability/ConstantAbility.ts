@@ -51,8 +51,6 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
     public readonly cardName?: string;
     public readonly ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
 
-    public readonly properties?: IConstantAbilityProps;
-
     public get registeredEffects(): (OngoingEffect[]) | undefined {
         return this.state.registeredEffects?.map((x) => this.game.getFromRef(x));
     }
