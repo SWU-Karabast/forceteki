@@ -53,9 +53,6 @@ describe('Wolffe, Suspicious Veteran', function () {
                 context.player1.clickCard(context.wolffe);
                 context.player1.clickCard(context.p2Base);
 
-                // saboteur give him a prompt too
-                context.player1.clickPrompt('Bases can\'t be healed');
-
                 reset();
                 context.player2.passAction();
 
