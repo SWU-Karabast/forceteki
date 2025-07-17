@@ -15,6 +15,9 @@ const { cards } = require('../../server/game/cards/Index.js');
 const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 const { SnapshotType } = require('../../server/game/core/Constants.js');
 
+// set to true to run all tests with undo enabled
+const ENABLE_UNDO_ALL_TESTS = true;
+
 // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
 if (!jasmine.getEnv().configuration().random) {
     jasmine.getEnv().addReporter({
@@ -88,7 +91,7 @@ global.integration = function (definitions, enableUndo = false) {
             const setupGameStateWrapperAsync = async (options) => {
                 // If this isn't an Undo Test, or this is an Undo Test that has the setup within the undoIt call rather than a beforeEach, run the setup.
                 // this is to prevent repeated setup calls when we run the test twice in an Undo test.
-                if (!newContext.isUndoTest || newContext.snapshot.startOfTestSnapshot) {
+                if (!newContext.isUndoTest || newContext.snapshot?.startOfTestSnapshot) {
                     await gameStateBuilder.setupGameStateAsync(newContext, options);
                     gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
 
@@ -232,3 +235,8 @@ global.rollback = function(contextRef, assertion, altAssertion) {
         altAssertion();
     }
 };
+
+if (ENABLE_UNDO_ALL_TESTS) {
+    global.integration = global.undoIntegration;
+    global.it = global.undoIt;
+}
