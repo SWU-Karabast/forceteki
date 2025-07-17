@@ -16,7 +16,7 @@ const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 const { SnapshotType } = require('../../server/game/core/Constants.js');
 
 // set to true to run all tests with undo enabled
-const ENABLE_UNDO_ALL_TESTS = true;
+const ENABLE_UNDO_ALL_TESTS = false;
 
 // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
 if (!jasmine.getEnv().configuration().random) {
