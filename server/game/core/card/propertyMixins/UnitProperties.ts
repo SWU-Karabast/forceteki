@@ -1109,7 +1109,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     power: this.getPower(),
                     hp: this.getHp(),
                     sentinel: hasSentinel,
-                    hidden: cannotBeAttacked,
+                    cannotBeAttacked: cannotBeAttacked,
                     isAttacker: this.isInPlay() && this.isUnit() && (this.isAttacking() || this.controller.getAttackerHighlightingState(this)),
                     isDefender: this.isInPlay() && this.isUnit() && this.isDefending(),
                     clonedCardId: clonedCardSetId,
