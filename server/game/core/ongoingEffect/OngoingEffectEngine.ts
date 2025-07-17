@@ -26,7 +26,7 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
     public effectsChangedSinceLastCheck = false;
 
     public get effects() {
-        return this.state.effects.map((x) => this.game.gameObjectManager.get(x));
+        return this.state.effects.map((x) => this.game.gameStateManager.get(x));
     }
 
     public constructor(game: Game) {

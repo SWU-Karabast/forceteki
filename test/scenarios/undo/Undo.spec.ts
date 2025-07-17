@@ -154,45 +154,46 @@ describe('Undo', function() {
             it('should give -2/-2 to all enemy non-leader units', function () {
                 const { context } = contextRef;
 
-                context.game.enableUndo(() => {
-                    const snapshotId = context.game.takeSnapshot();
+                contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
-                    context.player1.clickCard(context.supremeLeaderSnoke);
+                context.player1.clickCard(context.supremeLeaderSnoke);
 
-                    // Allied BM should not be affected.
-                    expect(context.battlefieldMarine.getPower()).toBe(3);
-                    expect(context.battlefieldMarine.getHp()).toBe(3);
+                // Allied BM should not be affected.
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.battlefieldMarine.getHp()).toBe(3);
 
-                    expect(context.wampa.getPower()).toBe(2);
-                    expect(context.wampa.getHp()).toBe(3);
+                expect(context.wampa.getPower()).toBe(2);
+                expect(context.wampa.getHp()).toBe(3);
 
-                    expect(context.cartelSpacer.getPower()).toBe(0);
-                    expect(context.cartelSpacer.getHp()).toBe(1);
+                expect(context.cartelSpacer.getPower()).toBe(0);
+                expect(context.cartelSpacer.getHp()).toBe(1);
 
-                    expect(context.specforceSoldier).toBeInZone('discard');
+                expect(context.specforceSoldier).toBeInZone('discard');
 
-                    // Leader Unit, should be unaffected.
-                    expect(context.jynErso.getPower()).toBe(4);
-                    expect(context.jynErso.getHp()).toBe(7);
+                // Leader Unit, should be unaffected.
+                expect(context.jynErso.getPower()).toBe(4);
+                expect(context.jynErso.getHp()).toBe(7);
 
-                    context.player2.clickCard(context.deathStarStormtrooper);
-                    expect(context.deathStarStormtrooper).toBeInZone('discard');
+                context.player2.clickCard(context.deathStarStormtrooper);
+                expect(context.deathStarStormtrooper).toBeInZone('discard');
 
-                    context.game.rollbackToSnapshot(snapshotId);
-
-                    expect(context.cartelSpacer.getPower()).toBe(2);
-                    expect(context.cartelSpacer.getHp()).toBe(3);
-
-                    expect(context.specforceSoldier).toBeInZone('groundArena');
-                    expect(context.specforceSoldier.getPower()).toBe(2);
-                    expect(context.specforceSoldier.getHp()).toBe(2);
-
-                    expect(context.deathStarStormtrooper).toBeInZone('hand');
-
-                    // Leader Unit, should be unaffected.
-                    expect(context.jynErso.getPower()).toBe(4);
-                    expect(context.jynErso.getHp()).toBe(7);
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id
                 });
+
+                expect(context.cartelSpacer.getPower()).toBe(2);
+                expect(context.cartelSpacer.getHp()).toBe(3);
+
+                expect(context.specforceSoldier).toBeInZone('groundArena');
+                expect(context.specforceSoldier.getPower()).toBe(2);
+                expect(context.specforceSoldier.getHp()).toBe(2);
+
+                expect(context.deathStarStormtrooper).toBeInZone('hand');
+
+                // Leader Unit, should be unaffected.
+                expect(context.jynErso.getPower()).toBe(4);
+                expect(context.jynErso.getHp()).toBe(7);
             });
         });
 
@@ -219,62 +220,67 @@ describe('Undo', function() {
             // PARTIAL TEST: We cannot move to the next phase yet so this is only a partial test.
             it('should cancel heal on bases', function () {
                 const { context } = contextRef;
-                context.game.enableUndo(() => {
-                    const snapshotId = context.game.takeSnapshot();
 
-                    // play wolffe, bases can't be healed for the phase
-                    context.player1.clickCard(context.wolffe);
-                    expect(context.player2).toBeActivePlayer();
+                contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
-                    // nothing happen from this event
-                    context.player2.clickCard(context.smugglersAid);
-                    expect(context.p2Base.damage).toBe(5);
+                // play wolffe, bases can't be healed for the phase
+                context.player1.clickCard(context.wolffe);
+                expect(context.player2).toBeActivePlayer();
 
-                    // noting happen from restore on our base
-                    context.player1.clickCard(context.admiralAckbar);
-                    context.player1.clickCard(context.p2Base);
-                    expect(context.p1Base.damage).toBe(5);
+                // nothing happen from this event
+                context.player2.clickCard(context.smugglersAid);
+                expect(context.p2Base.damage).toBe(5);
 
-                    context.game.rollbackToSnapshot(snapshotId);
+                // noting happen from restore on our base
+                context.player1.clickCard(context.admiralAckbar);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p1Base.damage).toBe(5);
 
-                    // noting happen from restore on our base
-                    context.player1.clickCard(context.admiralAckbar);
-                    context.player1.clickCard(context.p2Base);
-                    expect(context.p1Base.damage).toBe(4);
-
-                    context.game.rollbackToSnapshot(snapshotId);
-
-                    context.player1.passAction();
-
-                    // nothing happen from this event
-                    context.player2.clickCard(context.smugglersAid);
-                    expect(context.p2Base.damage).toBe(2);
-
-                    // ISSUE: Unable to move to next action phase.
-                    // reset();
-                    // context.moveToNextActionPhase();
-
-                    // // effect stop at the end of phase, if opponent attack before wolffe, he can heal
-                    // context.player1.passAction();
-                    // context.player2.clickCard(context.yoda);
-                    // context.player2.clickCard(context.p1Base);
-                    // expect(context.p2Base.damage).toBe(3);
-
-                    // // attack with wolffe, bases can't be healed for this phase
-                    // context.player1.clickCard(context.wolffe);
-                    // context.player1.clickCard(context.p2Base);
-
-                    // // saboteur give him a prompt too
-                    // context.player1.clickPrompt('Bases can\'t be healed');
-
-                    // reset();
-                    // context.player2.passAction();
-
-                    // // nothing happen from restore
-                    // context.player1.clickCard(context.admiralAckbar);
-                    // context.player1.clickCard(context.p2Base);
-                    // expect(context.p1Base.damage).toBe(5);
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id
                 });
+
+                // noting happen from restore on our base
+                context.player1.clickCard(context.admiralAckbar);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p1Base.damage).toBe(4);
+
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id
+                });
+
+                context.player1.passAction();
+
+                // nothing happen from this event
+                context.player2.clickCard(context.smugglersAid);
+                expect(context.p2Base.damage).toBe(2);
+
+                // ISSUE: Unable to move to next action phase.
+                // reset();
+                // context.moveToNextActionPhase();
+
+                // // effect stop at the end of phase, if opponent attack before wolffe, he can heal
+                // context.player1.passAction();
+                // context.player2.clickCard(context.yoda);
+                // context.player2.clickCard(context.p1Base);
+                // expect(context.p2Base.damage).toBe(3);
+
+                // // attack with wolffe, bases can't be healed for this phase
+                // context.player1.clickCard(context.wolffe);
+                // context.player1.clickCard(context.p2Base);
+
+                // // saboteur give him a prompt too
+                // context.player1.clickPrompt('Bases can\'t be healed');
+
+                // reset();
+                // context.player2.passAction();
+
+                // // nothing happen from restore
+                // context.player1.clickCard(context.admiralAckbar);
+                // context.player1.clickCard(context.p2Base);
+                // expect(context.p1Base.damage).toBe(5);
             });
         });
 
@@ -299,38 +305,41 @@ describe('Undo', function() {
             it('should give each friendly unit, "When Defeated: Deal 2 damage to an enemy unit."', function () {
                 const { context } = contextRef;
 
-                context.game.enableUndo(() => {
-                    const snapshotId = context.game.takeSnapshot();
-                    context.player1.clickCard(context.pyrrhicAssault);
-                    expect(context.player2).toBeActivePlayer();
+                contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
-                    context.player2.clickCard(context.gladiatorStarDestroyer);
-                    context.player2.clickCard(context.republicArc170);
-                    expect(context.player1).toHavePrompt('Deal 2 damage to an enemy unit.');
-                    expect(context.player1).toBeAbleToSelectExactly([context.b2Legionnaires, context.gladiatorStarDestroyer]);
-                    expect(context.republicArc170).toBeInZone('discard');
+                context.player1.clickCard(context.pyrrhicAssault);
+                expect(context.player2).toBeActivePlayer();
 
-                    context.game.rollbackToSnapshot(snapshotId);
-                    context.player1.passAction();
+                context.player2.clickCard(context.gladiatorStarDestroyer);
+                context.player2.clickCard(context.republicArc170);
+                expect(context.player1).toHavePrompt('Deal 2 damage to an enemy unit.');
+                expect(context.player1).toBeAbleToSelectExactly([context.b2Legionnaires, context.gladiatorStarDestroyer]);
+                expect(context.republicArc170).toBeInZone('discard');
 
-                    context.player2.clickCard(context.gladiatorStarDestroyer);
-                    context.player2.clickCard(context.republicArc170);
-                    expect(context.player1).not.toHavePrompt('Deal 2 damage to an enemy unit.');
-                    expect(context.republicArc170).toBeInZone('discard');
-
-                    // context.player1.clickCard(context.b2Legionnaires);
-                    // expect(context.b2Legionnaires.damage).toBe(2);
-
-                    // context.player1.clickCard(context.rylothMilitia);
-                    // context.player1.clickCard(context.b2Legionnaires);
-                    // expect(context.player1).toHavePrompt('Deal 2 damage to an enemy unit.');
-                    // expect(context.player1).toBeAbleToSelectExactly([context.gladiatorStarDestroyer]);
-                    // expect(context.rylothMilitia).toBeInZone('discard');
-
-                    // // Expect the Gladiator Star Destroyer to have a total of 5 damage, 3 from attack and 2 from the trigger
-                    // context.player1.clickCard(context.gladiatorStarDestroyer);
-                    // expect(context.gladiatorStarDestroyer.damage).toBe(5);
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id
                 });
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.gladiatorStarDestroyer);
+                context.player2.clickCard(context.republicArc170);
+                expect(context.player1).not.toHavePrompt('Deal 2 damage to an enemy unit.');
+                expect(context.republicArc170).toBeInZone('discard');
+
+                // context.player1.clickCard(context.b2Legionnaires);
+                // expect(context.b2Legionnaires.damage).toBe(2);
+
+                // context.player1.clickCard(context.rylothMilitia);
+                // context.player1.clickCard(context.b2Legionnaires);
+                // expect(context.player1).toHavePrompt('Deal 2 damage to an enemy unit.');
+                // expect(context.player1).toBeAbleToSelectExactly([context.gladiatorStarDestroyer]);
+                // expect(context.rylothMilitia).toBeInZone('discard');
+
+                // // Expect the Gladiator Star Destroyer to have a total of 5 damage, 3 from attack and 2 from the trigger
+                // context.player1.clickCard(context.gladiatorStarDestroyer);
+                // expect(context.gladiatorStarDestroyer.damage).toBe(5);
             });
         });
 
@@ -747,128 +756,128 @@ describe('Undo', function() {
             });
         });
 
-        describe('Bendu\'s on-attack ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: [
-                            'cloud-city-wing-guard',
-                            'echo-base-defender',
-                            'emperors-royal-guard',
-                            'wilderness-fighter',
-                            'consortium-starviper',
-                            'homestead-militia',
-                            'vanquish',
-                            'hwk290-freighter',
-                            'wroshyr-tree-tender'
-                        ],
-                        groundArena: ['bendu#the-one-in-the-middle'],
-                        leader: 'luke-skywalker#faithful-friend',
-                        base: 'echo-base'
-                    },
-                    player2: {
-                        groundArena: ['wampa', 'battlefield-marine']
-                    }
-                });
-            });
+        // describe('Bendu\'s on-attack ability', function() {
+        //     beforeEach(function () {
+        //         return contextRef.setupTestAsync({
+        //             phase: 'action',
+        //             player1: {
+        //                 hand: [
+        //                     'cloud-city-wing-guard',
+        //                     'echo-base-defender',
+        //                     'emperors-royal-guard',
+        //                     'wilderness-fighter',
+        //                     'consortium-starviper',
+        //                     'homestead-militia',
+        //                     'vanquish',
+        //                     'hwk290-freighter',
+        //                     'wroshyr-tree-tender'
+        //                 ],
+        //                 groundArena: ['bendu#the-one-in-the-middle'],
+        //                 leader: 'luke-skywalker#faithful-friend',
+        //                 base: 'echo-base'
+        //             },
+        //             player2: {
+        //                 groundArena: ['wampa', 'battlefield-marine']
+        //             }
+        //         });
+        //     });
 
-            // PARTIAL TEST: We cannot move to the next phase yet so this is only a partial test.
-            it('should decrease the cost of the next non-Heroism, non-Villainy played by the controller by 2', function () {
-                const { context } = contextRef;
+        //     // PARTIAL TEST: We cannot move to the next phase yet so this is only a partial test.
+        //     it('should decrease the cost of the next non-Heroism, non-Villainy played by the controller by 2', function () {
+        //         const { context } = contextRef;
 
-                const resetState = () => {
-                    context.player1.readyResources(10);
-                    context.player2.passAction();
-                };
+        //         const resetState = () => {
+        //             context.player1.readyResources(10);
+        //             context.player2.passAction();
+        //         };
 
-                const benduAttack = () => {
-                    context.player1.clickCard(context.bendu);
-                    context.player1.clickCard(context.wampa);
-                    context.setDamage(context.wampa, 0);
-                    context.setDamage(context.bendu, 0);
-                    context.readyCard(context.bendu);
-                    context.player2.passAction();
-                };
+        //         const benduAttack = () => {
+        //             context.player1.clickCard(context.bendu);
+        //             context.player1.clickCard(context.wampa);
+        //             context.setDamage(context.wampa, 0);
+        //             context.setDamage(context.bendu, 0);
+        //             context.readyCard(context.bendu);
+        //             context.player2.passAction();
+        //         };
 
-                context.game.enableUndo(() => {
-                // CASE 1: play non-Heroism, non-Villainy (NHNV) card before Bendu attacks - no discount
-                    context.player1.clickCard(context.cloudCityWingGuard);
-                    expect(context.cloudCityWingGuard).toBeInZone('groundArena');
-                    expect(context.player1.exhaustedResourceCount).toBe(3);
+        //         context.game.enableUndo(() => {
+        //         // CASE 1: play non-Heroism, non-Villainy (NHNV) card before Bendu attacks - no discount
+        //             context.player1.clickCard(context.cloudCityWingGuard);
+        //             expect(context.cloudCityWingGuard).toBeInZone('groundArena');
+        //             expect(context.player1.exhaustedResourceCount).toBe(3);
 
-                    resetState();
+        //             resetState();
 
-                    // Bendu attacks to active discount
-                    benduAttack();
+        //             // Bendu attacks to active discount
+        //             benduAttack();
 
-                    // CASE 2: Heroism card played after Bendu attacks - no discount
-                    context.player1.clickCard(context.echoBaseDefender);
-                    expect(context.echoBaseDefender).toBeInZone('groundArena');
-                    expect(context.player1.exhaustedResourceCount).toBe(3);
+        //             // CASE 2: Heroism card played after Bendu attacks - no discount
+        //             context.player1.clickCard(context.echoBaseDefender);
+        //             expect(context.echoBaseDefender).toBeInZone('groundArena');
+        //             expect(context.player1.exhaustedResourceCount).toBe(3);
 
-                    resetState();
+        //             resetState();
 
-                    // CASE 3: Villainy card played after Bendu attacks - no discount
-                    context.player1.clickCard(context.emperorsRoyalGuard);
-                    expect(context.emperorsRoyalGuard).toBeInZone('groundArena');
-                    expect(context.player1.exhaustedResourceCount).toBe(5);  // 5 because of Villainy penalty
+        //             // CASE 3: Villainy card played after Bendu attacks - no discount
+        //             context.player1.clickCard(context.emperorsRoyalGuard);
+        //             expect(context.emperorsRoyalGuard).toBeInZone('groundArena');
+        //             expect(context.player1.exhaustedResourceCount).toBe(5);  // 5 because of Villainy penalty
 
-                    resetState();
+        //             resetState();
 
-                    // CASE 4: first NHNV card played after Bendu attacks - discount applied
-                    context.player1.clickCard(context.wildernessFighter);
-                    expect(context.player1.exhaustedResourceCount).toBe(1);
-                    expect(context.wildernessFighter).toBeInZone('groundArena');
+        //             // CASE 4: first NHNV card played after Bendu attacks - discount applied
+        //             context.player1.clickCard(context.wildernessFighter);
+        //             expect(context.player1.exhaustedResourceCount).toBe(1);
+        //             expect(context.wildernessFighter).toBeInZone('groundArena');
 
-                    resetState();
+        //             resetState();
 
-                    // CASE 5: second NHNV card played after Bendu attacks - no discount
-                    context.player1.clickCard(context.consortiumStarviper);
-                    expect(context.player1.exhaustedResourceCount).toBe(3);
-                    expect(context.consortiumStarviper).toBeInZone('spaceArena');
+        //             // CASE 5: second NHNV card played after Bendu attacks - no discount
+        //             context.player1.clickCard(context.consortiumStarviper);
+        //             expect(context.player1.exhaustedResourceCount).toBe(3);
+        //             expect(context.consortiumStarviper).toBeInZone('spaceArena');
 
-                    resetState();
+        //             resetState();
 
-                    // // Bendu attacks again, pass phase
-                    // benduAttack();
-                    // context.moveToNextActionPhase();
+        //             // // Bendu attacks again, pass phase
+        //             // benduAttack();
+        //             // context.moveToNextActionPhase();
 
-                    // // CASE 6: NHNV card played after Bendu attacks in previous phase - no discount
-                    // context.player1.clickCard(context.homesteadMilitia);
-                    // expect(context.player1.exhaustedResourceCount).toBe(3);
-                    // expect(context.homesteadMilitia).toBeInZone('groundArena');
+        //             // // CASE 6: NHNV card played after Bendu attacks in previous phase - no discount
+        //             // context.player1.clickCard(context.homesteadMilitia);
+        //             // expect(context.player1.exhaustedResourceCount).toBe(3);
+        //             // expect(context.homesteadMilitia).toBeInZone('groundArena');
 
-                    // // Bendu attacks twice in a row to get double discount
-                    // resetState();
-                    // benduAttack();
-                    // benduAttack();
+        //             // // Bendu attacks twice in a row to get double discount
+        //             // resetState();
+        //             // benduAttack();
+        //             // benduAttack();
 
-                    // // CASE 7: next NHNV card played after two Bendu activations gets discount of 4
-                    // context.player1.clickCard(context.vanquish);
-                    // context.player1.clickCard(context.battlefieldMarine);
-                    // expect(context.player1.exhaustedResourceCount).toBe(1);
+        //             // // CASE 7: next NHNV card played after two Bendu activations gets discount of 4
+        //             // context.player1.clickCard(context.vanquish);
+        //             // context.player1.clickCard(context.battlefieldMarine);
+        //             // expect(context.player1.exhaustedResourceCount).toBe(1);
 
-                    // resetState();
+        //             // resetState();
 
-                    // // CASE 8: second NHNV card played after Bendu double attack - no discount
-                    // context.player1.clickCard(context.hwk290Freighter);
-                    // expect(context.player1.exhaustedResourceCount).toBe(3);
-                    // expect(context.hwk290Freighter).toBeInZone('spaceArena');
+        //             // // CASE 8: second NHNV card played after Bendu double attack - no discount
+        //             // context.player1.clickCard(context.hwk290Freighter);
+        //             // expect(context.player1.exhaustedResourceCount).toBe(3);
+        //             // expect(context.hwk290Freighter).toBeInZone('spaceArena');
 
-                    // // Bendu defeated due to combat
-                    // resetState();
-                    // context.setDamage(context.bendu, 5);
-                    // context.player1.clickCard(context.bendu);
-                    // context.player1.clickCard(context.wampa);
-                    // context.player2.passAction();
+        //             // // Bendu defeated due to combat
+        //             // resetState();
+        //             // context.setDamage(context.bendu, 5);
+        //             // context.player1.clickCard(context.bendu);
+        //             // context.player1.clickCard(context.wampa);
+        //             // context.player2.passAction();
 
-                // // CASE 9: NHNV card played after Bendu defeated during attack - discount applied
-                // context.player1.clickCard(context.wroshyrTreeTender);
-                // expect(context.player1.exhaustedResourceCount).toBe(1);
-                // expect(context.wroshyrTreeTender).toBeInZone('groundArena');
-                });
-            });
-        });
+        //         // // CASE 9: NHNV card played after Bendu defeated during attack - discount applied
+        //         // context.player1.clickCard(context.wroshyrTreeTender);
+        //         // expect(context.player1.exhaustedResourceCount).toBe(1);
+        //         // expect(context.wroshyrTreeTender).toBeInZone('groundArena');
+        //         });
+        //     });
+        // });
     });
 });

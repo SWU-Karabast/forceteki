@@ -145,8 +145,9 @@ class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
-        // GameStateManager must come before any other setup.
-        this.gameObjectManager = new GameStateManager(this);
+        /** @private */
+        this.snapshotManager = new SnapshotManager(this, details.enableUndo);
+
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
         /** @type {import('../AbilityHelper.js').IAbilityHelper} */
@@ -163,9 +164,6 @@ class Game extends EventEmitter {
         this.statsUpdated = false;
         this.playStarted = false;
         this.createdAt = new Date();
-
-        /** @private */
-        this.snapshotManager = new SnapshotManager(this, details.enableUndo);
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
@@ -1623,7 +1621,7 @@ class Game extends EventEmitter {
      * @returns {T | null}
      */
     getFromRef(gameRef) {
-        return this.gameObjectManager.get(gameRef);
+        return this.gameStateManager.get(gameRef);
     }
 
     // /*
