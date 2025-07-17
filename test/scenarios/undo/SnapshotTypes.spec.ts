@@ -286,7 +286,7 @@ describe('Snapshot types', function() {
                     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: -2
+                        actionOffset: -2
                     });
                     expect(rollbackResult).toBeTrue();
 
@@ -312,7 +312,7 @@ describe('Snapshot types', function() {
                     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: -1
+                        actionOffset: -1
                     });
                     expect(rollbackResult).toBeTrue();
 
@@ -330,7 +330,7 @@ describe('Snapshot types', function() {
                     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: 0
+                        actionOffset: 0
                     });
                     expect(rollbackResult).toBeTrue();
 
@@ -364,7 +364,7 @@ describe('Snapshot types', function() {
                         contextRef.snapshot.rollbackToSnapshot({
                             type: 'action',
                             playerId: context.player1.id,
-                            offset: -3
+                            actionOffset: -3
                         });
                     }).toThrowError(Error, 'Contract assertion failure: Snapshot offset must be less than 1 and greater than than max history length (-3), got -3');
                 });
@@ -375,14 +375,14 @@ describe('Snapshot types', function() {
                     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: -1
+                        actionOffset: -1
                     });
                     expect(rollbackResult1).toBeTrue();
 
                     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: -2
+                        actionOffset: -2
                     });
                     expect(rollbackResult2).toBeFalse();
 
@@ -395,14 +395,14 @@ describe('Snapshot types', function() {
                     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: -2
+                        actionOffset: -2
                     });
                     expect(rollbackResult1).toBeTrue();
 
                     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: -1
+                        actionOffset: -1
                     });
                     expect(rollbackResult2).toBeFalse();
 
@@ -415,7 +415,7 @@ describe('Snapshot types', function() {
                     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: -2
+                        actionOffset: -2
                     });
                     expect(rollbackResult).toBeTrue();
 
@@ -433,7 +433,7 @@ describe('Snapshot types', function() {
                     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: -1
+                        actionOffset: -1
                     });
                     expect(rollbackResult).toBeTrue();
 
@@ -451,7 +451,7 @@ describe('Snapshot types', function() {
                     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: 0
+                        actionOffset: 0
                     });
                     expect(rollbackResult).toBeTrue();
 
@@ -487,7 +487,7 @@ describe('Snapshot types', function() {
                         contextRef.snapshot.rollbackToSnapshot({
                             type: 'action',
                             playerId: context.player2.id,
-                            offset: -3
+                            actionOffset: -3
                         });
                     }).toThrowError(Error, 'Contract assertion failure: Snapshot offset must be less than 1 and greater than than max history length (-3), got -3');
                 });
@@ -498,14 +498,14 @@ describe('Snapshot types', function() {
                     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: -1
+                        actionOffset: -1
                     });
                     expect(rollbackResult1).toBeTrue();
 
                     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: -2
+                        actionOffset: -2
                     });
                     expect(rollbackResult2).toBeFalse();
 
@@ -518,14 +518,14 @@ describe('Snapshot types', function() {
                     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: -2
+                        actionOffset: -2
                     });
                     expect(rollbackResult1).toBeTrue();
 
                     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: -1
+                        actionOffset: -1
                     });
                     expect(rollbackResult2).toBeFalse();
 
@@ -538,7 +538,7 @@ describe('Snapshot types', function() {
                     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: -2
+                        actionOffset: -2
                     });
                     expect(rollbackResult1).toBeTrue();
 
@@ -567,7 +567,7 @@ describe('Snapshot types', function() {
                     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: -2
+                        actionOffset: -2
                     });
                     expect(rollbackResult2).toBeTrue();
 
@@ -580,7 +580,7 @@ describe('Snapshot types', function() {
                     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: -2
+                        actionOffset: -2
                     });
                     expect(rollbackResult1).toBeTrue();
 
@@ -612,7 +612,7 @@ describe('Snapshot types', function() {
                     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: -2
+                        actionOffset: -2
                     });
                     expect(rollbackResult2).toBeTrue();
 
@@ -625,7 +625,7 @@ describe('Snapshot types', function() {
                     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: 0
+                        actionOffset: 0
                     });
                     expect(rollbackResult1).toBeTrue();
 
@@ -634,7 +634,7 @@ describe('Snapshot types', function() {
                     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: 0
+                        actionOffset: 0
                     });
                     expect(rollbackResult2).toBeTrue();
 
@@ -643,7 +643,7 @@ describe('Snapshot types', function() {
                     const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: 0
+                        actionOffset: 0
                     });
                     expect(rollbackResult3).toBeTrue();
 
@@ -652,7 +652,7 @@ describe('Snapshot types', function() {
                     const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: 0
+                        actionOffset: 0
                     });
                     expect(rollbackResult4).toBeTrue();
 
@@ -661,7 +661,7 @@ describe('Snapshot types', function() {
                     const rollbackResult5 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: 0
+                        actionOffset: 0
                     });
                     expect(rollbackResult5).toBeTrue();
 
@@ -676,7 +676,7 @@ describe('Snapshot types', function() {
                     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'phase',
                         phaseName: 'action',
-                        offset: 0
+                        phaseOffset: 0
                     });
                     expect(rollbackResult).toBeTrue();
 
@@ -707,7 +707,7 @@ describe('Snapshot types', function() {
                     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'phase',
                         phaseName: 'action',
-                        offset: 0
+                        phaseOffset: 0
                     });
                     expect(rollbackResult).toBeTrue();
 
@@ -716,14 +716,14 @@ describe('Snapshot types', function() {
                     const p1RollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player1.id,
-                        offset: 0
+                        actionOffset: 0
                     });
                     expect(p1RollbackResult).toBeFalse();
 
                     const p2RollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
-                        offset: 0
+                        actionOffset: 0
                     });
                     expect(p2RollbackResult).toBeFalse();
                 });
@@ -733,7 +733,7 @@ describe('Snapshot types', function() {
                         contextRef.snapshot.rollbackToSnapshot({
                             type: 'phase',
                             phaseName: 'action',
-                            offset: -2
+                            phaseOffset: -2
                         });
                     }).toThrowError(Error, 'Contract assertion failure: Snapshot offset must be less than 1 and greater than than max history length (-2), got -2');
                 });
@@ -744,7 +744,7 @@ describe('Snapshot types', function() {
                     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'phase',
                         phaseName: 'action',
-                        offset: -1
+                        phaseOffset: -1
                     });
                     expect(rollbackResult).toBeFalse();
 
@@ -802,7 +802,7 @@ describe('Snapshot types', function() {
                 const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
-                    offset: -2
+                    actionOffset: -2
                 });
                 expect(rollbackResult).toBeFalse();
 
@@ -816,7 +816,7 @@ describe('Snapshot types', function() {
                 const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player1.id,
-                    offset: -2
+                    actionOffset: -2
                 });
                 expect(rollbackResult).toBeFalse();
 
@@ -830,7 +830,7 @@ describe('Snapshot types', function() {
                 const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
                     type: 'action',
                     playerId: context.player2.id,
-                    offset: -1
+                    actionOffset: -1
                 });
                 expect(rollbackResult).toBeTrue();
 

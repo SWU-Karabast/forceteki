@@ -3,10 +3,11 @@ import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from '../GameStateManager';
 import { GameStateManager } from '../GameStateManager';
-import type { IGetSnapshotSettings, ISnapshotSettings } from './SnapshotInterfaces';
+import type { IGetManualSnapshotSettings, IGetSnapshotSettings, IManualSnapshotSettings, ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
 import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
+import type { SnapshotMap } from './container/SnapshotMap';
 
 const maxManualSnapshots = 5; // Number of manual player snapshots
 const maxActionSnapshots = 3; // Number of actions saved for undo in a turn (per player)
@@ -26,8 +27,10 @@ export class SnapshotManager {
     protected readonly snapshotFactory: SnapshotFactory;
 
     protected readonly actionSnapshots: SnapshotHistoryMap<string>;
-    protected readonly manualSnapshots: SnapshotHistoryMap<string>;
     protected readonly phaseSnapshots: SnapshotHistoryMap<PhaseName>;
+
+    /** Maps each player id to a map of snapshots by snapshot id */
+    protected readonly manualSnapshots: Map<string, SnapshotMap<number>>;
 
     public get currentSnapshotId(): number | null {
         return this.snapshotFactory.currentSnapshotId;
@@ -57,8 +60,8 @@ export class SnapshotManager {
         this.undoEnabled = enableUndo;
 
         this.actionSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(maxActionSnapshots);
-        this.manualSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(maxManualSnapshots);
         this.phaseSnapshots = this.snapshotFactory.createSnapshotHistoryMap<PhaseName>(maxPhaseSnapshots);
+        this.manualSnapshots = new Map<string, SnapshotMap<number>>();
     }
 
     /** Indicates that we're on a new action and that new snapshots can be taken */
@@ -70,24 +73,35 @@ export class SnapshotManager {
         this.snapshotFactory.createSnapshotForCurrentAction();
     }
 
-    public takeSnapshot(settings: ISnapshotSettings): void {
+    public takeSnapshot(settings: ISnapshotSettings): number {
         if (!this.undoEnabled) {
-            return;
+            return -1;
         }
 
         switch (settings.type) {
             case SnapshotType.Action:
-                this.actionSnapshots.takeSnapshot(settings.playerId);
-                break;
+                return this.actionSnapshots.takeSnapshot(settings.playerId);
             case SnapshotType.Manual:
-                this.manualSnapshots.takeSnapshot(settings.playerId);
-                break;
+                return this.takeManualSnapshot(settings);
             case SnapshotType.Phase:
-                this.phaseSnapshots.takeSnapshot(settings.phaseName);
-                break;
+                return this.phaseSnapshots.takeSnapshot(settings.phaseName);
             default:
                 throw new Error(`Unimplemented snapshot type: ${(settings as any).type}`);
         }
+    }
+
+    private takeManualSnapshot(settings: IManualSnapshotSettings): number {
+        let playerSnapshots = this.manualSnapshots.get(settings.playerId);
+        if (!playerSnapshots) {
+            playerSnapshots = this.snapshotFactory.createSnapshotMap<number>();
+            this.manualSnapshots.set(settings.playerId, playerSnapshots);
+        }
+
+        const snapshotId = this.snapshotFactory.currentSnapshotId;
+
+        playerSnapshots.takeSnapshot(snapshotId);
+
+        return snapshotId;
     }
 
     public rollbackTo(settings: IGetSnapshotSettings) {
@@ -95,19 +109,16 @@ export class SnapshotManager {
             return false;
         }
 
-        const offset = settings.offset ?? 0;
-        Contract.assertTrue(offset < 1, `Snapshot offset must be less than 1, got ${offset}.`);
-
         let rolledBackSnapshotIdx: number = null;
         switch (settings.type) {
             case SnapshotType.Action:
-                rolledBackSnapshotIdx = this.actionSnapshots.rollbackToSnapshot(settings.playerId, offset);
+                rolledBackSnapshotIdx = this.actionSnapshots.rollbackToSnapshot(settings.playerId, this.checkGetOffset(settings.actionOffset));
                 break;
             case SnapshotType.Manual:
-                rolledBackSnapshotIdx = this.manualSnapshots.rollbackToSnapshot(settings.playerId, offset);
+                rolledBackSnapshotIdx = this.rollbackManualSnapshot(settings);
                 break;
             case SnapshotType.Phase:
-                rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName, offset);
+                rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName, this.checkGetOffset(settings.phaseOffset));
                 break;
             default:
                 throw new Error(`Unimplemented snapshot type: ${(settings as any).type}`);
@@ -122,18 +133,35 @@ export class SnapshotManager {
         return false;
     }
 
+    private rollbackManualSnapshot(settings: IGetManualSnapshotSettings): number {
+        const rolledBackSnapshotIdx = this.manualSnapshots.get(settings.playerId)?.rollbackToSnapshot(settings.snapshotId);
+
+        Contract.assertNotNullLike(rolledBackSnapshotIdx, `Manual snapshot with ID ${settings.snapshotId} does not exist for player ${settings.playerId}.`);
+
+        return rolledBackSnapshotIdx;
+    }
+
+    private checkGetOffset(offsetValue: number) {
+        const offset = offsetValue ?? 0;
+        Contract.assertTrue(offset < 1, `Snapshot offset must be less than 1, got ${offset}.`);
+        return offset;
+    }
+
     public countAvailableActionSnapshots(playerId: string): number {
         return this.actionSnapshots.getSnapshotCount(playerId);
     }
 
     public countAvailableManualSnapshots(playerId: string): number {
-        return this.manualSnapshots.getSnapshotCount(playerId);
+        return this.manualSnapshots.get(playerId)?.getSnapshotCount() ?? 0;
     }
 
     public clearAllSnapshots(): void {
         this.actionSnapshots.clearAllSnapshots();
-        this.manualSnapshots.clearAllSnapshots();
         this.phaseSnapshots.clearAllSnapshots();
         this.snapshotFactory.clearCurrentSnapshot();
+
+        for (const playerSnapshots of this.manualSnapshots.values()) {
+            playerSnapshots.clearAllSnapshots();
+        }
     }
 }

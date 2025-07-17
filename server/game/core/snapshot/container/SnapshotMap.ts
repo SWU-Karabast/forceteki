@@ -2,8 +2,6 @@ import type { IGameSnapshot } from '../SnapshotInterfaces';
 import { SnapshotContainerBase } from './SnapshotContainerBase';
 
 /**
- * @deprecated This is implemented but not currently used or tested
- *
  * A {@link SnaphshotContainerBase} derived class that stores snapshots in a map with a templated key type.
  * If a snapshot with the given key already exists, it will be overwritten with the new snapshot and no longer stored.
  */
@@ -18,6 +16,10 @@ export class SnapshotMap<T> extends SnapshotContainerBase {
 
     public removeSnapshot(key: T): void {
         this.snapshots.delete(key);
+    }
+
+    public getSnapshotCount(): number {
+        return this.snapshots.size;
     }
 
     /**

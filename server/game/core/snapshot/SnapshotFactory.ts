@@ -67,7 +67,6 @@ export class SnapshotFactory {
         );
     }
 
-    /** @deprecated This is implemented but not currently used or tested */
     public createSnapshotMap<T>(): SnapshotMap<T> {
         return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
             new SnapshotMap<T>(

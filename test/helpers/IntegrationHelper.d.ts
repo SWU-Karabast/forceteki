@@ -22,7 +22,9 @@ type SnapshotTypeValue = `${SnapshotType}`;
 
 interface ITestGetSnapshotSettings {
     type: SnapshotTypeValue;
-    offset?: number;
+    phaseOffset?: number;
+    actionOffset?: number;
+    snapshotId?: number;
     playerId?: string;
     phaseName?: string;
 }
@@ -36,7 +38,7 @@ interface SnapshotUtils {
     countAvailableActionSnapshots: (playerId: string) => number;
     countAvailableManualSnapshots: (playerId: string) => number;
     rollbackToSnapshot: (settings: ITestGetSnapshotSettings) => boolean;
-    takeManualSnapshot: (playerId: string) => void;
+    takeManualSnapshot: (playerId: string) => number;
 }
 
 interface SwuTestContextRef {
@@ -165,4 +167,4 @@ declare function undoIt(expectation: string, assertion?: jasmine.ImplementationC
  * @param assertion Function that contains the code of your test that will be then be rolled back and repeated to ensure rolling back works.
  * @param altAssertion If provided, will rollback after the assertions has been tested twice, to potentially test that changes have been properly undone.
  */
-declare function rollback(context: SwuTestContext, assertion: jasmine.ImplementationCallback, altAssertion?: jasmine.ImplementationCallback): void;
+declare function rollback(contextRef: SwuTestContextRef, assertion: jasmine.ImplementationCallback, altAssertion?: jasmine.ImplementationCallback): void;

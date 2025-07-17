@@ -189,7 +189,7 @@ global.undoIt = function(expectation, assertion, timeout) {
         const rolledBack = context.game.rollbackToSnapshot({
             type: SnapshotType.Manual,
             playerId: snapshotUtils.startOfTestSnapshot.player.id,
-            offset: -(snapshotUtils.countAvailableManualSnapshots(snapshotUtils.startOfTestSnapshot.player.id) - 1),
+            snapshotId: snapshotUtils.startOfTestSnapshot.snapshotId
         });
         if (!rolledBack) {
             // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
@@ -200,21 +200,35 @@ global.undoIt = function(expectation, assertion, timeout) {
 };
 
 /**
- * A shortcut to do
- * @param {SwuTestContext} context
+ * A shortcut to repeat a test with a rollback in between, and optionally an alternate case afterwards
+ * @param {SwuTestContextRef} contextRef
  * @param {() => void} assertion
  * @param {() => void} altAssertion
  */
-global.rollback = function(context, assertion, altAssertion) {
-    context.game.enableUndo(() => {
-        const snapshotId = context.game.takeSnapshot();
-        expect(snapshotId).not.toBeNull('Snapshot ID was null, unable to rollback.');
-        assertion();
-        context.game.rollbackToSnapshot(snapshotId);
-        assertion();
-        if (altAssertion) {
-            context.game.rollbackToSnapshot(snapshotId);
-            altAssertion();
-        }
+global.rollback = function(contextRef, assertion, altAssertion) {
+    const { context } = contextRef;
+
+    const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+    expect(snapshotId).not.toBeUndefined('Snapshot ID was null, unable to rollback.');
+    expect(snapshotId).not.toBeUndefined('Snapshot ID was undefined, unable to rollback.');
+    expect(snapshotId).not.toBe(-1, 'Snapshot ID was -1, unable to rollback.');
+
+    assertion();
+
+    contextRef.snapshot.rollbackToSnapshot({
+        type: 'manual',
+        playerId: context.player1Object.id,
+        snapshotId
     });
+
+    assertion();
+
+    if (altAssertion) {
+        contextRef.snapshot.rollbackToSnapshot({
+            type: 'manual',
+            playerId: context.player1Object.id,
+            snapshotId
+        });
+        altAssertion();
+    }
 };

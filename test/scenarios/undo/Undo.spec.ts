@@ -154,7 +154,7 @@ describe('Undo', function() {
             it('should give -2/-2 to all enemy non-leader units', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
                 context.player1.clickCard(context.supremeLeaderSnoke);
 
@@ -179,7 +179,8 @@ describe('Undo', function() {
 
                 contextRef.snapshot.rollbackToSnapshot({
                     type: 'manual',
-                    playerId: context.player1Object.id
+                    playerId: context.player1Object.id,
+                    snapshotId
                 });
 
                 expect(context.cartelSpacer.getPower()).toBe(2);
@@ -221,7 +222,7 @@ describe('Undo', function() {
             it('should cancel heal on bases', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
                 // play wolffe, bases can't be healed for the phase
                 context.player1.clickCard(context.wolffe);
@@ -238,7 +239,8 @@ describe('Undo', function() {
 
                 contextRef.snapshot.rollbackToSnapshot({
                     type: 'manual',
-                    playerId: context.player1Object.id
+                    playerId: context.player1Object.id,
+                    snapshotId
                 });
 
                 // noting happen from restore on our base
@@ -248,7 +250,8 @@ describe('Undo', function() {
 
                 contextRef.snapshot.rollbackToSnapshot({
                     type: 'manual',
-                    playerId: context.player1Object.id
+                    playerId: context.player1Object.id,
+                    snapshotId
                 });
 
                 context.player1.passAction();
@@ -305,7 +308,7 @@ describe('Undo', function() {
             it('should give each friendly unit, "When Defeated: Deal 2 damage to an enemy unit."', function () {
                 const { context } = contextRef;
 
-                contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
                 context.player1.clickCard(context.pyrrhicAssault);
                 expect(context.player2).toBeActivePlayer();
@@ -318,7 +321,8 @@ describe('Undo', function() {
 
                 contextRef.snapshot.rollbackToSnapshot({
                     type: 'manual',
-                    playerId: context.player1Object.id
+                    playerId: context.player1Object.id,
+                    snapshotId
                 });
 
                 context.player1.passAction();
@@ -359,7 +363,7 @@ describe('Undo', function() {
 
             it('gives another friendly unit +2/+2 until he leaves play', function () {
                 const { context } = contextRef;
-                rollback(context, function leavesPlay() {
+                rollback(contextRef, function leavesPlay() {
                     context.player1.clickCard(context.huyang);
                     expect(context.player1).toBeAbleToSelect(context.wampa);
                     context.player1.clickCard(context.wampa);
@@ -397,7 +401,7 @@ describe('Undo', function() {
 
             it('should rollback properly if Huyang remains in play', function () {
                 const { context } = contextRef;
-                rollback(context, function() {
+                rollback(contextRef, function() {
                     expect(context.wampa.getPower()).toBe(4);
                     expect(context.wampa.getHp()).toBe(5);
 
@@ -441,7 +445,7 @@ describe('Undo', function() {
             it('should take control of a resource until he leaves play, taking a ready resource if available', function () {
                 const { context } = contextRef;
 
-                rollback(context, function leavesPlay() {
+                rollback(contextRef, function leavesPlay() {
                     context.player1.clickCard(context.djBlatantThief);
 
                     expect(context.player1.resources.length).toBe(11);
@@ -485,7 +489,7 @@ describe('Undo', function() {
             it('should take control of a resource until he leaves play, taking an exhausted resource if required', function () {
                 const { context } = contextRef;
 
-                rollback(context, () => {
+                rollback(contextRef, () => {
                     context.player2.exhaustResources(10);
 
                     context.player1.clickCard(context.djBlatantThief);
@@ -527,7 +531,7 @@ describe('Undo', function() {
             it('should rollback properly if DJ remains in play', function () {
                 const { context } = contextRef;
 
-                rollback(context, function() {
+                rollback(contextRef, function() {
                     expect(context.player1.resources.length).toBe(10);
                     expect(context.player2.resources.length).toBe(10);
 
@@ -573,7 +577,7 @@ describe('Undo', function() {
 
                 const { context } = contextRef;
 
-                rollback(context, () => {
+                rollback(contextRef, () => {
                     // War Juggernaut should have 7 power (3 from card and 4 from damaged units)
                     expect(context.warJuggernaut.getPower()).toBe(7);
 
@@ -600,7 +604,7 @@ describe('Undo', function() {
 
                 const { context } = contextRef;
 
-                rollback(context, () => {
+                rollback(contextRef, () => {
                     // War Juggernaut should have 3 power (3 from card and 0 from damaged units)
                     expect(context.warJuggernaut.getPower()).toBe(3);
 
@@ -633,7 +637,7 @@ describe('Undo', function() {
             it('should be able to rollback from active to inactive', function () {
                 const { context } = contextRef;
 
-                rollback(context, () => {
+                rollback(contextRef, () => {
                     expect(context.echo.getPower()).toBe(2);
                     expect(context.echo.getHp()).toBe(2);
 
@@ -650,7 +654,7 @@ describe('Undo', function() {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 // Rollback from inactive to active.
-                rollback(context, () => {
+                rollback(contextRef, () => {
                     expect(context.echo.getPower()).toBe(4);
                     expect(context.echo.getHp()).toBe(4);
 
@@ -681,7 +685,7 @@ describe('Undo', function() {
             it('should attack with a space Vehicle unit giving it +2/0 for the attack', function () {
                 const { context } = contextRef;
 
-                rollback(context, () => {
+                rollback(contextRef, () => {
                     context.player1.clickCard(context.punchIt);
 
                     expect(context.player1).toBeAbleToSelectExactly([context.escortSkiff, context.millenniumFalconPieceOfJunk]);
@@ -701,7 +705,7 @@ describe('Undo', function() {
             it('should attack with a ground Vehicle unit giving it +2/0 for the attack', function () {
                 const { context } = contextRef;
 
-                rollback(context, () => {
+                rollback(contextRef, () => {
                     context.player1.clickCard(context.punchIt);
 
                     expect(context.player1).toBeAbleToSelectExactly([context.escortSkiff, context.millenniumFalconPieceOfJunk]);
@@ -736,7 +740,7 @@ describe('Undo', function() {
             it('can buff a unit', function () {
                 const { context } = contextRef;
 
-                rollback(context, () => {
+                rollback(contextRef, () => {
                     expect(context.pykeSentinel.getPower()).toBe(2);
                     expect(context.pykeSentinel.getHp()).toBe(3);
                     context.player1.clickCard(context.tacticalAdvantage);

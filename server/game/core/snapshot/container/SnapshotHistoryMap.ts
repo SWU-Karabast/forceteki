@@ -35,18 +35,18 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
         return this.snapshots.get(key)?.length ?? 0;
     }
 
-    public takeSnapshot(key: T): void {
+    public takeSnapshot(key: T): number {
         const currentSnapshot = this.getCurrentSnapshotFn();
 
         const snapshotHistory = this.snapshots.get(key);
         if (!snapshotHistory || snapshotHistory.length === 0) {
             this.snapshots.set(key, [currentSnapshot]);
-            return;
+            return currentSnapshot.id;
         }
 
         if (snapshotHistory[snapshotHistory.length - 1].id === currentSnapshot.id) {
             // If the current snapshot is identical to the last one, do not add it again
-            return;
+            return currentSnapshot.id;
         }
 
         snapshotHistory.push(currentSnapshot);
@@ -54,6 +54,8 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
         if (snapshotHistory.length > this.maxHistoryLength) {
             snapshotHistory.shift();
         }
+
+        return currentSnapshot.id;
     }
 
     public removeSnapshot(key: T): void {
