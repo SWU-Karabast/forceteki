@@ -1156,8 +1156,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             super.removeOngoingEffect(ongoingEffect);
         }
 
-        protected override afterSetState(oldState) {
-            super.afterSetState(oldState);
+        // STATE TODO: We need to really dig into what is being updated by resolveAbilitiesForNewZone. We desperately want to remove this onAfter method.
+        //              Good rollback code shouldn't need to use this method. Instead all game actions should result in Game State changes, so that when we rollback we never
+        //              need to redo the action that causes this; it should all be captured within State.
+        public override afterSetAllState(oldState) {
+            super.afterSetAllState(oldState);
 
             // STATE TODO: I don't wholly trust this covers all cases, but it's a good start at least.
             // if (oldState.zone?.uuid !== this.state.zone.uuid) {
