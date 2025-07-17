@@ -203,7 +203,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public get controller(): Player {
-        return this.game.gameStateManager.get(this.state.controllerRef);
+        return this.game.gameObjectManager.get(this.state.controllerRef);
     }
 
     protected set controller(value: Player) {
@@ -282,7 +282,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public get zone(): Zone | null {
-        return this.state.zone ? this.game.gameStateManager.get(this.state.zone) : null;
+        return this.state.zone ? this.game.gameObjectManager.get(this.state.zone) : null;
     }
 
     protected set zone(zone: Zone | null) {

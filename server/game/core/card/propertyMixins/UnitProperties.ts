@@ -164,7 +164,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         public get lastPlayerToModifyHp(): Player {
             Contract.assertTrue(this.isInPlay());
-            return this.game.gameStateManager.get(this.state.lastPlayerToModifyHp);
+            return this.game.gameObjectManager.get(this.state.lastPlayerToModifyHp);
         }
 
         private set lastPlayerToModifyHp(value: Player) {
@@ -213,12 +213,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         public get captureZone() {
             this.assertPropertyEnabledForZone(this.state.captureZone, 'captureZone');
-            return this.game.gameStateManager.get(this.state.captureZone);
+            return this.game.gameObjectManager.get(this.state.captureZone);
         }
 
         public get upgrades(): IUpgradeCard[] {
             this.assertPropertyEnabledForZone(this.state.upgrades, 'upgrades');
-            return this.state.upgrades.map((x) => this.game.gameStateManager.get(x));
+            return this.state.upgrades.map((x) => this.game.gameObjectManager.get(x));
         }
 
         public get defaultArena(): Arena {
@@ -1161,7 +1161,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             // STATE TODO: I don't wholly trust this covers all cases, but it's a good start at least.
             // if (oldState.zone?.uuid !== this.state.zone.uuid) {
-            //     const oldZone = this.game.gameStateManager.get<Zone>(oldState.zone);
+            //     const oldZone = this.game.gameObjectManager.get<Zone>(oldState.zone);
             //     this.movedFromZone = oldZone?.name;
             //     // This is a bad work around, if it does change zones, it always resets limits on abilities. We want to reset to the exact state, not call functions to mutate state.
             //     this.resolveAbilitiesForNewZone();

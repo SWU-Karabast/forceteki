@@ -57,7 +57,7 @@ class Game extends EventEmitter {
 
     /** @returns { Player | null } */
     get actionPhaseActivePlayer() {
-        return this.gameStateManager.get(this.state.actionPhaseActivePlayer);
+        return this.gameObjectManager.get(this.state.actionPhaseActivePlayer);
     }
 
     /**
@@ -73,7 +73,7 @@ class Game extends EventEmitter {
 
     /** @returns { Player | null } */
     get initialFirstPlayer() {
-        return this.gameStateManager.get(this.state.initialFirstPlayer);
+        return this.gameObjectManager.get(this.state.initialFirstPlayer);
     }
 
     /**
@@ -85,7 +85,7 @@ class Game extends EventEmitter {
 
     /** @returns { Player | null } */
     get initiativePlayer() {
-        return this.gameStateManager.get(this.state.initiativePlayer);
+        return this.gameObjectManager.get(this.state.initiativePlayer);
     }
 
     /**
@@ -129,8 +129,8 @@ class Game extends EventEmitter {
         this.state.actionNumber = value;
     }
 
-    get gameStateManager() {
-        return this.snapshotManager.gameStateManager;
+    get gameObjectManager() {
+        return this.snapshotManager.gameObjectManager;
     }
 
     /**
@@ -1621,7 +1621,7 @@ class Game extends EventEmitter {
      * @returns {T | null}
      */
     getFromRef(gameRef) {
-        return this.gameStateManager.get(gameRef);
+        return this.gameObjectManager.get(gameRef);
     }
 
     // /*

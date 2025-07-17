@@ -17,7 +17,7 @@ export interface IGameObjectBase<T extends IGameObjectBaseState = IGameObjectBas
  * of what type the GameObjectRef was created from. See the Card.controller set property for an example.
  * @example this.state.controllerRef = player.getRef();
  * // ... elsewhere
- * const player = this.game.gameStateManager.get(this.state.controllerRef);
+ * const player = this.game.gameObjectManager.get(this.state.controllerRef);
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
 export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
@@ -46,7 +46,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         this.state = {};
         // All state defaults *must* happen before registration, so we can't rely on the derived constructor to set the defaults as register will already be called.
         this.setupDefaultState();
-        this.game.gameStateManager.register(this);
+        this.game.gameObjectManager.register(this);
     }
 
     /** A overridable method so a child can set defaults for it's state. Always ensure to call super.onSetupGameState() as the first line if you do override this.  */
@@ -92,7 +92,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     /** Shortcut to get the Game Object from a Ref. This is intentionally an arrow function to cause structured clone to break if called on this class. */
     public getObject = <T extends GameObjectBase>(ref: GameObjectRef<T>): T => {
-        return this.game.gameStateManager.get(ref);
+        return this.game.gameObjectManager.get(ref);
     };
 
     public getGameObjectName(): string {

@@ -49,7 +49,7 @@ export class SnapshotManager {
     }
 
     /** Exposes a version of GameStateManager that doesn't have access to rollback functionality */
-    public get gameStateManager(): IGameObjectRegistrar {
+    public get gameObjectManager(): IGameObjectRegistrar {
         return this._gameStateManager;
     }
 

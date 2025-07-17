@@ -114,7 +114,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         // TODO: move IsInPlay to be usable here
         Contract.assertTrue(this.isInPlay());
 
-        return this.game.gameStateManager.get(this.state.parentCard);
+        return this.game.gameObjectManager.get(this.state.parentCard);
     }
 
     protected set parentCard(value: IUnitCard | null) {
