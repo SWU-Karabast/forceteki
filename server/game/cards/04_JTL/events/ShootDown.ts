@@ -1,7 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { CardType, WildcardCardType, ZoneName } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class ShootDown extends EventCard {
     protected override getImplementationId() {
@@ -11,7 +11,7 @@ export default class ShootDown extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Deal 3 damage to space unit. If that unit is defeated this way, deal 2 damage to a base',
             targetResolver: {

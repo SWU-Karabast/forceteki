@@ -7,7 +7,7 @@ import type { IEpicActionProps } from '../Interfaces';
 
 export class EpicActionAbility extends ActionAbility {
     public constructor(game: Game, card: Card, properties: IEpicActionProps) {
-        super(game, card, { ...properties, limit: new EpicActionLimit() });
+        super(game, card, { ...properties, limit: new EpicActionLimit(game) });
 
         this.canResolveWithoutLegalTargets = true;
     }

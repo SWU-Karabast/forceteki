@@ -3,6 +3,7 @@ import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import type { FormatMessage } from '../../chat/GameChat';
 import { AbilityRestriction } from '../../Constants';
 import type { Card } from '../../card/Card';
+import type Game from '../../Game';
 
 const leavePlayTypes = new Set(['discardFromPlay', 'returnToHand', 'returnToDeck', 'removeFromGame']);
 
@@ -29,10 +30,10 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
         return undefined;
     }
 
-    public constructor(properties: string | RestrictionProperties) {
+    public constructor(game: Game, properties: string | RestrictionProperties) {
         const effectDescription = Restriction.restrictionDescription(typeof properties === 'string' ? properties : properties.type);
 
-        super(null, effectDescription);
+        super(game, null, effectDescription);
 
         if (typeof properties === 'string') {
             this.type = properties;

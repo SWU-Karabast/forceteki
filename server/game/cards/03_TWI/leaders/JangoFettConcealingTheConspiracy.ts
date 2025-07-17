@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { DamageSourceType } from '../../../IDamageOrDefeatSource';
@@ -11,7 +11,7 @@ export default class JangoFettConcealingTheConspiracy extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         // When a friendly unit deals damage to an enemy unit:
         //     You may exhaust this leader.
         //     If you do, exhaust that enemy unit.
@@ -31,7 +31,7 @@ export default class JangoFettConcealingTheConspiracy extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         // When a friendly unit deals damage to an enemy unit:
         //     You may exhaust that unit.
         registrar.addTriggeredAbility({

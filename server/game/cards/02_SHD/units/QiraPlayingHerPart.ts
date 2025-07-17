@@ -1,8 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Duration, TargetMode } from '../../../core/Constants';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class QiraPlayingHerPart extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -12,7 +11,7 @@ export default class QiraPlayingHerPart extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Look at an opponent\'s hand',
             immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
@@ -33,7 +32,7 @@ export default class QiraPlayingHerPart extends NonLeaderUnitCard {
                         effect: AbilityHelper.ongoingEffects.increaseCost({
                             amount: 3,
                             match: (card) => card.title === thenContext.select,
-                            limit: AbilityLimit.unlimited()
+                            limit: AbilityHelper.limit.unlimited()
                         })
                     }))
                 })

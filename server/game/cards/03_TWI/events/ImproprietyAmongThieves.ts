@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { PhaseName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class ImproprietyAmongThieves extends EventCard {
@@ -11,7 +11,7 @@ export default class ImproprietyAmongThieves extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Choose a ready non-leader unit controlled by each player.',
             targetResolvers: {

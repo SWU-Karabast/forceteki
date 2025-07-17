@@ -4,5 +4,6 @@ import type { OngoingEffect } from './OngoingEffect';
 
 export interface IConstantAbility extends IConstantAbilityProps {
     duration: Duration;
-    registeredEffects?: OngoingEffect<any>[];
+    get registeredEffects(): (OngoingEffect<any>[]) | undefined;
+    set registeredEffects(value: OngoingEffect<any>[] | undefined);
 }

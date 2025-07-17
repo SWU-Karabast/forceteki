@@ -94,7 +94,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
                 title,
                 when,
                 immediateEffect,
-                limit: limit ?? new PerPlayerPerGameAbilityLimit(1),
+                limit: limit ?? new PerPlayerPerGameAbilityLimit(context.game, 1),
             })
         };
 

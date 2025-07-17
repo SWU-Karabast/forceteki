@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import * as Contract from '../../../core/utils/Contract';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import type { Card } from '../../../core/card/Card';
@@ -16,7 +16,7 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Choose any number of friendly units',
             targetResolver: {

@@ -3,6 +3,7 @@ import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { DamageType, Trait } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import { DamageSystem } from '../../../gameSystems/DamageSystem';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class BobaFettsArmor extends UpgradeCard {
     protected override getImplementationId() {
@@ -12,7 +13,7 @@ export default class BobaFettsArmor extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
         registrar.addReplacementEffectAbility({

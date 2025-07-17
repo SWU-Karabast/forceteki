@@ -13,11 +13,11 @@ type ICardCannotProperties =
 
 export function cardCannot(properties: ICardCannotProperties) {
     return OngoingEffectBuilder.card.static(
-        EffectName.AbilityRestrictions,
-        new Restriction(
-            typeof properties === 'string'
-                ? { type: properties }
-                : Object.assign({ type: properties.cannot }, properties)
-        )
+        EffectName.AbilityRestrictions, (game) =>
+            new Restriction(game,
+                typeof properties === 'string'
+                    ? { type: properties }
+                    : Object.assign({ type: properties.cannot }, properties)
+            )
     );
 }

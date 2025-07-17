@@ -520,7 +520,7 @@ class PlayerInteractionWrapper {
             player = this.opponent;
         }
         return player.decklist.allCards.map(
-            (x) => this.game.getCard(x)
+            (x) => this.game.getFromRef(x)
         ).filter(condition);
     }
 
