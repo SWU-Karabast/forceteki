@@ -20,9 +20,9 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import type TriggeredAbility from '../ability/TriggeredAbility';
 import type { Card } from './Card';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
-import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import type { GameObjectRef } from '../GameObjectBase';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ConstantAbility } from '../ability/ConstantAbility';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard<ILeaderUnitCardState>));
 
@@ -211,7 +211,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         return super.createActionAbility(properties);
     }
 
-    public override createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
+    public override createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): ConstantAbility {
         if (properties.printedAbility) {
             properties.sourceZoneFilter = this.getAbilityZonesForSide(properties.sourceZoneFilter);
         }

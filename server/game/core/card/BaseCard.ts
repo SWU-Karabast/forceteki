@@ -15,7 +15,6 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import { EpicActionAbility } from '../../abilities/EpicActionAbility';
 import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../AbilityHelper';
-import type { ConstantAbility } from '../ability/ConstantAbility';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 

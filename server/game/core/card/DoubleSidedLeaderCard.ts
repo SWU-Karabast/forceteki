@@ -9,10 +9,10 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IDoubleSidedLeaderAbilityRegistrar, ILeaderAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { ActionAbility } from '../ability/ActionAbility';
 import type { Card } from './Card';
-import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import type TriggeredAbility from '../ability/TriggeredAbility';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ConstantAbility } from '../ability/ConstantAbility';
 
 const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -100,7 +100,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         });
     }
 
-    public override createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
+    public override createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): ConstantAbility {
         return super.createConstantAbility({
             ...properties,
             sourceZoneFilter: ZoneName.Base,
