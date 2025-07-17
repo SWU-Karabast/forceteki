@@ -1,7 +1,7 @@
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class SithHolocron extends UpgradeCard {
     protected override getImplementationId() {
@@ -11,7 +11,7 @@ export default class SithHolocron extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setAttachCondition((card) => card.hasSomeTrait(Trait.Force));
 
         registrar.addGainOnAttackAbilityTargetingAttached({

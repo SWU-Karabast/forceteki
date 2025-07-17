@@ -7,6 +7,7 @@ import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard
 import { WithAllAbilityTypes } from './propertyMixins/AllAbilityTypeRegistrations';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IDoubleSidedLeaderAbilityRegistrar, ILeaderAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../AbilityHelper';
 
 const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -23,7 +24,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         super(owner, cardData);
 
         this.setupLeaderBackSide = true;
-        this.setupLeaderBackSideAbilities(this.getAbilityRegistrar());
+        this.setupLeaderBackSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
     }
 
     protected override setupDefaultState() {
@@ -57,17 +58,17 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
     }
 
     protected override callSetupLeaderWithRegistrar() {
-        this.setupLeaderSideAbilities(this.getAbilityRegistrar());
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<IDoubleSidedLeaderCard>) {}
+    protected override setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<IDoubleSidedLeaderCard>, AbilityHelper: IAbilityHelper) {}
 
     /**
      * Create card abilities for the second leader side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderBackSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar) {
+    protected setupLeaderBackSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar, AbilityHelper: IAbilityHelper) {
     }
 
     public flipLeader() {

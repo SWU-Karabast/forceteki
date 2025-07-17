@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, ZoneName } from '../../../core/Constants';
@@ -13,23 +13,23 @@ export default class HunterOutcastSergeant extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Reveal a resource you control. If it shares a name with a friendly unique unit, return the resource to its owner’s hand and put the top card of your deck into play as a resource',
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
-            targetResolver: this.hunterAbility()
+            targetResolver: this.hunterAbility(AbilityHelper)
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Reveal a resource you control. If it shares a name with a friendly unique unit, return the resource to its owner’s hand and put the top card of your deck into play as a resource',
             optional: true,
-            targetResolver: this.hunterAbility()
+            targetResolver: this.hunterAbility(AbilityHelper)
         });
     }
 
-    private hunterAbility(): ICardTargetResolver<TriggeredAbilityContext<this>> {
+    private hunterAbility(AbilityHelper: IAbilityHelper): ICardTargetResolver<TriggeredAbilityContext<this>> {
         return {
             zoneFilter: ZoneName.Resource,
             controller: RelativePlayer.Self,

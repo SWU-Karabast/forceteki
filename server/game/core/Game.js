@@ -46,6 +46,9 @@ const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
 const { CostAdjuster } = require('./cost/CostAdjuster.js');
 const { logger } = require('../../logger.js');
+const AbilityHelper = require('../AbilityHelper.js');
+const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
+const { getAbilityHelper } = require('../AbilityHelper.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -64,7 +67,7 @@ class Game extends EventEmitter {
     }
 
     get allCards() {
-        return this.state.allCards.map((x) => this.getCard(x));
+        return this.state.allCards.map((x) => this.getFromRef(x));
     }
 
     /** @returns { Player | null } */
@@ -128,7 +131,12 @@ class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
+        // GameStateManager must come before any other setup.
+        this.gameObjectManager = new GameStateManager(this);
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
+
+        /** @type {import('../AbilityHelper.js').IAbilityHelper} */
+        this.abilityHelper = getAbilityHelper(this);
 
         /** @type { {[key: string]: Player | Spectator} } */
         this.playersAndSpectators = {};
@@ -140,7 +148,6 @@ class Game extends EventEmitter {
         this.started = false;
         this.statsUpdated = false;
         this.playStarted = false;
-        this.gameObjectManager = new GameStateManager(this);
         this.createdAt = new Date();
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
@@ -1594,7 +1601,7 @@ class Game extends EventEmitter {
      * @param {import('./GameObjectBase.js').GameObjectRef<T>} gameRef
      * @returns {T | null}
      */
-    getCard(gameRef) {
+    getFromRef(gameRef) {
         return this.gameObjectManager.get(gameRef);
     }
 

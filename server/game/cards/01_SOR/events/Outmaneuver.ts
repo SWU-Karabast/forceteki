@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { Arena } from '../../../core/Constants';
@@ -12,21 +12,21 @@ export default class Outmaneuver extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Exhaust each unit in an arena',
             targetResolver: {
                 mode: TargetMode.Select,
                 activePromptTitle: 'Choose an arena',
                 choices: {
-                    ['Ground']: this.eventEffect(ZoneName.GroundArena),
-                    ['Space']: this.eventEffect(ZoneName.SpaceArena),
+                    ['Ground']: this.eventEffect(ZoneName.GroundArena, AbilityHelper),
+                    ['Space']: this.eventEffect(ZoneName.SpaceArena, AbilityHelper),
                 }
             }
         });
     }
 
-    private eventEffect(arena: Arena) {
+    private eventEffect(arena: Arena, AbilityHelper: IAbilityHelper) {
         return AbilityHelper.immediateEffects.conditional((context) => ({
             condition: context.game.getPlayers().some((player) => player.hasSomeArenaUnit({ arena: arena })),
             onTrue: AbilityHelper.immediateEffects.exhaust((context) => {

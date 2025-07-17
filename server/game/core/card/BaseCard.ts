@@ -9,13 +9,14 @@ import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps, ITri
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
-import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import type TriggeredAbility from '../ability/TriggeredAbility';
 import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import { WithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import { EpicActionAbility } from '../../abilities/EpicActionAbility';
 import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ConstantAbility } from '../ability/ConstantAbility';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
@@ -64,7 +65,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return super.addActionAbility(properties);
     }
 
-    protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
+    protected override addConstantAbility(properties: IConstantAbilityProps<this>): ConstantAbility {
         const ability = super.addConstantAbility(properties);
         ability.registeredEffects = this.addEffectToEngine(ability);
         return ability;
@@ -102,9 +103,9 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar());
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override setupCardAbilities(registrar: IBaseAbilityRegistrar) { }
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
 }

@@ -80,7 +80,7 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
         return [this.game.ongoingEffectEngine.add(ongoingEffect(this.game, this, propertiesWithoutEffect))];
     }
 
-    public removeEffectFromEngine(effects: OngoingEffect<this> | OngoingEffect<this>[]) {
+    public removeEffectFromEngine(effects: OngoingEffect | OngoingEffect[]) {
         this.game.ongoingEffectEngine.unapplyAndRemove((effect) => Helpers.asArray(effects).includes(effect));
     }
 

@@ -13,15 +13,21 @@ import { DeployLeaderSystem } from '../../gameSystems/DeployLeaderSystem';
 import type { ActionAbility } from '../ability/ActionAbility';
 import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import { WithLeaderProperties } from './propertyMixins/LeaderProperties';
+import type { IInPlayCardState } from './baseClasses/InPlayCard';
 import { InPlayCard } from './baseClasses/InPlayCard';
-import AbilityHelper from '../../AbilityHelper';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import type { GameObjectRef } from '../GameObjectBase';
+import type { IAbilityHelper } from '../../AbilityHelper';
 
-const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
+const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard<ILeaderUnitCardState>));
 
 /** Represents a deployable leader in a deployed state (i.e., is also a unit) */
 export interface ILeaderUnitCard extends ILeaderCard, IUnitCard {}
+
+export interface ILeaderUnitCardState extends IInPlayCardState {
+    deployEpicActionLimit: GameObjectRef<EpicActionLimit>;
+}
 
 /** Represents a deployable leader in an undeployed state */
 export interface IDeployableLeaderCard extends ILeaderUnitCard {
@@ -32,7 +38,11 @@ export interface IDeployableLeaderCard extends ILeaderUnitCard {
 
 export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDeployableLeaderCard {
     protected setupLeaderUnitSide;
-    protected deployEpicActionLimit: EpicActionLimit;
+
+    protected get deployEpicActionLimit() {
+        return this.game.getFromRef(this.state.deployEpicActionLimit);
+    }
+
     protected deployEpicActions: ActionAbility[];
 
     public get deployed() {
@@ -57,11 +67,11 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
             condition: (context) => context.player.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
             immediateEffect: new DeployLeaderSystem({}),
-            ...this.deployActionAbilityProps()
+            ...this.deployActionAbilityProps(this.game.abilityHelper)
         }));
 
         this.setupLeaderUnitSide = true;
-        this.setupLeaderUnitSideAbilities(this.getAbilityRegistrar());
+        this.setupLeaderUnitSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
         this.validateCardAbilities(this.triggeredAbilities, cardData.deployBox);
     }
 
@@ -70,14 +80,14 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         this.state.deployed = false;
     }
 
-    protected deployActionAbilityProps(): Partial<IActionAbilityProps<this>> {
+    protected deployActionAbilityProps(AbilityHelper: IAbilityHelper): Partial<IActionAbilityProps<this>> {
         return {};
     }
 
     protected override initializeStateForAbilitySetup() {
         super.initializeStateForAbilitySetup();
         this.deployEpicActions = [];
-        this.deployEpicActionLimit = new EpicActionLimit();
+        this.state.deployEpicActionLimit = new EpicActionLimit(this.game).getRef();
     }
 
     public override isUnit(): this is IUnitCard {
@@ -141,17 +151,17 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     }
 
     protected override callSetupLeaderWithRegistrar() {
-        this.setupLeaderSideAbilities(this.getAbilityRegistrar());
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {}
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {}
 
     /**
      * Create card abilities for the leader unit side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+    protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
     }
 
     private addPilotDeploy(makeAttachedUnitALeader: boolean = true) {
@@ -161,7 +171,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         if (makeAttachedUnitALeader) {
             this.addPilotingConstantAbilityTargetingAttached({
                 title: 'Attached unit is a Leader',
-                ongoingEffect: AbilityHelper.ongoingEffects.isLeader()
+                ongoingEffect: this.game.abilityHelper.ongoingEffects.isLeader()
             });
         }
 
@@ -174,7 +184,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && card.canAttachPilot(context.source),
-                immediateEffect: AbilityHelper.immediateEffects.deployAndAttachPilotLeader((context) => ({
+                immediateEffect: this.game.abilityHelper.immediateEffects.deployAndAttachPilotLeader((context) => ({
                     leaderPilotCard: context.source
                 }))
             }

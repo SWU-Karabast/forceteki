@@ -1,10 +1,10 @@
-import AbilityHelper from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { Card } from '../../../core/card/Card';
 
 export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -16,11 +16,11 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'The first Creature unit you play each phase costs 1 resource less',
             targetController: RelativePlayer.Self,
@@ -30,7 +30,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 match: (card) => this.isFirstCreaturePlayedByControllerThisPhase(card),
                 amount: 1,
-                limit: AbilityLimit.perRound(1)
+                limit: AbilityHelper.limit.perRound(1)
             }),
         });
 
@@ -45,7 +45,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         });
     }
 
-    private isFirstCreaturePlayedByControllerThisPhase(card) {
+    private isFirstCreaturePlayedByControllerThisPhase(card: Card) {
         return card.hasSomeTrait(Trait.Creature) &&
           !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
               playedCardEntry.playedBy === card.controller &&

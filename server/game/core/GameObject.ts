@@ -1,22 +1,25 @@
 
 import type { AbilityContext } from './ability/AbilityContext';
 import { AbilityRestriction, EffectName, Stage } from './Constants';
-import type { IOngoingCardEffect } from './ongoingEffect/IOngoingCardEffect';
 import type Game from './Game';
 import type { Player } from './Player';
 import type { Card } from './card/Card';
-import type { IGameObjectBaseState } from './GameObjectBase';
+import type { GameObjectRef, IGameObjectBaseState } from './GameObjectBase';
 import { GameObjectBase } from './GameObjectBase';
 import type { Restriction } from './ongoingEffect/effectImpl/Restriction';
+import type { OngoingCardEffect } from './ongoingEffect/OngoingCardEffect';
 
 export interface IGameObjectState extends IGameObjectBaseState {
     id: string;
     nameField: string;
+    ongoingEffects: GameObjectRef<OngoingCardEffect>[];
 }
 
 // TODO: Rename to TargetableGameObject? Or something to imply this is a object with effects (as opposed to an Ability).
 export abstract class GameObject<T extends IGameObjectState = IGameObjectState> extends GameObjectBase<T> {
-    private ongoingEffects = [] as IOngoingCardEffect[];
+    private get ongoingEffects(): readonly OngoingCardEffect[] {
+        return this.state.ongoingEffects.map((x) => this.game.getFromRef(x));
+    }
 
     public get name() {
         return this.state.nameField;
@@ -41,16 +44,21 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
         this.state.nameField = name;
     }
 
-    public addOngoingEffect(ongoingEffect: IOngoingCardEffect) {
-        this.ongoingEffects.push(ongoingEffect);
+    protected override setupDefaultState() {
+        super.setupDefaultState();
+        this.state.ongoingEffects = [];
     }
 
-    public removeOngoingEffect(ongoingEffect: IOngoingCardEffect) {
-        this.ongoingEffects = this.ongoingEffects.filter((e) => e !== ongoingEffect);
+    public addOngoingEffect(ongoingEffect: OngoingCardEffect) {
+        this.state.ongoingEffects.push(ongoingEffect.getRef());
+    }
+
+    public removeOngoingEffect(ongoingEffect: OngoingCardEffect) {
+        this.state.ongoingEffects = this.ongoingEffects.filter((e) => e.uuid !== ongoingEffect.uuid).map((x) => x.getRef());
     }
 
     public removeOngoingEffects(type: EffectName) {
-        this.ongoingEffects = this.ongoingEffects.filter((e) => e.type !== type);
+        this.state.ongoingEffects = this.ongoingEffects.filter((e) => e.type !== type).map((x) => x.getRef());
     }
 
     public getOngoingEffectValues<V = any>(type: EffectName): V[] {

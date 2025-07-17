@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EffectName, RelativePlayer, ZoneName } from '../../../core/Constants';
@@ -12,12 +12,12 @@ export default class SawGerreraExtremist extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'As an additional cost for each opponent to play an event, they must deal 2 damage to their base',
             targetController: RelativePlayer.Opponent,
             sourceZoneFilter: ZoneName.GroundArena,
-            ongoingEffect: OngoingEffectBuilder.player.static(EffectName.AdditionalPlayCost, (context) => {
+            ongoingEffect: OngoingEffectBuilder.player.static(EffectName.AdditionalPlayCost, (game) => (context) => {
                 if (context.ability.card.isEvent()) {
                     return AbilityHelper.costs.dealDamageSpecific(2, context.player.base);
                 }

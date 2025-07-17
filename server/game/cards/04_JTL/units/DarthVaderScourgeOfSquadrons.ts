@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, WildcardCardType } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class DarthVaderScourgeOfSquadrons extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Deal 1 damage to a unit. If a unit is defeated this way, deal 1 damage to a unit or base',
