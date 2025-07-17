@@ -1,6 +1,5 @@
 import type Shield from '../../cards/01_SOR/tokens/Shield';
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
-import type { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
 import type { Attack } from '../../core/attack/Attack';
 import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
@@ -15,28 +14,23 @@ export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
     public static buildSaboteurAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {
             title: 'Saboteur: defeat all shields',
-            when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
+            when: {
+                onAttackDeclared: (event, context) => event.attack.attacker === context.source &&
+                  event.attack.attacker.isUnit() &&
+                  event.attack.getAllTargets().some((target) => target.isUnit())
+            },
             zoneFilter: WildcardZoneName.AnyArena,
-            targetResolver: {
-                cardCondition: (card: Card, context: TriggeredAbilityContext) => {
-                    const attacker = context.source;
-                    if (!attacker.isUnit() || !card.isUnit()) {
-                        return false;
-                    }
+            immediateEffect: new DefeatCardSystem((context) => {
+                Contract.assertTrue(context.source.isUnit());
 
-                    return context.event.attack.getAllTargets().includes(card) && card.hasShield();
-                },
-                immediateEffect: new DefeatCardSystem((context) => {
-                    Contract.assertTrue(context.source.isUnit());
+                let target: Shield[] = [];
+                const attack: Attack = context.event.attack;
+                target = attack.getAllTargets().filter((target) => target.isUnit())
+                    .filter((target) => target.isInPlay())
+                    .flatMap((target) => target.upgrades.filter((card) => card.isShield()));
 
-                    let target: Shield[] = [];
-                    const attack: Attack = context.event.attack;
-                    target = attack.getAllTargets().filter((target) => target.isUnit())
-                        .flatMap((target) => target.upgrades.filter((card) => card.isShield()));
-
-                    return { target };
-                })
-            }
+                return { target };
+            })
         };
     }
 
