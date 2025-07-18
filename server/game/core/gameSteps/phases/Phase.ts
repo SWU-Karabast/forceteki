@@ -22,18 +22,11 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     public initialise(steps: IStep[]): void {
-        this.pipeline.initialise([new SimpleStep(this.game, () => this.createPhase(), 'createPhase')]);
         const startStep = new SimpleStep(this.game, () => this.startPhase(), 'startPhase');
         const endStep = new SimpleStep(this.game, () => this.endPhase(), 'endPhase');
         this.steps = [startStep, ...steps, endStep];
-    }
 
-    protected createPhase(): void {
-        this.game.createEventAndOpenWindow(EventName.OnPhaseCreated, null, { phase: this.name }, TriggerHandlingMode.CannotHaveTriggers, () => {
-            for (const step of this.steps) {
-                this.game.queueStep(step);
-            }
-        });
+        this.pipeline.initialise(this.steps);
     }
 
     protected startPhase(): void {
@@ -42,7 +35,6 @@ export abstract class Phase extends BaseStepWithPipeline {
             if (this.name !== PhaseName.Setup) {
                 this.game.addAlert(AlertType.Notification, 'Turn: {0} - {1} Phase', this.game.roundNumber, Helpers.upperCaseFirstLetter(this.name));
             }
-            // this.game.gameObjectManager.clearSnapshots();
         });
     }
 
