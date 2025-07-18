@@ -1106,7 +1106,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         public override getSummary(activePlayer: Player) {
             if (this.isInPlay()) {
                 const hasSentinel = this.hasSomeKeyword(KeywordName.Sentinel);
-                const isHidden = !hasSentinel && this.hasSomeKeyword(KeywordName.Hidden) && this.wasPlayedThisPhase();
+                const cannotBeAttacked = (this.hasRestriction(AbilityRestriction.BeAttacked) && !hasSentinel);
                 const clonedCardSetId = this.hasOngoingEffect(EffectName.CloneUnit) ? this.getOngoingEffectValues<Card>(EffectName.CloneUnit)[0].setId : null;
                 const clonedCardTitle = this.hasOngoingEffect(EffectName.CloneUnit) ? this.getOngoingEffectValues<Card>(EffectName.CloneUnit)[0].title : null;
 
@@ -1115,7 +1115,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     power: this.getPower(),
                     hp: this.getHp(),
                     sentinel: hasSentinel,
-                    hidden: isHidden,
+                    cannotBeAttacked: cannotBeAttacked,
                     isAttacker: this.isInPlay() && this.isUnit() && (this.isAttacking() || this.controller.getAttackerHighlightingState(this)),
                     isDefender: this.isInPlay() && this.isUnit() && this.isDefending(),
                     clonedCardId: clonedCardSetId,
