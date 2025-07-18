@@ -522,3 +522,9 @@ export enum AlertType {
     Danger = 'danger',
     ReadyStatus = 'readyStatus',
 }
+
+export enum RoundEntryPoint {
+    StartOfRound = 'startOfRound',
+    WithinActionPhase = 'withinActionPhase',
+    StartOfRegroupPhase = 'startOfRegroupPhase',
+}

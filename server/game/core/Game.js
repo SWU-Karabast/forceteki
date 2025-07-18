@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RoundEntryPoint } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -50,6 +50,7 @@ const { SnapshotManager } = require('./snapshot/SnapshotManager.js');
 const AbilityHelper = require('../AbilityHelper.js');
 const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
 const { getAbilityHelper } = require('../AbilityHelper.js');
+const { PhaseInitializeMode } = require('./gameSteps/phases/Phase.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -1070,11 +1071,46 @@ class Game extends EventEmitter {
     beginRound() {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
-        this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers);
-        this.queueStep(new ActionPhase(this, () => this.getNextActionNumber(), this.snapshotManager));
-        this.queueStep(new RegroupPhase(this));
-        this.queueSimpleStep(() => this.roundEnded(), 'roundEnded');
-        this.queueSimpleStep(() => this.beginRound(), 'beginRound');
+        this.initialisePipeline();
+    }
+
+    /**
+     * @param {RoundEntryPoint} roundEntryPoint
+     */
+    initialisePipeline(roundEntryPoint = RoundEntryPoint.StartOfRound) {
+        const roundStartStep = [];
+        if (roundEntryPoint === RoundEntryPoint.StartOfRound) {
+            roundStartStep.push(new SimpleStep(
+                this, () => this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers), 'beginRound'
+            ));
+        }
+
+        const actionPhaseStep = [];
+        if (roundEntryPoint === RoundEntryPoint.WithinActionPhase || roundEntryPoint === RoundEntryPoint.StartOfRound) {
+            const actionInitializeMode =
+                roundEntryPoint === RoundEntryPoint.WithinActionPhase
+                    ? PhaseInitializeMode.RollbackToWithinPhase
+                    : PhaseInitializeMode.Normal;
+
+            actionPhaseStep.push(new ActionPhase(this, () => this.getNextActionNumber(), this.snapshotManager, actionInitializeMode));
+        }
+
+        const regroupInitializeMode =
+            roundEntryPoint === RoundEntryPoint.StartOfRegroupPhase
+                ? PhaseInitializeMode.RollbackToStartOfPhase
+                : PhaseInitializeMode.Normal;
+
+        const regroupPhaseStep = [
+            new RegroupPhase(this, regroupInitializeMode)
+        ];
+
+        this.pipeline.initialise([
+            ...roundStartStep,
+            ...actionPhaseStep,
+            ...regroupPhaseStep,
+            new SimpleStep(this, () => this.roundEnded(), 'roundEnded'),
+            new SimpleStep(this, () => this.beginRound(), 'beginRound')
+        ]);
     }
 
     roundEnded() {
@@ -1685,18 +1721,19 @@ class Game extends EventEmitter {
      * @returns True if a snapshot was restored, false otherwise
      */
     rollbackToSnapshot(settings) {
-        if (this.isUndoEnabled && 'postRollbackOperations' in this.pipeline.currentStep) {
-            const result = this.snapshotManager.rollbackTo(settings);
-
-            if (!result) {
-                return false;
-            }
-
-            this.pipeline.currentStep.postRollbackOperations();
-            return true;
+        if (!this.isUndoEnabled) {
+            return false;
         }
 
-        return false;
+        const result = this.snapshotManager.rollbackTo(settings);
+
+        if (!result) {
+            return false;
+        }
+
+        this.pipeline.clearSteps();
+
+        return true;
     }
 
     // TODO: Make a debug object type.

@@ -5,6 +5,7 @@ import { SimpleStep } from '../SimpleStep';
 import { ActionWindow } from '../ActionWindow';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import type { IStep } from '../IStep';
+import * as Contract from '../../utils/Contract';
 
 export class ActionPhase extends Phase {
     private readonly getNextActionNumber: () => number;
@@ -22,6 +23,8 @@ export class ActionPhase extends Phase {
         snapshotManager: SnapshotManager,
         initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal
     ) {
+        Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToStartOfPhase, 'ActionPhase does not support rolling back to the start of the phase, rollback to start of round instead');
+
         super(game, PhaseName.Action);
 
         this.snapshotManager = snapshotManager;
@@ -81,23 +84,10 @@ export class ActionPhase extends Phase {
         }, 'check active player queue next action');
     }
 
-    // --------------------- TODO: these methods are a pretty hacky way of resetting the action, need to investigate to see if there's a better way ---------------
     private tearDownActionPhase() {
         for (const player of this.game.getPlayers()) {
             player.cleanupFromActionPhase();
         }
         this.game.isInitiativeClaimed = false;
-    }
-
-    public override resetPhase(): void {
-        this.pipeline.clearSteps();
-    }
-
-    public postRollbackOperations() {
-        this.resetPhase();
-        this.queueNextAction(true);
-
-        // continue the action phase again.
-        this.continue();
     }
 }
