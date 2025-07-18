@@ -1,9 +1,10 @@
 import { EffectName, PhaseName } from '../../Constants';
 import type Game from '../../Game';
-import { Phase } from './Phase';
+import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ActionWindow } from '../ActionWindow';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
+import type { IStep } from '../IStep';
 
 export class ActionPhase extends Phase {
     private readonly getNextActionNumber: () => number;
@@ -15,18 +16,31 @@ export class ActionPhase extends Phase {
 
     private prevPlayerPassed = false;
 
-    public constructor(game: Game, getNextActionNumber: () => number, snapshotManager: SnapshotManager) {
+    public constructor(
+        game: Game,
+        getNextActionNumber: () => number,
+        snapshotManager: SnapshotManager,
+        initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal
+    ) {
         super(game, PhaseName.Action);
 
         this.snapshotManager = snapshotManager;
         this.getNextActionNumber = getNextActionNumber;
 
-        this.initialise([
-            new SimpleStep(this.game, () => this.setupActionPhase(), 'setupActionPhase'),
-            new SimpleStep(this.game, () => this.queueNextAction(), 'queueNextAction'),
-            new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase'),
-            new SimpleStep(this.game, () => this.endPhase(), 'endPhase'),
-        ]);
+        const setupStep: IStep[] = [];
+        if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase) {
+            setupStep.push(new SimpleStep(this.game, () => this.setupActionPhase(), 'setupActionPhase'));
+        }
+
+        this.initialise(
+            [
+                ...setupStep,
+                new SimpleStep(this.game, () => this.queueNextAction(initializeMode === PhaseInitializeMode.RollbackToWithinPhase), 'queueNextAction'),
+                new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase'),
+                new SimpleStep(this.game, () => this.endPhase(), 'endPhase'),
+            ],
+            initializeMode
+        );
     }
 
     private setupActionPhase() {
@@ -35,26 +49,18 @@ export class ActionPhase extends Phase {
         }
     }
 
-    public queueNextAction(postUndo = false) {
-        if (postUndo) {
-            // TODO: this is a hack to get around the fact that the pipeline queueing isn't set up to handle being cleared in the middle of a phase.
-            // will be fixed in the next PR which will address the phase logic during undo
-            this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
-        }
-
+    private queueNextAction(firstActionAfterRollback = false) {
         this.game.queueStep(new ActionWindow(
             this.game,
             'Action Window',
             'action',
             this.prevPlayerPassed,
             this.passStatusHandler,
-            postUndo ? this.game.actionNumber : this.getNextActionNumber(),
+            firstActionAfterRollback ? this.game.actionNumber : this.getNextActionNumber(),
             this.snapshotManager
         ));
 
-        if (!postUndo) {
-            this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
-        }
+        this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
     }
 
     private rotateActiveQueueNextAction() {

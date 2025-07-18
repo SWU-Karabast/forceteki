@@ -7,10 +7,14 @@ import type { IStep } from '../IStep';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 import * as Helpers from '../../utils/Helpers';
 
+export enum PhaseInitializeMode {
+    Normal = 'normal',
+    RollbackToStartOfPhase = 'rollbackToStartOfPhase',
+    RollbackToWithinPhase = 'rollbackToWithinPhase',
+}
+
 export abstract class Phase extends BaseStepWithPipeline {
     protected readonly name: PhaseName;
-
-    private steps: IStep[] = [];
 
     public constructor(
         game: Game,
@@ -21,12 +25,21 @@ export abstract class Phase extends BaseStepWithPipeline {
         this.name = name;
     }
 
-    public initialise(steps: IStep[]): void {
-        const startStep = new SimpleStep(this.game, () => this.startPhase(), 'startPhase');
-        const endStep = new SimpleStep(this.game, () => this.endPhase(), 'endPhase');
-        this.steps = [startStep, ...steps, endStep];
+    protected initialise(steps: IStep[], initializeMode: PhaseInitializeMode): void {
+        const startStep: IStep[] = [];
 
-        this.pipeline.initialise(this.steps);
+        // skip the start step if we're rolling back to somewhere within the phase
+        if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase) {
+            startStep.push(new SimpleStep(this.game, () => this.startPhase(), 'startPhase'));
+        }
+
+        const endStep = new SimpleStep(this.game, () => this.endPhase(), 'endPhase');
+
+        this.pipeline.initialise([
+            ...startStep,
+            ...steps,
+            endStep
+        ]);
     }
 
     protected startPhase(): void {

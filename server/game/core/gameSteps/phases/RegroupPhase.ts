@@ -1,6 +1,6 @@
 import { AbilityRestriction, EventName, PhaseName, ZoneName } from '../../Constants';
 import type Game from '../../Game';
-import { Phase } from './Phase';
+import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { VariableResourcePrompt } from '../prompts/VariableResourcePrompt';
 import { GameEvent } from '../../event/GameEvent';
@@ -8,16 +8,22 @@ import * as GameSystemLibrary from '../../../gameSystems/GameSystemLibrary';
 import { DrawSystem } from '../../../gameSystems/DrawSystem';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 import type { ICardWithExhaustProperty } from '../../card/baseClasses/PlayableOrDeployableCard';
+import * as Contract from '../../utils/Contract';
 
 export class RegroupPhase extends Phase {
-    public constructor(game: Game) {
+    public constructor(game: Game, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
+        Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToWithinPhase, 'RegroupPhase does not support rolling back to the middle of the phase');
+
         super(game, PhaseName.Regroup);
-        this.initialise([
-            new SimpleStep(game, () => this.drawTwo(), 'drawTwo'),
-            new VariableResourcePrompt(game, 0, 1),
-            new SimpleStep(game, () => this.readyAllCards(), 'readyAllCards'),
-            new SimpleStep(game, () => this.endPhase(), 'endPhase')
-        ]);
+        this.initialise(
+            [
+                new SimpleStep(game, () => this.drawTwo(), 'drawTwo'),
+                new VariableResourcePrompt(game, 0, 1),
+                new SimpleStep(game, () => this.readyAllCards(), 'readyAllCards'),
+                new SimpleStep(game, () => this.endPhase(), 'endPhase')
+            ],
+            initializeMode
+        );
     }
 
     private drawTwo() {
