@@ -1,5 +1,6 @@
 import type { GameMode } from '../../GameMode';
 import type { Lobby } from '../../gamenode/Lobby';
+import type { IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
 import type { IUser } from '../../Settings';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import * as Contract from './utils/Contract';
@@ -12,6 +13,7 @@ export interface GameConfiguration {
     allowSpectators: boolean;
     gameMode: GameMode;
     cardDataGetter: CardDataGetter;
+    statsTracker: IGameStatisticsTracker;
     useActionTimer?: boolean;
     pushUpdate: () => void;
     buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
