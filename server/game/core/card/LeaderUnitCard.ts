@@ -17,8 +17,12 @@ import type { IInPlayCardState } from './baseClasses/InPlayCard';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import type TriggeredAbility from '../ability/TriggeredAbility';
+import type { Card } from './Card';
+import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { GameObjectRef } from '../GameObjectBase';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ConstantAbility } from '../ability/ConstantAbility';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard<ILeaderUnitCardState>));
 
@@ -59,8 +63,10 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
 
+        const registrar = this.getAbilityRegistrar();
+
         // add deploy leader action
-        this.deployEpicActions.push(this.addActionAbility({
+        this.deployEpicActions.push(registrar.addActionAbility({
             limit: this.deployEpicActionLimit,
             title: `Deploy ${this.title}`,
             requiresConfirmation: true,
@@ -144,9 +150,11 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     }
 
     protected override getAbilityRegistrar(): ILeaderUnitAbilityRegistrar & ILeaderUnitLeaderSideAbilityRegistrar {
+        const registrar = super.getAbilityRegistrar() as IUnitAbilityRegistrar<LeaderUnitCardInternal>;
+
         return {
-            ...super.getAbilityRegistrar() as IUnitAbilityRegistrar<LeaderUnitCardInternal>,
-            addPilotDeploy: () => this.addPilotDeploy(),
+            ...registrar,
+            addPilotDeploy: () => this.addPilotDeploy(true, registrar),
         };
     }
 
@@ -164,18 +172,18 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
     }
 
-    private addPilotDeploy(makeAttachedUnitALeader: boolean = true) {
+    private addPilotDeploy(makeAttachedUnitALeader: boolean, registrar: IUnitAbilityRegistrar<LeaderUnitCardInternal>) {
         Contract.assertNotNullLike(this.printedUpgradeHp, `Leader ${this.title} is missing upgrade HP.`);
         Contract.assertNotNullLike(this.printedUpgradePower, `Leader ${this.title} is missing upgrade power.`);
 
         if (makeAttachedUnitALeader) {
-            this.addPilotingConstantAbilityTargetingAttached({
+            registrar.addPilotingConstantAbilityTargetingAttached({
                 title: 'Attached unit is a Leader',
                 ongoingEffect: this.game.abilityHelper.ongoingEffects.isLeader()
             });
         }
 
-        this.deployEpicActions.push(this.addActionAbility({
+        this.deployEpicActions.push(registrar.addActionAbility({
             title: `Deploy ${this.title} as a Pilot`,
             requiresConfirmation: true,
             limit: this.deployEpicActionLimit,
@@ -191,32 +199,44 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         }));
     }
 
-    protected override addActionAbility(properties: IActionAbilityProps<this>) {
-        properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
-        return super.addActionAbility(properties);
+    protected override createCoordinateAbilityProps(properties: IAbilityPropsWithType<this>): IAbilityPropsWithType<this> {
+        return this.addZoneForSideToAbilityWithType(properties);
     }
 
-    protected override addCoordinateAbility(properties: IAbilityPropsWithType<this>): void {
-        return super.addCoordinateAbility(this.addZoneForSideToAbilityWithType(properties));
+    public override createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
+        if (properties.printedAbility) {
+            properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
+        }
+
+        return super.createActionAbility(properties);
     }
 
-    protected override addConstantAbility(properties: IConstantAbilityProps<this>) {
-        properties.sourceZoneFilter = this.getAbilityZonesForSide(properties.sourceZoneFilter);
-        return super.addConstantAbility(properties);
+    public override createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): ConstantAbility {
+        if (properties.printedAbility) {
+            properties.sourceZoneFilter = this.getAbilityZonesForSide(properties.sourceZoneFilter);
+        }
+
+        return super.createConstantAbility(properties);
     }
 
-    protected override addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>) {
-        properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
-        return super.addReplacementEffectAbility(properties);
+    public override createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
+        if (properties.printedAbility) {
+            properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
+        }
+
+        return super.createReplacementEffectAbility(properties);
     }
 
-    protected override addTriggeredAbility(properties: ITriggeredAbilityProps<this>) {
-        properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
-        return super.addTriggeredAbility(properties);
+    protected override createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
+        if (properties.printedAbility) {
+            properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
+        }
+
+        return super.createTriggeredAbility(properties);
     }
 
     /** Generates the right zoneFilter property depending on which leader side we're setting up */
-    private addZoneForSideToAbilityWithType<Properties extends IAbilityPropsWithType<this>>(properties: Properties) {
+    private addZoneForSideToAbilityWithType<Properties extends IAbilityPropsWithType<LeaderUnitCardInternal>>(properties: Properties) {
         if (properties.type === AbilityType.Constant) {
             properties.sourceZoneFilter = this.getAbilityZonesForSide(properties.sourceZoneFilter);
         } else {

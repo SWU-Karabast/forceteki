@@ -17,11 +17,11 @@ import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar } from '../Abi
 import { InitializeCardStateOption, type Card } from '../Card';
 import type { ICardWithActionAbilities } from '../propertyMixins/ActionAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
-import type { ICardWithConstantAbilities } from '../propertyMixins/ConstantAbilityRegistration';
+import type { ICardWithConstantAbilities, IConstantAbilityRegistrar } from '../propertyMixins/ConstantAbilityRegistration';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import { WithCost } from '../propertyMixins/Cost';
 import type { ICardWithPreEnterPlayAbilities } from '../propertyMixins/PreEnterPlayAbilityRegistration';
-import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
+import type { ICardWithTriggeredAbilities, ITriggeredAbilityRegistrar } from '../propertyMixins/TriggeredAbilityRegistration';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
@@ -299,43 +299,43 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     // ********************************************* ABILITY SETUP *********************************************
-    protected override getAbilityRegistrar() {
-        const registrar: IInPlayCardAbilityRegistrar<this> = {
-            ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<this>,
-            addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties),
-            addWhenPlayedAbility: (properties) => this.addWhenPlayedAbility(properties),
-            addWhenDefeatedAbility: (properties) => this.addWhenDefeatedAbility(properties),
-            addIgnoreAllAspectPenaltiesAbility: (properties) => this.addIgnoreAllAspectPenaltiesAbility(properties),
-            addIgnoreSpecificAspectPenaltyAbility: (properties) => this.addIgnoreSpecificAspectPenaltyAbility(properties),
+    protected override getAbilityRegistrar(): IInPlayCardAbilityRegistrar<this> {
+        const registrar = super.getAbilityRegistrar() as IBasicAbilityRegistrar<this>;
+
+        return {
+            ...registrar,
+            addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties, registrar),
+            addWhenPlayedAbility: (properties) => this.addWhenPlayedAbility(properties, registrar),
+            addWhenDefeatedAbility: (properties) => this.addWhenDefeatedAbility(properties, registrar),
+            addIgnoreAllAspectPenaltiesAbility: (properties) => this.addIgnoreAllAspectPenaltiesAbility(properties, registrar),
+            addIgnoreSpecificAspectPenaltyAbility: (properties) => this.addIgnoreSpecificAspectPenaltyAbility(properties, registrar),
         };
-
-        return registrar;
     }
 
-    protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
+    private addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>, registrar: ITriggeredAbilityRegistrar<this>): TriggeredAbility {
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenPlayed]: true };
-        return this.addTriggeredAbility({ ...properties, when });
+        return registrar.addTriggeredAbility({ ...properties, when });
     }
 
-    protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
+    private addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>, registrar: ITriggeredAbilityRegistrar<this>): TriggeredAbility {
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenDefeated]: true };
         const triggeredProperties = Object.assign(properties, { when });
-        return this.addTriggeredAbility(triggeredProperties);
+        return registrar.addTriggeredAbility(triggeredProperties);
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
-    protected addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>): IConstantAbilityProps<this> {
-        return this.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
+    private addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
+        return registrar.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
     }
 
     /** Add a constant ability on the card that ignores all aspect penalties under the given condition */
-    protected addIgnoreAllAspectPenaltiesAbility(properties: IIgnoreAllAspectPenaltiesProps<this>): IConstantAbilityProps<this> {
-        return this.addConstantAbility(this.createConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties)));
+    private addIgnoreAllAspectPenaltiesAbility(properties: IIgnoreAllAspectPenaltiesProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
+        return registrar.addConstantAbility(this.createConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties)));
     }
 
     /** Add a constant ability on the card that ignores specific aspect penalties under the given condition */
-    protected addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreSpecificAspectPenaltyProps<this>): IConstantAbilityProps<this> {
-        return this.addConstantAbility(this.createConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties)));
+    private addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreSpecificAspectPenaltyProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
+        return registrar.addConstantAbility(this.createConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties)));
     }
 
     public override registerMove(movedFromZone: ZoneName): void {

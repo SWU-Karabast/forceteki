@@ -19,9 +19,9 @@ export enum DeckZoneDestination {
 }
 
 export enum SnapshotType {
-    Player = 'player',
-    Phase = 'phase',
-    Round = 'round'
+    Action = 'action',
+    Manual = 'manual',
+    Phase = 'phase'
 }
 
 export enum ChatObjectType {
