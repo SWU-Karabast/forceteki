@@ -5,6 +5,7 @@ import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { AllPlayerPrompt } from './AllPlayerPrompt';
 import { PromptType, SelectCardMode } from '../PromptInterfaces';
+import { GameCardMetric } from '../../../../gameStatistics/GameStatisticsTracker';
 
 export class ResourcePrompt extends AllPlayerPrompt {
     protected selectedCards = new Map<string, Card[]>();
@@ -116,6 +117,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         if (this.selectedCards[player.name].length > 0) {
             for (const card of this.selectedCards[player.name]) {
                 player.resourceCard(card, false);
+                this.game.statsTracker.trackCardMetric(GameCardMetric.Resourced, card, player);
             }
             this.game.addMessage('{0} has resourced {1} {2} from hand', player, this.selectedCards[player.name].length, this.selectedCards[player.name].length === 1 ? 'card' : 'cards');
         } else {

@@ -205,6 +205,11 @@ class Game extends EventEmitter {
         return this._router.id;
     }
 
+    /** @returns { import('../../gameStatistics/GameStatisticsTracker.js').IGameStatisticsTracker } */
+    get statsTracker() {
+        return this._statsTracker;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -277,6 +282,7 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
         this.cardDataGetter = details.cardDataGetter;
+        this._statsTracker = details.statsTracker;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
 
         this.initialiseTokens(this.cardDataGetter.tokenData);
