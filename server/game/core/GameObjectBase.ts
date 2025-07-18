@@ -49,7 +49,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         this.game.gameObjectManager.register(this);
     }
 
-    /** A overridable method so a child can set defaults for it's state. Always ensure to call super.onSetupGameState() as the first line if you do override this.  */
+    /** A overridable method so a child can set defaults for it's state. Always ensure to call super.setupDefaultState() as the first line if you do override this.  */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected setupDefaultState() { }
 

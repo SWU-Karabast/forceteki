@@ -41,6 +41,8 @@ export class UnlimitedAbilityLimit extends GameObjectBase<IPerPlayerAbilityLimit
     }
 
     protected override setupDefaultState(): void {
+        super.setupDefaultState();
+
         this.state.useCount = new Map();
     }
 
@@ -102,6 +104,8 @@ export class PerGameAbilityLimit extends GameObjectBase<IPerGameAbilityLimitStat
     }
 
     protected override setupDefaultState(): void {
+        super.setupDefaultState();
+
         this.state.useCount = 0;
     }
 
@@ -142,7 +146,6 @@ export class PerGameAbilityLimit extends GameObjectBase<IPerGameAbilityLimitStat
 
 
 export class PerPlayerPerGameAbilityLimit extends GameObjectBase<IPerPlayerAbilityLimitState> implements IAbilityLimit {
-    private useCount = new Map<string, number>();
     public readonly max: number;
 
     public get ability() {
@@ -156,6 +159,12 @@ export class PerPlayerPerGameAbilityLimit extends GameObjectBase<IPerPlayerAbili
     public constructor(game: Game, max: number) {
         super(game);
         this.max = max;
+    }
+
+    protected override setupDefaultState(): void {
+        super.setupDefaultState();
+
+        this.state.useCount = new Map();
     }
 
     public clone() {
@@ -172,11 +181,11 @@ export class PerPlayerPerGameAbilityLimit extends GameObjectBase<IPerPlayerAbili
 
     public increment(player: Player): void {
         const key = this.getKey(player.name);
-        this.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.state.useCount.set(key, this.currentForPlayer(player) + 1);
     }
 
     public reset(): void {
-        this.useCount.clear();
+        this.state.useCount.clear();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -186,7 +195,7 @@ export class PerPlayerPerGameAbilityLimit extends GameObjectBase<IPerPlayerAbili
     public unregisterEvents(eventEmitter: EventEmitter): void {}
 
     public currentForPlayer(player: Player) {
-        return this.useCount.get(this.getKey(player.name)) ?? 0;
+        return this.state.useCount.get(this.getKey(player.name)) ?? 0;
     }
 
     public isEpicActionLimit(): this is EpicActionLimit {
