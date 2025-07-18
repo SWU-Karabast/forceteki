@@ -16,6 +16,7 @@ import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCost
 import type Game from '../Game';
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
+import { GameCardMetric } from '../../../gameStatistics/GameStatisticsTracker';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -242,9 +243,11 @@ export abstract class PlayCardAction extends PlayerAction {
         return card.type;
     }
 
-    private logPlayCardEvent(context: any): void {
-        if (context.playType === PlayType.PlayFromHand) {
-            context.game.clientUIProperties.lastPlayedCard = context.source.cardData.setId;
-        }
+    private logPlayCardEvent(context: AbilityContext): void {
+        context.game.statsTracker.trackCardMetric(
+            GameCardMetric.Played,
+            context.source,
+            context.player
+        );
     }
 }

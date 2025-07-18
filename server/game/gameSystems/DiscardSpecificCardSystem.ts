@@ -1,3 +1,4 @@
+import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { EventName, Stage, ZoneName } from '../core/Constants';
@@ -17,6 +18,8 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
         if (event.context.stage !== Stage.Cost) {
             event.context.game.addMessage('{0} discards {1}', event.card.owner, this.getTargetMessage(event.card, event.context));
         }
+
+        this.logDiscardAction(event);
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Record<string, any> = {}): boolean {
@@ -42,5 +45,13 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Record<string, any> = {}): void {
         event.discardedFromZone = card.zoneName;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
+    }
+
+    private logDiscardAction(event): void {
+        event.context.game.statsTracker.trackCardMetric(
+            GameCardMetric.Discarded,
+            event.card,
+            event.card.owner
+        );
     }
 }
