@@ -43,7 +43,7 @@ describe('Hidden keyword', function() {
                 context.player1.clickCard(context.anakinSkywalker);
                 expect(context.anakinSkywalker).toHaveExactUpgradeNames(['shield']);
                 expect(context.anakinSkywalker.hasSomeKeyword('hidden')).toBeTrue();
-                expect(context.anakinSkywalker.getSummary(context.player1Object).hidden).toBeTrue();
+                expect(context.anakinSkywalker.getSummary(context.player1Object).cannotBeAttacked).toBeTrue();
 
                 context.player2.claimInitiative();
                 context.moveToNextActionPhase();
@@ -54,7 +54,7 @@ describe('Hidden keyword', function() {
                 context.player2.clickCard(context.anakinSkywalker);
                 expect(context.anakinSkywalker).toHaveExactUpgradeNames([]);
                 expect(context.anakinSkywalker.hasSomeKeyword('hidden')).toBeTrue();
-                expect(context.anakinSkywalker.getSummary(context.player1Object).hidden).toBeFalse();
+                expect(context.anakinSkywalker.getSummary(context.player1Object).cannotBeAttacked).toBeFalse();
             });
 
             it('can be targeted by events', async function () {
@@ -182,7 +182,7 @@ describe('Hidden keyword', function() {
                 context.player1.clickCard(context.anakinSkywalker);
                 expect(context.anakinSkywalker).toHaveExactUpgradeNames(['shield']);
                 expect(context.anakinSkywalker.hasSomeKeyword('hidden')).toBeTrue();
-                expect(context.anakinSkywalker.getSummary(context.player1Object).hidden).toBeTrue();
+                expect(context.anakinSkywalker.getSummary(context.player1Object).cannotBeAttacked).toBeTrue();
 
                 context.player2.clickCard(context.battlefieldMarine);
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p1Base]);
@@ -194,7 +194,7 @@ describe('Hidden keyword', function() {
                 context.player1.clickCard(context.anakinSkywalker);
                 expect(context.anakinSkywalker).toHaveExactUpgradeNames(['shield', 'unshakeable-will']);
                 expect(context.anakinSkywalker.hasSomeKeyword('hidden')).toBeTrue();
-                expect(context.anakinSkywalker.getSummary(context.player1Object).hidden).toBeFalse();
+                expect(context.anakinSkywalker.getSummary(context.player1Object).cannotBeAttacked).toBeFalse();
 
                 context.player2.clickCard(context.battlefieldMarine);
                 expect(context.player2).toBeAbleToSelectExactly([context.anakinSkywalker]);
