@@ -65,19 +65,20 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         return structuredClone(this.state);
     }
 
-    /** A function for game to call on all objects after all state has been rolled back. for example, to cache calculated values. */
+    /** A function for game to call on all objects after all state has been rolled back. Intended to be used when a class has state changes that have external changes, for example, updating OngoingEffectEngine. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public afterSetAllState() { }
+    public afterSetAllState(oldState: T) { }
 
-    /** A function for game to call after the state for this object has been rolled back. This can be used to compare old and new states and trigger function calls if needed. */
+    /** A function for game to call after the state for this object has been rolled back. Intended to be used when a class has state changes that have internal changes, such as caching state. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected afterSetState(oldState: T) { }
 
+    /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
         const ref = { isRef: true, uuid: this.state.uuid };
 
         if (Helpers.isDevelopment()) {
-            // This property is for debugging purposes only and should never be referenced within the code.
+            // This property is for debugging purposes only and should never be referenced within the code. It will be wiped in a rollback, but for non-Undo debugging this works.
             Object.defineProperty(ref, 'gameObject', {
                 value: this,
                 writable: false,
@@ -89,8 +90,12 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         return ref as GameObjectRef<T>;
     }
 
-    /** Shortcut to get the Game Object from a Ref */
-    public getObject<T extends GameObjectBase>(ref: GameObjectRef<T>): T {
+    /** Shortcut to get the Game Object from a Ref. This is intentionally an arrow function to cause structured clone to break if called on this class. */
+    public getObject = <T extends GameObjectBase>(ref: GameObjectRef<T>): T => {
         return this.game.gameObjectManager.get(ref);
+    };
+
+    public getGameObjectName(): string {
+        return 'GameObject';
     }
 }

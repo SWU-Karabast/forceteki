@@ -1327,9 +1327,6 @@ describe('Clone', function() {
                 ]);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.player1).toHavePrompt('Saboteur: defeat all shields');
-                context.player1.clickCard(context.battlefieldMarine);
-
                 // Shields are defeated, and the Battlefield Marine is defeated
                 expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
                 expect(context.clone.damage).toBe(3);

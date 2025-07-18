@@ -1,6 +1,6 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { AbilityRestriction } from '../../../core/Constants';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 
@@ -12,7 +12,7 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addReplacementEffectAbility({
             title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
             when: {

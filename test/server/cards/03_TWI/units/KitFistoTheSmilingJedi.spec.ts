@@ -19,13 +19,10 @@ describe('Kit Fisto, The Smiling Jedi', function() {
             // Coordinate active
             context.player1.clickCard(context.kitFisto);
             context.player1.clickCard(context.p2Base);
-
-            expect(context.player1).toHaveExactPromptButtons(['Deal 3 damage to a ground unit', '(No effect) Saboteur: defeat all shields']);
-            context.player1.clickPrompt('Deal 3 damage to a ground unit');
             expect(context.player1).toHavePassAbilityButton();
             expect(context.player1).toBeAbleToSelectExactly([context.atst, context.kitFisto, context.battlefieldMarine]);
-            context.player1.clickCard(context.atst);
 
+            context.player1.clickCard(context.atst);
             expect(context.atst.damage).toBe(3);
 
             // Coordinate offline

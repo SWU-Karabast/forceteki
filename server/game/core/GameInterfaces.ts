@@ -16,6 +16,7 @@ export interface GameConfiguration {
     pushUpdate: () => void;
     buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     userTimeoutDisconnect: (userId: string) => void;
+    enableUndo?: boolean;
 }
 
 export function validateGameConfiguration(configuration: GameConfiguration): void {

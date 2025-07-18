@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -46,6 +46,10 @@ const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
 const { CostAdjuster } = require('./cost/CostAdjuster.js');
 const { logger } = require('../../logger.js');
+const { SnapshotManager } = require('./snapshot/SnapshotManager.js');
+const AbilityHelper = require('../AbilityHelper.js');
+const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
+const { getAbilityHelper } = require('../AbilityHelper.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -64,7 +68,7 @@ class Game extends EventEmitter {
     }
 
     get allCards() {
-        return this.state.allCards.map((x) => this.getCard(x));
+        return this.state.allCards.map((x) => this.getFromRef(x));
     }
 
     /** @returns { Player | null } */
@@ -104,7 +108,7 @@ class Game extends EventEmitter {
     }
 
     set roundNumber(value) {
-        Contract.assertNonNegative(value, 'Round Number must be non-zero: ' + value);
+        Contract.assertNonNegative(value, 'Round number must be non-negative: ' + value);
         this.state.roundNumber = value;
     }
 
@@ -113,7 +117,20 @@ class Game extends EventEmitter {
     }
 
     get isUndoEnabled() {
-        return this.#experimental.undo;
+        return this.snapshotManager.undoEnabled;
+    }
+
+    get actionNumber() {
+        return this.state.actionNumber;
+    }
+
+    set actionNumber(value) {
+        Contract.assertNonNegative(value, 'Action number must be non-negative: ' + value);
+        this.state.actionNumber = value;
+    }
+
+    get gameObjectManager() {
+        return this.snapshotManager.gameObjectManager;
     }
 
     /**
@@ -128,7 +145,13 @@ class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
+        /** @private */
+        this.snapshotManager = new SnapshotManager(this, details.enableUndo);
+
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
+
+        /** @type {import('../AbilityHelper.js').IAbilityHelper} */
+        this.abilityHelper = getAbilityHelper(this);
 
         /** @type { {[key: string]: Player | Spectator} } */
         this.playersAndSpectators = {};
@@ -140,7 +163,6 @@ class Game extends EventEmitter {
         this.started = false;
         this.statsUpdated = false;
         this.playStarted = false;
-        this.gameObjectManager = new GameStateManager(this);
         this.createdAt = new Date();
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
@@ -152,7 +174,7 @@ class Game extends EventEmitter {
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this.#debug = { pipeline: false };
         // Experimental flags, intended only for manual testing. Use the enable methods to temporarily flag these on during tests.
-        this.#experimental = { undo: false };
+        this.#experimental = { };
 
         this.manualMode = false;
         this.gameMode = details.gameMode;
@@ -164,14 +186,15 @@ class Game extends EventEmitter {
         this.currentActionWindow = null;
         this.currentOpenPrompt = null;
 
-        /** @type { import('./GameStateManager.js').IGameState } */
+        /** @type { import('./snapshot/SnapshotInterfaces.js').IGameState } */
         this.state = {
             initialFirstPlayer: null,
             initiativePlayer: null,
             actionPhaseActivePlayer: null,
             roundNumber: 0,
             isInitiativeClaimed: false,
-            allCards: []
+            allCards: [],
+            actionNumber: -1,
         };
 
         this.tokenFactories = null;
@@ -205,8 +228,6 @@ class Game extends EventEmitter {
                 details.useActionTimer ?? false
             );
         });
-
-        // TODO: checks for required detail values (cardDataGetter, etc.) and an interface for the details object
 
         details.spectators?.forEach((spectator) => {
             this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator);
@@ -1050,7 +1071,7 @@ class Game extends EventEmitter {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
         this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers);
-        this.queueStep(new ActionPhase(this));
+        this.queueStep(new ActionPhase(this, () => this.getNextActionNumber(), this.snapshotManager));
         this.queueStep(new RegroupPhase(this));
         this.queueSimpleStep(() => this.roundEnded(), 'roundEnded');
         this.queueSimpleStep(() => this.beginRound(), 'beginRound');
@@ -1065,6 +1086,11 @@ class Game extends EventEmitter {
                 this.removeTokenFromPlay(token);
             }
         }
+    }
+
+    getNextActionNumber() {
+        this.actionNumber++;
+        return this.actionNumber;
     }
 
     /**
@@ -1594,7 +1620,7 @@ class Game extends EventEmitter {
      * @param {import('./GameObjectBase.js').GameObjectRef<T>} gameRef
      * @returns {T | null}
      */
-    getCard(gameRef) {
+    getFromRef(gameRef) {
         return this.gameObjectManager.get(gameRef);
     }
 
@@ -1638,20 +1664,35 @@ class Game extends EventEmitter {
         return {};
     }
 
-    takeSnapshot() {
-        if (this.#experimental.undo && 'takeSnapshot' in this.pipeline.currentStep) {
-            return this.pipeline.currentStep.takeSnapshot();
+    /**
+     * Takes a manual snapshot of the current game state for the given player
+     *
+     * @param {Player} player - The player for whom the snapshot is taken
+     */
+    takeManualSnapshot(player) {
+        if (this.isUndoEnabled) {
+            Contract.assertHasProperty(player, 'id', 'Player must have an id to take a manual snapshot');
+            return this.snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId: player.id });
         }
 
-        return null;
+        return -1;
     }
 
     /**
-     * @param {number | null} snapshotId
+     * Restores the given player's most recent manual snapshot, if available
+     *
+     * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
+     * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshot(snapshotId) {
-        if (this.#experimental.undo && 'rollbackToSnapshot' in this.pipeline.currentStep) {
-            this.pipeline.currentStep.rollbackToSnapshot(snapshotId);
+    rollbackToSnapshot(settings) {
+        if (this.isUndoEnabled && 'postRollbackOperations' in this.pipeline.currentStep) {
+            const result = this.snapshotManager.rollbackTo(settings);
+
+            if (!result) {
+                return false;
+            }
+
+            this.pipeline.currentStep.postRollbackOperations();
             return true;
         }
 
@@ -1686,19 +1727,6 @@ class Game extends EventEmitter {
             fcn();
         } finally {
             this.#debug.pipeline = false;
-        }
-    }
-
-    /**
-     * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
-     * @param {() => any} fcn
-     */
-    enableUndo(fcn) {
-        this.#experimental.undo = Helpers.isDevelopment();
-        try {
-            return fcn();
-        } finally {
-            this.#experimental.undo = false;
         }
     }
 

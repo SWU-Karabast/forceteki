@@ -14,7 +14,6 @@ import type { Player } from '../Player.js';
 import type { PlayCardAction } from './PlayCardAction.js';
 import type { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';
 import type { Card } from '../card/Card.js';
-import { v4 as uuidv4 } from 'uuid';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
 import type { IActionTargetResolver, ITargetResolverBase } from '../../TargetInterfaces.js';
@@ -22,6 +21,8 @@ import type { IAbilityLimit } from './AbilityLimit.js';
 import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { ITargetResult, TargetResolver } from './abilityTargets/TargetResolver.js';
 import type { ActionAbility } from './ActionAbility.js';
+import type { IGameObjectBaseState } from '../GameObjectBase.js';
+import { GameObjectBase } from '../GameObjectBase.js';
 import type { CardAbility } from './CardAbility.js';
 import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { IPassAbilityHandler } from '../gameSteps/AbilityResolver.js';
@@ -30,6 +31,9 @@ import type { MsgArg } from '../chat/GameChat.js';
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
 };
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
 
 /**
  * Base class representing an ability that can be done by the player
@@ -41,15 +45,13 @@ export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilit
  * `player` that is executing the action, and the `source` card object that the
  * ability is generated from.
  */
-export abstract class PlayerOrCardAbility {
+export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends GameObjectBase<T> {
     public title: string;
     public limit?: IAbilityLimit;
     public canResolveWithoutLegalTargets: boolean;
     public targetResolvers: TargetResolver<any>[];
     public cannotTargetFirst: boolean;
 
-    public readonly uuid: string;
-    public readonly game: Game;
     public readonly type: AbilityType;
     public readonly optional: boolean;
     public readonly immediateEffect?: GameSystem;
@@ -68,6 +70,7 @@ export abstract class PlayerOrCardAbility {
     }
 
     public constructor(game: Game, card: Card, properties: IPlayerOrCardAbilityProps<AbilityContext>, type = AbilityType.Action) {
+        super(game);
         Contract.assertStringValue(properties.title);
 
         const hasImmediateEffect = properties.immediateEffect != null;
@@ -80,7 +83,6 @@ export abstract class PlayerOrCardAbility {
 
         Contract.assertFalse(systemTypesCount > 1, 'Cannot create ability with multiple system initialization properties');
 
-        this.uuid = uuidv4();
         this.title = properties.title;
         this.type = type;
         this.optional = !!properties.optional;
@@ -95,7 +97,6 @@ export abstract class PlayerOrCardAbility {
         this.playerChoosingOptional = properties.playerChoosingOptional ?? RelativePlayer.Self;
         this.optionalButtonTextOverride = properties.optionalButtonTextOverride;
 
-        this.game = game;
         this.card = card;
         this.properties = properties;
         this.cannotTargetFirst = false;
@@ -125,10 +126,14 @@ export abstract class PlayerOrCardAbility {
         this.nonDependentTargets = this.targetResolvers.filter((target) => !target.dependsOnOtherTarget);
     }
 
-    public toString() {
+    public override toString() {
         return this.properties.cardName
             ? `'${this.properties.cardName} ability: ${this.title}'`
             : `'Ability: ${this.title}'`;
+    }
+
+    public override getGameObjectName() {
+        return 'PlayerOrCardAbility';
     }
 
     protected buildCost(cost: ICost<AbilityContext> | ICost<AbilityContext>[] | ((context: AbilityContext) => ICost<AbilityContext> | ICost<AbilityContext>[])) {
