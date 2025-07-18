@@ -1,5 +1,5 @@
 import type { Card } from '../card/Card';
-import type { PhaseName, SnapshotType } from '../Constants';
+import type { PhaseName, RoundEntryPoint, SnapshotType } from '../Constants';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import type { Player } from '../Player';
 
@@ -51,6 +51,21 @@ export interface IGetPhaseSnapshotSettings extends IPhaseSnapshotSettings {
 }
 
 export type IGetSnapshotSettings = IGetActionSnapshotSettings | IGetManualSnapshotSettings | IGetPhaseSnapshotSettings;
+
+interface IRollbackResultBase {
+    success: boolean;
+}
+
+interface IRollbackResultSuccess extends IRollbackResultBase {
+    success: true;
+    roundEntryPoint: RoundEntryPoint;
+}
+
+interface IRollbackResultFailure extends IRollbackResultBase {
+    success: false;
+}
+
+export type IRollbackResult = IRollbackResultSuccess | IRollbackResultFailure;
 
 export interface IGameSnapshot {
     id: number;
