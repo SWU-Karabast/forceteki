@@ -24,6 +24,7 @@ export default class Clone extends NonLeaderUnitCard {
             title: 'This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique',
             optional: true,
             targetResolver: {
+                activePromptTitle: 'Choose a unit to clone',
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 cardCondition: (card, context) => !card.hasSomeTrait(Trait.Vehicle) && card !== context.source,
                 immediateEffect: AbilityHelper.immediateEffects.cardLastingEffect((context) => ({
