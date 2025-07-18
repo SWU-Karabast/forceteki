@@ -63,6 +63,7 @@ export interface IPlayerState extends IGameObjectState {
     passedActionPhase: boolean;
     // IDeckList is made up of arrays and GameObjectRefs, so it's serializable.
     decklist: IDeckList;
+    promptState: PlayerPromptState;
 }
 
 export class Player extends GameObject<IPlayerState> {
@@ -1307,7 +1308,6 @@ export class Player extends GameObject<IPlayerState> {
             // stats: this.getStats(),
             user: safeUser,
             promptState: promptState,
-            canUndo: this.game.gameObjectManager.canUndo(this),
             isActionPhaseActivePlayer,
             clock: undefined,
             aspects: this.getAspects(),

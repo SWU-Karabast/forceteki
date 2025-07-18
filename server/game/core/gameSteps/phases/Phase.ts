@@ -8,13 +8,17 @@ import { TriggerHandlingMode } from '../../event/EventWindow';
 import * as Helpers from '../../utils/Helpers';
 
 export abstract class Phase extends BaseStepWithPipeline {
+    protected readonly name: PhaseName;
+
     private steps: IStep[] = [];
 
     public constructor(
         game: Game,
-        private name: PhaseName
+        name: PhaseName
     ) {
         super(game);
+
+        this.name = name;
     }
 
     public initialise(steps: IStep[]): void {
