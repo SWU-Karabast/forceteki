@@ -6,6 +6,8 @@ import { ResourcePrompt } from '../prompts/ResourcePrompt';
 import { MulliganPrompt } from '../prompts/MulliganPrompt';
 import { PhaseName } from '../../Constants';
 import { PromptType } from '../PromptInterfaces';
+import { TriggerHandlingMode } from '../../event/EventWindow';
+import { DrawSystem } from '../../../gameSystems/DrawSystem';
 
 export class SetupPhase extends Phase {
     public constructor(game: Game) {
@@ -46,7 +48,13 @@ export class SetupPhase extends Phase {
         // TODO: convert these to use systems
         for (const player of this.game.getPlayers()) {
             player.shuffleDeck();
-            player.drawCardsToHand(player.getStartingHandSize());
+
+            new DrawSystem({ amount: player.getStartingHandSize() })
+                .resolve(
+                    player,
+                    this.game.getFrameworkContext(),
+                    TriggerHandlingMode.ResolvesTriggers
+                );
         }
     }
 }

@@ -50,6 +50,7 @@ import { logger } from '../../logger';
 import { StandardActionTimer } from './actionTimer/StandardActionTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
 import { PlayerTimeRemainingStatus, type IActionTimer } from './actionTimer/IActionTimer';
+import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -67,7 +68,7 @@ export interface IPlayerState extends IGameObjectState {
     costAdjusters: GameObjectRef<CostAdjuster>[];
 }
 
-export class Player extends GameObject<IPlayerState> {
+export class Player extends GameObject<IPlayerState> implements IGameStatisticsTrackable {
     public user: IUser;
     public printedType: string;
     // TODO: INCOMPLETE
@@ -138,6 +139,14 @@ export class Player extends GameObject<IPlayerState> {
 
     public get lastActionId() {
         return this._lastActionId;
+    }
+
+    public get trackingId(): string {
+        if (process.env.ENVIRONMENT === 'development') {
+            return this.user.username;
+        }
+
+        return this.id;
     }
 
     private canTakeActionsThisPhase: null;
