@@ -138,6 +138,23 @@ describe('Guardian of the Whills', function () {
                 context.player1.clickCard(context.guardianOfTheWhills);
                 expect(context.player1.exhaustedResourceCount).toBe(9); // full cost is 3
             });
+
+            it('should not decrease the cost of an upgrade played on a friendly unit by 1 resource when the upgrade costs 1 more than available resources', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['craving-power'],
+                        groundArena: ['guardian-of-the-whills', 'talzins-assassin'],
+                        leader: 'morgan-elsbeth#following-the-call',
+                        resources: 4
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.cravingPower);
+                expect(context.player1).toBeAbleToSelectExactly([context.guardianOfTheWhills]);
+            });
         });
     });
 });
