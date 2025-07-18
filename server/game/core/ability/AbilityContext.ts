@@ -8,6 +8,7 @@ import type { Player } from '../Player';
 import type { Card } from '../card/Card';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import type { IOngoingEffectProps } from '../../Interfaces';
+import type { IGameStatisticsContext } from '../../../gameStatistics/GameStatisticsTracker';
 
 export interface IAbilityContextProperties {
     game: Game;
@@ -32,7 +33,7 @@ export interface IAbilityContextProperties {
  * While the structure will vary from inheriting classes, it is guaranteed to have at least the `game` object, the
  * `player` that is executing the action, and the `source` card object that the ability is generated from.
  */
-export class AbilityContext<TSource extends Card = Card> {
+export class AbilityContext<TSource extends Card = Card> implements IGameStatisticsContext {
     public game: Game;
     public source: TSource;
     public player: Player;

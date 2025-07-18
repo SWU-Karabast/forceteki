@@ -133,6 +133,11 @@ class Game extends EventEmitter {
         return this.snapshotManager.gameObjectManager;
     }
 
+    /** @returns { import('../../gameStatistics/GameStatisticsTracker.js').IGameStatisticsTracker } */
+    get statsTracker() {
+        return this._statsTracker;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -203,6 +208,7 @@ class Game extends EventEmitter {
         // STATE TODO: Move the generator logic into the state object.
         this.randomGenerator = seedrandom();
         this.cardDataGetter = details.cardDataGetter;
+        this._statsTracker = details.statsTracker;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
 
         /** @type {AbilityResolver | null} */

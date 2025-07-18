@@ -20,6 +20,7 @@ import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
 import { AlertType } from '../game/core/Constants';
 import { v4 as uuidv4 } from 'uuid';
+import { GameStatisticsLogger } from '../gameStatistics/GameStatisticsTracker';
 
 interface LobbySpectator {
     id: string;
@@ -686,6 +687,7 @@ export class Lobby {
             gameMode: GameMode.Premier,
             players,
             cardDataGetter: this.cardDataGetter,
+            statsTracker: new GameStatisticsLogger(),
             useActionTimer,
             pushUpdate: () => this.sendGameState(this.game),
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
