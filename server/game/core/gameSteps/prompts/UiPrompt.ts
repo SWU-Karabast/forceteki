@@ -41,7 +41,7 @@ export abstract class UiPrompt extends BaseStep {
             this.game.currentOpenPrompt = this;
 
             for (const player of this.game.getPlayers()) {
-                this.playerIsNewlyActive.set(player, !this.previousPrompt || !this.previousPrompt.activeCondition(player));
+                this.playerIsNewlyActive.set(player, !player.activeForPreviousPrompt);
             }
         } else {
             for (const player of this.game.getPlayers()) {
@@ -83,12 +83,14 @@ export abstract class UiPrompt extends BaseStep {
     public setPrompt(): void {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
+                player.activeForPreviousPrompt = true;
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
 
                 if (this.firstContinue) {
                     this.startActionTimer(player);
                 }
             } else {
+                player.activeForPreviousPrompt = false;
                 player.setPrompt(this.waitingPrompt());
                 player.actionTimer.stop();
             }
