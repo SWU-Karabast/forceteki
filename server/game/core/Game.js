@@ -197,6 +197,7 @@ class Game extends EventEmitter {
             isInitiativeClaimed: false,
             allCards: [],
             actionNumber: -1,
+            winnerNames: []
         };
 
         this.tokenFactories = null;
@@ -429,6 +430,14 @@ class Game extends EventEmitter {
         });
 
         return otherPlayer;
+    }
+
+    /**
+     * Gets the winner names of the game
+     * @returns {string[]}
+     */
+    getWinnerNames() {
+        return this.state.winnerNames;
     }
 
 
@@ -735,11 +744,11 @@ class Game extends EventEmitter {
     /**
      * Display message declaring victory for one player, and record stats for
      * the game
-     * @param {Player | Player[]} winner
+     * @param {Player[]|Player} winnerPlayers
      * @param {String} reason
      */
-    endGame(winner, reason) {
-        if (this.winner) {
+    endGame(winnerPlayers, reason) {
+        if (this.state.winnerNames.length > 0) {
             // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
         }
@@ -753,12 +762,13 @@ class Game extends EventEmitter {
          * TODO this will likely change when we decide on how the popup will look like separately
          * TODO from the preference popup
          */
-        if (Array.isArray(winner)) {
-            this.winner = winner.map((w) => w.name);
+        const winners = Helpers.asArray(winnerPlayers);
+        if (winners.length > 1) {
+            winners.forEach((w) => this.state.winnerNames.push(w.name));
             this.addMessage('The game ends in a draw');
         } else {
-            this.winner = [winner.name];
-            this.addMessage('{0} has won the game', winner);
+            this.state.winnerNames.push(winners[0].name);
+            this.addMessage('{0} has won the game', winnerPlayers);
         }
         this.finishedAt = new Date();
         this.gameEndReason = reason;
@@ -768,7 +778,7 @@ class Game extends EventEmitter {
         if (typeof this.router.sendGameState === 'function') {
             this.router.sendGameState(this); // call the function if it exists
         } else {
-            this.queueStep(new GameOverPrompt(this, winner));
+            this.queueStep(new GameOverPrompt(this));
         }
     }
 
@@ -1655,7 +1665,6 @@ class Game extends EventEmitter {
                 }),
                 started: this.started,
                 gameMode: this.gameMode,
-                winner: this.winner ? this.winner : undefined, // TODO comment once we clarify how to display endgame screen
             };
 
             // clean out any properies that are null or undefined to reduce the message size
