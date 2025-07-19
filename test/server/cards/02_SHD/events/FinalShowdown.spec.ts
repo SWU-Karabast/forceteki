@@ -33,7 +33,7 @@ describe('Final Showdown', function() {
             context.moveToRegroupPhase();
 
             // Player 1 should have lost the game
-            expect(context.game.winner).toEqual([context.player2Name]);
+            expect(context.game.state.winnerNames).toEqual([context.player2Name]);
         });
 
         it('Final Showdown\'s event ability should ready all friendly units and allow you to win this phase', async function() {
@@ -74,7 +74,7 @@ describe('Final Showdown', function() {
             context.player1.clickCard(context.p2Base);
 
             // Player 1 should have won the game
-            expect(context.game.winner).toEqual([context.player1Name]);
+            expect(context.game.state.winnerNames).toEqual([context.player1Name]);
 
             context.player1.clickPrompt('Continue Playing');
             context.player2.clickPrompt('Continue Playing');

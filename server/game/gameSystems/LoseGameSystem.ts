@@ -15,7 +15,7 @@ export class LoseGameSystem<TContext extends AbilityContext = AbilityContext> ex
 
     public eventHandler(event: any): void {
         const player = event.player as Player;
-        player.game.endGame(player.opponent, event.endGameReason);
+        player.game.endGame([player.opponent], event.endGameReason);
     }
 
     public override defaultTargets(context: TContext): Player[] {
