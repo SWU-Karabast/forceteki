@@ -304,8 +304,9 @@ export class Lobby {
 
         this.updateUserLastActivity(user.getId());
 
-        // if the game is already going, send game state and stop here
+        // if the game is already going, send lobby and game state and stop here
         if (this.game) {
+            this.sendLobbyState();
             this.sendGameState(this.game);
             return Promise.resolve();
         }
