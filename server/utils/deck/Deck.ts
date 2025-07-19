@@ -2,7 +2,7 @@ import type { Card } from '../../game/core/card/Card';
 import type { Player } from '../../game/core/Player';
 import * as CardHelpers from '../../game/core/card/CardHelpers';
 import * as Contract from '../../game/core/utils/Contract';
-import type { ISwuDbCardEntry, ISwuDbDecklist, IDecklistInternal, IInternalCardEntry } from './DeckInterfaces';
+import type { ISwuDbCardEntry, ISwuDbDecklist, IDecklistInternal, IInternalCardEntry, ILeaderBaseInternal } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import type { IPlayableCard } from '../../game/core/card/baseClasses/PlayableOrDeployableCard';
 import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
@@ -101,6 +101,13 @@ export class Deck {
             base: this.base,
             deck: this.convertMapToCardList(this.deckCards),
             sideboard: this.convertMapToCardList(this.sideboard),
+        };
+    }
+
+    public getLeaderBase(): ILeaderBaseInternal {
+        return {
+            leader: this.leader,
+            base: this.base
         };
     }
 
