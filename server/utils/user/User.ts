@@ -133,7 +133,7 @@ export class AnonymousUser extends User {
     }
 
     public isDevTestUser(): boolean {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.ENVIRONMENT === 'development') {
             return this.id === 'exe66' || this.id === 'th3w4y';
         }
         return false;
