@@ -7,12 +7,13 @@ import { MulliganPrompt } from '../prompts/MulliganPrompt';
 import { PhaseName } from '../../Constants';
 import { PromptType } from '../PromptInterfaces';
 import * as Contract from '../../utils/Contract';
+import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 
 export class SetupPhase extends Phase {
-    public constructor(game: Game, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
+    public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
         Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToWithinPhase, 'SetupPhase does not support rolling back to the middle of the phase');
 
-        super(game, PhaseName.Setup);
+        super(game, PhaseName.Setup, snapshotManager);
 
         this.initialise(
             [

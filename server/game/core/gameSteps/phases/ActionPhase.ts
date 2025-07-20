@@ -13,8 +13,6 @@ export class ActionPhase extends Phase {
     // each ActionWindow will use this handler to indicate if the window was passed or not
     private readonly passStatusHandler = (passed: boolean) => this.prevPlayerPassed = passed;
 
-    private readonly snapshotManager: SnapshotManager;
-
     private prevPlayerPassed = false;
 
     public constructor(
@@ -25,9 +23,8 @@ export class ActionPhase extends Phase {
     ) {
         Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToStartOfPhase, 'ActionPhase does not support rolling back to the start of the phase, rollback to start of round instead');
 
-        super(game, PhaseName.Action);
+        super(game, PhaseName.Action, snapshotManager);
 
-        this.snapshotManager = snapshotManager;
         this.getNextActionNumber = getNextActionNumber;
 
         const setupStep: IStep[] = [];

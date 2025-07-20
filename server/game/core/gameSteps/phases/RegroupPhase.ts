@@ -9,12 +9,13 @@ import { DrawSystem } from '../../../gameSystems/DrawSystem';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 import type { ICardWithExhaustProperty } from '../../card/baseClasses/PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
+import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 
 export class RegroupPhase extends Phase {
-    public constructor(game: Game, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
+    public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
         Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToWithinPhase, 'RegroupPhase does not support rolling back to the middle of the phase');
 
-        super(game, PhaseName.Regroup);
+        super(game, PhaseName.Regroup, snapshotManager);
         this.initialise(
             [
                 new SimpleStep(game, () => this.drawTwo(), 'drawTwo'),

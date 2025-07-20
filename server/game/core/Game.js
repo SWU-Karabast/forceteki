@@ -183,6 +183,8 @@ class Game extends EventEmitter {
         /** @type { EventWindow } */
         this.currentEventWindow = null;
         this.currentAttack = null;
+
+        /** @type { PhaseName | null } */
         this.currentPhase = null;
         this.currentActionWindow = null;
         this.currentOpenPrompt = null;
@@ -1056,7 +1058,10 @@ class Game extends EventEmitter {
         );
 
         this.resolveGameState(true);
-        this.pipeline.initialise([new SetupPhase(this), new SimpleStep(this, () => this.beginRound(), 'beginRound')]);
+        this.pipeline.initialise([
+            new SetupPhase(this, this.snapshotManager),
+            new SimpleStep(this, () => this.beginRound(), 'beginRound')
+        ]);
 
         this.playStarted = true;
         this.startedAt = new Date();
@@ -1101,7 +1106,7 @@ class Game extends EventEmitter {
                 : PhaseInitializeMode.Normal;
 
         const regroupPhaseStep = [
-            new RegroupPhase(this, regroupInitializeMode)
+            new RegroupPhase(this, this.snapshotManager, regroupInitializeMode)
         ];
 
         this.pipeline.initialise([

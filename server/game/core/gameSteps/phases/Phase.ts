@@ -1,4 +1,4 @@
-import { AlertType, PhaseName } from '../../Constants';
+import { AlertType, PhaseName, SnapshotType } from '../../Constants';
 import { EventName } from '../../Constants';
 import type Game from '../../Game';
 import { BaseStepWithPipeline } from '../BaseStepWithPipeline';
@@ -6,6 +6,7 @@ import { SimpleStep } from '../SimpleStep';
 import type { IStep } from '../IStep';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 import * as Helpers from '../../utils/Helpers';
+import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 
 export enum PhaseInitializeMode {
     Normal = 'normal',
@@ -15,20 +16,27 @@ export enum PhaseInitializeMode {
 
 export abstract class Phase extends BaseStepWithPipeline {
     protected readonly name: PhaseName;
+    protected readonly snapshotManager: SnapshotManager;
 
     public constructor(
         game: Game,
-        name: PhaseName
+        name: PhaseName,
+        snapshotManager: SnapshotManager
     ) {
         super(game);
 
         this.name = name;
+        this.snapshotManager = snapshotManager;
     }
 
     protected initialise(steps: IStep[], initializeMode: PhaseInitializeMode): void {
         const startStep: IStep[] = [];
 
         // skip the start step if we're rolling back to somewhere within the phase
+        if (initializeMode === PhaseInitializeMode.Normal) {
+            startStep.push(new SimpleStep(this.game, () => this.takeStartOfPhaseSnapshot(), 'takeStartOfPhaseSnapshot'));
+        }
+
         if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase) {
             startStep.push(new SimpleStep(this.game, () => this.startPhase(), 'startPhase'));
         }
@@ -40,6 +48,14 @@ export abstract class Phase extends BaseStepWithPipeline {
             ...steps,
             endStep
         ]);
+    }
+
+    private takeStartOfPhaseSnapshot() {
+        this.snapshotManager.moveToNextAction();
+        this.snapshotManager.takeSnapshot({
+            type: SnapshotType.Phase,
+            phaseName: this.name
+        });
     }
 
     protected startPhase(): void {

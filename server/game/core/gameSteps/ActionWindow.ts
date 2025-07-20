@@ -1,5 +1,5 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { EventName, EffectName, SnapshotType, PhaseName } from '../Constants.js';
+import { EventName, EffectName, SnapshotType } from '../Constants.js';
 import * as EnumHelpers from '../utils/EnumHelpers.js';
 import * as Contract from '../utils/Contract.js';
 import type Game from '../Game.js';
@@ -97,7 +97,7 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override continue() {
-        this.checkUpdateSnapshots();
+        this.checkUpdateSnapshot();
 
         // TODO: do we need promptedActionWindows?
         if (!this.activePlayer.promptedActionWindows[this.windowName]) {
@@ -116,24 +116,12 @@ export class ActionWindow extends UiPrompt {
     }
 
     // TODO: see if there's better logic for determining when and how to advance the turn, take new snapshots, etc.
-    private checkUpdateSnapshots() {
-        const needsActionSnapshot = this.snapshotManager.currentSnapshottedAction !== this.actionNumber;
-        const needsActionPhaseStartSnapshot =
-            this.snapshotManager.currentSnapshottedPhase !== this.game.currentPhase ||
-            this.snapshotManager.currentSnapshottedRound !== this.game.roundNumber;
-
-        if (needsActionSnapshot) {
+    private checkUpdateSnapshot() {
+        if (this.snapshotManager.currentSnapshottedAction !== this.actionNumber) {
             this.snapshotManager.moveToNextAction();
             this.snapshotManager.takeSnapshot({
                 type: SnapshotType.Action,
                 playerId: this.activePlayer.id
-            });
-        }
-
-        if (needsActionPhaseStartSnapshot) {
-            this.snapshotManager.takeSnapshot({
-                type: SnapshotType.Phase,
-                phaseName: PhaseName.Action
             });
         }
     }
