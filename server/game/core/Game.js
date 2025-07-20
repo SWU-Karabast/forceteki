@@ -133,7 +133,7 @@ class Game extends EventEmitter {
         return this.snapshotManager.gameObjectManager;
     }
 
-    get getWinnerNames() {
+    get winnerNames() {
         return this.state.winnerNames;
     }
 

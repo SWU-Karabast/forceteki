@@ -234,7 +234,7 @@ export class Player extends GameObject<IPlayerState> {
     private checkPlayerTimeoutConditions(promptUuid: string, playerActionId: number) {
         return this.game.currentOpenPrompt.uuid === promptUuid &&
           playerActionId === this._lastActionId &&
-          this.game.getWinnerNames.length === 0;
+          this.game.winnerNames.length === 0;
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
