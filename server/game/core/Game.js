@@ -184,6 +184,8 @@ class Game extends EventEmitter {
         this.currentAttack = null;
         this.currentPhase = null;
         this.currentActionWindow = null;
+
+        /** @type {import('./gameSteps/prompts/UiPrompt.js').UiPrompt} */
         this.currentOpenPrompt = null;
 
         /** @type { import('./snapshot/SnapshotInterfaces.js').IGameState } */
