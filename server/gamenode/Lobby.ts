@@ -119,24 +119,11 @@ export class Lobby {
         return this.gameFormat;
     }
 
-    public getLobbyState(): any {
+    public getLobbyState(user?: LobbyUser): any {
         return {
             id: this._id,
             lobbyName: this._lobbyName,
-            users: this.users.map((u) => ({
-                id: u.id,
-                username: u.username,
-                state: u.state,
-                ready: u.ready,
-                deck: u.deck?.getDecklist(),
-                reportedBugs: u.reportedBugs,
-                deckErrors: u.deckValidationErrors,
-                importDeckErrors: u.importDeckValidationErrors,
-                unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist()),
-                minDeckSize: u.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(u.deck?.base.id) : 50,
-                maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format),
-                authenticated: u.socket?.user.isDevTestUser() || u.socket?.user.isAuthenticatedUser()
-            })),
+            users: this.users.map((u) => this.buildLobbyUserData(u, user?.id === u.id)),
             spectators: this.spectators.map((s) => ({
                 id: s.id,
                 username: s.username,
@@ -152,6 +139,31 @@ export class Lobby {
             matchingCountdownText: this.matchingCountdownText
         };
     }
+
+    private buildLobbyUserData(user: LobbyUser, fullData = false) {
+        const basicData = {
+            id: user.id,
+            username: user.username,
+            state: user.state,
+            ready: user.ready,
+            authenticated: user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser()
+        };
+
+        const extendedData = fullData ? {
+            deck: user.deck?.getDecklist(),
+            reportedBugs: user.reportedBugs,
+            deckErrors: user.deckValidationErrors,
+            importDeckErrors: user.importDeckValidationErrors,
+            unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(user.deck?.getDecklist()),
+            minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id) : 50,
+            maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format),
+        } : {
+            deck: user.deck?.getLeaderBase(),
+        };
+
+        return { ...basicData, ...extendedData };
+    }
+
 
     public getLastActivityForUser(userId: string): Date | null {
         return this.userLastActivity.get(userId);
@@ -292,8 +304,9 @@ export class Lobby {
 
         this.updateUserLastActivity(user.getId());
 
-        // if the game is already going, send game state and stop here
+        // if the game is already going, send lobby and game state and stop here
         if (this.game) {
+            this.sendLobbyState();
             this.sendGameState(this.game);
             return Promise.resolve();
         }
@@ -972,7 +985,7 @@ export class Lobby {
     public sendLobbyState(forceSend = false): void {
         for (const user of this.users) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('lobbystate', this.getLobbyState());
+                user.socket.send('lobbystate', this.getLobbyState(user));
             }
         }
     }

@@ -27,9 +27,12 @@ export interface ISwuDbDecklist {
     deckID?: string;
 }
 
-export interface IDecklistInternal {
+export interface ILeaderBaseInternal {
     leader: IInternalCardEntry;
     base: IInternalCardEntry;
+}
+
+export interface IDecklistInternal extends ILeaderBaseInternal {
     deck: IInternalCardEntry[];
     sideboard?: IInternalCardEntry[];
     deckID?: string;
