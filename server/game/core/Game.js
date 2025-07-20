@@ -133,6 +133,10 @@ class Game extends EventEmitter {
         return this.snapshotManager.gameObjectManager;
     }
 
+    get getWinnerNames() {
+        return this.state.winnerNames;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -430,14 +434,6 @@ class Game extends EventEmitter {
         });
 
         return otherPlayer;
-    }
-
-    /**
-     * Gets the winner names of the game
-     * @returns {string[]}
-     */
-    getWinnerNames() {
-        return this.state.winnerNames;
     }
 
 
