@@ -1715,7 +1715,7 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Restores the given player's most recent manual snapshot, if available
+     * Attempts to restore the designated snapshot
      *
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
      * @returns True if a snapshot was restored, false otherwise
@@ -1725,13 +1725,15 @@ class Game extends EventEmitter {
             return false;
         }
 
-        const result = this.snapshotManager.rollbackTo(settings);
+        const rollbackResult = this.snapshotManager.rollbackTo(settings);
 
-        if (!result) {
+        if (!rollbackResult.success) {
             return false;
         }
 
         this.pipeline.clearSteps();
+        this.initialisePipeline(rollbackResult.roundEntryPoint);
+        this.pipeline.continue(this);
 
         return true;
     }

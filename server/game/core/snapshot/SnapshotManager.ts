@@ -1,15 +1,15 @@
-import type { PhaseName } from '../Constants';
+import { PhaseName } from '../Constants';
+import { RoundEntryPoint } from '../Constants';
 import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from '../GameStateManager';
 import { GameStateManager } from '../GameStateManager';
-import type { IGetManualSnapshotSettings, IGetSnapshotSettings, IManualSnapshotSettings, ISnapshotSettings } from './SnapshotInterfaces';
+import type { IGetManualSnapshotSettings, IGetSnapshotSettings, IManualSnapshotSettings, IRollbackResult, ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
 import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { SnapshotMap } from './container/SnapshotMap';
 
-const maxManualSnapshots = 5; // Number of manual player snapshots
 const maxActionSnapshots = 3; // Number of actions saved for undo in a turn (per player)
 const maxPhaseSnapshots = 2; // Current and previous of a specific phase
 
@@ -104,9 +104,9 @@ export class SnapshotManager {
         return snapshotId;
     }
 
-    public rollbackTo(settings: IGetSnapshotSettings) {
+    public rollbackTo(settings: IGetSnapshotSettings): IRollbackResult {
         if (!this.undoEnabled) {
-            return false;
+            return { success: false };
         }
 
         let rolledBackSnapshotIdx: number = null;
@@ -127,10 +127,10 @@ export class SnapshotManager {
         if (rolledBackSnapshotIdx != null) {
             // Throw out all snapshots after the rollback snapshot.
             this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
-            return true;
+            return { success: true, roundEntryPoint: this.getRoundEntryPoint(settings) };
         }
 
-        return false;
+        return { success: false };
     }
 
     private rollbackManualSnapshot(settings: IGetManualSnapshotSettings): number {
@@ -145,6 +145,19 @@ export class SnapshotManager {
         const offset = offsetValue ?? 0;
         Contract.assertTrue(offset < 1, `Snapshot offset must be less than 1, got ${offset}.`);
         return offset;
+    }
+
+    private getRoundEntryPoint(settings: IGetSnapshotSettings): RoundEntryPoint {
+        switch (settings.type) {
+            case SnapshotType.Action:
+                return RoundEntryPoint.WithinActionPhase;
+            case SnapshotType.Phase:
+                return settings.phaseName === PhaseName.Action ? RoundEntryPoint.StartOfRound : RoundEntryPoint.StartOfRegroupPhase;
+            case SnapshotType.Manual:
+                return this.snapshotFactory.currentSnapshottedPhase === PhaseName.Action ? RoundEntryPoint.WithinActionPhase : RoundEntryPoint.StartOfRegroupPhase;
+            default:
+                Contract.fail(`Unimplemented snapshot type: ${(settings as any).type}`);
+        }
     }
 
     public countAvailableActionSnapshots(playerId: string): number {
