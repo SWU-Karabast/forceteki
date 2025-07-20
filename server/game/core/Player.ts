@@ -152,6 +152,8 @@ export class Player extends GameObject<IPlayerState> {
     private noTimer: boolean;
     private _lastActionId = 0;
 
+    public activeForPreviousPrompt = false;
+
     public constructor(id: string, user: IUser, game: Game, useTimer = false) {
         super(game, user.username);
 
