@@ -31,7 +31,7 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
         registrar.addConstantAbility({
-            title: 'Play a Capital Ship unit from your hand. It costs 2 resources less',
+            title: 'Each Capital Ship unit you play costs 2 resources less',
             targetController: RelativePlayer.Self,
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 match: (card) => card.hasSomeTrait(Trait.CapitalShip),
