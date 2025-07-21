@@ -21,7 +21,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
 
     public eventHandler(event): void {
         event.player.drawCardsToHand(event.amount);
-        this.logDrawAction(event);
+        this.trackDrawMetric(event);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -76,7 +76,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
         });
     }
 
-    private logDrawAction(event): void {
+    private trackDrawMetric(event): void {
         for (const card of event.cards) {
             card.controller.game.statsTracker.trackCardMetric(
                 GameCardMetric.Drawn,
