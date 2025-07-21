@@ -217,7 +217,7 @@ export abstract class PlayCardAction extends PlayerAction {
 
     protected generateOnPlayEvent(context: PlayCardContext, additionalProps: any = {}) {
         const handler = () => {
-            this.logPlayCardEvent(context);
+            this.trackPlayCardMetric(context);
             if (additionalProps.handler) {
                 additionalProps.handler();
             }
@@ -243,7 +243,7 @@ export abstract class PlayCardAction extends PlayerAction {
         return card.type;
     }
 
-    private logPlayCardEvent(context: AbilityContext): void {
+    private trackPlayCardMetric(context: AbilityContext): void {
         context.game.statsTracker.trackCardMetric(
             GameCardMetric.Played,
             context.source,
