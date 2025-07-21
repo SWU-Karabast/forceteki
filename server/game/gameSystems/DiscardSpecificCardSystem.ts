@@ -19,7 +19,7 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
             event.context.game.addMessage('{0} discards {1}', event.card.owner, this.getTargetMessage(event.card, event.context));
         }
 
-        this.logDiscardAction(event);
+        this.trackDiscardMetric(event);
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Record<string, any> = {}): boolean {
@@ -47,7 +47,7 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
         super.addPropertiesToEvent(event, card, context, additionalProperties);
     }
 
-    private logDiscardAction(event): void {
+    private trackDiscardMetric(event): void {
         event.context.game.statsTracker.trackCardMetric(
             GameCardMetric.Discarded,
             event.card,
