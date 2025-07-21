@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { AbilityLimit, IAbilityLimit } from '../ability/AbilityLimit';
+import type { AbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter } from '../Constants';
 import { CardType, PlayType, WildcardCardType } from '../Constants';
