@@ -18,7 +18,7 @@ describe('Luke Skywalker Do You Read Me', function() {
             context.player1.clickCard(context.lukeSkywalkerDoYouReadMe);
 
             expect(context.player1).toBeAbleToSelectExactly([context.atst, context.wampa, context.lukeSkywalker]);
-            expect(context.player1).toHaveChooseNothingButton();
+            expect(context.player1).toHavePassAbilityButton();
 
             context.player1.clickCard(context.atst);
 
