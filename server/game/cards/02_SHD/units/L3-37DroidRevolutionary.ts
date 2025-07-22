@@ -1,6 +1,6 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { ZoneName } from '../../../core/Constants';
 
 export default class L337DroidRevolutionary extends NonLeaderUnitCard {
@@ -11,7 +11,7 @@ export default class L337DroidRevolutionary extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Rescue a captured card. if you do not, give a Shield token to this unit',
             optional: true,

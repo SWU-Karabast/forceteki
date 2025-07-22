@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class OnTheDoorstep extends EventCard {
     protected override getImplementationId() {
@@ -10,7 +10,7 @@ export default class OnTheDoorstep extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Create 3 Battle Droid tokens and ready them',
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid({ amount: 3, entersReady: true })

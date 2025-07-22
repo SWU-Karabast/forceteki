@@ -14,9 +14,6 @@ describe('Saboteur keyword', function() {
                         spaceArena: ['system-patrol-craft'],
                         hand: ['waylay']
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 

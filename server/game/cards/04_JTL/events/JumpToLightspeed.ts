@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { CardType, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
@@ -12,7 +12,7 @@ export default class JumpToLightspeed extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Return a friendly space unit and any number of non-leader upgrades on it to their owner\'s hand.',
             targetResolvers: {

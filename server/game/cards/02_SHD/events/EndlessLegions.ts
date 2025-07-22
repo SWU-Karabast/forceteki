@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { GameStateChangeRequired, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
@@ -15,7 +15,7 @@ export default class EndlessLegions extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Reveal any number of resources you control',
             targetResolver: {
@@ -28,11 +28,11 @@ export default class EndlessLegions extends EventCard {
                     promptedPlayer: RelativePlayer.Opponent
                 }),
             },
-            then: (context) => this.playRevealedCard([], context),
+            then: (context) => this.playRevealedCard([], context, AbilityHelper),
         });
     }
 
-    private playRevealedCard(playedCards: Card[], revealedCardsContext: AbilityContext): IThenAbilityPropsWithSystems<AbilityContext> {
+    private playRevealedCard(playedCards: Card[], revealedCardsContext: AbilityContext, AbilityHelper: IAbilityHelper): IThenAbilityPropsWithSystems<AbilityContext> {
         return {
             title: 'Play a revelead unit for free',
             targetResolver: {
@@ -48,7 +48,7 @@ export default class EndlessLegions extends EventCard {
                     nested: true,
                 })
             },
-            then: (context) => this.playRevealedCard([...playedCards, context.target], revealedCardsContext),
+            then: (context) => this.playRevealedCard([...playedCards, context.target], revealedCardsContext, AbilityHelper),
         };
     }
 }

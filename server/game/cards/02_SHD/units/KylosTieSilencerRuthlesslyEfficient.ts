@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType, ZoneName } from '../../../core/Constants';
@@ -15,11 +15,11 @@ export default class KylosTieSilencerRuthlesslyEfficient extends NonLeaderUnitCa
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.cardsDiscardedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDiscardedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Play Kylo\'s TIE Silencer from your discard pile',
             condition: (context) => this.cardsDiscardedThisPhaseWatcher.getCurrentValue().some((entry) =>

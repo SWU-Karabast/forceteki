@@ -1,12 +1,18 @@
 import type { Player } from '../Player';
 import type { Aspect, Trait } from '../Constants';
 import { ZoneName } from '../Constants';
-import type { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithLeaderProperties, type ILeaderCard } from './propertyMixins/LeaderProperties';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { WithAllAbilityTypes } from './propertyMixins/AllAbilityTypeRegistrations';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IDoubleSidedLeaderAbilityRegistrar, ILeaderAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import type { ActionAbility } from '../ability/ActionAbility';
+import type { Card } from './Card';
+import type TriggeredAbility from '../ability/TriggeredAbility';
+import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
+import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ConstantAbility } from '../ability/ConstantAbility';
 
 const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -23,7 +29,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         super(owner, cardData);
 
         this.setupLeaderBackSide = true;
-        this.setupLeaderBackSideAbilities(this.getAbilityRegistrar());
+        this.setupLeaderBackSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
     }
 
     protected override setupDefaultState() {
@@ -57,17 +63,17 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
     }
 
     protected override callSetupLeaderWithRegistrar() {
-        this.setupLeaderSideAbilities(this.getAbilityRegistrar());
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<IDoubleSidedLeaderCard>) {}
+    protected override setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<IDoubleSidedLeaderCard>, AbilityHelper: IAbilityHelper) {}
 
     /**
      * Create card abilities for the second leader side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderBackSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar) {
+    protected setupLeaderBackSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar, AbilityHelper: IAbilityHelper) {
     }
 
     public flipLeader() {
@@ -86,25 +92,34 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         return { ...super.getSummary(activePlayer), onStartingSide: this.state.onStartingSide };
     }
 
-    protected override addActionAbility(properties: IActionAbilityProps<this>) {
-        properties.zoneFilter = ZoneName.Base;
-        if (this.setupLeaderBackSide) {
-            properties.condition = () => this.onStartingSide === false;
-        } else {
-            properties.condition = () => this.onStartingSide === true;
-        }
-        return super.addActionAbility(properties);
+    public override createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
+        return super.createActionAbility({
+            ...properties,
+            zoneFilter: ZoneName.Base,
+            condition: this.setupLeaderBackSide ? () => !this.onStartingSide : () => this.onStartingSide,
+        });
     }
 
-    protected override addConstantAbility(properties: IConstantAbilityProps<this>) {
-        properties.sourceZoneFilter = ZoneName.Base;
-        properties.condition = () => !this.onStartingSide;
-        return super.addConstantAbility(properties);
+    public override createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): ConstantAbility {
+        return super.createConstantAbility({
+            ...properties,
+            sourceZoneFilter: ZoneName.Base,
+            condition: this.setupLeaderBackSide ? () => !this.onStartingSide : () => this.onStartingSide,
+        });
     }
 
-    protected override addTriggeredAbility(properties: ITriggeredAbilityProps<this>) {
-        properties.zoneFilter = ZoneName.Base;
-        return super.addTriggeredAbility(properties);
+    protected override createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
+        return super.createTriggeredAbility({
+            ...properties,
+            zoneFilter: ZoneName.Base,
+        });
+    }
+
+    public override createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
+        return super.createReplacementEffectAbility({
+            ...properties,
+            zoneFilter: ZoneName.Base,
+        });
     }
 
     protected override initializeForCurrentZone(prevZone?: ZoneName): void {

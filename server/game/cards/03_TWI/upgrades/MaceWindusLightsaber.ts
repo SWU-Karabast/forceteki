@@ -2,7 +2,7 @@ import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistr
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class MaceWindusLightsaber extends UpgradeCard {
     protected override getImplementationId() {
@@ -12,7 +12,7 @@ export default class MaceWindusLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
         registrar.addWhenPlayedAbility({

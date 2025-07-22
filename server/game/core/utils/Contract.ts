@@ -59,9 +59,9 @@ export function assertNotNullLike<T>(val: T, message?: string | (() => string)):
     }
 }
 
-export function assertIsNullLike<T>(val: T, message?: string): asserts val is null | undefined {
+export function assertIsNullLike<T>(val: T, message?: string | (() => string)): asserts val is null | undefined {
     if (val != null) {
-        contractCheckImpl.fail(message ?? `Expected null-like object value but found: ${val}`);
+        contractCheckImpl.fail((typeof message === 'function' ? message() : message) ?? `Expected null-like object value but found: ${val}`);
     }
 }
 

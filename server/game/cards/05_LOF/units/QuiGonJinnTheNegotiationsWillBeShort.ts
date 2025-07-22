@@ -1,7 +1,7 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class QuiGonJinnTheNegotiationsWillBeShort extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -11,7 +11,7 @@ export default class QuiGonJinnTheNegotiationsWillBeShort extends NonLeaderUnitC
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
             title: 'Choose a non-leader ground unit. Its owner puts it on the top or bottom of their deck',
             targetResolvers: {

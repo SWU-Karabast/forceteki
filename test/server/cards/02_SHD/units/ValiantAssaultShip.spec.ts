@@ -26,11 +26,7 @@ describe('Valiant Assault Ship', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.systemPatrolCraft, context.p2Base]);
 
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHaveEnabledPromptButton('If the defending player controls more resources than you, this unit gets +2/+0 for this attack');
-                expect(context.player1).toHaveEnabledPromptButton('(No effect) Saboteur: defeat all shields');
                 expect(context.valiantAssaultShip.exhausted).toBe(true);
-
-                context.player1.clickPrompt('If the defending player controls more resources than you, this unit gets +2/+0 for this attack');
                 expect(context.systemPatrolCraft.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(5);
             });

@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, EventName, RelativePlayer, Trait, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
@@ -12,7 +12,7 @@ export default class MythosaurFolkloreAwakened extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'Friendly upgraded units can\'t be exhausted or returned to hand by enemy card abilities',
             matchTarget: (card, context) =>
