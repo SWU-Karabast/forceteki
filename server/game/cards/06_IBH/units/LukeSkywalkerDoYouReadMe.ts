@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType, ZoneName } from '../../../core/Constants';
@@ -11,14 +11,14 @@ export default class LukeSkywalkerDoYouReadMe extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Deal 3 damage to a ground unit',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.GroundArena,
-                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 })
+                immediateEffect: abilityHelper.immediateEffects.damage({ amount: 3 })
             }
         });
     }

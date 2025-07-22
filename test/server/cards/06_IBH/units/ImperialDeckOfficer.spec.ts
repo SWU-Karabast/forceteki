@@ -17,7 +17,7 @@ describe('Imperial Deck Officer', function() {
             context.player1.clickPrompt('Heal 2 damage from a Villainy unit');
             expect(context.player1).toBeAbleToSelectExactly([context.maul, context.atst]);
             context.player1.clickCard(context.maul);
-            
+
             expect(context.maul.damage).toBe(1);
             expect(context.imperialDeckOfficer.exhausted).toBe(true);
         });

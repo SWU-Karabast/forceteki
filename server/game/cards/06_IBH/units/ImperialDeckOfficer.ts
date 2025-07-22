@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, WildcardCardType } from '../../../core/Constants';
@@ -11,14 +11,14 @@ export default class ImperialDeckOfficer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Heal 2 damage from a Villainy unit',
-            cost: AbilityHelper.costs.exhaustSelf(),
+            cost: abilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.hasSomeAspect(Aspect.Villainy),
-                immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 2 })
+                immediateEffect: abilityHelper.immediateEffects.heal({ amount: 2 })
             }
         });
     }

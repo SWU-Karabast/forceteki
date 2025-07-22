@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName } from '../../../core/Constants';
@@ -11,13 +11,13 @@ export default class IonCannon extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Deal 3 damage to a space unit',
-            cost: AbilityHelper.costs.exhaustSelf(),
+            cost: abilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 zoneFilter: ZoneName.SpaceArena,
-                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 })
+                immediateEffect: abilityHelper.immediateEffects.damage({ amount: 3 })
             }
         });
     }
