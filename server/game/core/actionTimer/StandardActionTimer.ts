@@ -136,7 +136,7 @@ export class StandardActionTimer implements IActionTimer {
         Contract.assertPositiveNonZero(timeRemainingMs);
         Contract.assertTrue(this.timers.length === 0, 'Timers must be cleared before initializing new timers');
 
-        this.endTime = new Date(Date.now() + this.getTimeLimitMs());
+        this.endTime = new Date(Date.now() + timeRemainingMs);
         this.pauseTime = null;
 
         const safeCallHandler = (handler: IActionTimerHandler) => {

@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
@@ -11,7 +11,7 @@ export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
         };
     }
 
-    private buildHeraAbilityProperties() {
+    private buildHeraAbilityProperties(AbilityHelper: IAbilityHelper) {
         return {
             title: 'Ignore the aspect penalty on Spectre cards you play',
             targetController: RelativePlayer.Self,
@@ -22,12 +22,12 @@ export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
-        registrar.addConstantAbility(this.buildHeraAbilityProperties());
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility(this.buildHeraAbilityProperties(AbilityHelper));
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
-        registrar.addConstantAbility(this.buildHeraAbilityProperties());
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility(this.buildHeraAbilityProperties(AbilityHelper));
 
         registrar.addOnAttackAbility({
             title: 'Give an experience token to another unique unit',

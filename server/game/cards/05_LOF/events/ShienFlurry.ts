@@ -9,7 +9,7 @@ import {
     WildcardCardType,
     ZoneName
 } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 import { DamageSystem } from '../../../gameSystems/DamageSystem';
 
@@ -21,7 +21,7 @@ export default class ShienFlurry extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Play a Force unit from your hand. It gains Ambush for this phase. The next time it would be dealt damage this phase prevent 2 of that damage',
             cannotTargetFirst: true,

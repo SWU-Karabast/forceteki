@@ -1,7 +1,7 @@
 
 describe('Clone', function() {
     integration(function(contextRef) {
-        const clonePrompt = 'This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique';
+        const clonePrompt = 'Choose a unit to clone';
 
         describe('when played from hand', function() {
             it('should enter play as non-unique copy of another friendly unit', async function () {
@@ -1325,9 +1325,6 @@ describe('Clone', function() {
                     context.echoBaseDefender,
                     context.battlefieldMarine
                 ]);
-                context.player1.clickCard(context.battlefieldMarine);
-
-                expect(context.player1).toHavePrompt('Saboteur: defeat all shields');
                 context.player1.clickCard(context.battlefieldMarine);
 
                 // Shields are defeated, and the Battlefield Marine is defeated

@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
@@ -17,7 +17,7 @@ export default class YodaMyAllyIsTheForce extends NonLeaderUnitCard {
         return unitsControlled * 2;
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         // When Played: You may use the Force. If you do, heal 5 damage from a base.
         registrar.addWhenPlayedAbility({
             title: 'Use the Force to heal 5 damage from a base',

@@ -1,5 +1,6 @@
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
 import { AbilityType, ZoneName } from '../../../../../server/game/core/Constants';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 
@@ -11,7 +12,7 @@ export default class ChewbaccaFaithfulFirstMate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addReplacementEffectAbility({
             title: 'This unit can\'t be defeated or returned to hand by enemy card abilities',
             when: {

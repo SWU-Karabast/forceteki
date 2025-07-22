@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { PlayType, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
@@ -12,7 +12,7 @@ export default class APrecariousPredicament extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Return an enemy non-leader unit to its owner\'s hand unless its controller says, “It could be worse”. If they do, you may play a card named It\'s Worse from your hand or resources for free',
             targetResolvers: {

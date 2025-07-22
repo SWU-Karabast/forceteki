@@ -78,7 +78,7 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
     }
 
     protected override startActionTimer(player: Player): void {
-        // due to a bug that clears the prompts when the timer message appears, we're extending the timer during this prompt for now
+        // give players a little extra time during distribution prompts
         player.actionTimer.start(120);
     }
 

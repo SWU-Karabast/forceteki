@@ -14,7 +14,7 @@ class GameFlowWrapper {
      * @param {PlayerInfo} player1Info
      * @param {PlayerInfo} player2Info
      */
-    constructor(cardDataGetter, router, player1Info, player2Info) {
+    constructor(cardDataGetter, router, player1Info, player2Info, enableUndo = false) {
         /** @type {import('../../server/game/core/GameInterfaces.js').GameConfiguration} */
         var details = {
             name: `${player1Info.username}'s game`,
@@ -30,6 +30,7 @@ class GameFlowWrapper {
             pushUpdate: () => true,
             buildSafeTimeout: () => undefined,
             userTimeoutDisconnect: () => undefined,
+            enableUndo,
         };
 
         this.game = new Game(details, { router });
@@ -41,6 +42,8 @@ class GameFlowWrapper {
         this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerById(this.player1Id), this);
         this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerById(this.player2Id), this);
         this.allPlayers = [this.player1, this.player2];
+
+        this.snapshotManager = this.game.snapshotManager;
     }
 
     getPlayableCardTitles() {

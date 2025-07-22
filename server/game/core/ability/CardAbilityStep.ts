@@ -1,24 +1,26 @@
+import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility.js';
 import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
 import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck } from '../Constants.js';
 import * as AttackHelper from '../attack/AttackHelpers.js';
 import * as Helpers from '../utils/Helpers.js';
 import * as Contract from '../utils/Contract.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-import type Game from '../Game.js';
 import type { Card } from '../card/Card.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
 import type { GameEvent } from '../event/GameEvent.js';
 import type { Player } from '../Player.js';
 import type { AbilityContext } from './AbilityContext.js';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
+import type Game from '../Game.js';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
-export class CardAbilityStep extends PlayerOrCardAbility {
+export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends PlayerOrCardAbility<T> {
     private handler: (context: AbilityContext) => void;
 
+    /** @param card The card this ability is attached to. */
     public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         Contract.assertFalse(
             properties.targetResolvers != null && properties.initiateAttack != null,

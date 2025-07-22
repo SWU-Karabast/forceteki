@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer } from '../../../core/Constants';
@@ -18,7 +18,7 @@ export default class LegalAuthority extends UpgradeCard {
         return targetCard.isUnit() && targetCard.controller === controller;
     }
 
-    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Attached unit captures an enemy non-leader unit with less power than it',
             targetResolver: {

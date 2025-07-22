@@ -1,14 +1,9 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Duration, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class Clone extends NonLeaderUnitCard {
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    protected override get overrideNotImplemented(): boolean {
-        return true;
-    }
-
     protected override getImplementationId() {
         return {
             id: '0345124206',
@@ -24,11 +19,12 @@ export default class Clone extends NonLeaderUnitCard {
         return super.getAbilityRegistrar();
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar): void {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addPreEnterPlayAbility({
             title: 'This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique',
             optional: true,
             targetResolver: {
+                activePromptTitle: 'Choose a unit to clone',
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 cardCondition: (card, context) => !card.hasSomeTrait(Trait.Vehicle) && card !== context.source,
                 immediateEffect: AbilityHelper.immediateEffects.cardLastingEffect((context) => ({
