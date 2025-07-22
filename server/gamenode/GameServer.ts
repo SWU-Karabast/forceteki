@@ -120,6 +120,27 @@ export class GameServer {
         };
         app.use(cors(corsOptions));
 
+        app.use((req, res, next) => {
+            const start = process.hrtime.bigint(); 
+
+            res.on('finish', () => {
+              const end = process.hrtime.bigint();
+              const durationMs = Number(end - start) / 1e6;
+          
+              const log = {
+                method: req.method,
+                path: req.originalUrl.split('?')[0], 
+                status: res.statusCode,
+                durationMs: Number(durationMs.toFixed(2)),
+                timestamp: new Date().toISOString()
+              };
+          
+              logger.info(`[ApiRequest] ${JSON.stringify(log)}`);
+            });
+          
+            next();
+        });
+
         this.setupAppRoutes(app);
         app.use((err, req, res, next) => {
             logger.error('GameServer: Error in API route:', err);
@@ -128,6 +149,8 @@ export class GameServer {
                 error: err.message || 'Server error.',
             });
         });
+
+       
 
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);

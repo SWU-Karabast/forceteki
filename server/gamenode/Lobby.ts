@@ -723,6 +723,7 @@ export class Lobby {
     }
 
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
+        const start = process.hrtime.bigint();
         try {
             if (!this[command] || typeof this[command] !== 'function') {
                 throw new Error(`Incorrect command or command format expected function but got: ${command}`);
@@ -731,12 +732,27 @@ export class Lobby {
             this.updateUserLastActivity(socket.user.getId());
             await this[command](socket, ...args);
             this.sendLobbyState();
+            const end = process.hrtime.bigint();
+            const durationMs = Number(end - start) / 1e6;
+
+            if (durationMs > 100) {
+            logger.info(`[LobbyCommand] ${JSON.stringify({
+                command,
+                userId: socket.user.getId(),
+                lobbyId: this.id,
+                    durationMs: Number(durationMs.toFixed(2)),
+                    timestamp: new Date().toISOString()
+                })}`);
+            }
         } catch (error) {
+            const end = process.hrtime.bigint();
             logger.error('Lobby: error processing lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
         }
     }
 
     private async onGameMessage(socket: Socket, command: string, ...args): Promise<void> {
+        const start = process.hrtime.bigint();
+
         try {
             this.gameMessageErrorCount = 0;
 
@@ -764,7 +780,22 @@ export class Lobby {
             this.game.continue();
 
             this.sendGameState(this.game);
+
+            const end = process.hrtime.bigint();
+            const durationMs = Number(end - start) / 1e6;
+
+            if (durationMs > 100) {
+                logger.info(`[GameCommand] ${JSON.stringify({
+                    command,
+                    userId: socket.user.getId(),
+                    lobbyId: this.id,
+                    durationMs: Number(durationMs.toFixed(2)),
+                    timestamp: new Date().toISOString()
+                    })}`);
+            }
+  
         } catch (error) {
+            const end = process.hrtime.bigint();
             logger.error('Game: error processing game message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
         }
     }
