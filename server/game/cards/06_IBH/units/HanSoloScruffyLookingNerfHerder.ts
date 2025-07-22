@@ -1,6 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class HanSoloScruffyLookingNerfHerder extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -10,12 +10,12 @@ export default class HanSoloScruffyLookingNerfHerder extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'The defender gets -2/-0 for this attack',
-            immediateEffect: AbilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({
+            immediateEffect: abilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({
                 target: context.event.attack.getAllTargets(),
-                effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: 0 })
+                effect: abilityHelper.ongoingEffects.modifyStats({ power: -2, hp: 0 })
             })),
         });
     }
