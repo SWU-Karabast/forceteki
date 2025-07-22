@@ -66,11 +66,15 @@ export class GameServer {
         } else {
             cardDataGetter = await GameServer.buildRemoteCardDataGetter();
         }
+
+        // downloads all card data to build deck validator
+        const deckValidator = await DeckValidator.createAsync(cardDataGetter);
+
         console.log('SETUP: Card data downloaded.');
 
         return new GameServer(
             cardDataGetter,
-            await DeckValidator.createAsync(cardDataGetter),
+            deckValidator,
             testGameBuilder
         );
     }
