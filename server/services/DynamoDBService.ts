@@ -89,7 +89,7 @@ class DynamoDBService {
         schema: z.ZodType<T>,
         data: unknown,
         context: string,
-        deleteCorruptedData?: () => Promise<void>
+        deleteCorruptedData?: () => Promise<any>
     ): Promise<T> {
         if (!data) {
             return undefined;
@@ -196,31 +196,31 @@ class DynamoDBService {
 
     // Basic CRUD operations
 
-    public async getItemAsync(pk: string, sk: string) {
-        return await this.executeDbOperationAsync(async () => {
+    public getItemAsync(pk: string, sk: string) {
+        return this.executeDbOperationAsync(() => {
             const command = new GetCommand({
                 TableName: this.tableName,
                 Key: { pk, sk }
             });
-            return await this.client.send(command);
+            return this.client.send(command);
         }, 'DynamoDB getItem error');
     }
 
-    public async putItemAsync(item: Record<string, any>) {
-        return await this.executeDbOperationAsync(async () => {
+    public putItemAsync(item: Record<string, any>) {
+        return this.executeDbOperationAsync(() => {
             const command = new PutCommand({
                 TableName: this.tableName,
                 Item: item
             });
-            return await this.client.send(command);
+            return this.client.send(command);
         }, 'DynamoDB putItem error');
     }
 
-    public async queryItemsAsync(pk: string, options: {
+    public queryItemsAsync(pk: string, options: {
         beginsWith?: string;
         filters?: Record<string, any>;
     } = {}) {
-        return await this.executeDbOperationAsync(async () => {
+        return this.executeDbOperationAsync(() => {
             let keyConditionExpression = 'pk = :pk';
             const expressionAttributeValues: Record<string, any> = { ':pk': pk };
 
@@ -236,12 +236,12 @@ class DynamoDBService {
                 ExpressionAttributeValues: expressionAttributeValues
             });
 
-            return await this.client.send(command);
+            return this.client.send(command);
         }, 'DynamoDB queryItems error');
     }
 
-    public async updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>) {
-        return await this.executeDbOperationAsync(async () => {
+    public updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>) {
+        return this.executeDbOperationAsync(() => {
             const command = new UpdateCommand({
                 TableName: this.tableName,
                 Key: { pk, sk },
@@ -250,42 +250,42 @@ class DynamoDBService {
                 ReturnValues: 'ALL_NEW'
             });
 
-            return await this.client.send(command);
+            return this.client.send(command);
         }, 'DynamoDB updateItem error');
     }
 
-    public async deleteItemAsync(pk: string, sk: string) {
-        return await this.executeDbOperationAsync(async () => {
+    public deleteItemAsync(pk: string, sk: string) {
+        return this.executeDbOperationAsync(() => {
             const command = new DeleteCommand({
                 TableName: this.tableName,
                 Key: { pk, sk }
             });
 
-            return await this.client.send(command);
+            return this.client.send(command);
         }, 'DynamoDB deleteItem error');
     }
 
     // User Profile Methods
 
-    public async saveUserProfileAsync(userData: IUserProfileDataEntity) {
+    public saveUserProfileAsync(userData: IUserProfileDataEntity) {
         const item = {
             pk: `USER#${userData.id}`,
             sk: 'PROFILE',
             ...userData,
             preferences: userData.preferences || { cardback: null },
         };
-        return await this.putItemAsync(item);
+        return this.putItemAsync(item);
     }
 
-    public async getUserProfileAsync(userId: string) {
-        return await this.executeDbOperationAsync(async () => {
+    public getUserProfileAsync(userId: string) {
+        return this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync(`USER#${userId}`, 'PROFILE');
             return result.Item as IUserProfileDataEntity | undefined;
         }, 'Error getting user profile');
     }
 
-    public async updateUserProfileAsync(userId: string, updates: Partial<IUserProfileDataEntity>) {
-        return await this.executeDbOperationAsync(async () => {
+    public updateUserProfileAsync(userId: string, updates: Partial<IUserProfileDataEntity>) {
+        return this.executeDbOperationAsync(() => {
             // Build update expression and expression attribute values
             let updateExpression = 'SET';
             const expressionAttributeValues: Record<string, any> = {};
@@ -300,7 +300,7 @@ class DynamoDBService {
             // Remove trailing comma
             updateExpression = updateExpression.slice(0, -1);
 
-            return await this.updateItemAsync(
+            return this.updateItemAsync(
                 `USER#${userId}`,
                 'PROFILE',
                 updateExpression,
@@ -312,20 +312,20 @@ class DynamoDBService {
     /**
      * Put an item with a condition expression
      */
-    public async putItemWithConditionAsync(item: Record<string, any>, conditionExpression: string) {
-        return await this.executeDbOperationAsync(async () => {
+    public putItemWithConditionAsync(item: Record<string, any>, conditionExpression: string) {
+        return this.executeDbOperationAsync(() => {
             const command = new PutCommand({
                 TableName: this.tableName,
                 Item: item,
                 ConditionExpression: conditionExpression
             });
-            return await this.client.send(command);
+            return this.client.send(command);
         }, 'DynamoDB putItemWithCondition error');
     }
 
     // OAuth Link Methods
-    public async saveOAuthLinkAsync(provider: string, providerId: string, userId: string) {
-        await this.putItemWithConditionAsync(
+    public saveOAuthLinkAsync(provider: string, providerId: string, userId: string) {
+        return this.putItemWithConditionAsync(
             {
                 pk: `OAUTH#${provider}_${providerId}`,
                 sk: 'LINK',
@@ -335,16 +335,16 @@ class DynamoDBService {
         );
     }
 
-    public async getUserIdByOAuthAsync(provider: string, providerId: string) {
-        return await this.executeDbOperationAsync(async () => {
+    public getUserIdByOAuthAsync(provider: string, providerId: string) {
+        return this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync(`OAUTH#${provider}_${providerId}`, 'LINK');
             return result.Item?.GSI_PK as string | undefined;
         }, 'Error getting user ID by OAuth');
     }
 
     // Email Link Methods
-    public async saveEmailLinkAsync(email: string, userId: string) {
-        return await this.executeDbOperationAsync(async () => {
+    public saveEmailLinkAsync(email: string, userId: string) {
+        return this.executeDbOperationAsync(() => {
             const item = {
                 pk: `EMAIL#${email.toLowerCase()}`,
                 sk: 'LINK',
@@ -352,20 +352,20 @@ class DynamoDBService {
                 email: email.toLowerCase()
             };
 
-            return await this.putItemAsync(item);
+            return this.putItemAsync(item);
         }, 'Error saving email link');
     }
 
-    public async getUserIdByEmailAsync(email: string) {
-        return await this.executeDbOperationAsync(async () => {
+    public getUserIdByEmailAsync(email: string) {
+        return this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync(`EMAIL#${email.toLowerCase()}`, 'LINK');
             return result.Item?.GSI_PK as string | undefined;
         }, 'Error getting user ID by email');
     }
 
     // User Deck Methods
-    public async saveDeckAsync(deckData: IDeckDataEntity) {
-        return await this.executeDbOperationAsync(async () => {
+    public saveDeckAsync(deckData: IDeckDataEntity) {
+        return this.executeDbOperationAsync(async () => {
             await this.validateAndHandleAsync(
                 iDeckDataEntitySchema,
                 deckData,
@@ -378,20 +378,18 @@ class DynamoDBService {
                 stats: deckData.stats || { wins: 0, losses: 0, draws: 0 }
             };
 
-            return await this.putItemAsync(item);
+            return this.putItemAsync(item);
         }, 'Error saving deck');
     }
 
-    public async getDeckAsync(userId: string, deckId: string) {
-        return await this.executeDbOperationAsync(async () => {
+    public getDeckAsync(userId: string, deckId: string) {
+        return this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync(`USER#${userId}`, `DECK#${deckId}`);
-            return await this.validateAndHandleAsync<IDeckDataEntity>(
+            return this.validateAndHandleAsync<IDeckDataEntity>(
                 iDeckDataEntitySchema,
                 result.Item,
                 `Get deck ${deckId}`,
-                async () => {
-                    await this.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`);
-                }
+                () => this.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`)
             );
         }, 'Error getting deck');
     }
@@ -403,8 +401,8 @@ class DynamoDBService {
      * @param deckLinkID the deckLinkID of a deck from swu stats or swudb
      * @returns The deck data if found, undefined otherwise
      */
-    public async getDeckByLinkAsync(userId: string, deckLinkID: string): Promise<IDeckDataEntity | undefined> {
-        return await this.executeDbOperationAsync(async () => {
+    public getDeckByLinkAsync(userId: string, deckLinkID: string): Promise<IDeckDataEntity | undefined> {
+        return this.executeDbOperationAsync(async () => {
             // Query all decks for this user
             const result = await this.queryItemsAsync(`USER#${userId}`, { beginsWith: 'DECK#' });
 
@@ -421,19 +419,17 @@ class DynamoDBService {
                 return undefined;
             }
 
-            return await this.validateAndHandleAsync<IDeckDataEntity>(
+            return this.validateAndHandleAsync<IDeckDataEntity>(
                 iDeckDataEntitySchema,
                 foundDeck,
                 `Get deck by link ${deckLinkID}`,
-                async () => {
-                    await this.deleteItemAsync(foundDeck.pk, foundDeck.sk);
-                }
+                () => this.deleteItemAsync(foundDeck.pk, foundDeck.sk)
             );
         }, 'Error finding deck by link');
     }
 
-    public async getUserDecksAsync(userId: string) {
-        return await this.executeDbOperationAsync(async () => {
+    public getUserDecksAsync(userId: string) {
+        return this.executeDbOperationAsync(async () => {
             const result = await this.queryItemsAsync(`USER#${userId}`, { beginsWith: 'DECK#' });
             if (!result.Items || result.Items.length === 0) {
                 return [];
@@ -448,9 +444,7 @@ class DynamoDBService {
                         iDeckDataEntitySchema,
                         item,
                         `Validate deck ${item.id} in getUserDecks`,
-                        async () => {
-                            await this.deleteItemAsync(item.pk, item.sk);
-                        }
+                        () => this.deleteItemAsync(item.pk, item.sk)
                     );
                     validDecks.push(validDeck);
                 } catch (error) {
@@ -463,9 +457,9 @@ class DynamoDBService {
         }, 'Error getting user decks');
     }
 
-    public async recordNewLoginAsync(userId: string) {
-        return await this.executeDbOperationAsync(async () => {
-            return await this.updateItemAsync(
+    public recordNewLoginAsync(userId: string) {
+        return this.executeDbOperationAsync(() => {
+            return this.updateItemAsync(
                 `USER#${userId}`,
                 'PROFILE',
                 'SET lastLogin = :lastLogin',
@@ -481,11 +475,11 @@ class DynamoDBService {
      * @param stats Stats object with updated values
      * @returns Updated deck record
      */
-    public async updateDeckStatsAsync(userId: string, deckId: string, stats: IDeckStatsEntity) {
-        return await this.executeDbOperationAsync(async () => {
+    public updateDeckStatsAsync(userId: string, deckId: string, stats: IDeckStatsEntity) {
+        return this.executeDbOperationAsync(() => {
             try {
                 iDeckStatsEntitySchema.parse(stats);
-                return await this.updateItemAsync(
+                return this.updateItemAsync(
                     `USER#${userId}`,
                     `DECK#${deckId}`,
                     'SET stats = :stats',
@@ -501,9 +495,9 @@ class DynamoDBService {
         }, `Error updating deck stats for deck ${deckId}, user ${userId}`);
     }
 
-    public async saveUserSettingsAsync(userId: string, settings: Record<string, any>) {
-        return await this.executeDbOperationAsync(async () => {
-            return await this.updateItemAsync(
+    public saveUserSettingsAsync(userId: string, settings: Record<string, any>) {
+        return this.executeDbOperationAsync(() => {
+            return this.updateItemAsync(
                 `USER#${userId}`,
                 'PROFILE',
                 'SET preferences = :preferences',
@@ -513,12 +507,12 @@ class DynamoDBService {
     }
 
     // Clear all data (for testing purposes only)
-    public async clearAllDataAsync() {
+    public clearAllDataAsync() {
         if (!this.isLocalMode) {
             throw new Error('clearAllData can only be called in local mode');
         }
 
-        return await this.executeDbOperationAsync(async () => {
+        return this.executeDbOperationAsync(async () => {
             // For local testing only - scan and delete all items
             const scanResult = await this.client.send(
                 new ScanCommand({
@@ -526,8 +520,8 @@ class DynamoDBService {
                 })
             );
 
-            const deletePromises = scanResult.Items?.map((item) => {
-                return this.client.send(
+            const deletePromises = scanResult.Items?.map((item) =>
+                this.client.send(
                     new DeleteCommand({
                         TableName: this.tableName,
                         Key: {
@@ -535,8 +529,8 @@ class DynamoDBService {
                             sk: item.sk
                         }
                     })
-                );
-            }) || [];
+                )
+            ) || [];
 
             await Promise.all(deletePromises);
             logger.info(`Cleared all data from local DynamoDB table '${this.tableName}'`);
