@@ -736,16 +736,15 @@ export class Lobby {
             const durationMs = Number(end - start) / 1e6;
 
             if (durationMs > 100) {
-            logger.info(`[LobbyCommand] ${JSON.stringify({
-                command,
-                userId: socket.user.getId(),
-                lobbyId: this.id,
+                logger.info(`[LobbyCommand] ${JSON.stringify({
+                    command,
+                    userId: socket.user.getId(),
+                    lobbyId: this.id,
                     durationMs: Number(durationMs.toFixed(2)),
                     timestamp: new Date().toISOString()
                 })}`);
             }
         } catch (error) {
-            const end = process.hrtime.bigint();
             logger.error('Lobby: error processing lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
         }
     }
@@ -791,11 +790,9 @@ export class Lobby {
                     lobbyId: this.id,
                     durationMs: Number(durationMs.toFixed(2)),
                     timestamp: new Date().toISOString()
-                    })}`);
+                })}`);
             }
-  
         } catch (error) {
-            const end = process.hrtime.bigint();
             logger.error('Game: error processing game message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
         }
     }
