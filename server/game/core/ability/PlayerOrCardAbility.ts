@@ -17,7 +17,7 @@ import type { Card } from '../card/Card.js';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
 import type { IActionTargetResolver, ITargetResolverBase } from '../../TargetInterfaces.js';
-import type { IAbilityLimit } from './AbilityLimit.js';
+import type { AbilityLimit } from './AbilityLimit.js';
 import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { ITargetResult, TargetResolver } from './abilityTargets/TargetResolver.js';
 import type { ActionAbility } from './ActionAbility.js';
@@ -47,7 +47,7 @@ export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
  */
 export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends GameObjectBase<T> {
     public title: string;
-    public limit?: IAbilityLimit;
+    public limit?: AbilityLimit;
     public canResolveWithoutLegalTargets: boolean;
     public targetResolvers: TargetResolver<any>[];
     public cannotTargetFirst: boolean;

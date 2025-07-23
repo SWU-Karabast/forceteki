@@ -64,6 +64,7 @@ export interface IPlayerState extends IGameObjectState {
     // IDeckList is made up of arrays and GameObjectRefs, so it's serializable.
     decklist: IDeckList;
     promptState: PlayerPromptState;
+    costAdjusters: GameObjectRef<CostAdjuster>[];
 }
 
 export class Player extends GameObject<IPlayerState> {
@@ -107,6 +108,10 @@ export class Player extends GameObject<IPlayerState> {
         return this.game.gameObjectManager.get(this.state.base);
     }
 
+    private get costAdjusters(): readonly CostAdjuster[] {
+        return this.state.costAdjusters.map((x) => this.game.getFromRef(x));
+    }
+
     public get passedActionPhase() {
         return this.state.passedActionPhase;
     }
@@ -141,7 +146,6 @@ export class Player extends GameObject<IPlayerState> {
     public readonly actionTimer: IActionTimer;
     private limitedPlayed: number;
 
-    private costAdjusters: any[];
     private abilityMaxByIdentifier: Record<string, any>;
     public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
 
@@ -205,8 +209,6 @@ export class Player extends GameObject<IPlayerState> {
         /** @type {Deck} */
         this.decklistNames = null;
 
-        /** @type {CostAdjuster[]} */
-        this.costAdjusters = [];
         this.abilityMaxByIdentifier = {}; // This records max limits for abilities
         this.promptedActionWindows = user.promptedActionWindows || {
             // these flags represent phase settings
@@ -217,6 +219,12 @@ export class Player extends GameObject<IPlayerState> {
         this.resetTimerAtEndOfRound = false;
 
         this.promptState = new PlayerPromptState(this);
+    }
+
+    protected override setupDefaultState() {
+        super.setupDefaultState();
+
+        this.state.costAdjusters = [];
     }
 
     /**
@@ -234,7 +242,7 @@ export class Player extends GameObject<IPlayerState> {
     private checkPlayerTimeoutConditions(promptUuid: string, playerActionId: number) {
         return this.game.currentOpenPrompt.uuid === promptUuid &&
           playerActionId === this._lastActionId &&
-          this.game.winner == null;
+          this.game.winnerNames.length === 0;
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
@@ -729,7 +737,7 @@ export class Player extends GameObject<IPlayerState> {
      * @param {CostAdjuster} costAdjuster
      */
     public addCostAdjuster(costAdjuster: CostAdjuster) {
-        this.costAdjusters.push(costAdjuster);
+        this.state.costAdjusters.push(costAdjuster.getRef());
     }
 
     /**
@@ -739,7 +747,7 @@ export class Player extends GameObject<IPlayerState> {
     public removeCostAdjuster(adjuster: CostAdjuster) {
         if (this.costAdjusters.includes(adjuster)) {
             adjuster.unregisterEvents();
-            this.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster);
+            this.state.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster).map((x) => x.getRef());
         }
     }
 

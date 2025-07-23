@@ -355,6 +355,11 @@ export interface ISerializedReportState {
     viewport?: { width: number; height: number } | null;
 }
 
+export interface IEventRegistration<Handler = () => void> {
+    name: string;
+    handler: Handler;
+}
+
 // ********************************************** INTERNAL TYPES **********************************************
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'

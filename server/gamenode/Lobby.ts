@@ -561,9 +561,9 @@ export class Lobby {
 
         if (this.game) {
             this.game.addMessage('{0} has left the game', this.game.getPlayerById(id));
-            const winner = this.users.find((u) => u.id !== id);
-            if (winner) {
-                this.game.endGame(this.game.getPlayerById(winner.id), `${user.username} has conceded`);
+            const otherPlayer = this.users.find((u) => u.id !== id);
+            if (otherPlayer) {
+                this.game.endGame(this.game.getPlayerById(otherPlayer.id), `${user.username} has conceded`);
             }
             this.sendGameState(this.game);
         }
@@ -723,6 +723,7 @@ export class Lobby {
     }
 
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
+        const start = process.hrtime.bigint();
         try {
             if (!this[command] || typeof this[command] !== 'function') {
                 throw new Error(`Incorrect command or command format expected function but got: ${command}`);
@@ -731,12 +732,26 @@ export class Lobby {
             this.updateUserLastActivity(socket.user.getId());
             await this[command](socket, ...args);
             this.sendLobbyState();
+            const end = process.hrtime.bigint();
+            const durationMs = Number(end - start) / 1e6;
+
+            if (durationMs > 100) {
+                logger.info(`[LobbyCommand] ${JSON.stringify({
+                    command,
+                    userId: socket.user.getId(),
+                    lobbyId: this.id,
+                    durationMs: Number(durationMs.toFixed(2)),
+                    timestamp: new Date().toISOString()
+                })}`);
+            }
         } catch (error) {
             logger.error('Lobby: error processing lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
         }
     }
 
     private async onGameMessage(socket: Socket, command: string, ...args): Promise<void> {
+        const start = process.hrtime.bigint();
+
         try {
             this.gameMessageErrorCount = 0;
 
@@ -764,6 +779,19 @@ export class Lobby {
             this.game.continue();
 
             this.sendGameState(this.game);
+
+            const end = process.hrtime.bigint();
+            const durationMs = Number(end - start) / 1e6;
+
+            if (durationMs > 100) {
+                logger.info(`[GameCommand] ${JSON.stringify({
+                    command,
+                    userId: socket.user.getId(),
+                    lobbyId: this.id,
+                    durationMs: Number(durationMs.toFixed(2)),
+                    timestamp: new Date().toISOString()
+                })}`);
+            }
         } catch (error) {
             logger.error('Game: error processing game message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
         }
@@ -885,7 +913,7 @@ export class Lobby {
     private async endGameUpdateStatsAsync(game: Game): Promise<void> {
         try {
             // Only update stats if the game has a winner and made it into the second round at least
-            if (!game.winner || !game.finishedAt || this.game.roundNumber <= 1) {
+            if (game.winnerNames.length === 0 || !game.finishedAt || this.game.roundNumber <= 1) {
                 return;
             }
 
@@ -902,16 +930,16 @@ export class Lobby {
 
             // Determine the winner and loser
             let winner, loser;
-            if (game.winner.includes(player1.name)) {
+            if (game.winnerNames.includes(player1.name)) {
                 winner = player1;
                 loser = player2;
-            } else if (game.winner.includes(player2.name)) {
+            } else if (game.winnerNames.includes(player2.name)) {
                 winner = player2;
                 loser = player1;
             }
 
             // If we have a draw (or couldn't determine winner/loser), set as draw
-            const isDraw = !winner || !loser || game.winner.length > 1;
+            const isDraw = !winner || !loser || game.winnerNames.length > 1;
 
             // set winner/loser state
             const player1Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Win : ScoreType.Lose;
@@ -951,7 +979,7 @@ export class Lobby {
 
     public sendGameState(game: Game, forceSend = false): void {
         // we check here if the game ended and update the stats.
-        if (game.winner && game.finishedAt && !game.statsUpdated) {
+        if (game.winnerNames.length > 0 && game.finishedAt && !game.statsUpdated) {
             // Update deck stats asynchronously
             game.statsUpdated = true;
             this.endGameUpdateStatsAsync(game).catch((error) => {

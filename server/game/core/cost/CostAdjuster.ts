@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { IAbilityLimit } from '../ability/AbilityLimit';
+import type { AbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter } from '../Constants';
 import { CardType, PlayType, WildcardCardType } from '../Constants';
@@ -10,6 +10,8 @@ import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/Exploi
 import type { ICostResult } from './ICost';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { ResourceCost } from '../../costs/ResourceCost';
+import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import { GameObjectBase } from '../GameObjectBase';
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -39,7 +41,7 @@ export interface ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType;
 
     /** The number of cost reductions permitted. Defaults to unlimited. */
-    limit?: IAbilityLimit;
+    limit?: AbilityLimit;
 
     /** Conditional card matching for things like aspects, traits, etc. */
     match?: (card: Card, adjusterSource: Card) => boolean;
@@ -94,22 +96,38 @@ export interface ICanAdjustProperties {
     isAbilityCost?: boolean;
 }
 
-export class CostAdjuster {
+export interface ICostAdjusterState extends IGameObjectBaseState {
+    source: GameObjectRef<Card>;
+    limit: GameObjectRef<AbilityLimit> | null;
+}
+
+export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     public readonly costAdjustType: CostAdjustType;
     public readonly ignoredAspect: Aspect;
     private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext, currentAmount?: number) => number);
     private readonly match?: (card: Card, adjusterSource: Card) => boolean;
     private readonly cardTypeFilter?: CardTypeFilter;
     private readonly attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
-    private readonly limit?: IAbilityLimit;
     private readonly costStage: CostStage;
     private readonly matchAbilityCosts: boolean;
 
+    protected get source(): Card {
+        return this.game.getFromRef(this.state.source);
+    }
+
+    private get limit(): AbilityLimit | null {
+        return this.state.limit ? this.game.getFromRef(this.state.limit) : null;
+    }
+
     public constructor(
-        protected game: Game,
-        protected source: Card,
+        game: Game,
+        source: Card,
         properties: ICostAdjusterProperties
     ) {
+        super(game);
+
+        this.state.source = source.getRef();
+
         this.costAdjustType = properties.costAdjustType;
         if (properties.costAdjustType === CostAdjustType.Increase ||
           properties.costAdjustType === CostAdjustType.Decrease ||
@@ -128,9 +146,9 @@ export class CostAdjuster {
         this.cardTypeFilter = properties.cardTypeFilter ?? WildcardCardType.Any;
         this.attachTargetCondition = properties.attachTargetCondition;
 
-        this.limit = properties.limit;
+        this.state.limit = properties.limit?.getRef();
         if (this.limit) {
-            this.limit.registerEvents(game);
+            this.limit.registerEvents();
         }
 
         this.matchAbilityCosts = !!properties.matchAbilityCosts;
@@ -176,7 +194,7 @@ export class CostAdjuster {
     }
 
     public unregisterEvents(): void {
-        this.limit?.unregisterEvents(this.game);
+        this.limit?.unregisterEvents();
     }
 
     private checkMatch(card: Card) {
