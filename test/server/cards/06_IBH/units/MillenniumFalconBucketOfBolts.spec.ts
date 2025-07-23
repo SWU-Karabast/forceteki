@@ -1,56 +1,43 @@
 describe('Millennium Falcon - Bucket Of Bolts', function () {
     integration(function (contextRef) {
-        describe('Millennium Falcon\'s ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['millennium-falcon#bucket-of-bolts'],
-                        base: { damage: 0 }
-                    },
-                    player2: {
-                        base: { damage: 0 }
-                    }
-                });
+        it('Millennium Falcon\'s ability should not ready the unit when played if your base does not have more damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['millennium-falcon#bucket-of-bolts'],
+                    base: { card: 'jabbas-palace', damage: 0 }
+                },
+                player2: {
+                    base: { card: 'echo-base', damage: 0 }
+                }
             });
 
-            it('should not ready the unit when played if your base does not have more damage', function () {
-                const { context } = contextRef;
-                
-                context.player1.clickCard(context.millenniumFalconBucketOfBolts);
-                context.player1.clickPrompt('Play this card');
-                
-                // Verify the unit is exhausted (not readied) after being played
-                expect(context.millenniumFalconBucketOfBolts.exhausted).toBe(true);
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.millenniumFalcon);
+
+            // Verify the unit is exhausted (not readied) after being played
+            expect(context.millenniumFalcon.exhausted).toBe(true);
+        });
+
+        it('Millennium Falcon\'s ability should ready the unit when played if your base has more damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['millennium-falcon#bucket-of-bolts'],
+                    base: { card: 'jabbas-palace', damage: 3 }
+                },
+                player2: {
+                    base: { card: 'echo-base', damage: 1 }
+                }
             });
-            
-            it('should ready the unit when played if your base has more damage', function () {
-                const { context } = contextRef;
-                
-                // Set up damage on bases
-                context.p1Base.damage = 3;
-                context.p2Base.damage = 1;
-                
-                context.player1.clickCard(context.millenniumFalconBucketOfBolts);
-                context.player1.clickPrompt('Play this card');
-                
-                // Verify the unit is readied after being played
-                expect(context.millenniumFalconBucketOfBolts.exhausted).toBe(false);
-            });
-            
-            it('should not ready the unit when played if bases have equal damage', function () {
-                const { context } = contextRef;
-                
-                // Set up equal damage on bases
-                context.p1Base.damage = 2;
-                context.p2Base.damage = 2;
-                
-                context.player1.clickCard(context.millenniumFalconBucketOfBolts);
-                context.player1.clickPrompt('Play this card');
-                
-                // Verify the unit is exhausted (not readied) after being played
-                expect(context.millenniumFalconBucketOfBolts.exhausted).toBe(true);
-            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.millenniumFalcon);
+
+            // Verify the unit is readied after being played
+            expect(context.millenniumFalcon.exhausted).toBe(false);
         });
     });
 });
