@@ -29,7 +29,7 @@ describe('The Desolation of Hoth', function() {
 
                 // Select second target
                 context.player1.clickCard(context.admiralPiett);
-                context.player1.clickPrompt('Done')
+                context.player1.clickPrompt('Done');
 
                 // Both targets should be defeated
                 expect(context.pykeSentinel).toBeInZone('discard', context.player2);
