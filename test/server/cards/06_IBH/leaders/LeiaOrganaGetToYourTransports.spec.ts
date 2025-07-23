@@ -1,118 +1,74 @@
-describe('Leia Organa - Get To Your Transports', function () {
+describe('Leia Organa, Get To Your Transports', function () {
     integration(function (contextRef) {
-        describe('Leader side ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'leia-organa#get-to-your-transports',
-                        resourceCount: 1,
-                        groundArena: ['wampa'],
-                    },
-                    player2: {
-                        groundArena: ['cloud-city-wing-guard']
-                    }
-                });
+        it('Leia Organa\'s leader side ability should heal 1 damage from a friendly unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'leia-organa#get-to-your-transports',
+                    groundArena: [{ card: 'wampa', damage: 2 }],
+                    spaceArena: [{ card: 'green-squadron-awing', damage: 1 }]
+                },
+                player2: {
+                    groundArena: [{ card: 'cloud-city-wing-guard', damage: 1 }]
+                }
             });
+            const { context } = contextRef;
 
-            it('should heal 1 damage from a friendly unit', function () {
-                const { context } = contextRef;
-                
-                // Add damage to the unit
-                context.wampa.damage = 2;
-                
-                context.player1.clickCard(context.leiaOrganaGetToYourTransports);
-                expect(context.player1).toHavePrompt('Choose an ability');
-                context.player1.clickPrompt('Heal 1 damage from a friendly unit');
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
-                context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.leiaOrgana);
+            context.player1.clickPrompt('Heal 1 damage from a friendly unit');
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.greenSquadronAwing]);
+            context.player1.clickCard(context.wampa);
 
-                expect(context.wampa.damage).toBe(1);
-                expect(context.leiaOrganaGetToYourTransports.exhausted).toBe(true);
-                expect(context.player1.resourceCount).toBe(0);
-            });
+            expect(context.wampa.damage).toBe(1);
+            expect(context.leiaOrganaGetToYourTransports.exhausted).toBe(true);
+            expect(context.player1.exhaustedResourceCount).toBe(1);
         });
 
-        describe('Leader unit side ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'leia-organa#get-to-your-transports',
-                        leaderInPlay: true,
-                        groundArena: ['wampa', 'battlefield-marine'],
-                    },
-                    player2: {
-                        groundArena: ['cloud-city-wing-guard']
-                    }
-                });
+        it('Leia Organa\'s leader unit side ability should heal 1 damage from 2 friendly units when attacking', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'leia-organa#get-to-your-transports', deployed: true },
+                    groundArena: [{ card: 'wampa', damage: 2 }, { card: 'battlefield-marine', damage: 1 }],
+                },
+                player2: {
+                    groundArena: ['atst']
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.leiaOrgana);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.leiaOrgana, context.wampa, context.battlefieldMarine]);
+            context.player1.clickCard(context.wampa);
+            expect(context.player1).not.toHavePrompt('Done');
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickPrompt('Done');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.wampa.damage).toBe(1);
+            expect(context.battlefieldMarine.damage).toBe(0);
+        });
+
+        it('Leia Organa\'s leader unit side ability should heal 1 damage from 1 friendly unit when only 1 is available', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'leia-organa#get-to-your-transports', deployed: true, damage: 2 },
+                },
             });
 
-            it('should heal 1 damage from up to 2 friendly units when attacking', function () {
-                const { context } = contextRef;
-                
-                // Add damage to the units
-                context.wampa.damage = 2;
-                context.battlefieldMarine.damage = 3;
-                
-                context.player1.clickCard(context.leiaOrganaGetToYourTransports);
-                expect(context.player1).toHavePrompt('Choose an ability');
-                context.player1.clickPrompt('Attack');
-                expect(context.player1).toBeAbleToSelectExactly([context.cloudCityWingGuard, context.p2Base]);
-                context.player1.clickCard(context.cloudCityWingGuard);
+            const { context } = contextRef;
 
-                // After attack is declared, the on-attack ability should trigger
-                expect(context.player1).toHavePrompt('Choose units to heal 1 damage to');
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
-                context.player1.clickCard(context.wampa);
-                context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickPrompt('Done');
+            context.player1.clickCard(context.leiaOrganaGetToYourTransports);
+            context.player1.clickCard(context.p2Base);
 
-                expect(context.wampa.damage).toBe(1);
-                expect(context.battlefieldMarine.damage).toBe(2);
-                
-                // Complete the attack
-                context.player2.clickPrompt('Done');
-                expect(context.cloudCityWingGuard.damage).toBe(context.leiaOrganaGetToYourTransports.power);
-                expect(context.leiaOrganaGetToYourTransports.damage).toBe(context.cloudCityWingGuard.power);
-            });
+            expect(context.player1).toBeAbleToSelectExactly([context.leiaOrgana]);
+            context.player1.clickCard(context.leiaOrgana);
 
-            it('should heal 1 damage from 1 friendly unit when only 1 is available', function () {
-                const { context } = contextRef;
-                
-                // Setup with only one unit
-                return contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'leia-organa#get-to-your-transports',
-                        leaderInPlay: true,
-                        groundArena: ['wampa'],
-                    },
-                    player2: {
-                        groundArena: ['cloud-city-wing-guard']
-                    }
-                }).then(() => {
-                    // Add damage to the unit
-                    context.wampa.damage = 2;
-                    
-                    context.player1.clickCard(context.leiaOrganaGetToYourTransports);
-                    expect(context.player1).toHavePrompt('Choose an ability');
-                    context.player1.clickPrompt('Attack');
-                    expect(context.player1).toBeAbleToSelectExactly([context.cloudCityWingGuard, context.p2Base]);
-                    context.player1.clickCard(context.cloudCityWingGuard);
-
-                    // After attack is declared, the on-attack ability should trigger
-                    expect(context.player1).toHavePrompt('Choose units to heal 1 damage to');
-                    expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
-                    context.player1.clickCard(context.wampa);
-                    context.player1.clickPrompt('Done');
-
-                    expect(context.wampa.damage).toBe(1);
-                    
-                    // Complete the attack
-                    context.player2.clickPrompt('Done');
-                });
-            });
+            expect(context.player2).toBeActivePlayer();
+            expect(context.leiaOrgana.damage).toBe(1);
         });
     });
 });

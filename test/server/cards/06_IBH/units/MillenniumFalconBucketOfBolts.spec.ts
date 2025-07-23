@@ -1,4 +1,4 @@
-describe('Millennium Falcon - Bucket Of Bolts', function () {
+describe('Millennium Falcon, Bucket Of Bolts', function () {
     integration(function (contextRef) {
         it('Millennium Falcon\'s ability should not ready the unit when played if your base does not have more damage', async function () {
             await contextRef.setupTestAsync({

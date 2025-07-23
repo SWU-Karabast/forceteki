@@ -16,7 +16,7 @@ export default class GeneralRieekanStalwartTactician extends NonLeaderUnitCard {
             title: 'Attack with another Heroism unit. It gets +2/+0 for this attack',
             cost: abilityHelper.costs.exhaustSelf(),
             initiateAttack: {
-                attackerCondition: (card, context) => card.hasSomeAspect(Aspect.Heroism) && card != context.source,
+                attackerCondition: (card, context) => card.hasSomeAspect(Aspect.Heroism) && card !== context.source,
                 attackerLastingEffects: {
                     effect: abilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),
                 }
