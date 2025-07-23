@@ -1,6 +1,6 @@
 describe('I\'ve Found Them', function() {
     integration(function(contextRef) {
-        describe('when played', function() {
+        describe('I\'ve Found Them\'s ability', function() {
             it('should reveal the top 3 cards of the deck, draw a unit, and discard the rest', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

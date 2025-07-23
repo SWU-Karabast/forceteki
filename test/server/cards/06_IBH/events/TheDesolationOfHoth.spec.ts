@@ -1,6 +1,6 @@
 describe('The Desolation of Hoth', function() {
     integration(function(contextRef) {
-        describe('when played', function() {
+        describe('The Desolation of Hoth\'s ability', function() {
             it('should allow defeating up to 2 enemy units that cost 3 or less', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
