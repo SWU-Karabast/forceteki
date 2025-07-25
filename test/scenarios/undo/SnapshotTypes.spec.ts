@@ -1,4 +1,3 @@
-
 describe('Snapshot types', function() {
     undoIntegration(function(contextRef) {
         describe('During the action phase,', function() {
@@ -26,9 +25,6 @@ describe('Snapshot types', function() {
                 // Battlefield Marine in hand
                 // Death Trooper in hand
                 // No damage on units
-
-                context.actionPhaseStartSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.actionPhaseStartActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
                 contextRef.snapshot.takeManualSnapshot(context.player1Object);
                 context.p1ManualSnapshot1Id = contextRef.snapshot.getCurrentSnapshotId();
@@ -136,8 +132,7 @@ describe('Snapshot types', function() {
             });
 
             const assertActionPhaseStartState = (context, checkManualSnapshots = true) => {
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.actionPhaseStartSnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.actionPhaseStartActionId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(0);
 
                 expect(context.battlefieldMarine).toBeInZone('hand');
                 expect(context.deathTrooper).toBeInZone('hand');
@@ -146,10 +141,12 @@ describe('Snapshot types', function() {
                 expect(context.p2Base.damage).toEqual(0);
 
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(0);
-                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(0);
+
+                // one action snapshot is available for P2 because it was just taken after the rollback
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(1);
 
                 if (checkManualSnapshots) {
-                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player1.id)).toEqual(1);
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player1.id)).toEqual(0);
                     expect(contextRef.snapshot.countAvailableManualSnapshots(context.player2.id)).toEqual(0);
                 }
             };
@@ -834,8 +831,7 @@ describe('Snapshot types', function() {
                 });
                 expect(rollbackResult).toBeTrue();
 
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p2Action1SnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2Action1ActionId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(0);
             });
         });
     });

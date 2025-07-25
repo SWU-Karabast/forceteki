@@ -203,7 +203,7 @@ class Game extends EventEmitter {
             roundNumber: 0,
             isInitiativeClaimed: false,
             allCards: [],
-            actionNumber: -1,
+            actionNumber: 0,
             winnerNames: []
         };
 
@@ -1743,11 +1743,15 @@ class Game extends EventEmitter {
             return false;
         }
 
-        this.pipeline.clearSteps();
-        this.initialisePipeline(rollbackResult.roundEntryPoint);
-        this.pipeline.continue(this);
+        this.postRollbackOperations(rollbackResult.roundEntryPoint);
 
         return true;
+    }
+
+    postRollbackOperations(roundEntryPoint) {
+        this.pipeline.clearSteps();
+        this.initialisePipeline(roundEntryPoint);
+        this.pipeline.continue(this);
     }
 
     // TODO: Make a debug object type.

@@ -35,7 +35,7 @@ export class ActionPhase extends Phase {
         this.initialise(
             [
                 ...setupStep,
-                new SimpleStep(this.game, () => this.queueNextAction(initializeMode === PhaseInitializeMode.RollbackToWithinPhase), 'queueNextAction'),
+                new SimpleStep(this.game, () => this.queueNextAction(game.actionNumber), 'queueNextAction'),
                 new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase'),
                 new SimpleStep(this.game, () => this.endPhase(), 'endPhase'),
             ],
@@ -49,14 +49,14 @@ export class ActionPhase extends Phase {
         }
     }
 
-    private queueNextAction(firstActionAfterRollback = false) {
+    private queueNextAction(actionNumber: number) {
         this.game.queueStep(new ActionWindow(
             this.game,
             'Action Window',
             'action',
             this.prevPlayerPassed,
             this.passStatusHandler,
-            firstActionAfterRollback ? this.game.actionNumber : this.getNextActionNumber(),
+            actionNumber,
             this.snapshotManager
         ));
 
@@ -76,7 +76,7 @@ export class ActionPhase extends Phase {
 
         this.game.queueSimpleStep(() => {
             if (this.game.actionPhaseActivePlayer !== null) {
-                this.game.queueSimpleStep(() => this.queueNextAction(), 'queueNextAction');
+                this.game.queueSimpleStep(() => this.queueNextAction(this.getNextActionNumber()), 'queueNextAction');
             }
         }, 'check active player queue next action');
     }
