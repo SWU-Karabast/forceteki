@@ -7,6 +7,7 @@ import type { IStep } from '../IStep';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 import * as Helpers from '../../utils/Helpers';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
+import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 
 export enum PhaseInitializeMode {
     Normal = 'normal',
@@ -51,7 +52,7 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     private takeStartOfPhaseSnapshot() {
-        this.snapshotManager.moveToNextAction();
+        this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.StartOfPhase);
         this.snapshotManager.takeSnapshot({
             type: SnapshotType.Phase,
             phaseName: this.name

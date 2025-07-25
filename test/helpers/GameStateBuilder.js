@@ -206,7 +206,7 @@ class GameStateBuilder {
         // reset snapshot history after setup so that the history doesn't hold any snapshots of the game state before setup
         context.game.snapshotManager.clearAllSnapshots();
         context.game.state.actionNumber = 0;
-        context.game.snapshotManager.moveToNextAction();
+        context.game.snapshotManager.moveToNextTimepoint();
         const snapshotId = context.game.snapshotManager.takeSnapshot({
             type: 'phase',
             phaseName: context.game.currentPhase

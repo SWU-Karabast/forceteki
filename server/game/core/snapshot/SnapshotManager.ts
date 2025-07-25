@@ -4,7 +4,8 @@ import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from '../GameStateManager';
 import { GameStateManager } from '../GameStateManager';
-import type { IGetManualSnapshotSettings, IGetSnapshotSettings, IManualSnapshotSettings, IRollbackResult, ISnapshotSettings } from './SnapshotInterfaces';
+import type { SnapshotTimepoint } from './SnapshotInterfaces';
+import { type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
 import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
@@ -48,6 +49,10 @@ export class SnapshotManager {
         return this.snapshotFactory.currentSnapshottedRound;
     }
 
+    public get currentSnapshottedTimepoint(): number | null {
+        return this.snapshotFactory.currentSnapshottedTimepoint;
+    }
+
     /** Exposes a version of GameStateManager that doesn't have access to rollback functionality */
     public get gameObjectManager(): IGameObjectRegistrar {
         return this._gameStateManager;
@@ -64,13 +69,13 @@ export class SnapshotManager {
         this.manualSnapshots = new Map<string, SnapshotMap<number>>();
     }
 
-    /** Indicates that we're on a new action and that new snapshots can be taken */
-    public moveToNextAction() {
+    /** Indicates that we're on a new action and that a new action snapshot can be taken */
+    public moveToNextTimepoint(timepoint: SnapshotTimepoint) {
         if (!this.undoEnabled) {
             return;
         }
 
-        this.snapshotFactory.createSnapshotForCurrentAction();
+        this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint);
     }
 
     public takeSnapshot(settings: ISnapshotSettings): number {

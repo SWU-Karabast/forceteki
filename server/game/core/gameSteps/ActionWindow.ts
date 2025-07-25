@@ -10,6 +10,7 @@ import type { AbilityResolver } from './AbilityResolver.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import { PromptType, type IButton } from './PromptInterfaces.js';
 import type { SnapshotManager } from '../snapshot/SnapshotManager.js';
+import { SnapshotTimepoint } from '../snapshot/SnapshotInterfaces.js';
 
 export class ActionWindow extends UiPrompt {
     public readonly title: string;
@@ -117,8 +118,11 @@ export class ActionWindow extends UiPrompt {
 
     // TODO: see if there's better logic for determining when and how to advance the turn, take new snapshots, etc.
     private checkUpdateSnapshot() {
-        if (this.snapshotManager.currentSnapshottedAction !== this.actionNumber) {
-            this.snapshotManager.moveToNextAction();
+        if (
+            this.snapshotManager.currentSnapshottedTimepoint !== SnapshotTimepoint.Action ||
+            this.snapshotManager.currentSnapshottedAction !== this.actionNumber
+        ) {
+            this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.Action);
             this.snapshotManager.takeSnapshot({
                 type: SnapshotType.Action,
                 playerId: this.activePlayer.id
