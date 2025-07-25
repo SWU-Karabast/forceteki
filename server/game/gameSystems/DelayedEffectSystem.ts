@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { PerPlayerPerGameAbilityLimit, type IAbilityLimit } from '../core/ability/AbilityLimit';
+import type { AbilityLimit } from '../core/ability/AbilityLimit';
+import { PerPlayerPerGameAbilityLimit } from '../core/ability/AbilityLimit';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Duration, EventName, GameStateChangeRequired } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -20,7 +21,7 @@ export interface IDelayedEffectProperties extends IGameSystemProperties {
     title: string;
     when: WhenType;
     duration?: Duration;
-    limit?: IAbilityLimit;
+    limit?: AbilityLimit;
     immediateEffect: GameSystem<TriggeredAbilityContext>;
     delayedEffectType: DelayedEffectType;
     effectDescription?: string;

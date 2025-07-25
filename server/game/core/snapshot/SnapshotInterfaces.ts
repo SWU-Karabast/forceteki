@@ -86,4 +86,5 @@ export interface IGameState {
     isInitiativeClaimed: boolean;
     allCards: GameObjectRef<Card>[];
     actionNumber: number;
+    readonly winnerNames: string[];
 }

@@ -3,18 +3,13 @@ import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { EventName, PlayType, StandardTriggeredAbilityType } from '../Constants';
 import { AbilityType, GameStateChangeRequired, RelativePlayer, Stage } from '../Constants';
-import type { ITriggeredAbilityProps, WhenType, WhenTypeOrStandard } from '../../Interfaces';
+import type { IEventRegistration, ITriggeredAbilityProps, WhenType, WhenTypeOrStandard } from '../../Interfaces';
 import type { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
-import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import * as Contract from '../utils/Contract';
 import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
-
-interface IEventRegistration {
-    name: string;
-    handler: (event: GameEvent, window: TriggeredAbilityWindow) => void;
-}
+import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 
 export interface ITriggeredAbillityState extends ICardAbilityState {
     isRegistered: boolean;
@@ -54,7 +49,7 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     public readonly collectiveTrigger: boolean;
     public readonly standardTriggerTypes: StandardTriggeredAbilityType[] = [];
 
-    protected eventRegistrations?: IEventRegistration[];
+    protected eventRegistrations?: IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[];
     protected eventsTriggeredFor: GameEvent[] = [];
 
     private readonly mustChangeGameState: GameStateChangeRequired;
@@ -229,9 +224,9 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         this.state.isRegistered = false;
     }
 
-    private buildWhenEvents() {
+    private buildWhenEvents(): IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[] {
         if (this.aggregateWhen) {
-            const event = {
+            const event: IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void> = {
                 name: 'aggregateEvent:' + this.type,
                 handler: (events, window) => this.checkAggregateWhen(events, window)
             };
