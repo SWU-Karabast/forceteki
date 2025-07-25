@@ -717,12 +717,13 @@ describe('Snapshot types', function() {
                     });
                     expect(p1RollbackResult).toBeFalse();
 
+                    // Player 2 should still be able to roll back to the start of current action since they're the active player
                     const p2RollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
                         actionOffset: 0
                     });
-                    expect(p2RollbackResult).toBeFalse();
+                    expect(p2RollbackResult).toBeTrue();
                 });
 
                 it('cannot attempt to revert back more than two phases', function () {

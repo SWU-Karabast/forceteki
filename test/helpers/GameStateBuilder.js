@@ -206,16 +206,18 @@ class GameStateBuilder {
         // reset snapshot history after setup so that the history doesn't hold any snapshots of the game state before setup
         context.game.snapshotManager.clearAllSnapshots();
         context.game.state.actionNumber = 0;
-        context.game.snapshotManager.moveToNextTimepoint();
-        const snapshotId = context.game.snapshotManager.takeSnapshot({
+
+        context.game.snapshotManager.moveToNextTimepoint('startOfPhase');
+        context.game.snapshotManager.takeSnapshot({
             type: 'phase',
             phaseName: context.game.currentPhase
         });
 
-        // TODO THIS PR: thought this would work but it breaks everything...
-        // if (snapshotId !== -1) {
-        //     context.game.postRollbackOperations('startOfRound');
-        // }
+        context.game.snapshotManager.moveToNextTimepoint('action');
+        context.game.snapshotManager.takeSnapshot({
+            type: 'action',
+            playerId: context.game.getActivePlayer().id,
+        });
 
         Util.refreshGameState(context.game);
 

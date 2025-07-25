@@ -68,8 +68,8 @@ interface IRollbackResultFailure extends IRollbackResultBase {
 export type IRollbackResult = IRollbackResultSuccess | IRollbackResultFailure;
 
 export enum SnapshotTimepoint {
-    StartOfPhase,
-    Action
+    StartOfPhase = 'startOfPhase',
+    Action = 'action',
 }
 
 export interface IGameSnapshot {

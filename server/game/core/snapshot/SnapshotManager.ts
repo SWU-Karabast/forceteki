@@ -49,7 +49,7 @@ export class SnapshotManager {
         return this.snapshotFactory.currentSnapshottedRound;
     }
 
-    public get currentSnapshottedTimepoint(): number | null {
+    public get currentSnapshottedTimepoint(): SnapshotTimepoint | null {
         return this.snapshotFactory.currentSnapshottedTimepoint;
     }
 
