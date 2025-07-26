@@ -1238,6 +1238,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             type: this.type,
             uuid: this.uuid,
             printedType: this.printedType,
+            isBlanked: this.isBlank(),
             ...selectionState
         };
 
