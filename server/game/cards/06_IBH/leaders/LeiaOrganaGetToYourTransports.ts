@@ -30,7 +30,7 @@ export default class LeiaOrganaGetToYourTransports extends LeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'Heal 1 damage from a friendly unit and 1 damage from another friendly unit',
             targetResolver: {
-                activePromptTitle: 'Choose units to heal 1 damage to',
+                activePromptTitle: 'Choose units to heal 1 damage from',
                 mode: TargetMode.ExactlyVariable,
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
