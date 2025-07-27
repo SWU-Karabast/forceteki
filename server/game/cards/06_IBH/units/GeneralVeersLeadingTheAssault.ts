@@ -13,7 +13,7 @@ export default class GeneralVeersLeadingTheAssault extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: ' If you control a Vigilance unit, deal 2 damage to an enemy base and heal 2 damage from your base',
+            title: 'If you control a Vigilance unit, deal 2 damage to an enemy base and heal 2 damage from your base',
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasSomeArenaUnit({ aspect: Aspect.Vigilance }),
                 onTrue: abilityHelper.immediateEffects.simultaneous([
