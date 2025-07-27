@@ -5,17 +5,16 @@ import * as Contract from '../utils/Contract';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import { WithDamage } from './propertyMixins/Damage';
 import type { ActionAbility } from '../ability/ActionAbility';
-import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IEpicActionProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
-import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
-import type TriggeredAbility from '../ability/TriggeredAbility';
 import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import { WithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import { EpicActionAbility } from '../../abilities/EpicActionAbility';
 import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../AbilityHelper';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
@@ -46,6 +45,14 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
 
         this.setDamageEnabled(true);
         this.setActiveAttackEnabled(true);
+
+        for (const ability of this.getTriggeredAbilities()) {
+            ability.registerEvents();
+        }
+
+        for (const ability of this.getConstantAbilities()) {
+            ability.registeredEffects = this.addEffectToEngine(ability);
+        }
     }
 
     public override getActionAbilities(): ActionAbility[] {
@@ -58,22 +65,6 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
 
     public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities<this> {
         return true;
-    }
-
-    protected override addActionAbility(properties: IActionAbilityProps<this>) {
-        return super.addActionAbility(properties);
-    }
-
-    protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
-        const ability = super.addConstantAbility(properties);
-        ability.registeredEffects = this.addEffectToEngine(ability);
-        return ability;
-    }
-
-    protected override addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
-        const ability = super.addTriggeredAbility(properties);
-        ability.registerEvents();
-        return ability;
     }
 
     private setEpicActionAbility(properties: IEpicActionProps<this>): void {
@@ -102,9 +93,9 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar());
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override setupCardAbilities(registrar: IBaseAbilityRegistrar) { }
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
 }

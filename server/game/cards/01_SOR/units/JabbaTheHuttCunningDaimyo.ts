@@ -1,6 +1,6 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { CardType, Trait } from '../../../core/Constants';
 
 export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
@@ -11,7 +11,7 @@ export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'Each Trick event you play costs 1 resource less',
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({

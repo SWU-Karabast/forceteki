@@ -1,5 +1,5 @@
 import { BaseCard } from '../../../core/card/BaseCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { CardType, RelativePlayer } from '../../../core/Constants';
 import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
@@ -11,7 +11,7 @@ export default class PetranakiArena extends BaseCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IBaseAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'Each leader unit you control gets +1/+0',
             targetController: RelativePlayer.Self,

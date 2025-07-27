@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Duration, Trait, WildcardCardType } from '../../../core/Constants';
@@ -19,7 +19,7 @@ export default class Clone extends NonLeaderUnitCard {
         return super.getAbilityRegistrar();
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar): void {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addPreEnterPlayAbility({
             title: 'This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique',
             optional: true,

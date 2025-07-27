@@ -30,8 +30,9 @@ import * as Contract from '../utils/Contract';
  *                   the card is clicked.
  */
 export class ActionAbility extends CardAbility {
-    protected anyPlayer: boolean;
-    protected phase: string;
+    protected readonly anyPlayer: boolean;
+    protected readonly doesNotTarget: boolean;
+    protected readonly phase: string;
 
     public readonly condition?: (context?: AbilityContext) => boolean;
     public readonly requiresConfirmation: boolean;

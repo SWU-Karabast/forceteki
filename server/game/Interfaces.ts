@@ -152,7 +152,6 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     targetZoneFilter?: ZoneFilter;
     targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardName?: string;
-    uuid?: string;
     ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
     abilityIdentifier?: string;
     printedAbility?: boolean;
@@ -354,6 +353,11 @@ export interface ISerializedReportState {
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;
     viewport?: { width: number; height: number } | null;
+}
+
+export interface IEventRegistration<Handler = () => void> {
+    name: string;
+    handler: Handler;
 }
 
 // ********************************************** INTERNAL TYPES **********************************************

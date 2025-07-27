@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { BaseCard } from '../../../core/card/BaseCard';
 import { DamageType } from '../../../core/Constants';
@@ -12,7 +12,7 @@ export default class TempleOfDestruction extends BaseCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IBaseAbilityRegistrar) {
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'The Force is with you',
             when: {

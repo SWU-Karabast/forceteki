@@ -13,6 +13,10 @@ const GameStateBuilder = require('./GameStateBuilder.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const { cards } = require('../../server/game/cards/Index.js');
 const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
+const { SnapshotType } = require('../../server/game/core/Constants.js');
+
+// set to true to run all tests with undo enabled
+const ENABLE_UNDO_ALL_TESTS = false;
 
 // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
 if (!jasmine.getEnv().configuration().random) {
@@ -28,7 +32,16 @@ if (!jasmine.getEnv().configuration().random) {
 
 const gameStateBuilder = new GameStateBuilder();
 
-global.integration = function (definitions) {
+function buildStartOfTestSnapshot(game) {
+    const activePlayer = game.getActivePlayer();
+
+    return {
+        player: activePlayer,
+        snapshotId: game.takeManualSnapshot(activePlayer)
+    };
+}
+
+global.integration = function (definitions, enableUndo = false) {
     describe('- integration -', function () {
         /**
          * @type {SwuTestContextRef}
@@ -51,7 +64,8 @@ global.integration = function (definitions) {
                 gameStateBuilder.cardDataGetter,
                 gameRouter,
                 { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
-                { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } }
+                { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } },
+                enableUndo
             );
 
             /** @type {SwuTestContext} */
@@ -59,23 +73,32 @@ global.integration = function (definitions) {
             this.contextRef = contextRef;
             contextRef.context = newContext;
 
+            contextRef.snapshot = {
+                getCurrentSnapshotId: () => gameFlowWrapper.snapshotManager?.currentSnapshotId,
+                getCurrentSnapshottedAction: () => gameFlowWrapper.snapshotManager?.currentSnapshottedAction,
+                rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshot(settings),
+                countAvailableActionSnapshots: (playerId) => gameFlowWrapper.snapshotManager?.countAvailableActionSnapshots(playerId),
+                countAvailableManualSnapshots: (playerId) => gameFlowWrapper.snapshotManager?.countAvailableManualSnapshots(playerId),
+                takeManualSnapshot: (playerId) => newContext.game.takeManualSnapshot(playerId),
+            };
+
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
             gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
 
             /**
-             *
              * @param {SwuSetupTestOptions} options
              */
             const setupGameStateWrapperAsync = async (options) => {
                 // If this isn't an Undo Test, or this is an Undo Test that has the setup within the undoIt call rather than a beforeEach, run the setup.
-                if (!newContext.isUndoTest || newContext.snapshotId) {
+                // this is to prevent repeated setup calls when we run the test twice in an Undo test.
+                if (!newContext.isUndoTest || this.contextRef.snapshot?.startOfTestSnapshot == null) {
                     await gameStateBuilder.setupGameStateAsync(newContext, options);
                     gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
+
                     newContext.hasSetupGame = true;
+
                     if (newContext.isUndoTest) {
-                        newContext.snapshotId = newContext.game.enableUndo(() => {
-                            return newContext.game.takeSnapshot();
-                        });
+                        contextRef.snapshot.startOfTestSnapshot = buildStartOfTestSnapshot(newContext.game);
                     }
                 }
             };
@@ -139,31 +162,37 @@ global.integration = function (definitions) {
     });
 };
 
+const originalIntegration = global.integration;
+global.undoIntegration = function (definitions) {
+    originalIntegration(definitions, true);
+};
+
 const jit = it;
 global.undoIt = function(expectation, assertion, timeout) {
     jit(expectation + ' (with Undo)', async function() {
         /** @type {SwuTestContext} */
         const context = this.contextRef.context;
+        const snapshotUtils = this.contextRef.snapshot;
         context.isUndoTest = true;
 
         // If the game setup was in a beforeEach before this was called, take a snapshot.
         if (context.hasSetupGame) {
-            context.snapshotId = context.game.enableUndo(() => {
-                return context.game.takeSnapshot();
-            });
+            snapshotUtils.startOfTestSnapshot = buildStartOfTestSnapshot(context.game);
         }
 
-        if (context.snapshotId === -1) {
+        if (snapshotUtils.startOfTestSnapshot?.snapshotId === -1) {
             throw new Error('Snapshot ID invalid');
         }
 
         await assertion();
-        if (context.snapshotId == null) {
+        if (snapshotUtils.startOfTestSnapshot?.snapshotId == null) {
             // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
             return;
         }
-        const rolledBack = context.game.enableUndo(() => {
-            return context.game.rollbackToSnapshot(context.snapshotId);
+        const rolledBack = context.game.rollbackToSnapshot({
+            type: SnapshotType.Manual,
+            playerId: snapshotUtils.startOfTestSnapshot.player.id,
+            snapshotId: snapshotUtils.startOfTestSnapshot.snapshotId
         });
         if (!rolledBack) {
             // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
@@ -172,3 +201,42 @@ global.undoIt = function(expectation, assertion, timeout) {
         await assertion();
     }, timeout);
 };
+
+/**
+ * A shortcut to repeat a test with a rollback in between, and optionally an alternate case afterwards
+ * @param {SwuTestContextRef} contextRef
+ * @param {() => void} assertion
+ * @param {() => void} altAssertion
+ */
+global.rollback = function(contextRef, assertion, altAssertion) {
+    const { context } = contextRef;
+
+    const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+    expect(snapshotId).not.toBeUndefined('Snapshot ID was null, unable to rollback.');
+    expect(snapshotId).not.toBeUndefined('Snapshot ID was undefined, unable to rollback.');
+    expect(snapshotId).not.toBe(-1, 'Snapshot ID was -1, unable to rollback.');
+
+    assertion();
+
+    contextRef.snapshot.rollbackToSnapshot({
+        type: 'manual',
+        playerId: context.player1Object.id,
+        snapshotId
+    });
+
+    assertion();
+
+    if (altAssertion) {
+        contextRef.snapshot.rollbackToSnapshot({
+            type: 'manual',
+            playerId: context.player1Object.id,
+            snapshotId
+        });
+        altAssertion();
+    }
+};
+
+if (ENABLE_UNDO_ALL_TESTS) {
+    global.integration = global.undoIntegration;
+    global.it = global.undoIt;
+}

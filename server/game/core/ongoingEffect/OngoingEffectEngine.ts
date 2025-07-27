@@ -7,6 +7,8 @@ import type Game from '../Game';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
+import type { IGameObjectBaseState } from '../GameObjectBase';
+import { GameObjectBase, type GameObjectRef } from '../GameObjectBase';
 
 interface ICustomDurationEvent {
     name: string;
@@ -14,13 +16,21 @@ interface ICustomDurationEvent {
     effect: OngoingEffect<any>;
 }
 
-export class OngoingEffectEngine {
+export interface IOngoingEffectState extends IGameObjectBaseState {
+    effects: GameObjectRef<OngoingEffect<any>>[]; // TODO: Can we make OngoingEffect have an ID w/o using GameObjectBase? Probably, do it similiar to how snapshot IDs work.
+}
+
+export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
     public events: EventRegistrar;
-    public effects: OngoingEffect<any>[] = [];
     public customDurationEvents: ICustomDurationEvent[] = [];
     public effectsChangedSinceLastCheck = false;
 
-    public constructor(private game: Game) {
+    public get effects() {
+        return this.state.effects.map((x) => this.game.gameObjectManager.get(x));
+    }
+
+    public constructor(game: Game) {
+        super(game);
         this.events = new EventRegistrar(game, this);
         this.events.register([
             EventName.OnAttackCompleted,
@@ -29,8 +39,13 @@ export class OngoingEffectEngine {
         ]);
     }
 
+    protected override setupDefaultState() {
+        super.setupDefaultState();
+        this.state.effects = [];
+    }
+
     public add(effect: OngoingEffect<any>) {
-        this.effects.push(effect);
+        this.state.effects.push(effect.getRef());
         if (effect.duration === Duration.Custom) {
             this.registerCustomDurationEvents(effect);
         }
@@ -172,21 +187,25 @@ export class OngoingEffectEngine {
         });
     }
 
+    private unapplyEffect(effect: OngoingEffect<any>) {
+        effect.cancel();
+        if (effect.duration === Duration.Custom) {
+            this.unregisterCustomDurationEvents(effect);
+        }
+    }
+
     public unapplyAndRemove(match: (effect: OngoingEffect<any>) => boolean) {
         let anyEffectRemoved = false;
         const remainingEffects: OngoingEffect<any>[] = [];
         for (const effect of this.effects) {
             if (match(effect)) {
                 anyEffectRemoved = true;
-                effect.cancel();
-                if (effect.duration === Duration.Custom) {
-                    this.unregisterCustomDurationEvents(effect);
-                }
+                this.unapplyEffect(effect);
             } else {
                 remainingEffects.push(effect);
             }
         }
-        this.effects = remainingEffects;
+        this.state.effects = remainingEffects.map((x) => x.getRef());
         return anyEffectRemoved;
     }
 
@@ -237,12 +256,23 @@ export class OngoingEffectEngine {
             if (listener && listener(event, customDurationEffect.context)) {
                 customDurationEffect.cancel();
                 this.unregisterCustomDurationEvents(customDurationEffect);
-                this.effects = this.effects.filter((effect) => effect !== customDurationEffect);
+                this.state.effects = this.effects.filter((effect) => effect !== customDurationEffect).map((x) => x.getRef());
             }
         };
     }
 
     public getDebugInfo() {
         return this.effects.map((effect) => effect.getDebugInfo());
+    }
+
+    public override afterSetAllState(prevState: IOngoingEffectState) {
+        for (const currEffect of this.state.effects) {
+            if (!prevState.effects.some((x) => x.uuid === currEffect.uuid)) {
+                const effect = this.getObject(currEffect);
+                if (effect.duration === Duration.Custom) {
+                    this.registerCustomDurationEvents(effect);
+                }
+            }
+        }
     }
 }

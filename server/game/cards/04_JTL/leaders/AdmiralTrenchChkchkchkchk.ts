@@ -1,4 +1,4 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
@@ -12,7 +12,7 @@ export default class AdmiralTrenchChkchkchkchk extends LeaderUnitCard {
         };
     }
 
-    protected override deployActionAbilityProps() {
+    protected override deployActionAbilityProps(AbilityHelper: IAbilityHelper) {
         return {
             limit: AbilityHelper.limit.unlimited(),
             cost: [
@@ -22,7 +22,7 @@ export default class AdmiralTrenchChkchkchkchk extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Discard a card that costs 3 or more from your hand. If you do, draw a card',
             cost: AbilityHelper.costs.exhaustSelf(),
@@ -40,7 +40,7 @@ export default class AdmiralTrenchChkchkchkchk extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other',
             when: {
