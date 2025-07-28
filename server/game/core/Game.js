@@ -1661,6 +1661,7 @@ class Game extends EventEmitter {
                 }),
                 started: this.started,
                 gameMode: this.gameMode,
+                winners: this.winnerNames
             };
 
             // clean out any properies that are null or undefined to reduce the message size
