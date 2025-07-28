@@ -1,4 +1,3 @@
-import type seedrandom from 'seedrandom';
 import type { Card } from '../card/Card';
 import type { MoveZoneDestination } from '../Constants';
 import { ZoneName, DeckZoneDestination, WildcardRelativePlayer } from '../Constants';
@@ -11,6 +10,7 @@ import type { GameEvent } from '../event/GameEvent';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import type Game from '../Game';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { IRandomness } from '../GameInterfaces';
 
 export interface IDeckZoneState extends IGameObjectBaseState {
     deck: GameObjectRef<IPlayableCard>[];
@@ -143,8 +143,9 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
         this.state.searchingCards.splice(foundCardInSearchingCardsIdx, 1);
     }
 
-    public shuffle(randomGenerator: seedrandom) {
+    public shuffle(randomGenerator: IRandomness) {
         this.state.deck = Helpers.shuffle(this.state.deck, randomGenerator);
+        this.game.state.rngState = randomGenerator.getState();
     }
 
     /**

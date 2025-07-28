@@ -238,7 +238,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
     private remainingCardsDefaultHandler(context: TContext, event: any, cardsToMove: Card[]) {
         if (cardsToMove.length > 0) {
-            shuffleArray(cardsToMove, context.game.randomGenerator);
+            shuffleArray(cardsToMove, context.game.rng);
             for (const card of cardsToMove) {
                 card.moveTo(DeckZoneDestination.DeckBottom);
             }

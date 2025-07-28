@@ -2,6 +2,7 @@ import type { GameMode } from '../../GameMode';
 import type { Lobby } from '../../gamenode/Lobby';
 import type { IUser } from '../../Settings';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
+import type Game from './Game';
 import * as Contract from './utils/Contract';
 
 export interface GameConfiguration {
@@ -36,4 +37,12 @@ export interface GameOptions {
 
 export function validateGameOptions(options: GameOptions): void {
     Contract.assertNotNullLike(options.router);
+}
+
+export type IRngState = object;
+
+export interface IRandomness {
+    next(): number;
+    getState(): IRngState;
+    restore(state: IRngState): void;
 }

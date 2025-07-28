@@ -66,7 +66,9 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
         // randomly select a ready resource if possible; otherwise randomly select from all resources
         const resourcesToChooseFrom = opponentReadyResources.length > 0 ? opponentReadyResources : player.opponent.resources;
-        event.card = Helpers.randomItem(resourcesToChooseFrom, context.game.randomGenerator);
+
+        event.card = Helpers.randomItem(resourcesToChooseFrom, context.game.rng);
+        context.game.state.rngState = context.game.randomGenerator.getState();
     }
 
     private playerFromArray(player: Player | Player[]) {

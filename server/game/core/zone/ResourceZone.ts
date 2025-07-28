@@ -38,7 +38,8 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
         // Cards is an accessor and a copy of the array.
         let cards = this.cards;
         this.cards.forEach((card) => card.exhausted = false);
-        Helpers.shuffleArray(this.state.cards, context.game.randomGenerator);
+        Helpers.shuffleArray(this.state.cards, context.game.rng);
+        context.game.state.rngState = context.game.randomGenerator.getState();
 
         // Reacquire cards array in new, shuffled order.
         cards = this.cards;

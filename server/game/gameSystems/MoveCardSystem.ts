@@ -179,7 +179,8 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
     protected override processTargets(target: Card | Card[], context: TContext) {
         if (this.properties?.shuffleMovedCards && Array.isArray(target)) {
-            Helpers.shuffleArray(target, context.game.randomGenerator);
+            Helpers.shuffleArray(target, context.game.rng);
+            context.game.state.rngState = context.game.randomGenerator.getState();
         }
         return target;
     }

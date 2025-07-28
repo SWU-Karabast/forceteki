@@ -94,7 +94,8 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
             }
 
             if (properties.random) {
-                const randomCards = Helpers.getRandomArrayElements(availableHand, amount, context.game.randomGenerator);
+                const randomCards = Helpers.getRandomArrayElements(availableHand, amount, context.game.rng);
+                context.game.state.rngState = context.game.randomGenerator.getState();
                 this.generateEventsForCards(randomCards, context, events, additionalProperties);
                 continue;
             }

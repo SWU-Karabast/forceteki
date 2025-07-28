@@ -50,6 +50,7 @@ const { SnapshotManager } = require('./snapshot/SnapshotManager.js');
 const AbilityHelper = require('../AbilityHelper.js');
 const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
 const { getAbilityHelper } = require('../AbilityHelper.js');
+const { Randomness } = require('../core/Randomness.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -137,6 +138,10 @@ class Game extends EventEmitter {
         return this.state.winnerNames;
     }
 
+    get rng() {
+        return this.randomGenerator;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -192,6 +197,9 @@ class Game extends EventEmitter {
         /** @type {import('./gameSteps/prompts/UiPrompt.js').UiPrompt} */
         this.currentOpenPrompt = null;
 
+        /** @type {import('./GameInterfaces.js').IRandomness} */
+        this.randomGenerator = new Randomness();
+
         /** @type { import('./snapshot/SnapshotInterfaces.js').IGameState } */
         this.state = {
             initialFirstPlayer: null,
@@ -201,14 +209,13 @@ class Game extends EventEmitter {
             isInitiativeClaimed: false,
             allCards: [],
             actionNumber: -1,
-            winnerNames: []
+            winnerNames: [],
+            rngState: this.randomGenerator.getState(),
         };
 
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
-        // STATE TODO: Move the generator logic into the state object.
-        this.randomGenerator = seedrandom();
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
 
@@ -464,7 +471,7 @@ class Game extends EventEmitter {
     }
 
     setRandomSeed(seed) {
-        this.randomGenerator = seedrandom(seed);
+        this.randomGenerator = new Randomness(seed);
     }
 
     /**

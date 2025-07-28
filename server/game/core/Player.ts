@@ -690,7 +690,7 @@ export class Player extends GameObject<IPlayerState> {
      */
     public shuffleDeck(context: AbilityContext = null) {
         this.game.addMessage('{0} is shuffling their deck', this);
-        this.deckZone.shuffle(this.game.randomGenerator);
+        this.deckZone.shuffle(this.game.rng);
     }
 
     /**
