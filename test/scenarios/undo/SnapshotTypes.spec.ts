@@ -770,9 +770,6 @@ describe('Snapshot types', function() {
 
                 const { context } = contextRef;
 
-                context.actionPhaseStartSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.actionPhaseStartActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
                 context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
                 context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
@@ -835,9 +832,124 @@ describe('Snapshot types', function() {
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(0);
             });
         });
+
+        describe('effects at the start of the action phase', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine'],
+                        deck: ['takedown', 'vanquish', 'rivals-fall', 'cartel-spacer'],
+                        leader: 'grand-admiral-thrawn#patient-and-insightful',
+                        resources: 3,
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'atst'],
+                        deck: ['steadfast-battalion', 'avenger#hunting-star-destroyer', 'specforce-soldier']
+                    },
+                    phaseTransitionHandler: (phase) => {
+                        if (phase === 'action') {
+                            contextRef.context.player1.clickPrompt('Done');
+                        }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.moveToNextActionPhase();
+
+                context.startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.startOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                // thrawn ability reveal top deck of each player (happens at beginning of action phase)
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    { card: context.rivalsFall, displayText: 'Yourself' },
+                    { card: context.specforceSoldier, displayText: 'Opponent' }
+                ]);
+
+                context.player1.clickPrompt('Done');
+
+                context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+
+                context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+            });
+
+            const assertActionPhaseStartState = (context) => {
+                expect(context.player1.handSize).toBe(2);
+                expect(context.player2.handSize).toBe(2);
+
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.wampa.exhausted).toBeFalse();
+                expect(context.p1Base.damage).toEqual(0);
+                expect(context.p2Base.damage).toEqual(0);
+            };
+
+            it('should be repeated when rolling back to the start-of-action-phase snapshot', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'action',
+                    phaseOffset: 0
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+                assertActionPhaseStartState(context);
+
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    { card: context.rivalsFall, displayText: 'Yourself' },
+                    { card: context.specforceSoldier, displayText: 'Opponent' }
+                ]);
+
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should not be repeated when rolling back to the first action snapshot of the phase', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player1.id,
+                    actionOffset: -1
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Action1SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action1ActionId);
+                assertActionPhaseStartState(context);
+
+                expect(context.player1).not.toHaveExactViewableDisplayPromptCards([
+                    { card: context.rivalsFall, displayText: 'Yourself' },
+                    { card: context.specforceSoldier, displayText: 'Opponent' }
+                ]);
+                expect(context.player1).toBeActivePlayer();
+            });
+        });
     });
 
     // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file
     // TODO: regroup phase and previous action phase snapshot tests
+    // TODO: setup phase tests
+    // TODO: test start-of-phase and end-of-phase effects for both regroup and action phases
+    // - start of regroup: sneak attack + rr
+    // - start of action phase: thrawn1
+    // - end of regroup: falcon1
+    // - end of action: OB + rr
+    // - also assert that the snapshot ID / action ID are correct at the prompt stage (next PR)
     // TODO: decide the details of how we want manual snapshots to work, and test them in-depth
 });

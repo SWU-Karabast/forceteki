@@ -1,5 +1,5 @@
 import { PhaseName } from '../Constants';
-import { RoundEntryPoint } from '../Constants';
+import { RollbackRoundEntryPoint as RollbackRoundEntryPoint } from '../Constants';
 import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from '../GameStateManager';
@@ -152,14 +152,14 @@ export class SnapshotManager {
         return offset;
     }
 
-    private getRoundEntryPoint(settings: IGetSnapshotSettings): RoundEntryPoint {
+    private getRoundEntryPoint(settings: IGetSnapshotSettings): RollbackRoundEntryPoint {
         switch (settings.type) {
             case SnapshotType.Action:
-                return RoundEntryPoint.WithinActionPhase;
+                return RollbackRoundEntryPoint.WithinActionPhase;
             case SnapshotType.Phase:
-                return settings.phaseName === PhaseName.Action ? RoundEntryPoint.StartOfRound : RoundEntryPoint.StartOfRegroupPhase;
+                return settings.phaseName === PhaseName.Action ? RollbackRoundEntryPoint.StartOfRound : RollbackRoundEntryPoint.StartOfRegroupPhase;
             case SnapshotType.Manual:
-                return this.snapshotFactory.currentSnapshottedPhase === PhaseName.Action ? RoundEntryPoint.WithinActionPhase : RoundEntryPoint.StartOfRegroupPhase;
+                return this.snapshotFactory.currentSnapshottedPhase === PhaseName.Action ? RollbackRoundEntryPoint.WithinActionPhase : RollbackRoundEntryPoint.StartOfRegroupPhase;
             default:
                 Contract.fail(`Unimplemented snapshot type: ${(settings as any).type}`);
         }

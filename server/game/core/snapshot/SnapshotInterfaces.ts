@@ -1,5 +1,5 @@
 import type { Card } from '../card/Card';
-import type { PhaseName, RoundEntryPoint, SnapshotType } from '../Constants';
+import type { PhaseName, RollbackRoundEntryPoint, SnapshotType } from '../Constants';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import type { Player } from '../Player';
 
@@ -58,7 +58,7 @@ interface IRollbackResultBase {
 
 interface IRollbackResultSuccess extends IRollbackResultBase {
     success: true;
-    roundEntryPoint: RoundEntryPoint;
+    roundEntryPoint: RollbackRoundEntryPoint;
 }
 
 interface IRollbackResultFailure extends IRollbackResultBase {

@@ -523,7 +523,7 @@ export enum AlertType {
     ReadyStatus = 'readyStatus',
 }
 
-export enum RoundEntryPoint {
+export enum RollbackRoundEntryPoint {
     StartOfRound = 'startOfRound',
     WithinActionPhase = 'withinActionPhase',
     StartOfRegroupPhase = 'startOfRegroupPhase',

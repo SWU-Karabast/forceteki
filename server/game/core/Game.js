@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RoundEntryPoint } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -1088,28 +1088,41 @@ class Game extends EventEmitter {
     }
 
     /**
-     * @param {RoundEntryPoint} roundEntryPoint
+     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
-    initialisePipeline(roundEntryPoint = RoundEntryPoint.StartOfRound) {
+    initialisePipeline(rollbackEntryPoint = null) {
+        const isRollback = rollbackEntryPoint != null;
+
         const roundStartStep = [];
-        if (roundEntryPoint === RoundEntryPoint.StartOfRound) {
+        if (!isRollback || rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRound) {
             roundStartStep.push(new SimpleStep(
                 this, () => this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers), 'beginRound'
             ));
         }
 
         const actionPhaseStep = [];
-        if (roundEntryPoint === RoundEntryPoint.WithinActionPhase || roundEntryPoint === RoundEntryPoint.StartOfRound) {
-            const actionInitializeMode =
-                roundEntryPoint === RoundEntryPoint.WithinActionPhase
-                    ? PhaseInitializeMode.RollbackToWithinPhase
-                    : PhaseInitializeMode.Normal;
+        if (rollbackEntryPoint !== RollbackRoundEntryPoint.StartOfRegroupPhase) {
+            let actionInitializeMode;
+
+            switch (rollbackEntryPoint) {
+                case RollbackRoundEntryPoint.StartOfRound:
+                    actionInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
+                    break;
+                case RollbackRoundEntryPoint.WithinActionPhase:
+                    actionInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
+                    break;
+                case null:
+                    actionInitializeMode = PhaseInitializeMode.Normal;
+                    break;
+                default:
+                    Contract.fail(`Unknown rollback entry point: ${rollbackEntryPoint}`);
+            }
 
             actionPhaseStep.push(new ActionPhase(this, () => this.getNextActionNumber(), this.snapshotManager, actionInitializeMode));
         }
 
         const regroupInitializeMode =
-            roundEntryPoint === RoundEntryPoint.StartOfRegroupPhase
+            rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase
                 ? PhaseInitializeMode.RollbackToStartOfPhase
                 : PhaseInitializeMode.Normal;
 
@@ -1748,7 +1761,7 @@ class Game extends EventEmitter {
         return true;
     }
 
-    postRollbackOperations(roundEntryPoint) {
+    postRollbackOperations(roundEntryPoint = null) {
         this.pipeline.clearSteps();
         this.initialisePipeline(roundEntryPoint);
         this.pipeline.continue(this);
