@@ -1128,12 +1128,126 @@ describe('Snapshot types', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        describe('effects at the start of the regroup phase', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['inferno-four#unforgetting', 'system-patrol-craft'],
+                        hand: ['sneak-attack', 'ruthless-raider']
+                    },
+                    player2: {
+                        spaceArena: ['green-squadron-awing'],
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Ruthless Raider from hand
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.ruthlessRaider);
+
+                // Select Enemy Unit and Base. Not able to select friendly units
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                // Check damage on unit and base
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.greenSquadronAwing.damage).toBe(2);
+
+                context.moveToRegroupPhase();
+
+                context.startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.startOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                // RR is defeated by Sneak Attack effect. Select Enemy Unit and Base. Not able to select friendly units
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                // Check damage on unit and base
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.greenSquadronAwing).toBeInZone('discard');
+            });
+
+            const assertRegroupPhaseStartState = (context) => {
+                expect(context.ruthlessRaider).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.greenSquadronAwing.damage).toBe(2);
+            };
+
+            const assertRegroupPhaseRaiderDefeatedState = (context) => {
+                expect(context.ruthlessRaider).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.greenSquadronAwing).toBeInZone('discard');
+            };
+
+            it('should be repeated when rolling back to the start-of-regroup-phase snapshot from within the regroup phase', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'regroup',
+                    phaseOffset: 0
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+
+                assertRegroupPhaseStartState(context);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                assertRegroupPhaseRaiderDefeatedState(context);
+
+                // move to action phase to confirm that everything still works
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+                context.player1.clickCard(context.systemPatrolCraft);
+                context.player1.clickCard(context.p2Base);
+            });
+
+            it('should be repeated when rolling back to the start-of-regroup-phase snapshot from the next action phase', function () {
+                const { context } = contextRef;
+
+                // move to action phase
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+                context.player1.clickCard(context.systemPatrolCraft);
+                context.player1.clickCard(context.p2Base);
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'regroup',
+                    phaseOffset: 0
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+
+                assertRegroupPhaseStartState(context);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                assertRegroupPhaseRaiderDefeatedState(context);
+
+                // move to action phase to confirm that everything still works
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+                context.player1.clickCard(context.systemPatrolCraft);
+                context.player1.clickCard(context.p2Base);
+            });
+        });
     });
 
+    // TODO THIS PR: should we reset action snapshots in a new action phase?
+
     // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file
-    // TODO: regroup phase and previous action phase snapshot tests
     // TODO: setup phase tests
-    // TODO: test start-of-phase effects for both regroup and action phases
-    // - start of regroup: sneak attack + rr
     // TODO: decide the details of how we want manual snapshots to work, and test them in-depth
 });
