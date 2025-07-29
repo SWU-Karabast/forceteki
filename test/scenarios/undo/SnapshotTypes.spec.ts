@@ -751,6 +751,194 @@ describe('Snapshot types', function() {
             });
         });
 
+        describe('After multiple rounds,', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['death-trooper'],
+                        groundArena: ['secretive-sage'],
+                        spaceArena: ['cartel-spacer']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'superlaser-technician'],
+                        spaceArena: ['tieln-fighter'],
+                        hand: ['battlefield-marine'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.clickCard(context.superlaserTechnician);
+                context.player2.clickCard(context.p1Base);
+
+                // Play Death Trooper
+                context.player1.clickCard(context.deathTrooper);
+
+                // Choose Friendly
+                context.player1.clickCard(context.deathTrooper);
+
+                // Choose Enemy
+                context.player1.clickCard(context.wampa);
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
+
+                context.moveToRegroupPhase();
+
+                context.regroupPhase1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                context.regroupPhase1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.actionPhase2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                context.actionPhase2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                // state after first action phase:
+                // p1Base damage: 2
+                // p2Base damage: 2
+                // Battlefield Marine in play
+                // Death Trooper in play
+                // Death Trooper damage: 2
+                // Wampa damage: 2
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+
+                context.player1.clickCard(context.secretiveSage);
+                context.player1.clickCard(context.p2Base);
+
+                context.moveToRegroupPhase();
+
+                context.regroupPhase2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                context.regroupPhase2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.actionPhase3ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                context.actionPhase3SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                // state after second action phase:
+                // p1Base damage: 6
+                // p2Base damage: 4
+                // Battlefield Marine in play
+                // Death Trooper in play
+                // Death Trooper damage: 2
+                // Wampa damage: 2
+
+                context.player2.clickCard(context.tielnFighter);
+                context.player2.clickCard(context.p1Base);
+            });
+
+            const assertPhase2State = (context) => {
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+                expect(context.deathTrooper).toBeInZone('groundArena');
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
+                expect(context.p1Base.damage).toEqual(2);
+                expect(context.p2Base.damage).toEqual(2);
+            };
+
+            const assertPhase3State = (context) => {
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+                expect(context.deathTrooper).toBeInZone('groundArena');
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
+                expect(context.p1Base.damage).toEqual(6);
+                expect(context.p2Base.damage).toEqual(4);
+            };
+
+            const assertFinalState = (context) => {
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+                expect(context.deathTrooper).toBeInZone('groundArena');
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
+                expect(context.p1Base.damage).toEqual(8);
+                expect(context.p2Base.damage).toEqual(4);
+            };
+
+            it('regroup snapshots can revert back to the previous state', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'regroup',
+                    actionOffset: 0
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertPhase3State(context);
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.tielnFighter);
+                context.player2.clickCard(context.p1Base);
+
+                assertFinalState(context);
+            });
+
+            it('regroup snapshots can revert back to the previous state as the default', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'regroup'
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertPhase3State(context);
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.tielnFighter);
+                context.player2.clickCard(context.p1Base);
+
+                assertFinalState(context);
+            });
+
+            it('regroup snapshots can revert back to the previous state', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'regroup',
+                    phaseOffset: -1
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertPhase2State(context);
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+
+                context.player1.clickCard(context.secretiveSage);
+                context.player1.clickCard(context.p2Base);
+
+                assertPhase3State(context);
+            });
+        });
+
         describe('During a short action phase,', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
@@ -945,11 +1133,7 @@ describe('Snapshot types', function() {
     // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file
     // TODO: regroup phase and previous action phase snapshot tests
     // TODO: setup phase tests
-    // TODO: test start-of-phase and end-of-phase effects for both regroup and action phases
+    // TODO: test start-of-phase effects for both regroup and action phases
     // - start of regroup: sneak attack + rr
-    // - start of action phase: thrawn1
-    // - end of regroup: falcon1
-    // - end of action: OB + rr
-    // - also assert that the snapshot ID / action ID are correct at the prompt stage (next PR)
     // TODO: decide the details of how we want manual snapshots to work, and test them in-depth
 });
