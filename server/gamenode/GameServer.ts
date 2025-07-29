@@ -66,11 +66,15 @@ export class GameServer {
         } else {
             cardDataGetter = await GameServer.buildRemoteCardDataGetter();
         }
+
+        // downloads all card data to build deck validator
+        const deckValidator = await DeckValidator.createAsync(cardDataGetter);
+
         console.log('SETUP: Card data downloaded.');
 
         return new GameServer(
             cardDataGetter,
-            await DeckValidator.createAsync(cardDataGetter),
+            deckValidator,
             testGameBuilder
         );
     }
@@ -120,6 +124,27 @@ export class GameServer {
         };
         app.use(cors(corsOptions));
 
+        app.use((req, res, next) => {
+            const start = process.hrtime.bigint();
+
+            res.on('finish', () => {
+                const end = process.hrtime.bigint();
+                const durationMs = Number(end - start) / 1e6;
+
+                const log = {
+                    method: req.method,
+                    path: req.originalUrl.split('?')[0],
+                    status: res.statusCode,
+                    durationMs: Number(durationMs.toFixed(2)),
+                    timestamp: new Date().toISOString()
+                };
+
+                logger.info(`[ApiRequest] ${JSON.stringify(log)}`);
+            });
+
+            next();
+        });
+
         this.setupAppRoutes(app);
         app.use((err, req, res, next) => {
             logger.error('GameServer: Error in API route:', err);
@@ -128,6 +153,7 @@ export class GameServer {
                 error: err.message || 'Server error.',
             });
         });
+
 
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
@@ -256,26 +282,26 @@ export class GameServer {
             }
         });
 
-        app.post('/api/get-user', authMiddleware('get-user'), async (req, res, next) => {
+        app.post('/api/get-user', authMiddleware('get-user'), (req, res, next) => {
             try {
-                const { decks, preferences } = req.body;
+                // const { decks, preferences } = req.body;
                 const user = req.user as User;
                 // We try to sync the decks first
-                if (decks.length > 0) {
-                    try {
-                        await this.deckService.syncDecksAsync(user.getId(), decks);
-                    } catch (err) {
-                        logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
-                        next(err);
-                    }
-                }
-                if (preferences) {
-                    try {
-                        user.setPreferences(await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences));
-                    } catch (err) {
-                        logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
-                    }
-                }
+                // if (decks.length > 0) {
+                //     try {
+                //         await this.deckService.syncDecksAsync(user.getId(), decks);
+                //     } catch (err) {
+                //         logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
+                //         next(err);
+                //     }
+                // }
+                // if (preferences) {
+                //     try {
+                //         user.setPreferences(await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences));
+                //     } catch (err) {
+                //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
+                //     }
+                // }
                 return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange() } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);

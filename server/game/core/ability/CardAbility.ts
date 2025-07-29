@@ -27,7 +27,7 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
         super(game, card, properties, type);
 
         this.limit = properties.limit || new UnlimitedAbilityLimit(this.game);
-        this.limit.registerEvents(game);
+        this.limit.registerEvents();
         this.limit.ability = this;
 
         this.printedAbility = properties.printedAbility ?? true;

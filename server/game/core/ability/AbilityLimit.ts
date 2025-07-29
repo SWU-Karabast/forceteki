@@ -1,26 +1,71 @@
-import type EventEmitter from 'events';
 import { EventName } from '../Constants';
 import type { Player } from '../Player';
 import type { CardAbility } from './CardAbility';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type Game from '../Game';
+import type { IEventRegistration } from '../../Interfaces';
 
 export interface IAbilityLimit {
     get ability(): CardAbility;
     set ability(value: CardAbility);
-    clone(): IAbilityLimit;
+    clone(): AbilityLimit;
     isRepeatable(): boolean;
     isAtMax(player: Player): boolean;
     increment(player: Player): void;
     reset(): void;
-    registerEvents(eventEmitter: EventEmitter): void;
-    unregisterEvents(eventEmitter: EventEmitter): void;
+    registerEvents(): void;
+    unregisterEvents(): void;
     isEpicActionLimit(): this is EpicActionLimit;
 }
 
-interface IAbilityLimitState extends IGameObjectBaseState {
+export interface IAbilityLimitState extends IGameObjectBaseState {
     ability: GameObjectRef<CardAbility> | undefined;
+    isRegistered: boolean;
+}
+
+export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityLimitState> extends GameObjectBase<TState> implements IAbilityLimit {
+    public get ability() {
+        return this.game.getFromRef(this.state.ability);
+    }
+
+    public set ability(value) {
+        this.state.ability = value.getRef();
+    }
+
+    protected override setupDefaultState(): void {
+        super.setupDefaultState();
+
+        this.state.isRegistered = false;
+    }
+
+    protected override afterSetState(oldState: TState): void {
+        if (this.state.isRegistered !== oldState.isRegistered) {
+            if (this.state.isRegistered) {
+                this.registerEvents();
+            } else {
+                this.unregisterEvents();
+            }
+        }
+    }
+
+    public registerEvents(): void {
+        this.state.isRegistered = true;
+    }
+
+    public unregisterEvents(): void {
+        this.state.isRegistered = false;
+    }
+
+    public isEpicActionLimit(): this is EpicActionLimit {
+        return false;
+    }
+
+    public abstract clone(): AbilityLimit;
+    public abstract isRepeatable(): boolean;
+    public abstract isAtMax(player: Player): boolean;
+    public abstract increment(player: Player): void;
+    public abstract reset(): void;
 }
 
 interface IPerPlayerAbilityLimitState extends IAbilityLimitState {
@@ -31,16 +76,10 @@ interface IPerGameAbilityLimitState extends IAbilityLimitState {
     useCount: 0;
 }
 
-export class UnlimitedAbilityLimit extends GameObjectBase<IPerPlayerAbilityLimitState> implements IAbilityLimit {
-    public get ability() {
-        return this.game.getFromRef(this.state.ability);
-    }
-
-    public set ability(value) {
-        this.state.ability = value.getRef();
-    }
-
+export class UnlimitedAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitState> {
     protected override setupDefaultState(): void {
+        super.setupDefaultState();
+
         this.state.useCount = new Map();
     }
 
@@ -65,18 +104,8 @@ export class UnlimitedAbilityLimit extends GameObjectBase<IPerPlayerAbilityLimit
         this.state.useCount.clear();
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public registerEvents(eventEmitter: EventEmitter): void {}
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public unregisterEvents(eventEmitter: EventEmitter): void {}
-
     public currentForPlayer(player: Player) {
         return this.state.useCount.get(this.getKey(player.name)) ?? 0;
-    }
-
-    public isEpicActionLimit(): this is EpicActionLimit {
-        return false;
     }
 
     private getKey(player: string): string {
@@ -84,17 +113,9 @@ export class UnlimitedAbilityLimit extends GameObjectBase<IPerPlayerAbilityLimit
     }
 }
 
-export class PerGameAbilityLimit extends GameObjectBase<IPerGameAbilityLimitState> implements IAbilityLimit {
+export class PerGameAbilityLimit extends AbilityLimit<IPerGameAbilityLimitState> {
     public currentUser: null | string = null;
     public readonly max: number;
-
-    public get ability() {
-        return this.game.getFromRef(this.state.ability);
-    }
-
-    public set ability(value) {
-        this.state.ability = value.getRef();
-    }
 
     public constructor(game: Game, max: number) {
         super(game);
@@ -102,6 +123,8 @@ export class PerGameAbilityLimit extends GameObjectBase<IPerGameAbilityLimitStat
     }
 
     protected override setupDefaultState(): void {
+        super.setupDefaultState();
+
         this.state.useCount = 0;
     }
 
@@ -125,37 +148,23 @@ export class PerGameAbilityLimit extends GameObjectBase<IPerGameAbilityLimitStat
         this.state.useCount = 0;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public registerEvents(eventEmitter: EventEmitter): void {}
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public unregisterEvents(eventEmitter: EventEmitter): void {}
-
     public currentForPlayer(): number {
         return this.state.useCount;
     }
-
-    public isEpicActionLimit(): this is EpicActionLimit {
-        return false;
-    }
 }
 
-
-export class PerPlayerPerGameAbilityLimit extends GameObjectBase<IPerPlayerAbilityLimitState> implements IAbilityLimit {
-    private useCount = new Map<string, number>();
+export class PerPlayerPerGameAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitState> {
     public readonly max: number;
-
-    public get ability() {
-        return this.game.getFromRef(this.state.ability);
-    }
-
-    public set ability(value) {
-        this.state.ability = value.getRef();
-    }
 
     public constructor(game: Game, max: number) {
         super(game);
         this.max = max;
+    }
+
+    protected override setupDefaultState(): void {
+        super.setupDefaultState();
+
+        this.state.useCount = new Map();
     }
 
     public clone() {
@@ -172,25 +181,15 @@ export class PerPlayerPerGameAbilityLimit extends GameObjectBase<IPerPlayerAbili
 
     public increment(player: Player): void {
         const key = this.getKey(player.name);
-        this.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.state.useCount.set(key, this.currentForPlayer(player) + 1);
     }
 
     public reset(): void {
-        this.useCount.clear();
+        this.state.useCount.clear();
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public registerEvents(eventEmitter: EventEmitter): void {}
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public unregisterEvents(eventEmitter: EventEmitter): void {}
 
     public currentForPlayer(player: Player) {
-        return this.useCount.get(this.getKey(player.name)) ?? 0;
-    }
-
-    public isEpicActionLimit(): this is EpicActionLimit {
-        return false;
+        return this.state.useCount.get(this.getKey(player.name)) ?? 0;
     }
 
     private getKey(player: string): string {
@@ -205,6 +204,7 @@ export class PerPlayerPerGameAbilityLimit extends GameObjectBase<IPerPlayerAbili
 
 export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
     private readonly eventName: Set<EventName>;
+    private eventRegistrations?: IEventRegistration[];
 
     public constructor(
         game: Game,
@@ -223,16 +223,34 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
         return true;
     }
 
-    public override registerEvents(eventEmitter: EventEmitter): void {
-        for (const eventN of this.eventName) {
-            eventEmitter.on(eventN, () => this.reset());
+    public override registerEvents(): void {
+        super.registerEvents();
+
+        if (this.eventRegistrations) {
+            return;
+        }
+
+        this.eventRegistrations = [...this.eventName].map((eventName) => ({
+            name: eventName,
+            handler: () => this.reset()
+        }));
+
+        for (const event of this.eventRegistrations) {
+            this.game.on(event.name, event.handler);
         }
     }
 
-    public override unregisterEvents(eventEmitter: EventEmitter): void {
-        for (const eventN of this.eventName) {
-            eventEmitter.removeListener(eventN, () => this.reset());
+    public override unregisterEvents(): void {
+        super.unregisterEvents();
+
+        if (!this.eventRegistrations) {
+            return;
         }
+
+        for (const event of this.eventRegistrations) {
+            this.game.removeListener(event.name, event.handler);
+        }
+        this.eventRegistrations = null;
     }
 }
 
