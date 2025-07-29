@@ -100,13 +100,7 @@ describe('Calculated Lethality', function () {
 
                 expect(context.lurkingTiePhantom).toBeInZone('spaceArena');
 
-                // TODO: Experience should still be distributed since the defeat effect was replaced
-
-                // context.player1.setDistributeExperiencePromptState(new Map([
-                //     [context.pykeSentinel, 2]
-                // ]));
-
-                // expect(context.pykeSentinel).toHaveExactUpgradeNames(['experience', 'experience']);
+                expect(context.pykeSentinel).toHaveExactUpgradeNames(['experience', 'experience']);
                 expect(context.player2).toBeActivePlayer();
             });
 
