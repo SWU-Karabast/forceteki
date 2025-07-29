@@ -72,5 +72,4 @@ export interface IGameState {
     allCards: GameObjectRef<Card>[];
     actionNumber: number;
     readonly winnerNames: string[];
-    rngState: object;
 }

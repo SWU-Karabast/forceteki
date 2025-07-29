@@ -138,8 +138,8 @@ class Game extends EventEmitter {
         return this.state.winnerNames;
     }
 
-    get rng() {
-        return this.randomGenerator;
+    get randomGenerator() {
+        return this._randomGenerator;
     }
 
     /**
@@ -197,8 +197,8 @@ class Game extends EventEmitter {
         /** @type {import('./gameSteps/prompts/UiPrompt.js').UiPrompt} */
         this.currentOpenPrompt = null;
 
-        /** @type {import('./GameInterfaces.js').IRandomness} */
-        this.randomGenerator = new Randomness(this);
+        /** @private @readonly @type {import('./GameInterfaces.js').IRandomness} */
+        this._randomGenerator = new Randomness();
 
         /** @type { import('./snapshot/SnapshotInterfaces.js').IGameState } */
         this.state = {
@@ -210,7 +210,6 @@ class Game extends EventEmitter {
             allCards: [],
             actionNumber: -1,
             winnerNames: [],
-            rngState: this.randomGenerator.getState(),
         };
 
         this.tokenFactories = null;
@@ -471,7 +470,7 @@ class Game extends EventEmitter {
     }
 
     setRandomSeed(seed) {
-        this.randomGenerator = new Randomness(this, seed);
+        this._randomGenerator.reseed(seed);
     }
 
     /**
