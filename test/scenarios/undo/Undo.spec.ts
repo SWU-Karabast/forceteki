@@ -883,40 +883,40 @@ describe('Undo', function() {
         });
 
         describe('Randomness cases', function () {
-          it('should discard the same card after undo', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                  hand: ['political-pressure'],
-                  resources: 2,
-                  leader: 'han-solo#audacious-smuggler',
-                  base: 'chopper-base',
-                },
-                player2: {
-                  hand: ['pyke-sentinel', 'b2-legionnaires', 'gladiator-star-destroyer', 'republic-arc170', 'ryloth-militia'],
-                  resources: 2
-                }
-              });
-            const discardPrompt = 'Trigger';
-            const { context } = contextRef;
-            const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
-            context.player1.clickCard(context.player1.hand[0]);
-            expect(context.player2).toHaveEnabledPromptButton(discardPrompt);
-            context.player2.clickPrompt(discardPrompt);
-            expect(context.player2.hand.length).toBe(4);
-            const discardedCard = context.player2.discard[0];
-            expect(context.player2.hand).not.toContain(discardedCard);
-            contextRef.snapshot.rollbackToSnapshot({
-                type: 'manual',
-                playerId: context.player1Object.id,
-                snapshotId
+            it('should discard the same card after undo', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['political-pressure'],
+                        resources: 2,
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'chopper-base',
+                    },
+                    player2: {
+                        hand: ['pyke-sentinel', 'b2-legionnaires', 'gladiator-star-destroyer', 'republic-arc170', 'ryloth-militia'],
+                        resources: 2
+                    }
+                });
+                const discardPrompt = 'Trigger';
+                const { context } = contextRef;
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.player1.clickCard(context.player1.hand[0]);
+                expect(context.player2).toHaveEnabledPromptButton(discardPrompt);
+                context.player2.clickPrompt(discardPrompt);
+                expect(context.player2.hand.length).toBe(4);
+                const discardedCard = context.player2.discard[0];
+                expect(context.player2.hand).not.toContain(discardedCard);
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+                context.player1.clickCard(context.player1.hand[0]);
+                context.player2.clickPrompt(discardPrompt);
+                expect(context.player2.hand.length).toBe(4);
+                expect(context.player2.discard.length).toBe(1);
+                expect(context.player2.discard[0]).toBe(discardedCard);
             });
-            context.player1.clickCard(context.player1.hand[0]);
-            context.player2.clickPrompt(discardPrompt);
-            expect(context.player2.hand.length).toBe(4);
-            expect(context.player2.discard.length).toBe(1);
-            expect(context.player2.discard[0]).toBe(discardedCard);
-          });
         });
     });
 });

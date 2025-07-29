@@ -2,7 +2,6 @@ import type { GameMode } from '../../GameMode';
 import type { Lobby } from '../../gamenode/Lobby';
 import type { IUser } from '../../Settings';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
-import type Game from './Game';
 import * as Contract from './utils/Contract';
 
 export interface GameConfiguration {

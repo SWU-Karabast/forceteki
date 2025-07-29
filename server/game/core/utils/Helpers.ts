@@ -1,6 +1,6 @@
 import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter } from '../Constants';
-import type { IRandomness, IRngState } from '../GameInterfaces';
+import type { IRandomness } from '../GameInterfaces';
 import { CardType, ZoneName } from '../Constants';
 import * as Contract from './Contract';
 import * as EnumHelpers from './EnumHelpers';
