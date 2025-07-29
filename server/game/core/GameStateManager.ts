@@ -22,6 +22,7 @@ export interface IGameState {
     actionPhaseActivePlayer: GameObjectRef<Player> | null;
     isInitiativeClaimed: boolean;
     allCards: GameObjectRef<Card>[];
+    readonly winnerNames: string[];
 }
 
 const maxPlayerSnapshots = 2; // 2 for current and previous turns.
