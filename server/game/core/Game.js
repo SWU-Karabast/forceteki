@@ -471,7 +471,7 @@ class Game extends EventEmitter {
     }
 
     setRandomSeed(seed) {
-        this.randomGenerator = new Randomness(seed);
+        this.randomGenerator = new Randomness(this, seed);
     }
 
     /**
