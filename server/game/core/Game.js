@@ -1636,7 +1636,7 @@ class Game extends EventEmitter {
                 }),
                 started: this.started,
                 gameMode: this.gameMode,
-                winners: this.winnerNames
+                winner: this.winner ? this.winner : undefined, // TODO comment once we clarify how to display endgame screen
             };
 
             // clean out any properies that are null or undefined to reduce the message size
