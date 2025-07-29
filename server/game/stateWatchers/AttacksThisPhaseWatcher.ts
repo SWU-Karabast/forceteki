@@ -5,6 +5,7 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
+import type Game from '../core/Game';
 
 export interface AttackEntry {
     attacker: IUnitCard;
@@ -19,10 +20,11 @@ export type IAttacksThisPhase = AttackEntry[];
 
 export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
     public constructor(
+        game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.AttacksThisPhase, registrar, card);
+        super(game, StateWatcherName.AttacksThisPhase, registrar, card);
     }
 
     /**

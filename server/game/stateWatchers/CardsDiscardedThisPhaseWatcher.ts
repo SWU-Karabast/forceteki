@@ -5,6 +5,7 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract';
+import type Game from '../core/Game';
 
 export interface DiscardedCardEntry {
     card: Card;
@@ -15,10 +16,11 @@ export interface DiscardedCardEntry {
 
 export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEntry[]> {
     public constructor(
+        game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.CardsDiscardedThisPhase, registrar, card);
+        super(game, StateWatcherName.CardsDiscardedThisPhase, registrar, card);
     }
 
     /**

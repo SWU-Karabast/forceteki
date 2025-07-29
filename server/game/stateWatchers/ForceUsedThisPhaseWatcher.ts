@@ -3,19 +3,22 @@ import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Card } from '../core/card/Card';
 import type { Player } from '../core/Player';
+import type Game from '../core/Game';
+import type { GameObjectRef } from '../core/GameObjectBase';
 
 export interface ForceUsedEntry {
-    player: Player;
+    player: GameObjectRef<Player>;
 }
 
 export type IForceUsedThisPhase = ForceUsedEntry[];
 
 export class ForceUsedThisPhaseWatcher extends StateWatcher<IForceUsedThisPhase> {
     public constructor(
+        game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.ForceUsedThisPhase, registrar, card);
+        super(game, StateWatcherName.ForceUsedThisPhase, registrar, card);
     }
 
     /**
@@ -27,7 +30,7 @@ export class ForceUsedThisPhaseWatcher extends StateWatcher<IForceUsedThisPhase>
     }
 
     public countForceUsedThisPhase(player: Player): number {
-        return this.getCurrentValue().filter((entry) => entry.player === player).length;
+        return this.getCurrentValue().filter((entry) => this.game.getFromRef(entry.player) === player).length;
     }
 
     protected override setupWatcher() {

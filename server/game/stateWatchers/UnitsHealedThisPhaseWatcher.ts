@@ -4,6 +4,7 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import type Game from '../core/Game';
 
 export interface HealedUnitEntry {
     unit: IUnitCard;
@@ -11,19 +12,15 @@ export interface HealedUnitEntry {
     controlledBy: Player;
 }
 
-interface InPlayUnit {
-    unit: IUnitCard;
-    inPlayId: number;
-}
-
 export type IUnitsHealedThisPhase = HealedUnitEntry[];
 
 export class UnitsHealedThisPhaseWatcher extends StateWatcher<HealedUnitEntry[]> {
     public constructor(
+        game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.UnitsHealedThisPhase, registrar, card);
+        super(game, StateWatcherName.UnitsHealedThisPhase, registrar, card);
     }
 
     /**

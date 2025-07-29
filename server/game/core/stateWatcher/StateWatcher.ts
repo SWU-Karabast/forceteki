@@ -1,6 +1,7 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { StateWatcherName } from '../Constants';
+import type Game from '../Game';
 import * as Contract from '../utils/Contract';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
@@ -20,6 +21,7 @@ import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
  * - a set of event triggers which will update the stored state to keep the history
  */
 export abstract class StateWatcher<TState> {
+    protected readonly game: Game;
     private readonly registrationKey: string;
     private stateUpdaters: IStateListenerProperties<TState>[] = [];
     public readonly name: StateWatcherName;
@@ -33,10 +35,12 @@ export abstract class StateWatcher<TState> {
     };
 
     public constructor(
+        game: Game,
         name: StateWatcherName,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
+        this.game = game;
         this.name = name;
         this.registrar = registrar;
         this.registrationKey = card.internalName + '.' + name;

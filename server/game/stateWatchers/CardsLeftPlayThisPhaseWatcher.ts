@@ -2,22 +2,24 @@ import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { Card } from '../core/card/Card';
 import type { CardType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
+import type Game from '../core/Game';
+import type { GameObjectRef } from '../core/GameObjectBase';
 import type { Player } from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface CardLeftPlayEntry {
-    card: IInPlayCard;
-    controlledBy: Player;
+    card: GameObjectRef<IInPlayCard>;
+    controlledBy: GameObjectRef<Player>;
     cardType: CardType;
 }
 
 export type ICardsLeftPlayThisPhase = CardLeftPlayEntry[];
 
 export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntry[]> {
-    public constructor(registrar: StateWatcherRegistrar, card: Card) {
-        super(StateWatcherName.CardsLeftPlayThisPhase, registrar, card);
+    public constructor(game: Game, registrar: StateWatcherRegistrar, card: Card) {
+        super(game, StateWatcherName.CardsLeftPlayThisPhase, registrar, card);
     }
 
     public override getCurrentValue() {
@@ -28,7 +30,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
         controller?: Player;
         filter?: (event: CardLeftPlayEntry) => boolean;
     }) {
-        const playerFilter = (entry: CardLeftPlayEntry) => (controller != null ? entry.controlledBy === controller : true);
+        const playerFilter = (entry: CardLeftPlayEntry) => (controller != null ? this.game.getFromRef(entry.controlledBy) === controller : true);
 
         if (filter != null) {
             return this.getCurrentValue().filter(filter)
@@ -51,7 +53,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
         controller?: Player;
         filter?: (event: CardLeftPlayEntry) => boolean;
     }) {
-        const playerFilter = (entry: CardLeftPlayEntry) => (controller != null ? entry.controlledBy === controller : true);
+        const playerFilter = (entry: CardLeftPlayEntry) => (controller != null ? this.game.getFromRef(entry.controlledBy) === controller : true);
 
         const unitsLeftPlay = this.getCurrentValue().filter((entry) => EnumHelpers.isUnit(entry.cardType));
 

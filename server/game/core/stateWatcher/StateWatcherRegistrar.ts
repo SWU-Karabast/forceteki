@@ -1,23 +1,35 @@
 import type { IStateListenerProperties } from '../../Interfaces';
 import type Game from '../Game';
+import { GameObjectBase, type IGameObjectBaseState } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
+
+export interface IStateWatcherRegistrarState extends IGameObjectBaseState {
+    watchedState: Map<string, any>;
+}
 
 /**
  * Helper for managing the operation of {@link StateWatcher} implementations.
  * Holds the state objects that the watchers interact with, registers the
  * triggers for updating them, and tracks which watcher types are registered.
  */
-export class StateWatcherRegistrar {
-    private watchedState = new Map<string, any>();
+export class StateWatcherRegistrar extends GameObjectBase<IStateWatcherRegistrarState> {
+    private get watchedState() {
+        return this.state.watchedState;
+    }
 
-    public constructor(public readonly game: Game) {
+    public constructor(game: Game) {
+        super(game);
+    }
+
+    protected override setupDefaultState() {
+        this.state.watchedState = new Map();
     }
 
     public isRegistered(watcherKey: string) {
         return this.watchedState.has(watcherKey);
     }
 
-    public register(watcherKey: string, initialValue: any, listeners: IStateListenerProperties<any>[]) {
+    public register(watcherKey: string, initialValue: unknown, listeners: IStateListenerProperties<unknown>[]) {
         if (this.isRegistered(watcherKey)) {
             return;
         }
@@ -43,7 +55,7 @@ export class StateWatcherRegistrar {
         }
     }
 
-    public getStateValue(watcherKey: string): any {
+    public getStateValue(watcherKey: string): unknown {
         if (!this.assertRegistered(watcherKey)) {
             return null;
         }
@@ -51,7 +63,7 @@ export class StateWatcherRegistrar {
         return this.watchedState.get(watcherKey);
     }
 
-    public setStateValue(watcherKey: string, newValue: any, initializing: boolean = false) {
+    public setStateValue(watcherKey: string, newValue: unknown, initializing: boolean = false) {
         if (!initializing && !this.assertRegistered(watcherKey)) {
             return;
         }

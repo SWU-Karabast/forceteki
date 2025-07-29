@@ -3,19 +3,22 @@ import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Card } from '../core/card/Card';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
+import type Game from '../core/Game';
+import type { GameObjectRef } from '../core/GameObjectBase';
 
 export interface DeployedLeaderEntry {
-    card: IPlayableCard;
+    card: GameObjectRef<IPlayableCard>;
 }
 
 export type ILeadersDeployedThisPhase = DeployedLeaderEntry[];
 
 export class LeadersDeployedThisPhaseWatcher extends StateWatcher<ILeadersDeployedThisPhase> {
     public constructor(
+        game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.LeadersDeployedThisPhase, registrar, card);
+        super(game, StateWatcherName.LeadersDeployedThisPhase, registrar, card);
     }
 
     /**
@@ -39,7 +42,7 @@ export class LeadersDeployedThisPhaseWatcher extends StateWatcher<ILeadersDeploy
             },
             update: (currentState: ILeadersDeployedThisPhase, event: any) =>
                 currentState.concat({
-                    card: event.card,
+                    card: event.card.getRef(),
                 })
         });
     }

@@ -5,13 +5,15 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
+import type Game from '../core/Game';
+import type { GameObjectRef } from '../core/GameObjectBase';
 
 // TODO: add a "defeatedBy: Player" field here.
 export interface DefeatedUnitEntry {
-    unit: IUnitCard;
+    unit: GameObjectRef<IUnitCard>;
     inPlayId: number;
-    controlledBy: Player;
-    defeatedBy?: Player;
+    controlledBy: GameObjectRef<Player>;
+    defeatedBy?: GameObjectRef<Player>;
 }
 
 interface InPlayUnit {
@@ -23,10 +25,11 @@ export type IUnitsDefeatedThisPhase = DefeatedUnitEntry[];
 
 export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntry[]> {
     public constructor(
+        game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.UnitsDefeatedThisPhase, registrar, card);
+        super(game, StateWatcherName.UnitsDefeatedThisPhase, registrar, card);
     }
 
     /**
@@ -40,8 +43,8 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     /** Get the list of the specified player's units that were defeated */
     public getDefeatedUnitsControlledByPlayer(controller: Player): IUnitCard[] {
         return this.getCurrentValue()
-            .filter((entry) => entry.controlledBy === controller)
-            .map((entry) => entry.unit);
+            .filter((entry) => this.game.getFromRef(entry.controlledBy) === controller)
+            .map((entry) => this.game.getFromRef(entry.unit));
     }
 
     /** Get the list of the units that were defeated this phase */
@@ -52,8 +55,8 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     /** Get the list of the specified player's units that were defeated */
     public getDefeatedUnitsControlledByPlayerNew(controller: Player): InPlayUnit[] {
         return this.getCurrentValue()
-            .filter((entry) => entry.controlledBy === controller)
-            .map((entry) => ({ unit: entry.unit, inPlayId: entry.inPlayId }));
+            .filter((entry) => this.game.getFromRef(entry.controlledBy) === controller)
+            .map((entry) => ({ unit: this.game.getFromRef(entry.unit), inPlayId: entry.inPlayId }));
     }
 
     /** Check if a specific copy of a unit was defeated this phase */
@@ -61,18 +64,18 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
         const inPlayIdToCheck = inPlayId ?? (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId);
 
         return this.getCurrentValue().some(
-            (entry) => entry.unit === card && entry.inPlayId === inPlayIdToCheck
+            (entry) => this.game.getFromRef(entry.unit) === card && entry.inPlayId === inPlayIdToCheck
         );
     }
 
     /** Check if there is some units controlled by player that was defeated this phase */
     public someDefeatedUnitControlledByPlayer(controller: Player): boolean {
-        return this.getCurrentValue().filter((entry) => entry.controlledBy === controller).length > 0;
+        return this.getCurrentValue().filter((entry) => this.game.getFromRef(entry.controlledBy) === controller).length > 0;
     }
 
     /** Check if the given player defeated an enemy unit */
     public playerDefeatedEnemyUnit(player: Player): boolean {
-        return this.getCurrentValue().filter((entry) => entry.controlledBy !== player && entry.defeatedBy === player).length > 0;
+        return this.getCurrentValue().filter((entry) => this.game.getFromRef(entry.controlledBy) !== player && this.game.getFromRef(entry.defeatedBy) === player).length > 0;
     }
 
     protected override setupWatcher() {
@@ -81,7 +84,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
                 onCardDefeated: (event) => EnumHelpers.isUnit(event.lastKnownInformation.type)
             },
             update: (currentState: IUnitsDefeatedThisPhase, event: any) =>
-                currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.lastKnownInformation.controller, defeatedBy: event.defeatSource.player })
+                currentState.concat({ unit: event.card.getRef(), inPlayId: event.card.mostRecentInPlayId, controlledBy: event.lastKnownInformation.controller.getRef(), defeatedBy: event.defeatSource.player?.getRef() })
         });
     }
 

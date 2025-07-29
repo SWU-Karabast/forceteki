@@ -5,11 +5,14 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type { IDamageSource } from '../IDamageOrDefeatSource';
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
+import type Game from '../core/Game';
+import type { GameObjectRef } from '../core/GameObjectBase';
 
+// STATE TODO: This is a bad one. IDamageSource can have a lot of GameObjects and other nested references.
 export interface DamageDealtEntry {
     damageType: DamageType;
     damageSource: IDamageSource;
-    target: Card;
+    target: GameObjectRef<Card>;
     amount: number;
     isIndirect: boolean;
 }
@@ -18,10 +21,11 @@ export type IDamageDealtThisPhase = DamageDealtEntry[];
 
 export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPhase> {
     public constructor(
+        game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.DamageDealtThisPhase, registrar, card);
+        super(game, StateWatcherName.DamageDealtThisPhase, registrar, card);
     }
 
     public getDamageDealtByPlayer(player: Player, filter: (entry: DamageDealtEntry) => boolean = () => true): IDamageDealtThisPhase {

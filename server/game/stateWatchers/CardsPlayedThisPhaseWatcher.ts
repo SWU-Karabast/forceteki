@@ -6,6 +6,7 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
+import type Game from '../core/Game';
 
 export interface PlayedCardEntry {
     card: IPlayableCard;
@@ -22,10 +23,11 @@ export type ICardsPlayedThisPhase = PlayedCardEntry[];
 
 export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]> {
     public constructor(
+        game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.CardsPlayedThisPhase, registrar, card);
+        super(game, StateWatcherName.CardsPlayedThisPhase, registrar, card);
     }
 
     /**
