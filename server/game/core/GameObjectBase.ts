@@ -25,6 +25,21 @@ export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
     uuid: string;
 }
 
+export type UnwrapRef<T> = T extends unknown[] ?
+    (UnwrapRefArray<T>) :
+    (T extends object ? UnwrapRefObject<T> : never);
+
+export type UnwrapRefArray<T extends unknown[]> = T extends (infer R)[] ? (R extends GameObjectRef<infer U> ? U[] : UnwrapRefObject<R>[]) : never;
+
+export type UnwrapRefObject<T> = {
+    [P in keyof T]: UnwrapRefProperty<T[P]>
+};
+type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
+    U :
+    (T extends (infer R)[] ? (R extends GameObjectRef<infer U> ? U : R) :
+        T);
+
+
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
     protected state: T;

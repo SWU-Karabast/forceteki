@@ -5,10 +5,11 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract';
 import type Game from '../core/Game';
+import type { GameObjectRef } from '../core/GameObjectBase';
 
 export interface DrawnCardEntry {
-    player: Player;
-    card: Card;
+    player: GameObjectRef<Player>;
+    card: GameObjectRef<Card>;
 }
 
 export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry[]> {
@@ -29,7 +30,7 @@ export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry[]> {
 
     /** Get the amount of cards drawn by a player this phase */
     public drawnCardsAmount(drawnBy: Player): number {
-        return this.getCurrentValue().filter((e) => e.player === drawnBy).length;
+        return this.getCurrentValue().filter((e) => this.game.getFromRef(e.player) === drawnBy).length;
     }
 
     protected override setupWatcher() {
@@ -43,14 +44,14 @@ export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry[]> {
                 if (event.cards != null && event.cards.length > 0) {
                     for (const card of event.cards) {
                         currentState = currentState.concat({
-                            player: event.player,
-                            card: card,
+                            player: event.player.getRef(),
+                            card: card.getRef(),
                         });
                     }
                     return currentState;
                 }
                 if (event.card != null) {
-                    return currentState.concat({ player: event.player, card: event.card });
+                    return currentState.concat({ player: event.player.getRef(), card: event.card.getRef() });
                 }
                 return currentState;
             }

@@ -6,7 +6,7 @@ import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type Game from '../core/Game';
-import type { GameObjectRef } from '../core/GameObjectBase';
+import type { GameObjectRef, UnwrapRef, UnwrapRefObject } from '../core/GameObjectBase';
 
 // TODO: add a "defeatedBy: Player" field here.
 export interface DefeatedUnitEntry {
@@ -23,7 +23,7 @@ interface InPlayUnit {
 
 export type IUnitsDefeatedThisPhase = DefeatedUnitEntry[];
 
-export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntry[]> {
+export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<IUnitsDefeatedThisPhase> {
     public constructor(
         game: Game,
         registrar: StateWatcherRegistrar,
@@ -32,31 +32,35 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
         super(game, StateWatcherName.UnitsDefeatedThisPhase, registrar, card);
     }
 
+    protected override mapCurrentValue(stateValue: IUnitsDefeatedThisPhase): UnwrapRefObject<DefeatedUnitEntry>[] {
+        return stateValue.map((x) => ({ inPlayId: x.inPlayId, unit: this.game.getFromRef(x.unit), controlledBy: this.game.getFromRef(x.controlledBy), defeatedBy: this.game.getFromRef(x.defeatedBy) }));
+    }
+
     /**
      * Returns an array of {@link DefeatedUnitEntry} objects representing every unit defeated
      * this phase so far, as well as the controlling and defeating player.
      */
-    public override getCurrentValue(): IUnitsDefeatedThisPhase {
+    public override getCurrentValue() {
         return super.getCurrentValue();
     }
 
     /** Get the list of the specified player's units that were defeated */
     public getDefeatedUnitsControlledByPlayer(controller: Player): IUnitCard[] {
         return this.getCurrentValue()
-            .filter((entry) => this.game.getFromRef(entry.controlledBy) === controller)
-            .map((entry) => this.game.getFromRef(entry.unit));
+            .filter((entry) => entry.controlledBy === controller)
+            .map((entry) => entry.unit);
     }
 
     /** Get the list of the units that were defeated this phase */
-    public someUnitDefeatedThisPhase(filter: (entry: DefeatedUnitEntry) => boolean): boolean {
+    public someUnitDefeatedThisPhase(filter: (entry: UnwrapRef<DefeatedUnitEntry>) => boolean): boolean {
         return this.getCurrentValue().filter(filter).length > 0;
     }
 
     /** Get the list of the specified player's units that were defeated */
     public getDefeatedUnitsControlledByPlayerNew(controller: Player): InPlayUnit[] {
         return this.getCurrentValue()
-            .filter((entry) => this.game.getFromRef(entry.controlledBy) === controller)
-            .map((entry) => ({ unit: this.game.getFromRef(entry.unit), inPlayId: entry.inPlayId }));
+            .filter((entry) => entry.controlledBy === controller)
+            .map((entry) => ({ unit: entry.unit, inPlayId: entry.inPlayId }));
     }
 
     /** Check if a specific copy of a unit was defeated this phase */
@@ -64,18 +68,18 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
         const inPlayIdToCheck = inPlayId ?? (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId);
 
         return this.getCurrentValue().some(
-            (entry) => this.game.getFromRef(entry.unit) === card && entry.inPlayId === inPlayIdToCheck
+            (entry) => entry.unit === card && entry.inPlayId === inPlayIdToCheck
         );
     }
 
     /** Check if there is some units controlled by player that was defeated this phase */
     public someDefeatedUnitControlledByPlayer(controller: Player): boolean {
-        return this.getCurrentValue().filter((entry) => this.game.getFromRef(entry.controlledBy) === controller).length > 0;
+        return this.getCurrentValue().filter((entry) => entry.controlledBy === controller).length > 0;
     }
 
     /** Check if the given player defeated an enemy unit */
     public playerDefeatedEnemyUnit(player: Player): boolean {
-        return this.getCurrentValue().filter((entry) => this.game.getFromRef(entry.controlledBy) !== player && this.game.getFromRef(entry.defeatedBy) === player).length > 0;
+        return this.getCurrentValue().filter((entry) => entry.controlledBy !== player && entry.defeatedBy === player).length > 0;
     }
 
     protected override setupWatcher() {

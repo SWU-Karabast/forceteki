@@ -6,10 +6,11 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract';
 import type Game from '../core/Game';
+import type { GameObjectRef } from '../core/GameObjectBase';
 
 export interface DiscardedCardEntry {
-    card: Card;
-    discardedFromPlayer: Player;
+    card: GameObjectRef<Card>;
+    discardedFromPlayer: GameObjectRef<Player>;
     discardedFromZone: ZoneName;
     discardedPlayId: number;
 }
@@ -40,8 +41,8 @@ export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEn
                 Contract.assertTrue(event.card != null);
                 Contract.assertTrue(event.discardedFromZone != null);
                 return currentState.concat({
-                    card: event.card,
-                    discardedFromPlayer: event.card.controller,
+                    card: event.card.getRef(),
+                    discardedFromPlayer: event.card.controller.getRef(),
                     discardedFromZone: event.discardedFromZone,
                     discardedPlayId: event.card.mostRecentInPlayId,
                 });

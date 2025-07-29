@@ -2,6 +2,7 @@ import type { IStateListenerResetProperties, IStateListenerProperties } from '..
 import type { Card } from '../card/Card';
 import type { StateWatcherName } from '../Constants';
 import type Game from '../Game';
+import type { UnwrapRef } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
@@ -58,8 +59,11 @@ export abstract class StateWatcher<TState> {
     // Returns the value that the state will be initialized to at the beginning of the phase
     protected abstract getResetValue(): TState;
 
-    public getCurrentValue(): TState {
-        return this.registrar.getStateValue(this.registrationKey) as TState;
+    /** A function to map any GameObjectRefs in the stateValue to their game objects. If no GameObjectRefs are used, you can simply return the stateValue as-is. */
+    protected abstract mapCurrentValue(stateValue: TState): UnwrapRef<TState>;
+
+    public getCurrentValue(): UnwrapRef<TState> {
+        return this.mapCurrentValue(this.registrar.getStateValue(this.registrationKey) as TState);
     }
 
     protected addUpdater(properties: IStateListenerProperties<TState>) {
