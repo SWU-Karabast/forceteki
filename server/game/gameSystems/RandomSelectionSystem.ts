@@ -36,7 +36,6 @@ export class RandomSelectionSystem<TContext extends AbilityContext = AbilityCont
         if (!context.targets.randomTarget) {
             const targets = Helpers.asArray(properties.target);
             const selectedTargets = Helpers.getRandomArrayElements(targets, properties.count, context.game.rng);
-            context.game.state.rngState = context.game.randomGenerator.getState();
 
             context.targets.randomTarget = selectedTargets.length === 1 ? selectedTargets[0] : selectedTargets;
         }

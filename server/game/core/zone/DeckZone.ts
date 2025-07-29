@@ -145,7 +145,6 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
 
     public shuffle(randomGenerator: IRandomness) {
         this.state.deck = Helpers.shuffle(this.state.deck, randomGenerator);
-        this.game.state.rngState = randomGenerator.getState();
     }
 
     /**

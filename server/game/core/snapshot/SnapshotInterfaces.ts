@@ -1,6 +1,5 @@
 import type { Card } from '../card/Card';
 import type { PhaseName, SnapshotType } from '../Constants';
-import type { IRngState } from '../GameInterfaces';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import type { Player } from '../Player';
 
@@ -73,5 +72,5 @@ export interface IGameState {
     allCards: GameObjectRef<Card>[];
     actionNumber: number;
     readonly winnerNames: string[];
-    rngState: IRngState;
+    rngState: object;
 }

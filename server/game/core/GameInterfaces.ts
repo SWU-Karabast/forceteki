@@ -38,10 +38,8 @@ export function validateGameOptions(options: GameOptions): void {
     Contract.assertNotNullLike(options.router);
 }
 
-export type IRngState = object;
-
-export interface IRandomness {
+export interface IRandomness<TRngState = object> {
     next(): number;
-    getState(): IRngState;
-    restore(state: IRngState): void;
+    getState(): TRngState;
+    restore(state: TRngState): void;
 }

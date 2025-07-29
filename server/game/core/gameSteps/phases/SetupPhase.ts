@@ -25,7 +25,6 @@ export class SetupPhase extends Phase {
 
     private chooseFirstPlayer() {
         const firstPlayer = randomItem(this.game.getPlayers(), this.game.randomGenerator);
-        this.game.state.rngState = this.game.randomGenerator.getState();
 
         this.game.promptWithHandlerMenu(firstPlayer, {
             promptType: PromptType.Initiative,

@@ -1,24 +1,29 @@
 import seedrandom from 'seedrandom';
-import type { IRandomness, IRngState } from './GameInterfaces';
+import type { IRandomness } from './GameInterfaces';
+import type Game from './Game';
 
-class Randomness implements IRandomness {
+class Randomness<TRngState> implements IRandomness<TRngState> {
     private rng: seedrandom.prng;
-    private seed: string | undefined;
+    private readonly gameRef: Game;
+    private readonly seed: string | undefined;
 
-    public constructor(seed?: string) {
+    public constructor(game: Game, seed?: string) {
+        this.gameRef = game;
         this.seed = seed;
         this.rng = seedrandom(seed, { state: true });
     }
 
     public next(): number {
-        return this.rng();
+        const ret = this.rng();
+        this.gameRef.state.rngState = this.rng.state();
+        return ret;
     }
 
-    public getState(): IRngState {
+    public getState(): TRngState {
         return this.rng.state();
     }
 
-    public restore(state: IRngState): void {
+    public restore(state: TRngState): void {
         this.rng = seedrandom(this.seed, { state });
     }
 }
