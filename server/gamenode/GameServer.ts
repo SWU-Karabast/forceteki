@@ -6,6 +6,8 @@ import cors from 'cors';
 import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
+import * as v8 from 'v8';
+import * as os from 'os';
 
 import { logger } from '../logger';
 
@@ -241,6 +243,9 @@ export class GameServer {
         this.bugReportHandler = new BugReportHandler();
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
+
+        // set up periodic heap monitoring every 30 seconds
+        setInterval(() => this.logHeapStats(), 30000);
     }
 
     private setupAppRoutes(app: express.Application) {
@@ -1319,5 +1324,16 @@ export class GameServer {
         } catch (err) {
             logger.error('GameServer: Error in onSocketDisconnected:', err);
         }
+    }
+
+    private logHeapStats(): void {
+        const heapStats = v8.getHeapStatistics();
+        const usedHeapSizeInMB = (heapStats.used_heap_size / 1024 / 1024).toFixed(1);
+        const totalHeapSizeInMB = (heapStats.total_heap_size / 1024 / 1024).toFixed(1);
+        const heapSizeLimitInMB = (heapStats.heap_size_limit / 1024 / 1024).toFixed(1);
+        const heapUsagePercent = ((heapStats.used_heap_size / heapStats.heap_size_limit) * 100).toFixed(1);
+
+        const freeSystemMemoryInGB = (os.freemem() / 1024 / 1024 / 1024).toFixed(2);
+        logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | System free: ${freeSystemMemoryInGB}GB`);
     }
 }
