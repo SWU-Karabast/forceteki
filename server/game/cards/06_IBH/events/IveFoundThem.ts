@@ -20,31 +20,19 @@ export default class IveFoundThem extends EventCard {
             title: 'Reveal the top 3 cards of your deck. Draw a unit revealed this way, then discard the other revealed cards',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.drawDeck.length > 0,
-                onTrue: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.reveal((context) => ({
-                        target: this.getTopCardsOfDeckSafely(context.player, 3),
-                        useDisplayPrompt: true,
-                    })),
-                    AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => this.getTopCardsOfDeckSafely(context.player, 3).some((card) => card.isUnit()),
-                        onTrue: AbilityHelper.immediateEffects.revealAndSelectCard((context) => ({
-                            activePromptTitle: 'Choose a unit to draw',
-                            target: this.getTopCardsOfDeckSafely(context.player, 3),
-                            cardCondition: (card) => card.isUnit(),
-                            canChooseFewer: false,
-                            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                                AbilityHelper.immediateEffects.drawSpecificCard(),
-                                AbilityHelper.immediateEffects.discardSpecificCard((context) => ({
-                                    target: this.getTopCardsOfDeckSafely(context.player, 2)
-                                })),
-                            ]),
-                            useDisplayPrompt: true
+                onTrue: AbilityHelper.immediateEffects.revealAndSelectCard((context) => ({
+                    activePromptTitle: 'Choose a unit to draw',
+                    target: this.getTopCardsOfDeckSafely(context.player, 3),
+                    cardCondition: (card) => card.isUnit(),
+                    canChooseFewer: false,
+                    immediateEffect: AbilityHelper.immediateEffects.sequential([
+                        AbilityHelper.immediateEffects.drawSpecificCard(),
+                        AbilityHelper.immediateEffects.discardSpecificCard((context) => ({
+                            target: this.getTopCardsOfDeckSafely(context.player, 2)
                         })),
-                        onFalse: AbilityHelper.immediateEffects.discardSpecificCard((context) => ({
-                            target: this.getTopCardsOfDeckSafely(context.player, 3)
-                        }))
-                    })
-                ]),
+                    ]),
+                    useDisplayPrompt: true
+                })),
             })
         });
     }
