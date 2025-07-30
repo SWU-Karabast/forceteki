@@ -407,8 +407,26 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         Contract.assertTrue(this.unique);
 
         // need to filter for other cards that have unique = true since Clone will create non-unique duplicates
-        const numUniqueDuplicatesInPlay = this.getDuplicatesInPlayForController().length;
+        const uniqueDuplicatesInPlay = this.getDuplicatesInPlayForController();
+        const numUniqueDuplicatesInPlay = uniqueDuplicatesInPlay.length;
+
         if (numUniqueDuplicatesInPlay === 0) {
+            return;
+        }
+
+        if (uniqueDuplicatesInPlay.every((duplicateCard) =>
+            duplicateCard.isUpgrade() &&
+            duplicateCard.parentCard === this.parentCard
+        )) {
+            // Band-aid fix for https://github.com/SWU-Karabast/forceteki/issues/1491
+            // We will default to defeating the oldest duplicate in play
+            uniqueDuplicatesInPlay.sort((a, b) => a.mostRecentInPlayId - b.mostRecentInPlayId);
+            this.resolveUniqueDefeat(uniqueDuplicatesInPlay[0]);
+            this.game.addMessage(
+                '{0} defeats 1 copy of {1} due to the uniqueness rule (the oldest copy is defeated by default)',
+                this.controller, this
+            );
+            this.resolveUniqueDefeat(uniqueDuplicatesInPlay[0]);
             return;
         }
 
