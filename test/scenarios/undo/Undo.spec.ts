@@ -927,27 +927,27 @@ describe('Undo', function() {
         describe('Randomness cases', function () {
             it('shuffle gives the same top deck', async function () {
                 await contextRef.setupTestAsync({
-                  phase: 'action',
-                  player1: {
-                    deck: [
-                      'death-trooper',
-                      'pyke-sentinel',
-                      'cartel-spacer',
-                      'wampa',
-                      'superlaser-technician',
-                      'tieln-fighter',
-                      '21b-surgical-droid',
-                      'r2d2#ignoring-protocol',
-                      'c3po#protocol-droid',
-                      'wolffe#suspicious-veteran'
-                    ],
-                    resources: 2,
-                    leader: 'han-solo#audacious-smuggler',
-                    base: 'chopper-base',
-                  },
-                  player2: {
-                    resources: 2
-                  }
+                    phase: 'action',
+                    player1: {
+                        deck: [
+                            'death-trooper',
+                            'pyke-sentinel',
+                            'cartel-spacer',
+                            'wampa',
+                            'superlaser-technician',
+                            'tieln-fighter',
+                            '21b-surgical-droid',
+                            'r2d2#ignoring-protocol',
+                            'c3po#protocol-droid',
+                            'wolffe#suspicious-veteran'
+                        ],
+                        resources: 2,
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'chopper-base',
+                    },
+                    player2: {
+                        resources: 2
+                    }
                 });
                 const { context } = contextRef;
 
