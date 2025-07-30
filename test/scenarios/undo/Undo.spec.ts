@@ -922,9 +922,7 @@ describe('Undo', function() {
                 expect(context.player2.discard.length).toBe(1);
                 expect(context.player2.discard[0]).toBe(discardedCard);
             });
-        });
 
-        describe('Randomness cases', function () {
             it('shuffle gives the same top deck', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
