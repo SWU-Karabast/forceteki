@@ -923,7 +923,7 @@ describe('Undo', function() {
                 expect(context.player2.discard[0]).toBe(discardedCard);
             });
 
-            it('shuffle gives the same top deck', async function () {
+            it('should give the same top deck after shuffle', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
