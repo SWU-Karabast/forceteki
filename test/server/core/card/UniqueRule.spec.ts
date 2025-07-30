@@ -132,6 +132,7 @@ describe('Uniqueness rule', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            // TODO: as a band-aid fix for #1491, we automatically defeat the oldest duplicate in play
             it('when played on the same unit, the oldest copy is defeated automatically', function () {
                 const { context } = contextRef;
 
@@ -233,6 +234,7 @@ describe('Uniqueness rule', function() {
                 expect(context.hanSolo2).toBeInZone('spaceArena');
             });
 
+            // TODO: as a band-aid fix for #1491, we automatically defeat the oldest duplicate in play
             it('and they are played as pilots on the same vehicle, the oldest copy is defeated automatically', function () {
                 const { context } = contextRef;
 
