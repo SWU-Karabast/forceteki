@@ -414,7 +414,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
             return;
         }
 
-        if (uniqueDuplicatesInPlay.every((duplicateCard) =>
+        if (this.isUpgrade() && uniqueDuplicatesInPlay.every((duplicateCard) =>
             duplicateCard.isUpgrade() &&
             duplicateCard.parentCard === this.parentCard
         )) {
