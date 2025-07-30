@@ -6,8 +6,8 @@ import cors from 'cors';
 import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
-import * as v8 from 'v8';
-import * as os from 'os';
+import { getHeapStatistics } from 'v8';
+import { freemem } from 'os';
 
 import { logger } from '../logger';
 
@@ -1327,13 +1327,13 @@ export class GameServer {
     }
 
     private logHeapStats(): void {
-        const heapStats = v8.getHeapStatistics();
+        const heapStats = getHeapStatistics();
         const usedHeapSizeInMB = (heapStats.used_heap_size / 1024 / 1024).toFixed(1);
         const totalHeapSizeInMB = (heapStats.total_heap_size / 1024 / 1024).toFixed(1);
         const heapSizeLimitInMB = (heapStats.heap_size_limit / 1024 / 1024).toFixed(1);
         const heapUsagePercent = ((heapStats.used_heap_size / heapStats.heap_size_limit) * 100).toFixed(1);
 
-        const freeSystemMemoryInGB = (os.freemem() / 1024 / 1024 / 1024).toFixed(2);
+        const freeSystemMemoryInGB = (freemem() / 1024 / 1024 / 1024).toFixed(2);
         logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | System free: ${freeSystemMemoryInGB}GB`);
     }
 }
