@@ -92,14 +92,17 @@ describe('Uniqueness rule', function() {
                     phase: 'action',
                     player1: {
                         hand: ['lukes-lightsaber'],
-                        groundArena: [{ card: 'wampa', upgrades: ['lukes-lightsaber'] }, 'battlefield-marine'],
+                        groundArena: [
+                            {
+                                card: 'luke-skywalker#jedi-knight',
+                                upgrades: ['lukes-lightsaber']
+                            },
+                            'battlefield-marine'
+                        ],
                     },
                     player2: {
                         groundArena: [{ card: 'wild-rancor', upgrades: ['lukes-lightsaber'] }]
-                    },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
+                    }
                 });
 
                 const { context } = contextRef;
@@ -109,7 +112,7 @@ describe('Uniqueness rule', function() {
                 context.p2Lightsaber = context.player2.findCardByName('lukes-lightsaber');
             });
 
-            it('the player should be prompted to choose a copy to defeat', function () {
+            it('when played on a different unit, the player should be prompted to choose a copy to defeat', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.lightsaberInHand);
@@ -127,6 +130,137 @@ describe('Uniqueness rule', function() {
                 expect(context.lightsaberInPlay).toBeInZone('discard');
                 expect(context.p2Lightsaber).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            // TODO: as a band-aid fix for #1491, we automatically defeat the oldest duplicate in play
+            it('when played on the same unit, the oldest copy is defeated automatically', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.lightsaberInHand);
+                context.player1.clickCard(context.lukeSkywalker);
+
+                // The When Played ability resolved, so Luke has a Shield
+                expect(context.lukeSkywalker).toHaveExactUpgradeNames(['lukes-lightsaber', 'shield']);
+                expect(context.lightsaberInHand).toBeInZone('groundArena');
+                expect(context.lightsaberInPlay).toBeInZone('discard');
+                expect(context.p2Lightsaber).toBeInZone('groundArena');
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('When another copy of a unique piloting card enters play for the same controller,', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: [
+                            'han-solo#has-his-moments',
+                            'han-solo#has-his-moments'
+                        ],
+                        spaceArena: [
+                            'millennium-falcon#landos-pride',
+                            'millennium-falcon#get-out-and-push'
+                        ],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+                [context.hanSolo1, context.hanSolo2] = context.player1.findCardsByName('han-solo#has-his-moments');
+                context.shdFalcon = context.player1.findCardByName('millennium-falcon#landos-pride');
+                context.jtlFalcon = context.player1.findCardByName('millennium-falcon#get-out-and-push');
+            });
+
+            it('and they are played differently, the player should be prompted to choose a copy to defeat', function () {
+                const { context } = contextRef;
+
+                // Play the first Han Solo as a ground unit
+                context.player1.clickCard(context.hanSolo1);
+                context.player1.clickPrompt('Play Han Solo');
+                context.player1.clickPrompt('Trigger'); // Ambush
+                context.player1.clickCard(context.battlefieldMarine);
+
+                context.player2.passAction();
+
+                // Play the second Han Solo as a piloting upgrade
+                context.player1.clickCard(context.hanSolo2);
+                context.player1.clickPrompt('Play Han Solo with Piloting');
+                context.player1.clickCard(context.jtlFalcon);
+
+                // Choose which copy to defeat
+                expect(context.player1).toHavePrompt('Choose which copy of Han Solo, Has His Moments to defeat');
+                expect(context.player1).toBeAbleToSelectExactly([context.hanSolo1, context.hanSolo2]);
+                context.player1.clickCard(context.hanSolo1);
+
+                // Resolve Pilot Han's triggered ability
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.hanSolo1).toBeInZone('discard');
+                expect(context.hanSolo2).toBeInZone('spaceArena');
+            });
+
+            it('and they are played as pilots on different vehicles, the player should be prompted to choose a copy to defeat', function () {
+                const { context } = contextRef;
+
+                // Play the first Han Solo as a pilot on the SHD Falcon
+                context.player1.clickCard(context.hanSolo1);
+                context.player1.clickPrompt('Play Han Solo with Piloting');
+                context.player1.clickCard(context.shdFalcon);
+
+                // Resolve Pilot Han's triggered ability
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play the second Han Solo as a pilot on the JTL Falcon
+                context.player1.clickCard(context.hanSolo2);
+                context.player1.clickPrompt('Play Han Solo with Piloting');
+                context.player1.clickCard(context.jtlFalcon);
+
+                // Choose which copy to defeat
+                expect(context.player1).toHavePrompt('Choose which copy of Han Solo, Has His Moments to defeat');
+                expect(context.player1).toBeAbleToSelectExactly([context.hanSolo1, context.hanSolo2]);
+                context.player1.clickCard(context.hanSolo1);
+
+                // Resolve Pilot Han's triggered ability
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.hanSolo1).toBeInZone('discard');
+                expect(context.hanSolo2).toBeInZone('spaceArena');
+            });
+
+            // TODO: as a band-aid fix for #1491, we automatically defeat the oldest duplicate in play
+            it('and they are played as pilots on the same vehicle, the oldest copy is defeated automatically', function () {
+                const { context } = contextRef;
+
+                // Play the first Han Solo as a pilot on the JTL Falcon
+                context.player1.clickCard(context.hanSolo1);
+                context.player1.clickPrompt('Play Han Solo with Piloting');
+                context.player1.clickCard(context.jtlFalcon);
+
+                // Resolve Pilot Han's triggered ability
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.p2Base);
+
+                // Move to next action phase so we can verify the ability is re-triggered
+                context.moveToNextActionPhase();
+
+                // Play the second Han Solo as a pilot on the same vehicle
+                context.player1.clickCard(context.hanSolo2);
+                context.player1.clickPrompt('Play Han Solo with Piloting');
+                context.player1.clickCard(context.jtlFalcon);
+
+                // Resolve Pilot Han's triggered ability
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.hanSolo1).toBeInZone('discard');
+                expect(context.hanSolo2).toBeInZone('spaceArena');
             });
         });
 
