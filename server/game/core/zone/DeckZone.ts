@@ -10,7 +10,7 @@ import type { GameEvent } from '../event/GameEvent';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import type Game from '../Game';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
-import type { IRandomness } from '../GameInterfaces';
+import type { IRandomness } from '../Randomness';
 
 export interface IDeckZoneState extends IGameObjectBaseState {
     deck: GameObjectRef<IPlayableCard>[];

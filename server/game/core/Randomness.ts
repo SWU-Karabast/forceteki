@@ -1,5 +1,10 @@
 import seedrandom from 'seedrandom';
-import type { IRandomness } from './GameInterfaces';
+
+export interface IRandomness {
+    next(): number;
+    restore(): void;
+    reseed(newSeed: string): void;
+}
 
 class Randomness implements IRandomness {
     private rng: seedrandom.prng;

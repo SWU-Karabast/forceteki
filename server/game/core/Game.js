@@ -197,7 +197,7 @@ class Game extends EventEmitter {
         /** @type {import('./gameSteps/prompts/UiPrompt.js').UiPrompt} */
         this.currentOpenPrompt = null;
 
-        /** @private @readonly @type {import('./GameInterfaces.js').IRandomness} */
+        /** @private @readonly @type {import('./Randomness.js').IRandomness} */
         this._randomGenerator = new Randomness();
 
         /** @type { import('./snapshot/SnapshotInterfaces.js').IGameState } */

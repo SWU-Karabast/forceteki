@@ -37,9 +37,3 @@ export interface GameOptions {
 export function validateGameOptions(options: GameOptions): void {
     Contract.assertNotNullLike(options.router);
 }
-
-export interface IRandomness {
-    next(): number;
-    restore(): void;
-    reseed(newSeed: string): void;
-}
