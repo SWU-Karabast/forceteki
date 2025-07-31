@@ -131,6 +131,7 @@ export class SnapshotFactory {
             phase: this.game.currentPhase,
             gameState: structuredClone(this.game.state),
             states: this.gameStateManager.getAllGameStates(),
+            rngState: this.game.randomGenerator.rngState
         };
 
         this.lastAssignedSnapshotId = nextSnapshotId;
