@@ -50,41 +50,49 @@ export class DeckService {
             const dbService = await this.dbServicePromise;
             const existingDecks = await dbService.getUserDecksAsync(userId) || [];
 
-            // if we create a map it will be faster to lookup.
-            const existingDeckLinks = new Map();
-            for (const deck of existingDecks) {
-                if (deck.deck.deckLink) {
-                    existingDeckLinks.set(deck.deck.deckLink, deck);
-                }
-            }
-            for (const unsyncedDeck of unsyncedDecks) {
-                // skip if deck link already exists
-                if (unsyncedDeck.deckLink && existingDeckLinks.has(unsyncedDeck.deckLink)) {
-                    continue;
-                }
 
-                // Create new deck entry with proper format
-                const deckData: IDeckDataEntity = {
-                    id: uuid(), // Generate a unique ID for the deck
-                    userId: userId,
-                    deck: {
-                        leader: { id: unsyncedDeck.leader.id },
-                        base: { id: unsyncedDeck.base.id },
-                        name: unsyncedDeck.name,
-                        favourite: unsyncedDeck.favourite,
-                        deckLink: unsyncedDeck.deckLink,
-                        deckLinkID: unsyncedDeck.deckLinkID ?? unsyncedDeck.deckID,
-                        source: unsyncedDeck.source
-                    },
-                    stats: {
-                        wins: 0,
-                        losses: 0,
-                        draws: 0,
-                        statsByMatchup: []
-                    }
-                };
-                await dbService.saveDeckAsync(deckData);
+            // Create a Set of existing deck links
+            const existingDeckLinks = new Set(
+                existingDecks
+                    .filter((deck) => deck.deck.deckLink)
+                    .map((deck) => deck.deck.deckLink)
+            );
+
+            // Filter out decks that already exist
+            const newDecks = unsyncedDecks.filter(
+                (unsyncedDeck) => !unsyncedDeck.deckLink || !existingDeckLinks.has(unsyncedDeck.deckLink)
+            );
+
+            // If no new decks to sync return early
+            if (newDecks.length === 0) {
+                return;
             }
+
+            // Create deck data entities for all new decks
+            const deckDataEntities: IDeckDataEntity[] = newDecks.map((unsyncedDeck) => ({
+                id: uuid(),
+                userId: userId,
+                deck: {
+                    leader: { id: unsyncedDeck.leader.id },
+                    base: { id: unsyncedDeck.base.id },
+                    name: unsyncedDeck.name,
+                    favourite: unsyncedDeck.favourite,
+                    deckLink: unsyncedDeck.deckLink,
+                    deckLinkID: unsyncedDeck.deckLinkID ?? unsyncedDeck.deckID,
+                    source: unsyncedDeck.source
+                },
+                stats: {
+                    wins: 0,
+                    losses: 0,
+                    draws: 0,
+                    statsByMatchup: []
+                }
+            }));
+
+            // Save all decks at once
+            await Promise.all(
+                deckDataEntities.map((deckData) => dbService.saveDeckAsync(deckData))
+            );
         } catch (error) {
             logger.error(`Error syncing decks ${unsyncedDecks} for user ${userId}: `, { error: { message: error.message, stack: error.stack } });
             throw error;
