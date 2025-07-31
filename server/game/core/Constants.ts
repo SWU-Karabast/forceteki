@@ -523,6 +523,7 @@ export enum AlertType {
     ReadyStatus = 'readyStatus',
 }
 
+/** During a rollback, indicates what point in the round the snapshot is from */
 export enum RollbackRoundEntryPoint {
     StartOfRound = 'startOfRound',
     WithinActionPhase = 'withinActionPhase',

@@ -1,5 +1,5 @@
 import type Game from '../Game';
-import type { GameStateManager } from '../GameStateManager';
+import type { GameStateManager } from './GameStateManager';
 import type { IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotArray } from './container/SnapshotArray';

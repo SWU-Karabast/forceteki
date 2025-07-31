@@ -9,6 +9,7 @@ import * as Helpers from '../../utils/Helpers';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 
+/** Indicates whether a new phase is being constructed during normal game flow or as part of a rollback of some type */
 export enum PhaseInitializeMode {
     Normal = 'normal',
     RollbackToStartOfPhase = 'rollbackToStartOfPhase',

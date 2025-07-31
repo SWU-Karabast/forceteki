@@ -39,7 +39,7 @@ const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayC
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
 const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
-const { GameStateManager } = require('./GameStateManager.js');
+const { GameStateManager } = require('./snapshot/GameStateManager.js');
 const { ActionWindow } = require('./gameSteps/ActionWindow.js');
 const { User } = require('../../utils/user/User');
 const { GameObjectBase } = require('./GameObjectBase.js');
@@ -1084,13 +1084,16 @@ class Game extends EventEmitter {
     beginRound() {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
-        this.initialisePipeline();
+        this.initializePipelineForRound();
     }
 
     /**
+     * Initializes the pipeline for a new game round.
+     * Accepts a parameter indicating whether this operation is due to a rollback, and if so, to what point in the round.
+     *
      * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
-    initialisePipeline(rollbackEntryPoint = null) {
+    initializePipelineForRound(rollbackEntryPoint = null) {
         const isRollback = rollbackEntryPoint != null;
 
         const roundStartStep = [];
@@ -1763,7 +1766,7 @@ class Game extends EventEmitter {
 
     postRollbackOperations(roundEntryPoint = null) {
         this.pipeline.clearSteps();
-        this.initialisePipeline(roundEntryPoint);
+        this.initializePipelineForRound(roundEntryPoint);
         this.pipeline.continue(this);
     }
 

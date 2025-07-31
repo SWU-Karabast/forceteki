@@ -2,8 +2,8 @@ import { PhaseName } from '../Constants';
 import { RollbackRoundEntryPoint as RollbackRoundEntryPoint } from '../Constants';
 import { SnapshotType } from '../Constants';
 import type Game from '../Game';
-import type { IGameObjectRegistrar } from '../GameStateManager';
-import { GameStateManager } from '../GameStateManager';
+import type { IGameObjectRegistrar } from './GameStateManager';
+import { GameStateManager } from './GameStateManager';
 import type { SnapshotTimepoint } from './SnapshotInterfaces';
 import { type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
@@ -132,7 +132,7 @@ export class SnapshotManager {
         if (rolledBackSnapshotIdx != null) {
             // Throw out all snapshots after the rollback snapshot.
             this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
-            return { success: true, roundEntryPoint: this.getRoundEntryPoint(settings) };
+            return { success: true, roundEntryPoint: this.getRoundEntryPointAfterRollback(settings) };
         }
 
         return { success: false };
@@ -152,7 +152,7 @@ export class SnapshotManager {
         return offset;
     }
 
-    private getRoundEntryPoint(settings: IGetSnapshotSettings): RollbackRoundEntryPoint {
+    private getRoundEntryPointAfterRollback(settings: IGetSnapshotSettings): RollbackRoundEntryPoint {
         switch (settings.type) {
             case SnapshotType.Action:
                 return RollbackRoundEntryPoint.WithinActionPhase;
