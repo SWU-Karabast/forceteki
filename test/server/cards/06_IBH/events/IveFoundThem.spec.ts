@@ -18,8 +18,6 @@ describe('I\'ve Found Them', function() {
                 expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.battlefieldMarine.title);
 
-                context.player1.clickPrompt('Done');
-
                 // Player should be prompted to select a unit
                 expect(context.player1).toHavePrompt('Choose a unit to draw');
                 expect(context.player1).toHaveExactDisplayPromptCards({
@@ -32,6 +30,7 @@ describe('I\'ve Found Them', function() {
                 expect(context.wampa).toBeInZone('hand', context.player1);
                 expect(context.pykeSentinel).toBeInZone('discard', context.player1);
                 expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
+                expect(context.yoda).toBeInZone('deck', context.player1); // Yoda remains in deck
             });
 
             it('should discard all cards if no units are revealed', async function() {
@@ -74,8 +73,6 @@ describe('I\'ve Found Them', function() {
                 // Verify cards are revealed
                 expect(context.getChatLogs(1)[0]).toContain(context.pykeSentinel.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.aggression.title);
-
-                context.player1.clickPrompt('Done');
 
                 // Player should be prompted to select a unit
                 expect(context.player1).toHaveExactDisplayPromptCards({
