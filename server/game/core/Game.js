@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -39,7 +39,7 @@ const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayC
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
 const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
-const { GameStateManager } = require('./GameStateManager.js');
+const { GameStateManager } = require('./snapshot/GameStateManager.js');
 const { ActionWindow } = require('./gameSteps/ActionWindow.js');
 const { User } = require('../../utils/user/User');
 const { GameObjectBase } = require('./GameObjectBase.js');
@@ -50,6 +50,8 @@ const { SnapshotManager } = require('./snapshot/SnapshotManager.js');
 const AbilityHelper = require('../AbilityHelper.js');
 const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
 const { getAbilityHelper } = require('../AbilityHelper.js');
+const { PhaseInitializeMode } = require('./gameSteps/phases/Phase.js');
+const { Randomness } = require('../core/Randomness.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -137,6 +139,10 @@ class Game extends EventEmitter {
         return this.state.winnerNames;
     }
 
+    get randomGenerator() {
+        return this._randomGenerator;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -186,11 +192,16 @@ class Game extends EventEmitter {
         /** @type { EventWindow } */
         this.currentEventWindow = null;
         this.currentAttack = null;
+
+        /** @type { PhaseName | null } */
         this.currentPhase = null;
         this.currentActionWindow = null;
 
         /** @type {import('./gameSteps/prompts/UiPrompt.js').UiPrompt} */
         this.currentOpenPrompt = null;
+
+        /** @private @readonly @type {import('./Randomness.js').IRandomness} */
+        this._randomGenerator = new Randomness();
 
         /** @type { import('./snapshot/SnapshotInterfaces.js').IGameState } */
         this.state = {
@@ -200,15 +211,13 @@ class Game extends EventEmitter {
             roundNumber: 0,
             isInitiativeClaimed: false,
             allCards: [],
-            actionNumber: -1,
-            winnerNames: []
+            actionNumber: 0,
+            winnerNames: [],
         };
 
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
-        // STATE TODO: Move the generator logic into the state object.
-        this.randomGenerator = seedrandom();
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
 
@@ -464,7 +473,7 @@ class Game extends EventEmitter {
     }
 
     setRandomSeed(seed) {
-        this.randomGenerator = seedrandom(seed);
+        this._randomGenerator.reseed(seed);
     }
 
     /**
@@ -1063,7 +1072,10 @@ class Game extends EventEmitter {
         );
 
         this.resolveGameState(true);
-        this.pipeline.initialise([new SetupPhase(this), new SimpleStep(this, () => this.beginRound(), 'beginRound')]);
+        this.pipeline.initialise([
+            new SetupPhase(this, this.snapshotManager),
+            new SimpleStep(this, () => this.beginRound(), 'beginRound')
+        ]);
 
         this.playStarted = true;
         this.startedAt = new Date();
@@ -1078,11 +1090,62 @@ class Game extends EventEmitter {
     beginRound() {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
-        this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers);
-        this.queueStep(new ActionPhase(this, () => this.getNextActionNumber(), this.snapshotManager));
-        this.queueStep(new RegroupPhase(this));
-        this.queueSimpleStep(() => this.roundEnded(), 'roundEnded');
-        this.queueSimpleStep(() => this.beginRound(), 'beginRound');
+        this.initializePipelineForRound();
+    }
+
+    /**
+     * Initializes the pipeline for a new game round.
+     * Accepts a parameter indicating whether this operation is due to a rollback, and if so, to what point in the round.
+     *
+     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     */
+    initializePipelineForRound(rollbackEntryPoint = null) {
+        const isRollback = rollbackEntryPoint != null;
+
+        const roundStartStep = [];
+        if (!isRollback || rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRound) {
+            roundStartStep.push(new SimpleStep(
+                this, () => this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers), 'beginRound'
+            ));
+        }
+
+        const actionPhaseStep = [];
+        if (rollbackEntryPoint !== RollbackRoundEntryPoint.StartOfRegroupPhase) {
+            let actionInitializeMode;
+
+            switch (rollbackEntryPoint) {
+                case RollbackRoundEntryPoint.StartOfRound:
+                    actionInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
+                    break;
+                case RollbackRoundEntryPoint.WithinActionPhase:
+                    actionInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
+                    break;
+                case null:
+                    actionInitializeMode = PhaseInitializeMode.Normal;
+                    break;
+                default:
+                    Contract.fail(`Unknown rollback entry point: ${rollbackEntryPoint}`);
+            }
+
+            actionPhaseStep.push(new ActionPhase(this, () => this.getNextActionNumber(), this.snapshotManager, actionInitializeMode));
+        }
+
+        const regroupInitializeMode =
+            rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase
+                ? PhaseInitializeMode.RollbackToStartOfPhase
+                : PhaseInitializeMode.Normal;
+
+        const regroupPhaseStep = [
+            new RegroupPhase(this, this.snapshotManager, regroupInitializeMode)
+        ];
+
+        this.pipeline.initialise([
+            ...roundStartStep,
+            ...actionPhaseStep,
+            ...regroupPhaseStep,
+            new SimpleStep(this, () => this.roundEnded(), 'roundEnded'),
+            new SimpleStep(this, () => this.beginRound(), 'beginRound')
+        ]);
     }
 
     roundEnded() {
@@ -1687,24 +1750,31 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Restores the given player's most recent manual snapshot, if available
+     * Attempts to restore the designated snapshot
      *
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
      * @returns True if a snapshot was restored, false otherwise
      */
     rollbackToSnapshot(settings) {
-        if (this.isUndoEnabled && 'postRollbackOperations' in this.pipeline.currentStep) {
-            const result = this.snapshotManager.rollbackTo(settings);
-
-            if (!result) {
-                return false;
-            }
-
-            this.pipeline.currentStep.postRollbackOperations();
-            return true;
+        if (!this.isUndoEnabled) {
+            return false;
         }
 
-        return false;
+        const rollbackResult = this.snapshotManager.rollbackTo(settings);
+
+        if (!rollbackResult.success) {
+            return false;
+        }
+
+        this.postRollbackOperations(rollbackResult.roundEntryPoint);
+
+        return true;
+    }
+
+    postRollbackOperations(roundEntryPoint = null) {
+        this.pipeline.clearSteps();
+        this.initializePipelineForRound(roundEntryPoint);
+        this.pipeline.continue(this);
     }
 
     // TODO: Make a debug object type.
