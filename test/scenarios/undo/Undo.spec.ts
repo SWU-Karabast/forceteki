@@ -947,17 +947,62 @@ describe('Undo', function() {
                         resources: 2
                     }
                 });
+
                 const { context } = contextRef;
 
-                const topDeck = context.player1.deck[0];
-                context.game.shuffleDeck(context.player1Object.id);
-
                 const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.game.shuffleDeck(context.player1Object.id);
+                const topDeck = context.player1.deck[0];
+
                 contextRef.snapshot.rollbackToSnapshot({
                     type: 'manual',
                     playerId: context.player1Object.id,
                     snapshotId
                 });
+                context.game.shuffleDeck(context.player1Object.id);
+
+                expect(context.player1.deck[0]).toBe(topDeck);
+            });
+
+            it('should give the same top deck after two snapshots', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        deck: [
+                            'death-trooper',
+                            'pyke-sentinel',
+                            'cartel-spacer',
+                            'wampa',
+                            'superlaser-technician',
+                            'tieln-fighter',
+                            '21b-surgical-droid',
+                            'r2d2#ignoring-protocol',
+                            'c3po#protocol-droid',
+                            'wolffe#suspicious-veteran'
+                        ],
+                        resources: 2,
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'chopper-base',
+                    },
+                    player2: {
+                        resources: 2
+                    }
+                });
+                const { context } = contextRef;
+
+                context.game.shuffleDeck(context.player1Object.id);
+                const topDeck = context.player1.deck[0];
+
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.game.shuffleDeck(context.player1Object.id);
+                contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.game.shuffleDeck(context.player1Object.id);
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+                context.game.shuffleDeck(context.player1Object.id);
 
                 expect(context.player1.deck[0]).toBe(topDeck);
             });

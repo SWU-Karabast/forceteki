@@ -47,6 +47,6 @@ export abstract class SnapshotContainerBase {
     protected rollbackToSnapshotInternal(snapshot: IGameSnapshot): void {
         this.gameStateManager.rollbackToSnapshot(snapshot);
         this.updateCurrentSnapshotFn(snapshot);
-        this.game.randomGenerator.restore();
+        this.game.randomGenerator.restore(snapshot.rngState);
     }
 }
