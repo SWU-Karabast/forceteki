@@ -13,7 +13,7 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
 import type { SwuGameFormat } from '../SwuGameFormat';
-import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
+import type { IDecklistInternal, IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
@@ -32,6 +32,7 @@ interface LobbyUser extends LobbySpectator {
     state: 'connected' | 'disconnected';
     ready: boolean;
     deck?: Deck;
+    decklist?: any;
     deckValidationErrors?: IDeckValidationFailures;
     importDeckValidationErrors?: IDeckValidationFailures;
     reportedBugs: number;
@@ -40,8 +41,11 @@ interface LobbyUser extends LobbySpectator {
 interface PlayerDetails {
     user: User;
     deckID: string;
+    deckLink: string;
+    deckSource: string;
     leaderID: string;
     baseID: string;
+    deck: IDecklistInternal;
 }
 
 export enum MatchType {
@@ -88,7 +92,7 @@ export class Lobby {
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         gameServer: GameServer,
-        testGameBuilder?: any
+        testGameBuilder?: any,
     ) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
@@ -207,6 +211,7 @@ export class Lobby {
             socket: null,
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck,
+            decklist,
             reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
@@ -432,6 +437,7 @@ export class Lobby {
         // if the deck doesn't have any errors set it as active.
         if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
+            activeUser.decklist = args[0];
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(activeUser.deck.getDecklist(),
                 this.gameFormat);
             activeUser.importDeckValidationErrors = null;
@@ -643,11 +649,15 @@ export class Lobby {
             this.users.forEach((user) => {
                 if (user.deck) {
                     game.selectDeck(user.id, user.deck);
+                    console.log(user.decklist);
                     this.playersDetails.push({
                         user: user.socket.user,
                         baseID: user.deck.base.id,
                         leaderID: user.deck.leader.id,
                         deckID: user.deck.id,
+                        deckLink: user.decklist.deckLink,
+                        deckSource: user.decklist.deckSource,
+                        deck: user.deck.getDecklist()
                     });
                 }
             });
@@ -961,7 +971,20 @@ export class Lobby {
             await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
             await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
 
-            logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
+            const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
+                this.playersDetails.find((u) => u.user.getId() === id)?.deckSource === 'SWUStats'
+            );
+            // Send to SWUstats if handler is available
+            if (eitherFromSWUStats) {
+                await this.server.swuStatsHandler.sendGameResultAsync(
+                    game,
+                    this.playersDetails.find((u) => u.user.getId() === player1.id).deckLink,
+                    this.playersDetails.find((u) => u.user.getId() === player2.id).deckLink,
+                    this.users.find((u) => u.id === player1.id).deck.getDecklist(),
+                    this.users.find((u) => u.id === player2.id).deck.getDecklist()
+                );
+                logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
+            }
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck stats:`, error);
         }

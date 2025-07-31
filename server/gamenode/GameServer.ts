@@ -30,6 +30,7 @@ import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
 import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
+import { SWUstatsHandler } from '../utils/SWUStats/SWUStatsHandler';
 
 
 /**
@@ -109,6 +110,7 @@ export class GameServer {
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
     public readonly bugReportHandler: BugReportHandler;
+    public readonly swuStatsHandler: SWUstatsHandler;
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -241,6 +243,7 @@ export class GameServer {
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.bugReportHandler = new BugReportHandler();
+        this.swuStatsHandler = new SWUstatsHandler();
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
@@ -714,6 +717,7 @@ export class GameServer {
             try {
                 const { format, deck } = req.body;
                 const user = req.user;
+                console.log(deck);
                 // check if user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} attempted to join queue while being in a lobby`);
