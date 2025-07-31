@@ -50,6 +50,10 @@ describe('I\'ve Found Them', function() {
                 expect(context.getChatLogs(1)[0]).toContain(context.aPrecariousPredicament.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.itsWorse.title);
 
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.aggression, context.aPrecariousPredicament, context.itsWorse],
+                });
+
                 context.player1.clickPrompt('Done');
 
                 // All cards should be discarded since none are units
