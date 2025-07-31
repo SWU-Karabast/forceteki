@@ -939,7 +939,7 @@ describe('Snapshot types', function() {
             });
         });
 
-        describe('During a short action phase,', function() {
+        describe('During a short first action phase,', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -1018,6 +1018,90 @@ describe('Snapshot types', function() {
                 expect(rollbackResult).toBeTrue();
 
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(0);
+            });
+        });
+
+        describe('During a short action phase after a regroup phase,', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['death-trooper'],
+                        groundArena: ['secretive-sage'],
+                        spaceArena: ['cartel-spacer']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'superlaser-technician'],
+                        spaceArena: ['tieln-fighter'],
+                        hand: ['battlefield-marine'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.clickCard(context.superlaserTechnician);
+                context.player2.clickCard(context.p1Base);
+
+                context.p1FurthestSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p1FurthestSnapshotActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.player1.clickCard(context.secretiveSage);
+                context.player1.clickCard(context.p2Base);
+
+                // move to next action phase - involves one additional action from each player
+                context.p2FurthestSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p2FurthestSnapshotActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.player2.clickPrompt('Pass');
+                context.player1.clickPrompt('Pass');
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.p1Base);
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+            });
+
+            it('action snapshots can revert back into the previous action phase for the active player', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player2.id,
+                    actionOffset: -2
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p2FurthestSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2FurthestSnapshotActionId);
+                expect(context.game.roundNumber).toEqual(1);
+                expect(context.p1Base.damage).toEqual(2);
+                expect(context.p2Base.damage).toEqual(4);
+            });
+
+            it('action snapshots can revert back into the previous action phase for the non-active player', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player1.id,
+                    actionOffset: -2
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1FurthestSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1FurthestSnapshotActionId);
+                expect(context.game.roundNumber).toEqual(1);
+                expect(context.p1Base.damage).toEqual(2);
+                expect(context.p2Base.damage).toEqual(2);
             });
         });
 
