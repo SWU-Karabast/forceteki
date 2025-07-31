@@ -1,5 +1,5 @@
 import type { Card } from '../card/Card';
-import type { PhaseName, SnapshotType } from '../Constants';
+import type { PhaseName, RollbackRoundEntryPoint, SnapshotType } from '../Constants';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import type { Player } from '../Player';
 import type { IRandomness } from '../Randomness';
@@ -53,12 +53,34 @@ export interface IGetPhaseSnapshotSettings extends IPhaseSnapshotSettings {
 
 export type IGetSnapshotSettings = IGetActionSnapshotSettings | IGetManualSnapshotSettings | IGetPhaseSnapshotSettings;
 
+interface IRollbackResultBase {
+    success: boolean;
+}
+
+interface IRollbackResultSuccess extends IRollbackResultBase {
+    success: true;
+    roundEntryPoint: RollbackRoundEntryPoint;
+}
+
+interface IRollbackResultFailure extends IRollbackResultBase {
+    success: false;
+}
+
+export type IRollbackResult = IRollbackResultSuccess | IRollbackResultFailure;
+
+export enum SnapshotTimepoint {
+    StartOfPhase = 'startOfPhase',
+    Action = 'action',
+}
+
 export interface IGameSnapshot {
     id: number;
     lastGameObjectId: number;
     actionNumber: number;
     roundNumber: number;
     phase: PhaseName;
+    timepoint: SnapshotTimepoint;
+
     gameState: IGameState;
     states: IGameObjectBaseState[];
     rngState: IRandomness['rngState'];

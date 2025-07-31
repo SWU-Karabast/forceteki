@@ -1,6 +1,6 @@
 import type Game from '../Game';
-import type { GameStateManager } from '../GameStateManager';
-import type { IGameSnapshot } from './SnapshotInterfaces';
+import type { GameStateManager } from './GameStateManager';
+import type { IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotArray } from './container/SnapshotArray';
 import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler, SnapshotContainerBase } from './container/SnapshotContainerBase';
@@ -46,6 +46,10 @@ export class SnapshotFactory {
 
     public get currentSnapshotId(): number | null {
         return this.currentActionSnapshot?.id ?? null;
+    }
+
+    public get currentSnapshottedTimepoint(): SnapshotTimepoint | null {
+        return this.currentActionSnapshot?.timepoint ?? null;
     }
 
     public constructor(game: Game, gameStateManager: GameStateManager) {
@@ -112,7 +116,7 @@ export class SnapshotFactory {
      * Called when we reach a new "snapshottable" game point (usually a new player action).
      * This will create a snapshot of the current game state and all game objects.
      */
-    public createSnapshotForCurrentAction(): void {
+    public createSnapshotForCurrentTimepoint(timepoint: SnapshotTimepoint): void {
         // TODO: add a guard here that will fail if the current action is already snapshotted,
         // this should be called exactly once per action
 
@@ -123,6 +127,7 @@ export class SnapshotFactory {
             lastGameObjectId: this.gameStateManager.lastGameObjectId,
             actionNumber: this.game.actionNumber,
             roundNumber: this.game.roundNumber,
+            timepoint,
             phase: this.game.currentPhase,
             gameState: structuredClone(this.game.state),
             states: this.gameStateManager.getAllGameStates(),
