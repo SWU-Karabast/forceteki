@@ -43,12 +43,12 @@ export default class IveFoundThem extends EventCard {
                             ]),
                             useDisplayPrompt: true
                         })),
-                        AbilityHelper.immediateEffects.conditional(({
+                        AbilityHelper.immediateEffects.conditional({
                             condition: !hasUnits,
-                            onTrue: AbilityHelper.immediateEffects.discardSpecificCard((context) => ({
-                                target: this.getTopCardsOfDeckSafely(context.player, 3)
-                            }))
-                        }))
+                            onTrue: AbilityHelper.immediateEffects.discardSpecificCard({
+                                target: topCards
+                            })
+                        })
                     ])
                 };
             })
