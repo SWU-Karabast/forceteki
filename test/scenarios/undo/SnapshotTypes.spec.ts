@@ -1329,7 +1329,8 @@ describe('Snapshot types', function() {
         });
     });
 
-    // TODO THIS PR: should we reset action snapshots in a new action phase?
+    // TODO THIS PR: undo from regroup to action phase
+    // TODO THIS PR: manual snapshots in regroup phase
 
     // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file
     // TODO: setup phase tests

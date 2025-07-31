@@ -1008,4 +1008,6 @@ describe('Undo', function() {
             });
         });
     });
+
+    // TODO: test player pass and claim initiative scenarios
 });
