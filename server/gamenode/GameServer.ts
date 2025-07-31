@@ -6,6 +6,8 @@ import cors from 'cors';
 import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
+import { getHeapStatistics } from 'v8';
+import { freemem } from 'os';
 
 import { logger } from '../logger';
 
@@ -66,11 +68,15 @@ export class GameServer {
         } else {
             cardDataGetter = await GameServer.buildRemoteCardDataGetter();
         }
+
+        // downloads all card data to build deck validator
+        const deckValidator = await DeckValidator.createAsync(cardDataGetter);
+
         console.log('SETUP: Card data downloaded.');
 
         return new GameServer(
             cardDataGetter,
-            await DeckValidator.createAsync(cardDataGetter),
+            deckValidator,
             testGameBuilder
         );
     }
@@ -237,6 +243,9 @@ export class GameServer {
         this.bugReportHandler = new BugReportHandler();
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
+
+        // set up periodic heap monitoring every 30 seconds
+        setInterval(() => this.logHeapStats(), 30000);
     }
 
     private setupAppRoutes(app: express.Application) {
@@ -278,26 +287,26 @@ export class GameServer {
             }
         });
 
-        app.post('/api/get-user', authMiddleware('get-user'), async (req, res, next) => {
+        app.post('/api/get-user', authMiddleware('get-user'), (req, res, next) => {
             try {
-                const { decks, preferences } = req.body;
+                // const { decks, preferences } = req.body;
                 const user = req.user as User;
                 // We try to sync the decks first
-                if (decks.length > 0) {
-                    try {
-                        await this.deckService.syncDecksAsync(user.getId(), decks);
-                    } catch (err) {
-                        logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
-                        next(err);
-                    }
-                }
-                if (preferences) {
-                    try {
-                        user.setPreferences(await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences));
-                    } catch (err) {
-                        logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
-                    }
-                }
+                // if (decks.length > 0) {
+                //     try {
+                //         await this.deckService.syncDecksAsync(user.getId(), decks);
+                //     } catch (err) {
+                //         logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
+                //         next(err);
+                //     }
+                // }
+                // if (preferences) {
+                //     try {
+                //         user.setPreferences(await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences));
+                //     } catch (err) {
+                //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
+                //     }
+                // }
                 return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange() } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
@@ -1315,5 +1324,16 @@ export class GameServer {
         } catch (err) {
             logger.error('GameServer: Error in onSocketDisconnected:', err);
         }
+    }
+
+    private logHeapStats(): void {
+        const heapStats = getHeapStatistics();
+        const usedHeapSizeInMB = (heapStats.used_heap_size / 1024 / 1024).toFixed(1);
+        const totalHeapSizeInMB = (heapStats.total_heap_size / 1024 / 1024).toFixed(1);
+        const heapSizeLimitInMB = (heapStats.heap_size_limit / 1024 / 1024).toFixed(1);
+        const heapUsagePercent = ((heapStats.used_heap_size / heapStats.heap_size_limit) * 100).toFixed(1);
+
+        const freeSystemMemoryInGB = (freemem() / 1024 / 1024 / 1024).toFixed(2);
+        logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | System free: ${freeSystemMemoryInGB}GB`);
     }
 }
