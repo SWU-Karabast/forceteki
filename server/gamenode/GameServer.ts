@@ -717,7 +717,6 @@ export class GameServer {
             try {
                 const { format, deck } = req.body;
                 const user = req.user;
-                console.log(deck);
                 // check if user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} attempted to join queue while being in a lobby`);

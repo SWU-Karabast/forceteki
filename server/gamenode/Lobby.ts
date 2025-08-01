@@ -649,7 +649,6 @@ export class Lobby {
             this.users.forEach((user) => {
                 if (user.deck) {
                     game.selectDeck(user.id, user.deck);
-                    console.log(user.decklist);
                     this.playersDetails.push({
                         user: user.socket.user,
                         baseID: user.deck.base.id,
