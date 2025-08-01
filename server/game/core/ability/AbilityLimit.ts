@@ -49,6 +49,12 @@ export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityL
         }
     }
 
+    public override cleanupOnRemove(oldState: TState): void {
+        if (oldState.isRegistered) {
+            this.unregisterEvents();
+        }
+    }
+
     public registerEvents(): void {
         this.state.isRegistered = true;
     }

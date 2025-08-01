@@ -272,4 +272,10 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
             }
         }
     }
+
+    public override cleanupOnRemove(oldState: ITriggeredAbillityState): void {
+        if (oldState.isRegistered) {
+            this.unregisterEvents();
+        }
+    }
 }
