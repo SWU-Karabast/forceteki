@@ -73,6 +73,15 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected afterSetState(oldState: T) { }
 
+    /**
+     * A function for game to call on all objects if they are being removed from the GameObject list (typically after a rollback to before the object was created).
+     * This is intended to be used for cleanup of any state that the object has that is not part of the state object.
+     *
+     * The most common example is removing event handlers that have been registered on Game.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public cleanupOnRemove(oldState: T) { }
+
     /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
         const ref = { isRef: true, uuid: this.state.uuid };
