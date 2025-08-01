@@ -285,7 +285,6 @@ export enum EventName {
     OnLookAtCard = 'onLookAtCard',
     OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
-    OnPhaseCreated = 'onPhaseCreated',
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnPhaseStarted = 'onPhaseStarted',
@@ -522,4 +521,11 @@ export enum AlertType {
     Warning = 'warning',
     Danger = 'danger',
     ReadyStatus = 'readyStatus',
+}
+
+/** During a rollback, indicates what point in the round the snapshot is from */
+export enum RollbackRoundEntryPoint {
+    StartOfRound = 'startOfRound',
+    WithinActionPhase = 'withinActionPhase',
+    StartOfRegroupPhase = 'startOfRegroupPhase',
 }

@@ -1,26 +1,32 @@
 import { randomItem } from '../../utils/Helpers';
 import type Game from '../../Game';
-import { Phase } from './Phase';
+import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ResourcePrompt } from '../prompts/ResourcePrompt';
 import { MulliganPrompt } from '../prompts/MulliganPrompt';
 import { PhaseName } from '../../Constants';
 import { PromptType } from '../PromptInterfaces';
+import * as Contract from '../../utils/Contract';
+import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 
 export class SetupPhase extends Phase {
-    public constructor(game: Game) {
-        const name = PhaseName.Setup;
-        super(game, name);
-        this.game.currentPhase = name;
-        this.pipeline.initialise([
-            new SimpleStep(game, () => this.chooseFirstPlayer(), 'chooseFirstPlayer'),
-            new SimpleStep(game, () => this.drawStartingHands(), 'drawStartingHands'),
-            new MulliganPrompt(game),
-            new ResourcePrompt(game, 2),
+    public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
+        Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToWithinPhase, 'SetupPhase does not support rolling back to the middle of the phase');
 
-            // there aren't clear game rules yet for resolving events that trigger during the setup step, so we skip the event window here
-            new SimpleStep(game, () => this.endPhase(true), 'endPhase')
-        ]);
+        super(game, PhaseName.Setup, snapshotManager);
+
+        this.initialise(
+            [
+                new SimpleStep(game, () => this.chooseFirstPlayer(), 'chooseFirstPlayer'),
+                new SimpleStep(game, () => this.drawStartingHands(), 'drawStartingHands'),
+                new MulliganPrompt(game),
+                new ResourcePrompt(game, 2),
+
+                // there aren't clear game rules yet for resolving events that trigger during the setup step, so we skip the event window here
+                new SimpleStep(game, () => this.endPhase(true), 'endPhase')
+            ],
+            initializeMode
+        );
     }
 
     private chooseFirstPlayer() {
