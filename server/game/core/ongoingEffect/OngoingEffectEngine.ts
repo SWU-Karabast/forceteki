@@ -265,6 +265,7 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         return this.effects.map((effect) => effect.getDebugInfo());
     }
 
+    // TODO THIS PR: what do we need to do with this?
     public override afterSetAllState(prevState: IOngoingEffectState) {
         for (const currEffect of this.state.effects) {
             if (!prevState.effects.some((x) => x.uuid === currEffect.uuid)) {
