@@ -1,5 +1,5 @@
 import type Game from '../../Game';
-import type { GameStateManager } from '../../GameStateManager';
+import type { GameStateManager } from '../GameStateManager';
 import type { IGetCurrentSnapshotHandler, IUpdateCurrentSnapshotHandler } from '../SnapshotFactory';
 import type { IGameSnapshot } from '../SnapshotInterfaces';
 import type { IClearNewerSnapshotsBinding } from './SnapshotContainerBase';

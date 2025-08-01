@@ -1,15 +1,16 @@
-import type { PhaseName } from '../Constants';
+import { PhaseName } from '../Constants';
+import { RollbackRoundEntryPoint as RollbackRoundEntryPoint } from '../Constants';
 import { SnapshotType } from '../Constants';
 import type Game from '../Game';
-import type { IGameObjectRegistrar } from '../GameStateManager';
-import { GameStateManager } from '../GameStateManager';
-import type { IGetManualSnapshotSettings, IGetSnapshotSettings, IManualSnapshotSettings, ISnapshotSettings } from './SnapshotInterfaces';
+import type { IGameObjectRegistrar } from './GameStateManager';
+import { GameStateManager } from './GameStateManager';
+import type { SnapshotTimepoint } from './SnapshotInterfaces';
+import { type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
 import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { SnapshotMap } from './container/SnapshotMap';
 
-const maxManualSnapshots = 5; // Number of manual player snapshots
 const maxActionSnapshots = 3; // Number of actions saved for undo in a turn (per player)
 const maxPhaseSnapshots = 2; // Current and previous of a specific phase
 
@@ -48,6 +49,10 @@ export class SnapshotManager {
         return this.snapshotFactory.currentSnapshottedRound;
     }
 
+    public get currentSnapshottedTimepoint(): SnapshotTimepoint | null {
+        return this.snapshotFactory.currentSnapshottedTimepoint;
+    }
+
     /** Exposes a version of GameStateManager that doesn't have access to rollback functionality */
     public get gameObjectManager(): IGameObjectRegistrar {
         return this._gameStateManager;
@@ -64,13 +69,13 @@ export class SnapshotManager {
         this.manualSnapshots = new Map<string, SnapshotMap<number>>();
     }
 
-    /** Indicates that we're on a new action and that new snapshots can be taken */
-    public moveToNextAction() {
+    /** Indicates that we're on a new action and that a new action snapshot can be taken */
+    public moveToNextTimepoint(timepoint: SnapshotTimepoint) {
         if (!this.undoEnabled) {
             return;
         }
 
-        this.snapshotFactory.createSnapshotForCurrentAction();
+        this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint);
     }
 
     public takeSnapshot(settings: ISnapshotSettings): number {
@@ -104,9 +109,9 @@ export class SnapshotManager {
         return snapshotId;
     }
 
-    public rollbackTo(settings: IGetSnapshotSettings) {
+    public rollbackTo(settings: IGetSnapshotSettings): IRollbackResult {
         if (!this.undoEnabled) {
-            return false;
+            return { success: false };
         }
 
         let rolledBackSnapshotIdx: number = null;
@@ -127,10 +132,10 @@ export class SnapshotManager {
         if (rolledBackSnapshotIdx != null) {
             // Throw out all snapshots after the rollback snapshot.
             this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
-            return true;
+            return { success: true, roundEntryPoint: this.getRoundEntryPointAfterRollback(settings) };
         }
 
-        return false;
+        return { success: false };
     }
 
     private rollbackManualSnapshot(settings: IGetManualSnapshotSettings): number {
@@ -145,6 +150,19 @@ export class SnapshotManager {
         const offset = offsetValue ?? 0;
         Contract.assertTrue(offset < 1, `Snapshot offset must be less than 1, got ${offset}.`);
         return offset;
+    }
+
+    private getRoundEntryPointAfterRollback(settings: IGetSnapshotSettings): RollbackRoundEntryPoint {
+        switch (settings.type) {
+            case SnapshotType.Action:
+                return RollbackRoundEntryPoint.WithinActionPhase;
+            case SnapshotType.Phase:
+                return settings.phaseName === PhaseName.Action ? RollbackRoundEntryPoint.StartOfRound : RollbackRoundEntryPoint.StartOfRegroupPhase;
+            case SnapshotType.Manual:
+                return this.snapshotFactory.currentSnapshottedPhase === PhaseName.Action ? RollbackRoundEntryPoint.WithinActionPhase : RollbackRoundEntryPoint.StartOfRegroupPhase;
+            default:
+                Contract.fail(`Unimplemented snapshot type: ${(settings as any).type}`);
+        }
     }
 
     public countAvailableActionSnapshots(playerId: string): number {

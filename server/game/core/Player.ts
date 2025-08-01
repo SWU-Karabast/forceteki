@@ -144,17 +144,13 @@ export class Player extends GameObject<IPlayerState> {
     // STATE TODO: Does Deck need to be a GameObject?
     private decklistNames: Deck | null;
     public readonly actionTimer: IActionTimer;
-    private limitedPlayed: number;
 
-    private abilityMaxByIdentifier: Record<string, any>;
     public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
 
     public optionSettings: Partial<{ autoSingleTarget: boolean }>;
-    private resetTimerAtEndOfRound: boolean;
     private promptState: PlayerPromptState;
     public opponent: Player;
     private playableZones: PlayableZone[];
-    private noTimer: boolean;
     private _lastActionId = 0;
 
     public activeForPreviousPrompt = false;
@@ -204,19 +200,15 @@ export class Player extends GameObject<IPlayerState> {
         this.state.baseZone = null;
         this.state.deckZone = new DeckZone(game, this).getRef();
 
-        this.limitedPlayed = 0;
-
         /** @type {Deck} */
         this.decklistNames = null;
 
-        this.abilityMaxByIdentifier = {}; // This records max limits for abilities
         this.promptedActionWindows = user.promptedActionWindows || {
             // these flags represent phase settings
             action: true,
             regroup: true
         };
         this.optionSettings = user.settings.optionSettings;
-        this.resetTimerAtEndOfRound = false;
 
         this.promptState = new PlayerPromptState(this);
     }
@@ -947,9 +939,6 @@ export class Player extends GameObject<IPlayerState> {
      * Called at the start of the Action Phase.  Resets some of the single round parameters
      */
     public resetForActionPhase() {
-        if (this.resetTimerAtEndOfRound) {
-            this.noTimer = false;
-        }
         this.passedActionPhase = false;
     }
 
