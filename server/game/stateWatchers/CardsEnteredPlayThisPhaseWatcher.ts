@@ -5,16 +5,17 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type Game from '../core/Game';
+import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
 export interface EnteredCardEntry {
-    card: IInPlayCard;
-    playedBy: Player;
+    card: GameObjectRef<IInPlayCard>;
+    playedBy: GameObjectRef<Player>;
 }
 
 export type ICardsEnteredPlayThisPhase = EnteredCardEntry[];
 
 // there is a known issue where CardsEnteredPlayThisPhaseWatcher currently doesn't work with leaders
-export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEntry[]> {
+export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<ICardsEnteredPlayThisPhase> {
     public constructor(
         game: Game,
         registrar: StateWatcherRegistrar,
@@ -23,23 +24,27 @@ export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEn
         super(game, StateWatcherName.CardsEnteredPlayThisPhase, registrar, card);
     }
 
+    protected override mapCurrentValue(stateValue: EnteredCardEntry[]): UnwrapRef<EnteredCardEntry[]> {
+        return stateValue.map((x) => ({ playedBy: this.game.getFromRef(x.playedBy), card: this.game.getFromRef(x.card) }));
+    }
+
     /**
      * Returns an array of {@link EnteredCardEntry} objects representing every card entering play
      * in this phase so far and the player who played that card
      */
-    public override getCurrentValue(): ICardsEnteredPlayThisPhase {
+    public override getCurrentValue() {
         return super.getCurrentValue();
     }
 
     /** Filters the list of entered play cards in the state and returns the cards that match */
-    public getCardsEnteredPlay(filter: (entry: EnteredCardEntry) => boolean): Card[] {
+    public getCardsEnteredPlay(filter: (entry: UnwrapRef<EnteredCardEntry>) => boolean): Card[] {
         return this.getCurrentValue()
             .filter(filter)
             .map((entry) => entry.card);
     }
 
     /** Checks the state for cards that entered play and match the provided filter */
-    public someCardEnteredPlay(filter: (entry: EnteredCardEntry) => boolean): boolean {
+    public someCardEnteredPlay(filter: (entry: UnwrapRef<EnteredCardEntry>) => boolean): boolean {
         return this.getCardsEnteredPlay(filter).length > 0;
     }
 
@@ -50,7 +55,7 @@ export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEn
                 onUnitEntersPlay: () => true,
             },
             update: (currentState: ICardsEnteredPlayThisPhase, event: any) =>
-                currentState.concat({ card: event.card, playedBy: event.card.controller })
+                currentState.concat({ card: event.card.getRef(), playedBy: event.card.controller.getRef() })
         });
     }
 

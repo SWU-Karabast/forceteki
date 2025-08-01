@@ -33,6 +33,7 @@
     "eslint-plugin-jasmine": "^4.2.0",
     "events": "^3.3.0",
     "express": "^4.21.0",
+    "fast-copy": "^3.0.2",
     "fs": "^0.0.1-security",
     "globals": "^15.9.0",
     "jasmine": "^5.1.0",

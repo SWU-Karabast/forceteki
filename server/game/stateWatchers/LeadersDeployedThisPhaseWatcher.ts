@@ -19,16 +19,16 @@ export class LeadersDeployedThisPhaseWatcher extends StateWatcher<DeployedLeader
         super(game, StateWatcherName.LeadersDeployedThisPhase, registrar, card);
     }
 
+    protected override mapCurrentValue(stateValue: DeployedLeaderEntry[]) {
+        return stateValue.map((x) => ({ card: this.game.getFromRef(x.card) }));
+    }
+
     /**
      * Returns an array of {@link DeployedLeaderEntry} objects representing every leader deployed
      * in this phase so far
      */
     public override getCurrentValue() {
         return super.getCurrentValue();
-    }
-
-    protected override mapCurrentValue(stateValue: DeployedLeaderEntry[]) {
-        return stateValue.map((x) => ({ card: this.game.getFromRef(x.card) }));
     }
 
     /** Check the list of deployed leaders in the state if we found leaders that match filters */

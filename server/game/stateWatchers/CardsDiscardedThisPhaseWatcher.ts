@@ -6,7 +6,7 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract';
 import type Game from '../core/Game';
-import type { GameObjectRef } from '../core/GameObjectBase';
+import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
 export interface DiscardedCardEntry {
     card: GameObjectRef<Card>;
@@ -24,10 +24,14 @@ export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEn
         super(game, StateWatcherName.CardsDiscardedThisPhase, registrar, card);
     }
 
+    protected override mapCurrentValue(stateValue: DiscardedCardEntry[]): UnwrapRef<DiscardedCardEntry[]> {
+        return stateValue.map((x) => ({ card: this.game.getFromRef(x.card), discardedFromPlayer: this.game.getFromRef(x.discardedFromPlayer), discardedFromZone: x.discardedFromZone, discardedPlayId: x.discardedPlayId }));
+    }
+
     /**
      * Returns an array of {@link DiscardedCardEntry} objects representing every card discarded in this phase so far and the player who drew that card
      */
-    public override getCurrentValue(): DiscardedCardEntry[] {
+    public override getCurrentValue() {
         return super.getCurrentValue();
     }
 

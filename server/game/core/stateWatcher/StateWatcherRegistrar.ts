@@ -77,4 +77,8 @@ export class StateWatcherRegistrar extends GameObjectBase<IStateWatcherRegistrar
 
         return true;
     }
+
+    public override getGameObjectName(): string {
+        return 'StateWatcherRegistrar';
+    }
 }

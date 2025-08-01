@@ -4,7 +4,7 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type { Card } from '../core/card/Card';
 import type { Player } from '../core/Player';
 import type Game from '../core/Game';
-import type { GameObjectRef } from '../core/GameObjectBase';
+import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
 export interface ForceUsedEntry {
     player: GameObjectRef<Player>;
@@ -21,16 +21,20 @@ export class ForceUsedThisPhaseWatcher extends StateWatcher<IForceUsedThisPhase>
         super(game, StateWatcherName.ForceUsedThisPhase, registrar, card);
     }
 
+    protected override mapCurrentValue(stateValue: ForceUsedEntry[]): UnwrapRef<ForceUsedEntry[]> {
+        return stateValue.map((x) => ({ player: this.game.getFromRef(x.player) }));
+    }
+
     /**
      * Returns an array of {@link ForceUsedEntry} objects representing every instance of Force usage
      * in this phase so far
      */
-    public override getCurrentValue(): IForceUsedThisPhase {
+    public override getCurrentValue() {
         return super.getCurrentValue();
     }
 
     public countForceUsedThisPhase(player: Player): number {
-        return this.getCurrentValue().filter((entry) => this.game.getFromRef(entry.player) === player).length;
+        return this.getCurrentValue().filter((entry) => entry.player === player).length;
     }
 
     protected override setupWatcher() {

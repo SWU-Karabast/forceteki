@@ -6,7 +6,7 @@ import type { IDamageSource } from '../IDamageOrDefeatSource';
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type Game from '../core/Game';
-import type { GameObjectRef } from '../core/GameObjectBase';
+import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
 // STATE TODO: This is a bad one. IDamageSource can have a lot of GameObjects and other nested references.
 export interface DamageDealtEntry {
@@ -28,12 +28,16 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPh
         super(game, StateWatcherName.DamageDealtThisPhase, registrar, card);
     }
 
-    public getDamageDealtByPlayer(player: Player, filter: (entry: DamageDealtEntry) => boolean = () => true): IDamageDealtThisPhase {
+    protected override mapCurrentValue(stateValue: DamageDealtEntry[]): UnwrapRef<DamageDealtEntry[]> {
+        return stateValue.map((x) => ({ ...x, target: this.game.getFromRef(x.target) }));
+    }
+
+    public getDamageDealtByPlayer(player: Player, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): UnwrapRef<IDamageDealtThisPhase> {
         return this.getCurrentValue()
             .filter((entry) => entry.damageSource.player === player && filter(entry));
     }
 
-    public playerHasDealtDamage(player: Player, filter: (entry: DamageDealtEntry) => boolean = () => true): boolean {
+    public playerHasDealtDamage(player: Player, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
         return this.getDamageDealtByPlayer(player, filter).length > 0;
     }
 
@@ -46,7 +50,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPh
                 currentState.concat({
                     damageType: event.type,
                     damageSource: event.damageSource,
-                    target: event.card,
+                    target: event.card.getRef(),
                     amount: event.damageDealt,
                     isIndirect: event.isIndirect,
                 })
