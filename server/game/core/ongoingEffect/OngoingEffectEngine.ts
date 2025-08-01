@@ -265,13 +265,26 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         return this.effects.map((effect) => effect.getDebugInfo());
     }
 
-    // TODO THIS PR: what do we need to do with this?
     public override afterSetAllState(prevState: IOngoingEffectState) {
-        for (const currEffect of this.state.effects) {
-            if (!prevState.effects.some((x) => x.uuid === currEffect.uuid)) {
-                const effect = this.getObject(currEffect);
-                if (effect.duration === Duration.Custom) {
-                    this.registerCustomDurationEvents(effect);
+        const prevStateEffectUuids = new Set(prevState.effects.map((x) => x.uuid));
+        const currStateEffectUuids = new Set(this.state.effects.map((x) => x.uuid));
+
+        // if an effect exists in this snapshot but not before rollback, we need to register its custom duration events
+        for (const currEffectRef of this.state.effects) {
+            if (!prevStateEffectUuids.has(currEffectRef.uuid)) {
+                const currEffect = this.getObject(currEffectRef);
+                if (currEffect.duration === Duration.Custom) {
+                    this.registerCustomDurationEvents(currEffect);
+                }
+            }
+        }
+
+        // if an effect existed before rollback but not in this snapshot, we need to unregister its custom duration events
+        for (const prevEffectRef of prevState.effects) {
+            if (!currStateEffectUuids.has(prevEffectRef.uuid)) {
+                const prevEffect = this.getObject(prevEffectRef);
+                if (prevEffect.duration === Duration.Custom) {
+                    this.unregisterCustomDurationEvents(prevEffect);
                 }
             }
         }
