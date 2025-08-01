@@ -62,12 +62,13 @@ export class GameStateManager implements IGameObjectRegistrar {
         const removals: { index: number; go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
         const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
 
+        const snapshotStatesByUuid = new Map<string, IGameObjectBaseState>(snapshot.states.map((x) => [x.uuid, x]));
+
         // Indexes in last to first for the purpose of removal.
         for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
             const go = this.allGameObjects[i];
 
-            // NOTE: We aren't removing GameObjects, but this makes room for it.
-            const updatedState = snapshot.states.find((x) => x.uuid === go.uuid);
+            const updatedState = snapshotStatesByUuid.get(go.uuid);
             if (!updatedState) {
                 removals.push({ index: i, go, oldState: go.getState() });
                 continue;
