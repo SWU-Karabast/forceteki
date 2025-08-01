@@ -1,4 +1,3 @@
-
 describe('Snapshot types', function() {
     undoIntegration(function(contextRef) {
         describe('During the action phase,', function() {
@@ -26,9 +25,6 @@ describe('Snapshot types', function() {
                 // Battlefield Marine in hand
                 // Death Trooper in hand
                 // No damage on units
-
-                context.actionPhaseStartSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.actionPhaseStartActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
                 contextRef.snapshot.takeManualSnapshot(context.player1Object);
                 context.p1ManualSnapshot1Id = contextRef.snapshot.getCurrentSnapshotId();
@@ -136,8 +132,7 @@ describe('Snapshot types', function() {
             });
 
             const assertActionPhaseStartState = (context, checkManualSnapshots = true) => {
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.actionPhaseStartSnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.actionPhaseStartActionId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(0);
 
                 expect(context.battlefieldMarine).toBeInZone('hand');
                 expect(context.deathTrooper).toBeInZone('hand');
@@ -146,10 +141,12 @@ describe('Snapshot types', function() {
                 expect(context.p2Base.damage).toEqual(0);
 
                 expect(contextRef.snapshot.countAvailableActionSnapshots(context.player1.id)).toEqual(0);
-                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(0);
+
+                // one action snapshot is available for P2 because it was just taken after the rollback
+                expect(contextRef.snapshot.countAvailableActionSnapshots(context.player2.id)).toEqual(1);
 
                 if (checkManualSnapshots) {
-                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player1.id)).toEqual(1);
+                    expect(contextRef.snapshot.countAvailableManualSnapshots(context.player1.id)).toEqual(0);
                     expect(contextRef.snapshot.countAvailableManualSnapshots(context.player2.id)).toEqual(0);
                 }
             };
@@ -720,12 +717,13 @@ describe('Snapshot types', function() {
                     });
                     expect(p1RollbackResult).toBeFalse();
 
+                    // Player 2 should still be able to roll back to the start of current action since they're the active player
                     const p2RollbackResult = contextRef.snapshot.rollbackToSnapshot({
                         type: 'action',
                         playerId: context.player2.id,
                         actionOffset: 0
                     });
-                    expect(p2RollbackResult).toBeFalse();
+                    expect(p2RollbackResult).toBeTrue();
                 });
 
                 it('cannot attempt to revert back more than two phases', function () {
@@ -750,10 +748,47 @@ describe('Snapshot types', function() {
 
                     assertP1Action3State(context);
                 });
+
+                it('can revert back to the last action from the regroup phase for the active player', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player2.id,
+                        actionOffset: 0
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    expect(context.game.currentPhase).toEqual('action');
+
+                    assertP2Action3State(context);
+
+                    // do a new action to ensure we can continue from this point
+                    context.player2.clickCard(context.tielnFighter);
+                    context.player2.clickCard(context.p1Base);
+                });
+
+                it('can revert back to the last action from the regroup phase for the non-active player', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        actionOffset: 0
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    expect(context.game.currentPhase).toEqual('action');
+
+                    assertP1Action3State(context);
+
+                    // do a new action to ensure we can continue from this point
+                    context.player1.claimInitiative();
+                });
             });
         });
 
-        describe('During a short action phase,', function() {
+        describe('After multiple rounds,', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -772,8 +807,250 @@ describe('Snapshot types', function() {
 
                 const { context } = contextRef;
 
-                context.actionPhaseStartSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.actionPhaseStartActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.clickCard(context.superlaserTechnician);
+                context.player2.clickCard(context.p1Base);
+
+                // Play Death Trooper
+                context.player1.clickCard(context.deathTrooper);
+
+                // Choose Friendly
+                context.player1.clickCard(context.deathTrooper);
+
+                // Choose Enemy
+                context.player1.clickCard(context.wampa);
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
+
+                context.moveToRegroupPhase();
+
+                context.regroupPhase1ManualSnapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.regroupPhase1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                context.regroupPhase1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.actionPhase2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                context.actionPhase2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                // state after first action phase:
+                // p1Base damage: 2
+                // p2Base damage: 2
+                // Battlefield Marine in play
+                // Death Trooper in play
+                // Death Trooper damage: 2
+                // Wampa damage: 2
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+
+                context.player1.clickCard(context.secretiveSage);
+                context.player1.clickCard(context.p2Base);
+
+                context.moveToRegroupPhase();
+
+                context.regroupPhase2ManualSnapshotId = contextRef.snapshot.takeManualSnapshot(context.player2Object);
+                context.regroupPhase2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                context.regroupPhase2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.actionPhase3ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                context.actionPhase3SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                // state after second action phase:
+                // p1Base damage: 6
+                // p2Base damage: 4
+                // Battlefield Marine in play
+                // Death Trooper in play
+                // Death Trooper damage: 2
+                // Wampa damage: 2
+
+                context.player2.clickCard(context.tielnFighter);
+                context.player2.clickCard(context.p1Base);
+            });
+
+            const assertPhase2State = (context) => {
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+                expect(context.deathTrooper).toBeInZone('groundArena');
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
+                expect(context.p1Base.damage).toEqual(2);
+                expect(context.p2Base.damage).toEqual(2);
+            };
+
+            const assertPhase3State = (context) => {
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+                expect(context.deathTrooper).toBeInZone('groundArena');
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
+                expect(context.p1Base.damage).toEqual(6);
+                expect(context.p2Base.damage).toEqual(4);
+            };
+
+            const assertFinalState = (context) => {
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+                expect(context.deathTrooper).toBeInZone('groundArena');
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
+                expect(context.p1Base.damage).toEqual(8);
+                expect(context.p2Base.damage).toEqual(4);
+            };
+
+            it('regroup snapshots can revert back to the previous state', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'regroup',
+                    actionOffset: 0
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertPhase3State(context);
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.tielnFighter);
+                context.player2.clickCard(context.p1Base);
+
+                assertFinalState(context);
+            });
+
+            it('regroup snapshots can revert back to the previous state as the default', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'regroup'
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertPhase3State(context);
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.tielnFighter);
+                context.player2.clickCard(context.p1Base);
+
+                assertFinalState(context);
+            });
+
+            it('regroup snapshots can revert back two regroup phases', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'regroup',
+                    phaseOffset: -1
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertPhase2State(context);
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+
+                context.player1.clickCard(context.secretiveSage);
+                context.player1.clickCard(context.p2Base);
+
+                assertPhase3State(context);
+            });
+
+            it('manual snapshots for the non-active player can revert back to a regroup phase', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1.id,
+                    snapshotId: context.regroupPhase1ManualSnapshotId
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertPhase2State(context);
+
+                expect(context.game.currentPhase).toEqual('regroup');
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+
+                context.player1.clickCard(context.secretiveSage);
+                context.player1.clickCard(context.p2Base);
+
+                assertPhase3State(context);
+            });
+
+            it('manual snapshots for the active player can revert back to a regroup phase', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player2.id,
+                    snapshotId: context.regroupPhase2ManualSnapshotId
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(context.game.currentPhase).toEqual('regroup');
+
+                assertPhase3State(context);
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.tielnFighter);
+                context.player2.clickCard(context.p1Base);
+
+                assertFinalState(context);
+            });
+        });
+
+        describe('During a short first action phase,', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['death-trooper'],
+                        groundArena: ['secretive-sage'],
+                        spaceArena: ['cartel-spacer']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'superlaser-technician'],
+                        spaceArena: ['tieln-fighter'],
+                        hand: ['battlefield-marine'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
 
                 context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
                 context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
@@ -834,13 +1111,319 @@ describe('Snapshot types', function() {
                 });
                 expect(rollbackResult).toBeTrue();
 
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p2Action1SnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2Action1ActionId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(0);
+            });
+        });
+
+        describe('During a short action phase after a regroup phase,', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['death-trooper'],
+                        groundArena: ['secretive-sage'],
+                        spaceArena: ['cartel-spacer']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'superlaser-technician'],
+                        spaceArena: ['tieln-fighter'],
+                        hand: ['battlefield-marine'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.clickCard(context.superlaserTechnician);
+                context.player2.clickCard(context.p1Base);
+
+                context.p1FurthestSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p1FurthestSnapshotActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.player1.clickCard(context.secretiveSage);
+                context.player1.clickCard(context.p2Base);
+
+                // move to next action phase - involves one additional action from each player
+                context.p2FurthestSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p2FurthestSnapshotActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.player2.clickPrompt('Pass');
+                context.player1.clickPrompt('Pass');
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.p1Base);
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+            });
+
+            it('action snapshots can revert back into the previous action phase for the active player', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player2.id,
+                    actionOffset: -2
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p2FurthestSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2FurthestSnapshotActionId);
+                expect(context.game.roundNumber).toEqual(1);
+                expect(context.p1Base.damage).toEqual(2);
+                expect(context.p2Base.damage).toEqual(4);
+            });
+
+            it('action snapshots can revert back into the previous action phase for the non-active player', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player1.id,
+                    actionOffset: -2
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1FurthestSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1FurthestSnapshotActionId);
+                expect(context.game.roundNumber).toEqual(1);
+                expect(context.p1Base.damage).toEqual(2);
+                expect(context.p2Base.damage).toEqual(2);
+            });
+        });
+
+        describe('effects at the start of the action phase', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine'],
+                        deck: ['takedown', 'vanquish', 'rivals-fall', 'cartel-spacer'],
+                        leader: 'grand-admiral-thrawn#patient-and-insightful',
+                        resources: 3,
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'atst'],
+                        deck: ['steadfast-battalion', 'avenger#hunting-star-destroyer', 'specforce-soldier']
+                    },
+                    phaseTransitionHandler: (phase) => {
+                        if (phase === 'action') {
+                            contextRef.context.player1.clickPrompt('Done');
+                        }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.moveToNextActionPhase();
+
+                context.startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.startOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                // thrawn ability reveal top deck of each player (happens at beginning of action phase)
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    { card: context.rivalsFall, displayText: 'Yourself' },
+                    { card: context.specforceSoldier, displayText: 'Opponent' }
+                ]);
+
+                context.player1.clickPrompt('Done');
+
+                context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+
+                context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+            });
+
+            const assertActionPhaseStartState = (context) => {
+                expect(context.player1.handSize).toBe(2);
+                expect(context.player2.handSize).toBe(2);
+
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.wampa.exhausted).toBeFalse();
+                expect(context.p1Base.damage).toEqual(0);
+                expect(context.p2Base.damage).toEqual(0);
+            };
+
+            it('should be repeated when rolling back to the start-of-action-phase snapshot', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'action',
+                    phaseOffset: 0
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+                assertActionPhaseStartState(context);
+
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    { card: context.rivalsFall, displayText: 'Yourself' },
+                    { card: context.specforceSoldier, displayText: 'Opponent' }
+                ]);
+
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should not be repeated when rolling back to the first action snapshot of the phase', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player1.id,
+                    actionOffset: -1
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Action1SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action1ActionId);
+                assertActionPhaseStartState(context);
+
+                expect(context.player1).not.toHaveExactViewableDisplayPromptCards([
+                    { card: context.rivalsFall, displayText: 'Yourself' },
+                    { card: context.specforceSoldier, displayText: 'Opponent' }
+                ]);
+                expect(context.player1).toBeActivePlayer();
+            });
+        });
+
+        describe('effects at the start of the regroup phase', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['inferno-four#unforgetting', 'system-patrol-craft'],
+                        hand: ['sneak-attack', 'ruthless-raider']
+                    },
+                    player2: {
+                        spaceArena: ['green-squadron-awing'],
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Ruthless Raider from hand
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.ruthlessRaider);
+
+                // Select Enemy Unit and Base. Not able to select friendly units
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                // Check damage on unit and base
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.greenSquadronAwing.damage).toBe(2);
+
+                context.moveToRegroupPhase();
+
+                context.startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.startOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                // RR is defeated by Sneak Attack effect. Select Enemy Unit and Base. Not able to select friendly units
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                // Check damage on unit and base
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.greenSquadronAwing).toBeInZone('discard');
+            });
+
+            const assertRegroupPhaseStartState = (context) => {
+                expect(context.ruthlessRaider).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.greenSquadronAwing.damage).toBe(2);
+            };
+
+            const assertRegroupPhaseRaiderDefeatedState = (context) => {
+                expect(context.ruthlessRaider).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.greenSquadronAwing).toBeInZone('discard');
+            };
+
+            it('should be repeated when rolling back to the start-of-regroup-phase snapshot from within the regroup phase', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'regroup',
+                    phaseOffset: 0
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+
+                assertRegroupPhaseStartState(context);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                assertRegroupPhaseRaiderDefeatedState(context);
+
+                // move to action phase to confirm that everything still works
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+                context.player1.clickCard(context.systemPatrolCraft);
+                context.player1.clickCard(context.p2Base);
+            });
+
+            it('should be repeated when rolling back to the start-of-regroup-phase snapshot from the next action phase', function () {
+                const { context } = contextRef;
+
+                // move to action phase
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+                context.player1.clickCard(context.systemPatrolCraft);
+                context.player1.clickCard(context.p2Base);
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'phase',
+                    phaseName: 'regroup',
+                    phaseOffset: 0
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+
+                assertRegroupPhaseStartState(context);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                assertRegroupPhaseRaiderDefeatedState(context);
+
+                // move to action phase to confirm that everything still works
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+                context.player1.clickCard(context.systemPatrolCraft);
+                context.player1.clickCard(context.p2Base);
             });
         });
     });
 
     // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file
-    // TODO: regroup phase and previous action phase snapshot tests
+    // TODO: setup phase tests
     // TODO: decide the details of how we want manual snapshots to work, and test them in-depth
 });

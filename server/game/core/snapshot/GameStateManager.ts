@@ -1,8 +1,8 @@
-import type Game from './Game';
-import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from './GameObjectBase';
-import type { IGameSnapshot } from './snapshot/SnapshotInterfaces';
-import * as Contract from './utils/Contract.js';
-import * as Helpers from './utils/Helpers.js';
+import type Game from '../Game';
+import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { IGameSnapshot } from './SnapshotInterfaces';
+import * as Contract from '../utils/Contract.js';
+import * as Helpers from '../utils/Helpers.js';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
