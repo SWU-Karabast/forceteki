@@ -1423,8 +1423,6 @@ describe('Snapshot types', function() {
         });
     });
 
-    // TODO THIS PR: manual snapshots in regroup phase
-
     // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file
     // TODO: setup phase tests
     // TODO: decide the details of how we want manual snapshots to work, and test them in-depth
