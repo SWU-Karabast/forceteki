@@ -970,6 +970,7 @@ export class Lobby {
             await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
             await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
 
+            logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${game.id}`);
             const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
                 this.playersDetails.find((u) => u.user.getId() === id)?.deckSource === 'SWUStats'
             );
