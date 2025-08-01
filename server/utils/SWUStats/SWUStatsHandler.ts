@@ -109,7 +109,6 @@ export class SWUstatsHandler {
                 round: payload.round,
                 winnerHealth: payload.winnerHealth
             });
-
             // Send to SWUstats API
             const response = await fetch(this.apiUrl, {
                 method: 'POST',
@@ -118,7 +117,6 @@ export class SWUstatsHandler {
                 },
                 body: JSON.stringify(payload)
             });
-            console.log(response);
             if (!response.ok) {
                 const errorText = await response.text();
                 logger.error(`SWUstats API returned error: ${response.status} - ${errorText}`);
@@ -175,8 +173,6 @@ export class SWUstatsHandler {
         const p1BaseStr = this.formatCardId(p1Base);
         const p2LeaderStr = this.formatCardId(p2Leader);
         const p2BaseStr = this.formatCardId(p2Base);
-        console.log(player1DeckLink);
-        console.log(player2DeckLink);
 
         // Determine first player (1 or 2)
         const firstPlayer = game.initialFirstPlayer?.id === player1.id ? 1 : 2;
