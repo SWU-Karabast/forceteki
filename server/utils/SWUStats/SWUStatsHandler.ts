@@ -35,7 +35,7 @@ interface PlayerData {
     firstPlayer: number;        // 1 if this player went first, 0 otherwise
     opposingHero: string;       // Opponent's leader id (FFG UID format)
     opposingBaseColor: string;  // Opponent's base color (Red, Blue, Yellow, Green, Colorless)
-    deckbuilderID?: string;      // Deckbuilder user ID
+    deckbuilderID?: string;     // Deckbuilder user ID
 }
 
 export class SWUstatsHandler {
@@ -71,14 +71,12 @@ export class SWUstatsHandler {
         try {
             // Don't send results for games that ended too early
             if (game.roundNumber <= 1) {
-                logger.debug(`Game ${game.id} ended in round ${game.roundNumber}, not sending to SWUstats`);
                 return false;
             }
 
-            // Get game players
             const players = game.getPlayers();
             if (players.length !== 2) {
-                logger.warn(`Cannot send SWUstats for game with ${players.length} players`);
+                logger.info(`Cannot send SWUstats for game with ${players.length} players`);
                 return false;
             }
 
@@ -87,7 +85,7 @@ export class SWUstatsHandler {
             // Determine winner
             const winner = this.determineWinner(game, player1, player2);
             if (winner === 0) {
-                logger.debug(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUstats`);
+                logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUstats`);
                 return false;
             }
 
