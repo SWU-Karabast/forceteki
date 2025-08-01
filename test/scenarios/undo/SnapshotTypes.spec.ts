@@ -748,6 +748,43 @@ describe('Snapshot types', function() {
 
                     assertP1Action3State(context);
                 });
+
+                it('can revert back to the last action from the regroup phase for the active player', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player2.id,
+                        actionOffset: 0
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    expect(context.game.currentPhase).toEqual('action');
+
+                    assertP2Action3State(context);
+
+                    // do a new action to ensure we can continue from this point
+                    context.player2.clickCard(context.tielnFighter);
+                    context.player2.clickCard(context.p1Base);
+                });
+
+                it('can revert back to the last action from the regroup phase for the non-active player', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        actionOffset: 0
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    expect(context.game.currentPhase).toEqual('action');
+
+                    assertP1Action3State(context);
+
+                    // do a new action to ensure we can continue from this point
+                    context.player1.claimInitiative();
+                });
             });
         });
 
@@ -791,6 +828,7 @@ describe('Snapshot types', function() {
 
                 context.moveToRegroupPhase();
 
+                context.regroupPhase1ManualSnapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
                 context.regroupPhase1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
                 context.regroupPhase1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
 
@@ -816,6 +854,7 @@ describe('Snapshot types', function() {
 
                 context.moveToRegroupPhase();
 
+                context.regroupPhase2ManualSnapshotId = contextRef.snapshot.takeManualSnapshot(context.player2Object);
                 context.regroupPhase2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
                 context.regroupPhase2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
 
@@ -911,7 +950,7 @@ describe('Snapshot types', function() {
                 assertFinalState(context);
             });
 
-            it('regroup snapshots can revert back to the previous state', function () {
+            it('regroup snapshots can revert back two regroup phases', function () {
                 const { context } = contextRef;
 
                 const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
@@ -936,6 +975,61 @@ describe('Snapshot types', function() {
                 context.player1.clickCard(context.p2Base);
 
                 assertPhase3State(context);
+            });
+
+            it('manual snapshots for the non-active player can revert back to a regroup phase', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1.id,
+                    snapshotId: context.regroupPhase1ManualSnapshotId
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertPhase2State(context);
+
+                expect(context.game.currentPhase).toEqual('regroup');
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+
+                context.player1.clickCard(context.secretiveSage);
+                context.player1.clickCard(context.p2Base);
+
+                assertPhase3State(context);
+            });
+
+            it('manual snapshots for the active player can revert back to a regroup phase', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player2.id,
+                    snapshotId: context.regroupPhase2ManualSnapshotId
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(context.game.currentPhase).toEqual('regroup');
+
+                assertPhase3State(context);
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
+
+                context.player2.clickPrompt('Done');
+                context.player1.clickPrompt('Done');
+
+                context.player2.clickCard(context.tielnFighter);
+                context.player2.clickCard(context.p1Base);
+
+                assertFinalState(context);
             });
         });
 
@@ -1328,8 +1422,6 @@ describe('Snapshot types', function() {
             });
         });
     });
-
-    // TODO THIS PR: should we reset action snapshots in a new action phase?
 
     // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file
     // TODO: setup phase tests

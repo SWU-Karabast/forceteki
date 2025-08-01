@@ -143,6 +143,14 @@ class Game extends EventEmitter {
         return this._randomGenerator;
     }
 
+    get currentPhase() {
+        return this.state.currentPhase;
+    }
+
+    set currentPhase(value) {
+        this.state.currentPhase = value;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -193,8 +201,6 @@ class Game extends EventEmitter {
         this.currentEventWindow = null;
         this.currentAttack = null;
 
-        /** @type { PhaseName | null } */
-        this.currentPhase = null;
         this.currentActionWindow = null;
 
         /** @type {import('./gameSteps/prompts/UiPrompt.js').UiPrompt} */
@@ -213,6 +219,7 @@ class Game extends EventEmitter {
             allCards: [],
             actionNumber: 0,
             winnerNames: [],
+            currentPhase: null,
         };
 
         this.tokenFactories = null;
