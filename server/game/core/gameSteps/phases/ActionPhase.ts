@@ -1,9 +1,10 @@
 import { EffectName, PhaseName } from '../../Constants';
 import type Game from '../../Game';
-import { Phase } from './Phase';
+import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ActionWindow } from '../ActionWindow';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
+import type { IStep } from '../IStep';
 
 export class ActionPhase extends Phase {
     private readonly getNextActionNumber: () => number;
@@ -11,22 +12,32 @@ export class ActionPhase extends Phase {
     // each ActionWindow will use this handler to indicate if the window was passed or not
     private readonly passStatusHandler = (passed: boolean) => this.prevPlayerPassed = passed;
 
-    private readonly snapshotManager: SnapshotManager;
-
     private prevPlayerPassed = false;
 
-    public constructor(game: Game, getNextActionNumber: () => number, snapshotManager: SnapshotManager) {
-        super(game, PhaseName.Action);
+    public constructor(
+        game: Game,
+        getNextActionNumber: () => number,
+        snapshotManager: SnapshotManager,
+        initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal
+    ) {
+        super(game, PhaseName.Action, snapshotManager);
 
-        this.snapshotManager = snapshotManager;
         this.getNextActionNumber = getNextActionNumber;
 
-        this.initialise([
-            new SimpleStep(this.game, () => this.setupActionPhase(), 'setupActionPhase'),
-            new SimpleStep(this.game, () => this.queueNextAction(), 'queueNextAction'),
-            new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase'),
-            new SimpleStep(this.game, () => this.endPhase(), 'endPhase'),
-        ]);
+        const setupStep: IStep[] = [];
+        if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase) {
+            setupStep.push(new SimpleStep(this.game, () => this.setupActionPhase(), 'setupActionPhase'));
+        }
+
+        this.initialise(
+            [
+                ...setupStep,
+                new SimpleStep(this.game, () => this.queueNextAction(game.actionNumber), 'queueNextAction'),
+                new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase'),
+                new SimpleStep(this.game, () => this.endPhase(), 'endPhase'),
+            ],
+            initializeMode
+        );
     }
 
     private setupActionPhase() {
@@ -35,26 +46,18 @@ export class ActionPhase extends Phase {
         }
     }
 
-    public queueNextAction(postUndo = false) {
-        if (postUndo) {
-            // TODO: this is a hack to get around the fact that the pipeline queueing isn't set up to handle being cleared in the middle of a phase.
-            // will be fixed in the next PR which will address the phase logic during undo
-            this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
-        }
-
+    private queueNextAction(actionNumber: number) {
         this.game.queueStep(new ActionWindow(
             this.game,
             'Action Window',
             'action',
             this.prevPlayerPassed,
             this.passStatusHandler,
-            postUndo ? this.game.actionNumber : this.getNextActionNumber(),
+            actionNumber,
             this.snapshotManager
         ));
 
-        if (!postUndo) {
-            this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
-        }
+        this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
     }
 
     private rotateActiveQueueNextAction() {
@@ -70,28 +73,15 @@ export class ActionPhase extends Phase {
 
         this.game.queueSimpleStep(() => {
             if (this.game.actionPhaseActivePlayer !== null) {
-                this.game.queueSimpleStep(() => this.queueNextAction(), 'queueNextAction');
+                this.game.queueSimpleStep(() => this.queueNextAction(this.getNextActionNumber()), 'queueNextAction');
             }
         }, 'check active player queue next action');
     }
 
-    // --------------------- TODO: these methods are a pretty hacky way of resetting the action, need to investigate to see if there's a better way ---------------
     private tearDownActionPhase() {
         for (const player of this.game.getPlayers()) {
             player.cleanupFromActionPhase();
         }
         this.game.isInitiativeClaimed = false;
-    }
-
-    public override resetPhase(): void {
-        this.pipeline.clearSteps();
-    }
-
-    public postRollbackOperations() {
-        this.resetPhase();
-        this.queueNextAction(true);
-
-        // continue the action phase again.
-        this.continue();
     }
 }

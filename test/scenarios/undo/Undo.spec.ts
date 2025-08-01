@@ -881,5 +881,133 @@ describe('Undo', function() {
                 // expect(context.wroshyrTreeTender).toBeInZone('groundArena');
             });
         });
+
+        describe('Randomness cases', function () {
+            it('should discard the same card after undo', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['political-pressure'],
+                        resources: 2,
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'chopper-base',
+                    },
+                    player2: {
+                        hand: ['pyke-sentinel', 'b2-legionnaires', 'gladiator-star-destroyer', 'republic-arc170', 'ryloth-militia'],
+                        resources: 2
+                    }
+                });
+                const discardPrompt = 'Trigger';
+                const { context } = contextRef;
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+
+                context.player1.clickCard(context.player1.hand[0]);
+                expect(context.player2).toHaveEnabledPromptButton(discardPrompt);
+
+                context.player2.clickPrompt(discardPrompt);
+                expect(context.player2.hand.length).toBe(4);
+
+                const discardedCard = context.player2.discard[0];
+                expect(context.player2.hand).not.toContain(discardedCard);
+
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+
+                context.player1.clickCard(context.player1.hand[0]);
+                context.player2.clickPrompt(discardPrompt);
+                expect(context.player2.hand.length).toBe(4);
+                expect(context.player2.discard.length).toBe(1);
+                expect(context.player2.discard[0]).toBe(discardedCard);
+            });
+
+            it('should give the same top deck after shuffle', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        deck: [
+                            'death-trooper',
+                            'pyke-sentinel',
+                            'cartel-spacer',
+                            'wampa',
+                            'superlaser-technician',
+                            'tieln-fighter',
+                            '21b-surgical-droid',
+                            'r2d2#ignoring-protocol',
+                            'c3po#protocol-droid',
+                            'wolffe#suspicious-veteran'
+                        ],
+                        resources: 2,
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'chopper-base',
+                    },
+                    player2: {
+                        resources: 2
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.game.shuffleDeck(context.player1Object.id);
+                const topDeck = context.player1.deck[0];
+
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+                context.game.shuffleDeck(context.player1Object.id);
+
+                expect(context.player1.deck[0]).toBe(topDeck);
+            });
+
+            it('should give the same top deck after two snapshots', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        deck: [
+                            'death-trooper',
+                            'pyke-sentinel',
+                            'cartel-spacer',
+                            'wampa',
+                            'superlaser-technician',
+                            'tieln-fighter',
+                            '21b-surgical-droid',
+                            'r2d2#ignoring-protocol',
+                            'c3po#protocol-droid',
+                            'wolffe#suspicious-veteran'
+                        ],
+                        resources: 2,
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'chopper-base',
+                    },
+                    player2: {
+                        resources: 2
+                    }
+                });
+                const { context } = contextRef;
+
+                context.game.shuffleDeck(context.player1Object.id);
+                const topDeck = context.player1.deck[0];
+
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.game.shuffleDeck(context.player1Object.id);
+                contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.game.shuffleDeck(context.player1Object.id);
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+                context.game.shuffleDeck(context.player1Object.id);
+
+                expect(context.player1.deck[0]).toBe(topDeck);
+            });
+        });
     });
+
+    // TODO: test player pass and claim initiative scenarios
 });

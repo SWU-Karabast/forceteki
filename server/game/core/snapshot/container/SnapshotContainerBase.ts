@@ -1,5 +1,5 @@
 import type { IGetCurrentSnapshotHandler, IUpdateCurrentSnapshotHandler } from '../SnapshotFactory';
-import type { GameStateManager } from '../../GameStateManager';
+import type { GameStateManager } from '../GameStateManager';
 import type Game from '../../Game';
 import type { IGameSnapshot } from '../SnapshotInterfaces';
 
@@ -47,5 +47,6 @@ export abstract class SnapshotContainerBase {
     protected rollbackToSnapshotInternal(snapshot: IGameSnapshot): void {
         this.gameStateManager.rollbackToSnapshot(snapshot);
         this.updateCurrentSnapshotFn(snapshot);
+        this.game.randomGenerator.restore(snapshot.rngState);
     }
 }
