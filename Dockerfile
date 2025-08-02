@@ -26,4 +26,4 @@ ENV GAME_NODE_SOCKET_IO_PORT="9500"
 EXPOSE 9500
 
 # Start Node app and Caddy together
-CMD ["sh", "-c", "node --max-old-space-size=3000 ./app/server/gamenode & caddy run --config /etc/caddy/Caddyfile --adapter caddyfile"]
+CMD ["sh", "-c", "node ./app/server/gamenode & caddy run --config /etc/caddy/Caddyfile --adapter caddyfile"]
