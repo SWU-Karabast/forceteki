@@ -76,20 +76,19 @@ describe('Third Sister, Seething With Ambition', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.hasSomeKeyword('hidden')).toBeTrue();
 
-                context.player2.claimInitiative();
+                context.player2.passAction();
 
                 context.player1.clickCard(context.craftySmuggler);
-                expect(context.craftySmuggler.hasSomeKeyword('hidden')).toBeFalse();
-
-                context.moveToNextActionPhase();
-
-                expect(context.battlefieldMarine.hasSomeKeyword('hidden')).toBeTrue();
                 expect(context.craftySmuggler.hasSomeKeyword('hidden')).toBeFalse();
 
                 context.player2.clickCard(context.takedown);
                 context.player2.clickCard(context.thirdSister);
 
                 expect(context.battlefieldMarine.hasSomeKeyword('hidden')).toBeTrue();
+
+                context.moveToNextActionPhase();
+
+                expect(context.battlefieldMarine.hasSomeKeyword('hidden')).toBeFalse();
             });
 
             it('should not give hidden to units played with piloting', async function () {
@@ -129,7 +128,7 @@ describe('Third Sister, Seething With Ambition', function () {
 
                 expect(context.cartelSpacer.hasSomeKeyword('hidden')).toBeFalse();
                 expect(context.idenVersio.hasSomeKeyword('hidden')).toBeFalse();
-                expect(context.craftySmuggler.hasSomeKeyword('hidden')).toBeTrue();
+                expect(context.craftySmuggler.hasSomeKeyword('hidden')).toBeFalse();
             });
 
             it('should not give hidden to units played in the next phase', async function () {
