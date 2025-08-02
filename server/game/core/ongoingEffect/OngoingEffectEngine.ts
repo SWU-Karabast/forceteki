@@ -288,5 +288,8 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
                 }
             }
         }
+
+        // resolve effects so that targets are recalculated
+        this.resolveEffects(true);
     }
 }
