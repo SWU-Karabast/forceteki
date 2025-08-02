@@ -82,7 +82,7 @@ export interface IGameSnapshot {
     timepoint: SnapshotTimepoint;
 
     gameState: IGameState;
-    states: IGameObjectBaseState[];
+    states: Map<string, IGameObjectBaseState>;
     rngState: IRandomness['rngState'];
 }
 
