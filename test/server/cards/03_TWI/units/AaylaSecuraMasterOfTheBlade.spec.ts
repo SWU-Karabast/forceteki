@@ -162,6 +162,19 @@ describe('Aayla Secura, Master of the Blade', function() {
                 expect(context.aaylaSecura.isUpgraded()).toBeFalse();
                 expect(context.consularSecurityForce.damage).toBe(6);
             });
+
+            it('has the Twi\'lek trait (as per errata)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['aayla-secura#master-of-the-blade']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                expect(context.aaylaSecura.traits).toContain('twi\'lek');
+            });
         });
     });
 });
