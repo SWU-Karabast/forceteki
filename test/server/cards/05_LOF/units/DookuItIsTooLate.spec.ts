@@ -47,7 +47,7 @@ describe('Dooku, It Is Too Late', function () {
                 player1.clickCard(context.p2Base);
             });
 
-            it('should protect units with Hidden from being attacked (hidden ability added previous phase)', function () {
+            it('should not protect units that has Hidden in a previous phase from being attacked', function () {
                 const { context } = contextRef;
                 const { player1, player2 } = context;
 
@@ -65,9 +65,9 @@ describe('Dooku, It Is Too Late', function () {
                 // play dooku and protect hidden units
                 player1.clickCard(context.dooku);
 
-                // atst is not selectable
+                // atst is selectable because it no longer has hidden
                 player2.clickCard(context.rebelPathfinder);
-                expect(player2).toBeAbleToSelectExactly([context.wampa, context.p1Base, context.anakinSkywalker]);
+                expect(player2).toBeAbleToSelectExactly([context.wampa, context.p1Base, context.anakinSkywalker, context.atst]);
                 player2.clickCard(context.p1Base);
             });
 

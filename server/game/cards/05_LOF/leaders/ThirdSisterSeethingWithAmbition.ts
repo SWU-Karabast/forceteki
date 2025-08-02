@@ -51,10 +51,9 @@ export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
                 },
                 duration: Duration.UntilEndOfPhase,
                 effectDescription: 'give Hidden to the next unit they will play this phase',
-                immediateEffect: AbilityHelper.immediateEffects.cardLastingEffect((context) => ({
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                     target: context.events.find((event) => this.isUnitPlayedEvent(event, context)).card,
                     effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Hidden),
-                    duration: Duration.Persistent,
                 }))
             })
         });

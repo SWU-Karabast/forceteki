@@ -111,8 +111,27 @@ function populateMissingData(attributes, id) {
                     }
                 }]
             };
+            break;
         case '0754286363': // The Mandalorian's Rifle
             attributes.unique = true;
+            break;
+        case '6190335038': // Aayla Secura - Master of the Blade
+            attributes.traits = {
+                data: [{ attributes: {
+                    name: 'Force'
+                } },
+                { attributes: {
+                    name: 'Jedi'
+                } },
+                { attributes: {
+                    name: 'Republic'
+                } },
+                { attributes: {
+                    name: 'Twi\'lek'
+                } },
+                ]
+            };
+            break;
     }
 }
 

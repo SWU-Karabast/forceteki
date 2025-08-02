@@ -22,6 +22,12 @@ describe('Millennium Falcon, Landos Pride', function() {
             context.player1.clickCard(context.survivorsGauntlet);
             expect(context.survivorsGauntlet.damage).toBe(5);
             expect(context.millenniumFalcon.damage).toBe(4);
+            expect(context.millenniumFalcon.hasSomeKeyword('ambush')).toBeTrue();
+
+            context.player2.claimInitiative();
+            context.moveToNextActionPhase();
+
+            expect(context.millenniumFalcon.hasSomeKeyword('ambush')).toBeFalse();
 
             // CASE 2: same copy of Falcon has lost its Ambush if played from discard
             context.player2.clickCard(context.survivorsGauntlet);
