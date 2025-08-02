@@ -17,9 +17,9 @@ export function registerState<T extends GameObjectBase>() {
         // Pull out any accessors flagged as @stateArray, and then clear the array for the next derived class to use.
         const metaState = context.metadata[stateMetadata] as Record<string | symbol, any>;
         if (metaState) {
-            // Transfer object to the name of the class.
+            // Transfer metadat from object to the name of the class.
             context.metadata[targetClass.name] = metaState;
-            // Delete object and make remove for the next derived class, if any.
+            // Delete field to clear for the next derived class, if any.
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete context.metadata[stateMetadata];
         }
@@ -30,10 +30,6 @@ export function registerState<T extends GameObjectBase>() {
             throw new Error(`class "${parentClass.name}" is missing @registerState`);
         }
 
-        // console.log('Registered ' + targetClass.name);
-        // context.addInitializer(function () {
-        //     console.log('Initialized ' + targetClass.name);
-        // });
         return targetClass;
     };
 }
