@@ -1,4 +1,5 @@
 import type Game from './Game';
+import { copyState, registerState } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';
 
@@ -26,6 +27,7 @@ export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
 }
 
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
+@registerState()
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
     public state: T;
 
@@ -57,6 +59,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     public setState(state: T) {
         const oldState = this.state;
         this.state = structuredClone(state);
+        copyState(this, state);
         this.afterSetState(oldState);
     }
 

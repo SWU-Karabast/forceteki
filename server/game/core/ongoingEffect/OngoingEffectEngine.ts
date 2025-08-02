@@ -272,9 +272,8 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         const currStateEffectUuids = new Set(this.state.effects.map((x) => x.uuid));
 
         // if an effect exists in this snapshot but not before rollback, we need to register its custom duration events
-        for (const currEffectRef of this.state.effects) {
-            if (!prevStateEffectUuids.has(currEffectRef.uuid)) {
-                const currEffect = this.getObject(currEffectRef);
+        for (const currEffect of this.effects) {
+            if (!prevStateEffectUuids.has(currEffect.uuid)) {
                 if (currEffect.duration === Duration.Custom) {
                     this.registerCustomDurationEvents(currEffect);
                 }

@@ -47,7 +47,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         return this.game.getFromRef(this.state.deployEpicActionLimit);
     }
 
-    protected deployEpicActions: ActionAbility[];
+    protected deployEpicActions: ActionAbility[] = [];
 
     public get deployed() {
         return this.state.deployed;

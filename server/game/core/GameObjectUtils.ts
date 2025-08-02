@@ -30,10 +30,10 @@ export function registerState<T extends GameObjectBase>() {
             throw new Error(`class "${parentClass.name}" is missing @registerState`);
         }
 
-        console.log('Registered ' + targetClass.name);
-        context.addInitializer(function () {
-            console.log('Initialized ' + targetClass.name);
-        });
+        // console.log('Registered ' + targetClass.name);
+        // context.addInitializer(function () {
+        //     console.log('Initialized ' + targetClass.name);
+        // });
         return targetClass;
     };
 }
@@ -88,7 +88,7 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
                 return target.get.call(this);
             },
             set(this, newValue) {
-                this.state[context.name as string] = newValue?.map((x) => x);
+                this.state[context.name as string] = newValue?.map((x) => x.getRef());
                 target.set.call(this, newValue);
             },
             init(value) {
@@ -120,7 +120,7 @@ export function undoObject<T extends GameObjectBase>() {
                 return target.get.call(this);
             },
             set(this, newValue) {
-                this.state[context.name as string] = newValue;
+                this.state[context.name as string] = newValue?.getRef();
                 target.set.call(this, newValue);
             },
             // init(value) {
@@ -131,7 +131,7 @@ export function undoObject<T extends GameObjectBase>() {
     };
 }
 
-function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
+export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
     let baseClass = Object.getPrototypeOf(instance);
     while (baseClass) {
         const newBaseClass = Object.getPrototypeOf(baseClass);
