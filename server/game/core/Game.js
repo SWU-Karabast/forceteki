@@ -1742,6 +1742,24 @@ class Game extends EventEmitter {
         return {};
     }
 
+    /** @param {string} playerId */
+    countAvailableActionSnapshots(playerId) {
+        Contract.assertNotNullLike(playerId);
+        return this.snapshotManager.countAvailableActionSnapshots(playerId);
+    }
+
+    /** @param {string} playerId */
+    countAvailableManualSnapshots(playerId) {
+        Contract.assertNotNullLike(playerId);
+        return this.snapshotManager.countAvailableManualSnapshots(playerId);
+    }
+
+    /** @param {PhaseName.Action | PhaseName.Regroup} phaseName */
+    countAvailablePhaseSnapshots(phaseName) {
+        Contract.assertNotNullLike(phaseName);
+        return this.snapshotManager.countAvailablePhaseSnapshots(phaseName);
+    }
+
     /**
      * Takes a manual snapshot of the current game state for the given player
      *

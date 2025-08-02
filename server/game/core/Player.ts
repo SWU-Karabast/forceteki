@@ -12,6 +12,7 @@ import {
     AlertType,
     ChatObjectType,
     EffectName,
+    PhaseName,
     PlayType,
     RelativePlayer,
     Stage,
@@ -1313,6 +1314,7 @@ export class Player extends GameObject<IPlayerState> {
             hasForceToken: this.hasTheForce,
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             numCardsInDeck: this.drawDeck?.length,
+            availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
         };
 
         // if (this.showDeck) {
@@ -1325,6 +1327,35 @@ export class Player extends GameObject<IPlayerState> {
         // }
 
         return summary;
+    }
+
+    private buildAvailableSnapshotsState(isActionPhaseActivePlayer = false) {
+        if (!this.game.isUndoEnabled) {
+            return null;
+        }
+
+        let availableActionSnapshots = this.countAvailableActionSnapshots();
+        const hasStartOfCurrentActionSnapshot = isActionPhaseActivePlayer && availableActionSnapshots > 0;
+
+        if (hasStartOfCurrentActionSnapshot) {
+            // don't count the current snapshot in the history
+            availableActionSnapshots -= 1;
+        }
+
+        return {
+            startOfCurrentAction: hasStartOfCurrentActionSnapshot,
+            actionSnapshots: availableActionSnapshots,
+            actionPhaseSnapshots: this.game.countAvailablePhaseSnapshots(PhaseName.Action),
+            regroupPhaseSnapshots: this.game.countAvailablePhaseSnapshots(PhaseName.Regroup),
+        };
+    }
+
+    public countAvailableActionSnapshots() {
+        return this.game.countAvailableActionSnapshots(this.id);
+    }
+
+    public countAvailableManualSnapshots() {
+        return this.game.countAvailableManualSnapshots(this.id);
     }
 
     /**
