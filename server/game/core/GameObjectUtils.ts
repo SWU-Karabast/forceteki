@@ -38,11 +38,11 @@ export function registerState<T extends GameObjectBase>() {
     };
 }
 
-export function undoState<T extends GameObjectBase, TVal extends string | number | boolean>() {
+export function undoState<T extends GameObjectBase, TValue extends string | number | boolean>() {
     return function (
-        target: ClassAccessorDecoratorTarget<T, TVal>,
-        context: ClassAccessorDecoratorContext<T, TVal>
-    ): ClassAccessorDecoratorResult<T, TVal> {
+        target: ClassAccessorDecoratorTarget<T, TValue>,
+        context: ClassAccessorDecoratorContext<T, TValue>
+    ): ClassAccessorDecoratorResult<T, TValue> {
         if (context.static || context.private) {
             throw new Error('Can only serialize public instance members.');
         }
@@ -50,12 +50,11 @@ export function undoState<T extends GameObjectBase, TVal extends string | number
             throw new Error('Cannot serialize symbol-named properties.');
         }
 
-        // console.log('STATE ARRAY Definition', context.name);
-
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateSimpleMetadata] ??= [];
         (metaState[stateSimpleMetadata] as string[]).push(context.name);
 
+        // No need to use the backing fields, read and write directly to state.
         return {
             get(this) {
                 return this.state[context.name as string];
@@ -83,6 +82,7 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
         metaState[stateArrayMetadata] ??= [];
         (metaState[stateArrayMetadata] as string[]).push(context.name);
 
+        // Use the backing fields as the cache, and write refs to the state.
         return {
             get(this) {
                 return target.get.call(this);
@@ -92,18 +92,18 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
                 target.set.call(this, newValue);
             },
             init(value) {
-                this.state[context.name] = value.length > 0 ? value.map((x) => x.getRef()) : [];
+                this.state[context.name] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
                 return value;
             }
         };
     };
 }
 
-export function undoObject<T extends GameObjectBase>() {
+export function undoObject<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
-        target: ClassAccessorDecoratorTarget<T, T>,
-        context: ClassAccessorDecoratorContext<T, T>
-    ): ClassAccessorDecoratorResult<T, T> {
+        target: ClassAccessorDecoratorTarget<T, TValue>,
+        context: ClassAccessorDecoratorContext<T, TValue>
+    ): ClassAccessorDecoratorResult<T, TValue> {
         if (context.static || context.private) {
             throw new Error('Can only serialize public instance members.');
         }
@@ -115,6 +115,7 @@ export function undoObject<T extends GameObjectBase>() {
         metaState[stateObjectMetadata] ??= [];
         (metaState[stateObjectMetadata] as string[]).push(context.name);
 
+        // Use the backing fields as the cache, and write refs to the state.
         return {
             get(this) {
                 return target.get.call(this);
@@ -123,10 +124,10 @@ export function undoObject<T extends GameObjectBase>() {
                 this.state[context.name as string] = newValue?.getRef();
                 target.set.call(this, newValue);
             },
-            // init(value) {
-            //     this.state[context.name] = value.length > 0 ? value.map((x) => x.getRef()) : [];
-            //     return value;
-            // }
+            init(value) {
+                this.state[context.name] = value != null ? value.getRef() : value;
+                return value;
+            }
         };
     };
 }

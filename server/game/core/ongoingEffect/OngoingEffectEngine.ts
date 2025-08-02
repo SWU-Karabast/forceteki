@@ -41,11 +41,6 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         ]);
     }
 
-    protected override setupDefaultState() {
-        super.setupDefaultState();
-        // this.state.effects = [];
-    }
-
     public add(effect: OngoingEffect<any>) {
         this.effects = [...this.effects, effect];
         if (effect.duration === Duration.Custom) {
@@ -258,7 +253,7 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
             if (listener && listener(event, customDurationEffect.context)) {
                 customDurationEffect.cancel();
                 this.unregisterCustomDurationEvents(customDurationEffect);
-                this.state.effects = this.effects.filter((effect) => effect !== customDurationEffect).map((x) => x.getRef());
+                this.effects = this.effects.filter((effect) => effect !== customDurationEffect);
             }
         };
     }
