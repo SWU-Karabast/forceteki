@@ -10,7 +10,7 @@ import type { IAddRemoveZone } from './ZoneAbstract';
  * Base class for the "concrete" arena zones - ground and space - which are not the meta-zone AllArenasZone
  */
 export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implements IAddRemoveZone {
-    public override readonly hiddenForPlayers: null;
+    public declare readonly hiddenForPlayers: null;
     public abstract override readonly name: ZoneName;
 
     public constructor(owner: Game) {

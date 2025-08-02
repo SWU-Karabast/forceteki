@@ -87,7 +87,7 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
 
 /** used for derived implementations classes. */
 export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
-    protected override state: never;
+    public declare state: never;
 
     protected override getAbilityRegistrar(): INonLeaderUnitAbilityRegistrar {
         return super.getAbilityRegistrar();

@@ -24,7 +24,7 @@ export interface IDeckZoneState extends IGameObjectBaseState {
 
 export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implements IAddRemoveZone {
     public override readonly hiddenForPlayers: WildcardRelativePlayer.Any;
-    public override readonly owner: Player;
+    public declare owner: Player;
     public override readonly name: ZoneName.Deck;
 
     public override get cards(): IPlayableCard[] {
