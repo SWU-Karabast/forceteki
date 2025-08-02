@@ -7,8 +7,9 @@ import type Game from '../Game';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
-import type { IGameObjectBaseState } from '../GameObjectBase';
-import { GameObjectBase, type GameObjectRef } from '../GameObjectBase';
+import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import { GameObjectBase } from '../GameObjectBase';
+import { registerState, undoArray } from '../GameObjectUtils';
 
 interface ICustomDurationEvent {
     name: string;
@@ -16,18 +17,19 @@ interface ICustomDurationEvent {
     effect: OngoingEffect<any>;
 }
 
+
 export interface IOngoingEffectState extends IGameObjectBaseState {
     effects: GameObjectRef<OngoingEffect<any>>[]; // TODO: Can we make OngoingEffect have an ID w/o using GameObjectBase? Probably, do it similiar to how snapshot IDs work.
 }
 
+@registerState()
 export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
     public events: EventRegistrar;
     public customDurationEvents: ICustomDurationEvent[] = [];
     public effectsChangedSinceLastCheck = false;
 
-    public get effects() {
-        return this.state.effects.map((x) => this.game.gameObjectManager.get(x));
-    }
+    @undoArray()
+    public accessor effects: readonly OngoingEffect[] = [];
 
     public constructor(game: Game) {
         super(game);
@@ -41,11 +43,11 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
 
     protected override setupDefaultState() {
         super.setupDefaultState();
-        this.state.effects = [];
+        // this.state.effects = [];
     }
 
     public add(effect: OngoingEffect<any>) {
-        this.state.effects.push(effect.getRef());
+        this.effects = [...this.effects, effect];
         if (effect.duration === Duration.Custom) {
             this.registerCustomDurationEvents(effect);
         }
@@ -205,7 +207,7 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
                 remainingEffects.push(effect);
             }
         }
-        this.state.effects = remainingEffects.map((x) => x.getRef());
+        this.effects = remainingEffects;
         return anyEffectRemoved;
     }
 

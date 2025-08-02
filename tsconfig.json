@@ -2,14 +2,14 @@
     "compilerOptions": {
         "module": "CommonJS",
         "moduleResolution": "node",
-        "target": "ES2020",
+        "target": "ES2022",
         "sourceMap": true,
         "outDir": "build/server",
         "allowJs": true,
         "checkJs": true,
         "lib": [
-            "ES2020",
-            "ES2021.Intl"
+            "ES2022",
+            "esnext.decorators"
         ],
         "esModuleInterop": true,
         "strictBindCallApply": true,

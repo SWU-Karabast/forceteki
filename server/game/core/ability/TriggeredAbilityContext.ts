@@ -11,7 +11,7 @@ export interface ITriggeredAbilityContextProperties extends IAbilityContextPrope
 export class TriggeredAbilityContext<TSource extends Card = Card> extends AbilityContext<TSource> {
     public readonly event: any;
     public readonly overrideTitle?: string;
-    public override readonly ability: TriggeredAbility;
+    public declare readonly ability: TriggeredAbility;
 
     public constructor(properties: ITriggeredAbilityContextProperties) {
         super(properties);

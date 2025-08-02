@@ -294,5 +294,5 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
 }
 
 export class LeaderUnitCard extends LeaderUnitCardInternal {
-    protected override state: never;
+    public declare state: never;
 }

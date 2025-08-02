@@ -27,7 +27,7 @@ export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
 
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
-    protected state: T;
+    public state: T;
 
     /** ID given by the game engine. */
     public get uuid() {
