@@ -2,7 +2,6 @@ import { logger } from '../../logger';
 import type Game from '../../game/core/Game';
 import type { Player } from '../../game/core/Player';
 import type { IDecklistInternal } from '../deck/DeckInterfaces';
-import { setCodeToString } from '../../Util';
 
 
 interface TurnResults {
@@ -81,16 +80,12 @@ export class SwuStatsHandler {
      * @param game The completed game
      * @param player1DeckId Player 1 deck ID
      * @param player2DeckId Player 2 deck ID
-     * @param player1Deck Internal DeckList
-     * @param player2Deck Internal DeckList
      * @returns Promise that resolves to true if successful, false otherwise
      */
     public async sendGameResultAsync(
         game: Game,
         player1DeckId: string,
         player2DeckId: string,
-        player1Deck: IDecklistInternal,
-        player2Deck: IDecklistInternal
     ): Promise<boolean> {
         try {
             const players = game.getPlayers();
@@ -115,8 +110,6 @@ export class SwuStatsHandler {
                 player2,
                 player1DeckId,
                 player2DeckId,
-                player1Deck,
-                player2Deck,
                 winner
             );
             // Log the payload for debugging (excluding API key)
@@ -133,7 +126,6 @@ export class SwuStatsHandler {
                 },
                 body: JSON.stringify(payload)
             });
-            console.log(response);
             if (!response.ok) {
                 const errorText = await response.text();
                 logger.error(`SWUstats API returned error: ${response.status} - ${errorText}`);
@@ -177,9 +169,9 @@ export class SwuStatsHandler {
         winner: number,
         playerNumber: number
     ): PlayerData {
-        const leaderStr = setCodeToString(player.leader?.setId);
-        const baseStr = setCodeToString(player.base?.setId);
-        const opponentLeaderStr = setCodeToString(opponentPlayer.leader?.setId);
+        const leaderStr = player.leader?.id;
+        const baseStr = player.base?.id;
+        const opponentLeaderStr = opponentPlayer.leader?.id;
 
         return {
             deckId: deckLink ? deckLink.split('https://swustats.net/TCGEngine/')[1] : '',
@@ -190,6 +182,8 @@ export class SwuStatsHandler {
             firstPlayer: game.initialFirstPlayer?.id === player.id ? 1 : 0,
             opposingHero: opponentLeaderStr,
             opposingBaseColor: 'red',
+            cardResults: [],
+            turnResults: []
         };
     }
 
@@ -203,8 +197,6 @@ export class SwuStatsHandler {
         player2: Player,
         player1DeckLink: string,
         player2DeckLink: string,
-        player1Deck: IDecklistInternal,
-        player2Deck: IDecklistInternal,
         winner: number
     ): SWUstatsGameResult {
         const player1Data = this.buildPlayerData(player1, player2, player1DeckLink, game, winner, 1);
@@ -231,8 +223,6 @@ export class SwuStatsHandler {
             gameName: String(game.id),
             winHero,
             loseHero,
-            winnerDeck: winner === 1 ? player1Deck : player2Deck,
-            loserDeck: winner === 1 ? player2Deck : player1Deck,
         };
     }
 }

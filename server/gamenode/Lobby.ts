@@ -1007,8 +1007,6 @@ export class Lobby {
                     game,
                     this.playersDetails.find((u) => u.user.getId() === player1.id).deckLink,
                     this.playersDetails.find((u) => u.user.getId() === player2.id).deckLink,
-                    this.users.find((u) => u.id === player1.id).deck.getDecklist(),
-                    this.users.find((u) => u.id === player2.id).deck.getDecklist()
                 );
                 logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
             }
