@@ -976,7 +976,7 @@ export class Lobby {
             );
             // Send to SWUstats if handler is available
             if (eitherFromSWUStats) {
-                await this.server.swuStatsHandler.sendGameResultAsync(
+                await this.server.SwuStatsHandler.sendGameResultAsync(
                     game,
                     this.playersDetails.find((u) => u.user.getId() === player1.id).deckLink,
                     this.playersDetails.find((u) => u.user.getId() === player2.id).deckLink,

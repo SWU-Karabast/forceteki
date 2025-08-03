@@ -1,8 +1,9 @@
 import { logger } from '../../logger';
 import type Game from '../../game/core/Game';
 import type { Player } from '../../game/core/Player';
-import type { ISetId } from '../../game/Interfaces';
 import type { IDecklistInternal } from '../deck/DeckInterfaces';
+import { setCodeToString } from '../../Util';
+
 
 interface SWUstatsGameResult {
     apiKey: string;
@@ -38,7 +39,7 @@ interface PlayerData {
     deckbuilderID?: string;     // Deckbuilder user ID
 }
 
-export class SWUstatsHandler {
+export class SwuStatsHandler {
     private readonly apiUrl: string;
     private readonly apiKey: string;
 
@@ -46,11 +47,15 @@ export class SWUstatsHandler {
         // Use environment variable for API URL, defaulting to the known endpoint
         this.apiUrl = process.env.SWUStatsURL;
         this.apiKey = process.env.SWUStatsAPIKey;
+        const isDev = process.env.ENVIRONMENT === 'development';
         if (!this.apiKey) {
-            logger.warn('SWUstatsHandler: No API key configured. Stats may not be accepted by SWUstats.');
+            logger.warn('SWUStatsHandler: No API key configured. Stats may not be accepted by SWUstats.');
         }
         if (!this.apiUrl) {
-            logger.warn('SWUstatsHandler: No URL configured. Stats may not be accepted by SWUstats.');
+            logger.warn('SWUStatsHandler: No URL configured. Stats may not be accepted by SWUstats.');
+        }
+        if (!isDev && (!this.apiUrl || !this.apiKey)) {
+            throw new Error('SwuStatsHandler: No URL configured or apiKey for SWUStats.');
         }
     }
 
@@ -69,11 +74,6 @@ export class SWUstatsHandler {
         player2Deck: IDecklistInternal
     ): Promise<boolean> {
         try {
-            // Don't send results for games that ended too early
-            if (game.roundNumber <= 1) {
-                return false;
-            }
-
             const players = game.getPlayers();
             if (players.length !== 2) {
                 logger.info(`Cannot send SWUstats for game with ${players.length} players`);
@@ -100,7 +100,7 @@ export class SWUstatsHandler {
                 player2Deck,
                 winner
             );
-            // Log the payload for debugging (without sensitive data)
+            // Log the payload for debugging
             logger.info(`Sending game result to SWUstats for game ${game.id}`, {
                 gameId: game.id,
                 winner: payload.winner,
@@ -128,7 +128,7 @@ export class SWUstatsHandler {
                 error: { message: error.message, stack: error.stack },
                 gameId: game?.id
             });
-            return false;
+            throw new Error('Failed to send game result to SWUstats');
         }
     }
 
@@ -137,14 +137,14 @@ export class SWUstatsHandler {
      */
     private determineWinner(game: Game, player1: Player, player2: Player): number {
         if (game.winnerNames.length > 1) {
-            return 0; // Draw
+            return 0;
         }
         if (game.winnerNames.includes(player1.name)) {
             return 1;
         } else if (game.winnerNames.includes(player2.name)) {
             return 2;
         }
-        throw new Error('(SWUStats handler): There was an error when determining winner'); // Couldn't determine winner
+        throw new Error(`(SWUStats handler): There was an error when determining winner between ${player1.name} and ${player2.name}`);
     }
 
     /**
@@ -167,10 +167,10 @@ export class SWUstatsHandler {
         const p2Base = player2.base?.setId;
 
         // Format leader/base IDs as strings (e.g., "SOR_001")
-        const p1LeaderStr = this.formatCardId(p1Leader);
-        const p1BaseStr = this.formatCardId(p1Base);
-        const p2LeaderStr = this.formatCardId(p2Leader);
-        const p2BaseStr = this.formatCardId(p2Base);
+        const p1LeaderStr = setCodeToString(p1Leader);
+        const p1BaseStr = setCodeToString(p1Base);
+        const p2LeaderStr = setCodeToString(p2Leader);
+        const p2BaseStr = setCodeToString(p2Base);
 
         // Determine first player (1 or 2)
         const firstPlayer = game.initialFirstPlayer?.id === player1.id ? 1 : 2;
@@ -222,18 +222,5 @@ export class SWUstatsHandler {
             winnerDeck: winner === 1 ? JSON.stringify(player1Deck) : JSON.stringify(player2Deck),
             loserDeck: winner === 1 ? JSON.stringify(player2Deck) : JSON.stringify(player1Deck),
         };
-    }
-
-    /**
-     * Format a card ID object to string format (e.g., "SOR_001")
-     */
-    private formatCardId(setId: ISetId | undefined): string {
-        if (!setId) {
-            return '';
-        }
-
-        // Pad the number with leading zeros to ensure 3 digits
-        const paddedNumber = String(setId.number).padStart(3, '0');
-        return `${setId.set.toUpperCase()}_${paddedNumber}`;
     }
 }
