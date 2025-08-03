@@ -40,7 +40,8 @@ interface LobbyUser extends LobbySpectator {
 export enum DeckSource {
     SWUStats = 'SWUStats',
     SWUDB = 'SWUDB',
-    SWUnlimitedDB = 'SWUnlimitedDB'
+    SWUnlimitedDB = 'SWUnlimitedDB',
+    Unknown = 'UNKNOWN'
 }
 
 interface PlayerDetails {
@@ -654,7 +655,7 @@ export class Lobby {
             }
         }
         // Default fallback
-        return DeckSource.SWUDB;
+        return DeckSource.Unknown;
     }
 
     private async onStartGameAsync() {

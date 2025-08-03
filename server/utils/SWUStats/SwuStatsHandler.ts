@@ -65,14 +65,11 @@ export class SwuStatsHandler {
 
     public constructor() {
         // Use environment variable for API URL, defaulting to the known endpoint
-        this.apiUrl = process.env.SWUStatsURL;
+        this.apiUrl = 'https://swustats.net/TCGEngine/APIs/SubmitGameResult.php';
         this.apiKey = process.env.SWUStatsAPIKey;
         const isDev = process.env.ENVIRONMENT === 'development';
         if (!this.apiKey) {
             logger.warn('SWUStatsHandler: No API key configured. Stats may not be accepted by SWUstats.');
-        }
-        if (!this.apiUrl) {
-            logger.warn('SWUStatsHandler: No URL configured. Stats may not be accepted by SWUstats.');
         }
         if (!isDev && (!this.apiUrl || !this.apiKey)) {
             throw new Error('SwuStatsHandler: No URL configured or apiKey for SWUStats.');
@@ -122,12 +119,11 @@ export class SwuStatsHandler {
                 player2Deck,
                 winner
             );
-            // Log the payload for debugging
+            // Log the payload for debugging (excluding API key)
+            const { apiKey, ...payloadForLogging } = payload;
             logger.info(`Sending game result to SWUstats for game ${game.id}`, {
                 gameId: game.id,
-                winner: payload.winner,
-                round: payload.round,
-                winnerHealth: payload.winnerHealth
+                payload: payloadForLogging
             });
             // Send to SWUstats API
             const response = await fetch(this.apiUrl, {
@@ -137,6 +133,7 @@ export class SwuStatsHandler {
                 },
                 body: JSON.stringify(payload)
             });
+            console.log(response);
             if (!response.ok) {
                 const errorText = await response.text();
                 logger.error(`SWUstats API returned error: ${response.status} - ${errorText}`);
@@ -192,7 +189,7 @@ export class SwuStatsHandler {
             result: winner === playerNumber ? 1 : 0,
             firstPlayer: game.initialFirstPlayer?.id === player.id ? 1 : 0,
             opposingHero: opponentLeaderStr,
-            opposingBaseColor: 'colorless',
+            opposingBaseColor: 'red',
         };
     }
 
