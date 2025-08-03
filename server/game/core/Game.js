@@ -1780,7 +1780,8 @@ class Game extends EventEmitter {
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
      * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshot(settings) {
+    // TODO playerId at the beginning is currently needed if we want to send commands from the Lobby.
+    rollbackToSnapshot(playerId, settings) {
         if (!this.isUndoEnabled) {
             return false;
         }
