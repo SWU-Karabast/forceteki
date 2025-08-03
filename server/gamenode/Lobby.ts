@@ -37,12 +37,17 @@ interface LobbyUser extends LobbySpectator {
     importDeckValidationErrors?: IDeckValidationFailures;
     reportedBugs: number;
 }
+export enum DeckSource {
+    SWUStats = 'SWUStats',
+    SWUDB = 'SWUDB',
+    SWUnlimitedDB = 'SWUnlimitedDB'
+}
 
 interface PlayerDetails {
     user: User;
     deckID: string;
     deckLink: string;
-    deckSource: string;
+    deckSource: DeckSource;
     leaderID: string;
     baseID: string;
     deck: IDecklistInternal;
@@ -631,6 +636,27 @@ export class Lobby {
         this.game = game;
     }
 
+    /**
+     * Helper method to determine deck source from deck link or other data
+     */
+    private determineDeckSource(deckLink?: string, deckSource?: string): DeckSource {
+        if (deckSource && Object.values(DeckSource).includes(deckSource as DeckSource)) {
+            return deckSource as DeckSource;
+        }
+        // Fallback to determining from deckLink
+        if (deckLink) {
+            if (deckLink.includes('swustats.net')) {
+                return DeckSource.SWUStats;
+            } else if (deckLink.includes('swudb.com')) {
+                return DeckSource.SWUDB;
+            } else if (deckLink.includes('swunlimiteddb.com')) {
+                return DeckSource.SWUnlimitedDB;
+            }
+        }
+        // Default fallback
+        return DeckSource.SWUDB;
+    }
+
     private async onStartGameAsync() {
         try {
             this.rematchRequest = null;
@@ -655,7 +681,7 @@ export class Lobby {
                         leaderID: user.deck.leader.id,
                         deckID: user.deck.id,
                         deckLink: user.decklist.deckLink,
-                        deckSource: user.decklist.deckSource,
+                        deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
                         deck: user.deck.getDecklist()
                     });
                 }
@@ -972,7 +998,7 @@ export class Lobby {
 
             logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${game.id}`);
             const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
-                this.playersDetails.find((u) => u.user.getId() === id)?.deckSource === 'SWUStats'
+                this.playersDetails.find((u) => u.user.getId() === id)?.deckSource === DeckSource.SWUStats
             );
             // Send to SWUstats if handler is available
             if (eitherFromSWUStats) {

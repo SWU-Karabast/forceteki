@@ -5,6 +5,24 @@ import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import { setCodeToString } from '../../Util';
 
 
+interface TurnResults {
+    cardsUsed: number;           // Cards played this turn
+    resourcesUsed: number;       // Resources spent
+    resourcesLeft: number;       // Resources remaining
+    cardsLeft: number;           // Cards left in hand
+    damageDealt: number;         // Damage dealt this turn
+    damageTaken: number;         // Damage received this turn
+}
+
+interface CardResults {
+    cardId: string;            // Card id (FFG UID format)
+    played: number;            // Times played
+    resourced: number;         // Times used as resource
+    activated: number;         // Times ability activated
+    drawn: number;             // Times drawn
+    discarded: number;         // Times discarded
+}
+
 interface SWUstatsGameResult {
     apiKey: string;
     winner: number; // 1 or 2
@@ -12,11 +30,11 @@ interface SWUstatsGameResult {
     round: number;
     winHero: string;
     loseHero: string;
-    winnerDeck?: string;
-    loserDeck?: string;
+    winnerDeck?: IDecklistInternal;
+    loserDeck?: IDecklistInternal;
     winnerHealth: number;
-    player1: string; // JSON string with leader/base info
-    player2: string; // JSON string with leader/base info
+    player1: PlayerData;
+    player2: PlayerData;
     p1DeckLink: string;
     p2DeckLink: string;
     p1id?: string;
@@ -37,6 +55,8 @@ interface PlayerData {
     opposingHero: string;       // Opponent's leader id (FFG UID format)
     opposingBaseColor: string;  // Opponent's base color (Red, Blue, Yellow, Green, Colorless)
     deckbuilderID?: string;     // Deckbuilder user ID
+    cardResults?: CardResults[];
+    turnResults?: TurnResults[];
 }
 
 export class SwuStatsHandler {
@@ -64,6 +84,8 @@ export class SwuStatsHandler {
      * @param game The completed game
      * @param player1DeckId Player 1 deck ID
      * @param player2DeckId Player 2 deck ID
+     * @param player1Deck Internal DeckList
+     * @param player2Deck Internal DeckList
      * @returns Promise that resolves to true if successful, false otherwise
      */
     public async sendGameResultAsync(
@@ -148,6 +170,34 @@ export class SwuStatsHandler {
     }
 
     /**
+     * Build player data for a single player
+     */
+    private buildPlayerData(
+        player: Player,
+        opponentPlayer: Player,
+        deckLink: string,
+        game: Game,
+        winner: number,
+        playerNumber: number
+    ): PlayerData {
+        const leaderStr = setCodeToString(player.leader?.setId);
+        const baseStr = setCodeToString(player.base?.setId);
+        const opponentLeaderStr = setCodeToString(opponentPlayer.leader?.setId);
+
+        return {
+            deckId: deckLink ? deckLink.split('https://swustats.net/TCGEngine/')[1] : '',
+            leader: leaderStr,
+            base: baseStr,
+            turns: game.roundNumber,
+            result: winner === playerNumber ? 1 : 0,
+            firstPlayer: game.initialFirstPlayer?.id === player.id ? 1 : 0,
+            opposingHero: opponentLeaderStr,
+            opposingBaseColor: 'colorless',
+        };
+    }
+
+
+    /**
      * Build the game result payload for SWUstats API
      */
     private buildGameResultPayload(
@@ -160,51 +210,16 @@ export class SwuStatsHandler {
         player2Deck: IDecklistInternal,
         winner: number
     ): SWUstatsGameResult {
-        // Get leader and base IDs
-        const p1Leader = player1.leader?.setId;
-        const p1Base = player1.base?.setId;
-        const p2Leader = player2.leader?.setId;
-        const p2Base = player2.base?.setId;
+        const player1Data = this.buildPlayerData(player1, player2, player1DeckLink, game, winner, 1);
+        const player2Data = this.buildPlayerData(player2, player1, player2DeckLink, game, winner, 2);
 
-        // Format leader/base IDs as strings (e.g., "SOR_001")
-        const p1LeaderStr = setCodeToString(p1Leader);
-        const p1BaseStr = setCodeToString(p1Base);
-        const p2LeaderStr = setCodeToString(p2Leader);
-        const p2BaseStr = setCodeToString(p2Base);
-
-        // Determine first player (1 or 2)
-        const firstPlayer = game.initialFirstPlayer?.id === player1.id ? 1 : 2;
+        const firstPlayer = player1Data.firstPlayer === 1 ? 1 : 2;
+        const winHero = winner === 1 ? player1Data.leader : player2Data.leader;
+        const loseHero = winner === 1 ? player2Data.leader : player1Data.leader;
 
         // Get winner's remaining health
         const winnerPlayer = winner === 1 ? player1 : player2;
         const winnerHealth = winnerPlayer.base?.remainingHp || 0;
-
-        // Get winner and loser heroes
-        const winHero = winner === 1 ? p1LeaderStr : p2LeaderStr;
-        const loseHero = winner === 1 ? p2LeaderStr : p1LeaderStr;
-
-        // Build player data JSON
-        const player1Data: PlayerData = {
-            deckId: player1DeckLink ? player1DeckLink.split('https://swustats.net/TCGEngine/')[1] : '',
-            leader: p1LeaderStr,
-            base: p1BaseStr,
-            turns: game.roundNumber,
-            result: winner === 1 ? 1 : 0,
-            firstPlayer: game.initialFirstPlayer?.id === player1.id ? 1 : 0,
-            opposingHero: p2LeaderStr,
-            opposingBaseColor: 'colorless',
-        };
-
-        const player2Data: PlayerData = {
-            deckId: player2DeckLink ? player2DeckLink.split('https://swustats.net/TCGEngine/')[1] : '',
-            leader: p2LeaderStr,
-            base: p2BaseStr,
-            turns: game.roundNumber,
-            result: winner === 2 ? 1 : 0,
-            firstPlayer: game.initialFirstPlayer?.id === player2.id ? 1 : 0,
-            opposingHero: p1LeaderStr,
-            opposingBaseColor: 'colorless',
-        };
 
         return {
             apiKey: this.apiKey,
@@ -212,15 +227,15 @@ export class SwuStatsHandler {
             firstPlayer,
             p1DeckLink: player1DeckLink,
             p2DeckLink: player2DeckLink,
-            player1: JSON.stringify(player1Data),
-            player2: JSON.stringify(player2Data),
-            round: game.roundNumber,
+            player1: player1Data,
+            player2: player2Data,
+            round: player1Data.turns,
             winnerHealth,
             gameName: String(game.id),
             winHero,
             loseHero,
-            winnerDeck: winner === 1 ? JSON.stringify(player1Deck) : JSON.stringify(player2Deck),
-            loserDeck: winner === 1 ? JSON.stringify(player2Deck) : JSON.stringify(player1Deck),
+            winnerDeck: winner === 1 ? player1Deck : player2Deck,
+            loserDeck: winner === 1 ? player2Deck : player1Deck,
         };
     }
 }
