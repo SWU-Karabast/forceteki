@@ -127,12 +127,16 @@ export class QueueHandler {
 
     /** Send a heartbeat signal to the FE for all connected clients */
     public sendHeartbeat() {
-        for (const queue of this.queues.values()) {
-            for (const player of queue) {
-                if (player.socket) {
-                    player.socket.send('queueHeartbeat', Date.now());
+        try {
+            for (const queue of this.queues.values()) {
+                for (const player of queue) {
+                    if (player.socket) {
+                        player.socket.send('queueHeartbeat', Date.now());
+                    }
                 }
             }
+        } catch (error) {
+            logger.error(`Error sending heartbeat: ${error}`);
         }
     }
 
