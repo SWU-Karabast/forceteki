@@ -1,6 +1,6 @@
 import type { GameObjectBase, GameObjectRef } from './GameObjectBase';
 
-// @ts-expect-error Metadata is not yet a standard.
+// @ts-expect-error Symbol.metadata is not yet a standard.
 Symbol.metadata ??= Symbol.for('Symbol.metadata');
 const stateMetadata = Symbol();
 const stateSimpleMetadata = Symbol();
@@ -9,12 +9,11 @@ const stateObjectMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
 
-// This will happen in order of lowest class to highest class, so we can rely on it checking if it's parent class was registered.
+// Decorator to capture the names of any accessors flagged as @undoState, @undoObject, or @undoArray for copyState, and then clear the array for the next derived class to use.
 export function registerState<T extends GameObjectBase>() {
     return function (targetClass: any, context: ClassDecoratorContext) {
         const parentClass = Object.getPrototypeOf(targetClass);
 
-        // Pull out any accessors flagged as @undoState, @undoObject, or @undoArray, and then clear the array for the next derived class to use.
         const metaState = context.metadata[stateMetadata] as Record<string | symbol, any>;
         if (metaState) {
             // Move metadata from the stateMedata symbol to the name of the class, so that we can look it up later in copyStruct.
@@ -26,7 +25,7 @@ export function registerState<T extends GameObjectBase>() {
 
         // Add name to list as a safety check.
         stateClassesStr[targetClass.name] = parentClass.name;
-        // Do check to see if parent is missing @registerState.
+        // Do check to see if parent is missing @registerState. This will happen in order of lowest class to highest class, so we can rely on it checking if it's parent class was registered.
         if (parentClass.name && parentClass !== Object && stateClassesStr[parentClass.name] == null) {
             throw new Error(`class "${parentClass.name}" is missing @registerState`);
         }
