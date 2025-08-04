@@ -14,19 +14,20 @@ export function registerState<T extends GameObjectBase>() {
     return function (targetClass: any, context: ClassDecoratorContext) {
         const parentClass = Object.getPrototypeOf(targetClass);
 
-        // Pull out any accessors flagged as @stateArray, and then clear the array for the next derived class to use.
+        // Pull out any accessors flagged as @undoState, @undoObject, or @undoArray, and then clear the array for the next derived class to use.
         const metaState = context.metadata[stateMetadata] as Record<string | symbol, any>;
         if (metaState) {
-            // Transfer metadat from object to the name of the class.
+            // Move metadata from the stateMedata symbol to the name of the class, so that we can look it up later in copyStruct.
             context.metadata[targetClass.name] = metaState;
             // Delete field to clear for the next derived class, if any.
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete context.metadata[stateMetadata];
         }
 
+        // Add name to list as a safety check.
         stateClassesStr[targetClass.name] = parentClass.name;
+        // Do check to see if parent is missing @registerState.
         if (parentClass.name && parentClass !== Object && stateClassesStr[parentClass.name] == null) {
-            // Do check to see if child is missing.
             throw new Error(`class "${parentClass.name}" is missing @registerState`);
         }
 
@@ -46,6 +47,7 @@ export function undoState<T extends GameObjectBase, TValue extends string | numb
             throw new Error('Cannot serialize symbol-named properties.');
         }
 
+        // Get or create the state related metadata object.
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateSimpleMetadata] ??= [];
         (metaState[stateSimpleMetadata] as string[]).push(context.name);
@@ -74,6 +76,7 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
             throw new Error('Cannot serialize symbol-named properties.');
         }
 
+        // Get or create the state related metadata object.
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateArrayMetadata] ??= [];
         (metaState[stateArrayMetadata] as string[]).push(context.name);
@@ -107,6 +110,7 @@ export function undoObject<T extends GameObjectBase, TValue extends GameObjectBa
             throw new Error('Cannot serialize symbol-named properties.');
         }
 
+        // Get or create the state related metadata object.
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateObjectMetadata] ??= [];
         (metaState[stateObjectMetadata] as string[]).push(context.name);
@@ -131,9 +135,11 @@ export function undoObject<T extends GameObjectBase, TValue extends GameObjectBa
 export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
     let baseClass = Object.getPrototypeOf(instance);
     while (baseClass) {
-        const newBaseClass = Object.getPrototypeOf(baseClass);
         const metadata = baseClass.constructor[Symbol.metadata];
+        // Pull out any data provided by @registerState for this class.
         const metaState = metadata?.[baseClass.constructor.name] as Record<symbol, any>;
+
+        // If there is any state, go through each of the types and do the copy process.
         if (metaState) {
             if (metaState[stateSimpleMetadata]) {
                 const metaSimples = metaState[stateSimpleMetadata] as string[];
@@ -156,9 +162,13 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
                 }
             }
         }
+
+        const newBaseClass = Object.getPrototypeOf(baseClass);
+        // Check if there's another parent class and that that class isn't the base Object of every class.
         if (!newBaseClass || !newBaseClass.constructor.name || newBaseClass === Object.prototype) {
             break;
         }
+        // Continue to the next parent class in the prototype chain and check again.
         baseClass = newBaseClass;
     }
 }
