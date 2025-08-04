@@ -54,9 +54,11 @@ export function undoState<T extends GameObjectBase, TValue extends string | numb
         // No need to use the backing fields, read and write directly to state.
         return {
             get(this) {
+                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
                 return this.state[context.name as string];
             },
             set(this, newValue) {
+                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
                 this.state[context.name as string] = newValue;
             },
         };
@@ -86,10 +88,12 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
                 return target.get.call(this);
             },
             set(this, newValue) {
+                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
                 this.state[context.name as string] = newValue?.map((x) => x.getRef());
                 target.set.call(this, newValue);
             },
             init(value) {
+                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
                 this.state[context.name] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
                 return value;
             }
@@ -120,10 +124,12 @@ export function undoObject<T extends GameObjectBase, TValue extends GameObjectBa
                 return target.get.call(this);
             },
             set(this, newValue) {
+                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
                 this.state[context.name as string] = newValue?.getRef();
                 target.set.call(this, newValue);
             },
             init(value) {
+                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
                 this.state[context.name] = value != null ? value.getRef() : value;
                 return value;
             }
