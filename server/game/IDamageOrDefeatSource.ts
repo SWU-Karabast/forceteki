@@ -1,7 +1,6 @@
 import type { Attack } from './core/attack/Attack';
 import type { Card } from './core/card/Card';
 import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
-import type { GameObjectBase, GameObjectRef } from './core/GameObjectBase';
 import type { Player } from './core/Player';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
@@ -28,14 +27,6 @@ export enum ExhaustSourceType {
     Cost = 'cost',
     Ability = 'ability'
 }
-
-type GameObjectRefFieldConverter<Type> = Type extends (infer U)[]
-    ? (U extends GameObjectBase ? GameObjectRef<U>[] : Type)
-    : (Type extends GameObjectBase ? GameObjectRef<Type> : Type);
-
-type GameObjectRefConverter<Type> = {
-    [Property in keyof Type]: GameObjectRefFieldConverter<Type[Property]>;
-};
 
 export interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
     type: DamageSourceType.Attack | DefeatSourceType.Attack;
