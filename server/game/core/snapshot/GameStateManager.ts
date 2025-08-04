@@ -10,6 +10,7 @@ export interface IGameObjectRegistrar {
 }
 
 export class GameStateManager implements IGameObjectRegistrar {
+    private readonly allGameObjects: GameObjectBase[] = [];
     private readonly game: Game;
     private readonly gameObjectMapping = new Map<string, GameObjectBase>();
 
@@ -44,16 +45,13 @@ export class GameStateManager implements IGameObjectRegistrar {
             const nextId = this._lastGameObjectId + 1;
             go.uuid = go.getGameObjectName() + '_' + nextId;
             this._lastGameObjectId = nextId;
+            this.allGameObjects.push(go);
             this.gameObjectMapping.set(go.uuid, go);
         }
     }
 
-    public getAllGameStates(): Map<string, IGameObjectBaseState> {
-        const mapEntriesAray: [string, IGameObjectBaseState][] = [];
-        for (const [key, go] of this.gameObjectMapping.entries()) {
-            mapEntriesAray.push([key, go.getState()]);
-        }
-        return new Map(mapEntriesAray);
+    public getAllGameStates(): IGameObjectBaseState[] {
+        return this.allGameObjects.map((go) => go.getState());
     }
 
     public rollbackToSnapshot(snapshot: IGameSnapshot) {
@@ -61,13 +59,18 @@ export class GameStateManager implements IGameObjectRegistrar {
 
         this.game.state = structuredClone(snapshot.gameState);
 
-        const removals: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+        const removals: { index: number; go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
         const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
 
-        for (const go of this.gameObjectMapping.values()) {
-            const updatedState = snapshot.states.get(go.uuid);
+        const snapshotStatesByUuid = new Map<string, IGameObjectBaseState>(snapshot.states.map((x) => [x.uuid, x]));
+
+        // Indexes in last to first for the purpose of removal.
+        for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
+            const go = this.allGameObjects[i];
+
+            const updatedState = snapshotStatesByUuid.get(go.uuid);
             if (!updatedState) {
-                removals.push({ go, oldState: go.getState() });
+                removals.push({ index: i, go, oldState: go.getState() });
                 continue;
             }
 
@@ -86,6 +89,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         // Remove GOs that hadn't yet been created by this point.
         // Because the for loop to determine removals is done from end to beginning, we don't have to worry about deleted indexes causing a problem when the array shifts.
         for (const removed of removals) {
+            this.allGameObjects.splice(removed.index, 1);
             this.gameObjectMapping.delete(removed.go.uuid);
         }
 
