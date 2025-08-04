@@ -11,7 +11,7 @@ import * as Contract from '../utils/Contract';
  */
 export abstract class PlayerZone<TCard extends Card, TState extends IZoneState<TCard> = IZoneState<TCard>> extends SimpleZone<TCard, TState> implements IAddRemoveZone {
     public abstract override readonly name: ZoneName;
-    public override readonly owner: Player;
+    public declare readonly owner: Player;
 
     public override addCard(card: TCard) {
         Contract.assertEqual(card.controller, this.owner, `Attempting to add card ${card.internalName} to ${this} but its controller is ${card.controller}`);
