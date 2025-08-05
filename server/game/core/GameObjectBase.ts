@@ -1,4 +1,5 @@
 import type Game from './Game';
+import { copyState, registerState } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';
 
@@ -42,6 +43,7 @@ type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
 export type PartialState<T extends IGameObjectBaseState> = Partial<T> & { _hasAnyChanges: boolean };
 
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
+@registerState()
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
     protected state: T;
     #state: T;
@@ -96,6 +98,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     public setState(state: T) {
         const oldState = this.state;
         this.state = structuredClone(state);
+        copyState(this, state);
         this.afterSetState(oldState);
     }
 
@@ -128,6 +131,15 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     /** A function for game to call after the state for this object has been rolled back. Intended to be used when a class has state changes that have internal changes, such as caching state. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected afterSetState(oldState: T) { }
+
+    /**
+     * A function for game to call on all objects if they are being removed from the GameObject list (typically after a rollback to before the object was created).
+     * This is intended to be used for cleanup of any state that the object has that is not part of the state object.
+     *
+     * The most common example is removing event handlers that have been registered on Game.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public cleanupOnRemove(oldState: T) { }
 
     /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {

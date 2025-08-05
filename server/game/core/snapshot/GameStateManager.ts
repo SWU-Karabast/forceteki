@@ -59,17 +59,18 @@ export class GameStateManager implements IGameObjectRegistrar {
 
         this.game.state = structuredClone(snapshot.gameState);
 
-        const removals: { index: number; uuid: string }[] = [];
+        const removals: { index: number; go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
         const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+
+        const snapshotStatesByUuid = new Map<string, IGameObjectBaseState>(snapshot.states.map((x) => [x.uuid, x]));
 
         // Indexes in last to first for the purpose of removal.
         for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
             const go = this.allGameObjects[i];
 
-            // NOTE: We aren't removing GameObjects, but this makes room for it.
-            const updatedState = snapshot.states.find((x) => x.uuid === go.uuid);
+            const updatedState = snapshotStatesByUuid.get(go.uuid);
             if (!updatedState) {
-                removals.push({ index: i, uuid: go.uuid });
+                removals.push({ index: i, go, oldState: go.getState() });
                 continue;
             }
 
@@ -78,13 +79,18 @@ export class GameStateManager implements IGameObjectRegistrar {
         }
 
         // Inform GOs that all states have been updated.
-        updates.forEach((update) => update.go.afterSetAllState(update.oldState));
+        for (const update of updates) {
+            update.go.afterSetAllState(update.oldState);
+        }
+        for (const removed of removals) {
+            removed.go.cleanupOnRemove(removed.oldState);
+        }
 
         // Remove GOs that hadn't yet been created by this point.
         // Because the for loop to determine removals is done from end to beginning, we don't have to worry about deleted indexes causing a problem when the array shifts.
         for (const removed of removals) {
             this.allGameObjects.splice(removed.index, 1);
-            this.gameObjectMapping.delete(removed.uuid);
+            this.gameObjectMapping.delete(removed.go.uuid);
         }
 
         this._lastGameObjectId = snapshot.lastGameObjectId;
