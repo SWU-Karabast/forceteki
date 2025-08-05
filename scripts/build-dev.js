@@ -1,7 +1,5 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
-const rimraf = require('rimraf');
-const path = require('path');
 
 function runCommand(command) {
     console.log('----------------------');
@@ -10,7 +8,6 @@ function runCommand(command) {
 }
 
 // Clean up the build directory
-rimraf.sync('./build/');
 fs.mkdirSync('./build/server', { recursive: true });
 
 // Run TypeScript compilation
