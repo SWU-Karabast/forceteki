@@ -1,5 +1,5 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
-import type { CardType } from '../core/Constants';
+import type { CardType, ZoneName } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
@@ -11,7 +11,9 @@ import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
 export interface PlayedCardEntry {
     card: GameObjectRef<IPlayableCard>;
-    playEvent: any;
+    // playEvent: any;
+    playEventId: number;
+    originalZone?: ZoneName;
     inPlayId?: number;
     playedBy: GameObjectRef<Player>;
     parentCard?: GameObjectRef<IInPlayCard>;
@@ -64,7 +66,8 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
             update: (currentState: ICardsPlayedThisPhase, event: any) =>
                 currentState.concat({
                     card: event.card.getRef(),
-                    playEvent: event,
+                    playEventId: event.eventId,
+                    originalZone: event.originalZone,
                     parentCard: event.card.isUpgrade() && event.card.isAttached() ? event.card.parentCard.getRef() : null,
                     parentCardInPlayId: event.card.isUpgrade() && event.card.parentCard?.canBeInPlay() ? event.card.parentCard.inPlayId : null,
                     inPlayId: event.card.inPlayId ?? null,

@@ -40,14 +40,10 @@ type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
     (T extends (infer R)[] ? (R extends GameObjectRef<infer U> ? U[] : R[]) :
         T);
 
-export type PartialState<T extends IGameObjectBaseState> = Partial<T> & { _hasAnyChanges: boolean };
-
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
 @registerState()
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
     protected state: T;
-    #state: T;
-    #deltaState: PartialState<T>;
 
     /** ID given by the game engine. */
     public get uuid() {
@@ -63,28 +59,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         public game: Game
     ) {
         // @ts-expect-error state is a generic object that is defined by the deriving classes, it's essentially w/e the children want it to be.
-        this.#state = {};
-
-        // Alternative idea: a master delta object is kept on the game state manager. We write directly to that "this.game.stateManager.deltaState[this.uuid][property] = newValue".
-        //      That eliminates the need to copy anything. When we "take a snapshot", all we do then is move the current deltaState into the snapshot list and make a new empty object.
-        this.#deltaState = { _hasAnyChanges: false } as unknown as PartialState<T>;
-
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const _this = this;
-
-        // This would inherently write the entire state to the delta the first time it appears. The setupDefaultState and register calls would make track all state immediately.
-        const proxyHandler: ProxyHandler<T> = {
-            set(target, property, newValue, receiver) {
-                _this.#deltaState._hasAnyChanges = true;
-                _this.#deltaState[property] = newValue;
-                target[property] = newValue;
-
-                return true;
-            }
-        };
-
-        this.state = new Proxy(this.#state, proxyHandler);
-
+        this.state = {};
         // All state defaults *must* happen before registration, so we can't rely on the derived constructor to set the defaults as register will already be called.
         this.setupDefaultState();
         this.game.gameObjectManager.register(this);
@@ -109,19 +84,6 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         } catch (ex) {
             throw new Error(`Unable to retrieve the copied state for ${this.getGameObjectName()}.\nError: ${ex.toString()}\nCurrent State:\n\n${JSON.stringify(this.state)}\n\n`);
         }
-    }
-
-    public getDeltaState() {
-        // This *must* return a copy, without any references, hence the use of structuredClone.
-        try {
-            return structuredClone(this.#deltaState);
-        } catch (ex) {
-            throw new Error(`Unable to retrieve the copied delta state for ${this.getGameObjectName()}.\nError: ${ex.toString()}\nCurrent State:\n\n${JSON.stringify(this.#deltaState)}\n\n`);
-        }
-    }
-
-    public resetDeltaState() {
-        this.#deltaState = { _hasAnyChanges: false } as unknown as PartialState<T>;
     }
 
     /** A function for game to call on all objects after all state has been rolled back. Intended to be used when a class has state changes that have external changes, for example, updating OngoingEffectEngine. */

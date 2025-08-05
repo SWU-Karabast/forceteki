@@ -151,6 +151,10 @@ class Game extends EventEmitter {
         this.state.currentPhase = value;
     }
 
+    get lastEventId() {
+        return this.state.lastGameEventId;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -219,6 +223,7 @@ class Game extends EventEmitter {
             allCards: [],
             actionNumber: 0,
             winnerNames: [],
+            lastGameEventId: 0,
             currentPhase: null,
         };
 
@@ -1700,6 +1705,11 @@ class Game extends EventEmitter {
      */
     getFromRef(gameRef) {
         return this.gameObjectManager.get(gameRef);
+    }
+
+    getNextGameEventId() {
+        this.state.lastGameEventId += 1;
+        return this.state.lastGameEventId;
     }
 
     // /*
