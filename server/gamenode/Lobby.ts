@@ -38,10 +38,10 @@ interface LobbyUser extends LobbySpectator {
     reportedBugs: number;
 }
 export enum DeckSource {
-    SWUStats = 'SWUStats',
-    SWUDB = 'SWUDB',
-    SWUnlimitedDB = 'SWUnlimitedDB',
-    Unknown = 'UNKNOWN'
+    SWUStats = 'swuStats',
+    SWUDB = 'swuDb',
+    SWUnlimitedDB = 'swUnlimitedDb',
+    Unknown = 'unknown'
 }
 
 interface PlayerDetails {
@@ -641,8 +641,15 @@ export class Lobby {
      * Helper method to determine deck source from deck link or other data
      */
     private determineDeckSource(deckLink?: string, deckSource?: string): DeckSource {
-        if (deckSource && Object.values(DeckSource).includes(deckSource as DeckSource)) {
-            return deckSource as DeckSource;
+        if (deckSource) {
+            const upperDeckSource = deckSource.toUpperCase();
+            const enumValues = Object.values(DeckSource);
+
+            for (const enumValue of enumValues) {
+                if (enumValue.toUpperCase() === upperDeckSource) {
+                    return enumValue;
+                }
+            }
         }
         // Fallback to determining from deckLink
         if (deckLink) {
