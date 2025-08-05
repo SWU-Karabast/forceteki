@@ -14,7 +14,7 @@ export interface ITokenUpgradeCard extends ITokenCard, IUpgradeCard {}
 export interface ITokenUnitCard extends ITokenCard, INonLeaderUnitCard {}
 
 export class TokenUnitCard extends TokenUnitParent implements ITokenUnitCard {
-    protected override state: never;
+    public declare state: never;
 
     public override isTokenUnit(): this is ITokenUnitCard {
         return true;
@@ -22,7 +22,7 @@ export class TokenUnitCard extends TokenUnitParent implements ITokenUnitCard {
 }
 
 export class TokenUpgradeCard extends TokenUpgradeParent implements ITokenUpgradeCard {
-    protected override state: never;
+    public declare state: never;
 
     public override isTokenUpgrade(): this is ITokenUpgradeCard {
         return true;
@@ -30,5 +30,5 @@ export class TokenUpgradeCard extends TokenUpgradeParent implements ITokenUpgrad
 }
 
 export class TokenCard extends TokenCardParent implements ITokenCard {
-    protected override state: never;
+    public declare state: never;
 }

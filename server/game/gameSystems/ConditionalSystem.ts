@@ -18,7 +18,7 @@ export interface IConditionalSystemProperties<TContext extends AbilityContext = 
 export class ConditionalSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, IConditionalSystemProperties<TContext>> {
     public override readonly eventName = MetaEventName.Conditional;
 
-    protected override readonly defaultProperties: IConditionalSystemProperties<TContext>;
+    protected declare readonly defaultProperties: IConditionalSystemProperties<TContext>;
 
     public constructor(propertiesOrPropertyFactory: IConditionalSystemProperties<TContext> | ((context?: TContext) => IConditionalSystemProperties<TContext>)) {
         super(propertiesOrPropertyFactory);
