@@ -1,6 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { DamageType, Trait } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class DorsalTurret extends UpgradeCard {
@@ -11,10 +12,10 @@ export default class DorsalTurret extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainTriggeredAbilityTargetingAttached({
+        registrar.addGainTriggeredAbilityTargetingAttached({
             title: 'Defeat that unit.',
             when: {
                 onDamageDealt: (event, context) =>

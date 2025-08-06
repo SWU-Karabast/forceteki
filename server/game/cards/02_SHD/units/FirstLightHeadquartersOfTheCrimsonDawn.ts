@@ -1,7 +1,8 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { PlayUnitAction } from '../../../actions/PlayUnitAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, PlayType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
@@ -15,14 +16,14 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
 
     protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null) {
         const firstLightSmuggleAction = playType === PlayType.Smuggle
-            ? [new FirstLightSmuggleAction(this)]
+            ? [new FirstLightSmuggleAction(this.game.abilityHelper, this)]
             : [];
 
         return super.buildPlayCardActions(playType, propertyOverrides).concat(firstLightSmuggleAction);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'Each other friendly non-leader unit gains Grit',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.NonLeaderUnit,
@@ -33,7 +34,9 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
 }
 
 class FirstLightSmuggleAction extends PlayUnitAction {
-    private static generateProperties(properties: IPlayCardActionOverrides = {}): IPlayCardActionProperties {
+    private abilityHelper: IAbilityHelper;
+
+    private static generateProperties(AbilityHelper: IAbilityHelper, properties: IPlayCardActionOverrides = {}): IPlayCardActionProperties {
         const damageCost = AbilityHelper.costs.dealDamage(4, {
             controller: RelativePlayer.Self,
             cardTypeFilter: WildcardCardType.Unit
@@ -50,14 +53,16 @@ class FirstLightSmuggleAction extends PlayUnitAction {
         };
     }
 
-    public constructor(card: FirstLightHeadquartersOfTheCrimsonDawn, propertyOverrides: IPlayCardActionOverrides = {}) {
-        super(card.game, card, FirstLightSmuggleAction.generateProperties(propertyOverrides));
+    public constructor(AbilityHelper: IAbilityHelper, card: FirstLightHeadquartersOfTheCrimsonDawn, propertyOverrides: IPlayCardActionOverrides = {}) {
+        super(card.game, card, FirstLightSmuggleAction.generateProperties(AbilityHelper, propertyOverrides));
+        this.abilityHelper = AbilityHelper;
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
         return new FirstLightSmuggleAction(
+            this.abilityHelper,
             this.card as FirstLightHeadquartersOfTheCrimsonDawn,
-            FirstLightSmuggleAction.generateProperties({
+            FirstLightSmuggleAction.generateProperties(this.abilityHelper, {
                 ...this.createdWithProperties,
                 ...overrideProperties
             })

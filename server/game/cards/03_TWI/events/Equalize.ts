@@ -1,6 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { WildcardCardType } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class Equalize extends EventCard {
     protected override getImplementationId() {
@@ -10,8 +11,8 @@ export default class Equalize extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Give a unit –2/–2 for this phase. Then, if you control fewer units than that unit\'s controller, give another unit –2/–2 for this phase.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

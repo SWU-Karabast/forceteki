@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -14,28 +15,28 @@ export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addCoordinateAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addCoordinateAbility({
             title: 'Draw 2 cards',
             type: AbilityType.Triggered,
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 2 }),
             when: {
-                onCardPlayed: (event) => this.isSecondCardPlayedByOpponentThisPhase(event)
+                onCardPlayed: (event, context) => this.isSecondCardPlayedByOpponentThisPhase(event, context)
             }
         });
     }
 
-    private isSecondCardPlayedByOpponentThisPhase(event) {
-        if (event.player === this.controller) {
+    private isSecondCardPlayedByOpponentThisPhase(event, context) {
+        if (event.player === context.source.controller) {
             return false;
         }
         const cardsPlayedByOpponent = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
-            playedCardEntry.playedBy === this.controller.opponent && playedCardEntry.playEvent !== event);
+            playedCardEntry.playedBy === event.player && playedCardEntry.playEvent !== event);
         const amountCardsPlayedByOpponent = cardsPlayedByOpponent.length + 1;
         return amountCardsPlayedByOpponent === 2;
     }

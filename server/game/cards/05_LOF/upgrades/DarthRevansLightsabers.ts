@@ -1,3 +1,5 @@
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, Trait } from '../../../core/Constants';
 
@@ -9,10 +11,10 @@ export default class DarthRevanLightsabers extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainKeywordTargetingAttached({
+        registrar.addGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Sith),
             keyword: KeywordName.Grit,
         });

@@ -17,12 +17,12 @@ const GameOverPrompt = require('./gameSteps/prompts/GameOverPrompt.js');
 const GameSystems = require('../gameSystems/GameSystemLibrary.js');
 const { GameEvent } = require('./event/GameEvent.js');
 const { EventWindow, TriggerHandlingMode } = require('./event/EventWindow');
-const AbilityResolver = require('./gameSteps/AbilityResolver.js');
+const { AbilityResolver } = require('./gameSteps/AbilityResolver.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -39,13 +39,19 @@ const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayC
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
 const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
-const { GameStateManager } = require('./GameStateManager.js');
+const { GameStateManager } = require('./snapshot/GameStateManager.js');
 const { ActionWindow } = require('./gameSteps/ActionWindow.js');
 const { User } = require('../../utils/user/User');
 const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
 const { CostAdjuster } = require('./cost/CostAdjuster.js');
 const { logger } = require('../../logger.js');
+const { SnapshotManager } = require('./snapshot/SnapshotManager.js');
+const AbilityHelper = require('../AbilityHelper.js');
+const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
+const { getAbilityHelper } = require('../AbilityHelper.js');
+const { PhaseInitializeMode } = require('./gameSteps/phases/Phase.js');
+const { Randomness } = require('../core/Randomness.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -64,7 +70,7 @@ class Game extends EventEmitter {
     }
 
     get allCards() {
-        return this.state.allCards.map((x) => this.getCard(x));
+        return this.state.allCards.map((x) => this.getFromRef(x));
     }
 
     /** @returns { Player | null } */
@@ -104,7 +110,7 @@ class Game extends EventEmitter {
     }
 
     set roundNumber(value) {
-        Contract.assertNonNegative(value, 'Round Number must be non-zero: ' + value);
+        Contract.assertNonNegative(value, 'Round number must be non-negative: ' + value);
         this.state.roundNumber = value;
     }
 
@@ -113,7 +119,36 @@ class Game extends EventEmitter {
     }
 
     get isUndoEnabled() {
-        return this.#experimental.undo;
+        return this.snapshotManager.undoEnabled;
+    }
+
+    get actionNumber() {
+        return this.state.actionNumber;
+    }
+
+    set actionNumber(value) {
+        Contract.assertNonNegative(value, 'Action number must be non-negative: ' + value);
+        this.state.actionNumber = value;
+    }
+
+    get gameObjectManager() {
+        return this.snapshotManager.gameObjectManager;
+    }
+
+    get winnerNames() {
+        return this.state.winnerNames;
+    }
+
+    get randomGenerator() {
+        return this._randomGenerator;
+    }
+
+    get currentPhase() {
+        return this.state.currentPhase;
+    }
+
+    set currentPhase(value) {
+        this.state.currentPhase = value;
     }
 
     /**
@@ -128,20 +163,24 @@ class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
+        /** @private */
+        this.snapshotManager = new SnapshotManager(this, details.enableUndo);
+
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
+
+        /** @type {import('../AbilityHelper.js').IAbilityHelper} */
+        this.abilityHelper = getAbilityHelper(this);
 
         /** @type { {[key: string]: Player | Spectator} } */
         this.playersAndSpectators = {};
         this.gameChat = new GameChat(details.pushUpdate);
         this.pipeline = new GamePipeline();
         this.id = details.id;
-        this.name = details.name;
         this.allowSpectators = details.allowSpectators;
         this.owner = details.owner;
         this.started = false;
         this.statsUpdated = false;
         this.playStarted = false;
-        this.gameObjectManager = new GameStateManager(this);
         this.createdAt = new Date();
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
@@ -153,7 +192,7 @@ class Game extends EventEmitter {
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this.#debug = { pipeline: false };
         // Experimental flags, intended only for manual testing. Use the enable methods to temporarily flag these on during tests.
-        this.#experimental = { undo: false };
+        this.#experimental = { };
 
         this.manualMode = false;
         this.gameMode = details.gameMode;
@@ -161,25 +200,31 @@ class Game extends EventEmitter {
         /** @type { EventWindow } */
         this.currentEventWindow = null;
         this.currentAttack = null;
-        this.currentPhase = null;
+
         this.currentActionWindow = null;
+
+        /** @type {import('./gameSteps/prompts/UiPrompt.js').UiPrompt} */
         this.currentOpenPrompt = null;
 
-        /** @type { import('./GameStateManager.js').IGameState } */
+        /** @private @readonly @type {import('./Randomness.js').IRandomness} */
+        this._randomGenerator = new Randomness();
+
+        /** @type { import('./snapshot/SnapshotInterfaces.js').IGameState } */
         this.state = {
             initialFirstPlayer: null,
             initiativePlayer: null,
             actionPhaseActivePlayer: null,
             roundNumber: 0,
             isInitiativeClaimed: false,
-            allCards: []
+            allCards: [],
+            actionNumber: 0,
+            winnerNames: [],
+            currentPhase: null,
         };
 
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
-        // STATE TODO: Move the generator logic into the state object.
-        this.randomGenerator = seedrandom();
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
 
@@ -206,8 +251,6 @@ class Game extends EventEmitter {
                 details.useActionTimer ?? false
             );
         });
-
-        // TODO: checks for required detail values (cardDataGetter, etc.) and an interface for the details object
 
         details.spectators?.forEach((spectator) => {
             this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator);
@@ -437,7 +480,7 @@ class Game extends EventEmitter {
     }
 
     setRandomSeed(seed) {
-        this.randomGenerator = seedrandom(seed);
+        this._randomGenerator.reseed(seed);
     }
 
     /**
@@ -609,6 +652,7 @@ class Game extends EventEmitter {
 
         this.userTimeoutDisconnect(player.id);
         this.addAlert(AlertType.Danger, '{0} has been removed due to inactivity.', player);
+        return null;
     }
 
     // TODO: parameter contract checks for this flow
@@ -712,11 +756,11 @@ class Game extends EventEmitter {
     /**
      * Display message declaring victory for one player, and record stats for
      * the game
-     * @param {Player | Player[]} winner
+     * @param {Player[]|Player} winnerPlayers
      * @param {String} reason
      */
-    endGame(winner, reason) {
-        if (this.winner) {
+    endGame(winnerPlayers, reason) {
+        if (this.state.winnerNames.length > 0) {
             // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
         }
@@ -730,12 +774,13 @@ class Game extends EventEmitter {
          * TODO this will likely change when we decide on how the popup will look like separately
          * TODO from the preference popup
          */
-        if (Array.isArray(winner)) {
-            this.winner = winner.map((w) => w.name);
+        const winners = Helpers.asArray(winnerPlayers);
+        if (winners.length > 1) {
+            winners.forEach((w) => this.state.winnerNames.push(w.name));
             this.addMessage('The game ends in a draw');
         } else {
-            this.winner = [winner.name];
-            this.addMessage('{0} has won the game', winner);
+            this.state.winnerNames.push(winners[0].name);
+            this.addMessage('{0} has won the game', winnerPlayers);
         }
         this.finishedAt = new Date();
         this.gameEndReason = reason;
@@ -745,7 +790,7 @@ class Game extends EventEmitter {
         if (typeof this.router.sendGameState === 'function') {
             this.router.sendGameState(this); // call the function if it exists
         } else {
-            this.queueStep(new GameOverPrompt(this, winner));
+            this.queueStep(new GameOverPrompt(this));
         }
     }
 
@@ -1034,7 +1079,10 @@ class Game extends EventEmitter {
         );
 
         this.resolveGameState(true);
-        this.pipeline.initialise([new SetupPhase(this), new SimpleStep(this, () => this.beginRound(), 'beginRound')]);
+        this.pipeline.initialise([
+            new SetupPhase(this, this.snapshotManager),
+            new SimpleStep(this, () => this.beginRound(), 'beginRound')
+        ]);
 
         this.playStarted = true;
         this.startedAt = new Date();
@@ -1049,11 +1097,62 @@ class Game extends EventEmitter {
     beginRound() {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
-        this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers);
-        this.queueStep(new ActionPhase(this));
-        this.queueStep(new RegroupPhase(this));
-        this.queueSimpleStep(() => this.roundEnded(), 'roundEnded');
-        this.queueSimpleStep(() => this.beginRound(), 'beginRound');
+        this.initializePipelineForRound();
+    }
+
+    /**
+     * Initializes the pipeline for a new game round.
+     * Accepts a parameter indicating whether this operation is due to a rollback, and if so, to what point in the round.
+     *
+     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     */
+    initializePipelineForRound(rollbackEntryPoint = null) {
+        const isRollback = rollbackEntryPoint != null;
+
+        const roundStartStep = [];
+        if (!isRollback || rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRound) {
+            roundStartStep.push(new SimpleStep(
+                this, () => this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers), 'beginRound'
+            ));
+        }
+
+        const actionPhaseStep = [];
+        if (rollbackEntryPoint !== RollbackRoundEntryPoint.StartOfRegroupPhase) {
+            let actionInitializeMode;
+
+            switch (rollbackEntryPoint) {
+                case RollbackRoundEntryPoint.StartOfRound:
+                    actionInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
+                    break;
+                case RollbackRoundEntryPoint.WithinActionPhase:
+                    actionInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
+                    break;
+                case null:
+                    actionInitializeMode = PhaseInitializeMode.Normal;
+                    break;
+                default:
+                    Contract.fail(`Unknown rollback entry point: ${rollbackEntryPoint}`);
+            }
+
+            actionPhaseStep.push(new ActionPhase(this, () => this.getNextActionNumber(), this.snapshotManager, actionInitializeMode));
+        }
+
+        const regroupInitializeMode =
+            rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase
+                ? PhaseInitializeMode.RollbackToStartOfPhase
+                : PhaseInitializeMode.Normal;
+
+        const regroupPhaseStep = [
+            new RegroupPhase(this, this.snapshotManager, regroupInitializeMode)
+        ];
+
+        this.pipeline.initialise([
+            ...roundStartStep,
+            ...actionPhaseStep,
+            ...regroupPhaseStep,
+            new SimpleStep(this, () => this.roundEnded(), 'roundEnded'),
+            new SimpleStep(this, () => this.beginRound(), 'beginRound')
+        ]);
     }
 
     roundEnded() {
@@ -1065,6 +1164,11 @@ class Game extends EventEmitter {
                 this.removeTokenFromPlay(token);
             }
         }
+    }
+
+    getNextActionNumber() {
+        this.actionNumber++;
+        return this.actionNumber;
     }
 
     /**
@@ -1594,7 +1698,7 @@ class Game extends EventEmitter {
      * @param {import('./GameObjectBase.js').GameObjectRef<T>} gameRef
      * @returns {T | null}
      */
-    getCard(gameRef) {
+    getFromRef(gameRef) {
         return this.gameObjectManager.get(gameRef);
     }
 
@@ -1609,11 +1713,10 @@ class Game extends EventEmitter {
                 playerState[player.id] = player.getStateSummary(activePlayer);
             }
 
-            return {
+            const gameState = {
                 playerUpdate: activePlayer.name,
                 id: this.id,
                 manualMode: this.manualMode,
-                name: this.name,
                 owner: this.owner,
                 players: playerState,
                 phase: this.currentPhase,
@@ -1628,30 +1731,57 @@ class Game extends EventEmitter {
                 }),
                 started: this.started,
                 gameMode: this.gameMode,
-                winner: this.winner ? this.winner : undefined, // TODO comment once we clarify how to display endgame screen
+                winners: this.winnerNames
             };
+
+            // clean out any properies that are null or undefined to reduce the message size
+            Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
+
+            return gameState;
         }
         return {};
     }
 
-    takeSnapshot() {
-        if (this.#experimental.undo && 'takeSnapshot' in this.pipeline.currentStep) {
-            return this.pipeline.currentStep.takeSnapshot();
+    /**
+     * Takes a manual snapshot of the current game state for the given player
+     *
+     * @param {Player} player - The player for whom the snapshot is taken
+     */
+    takeManualSnapshot(player) {
+        if (this.isUndoEnabled) {
+            Contract.assertHasProperty(player, 'id', 'Player must have an id to take a manual snapshot');
+            return this.snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId: player.id });
         }
 
-        return null;
+        return -1;
     }
 
     /**
-     * @param {number | null} snapshotId
+     * Attempts to restore the designated snapshot
+     *
+     * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
+     * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshot(snapshotId) {
-        if (this.#experimental.undo && 'rollbackToSnapshot' in this.pipeline.currentStep) {
-            this.pipeline.currentStep.rollbackToSnapshot(snapshotId);
-            return true;
+    rollbackToSnapshot(settings) {
+        if (!this.isUndoEnabled) {
+            return false;
         }
 
-        return false;
+        const rollbackResult = this.snapshotManager.rollbackTo(settings);
+
+        if (!rollbackResult.success) {
+            return false;
+        }
+
+        this.postRollbackOperations(rollbackResult.roundEntryPoint);
+
+        return true;
+    }
+
+    postRollbackOperations(roundEntryPoint = null) {
+        this.pipeline.clearSteps();
+        this.initializePipelineForRound(roundEntryPoint);
+        this.pipeline.continue(this);
     }
 
     // TODO: Make a debug object type.
@@ -1682,19 +1812,6 @@ class Game extends EventEmitter {
             fcn();
         } finally {
             this.#debug.pipeline = false;
-        }
-    }
-
-    /**
-     * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
-     * @param {() => any} fcn
-     */
-    enableUndo(fcn) {
-        this.#experimental.undo = Helpers.isDevelopment();
-        try {
-            return fcn();
-        } finally {
-            this.#experimental.undo = false;
         }
     }
 

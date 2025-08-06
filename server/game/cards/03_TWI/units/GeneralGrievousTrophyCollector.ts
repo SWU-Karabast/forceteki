@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class GeneralGrievousTrophyCollector extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'Ignore the aspect penalty on each Lightsaber upgrade you play on this unit',
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: WildcardCardType.Playable,
@@ -20,7 +21,7 @@ export default class GeneralGrievousTrophyCollector extends NonLeaderUnitCard {
             })
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Defeat 4 enemy units',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.upgrades.filter((upgrade) => upgrade.hasSomeTrait(Trait.Lightsaber)).length >= 4,
@@ -29,7 +30,7 @@ export default class GeneralGrievousTrophyCollector extends NonLeaderUnitCard {
                     controller: RelativePlayer.Opponent,
                     mode: TargetMode.ExactlyVariable,
                     numCardsFunc: (context) => Math.min(4, context.player.opponent.getArenaUnits().length),
-                    innerSystem: AbilityHelper.immediateEffects.defeat()
+                    immediateEffect: AbilityHelper.immediateEffects.defeat()
                 }),
             })
         });

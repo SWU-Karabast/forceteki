@@ -1,9 +1,9 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import * as Contract from '../../../core/utils/Contract';
-import * as Helpers from '../../../core/utils/Helpers.js';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import type { Card } from '../../../core/card/Card';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { ZoneName } from '../../../core/Constants';
 import { EventName, RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
@@ -16,8 +16,8 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenPlayedAbility({
             title: 'Choose any number of friendly units',
             targetResolver: {
                 activePromptTitle: 'Choose friendly units that will capture enemy units in the same arena',
@@ -35,7 +35,7 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
             then: (chosenUnitsContext) => ({
                 title: 'Each of those units captures an enemy non-leader unit in the same arena',
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous(
-                    Helpers.asArray(chosenUnitsContext.target).map((target) =>
+                    chosenUnitsContext.target?.map((target) =>
                         AbilityHelper.immediateEffects.selectCard({
                             activePromptTitle: `Choose a unit to capture with ${target.title}`,
                             player: RelativePlayer.Self,
@@ -43,7 +43,7 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
                             zoneFilter: target.zoneName,
                             controller: RelativePlayer.Opponent,
                             cardCondition: (card, context) => !this.capturedCardsFromContext(context).has(card),
-                            innerSystem: AbilityHelper.immediateEffects.capture({ captor: target })
+                            immediateEffect: AbilityHelper.immediateEffects.capture({ captor: target })
                         })
                     )
                 )

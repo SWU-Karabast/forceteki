@@ -1,6 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class Shatterpoint extends EventCard {
     protected override getImplementationId() {
@@ -10,24 +11,22 @@ export default class Shatterpoint extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Choose one: Defeat a non-leader unit with 3 or less remaining HP or Use the Force. If you do, defeat a non-leader unit',
-            targetResolver: {
-                mode: TargetMode.Select,
-                choosingPlayer: RelativePlayer.Self,
-                showUnresolvable: true,
+            immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
+                amountOfChoices: 1,
                 choices: () => ({
-                    ['Defeat a non-leader unit with 3 or less remaining HP']:
-                        AbilityHelper.immediateEffects.selectCard({
+                    ['Defeat a non-leader unit with 3 or less remaining HP']: AbilityHelper.immediateEffects
+                        .selectCard({
                             cardTypeFilter: WildcardCardType.NonLeaderUnit,
                             cardCondition: (card) => card.isUnit() && card.remainingHp <= 3,
-                            innerSystem: AbilityHelper.immediateEffects.defeat(),
+                            immediateEffect: AbilityHelper.immediateEffects.defeat(),
                         }),
-                    ['Use the Force. If you do, defeat a non-leader unit']:
-                        AbilityHelper.immediateEffects.useTheForce()
+                    ['Use the Force. If you do, defeat a non-leader unit']: AbilityHelper.immediateEffects
+                        .useTheForce()
                 }),
-            },
+            }),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Defeat a non-leader unit',
                 ifYouDoCondition: () => {

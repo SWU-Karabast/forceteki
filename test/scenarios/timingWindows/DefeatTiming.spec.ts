@@ -97,7 +97,7 @@ describe('Defeat timing', function() {
 
                 expect(context.lieutenantChildsen).toBeInZone('discard');
                 context.player2.clickPrompt('Reveal up to 4 Vigilance cards from your hand. For each card revealed this way, give an Experience token to this unit -> Vanquish');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toBeActivePlayer();
             });
         });
@@ -158,7 +158,7 @@ describe('Defeat timing', function() {
                 expect(context.player2).toHaveExactPromptButtons(['Put Superlaser Technician into play as a resource and ready it', 'Choose any number of players to draw 1 card']);
                 context.player2.clickPrompt('Choose any number of players to draw 1 card');
                 context.player2.clickPrompt('You');
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.player2).toHavePassAbilityPrompt('Put Superlaser Technician into play as a resource and ready it');
                 context.player2.clickPrompt('Trigger');
 

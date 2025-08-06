@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { TargetMode, Trait } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -16,12 +17,12 @@ export default class SifoDyasCommissioningAnArmy extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenDefeatedAbility({
             title: 'Search the top 8 cards of your deck for any number of Clone units with combined cost 4 or less and discard them. For this phase, you may play those cards from your discard pile for free.',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
@@ -37,7 +38,7 @@ export default class SifoDyasCommissioningAnArmy extends NonLeaderUnitCard {
                         effect: AbilityHelper.ongoingEffects.forFree({
                             match: (card) => deckSearchContext.selectedPromptCards.includes(card)
                         }),
-                        targetController: deckSearchContext.player
+                        target: deckSearchContext.player
                     })),
                 ]),
             })

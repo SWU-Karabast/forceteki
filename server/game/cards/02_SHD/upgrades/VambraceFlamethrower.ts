@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { ZoneName, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
@@ -11,10 +12,10 @@ export default class VambraceFlamethrower extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addGainOnAttackAbilityTargetingAttached({
+        registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 3 damage divided as you choose among enemy ground units',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.distributeDamageAmong({

@@ -25,7 +25,7 @@ describe('Decimator of Dissidents', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.torpedoBarrage);
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
 
                 context.moveToNextActionPhase();
 
@@ -40,7 +40,7 @@ describe('Decimator of Dissidents', function() {
                 context.player1.passAction();
 
                 context.player2.clickCard(context.planetaryBombardment);
-                context.player2.clickPrompt('Opponent');
+                context.player2.clickPrompt('Deal indirect damage to opponent');
 
                 context.player1.clickCard(context.decimatorOfDissidents);
                 expect(context.player2).toBeActivePlayer();
@@ -51,7 +51,7 @@ describe('Decimator of Dissidents', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.torpedoBarrage);
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
 
                 context.player2.passAction();
 

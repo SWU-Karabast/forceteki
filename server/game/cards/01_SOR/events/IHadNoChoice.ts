@@ -1,6 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
-import * as Helpers from '../../../core/utils/Helpers.js';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, TargetMode, WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
 
 export default class IHadNoChoice extends EventCard {
@@ -11,8 +11,8 @@ export default class IHadNoChoice extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Choose up to 2 non-leader units. An opponent chooses 1 of those units. Return that unit to its owner’s hand and put the other on the bottom of its owner’s deck.',
             targetResolvers: {
                 targetUnits: {
@@ -26,11 +26,11 @@ export default class IHadNoChoice extends EventCard {
                     dependsOn: 'targetUnits',
                     mode: TargetMode.Single,
                     choosingPlayer: RelativePlayer.Opponent,
-                    cardCondition: (card, context) => Helpers.asArray(context.targets.targetUnits).includes(card),
+                    cardCondition: (card, context) => context.targets.targetUnits.includes(card),
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                         AbilityHelper.immediateEffects.returnToHand(),
                         AbilityHelper.immediateEffects.moveToBottomOfDeck((context) => ({
-                            target: Helpers.asArray(context.targets.targetUnits).filter((card) => card !== context.targets.opponentChoice)
+                            target: context.targets.targetUnits.filter((card) => card !== context.targets.opponentChoice)
                         }))
                     ])
                 }

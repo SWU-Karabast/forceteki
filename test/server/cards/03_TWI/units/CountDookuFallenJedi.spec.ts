@@ -25,18 +25,19 @@ describe('Count Dooku, Fallen Jedi', function() {
                 // choose exploit targets
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battleDroid);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
                 expect(context.player1).toHaveChooseNothingButton();
-                // click needs to be non-checking b/c prompt remains unchanged
-                context.player1.clickCardNonChecking(context.atst);
+                expect(context.player1).toHavePrompt('Deal 5 damage to an enemy unit (for exploiting Wampa)');
+                context.player1.clickCard(context.atst);
                 expect(context.atst.damage).toBe(5);
 
                 // choose second damage target (from battle droid)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
                 expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePrompt('Deal 1 damage to an enemy unit (for exploiting Battle Droid)');
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer.damage).toBe(1);
                 expect(context.getChatLogs(1)[0]).toContain('player1 uses Count Dooku to deal 1 damage to Cartel Spacer');
@@ -52,10 +53,11 @@ describe('Count Dooku, Fallen Jedi', function() {
                 // choose exploit targets
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battleDroid);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
+                expect(context.player1).toHavePrompt('Deal 5 damage to an enemy unit (for exploiting Wampa)');
                 context.player1.clickPrompt('Choose nothing');
                 expect(context.atst.damage).toBe(0);
                 expect(context.cartelSpacer.damage).toBe(0);
@@ -63,6 +65,7 @@ describe('Count Dooku, Fallen Jedi', function() {
                 // choose second damage target (from battle droid)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
                 expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePrompt('Deal 1 damage to an enemy unit (for exploiting Battle Droid)');
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer.damage).toBe(1);
             });
@@ -76,7 +79,7 @@ describe('Count Dooku, Fallen Jedi', function() {
                 // choose exploit targets
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battleDroid);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
@@ -99,7 +102,7 @@ describe('Count Dooku, Fallen Jedi', function() {
 
                 // choose only one exploit target
                 context.player1.clickCard(context.wampa);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // choose damage target
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
@@ -116,6 +119,31 @@ describe('Count Dooku, Fallen Jedi', function() {
                 context.player1.clickCard(context.countDooku);
                 context.player1.clickPrompt('Play without Exploit');
 
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('Count Doouk\'s when played ability', function () {
+            it('should do nothing if triggered by Clone', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: [{ card: 'wampa', upgrades: ['experience'] }, 'battle-droid', 'count-dooku#fallen-jedi'],
+                        spaceArena: ['tie-advanced']
+                    },
+                    player2: {
+                        groundArena: ['atst'],
+                        spaceArena: ['cartel-spacer']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.countDooku);
+
+                expect(context.clone).toBeCloneOf(context.countDooku);
                 expect(context.player2).toBeActivePlayer();
             });
         });

@@ -1,6 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class LookTheOtherWay extends EventCard {
@@ -11,8 +12,8 @@ export default class LookTheOtherWay extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Exhaust a unit unless its controller pays 2 resources.',
             targetResolvers: {
                 targetUnit: {

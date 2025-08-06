@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class LightspeedAssault extends EventCard {
@@ -10,8 +11,8 @@ export default class LightspeedAssault extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Defeat a friendly space unit and deal damage equal to its power to an enemy space unit. If you do, deal indirect damage equal to the enemy unit\'s power to its controller',
             targetResolver: {
                 controller: RelativePlayer.Self,
@@ -23,7 +24,7 @@ export default class LightspeedAssault extends EventCard {
                         AbilityHelper.immediateEffects.selectCard({
                             controller: RelativePlayer.Opponent,
                             zoneFilter: ZoneName.SpaceArena,
-                            innerSystem: AbilityHelper.immediateEffects.damage({
+                            immediateEffect: AbilityHelper.immediateEffects.damage({
                                 amount: friendlySpaceUnit.getPower()
                             })
                         })

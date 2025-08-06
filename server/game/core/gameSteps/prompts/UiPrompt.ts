@@ -14,20 +14,39 @@ export abstract class UiPrompt extends BaseStep {
     private completed = false;
     private firstContinue = true;
 
+    // indicates that the player just became active for this prompt
+    // this is passed to the FE for the sake of being able to inform the player by e.g. making a sound
+    private playerIsNewlyActive = new Map<Player, boolean>();
+
     public constructor(game: Game) {
         super(game);
 
         this.clearPrompts();
     }
 
-    public abstract activePrompt(player: Player): IPlayerPromptStateProperties;
-
     public abstract menuCommand(player: Player, arg: string, uuid: string): boolean;
+
+    public abstract activePromptInternal(player: Player): IPlayerPromptStateProperties;
+
+    public activePrompt(player: Player): IPlayerPromptStateProperties {
+        return {
+            playerIsNewlyActive: this.playerIsNewlyActive.get(player) || false,
+            ...this.activePromptInternal(player)
+        };
+    }
 
     public override continue(): boolean {
         if (this.firstContinue) {
             this.previousPrompt = this.game.currentOpenPrompt;
             this.game.currentOpenPrompt = this;
+
+            for (const player of this.game.getPlayers()) {
+                this.playerIsNewlyActive.set(player, !player.activeForPreviousPrompt);
+            }
+        } else {
+            for (const player of this.game.getPlayers()) {
+                this.playerIsNewlyActive.set(player, false);
+            }
         }
 
         const completed = this.isComplete();
@@ -64,12 +83,14 @@ export abstract class UiPrompt extends BaseStep {
     public setPrompt(): void {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
+                player.activeForPreviousPrompt = true;
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
 
                 if (this.firstContinue) {
                     this.startActionTimer(player);
                 }
             } else {
+                player.activeForPreviousPrompt = false;
                 player.setPrompt(this.waitingPrompt());
                 player.actionTimer.stop();
             }

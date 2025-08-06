@@ -189,7 +189,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
     }
 
     private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
-        Contract.assertTrue(context.source.isUnit());
         Contract.assertNotNullLike(card);
 
         let damageDealtBy: IUnitCard[];
@@ -293,7 +292,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         const properties = this.generatePropertiesFromContext(context);
 
         if (properties.type === DamageType.Ability) {
-            return ['dealing {0} damage to {1}', [Helpers.derive(properties.amount, properties.target), properties.target]];
+            return ['dealing {0} damage to {1}', [Helpers.derive(properties.amount, properties.target), this.getTargetMessage(properties.target, context)]];
         }
 
         return super.getCostMessage(context);
@@ -319,6 +318,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             damageTypeStr = 'overwhelm ';
         }
 
-        return [`deal ${amountStr}${damageTypeStr}damage to {0}`, [properties.target]];
+        return [`deal ${amountStr}${damageTypeStr}damage to {0}`, [this.getTargetMessage(properties.target, context)]];
     }
 }

@@ -1,6 +1,7 @@
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class SithHolocron extends UpgradeCard {
     protected override getImplementationId() {
@@ -10,10 +11,10 @@ export default class SithHolocron extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card) => card.hasSomeTrait(Trait.Force));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setAttachCondition((card) => card.hasSomeTrait(Trait.Force));
 
-        this.addGainOnAttackAbilityTargetingAttached({
+        registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 2 damage to a friendly unit. If you do, this unit gets +2/+0 for this attack',
             optional: true,
             targetResolver: {

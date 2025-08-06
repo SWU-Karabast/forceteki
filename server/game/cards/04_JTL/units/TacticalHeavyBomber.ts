@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EventName } from '../../../core/Constants';
 import { DamageSourceType } from '../../../IDamageOrDefeatSource';
@@ -12,8 +13,8 @@ export default class TacticalHeavyBomber extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addOnAttackAbility({
             title: 'Deal indirect damage equal to this unit\'s power to the defending player. If a base is damaged this way, draw a card',
             immediateEffect: AbilityHelper.immediateEffects.indirectDamageToPlayer((context) => ({
                 amount: context.source.getPower(),

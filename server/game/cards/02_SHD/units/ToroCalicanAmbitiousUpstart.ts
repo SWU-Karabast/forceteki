@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, Trait } from '../../../core/Constants';
 
@@ -10,13 +11,13 @@ export default class ToroCalicanAmbitiousUpstart extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'Deal 1 damage to the played Bounty Hunter unit to ready this unit',
             when: {
                 onCardPlayed: (event, context) =>
                     event.card.hasSomeTrait(Trait.BountyHunter) &&
-                    event.player === this.controller &&
+                    event.player === context.source.controller &&
                     event.cardTypeWhenInPlay === CardType.BasicUnit &&
                     event.card !== context.source
             },

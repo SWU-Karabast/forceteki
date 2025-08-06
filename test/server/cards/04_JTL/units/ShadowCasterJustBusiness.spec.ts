@@ -28,6 +28,39 @@ describe('Shadow Caster, Just Business', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
+            it('should allow a player to reuse a cloned When Defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['oomseries-officer'],
+                        spaceArena: ['shadow-caster#just-business'],
+                    },
+                    player2: {
+                        hand: ['daring-raid']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.oomseriesOfficer);
+                expect(context.clone).toBeCloneOf(context.oomseriesOfficer);
+
+                context.player2.clickCard(context.daringRaid);
+                context.player2.clickCard(context.clone);
+
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
+
+                expect(context.player1).toHavePassAbilityPrompt('Use the When Defeated ability again');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.player1).toBeActivePlayer();
+            });
+
             it('should not allow a player to reuse an enemy When Defeated', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

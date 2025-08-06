@@ -1,5 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { TargetMode } from '../../../core/Constants';
 
 export default class ManufacturedSoldiers extends EventCard {
@@ -10,8 +11,8 @@ export default class ManufacturedSoldiers extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Create 2 Clone Trooper tokens or 3 Battle Droid tokens',
             targetResolver: {
                 mode: TargetMode.Select,

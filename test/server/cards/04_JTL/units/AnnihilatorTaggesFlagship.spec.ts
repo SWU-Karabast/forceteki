@@ -89,7 +89,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([
                     inHandWampa
                 ]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(inHandWampa).toBeInZone('discard');
 
@@ -127,7 +127,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                     inHandPilotBoba,
                     context.cartelSpacer
                 ]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(inHandBoba).toBeInZone('discard');
                 expect(inHandPilotBoba).toBeInZone('discard');
@@ -159,21 +159,20 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 context.player1.clickCard(inPlayBoba);
                 expect(inPlayBoba).toBeInZone('discard');
 
-                // TODO: these are commented out pending some fixes for the FE prompt for this
-                // // Player sees the opponent's deck
-                // expect(context.player1).toHaveExactDisplayPromptCards({
-                //     selectable: [inDeckBoba, inDeckPilotBoba],
-                //     invalid: [context.cartelSpacer]
-                // });
+                // Player sees the opponent's deck
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [inDeckBoba, inDeckPilotBoba],
+                    // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                });
 
-                // expect(context.player1).toHaveEnabledPromptButton('Take nothing');
-                // expect(context.player2).toHavePrompt('Waiting for opponent to use Annihilator');
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+                expect(context.player2).toHavePrompt('Waiting for opponent to use Annihilator');
 
-                // context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
-                // expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
 
-                // context.player1.clickCardInDisplayCardPrompt(inDeckPilotBoba);
-                // context.player1.clickPrompt('Done');
+                context.player1.clickCardInDisplayCardPrompt(inDeckPilotBoba);
+                context.player1.clickDone();
 
                 expect(inDeckBoba).toBeInZone('discard');
                 expect(inDeckPilotBoba).toBeInZone('discard');
@@ -217,26 +216,25 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                     inHandPilotBoba,
                     context.cartelTurncoat
                 ]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(inHandBoba).toBeInZone('discard');
                 expect(inHandPilotBoba).toBeInZone('discard');
 
-                // TODO: these are commented out pending some fixes for the FE prompt for this
-                // // Player sees the opponent's deck
-                // expect(context.player1).toHaveExactDisplayPromptCards({
-                //     selectable: [inDeckBoba, inDeckPilotBoba],
-                //     invalid: [context.cartelSpacer]
-                // });
+                // Player sees the opponent's deck
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [inDeckBoba, inDeckPilotBoba],
+                    // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                });
 
-                // expect(context.player1).toHaveEnabledPromptButton('Take nothing');
-                // expect(context.player2).toHavePrompt('Waiting for opponent to use Annihilator');
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+                expect(context.player2).toHavePrompt('Waiting for opponent to use Annihilator');
 
-                // context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
-                // expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
 
-                // context.player1.clickCardInDisplayCardPrompt(inDeckPilotBoba);
-                // context.player1.clickPrompt('Done');
+                context.player1.clickCardInDisplayCardPrompt(inDeckPilotBoba);
+                context.player1.clickDone();
 
                 expect(inDeckBoba).toBeInZone('discard');
                 expect(inDeckPilotBoba).toBeInZone('discard');
@@ -279,21 +277,21 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             //         inHandLurkingTIE,
             //         context.cartelTurncoat
             //     ]);
-            //     context.player1.clickPrompt('Done');
+            //     context.player1.clickDone();
 
             //     expect(inHandLurkingTIE).toBeInZone('discard');
 
             //     // Player sees the opponent's deck
             //     expect(context.player1).toHaveExactDisplayPromptCards({
             //         selectable: [inDeckLurkingTIE],
-            //         invalid: [context.cartelSpacer]
+            //         invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
             //     });
 
             //     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
             //     expect(context.player2).toHavePrompt('Waiting for opponent to use Annihilator');
 
             //     context.player1.clickCardInDisplayCardPrompt(inDeckLurkingTIE);
-            //     context.player1.clickPrompt('Done');
+            //     context.player1.clickDone();
 
             //     expect(inDeckLurkingTIE).toBeInZone('discard');
 
@@ -321,29 +319,28 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 const inHandBoba = context.player2.findCardByName('boba-fett#disintegrator', 'hand');
                 const inHandPilotBoba = context.player2.findCardByName('boba-fett#feared-bounty-hunter', 'hand');
                 const inDeckBoba = context.player2.findCardByName('boba-fett#disintegrator', 'deck');
-                // const inDeckPilotBoba = context.player2.findCardByName('boba-fett#feared-bounty-hunter', 'deck'); see below TODO
+                const inDeckPilotBoba = context.player2.findCardByName('boba-fett#feared-bounty-hunter', 'deck');
 
                 context.player1.clickCard(context.annihilator);
                 context.player1.clickCard(player2LeaderBoba);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(inHandBoba).toBeInZone('discard');
                 expect(inHandPilotBoba).toBeInZone('discard');
 
-                // TODO: these are commented out pending some fixes for the FE prompt for this
-                // // Player sees the opponent's deck
-                // expect(context.player1).toHaveExactDisplayPromptCards({
-                //     selectable: [inDeckBoba, inDeckPilotBoba],
-                //     invalid: [context.cartelSpacer]
-                // });
+                // Player sees the opponent's deck
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [inDeckBoba, inDeckPilotBoba],
+                    // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                });
 
-                // context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
-                // expect(context.player1).toHaveEnabledPromptButton('Done');
-                // context.player1.clickPrompt('Done');
+                context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickDone();
 
                 expect(inDeckBoba).toBeInZone('discard');
-                // expect(inDeckPilotBoba).toBeInZone('deck'); see above TODO
+                expect(inDeckPilotBoba).toBeInZone('deck');
                 expect(context.player2).toBeActivePlayer();
             });
         });
@@ -389,29 +386,81 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 inHandPilotBoba,
                 context.cartelTurncoat
             ]);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(inHandBoba).toBeInZone('discard');
             expect(inHandPilotBoba).toBeInZone('discard');
 
-            // TODO: these are commented out pending some fixes for the FE prompt for this
-            // // Search deck for Bobas
-            // expect(context.player1).toHaveExactDisplayPromptCards({
-            //     selectable: [inDeckBoba, inDeckPilotBoba],
-            //     invalid: [context.cartelSpacer]
-            // });
+            // Search deck for Bobas
+            expect(context.player1).toHaveExactDisplayPromptCards({
+                selectable: [inDeckBoba, inDeckPilotBoba],
+                // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+            });
 
-            // context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
-            // expect(context.player1).toHaveEnabledPromptButton('Done');
+            context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
+            expect(context.player1).toHaveEnabledPromptButton('Done');
 
-            // context.player1.clickCardInDisplayCardPrompt(inDeckPilotBoba);
-            // context.player1.clickPrompt('Done');
+            context.player1.clickCardInDisplayCardPrompt(inDeckPilotBoba);
+            context.player1.clickDone();
 
             expect(inDeckBoba).toBeInZone('discard');
             expect(inDeckPilotBoba).toBeInZone('discard');
             expect(inPlayBoba).toBeInZone('groundArena');
 
             expect(context.player1).toBeActivePlayer();
+        });
+
+        it('Annihilator\'s when defeated ability should defeat an enemy unit and discard all cards with the same name from the opponent\'s hand and deck even if the defeat event was replaced', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['annihilator#tagges-flagship'],
+                    deck: ['battlefield-marine']
+                },
+                player2: {
+                    groundArena: ['l337#get-out-of-my-seat', 'atst'],
+                    hand: ['l337#droid-revolutionary', 'l337#get-out-of-my-seat', 'cartel-turncoat', 'rivals-fall'],
+                    deck: ['l337#droid-revolutionary', 'l337#get-out-of-my-seat', 'cartel-spacer']
+                }
+            });
+
+            const { context } = contextRef;
+
+            const inPlayL337 = context.player2.findCardByName('l337#get-out-of-my-seat', 'groundArena');
+            const inHandL337 = context.player2.findCardByName('l337#droid-revolutionary', 'hand');
+            const inDeckL337 = context.player2.findCardByName('l337#droid-revolutionary', 'deck');
+            const inHandL337Pilot = context.player2.findCardByName('l337#get-out-of-my-seat', 'hand');
+            const inDeckL337Pilot = context.player2.findCardByName('l337#get-out-of-my-seat', 'deck');
+
+            context.player1.clickCard(context.annihilator);
+            context.player1.clickCard(inPlayL337);
+            context.player2.clickPrompt('Trigger');
+            context.player2.clickCard(context.atst);
+
+            // click "Done" for hand display prompt and discard L3's from hand
+            context.player1.clickDone();
+
+            expect(inHandL337).toBeInZone('discard');
+            expect(inHandL337Pilot).toBeInZone('discard');
+
+            // Search deck for L3's
+            expect(context.player1).toHaveExactDisplayPromptCards({
+                selectable: [inDeckL337, inDeckL337Pilot],
+                // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+            });
+
+            context.player1.clickCardInDisplayCardPrompt(inDeckL337);
+            expect(context.player1).toHaveEnabledPromptButton('Done');
+
+            context.player1.clickCardInDisplayCardPrompt(inDeckL337Pilot);
+            context.player1.clickDone();
+
+            expect(context.atst).toHaveExactUpgradeNames(['l337#get-out-of-my-seat']);
+            expect(inPlayL337).toBeInZone('groundArena');
+            expect(inHandL337).toBeInZone('discard');
+            expect(inDeckL337).toBeInZone('discard');
+            expect(inHandL337Pilot).toBeInZone('discard');
+            expect(inDeckL337Pilot).toBeInZone('discard');
         });
     });
 });

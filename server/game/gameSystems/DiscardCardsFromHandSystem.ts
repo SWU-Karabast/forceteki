@@ -36,7 +36,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
     };
 
     public override name = 'discard';
-    public override eventName = EventName.OnCardsDiscardedFromHand;
+    public override readonly eventName = EventName.OnCardsDiscardedFromHand;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(_event): void { }
@@ -46,7 +46,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
 
         const targets = Helpers.asArray(properties.target);
         if (targets.length === 1 || new Set(targets.map((target) => derive(properties.amount, target))).size === 1) {
-            return ['make {0} {1}discard {2}', [properties.target, properties.random ? 'randomly ' : '', ChatHelpers.pluralize(derive(properties.amount, targets[0]), 'a card', 'cards')]];
+            return ['make {0} {1}discard {2}', [this.getTargetMessage(targets, context), properties.random ? 'randomly ' : '', ChatHelpers.pluralize(derive(properties.amount, targets[0]), 'a card', 'cards')]];
         }
         return [ChatHelpers.formatWithLength(targets.length, 'to '), targets.map((target): FormatMessage => ({
             format: 'make {0} {1}discard {2}',

@@ -261,7 +261,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                 const p2Yularen = context.player2.findCardByName('colonel-yularen#isb-director');
 
                 context.player1.clickCard(context.maul);
-                context.player1.clickPrompt('Heal 1 damage from your base'); // select yularen's heal on base
+                context.player1.clickPrompt('(No effect) Heal 1 damage from your base'); // select yularen's heal on base
 
                 // Select opponents Yularen to be ambushed
                 context.player1.clickPrompt('Trigger');
@@ -271,6 +271,38 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.maul.damage).toBe(2);
 
                 // Overwhelm damage should be on base
+                expect(context.p2Base.damage).toBe(4);
+            });
+
+            it('works correctly with Clone', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone'],
+                        groundArena: ['maul#shadow-collective-visionary']
+                    },
+                    player2: {
+                        groundArena: ['colonel-yularen#isb-director'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.maul);
+                expect(context.clone).toBeCloneOf(context.maul);
+
+                // Choose target for ambush
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.colonelYularen);
+
+                // Choose target for redirect
+                expect(context.player1).toBeAbleToSelectExactly([context.maul]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.maul);
+
+                expect(context.maul.damage).toBe(2);
+                expect(context.clone.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(4);
             });
         });

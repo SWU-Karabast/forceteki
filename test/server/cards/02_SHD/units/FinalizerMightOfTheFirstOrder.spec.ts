@@ -40,7 +40,7 @@ describe('Finalizer, Might of the First Order', function() {
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCard(context.idenVersio);
                 context.player1.clickCard(context.wampa);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Capture 4-LOM, which is currently alive because of the presence of Zuckuss
                 expect(context.player1).toHavePrompt('Choose a unit to capture with Iden Versio');

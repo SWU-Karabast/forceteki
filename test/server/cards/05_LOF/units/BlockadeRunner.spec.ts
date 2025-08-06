@@ -81,7 +81,7 @@ describe('Blockade Runner', function() {
                 context.player1.clickCard(context.concordDawnInterceptors);
                 context.player1.clickPrompt('Deal 1 damage to each of up to 2 units in this arena.');
                 context.player1.clickCard(context.concordDawnInterceptors);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to this unit');
 
                 context.player1.clickPrompt('Trigger');

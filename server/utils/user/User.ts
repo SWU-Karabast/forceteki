@@ -15,6 +15,11 @@ export abstract class User {
     public abstract isAnonymousUser(): boolean;
 
     /**
+     * Checks if the user is a local dev test user
+     */
+    public abstract isDevTestUser(): boolean;
+
+    /**
      * Gets the user's ID (either authenticated user ID or anonymous ID)
      */
     public abstract getId(): string;
@@ -35,9 +40,16 @@ export abstract class User {
     public abstract getPreferences(): UserPreferences;
 
     /**
+     * Sets the user's preferences
+     */
+    public abstract setPreferences(preferences: UserPreferences): void;
+
+    /**
      * Gets the object representation of the user for sending to the client
      */
     public abstract toJSON(): Record<string, any>;
+
+    public abstract needsUsernameChange(): boolean;
 }
 
 /**
@@ -59,6 +71,10 @@ export class AuthenticatedUser extends User {
         return false;
     }
 
+    public isDevTestUser(): boolean {
+        return false;
+    }
+
     public getId(): string {
         return this.userData.id;
     }
@@ -73,6 +89,15 @@ export class AuthenticatedUser extends User {
 
     public getPreferences(): UserPreferences {
         return this.userData.preferences;
+    }
+
+    public setPreferences(preferences: UserPreferences) {
+        this.userData.preferences = preferences;
+    }
+
+    public needsUsernameChange(): boolean {
+        // undefined = false
+        return !!this.userData.needsUsernameChange;
     }
 
     public toJSON(): Record<string, any> {
@@ -107,8 +132,19 @@ export class AnonymousUser extends User {
         return true;
     }
 
+    public isDevTestUser(): boolean {
+        if (process.env.ENVIRONMENT === 'development') {
+            return this.id === 'exe66' || this.id === 'th3w4y';
+        }
+        return false;
+    }
+
     public getId(): string {
         return this.id;
+    }
+
+    public needsUsernameChange(): boolean {
+        return false;
     }
 
     public getUsername(): string {
@@ -117,6 +153,10 @@ export class AnonymousUser extends User {
 
     public getPreferences(): UserPreferences {
         return null;
+    }
+
+    public setPreferences(_preferences: UserPreferences) {
+        throw new Error('Anonymous users do not support preferences. Check supportsPreferences() before calling this method.');
     }
 
     public override getShowWelcomeMessage(): boolean {

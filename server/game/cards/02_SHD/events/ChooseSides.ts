@@ -1,5 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class ChooseSides extends EventCard {
@@ -10,8 +11,8 @@ export default class ChooseSides extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Choose a friendly non-leader unit and an enemy non-leader unit. Exchange control of those units.',
             targetResolvers: {
                 friendlyUnit: {

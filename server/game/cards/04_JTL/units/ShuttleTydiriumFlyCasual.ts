@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class ShuttleTydiriumFlyCasual extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addOnAttackAbility({
             title: 'Discard a card from your deck. If you do, give an Experience token to another unit',
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 1,
@@ -24,7 +25,7 @@ export default class ShuttleTydiriumFlyCasual extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card !== this,
-                    innerSystem: AbilityHelper.immediateEffects.giveExperience()
+                    immediateEffect: AbilityHelper.immediateEffects.giveExperience()
                 })
             })
         });

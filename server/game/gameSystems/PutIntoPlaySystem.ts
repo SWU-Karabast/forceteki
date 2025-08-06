@@ -21,6 +21,7 @@ export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
 export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPutIntoPlayProperties> {
     public override readonly name = 'putIntoPlay';
     public override readonly eventName = EventName.OnUnitEntersPlay;
+    public override effectDescription = 'put {0} into play';
     public override readonly costDescription = 'putting {0} into play';
 
     protected override readonly targetTypeFilter = [WildcardCardType.Unit];
@@ -42,11 +43,6 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         } else {
             event.card.exhaust();
         }
-    }
-
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { target } = this.generatePropertiesFromContext(context);
-        return ['put {0} into play', [target]];
     }
 
     public override canAffectInternal(card: Card, context: TContext): boolean {
@@ -76,10 +72,27 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             additionalProperties
         ) as IPutIntoPlayProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
+        const newController = EnumHelpers.asConcretePlayer(controller, context.player);
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
-        event.entersReady = entersReady || card.hasOngoingEffect(EffectName.EntersPlayReady);
-        event.newController = EnumHelpers.asConcretePlayer(controller, context.player);
+        event.entersReady = entersReady ||
+          card.hasOngoingEffect(EffectName.EntersPlayReady) ||
+          (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
+        event.newController = newController;
+        event.setPreResolutionEffect((event) => {
+            const card: Card = event.card;
+            if (card.canRegisterPreEnterPlayAbilities()) {
+                for (const ability of card.getPreEnterPlayAbilities()) {
+                    context.game.resolveAbility(ability.createContext(context.player, event));
+                }
+                context.game.queueSimpleStep(() => {
+                    if (!event.entersReady) {
+                        event.entersReady = card.hasOngoingEffect(EffectName.EntersPlayReady) ||
+                          (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
+                    }
+                }, `Update onUnitEntersPlay event after resolving pre-enter play abilities for ${card.internalName}`);
+            }
+        });
     }
 
     private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {

@@ -1,7 +1,8 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { PhaseName, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { GameStateChangeRequired, PhaseName, RelativePlayer, ZoneName } from '../../../core/Constants';
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
 
 export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
@@ -12,37 +13,38 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addActionAbility({
             title: 'Put a card from your hand into play as a resource and ready it. At the start of the next action phase, defeat a resource you control.',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
-                    innerSystem: AbilityHelper.immediateEffects.resourceCard({
+                    mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
+                    immediateEffect: AbilityHelper.immediateEffects.resourceCard({
                         readyResource: true
                     })
                 }),
-                this.buildHanDelayedEffect()
+                this.buildHanDelayedEffect(AbilityHelper)
             ])
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addOnAttackAbility({
             title: 'Put the top card of your deck into play as a resource and ready it. At the start of the next action phase, defeat a resource you control.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.resourceCard((context) => ({
                     target: context.player.getTopCardOfDeck(),
                     readyResource: true
                 })),
-                this.buildHanDelayedEffect()
+                this.buildHanDelayedEffect(AbilityHelper)
             ])
         });
     }
 
-    private buildHanDelayedEffect(): GameSystem<TriggeredAbilityContext<this>> {
+    private buildHanDelayedEffect(AbilityHelper: IAbilityHelper): GameSystem<TriggeredAbilityContext<this>> {
         const defaultActivePromptTitle = 'Choose a resource to defeat';
         return AbilityHelper.immediateEffects.delayedPlayerEffect({
             title: 'Defeat a resource you control',
@@ -52,8 +54,9 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.selectCard({
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
-                activePromptTitle: () => (this.controller.exhaustedResourceCount === 0 ? defaultActivePromptTitle : `${defaultActivePromptTitle}. The resource you choose will automatically be switched to exhausted before it is defeated (you will not lose any ready resources).`),
-                innerSystem: AbilityHelper.immediateEffects.defeat()
+                mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
+                activePromptTitle: (context) => (context.source.controller.exhaustedResourceCount === 0 ? defaultActivePromptTitle : `${defaultActivePromptTitle}. The resource you choose will automatically be switched to exhausted before it is defeated (you will not lose any ready resources).`),
+                immediateEffect: AbilityHelper.immediateEffects.defeat()
             })
         });
     }

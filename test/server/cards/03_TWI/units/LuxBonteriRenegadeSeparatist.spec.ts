@@ -39,7 +39,7 @@ describe('Lux Bonteri, Renegade Separatist', function () {
             context.player1.clickCard(context.droidekaSecurity);
             context.player1.clickPrompt('Trigger exploit');
             context.player1.clickCard(context.battlefieldMarine);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // droideka security was played with only 4 resource, lux ability triggers
             expect(context.player2).toBeAbleToSelectExactly([context.luxBonteri, context.kiadimundi, context.droidekaSecurity, context.huyang]);
@@ -86,22 +86,17 @@ describe('Lux Bonteri, Renegade Separatist', function () {
             expect(context.droidekaSecurity.exhausted).toBeTrue();
             expect(context.player2).toBeActivePlayer();
 
-            // TODO CLONE
+            context.player2.passAction();
+            context.player1.clickCard(context.kraytDragon);
 
-            // context.player2.passAction();
-            // context.player1.clickCard(context.kraytDragon);
-            //
-            // // play clone and copy krayt dragon, you pay 7 for an 9 cost card, lux ability should trigger
-            // context.player2.passAction();
-            // context.player1.clickCard(context.clone);
-            // context.player1.clickCard(context.kraytDragon);
-            //
-            // const dragons = context.player2.findCardsByName('krayt-dragon');
-            //
-            // expect(context.player2).toBeAbleToSelectExactly([context.luxBonteri, context.droidekaSecurity, context.scoutBikePursuer, context.huyang, context.battlefieldMarine, ...dragons]);
-            // context.player2.clickCard(context.droidekaSecurity);
-            // expect(context.player2).toHaveExactPromptButtons(['Exhaust', 'Ready']);
-            // context.player2.clickPrompt('Exhaust');
+            // play clone and copy krayt dragon, you pay 7 for an 9 cost card, lux ability should trigger
+            context.player2.passAction();
+            context.player1.clickCard(context.clone);
+            context.player1.clickCard(context.kraytDragon);
+            expect(context.player2).toBeAbleToSelectExactly([context.luxBonteri, context.kiadimundi, context.droidekaSecurity, context.scoutBikePursuer, context.huyang, context.battlefieldMarine, context.kraytDragon, context.clone]);
+            context.player2.clickCard(context.droidekaSecurity);
+            expect(context.player2).toHaveExactPromptButtons(['Exhaust', 'Ready']);
+            context.player2.clickPrompt('Exhaust');
 
             // TODO PILOTING
         });

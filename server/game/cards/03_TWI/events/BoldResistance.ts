@@ -1,5 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import * as Helpers from '../../../core/utils/Helpers';
@@ -12,8 +13,8 @@ export default class BoldResistance extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Choose up to 3 units that share the same Trait. Each of those units gets +2/+0 for this phase.',
             targetResolver: {
                 mode: TargetMode.UpTo,

@@ -43,7 +43,7 @@ class HandlerMenuPrompt extends UiPrompt {
     }
 
     /** @override */
-    activePrompt() {
+    activePromptInternal() {
         let buttons = [];
         if (this.properties.cards) {
             let cardQuantities = {};

@@ -1,6 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class NimanStrike extends EventCard {
     protected override getImplementationId() {
@@ -10,8 +11,8 @@ export default class NimanStrike extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Attack with a Force unit, even if it\'s exhausted. It gets +1/+0 and can\'t attack bases for this attack.',
             initiateAttack: {
                 attackerCondition: (attacker) => attacker.hasSomeTrait(Trait.Force),

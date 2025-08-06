@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { WildcardCardType, KeywordName } from '../../../core/Constants';
 
 export default class Overpower extends EventCard {
@@ -10,8 +11,8 @@ export default class Overpower extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Give a unit +3/+3 and overwhelm for this phase',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

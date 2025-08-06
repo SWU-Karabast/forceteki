@@ -82,7 +82,7 @@ describe('Anakin Skywalker, What It Takes To Win', function () {
                 context.player1.clickCard(context.darthMaul);
                 context.player1.clickCard(context.moistureFarmer);
                 context.player1.clickCard(context.cantinaBraggart);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.moistureFarmer.damage).toBe(7);
                 expect(context.cantinaBraggart.damage).toBe(7);

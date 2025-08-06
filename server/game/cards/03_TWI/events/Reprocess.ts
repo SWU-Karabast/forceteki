@@ -1,5 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class Reprocess extends EventCard {
@@ -10,8 +11,8 @@ export default class Reprocess extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Choose up to 4 units in your discard pile. Put them on the bottom of your deck in a random order and create that many Battle Droid tokens.',
             targetResolver: {
                 mode: TargetMode.UpTo,

@@ -48,7 +48,7 @@ describe('Grand Inquisitor, Stories Travel Quickly', function() {
                 context.player1.clickCard(context.darthMaul);
                 context.player1.clickCard(context.ephantMon);
                 context.player1.clickCard(context.lomPyke);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.grandInquisitor.exhausted).toBeTrue();
                 expect(context.player1.hasTheForce).toBeFalse();

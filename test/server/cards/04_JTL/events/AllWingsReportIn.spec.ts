@@ -34,7 +34,7 @@ describe('All Wings Report In', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.redThree]);
                 context.player1.clickCard(context.allianceXwing);
                 context.player1.clickCard(context.redThree);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Create X-Wing tokens and assert it is exhausted
                 const xwings = context.player1.findCardsByName('xwing');
@@ -85,7 +85,7 @@ describe('All Wings Report In', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.redThree]);
                 context.player1.clickCardNonChecking(context.allianceXwing);
                 context.player1.clickCard(context.redThree);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // No X-Wing tokens created
                 const xwings = context.player1.findCardsByName('xwing');

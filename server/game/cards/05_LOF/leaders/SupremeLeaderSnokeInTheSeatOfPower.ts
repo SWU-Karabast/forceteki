@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
@@ -12,22 +13,22 @@ export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addActionAbility({
             title: 'Give an Experience token to the unit with the most power among Villainy units',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
-            immediateEffect: this.buildSnokeAbility(),
+            immediateEffect: this.buildSnokeAbility(AbilityHelper),
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addOnAttackAbility({
             title: 'Give an Experience token to the unit with the most power among Villainy units',
-            immediateEffect: this.buildSnokeAbility(),
+            immediateEffect: this.buildSnokeAbility(AbilityHelper),
         });
     }
 
-    private buildSnokeAbility(): GameSystem<TriggeredAbilityContext<this>> {
+    private buildSnokeAbility(AbilityHelper: IAbilityHelper): GameSystem<TriggeredAbilityContext<this>> {
         return AbilityHelper.immediateEffects.conditional((context) => {
             const villainyUnits = context.player.getArenaUnits({ aspect: Aspect.Villainy });
             const maxPower = villainyUnits.map((x) => x.getPower()).reduce((p, c) => (p > c ? p : c), 0);
@@ -40,7 +41,7 @@ export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
                     cardCondition: (card) => {
                         return card.isUnit() && card.hasSomeAspect(Aspect.Villainy) && card.getPower() === maxPower;
                     },
-                    innerSystem: AbilityHelper.immediateEffects.giveExperience()
+                    immediateEffect: AbilityHelper.immediateEffects.giveExperience()
                 }),
                 onFalse: AbilityHelper.immediateEffects.giveExperience({
                     target: villainyUnits.find((x) => x.getPower() === maxPower)

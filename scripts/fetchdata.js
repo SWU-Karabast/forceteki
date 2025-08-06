@@ -111,8 +111,27 @@ function populateMissingData(attributes, id) {
                     }
                 }]
             };
+            break;
         case '0754286363': // The Mandalorian's Rifle
             attributes.unique = true;
+            break;
+        case '6190335038': // Aayla Secura - Master of the Blade
+            attributes.traits = {
+                data: [{ attributes: {
+                    name: 'Force'
+                } },
+                { attributes: {
+                    name: 'Jedi'
+                } },
+                { attributes: {
+                    name: 'Republic'
+                } },
+                { attributes: {
+                    name: 'Twi\'lek'
+                } },
+                ]
+            };
+            break;
     }
 }
 
@@ -183,6 +202,18 @@ function filterValues(card) {
             filteredObj.setId.number = card.attributes.cardNumber;
         }
 
+        let lofReprintMap = new Map();
+        lofReprintMap.set(58, { set: 'SOR', number: 61 }); // Guardian of the Whills - SOR 61
+        lofReprintMap.set(60, { set: 'TWI', number: 58 }); // Padawan Starfighter - TWI 58
+        lofReprintMap.set(162, { set: 'SHD', number: 168 }); // Hunting Nexu - SHD 168
+        lofReprintMap.set(164, { set: 'SOR', number: 164 }); // Wampa - SOR 164
+
+        if (filteredObj.setId.set === 'LOF' && lofReprintMap.has(filteredObj.setId.number)) {
+            let reprintData = lofReprintMap.get(filteredObj.setId.number);
+            filteredObj.setId.set = reprintData.set;
+            filteredObj.setId.number = reprintData.number;
+        }
+
         if (filteredObj.keywords.includes('piloting')) {
             filteredObj.pilotText = filteredObj.epicAction;
             filteredObj.epicAction = null;
@@ -232,7 +263,7 @@ function buildCardLists(cards) {
     const seenNames = [];
     var duplicatesWithSetCode = {};
     const uniqueCardsMap = new Map();
-    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3], ['JTL', 4], ['LOF', 5]]);
+    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3], ['JTL', 4], ['LOF', 5], ['IBH', 6]]);
 
     for (const card of cards) {
         // creates a map of set code + card number to card id. removes reprints when done since we don't need that in the card data

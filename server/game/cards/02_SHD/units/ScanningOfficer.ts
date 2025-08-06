@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, RelativePlayer } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class ScanningOfficer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenPlayedAbility({
             title: 'Reveal 3 enemy resources. Defeat each resource with Smuggle that was revealed and replace it with the top card of its controllers deck.',
             immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
                 target: context.player.opponent.getRandomResources(context, 3),

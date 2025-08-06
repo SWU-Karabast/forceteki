@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class RuthlessRaider extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'Deal 2 damage to an enemy base and 2 damage to an enemy unit',
             when: {
                 whenPlayed: true,
@@ -21,7 +22,7 @@ export default class RuthlessRaider extends NonLeaderUnitCard {
                 AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                 }),
                 AbilityHelper.immediateEffects.damage((context) => ({ amount: 2, target: context.player.opponent.base }))
             ])

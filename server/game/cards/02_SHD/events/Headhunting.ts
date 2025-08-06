@@ -1,6 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Attack } from '../../../core/attack/Attack';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait } from '../../../core/Constants';
 
 export default class Headhunting extends EventCard {
@@ -11,20 +12,20 @@ export default class Headhunting extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Attack with up to 3 units',
             immediateEffect: AbilityHelper.immediateEffects.sequential([
-                this.buildBountyHunterAttackEffect(),
-                this.buildBountyHunterAttackEffect(),
-                this.buildBountyHunterAttackEffect()
+                this.buildBountyHunterAttackEffect(AbilityHelper),
+                this.buildBountyHunterAttackEffect(AbilityHelper),
+                this.buildBountyHunterAttackEffect(AbilityHelper)
             ])
         });
     }
 
-    private buildBountyHunterAttackEffect() {
+    private buildBountyHunterAttackEffect(AbilityHelper: IAbilityHelper) {
         return AbilityHelper.immediateEffects.selectCard({
-            innerSystem: AbilityHelper.immediateEffects.attack({
+            immediateEffect: AbilityHelper.immediateEffects.attack({
                 targetCondition: (card) => !card.isBase(),
                 attackerLastingEffects: {
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),

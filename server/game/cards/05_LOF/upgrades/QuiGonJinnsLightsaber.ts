@@ -1,6 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { TargetMode, Trait } from '../../../core/Constants';
 import type { Player } from '../../../core/Player';
@@ -18,8 +19,8 @@ export default class QuiGonJinnsLightsaber extends UpgradeCard {
         return targetCard.isUnit() && !targetCard.hasSomeTrait(Trait.Vehicle) && targetCard.controller === controller;
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenPlayedAbility({
             title: 'Exhaust any number of units with combined cost 6 or less.',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
@@ -29,7 +30,7 @@ export default class QuiGonJinnsLightsaber extends UpgradeCard {
                     mode: TargetMode.Unlimited,
                     multiSelectCardCondition: (card, currentlySelectedCards) => card.isUnit() && this.costSum(currentlySelectedCards.concat(card)) <= 6,
                     canChooseNoCards: true,
-                    innerSystem: AbilityHelper.immediateEffects.exhaust()
+                    immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 })
             })
         });

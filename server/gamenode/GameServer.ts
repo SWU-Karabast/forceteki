@@ -5,13 +5,15 @@ import express from 'express';
 import cors from 'cors';
 import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
+import { constants as zlibConstants } from 'zlib';
+import { getHeapStatistics } from 'v8';
+import { freemem } from 'os';
 
 import { logger } from '../logger';
 
 import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
 import type { User } from '../utils/user/User';
-import { AuthenticatedUser } from '../utils/user/User';
 import * as env from '../env';
 import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
@@ -56,7 +58,7 @@ export class GameServer {
         let testGameBuilder: any = null;
 
         console.log('SETUP: Initiating server start.');
-        console.log('SETUP: Retreiving card data.');
+        console.log('SETUP: Retrieving card data.');
         if (process.env.ENVIRONMENT === 'development') {
             testGameBuilder = this.getTestGameBuilder();
 
@@ -66,11 +68,15 @@ export class GameServer {
         } else {
             cardDataGetter = await GameServer.buildRemoteCardDataGetter();
         }
+
+        // downloads all card data to build deck validator
+        const deckValidator = await DeckValidator.createAsync(cardDataGetter);
+
         console.log('SETUP: Card data downloaded.');
 
         return new GameServer(
             cardDataGetter,
-            await DeckValidator.createAsync(cardDataGetter),
+            deckValidator,
             testGameBuilder
         );
     }
@@ -120,6 +126,27 @@ export class GameServer {
         };
         app.use(cors(corsOptions));
 
+        app.use((req, res, next) => {
+            const start = process.hrtime.bigint();
+
+            res.on('finish', () => {
+                const end = process.hrtime.bigint();
+                const durationMs = Number(end - start) / 1e6;
+
+                const log = {
+                    method: req.method,
+                    path: req.originalUrl.split('?')[0],
+                    status: res.statusCode,
+                    durationMs: Number(durationMs.toFixed(2)),
+                    timestamp: new Date().toISOString()
+                };
+
+                logger.info(`[ApiRequest] ${JSON.stringify(log)}`);
+            });
+
+            next();
+        });
+
         this.setupAppRoutes(app);
         app.use((err, req, res, next) => {
             logger.error('GameServer: Error in API route:', err);
@@ -128,6 +155,7 @@ export class GameServer {
                 error: err.message || 'Server error.',
             });
         });
+
 
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
@@ -138,7 +166,9 @@ export class GameServer {
 
         // Setup socket server
         this.io = new IOServer(server, {
-            perMessageDeflate: false,
+            perMessageDeflate: {
+                level: zlibConstants.Z_BEST_SPEED
+            },
             path: '/ws',
             cors: {
                 origin: env.corsOrigins,
@@ -164,7 +194,7 @@ export class GameServer {
 
                         // If client sent pre-authenticated user data, use it directly
                         if (userData.authenticated) {
-                            user = new AuthenticatedUser(userData);
+                            user = this.userFactory.verifyTokenAndCreateAuthenticatedUser(token, userData);
                         } else {
                             // User data exists but not marked as authenticated
                             // Verify with token instead
@@ -212,7 +242,11 @@ export class GameServer {
         this.deckValidator = deckValidator;
         this.bugReportHandler = new BugReportHandler();
         // set up queue heartbeat once a second
-        setInterval(() => this.queue.sendHeartbeat(), 1000);
+        setInterval(() => this.queue.sendHeartbeat(), 500);
+
+        // set up periodic heap monitoring every 30 seconds
+        this.logHeapStats();
+        setInterval(() => this.logHeapStats(), 30000);
     }
 
     private setupAppRoutes(app: express.Application) {
@@ -254,20 +288,27 @@ export class GameServer {
             }
         });
 
-        app.post('/api/get-user', authMiddleware('get-user'), async (req, res, next) => {
+        app.post('/api/get-user', authMiddleware('get-user'), (req, res, next) => {
             try {
-                const { decks } = req.body;
+                // const { decks, preferences } = req.body;
                 const user = req.user as User;
                 // We try to sync the decks first
-                if (decks.length > 0) {
-                    try {
-                        await this.deckService.syncDecksAsync(user.getId(), decks);
-                    } catch (err) {
-                        logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
-                        next(err);
-                    }
-                }
-                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences() } });
+                // if (decks.length > 0) {
+                //     try {
+                //         await this.deckService.syncDecksAsync(user.getId(), decks);
+                //     } catch (err) {
+                //         logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
+                //         next(err);
+                //     }
+                // }
+                // if (preferences) {
+                //     try {
+                //         user.setPreferences(await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences));
+                //     } catch (err) {
+                //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
+                //     }
+                // }
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange() } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
                 next(err);
@@ -364,6 +405,33 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (change-username) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/save-sound-preferences', authMiddleware(), async (req, res, next) => {
+            try {
+                const { soundPreferences } = req.body;
+                const user = req.user as User;
+
+                // Check if user is authenticated
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences to dynamodb`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Error attempting to save sound preferences'
+                    });
+                }
+
+                // Update user preferences with sound preferences
+                await this.userFactory.updateUserPreferencesAsync(user.getId(), { sound: soundPreferences });
+
+                return res.status(200).json({
+                    success: true,
+                    message: 'Sound preferences saved successfully'
+                });
+            } catch (err) {
+                logger.error('GameServer (save-sound-preferences) Server error:', err);
                 next(err);
             }
         });
@@ -1233,7 +1301,7 @@ export class GameServer {
 
                     // Check if the user is still disconnected after the timer
                     if (lobby?.isDisconnected(id, socket.id)) {
-                        logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than 20s, removing from lobby`, { userId: id, lobbyId: lobby.id });
+                        logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than ${timeoutSeconds}s, removing from lobby`, { userId: id, lobbyId: lobby.id });
 
                         this.userLobbyMap.delete(id);
 
@@ -1256,6 +1324,22 @@ export class GameServer {
             }, timeoutValue);
         } catch (err) {
             logger.error('GameServer: Error in onSocketDisconnected:', err);
+        }
+    }
+
+    private logHeapStats(): void {
+        try {
+            const heapStats = getHeapStatistics();
+            const usedHeapSizeInMB = (heapStats.used_heap_size / 1024 / 1024).toFixed(1);
+            const totalHeapSizeInMB = (heapStats.total_heap_size / 1024 / 1024).toFixed(1);
+            const heapSizeLimitInMB = (heapStats.heap_size_limit / 1024 / 1024).toFixed(1);
+            const heapUsagePercent = ((heapStats.used_heap_size / heapStats.heap_size_limit) * 100).toFixed(1);
+            const rssSizeInMB = (process.memoryUsage().rss / 1024 / 1024).toFixed(1);
+
+            const freeSystemMemoryInGB = (freemem() / 1024 / 1024 / 1024).toFixed(2);
+            logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | Total physical usage: ${rssSizeInMB}MB | System free: ${freeSystemMemoryInGB}GB`);
+        } catch (error) {
+            logger.error(`Error logging heap stats: ${error}`);
         }
     }
 }

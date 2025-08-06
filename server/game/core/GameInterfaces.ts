@@ -6,7 +6,6 @@ import * as Contract from './utils/Contract';
 
 export interface GameConfiguration {
     id: string;
-    name: string;
     owner: string;
     players: IUser[];
     spectators?: IUser[];
@@ -17,11 +16,11 @@ export interface GameConfiguration {
     pushUpdate: () => void;
     buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     userTimeoutDisconnect: (userId: string) => void;
+    enableUndo?: boolean;
 }
 
 export function validateGameConfiguration(configuration: GameConfiguration): void {
     Contract.assertNotNullLike(configuration.id);
-    Contract.assertNotNullLike(configuration.name);
     Contract.assertNotNullLike(configuration.owner);
     Contract.assertNotNullLike(configuration.players);
     Contract.assertNotNullLike(configuration.gameMode);

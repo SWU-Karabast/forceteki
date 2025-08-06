@@ -1,5 +1,9 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { Card } from '../../../core/card/Card';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { TargetMode } from '../../../core/Constants';
 
 export default class SearchYourFeelings extends EventCard {
     protected override getImplementationId() {
@@ -9,14 +13,35 @@ export default class SearchYourFeelings extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
-            title: 'Search your deck for a card, draw it, then shuffle',
-            immediateEffect: AbilityHelper.immediateEffects.deckSearch({
-                shuffleWhenDone: true,
-                revealSelected: false,
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
-            })
+    // TODO: since the card display prompt can't handle showing the full deck currently, we instead use a dropdown list of card names
+    // once the prompt is fixed, we can go back to using that for deck search like other cards do
+    // TODO: the dropdown list prompt doesn't have support for "optional" currently, so the player will be forced to choose a card
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
+            title: 'Choose the name of a card from your deck to draw',
+            targetResolver: {
+                mode: TargetMode.DropdownList,
+                options: (context) => this.getDistinctCardNamesInDeck(context),
+                logSelection: false,
+                condition: (context) => context.player.drawDeck.length > 0,
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                    AbilityHelper.immediateEffects.drawSpecificCard((context) => ({
+                        target: context.player.drawDeck.find((card) => this.buildCardName(card) === context.select)
+                    })),
+                    AbilityHelper.immediateEffects.shuffleDeck((context) => ({
+                        target: context.player
+                    }))
+                ])
+            },
         });
+    }
+
+    private getDistinctCardNamesInDeck(context: AbilityContext): string[] {
+        const cardNamesInDeck = context.player.drawDeck.map((card) => this.buildCardName(card));
+        return [...new Set(cardNamesInDeck)];
+    }
+
+    private buildCardName(card: Card): string {
+        return `${card.title}${card.subtitle ? ', ' + card.subtitle : ''}`;
     }
 }

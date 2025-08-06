@@ -1,5 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class DedicatedWingmen extends EventCard {
     protected override getImplementationId() {
@@ -9,8 +10,8 @@ export default class DedicatedWingmen extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Create 2 X-Wing tokens',
             immediateEffect: AbilityHelper.immediateEffects.createXWing({ amount: 2 })
         });

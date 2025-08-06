@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class DarthMaulRevengeAtLast extends NonLeaderUnitCard {
@@ -9,8 +10,8 @@ export default class DarthMaulRevengeAtLast extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'This unit can attack 2 units instead of 1',
             ongoingEffect: AbilityHelper.ongoingEffects.canAttackMultipleUnitsSimultaneously({
                 amount: 2

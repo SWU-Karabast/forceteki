@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { PhaseName, RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class DoctorAphraRapaciousArchaeologist extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'Discard a card from your deck',
             when: {
                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup
@@ -23,8 +24,8 @@ export default class DoctorAphraRapaciousArchaeologist extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'While there are 5 or more different costs among cards in your discard pile, this unit gets +3/+0',
             condition: (context) => new Set(
                 context.player.getCardsInZone(ZoneName.Discard).filter((card) => card.hasCost())
@@ -32,7 +33,7 @@ export default class DoctorAphraRapaciousArchaeologist extends LeaderUnitCard {
             ).size >= 5,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 3, hp: 0 })
         });
-        this.addTriggeredAbility({
+        registrar.addTriggeredAbility({
             title: 'Choose 3 cards in your discard pile with different names. If you do, return 1 of them at random to your hand',
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source,

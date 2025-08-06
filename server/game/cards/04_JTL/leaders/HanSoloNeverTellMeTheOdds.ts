@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Attack } from '../../../core/attack/Attack';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { AbilityType, DeployType, WildcardZoneName } from '../../../core/Constants';
 
@@ -11,10 +12,10 @@ export default class HanSoloNeverTellMeTheOdds extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addPilotDeploy();
 
-        this.addActionAbility({
+        registrar.addActionAbility({
             title: 'Reveal the top card of your deck',
             immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
                 target: context.player.getTopCardOfDeck(),
@@ -41,8 +42,8 @@ export default class HanSoloNeverTellMeTheOdds extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addPilotingAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addPilotingAbility({
             title: 'For each friendly unit or upgrade that has an odd cost, ready a resource.',
             type: AbilityType.Triggered,
             when: {

@@ -34,7 +34,7 @@ describe('The Mandalorian, Weathered Pilot', function () {
 
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.k2soCassiansCounterpart);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.liberatedSlaves.exhausted).toBe(false);
                 expect(context.republicAttackPod.exhausted).toBe(false);

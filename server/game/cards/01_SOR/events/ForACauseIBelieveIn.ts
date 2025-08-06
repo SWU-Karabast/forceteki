@@ -1,6 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect } from '../../../core/Constants';
 
 export default class ForACauseIBelieveIn extends EventCard {
@@ -11,8 +12,8 @@ export default class ForACauseIBelieveIn extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Reveal the top 4 cards of your deck',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => {
                 const topCardsOfDeck = context.player.getTopCardsOfDeck(4);

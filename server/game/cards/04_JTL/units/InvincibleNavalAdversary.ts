@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
 
@@ -10,14 +11,14 @@ export default class InvincibleNavalAdversary extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addDecreaseCostAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addDecreaseCostAbility({
             title: 'If you control a unique Separatist card, this unit costs 1 resource less to play',
             condition: (context) => context.player.controlsCardWithTrait(Trait.Separatist, true),
             amount: 1
         });
 
-        this.addTriggeredAbility({
+        registrar.addTriggeredAbility({
             title: 'Return a non-leader unit that costs 3 or less to its owner\'s hand',
             when: {
                 onLeaderDeployed: (event, context) => event.context.player === context.player,

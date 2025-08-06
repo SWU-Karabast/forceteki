@@ -1,5 +1,6 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class SavageOpressImbuedWithHate extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -9,8 +10,8 @@ export default class SavageOpressImbuedWithHate extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'Use the Force. If you don\'t, deal 9 damage to your base.',
             when: {
                 whenPlayed: true,

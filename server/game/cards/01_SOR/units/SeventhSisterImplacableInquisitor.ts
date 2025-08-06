@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { DamageType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
@@ -11,8 +12,8 @@ export default class SeventhSisterImplacableInquisitor extends NonLeaderUnitCard
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'Deal 3 damage to a ground unit that opponent controls',
             when: {
                 onDamageDealt: (event, context) =>

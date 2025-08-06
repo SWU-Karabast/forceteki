@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class DarthVaderTwilightOfTheApprentice extends NonLeaderUnitCard
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenPlayedAbility({
             title: 'Give a Shield token to a friendly unit and to an enemy unit',
             targetResolvers: {
                 friendlyUnit: {
@@ -25,7 +26,7 @@ export default class DarthVaderTwilightOfTheApprentice extends NonLeaderUnitCard
             }
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Defeat an enemy unit with a Shield token on it',
             targetResolvers: {
                 enemyUnit: {

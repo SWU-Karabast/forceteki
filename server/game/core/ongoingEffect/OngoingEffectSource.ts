@@ -20,7 +20,7 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
     /**
      * Applies an effect which persists.
      */
-    public persistent(propertyFactory: () => IOngoingEffectFactory) {
+    public persistent(propertyFactory: () => IOngoingEffectFactory<this>) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.Persistent, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -28,7 +28,7 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
     /**
      * Applies an effect which lasts until the end of the attack.
      */
-    public untilEndOfAttack(propertyFactory: () => IOngoingEffectFactory) {
+    public untilEndOfAttack(propertyFactory: () => IOngoingEffectFactory<this>) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfAttack, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -36,7 +36,7 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
     /**
      * Applies an effect which lasts until the end of the phase.
      */
-    public untilEndOfPhase(propertyFactory: () => IOngoingEffectFactory) {
+    public untilEndOfPhase(propertyFactory: () => IOngoingEffectFactory<this>) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfPhase, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -44,7 +44,7 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
     /**
      * Applies an effect which lasts until the end of the round.
      */
-    public untilEndOfRound(propertyFactory: () => IOngoingEffectFactory) {
+    public untilEndOfRound(propertyFactory: () => IOngoingEffectFactory<this>) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfRound, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -52,7 +52,7 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
     /**
      * Applies an effect which lasts while the source card of the effect is in play.
      */
-    public whileSourceInPlay(propertyFactory: () => IOngoingEffectFactory) {
+    public whileSourceInPlay(propertyFactory: () => IOngoingEffectFactory<this>) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.WhileSourceInPlay, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -61,7 +61,7 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
     /**
      * Applies a 'lasting effect' (SWU 7.7.3) which lasts until an event contained in the `until` property for the effect has occurred.
      */
-    public lastingEffect(propertyFactory: () => IOngoingEffectFactory) {
+    public lastingEffect(propertyFactory: () => IOngoingEffectFactory<this>) {
         const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.Custom, zoneFilter: WildcardZoneName.Any }, properties));
     }
@@ -71,7 +71,7 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
      * @param {Object} properties properties for the effect(s), see {@link OngoingEffect}
      * @returns the effect(s) that were added to the engine
      */
-    public addEffectToEngine(properties: IOngoingEffectFactory): OngoingEffect[] {
+    public addEffectToEngine(properties: IOngoingEffectFactory<this>): OngoingEffect<this>[] {
         const { ongoingEffect, ...propertiesWithoutEffect } = properties;
 
         if (Array.isArray(ongoingEffect)) {

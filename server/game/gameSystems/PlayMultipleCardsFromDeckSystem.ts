@@ -43,7 +43,7 @@ export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = A
         selectAmount: number,
         event: any,
         additionalProperties: Partial<IPlayMultipleCardsFromDeckProperties<TContext>>
-    ): IDisplayCardsSelectProperties {
+    ): IDisplayCardsSelectProperties | null {
         return {
             ...super.buildPromptProperties(cards, properties, context, title, selectAmount, event, additionalProperties),
             multiSelectCondition: (card: Card, currentlySelectedCards: Card[]) =>

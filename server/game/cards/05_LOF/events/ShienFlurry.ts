@@ -1,6 +1,15 @@
 import { EventCard } from '../../../core/card/EventCard';
-import { AbilityType, DamageType, KeywordName, RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import {
+    AbilityType,
+    DamageType,
+    KeywordName,
+    RelativePlayer,
+    Trait,
+    WildcardCardType,
+    ZoneName
+} from '../../../core/Constants';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 import { DamageSystem } from '../../../gameSystems/DamageSystem';
 
@@ -12,8 +21,8 @@ export default class ShienFlurry extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Play a Force unit from your hand. It gains Ambush for this phase. The next time it would be dealt damage this phase prevent 2 of that damage',
             cannotTargetFirst: true,
             targetResolver: {
@@ -35,7 +44,7 @@ export default class ShienFlurry extends EventCard {
                                         onDamageDealt: (event, context) => event.card === context.source && !event.isIndirect
                                     },
                                     limit: AbilityHelper.limit.perGame(1),
-                                    effect: 'Shien Flurry\'s ability prevents 2 damage to {1}',
+                                    effect: 'prevent 2 damage to {1}',
                                     effectArgs: (context) => [context.source],
                                     replaceWith: {
                                         replacementImmediateEffect: new DamageSystem((context) => ({

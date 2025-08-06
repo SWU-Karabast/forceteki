@@ -1,11 +1,11 @@
-import AbilityHelper from '../../../../../server/game/AbilityHelper';
+import type { IAbilityHelper } from '../../../../../server/game/AbilityHelper';
 import { LeaderUnitCard } from '../../../../../server/game/core/card/LeaderUnitCard';
 import { CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../../../server/game/core/Constants';
 import { CostAdjustType } from '../../../../../server/game/core/cost/CostAdjuster';
 import type { StateWatcherRegistrar } from '../../../../../server/game/core/stateWatcher/StateWatcherRegistrar';
 import { setIntersection, setUnion } from '../../../../../server/game/core/utils/Helpers';
 import type { AttacksThisPhaseWatcher } from '../../../../../server/game/stateWatchers/AttacksThisPhaseWatcher';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
     private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;
@@ -17,12 +17,12 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers (registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addActionAbility({
             title: 'Choose a friendly unit that attacked this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolvers: {
@@ -54,13 +54,13 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addOnAttackAbility({
             title: 'The next unit you play this phase costs 1 resource less if it shares a Keyword with a friendly unit.',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,
-                    limit: AbilityLimit.perGame(1),
+                    limit: AbilityHelper.limit.perPlayerPerGame(1),
                     amount: (card, player) => {
                         const cardKeywords = new Set(card.keywords.map((keyword) => keyword.name));
                         const inPlayKeywords = player.getArenaUnits()

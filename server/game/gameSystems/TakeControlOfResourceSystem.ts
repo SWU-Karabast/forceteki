@@ -48,7 +48,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
         const takingResourcePlayer = this.playerFromArray(target);
 
-        return ['take control of a resource from {0}', [takingResourcePlayer.opponent]];
+        return ['take control of a resource from {0}', [this.getTargetMessage(takingResourcePlayer.opponent, context)]];
     }
 
     public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<ITakeControlOfResourceProperties>): void {
@@ -66,6 +66,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
         // randomly select a ready resource if possible; otherwise randomly select from all resources
         const resourcesToChooseFrom = opponentReadyResources.length > 0 ? opponentReadyResources : player.opponent.resources;
+
         event.card = Helpers.randomItem(resourcesToChooseFrom, context.game.randomGenerator);
     }
 

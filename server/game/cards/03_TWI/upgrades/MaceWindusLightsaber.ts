@@ -1,7 +1,8 @@
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class MaceWindusLightsaber extends UpgradeCard {
     protected override getImplementationId() {
@@ -11,10 +12,10 @@ export default class MaceWindusLightsaber extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addWhenPlayedAbility({
+        registrar.addWhenPlayedAbility({
             title: 'Draw 2 cards',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.parentCard?.title === 'Mace Windu',

@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class LeiaOrganaDefiantPrincess extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenPlayedAbility({
             title: 'Ready a resource or exhaust a unit',
             targetResolver: {
                 mode: TargetMode.Select,
@@ -19,7 +20,7 @@ export default class LeiaOrganaDefiantPrincess extends NonLeaderUnitCard {
                     ['Ready a resource']: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
                     ['Exhaust a unit']: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
-                        innerSystem: AbilityHelper.immediateEffects.exhaust()
+                        immediateEffect: AbilityHelper.immediateEffects.exhaust()
                     })
                 }
             }

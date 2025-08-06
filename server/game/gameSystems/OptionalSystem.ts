@@ -5,6 +5,7 @@ import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameS
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
+import type { MsgArg } from '../core/chat/GameChat';
 
 export interface IOptionalSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     title: string;
@@ -12,7 +13,7 @@ export interface IOptionalSystemProperties<TContext extends AbilityContext = Abi
 }
 
 export class OptionalSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, IOptionalSystemProperties<TContext>> {
-    protected override readonly eventName = MetaEventName.Optional;
+    public override readonly eventName = MetaEventName.Optional;
 
     public override getInnerSystems(properties: IOptionalSystemProperties<TContext>) {
         return [properties.innerSystem];
@@ -46,9 +47,9 @@ export class OptionalSystem<TContext extends AbilityContext = AbilityContext> ex
             handlers: [
                 () => {
                     context.game.queueSimpleStep(() => {
-                        const messageArgs = [context.player, ' uses ', context.source, ' to '];
-                        const [effectMessage, effectArgs] = properties.innerSystem.getEffectMessage(context, additionalProperties);
-                        context.game.addMessage('{0}{1}{2}{3}{4}{5}{6}{7}{8}', ...messageArgs, { message: context.game.gameChat.formatMessage(effectMessage, effectArgs) });
+                        const [effectMessage, effectArgs] = properties.innerSystem.getEffectMessage(context);
+                        const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
+                        context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
 
                         properties.innerSystem.queueGenerateEventGameSteps(events, context, additionalProperties);
                     }, `queue generate event game steps for ${this.name}`);

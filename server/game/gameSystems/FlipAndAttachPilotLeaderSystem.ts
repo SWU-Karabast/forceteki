@@ -31,7 +31,7 @@ export class FlipAndAttachPilotLeaderSystem<TContext extends AbilityContext = Ab
 
     public override getEffectMessage(context: TContext, additionalProperties: Partial<IFlipAndAttachLeaderPilotProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return ['flip {0} and attach it to {1}', [properties.leaderPilotCard, properties.target]];
+        return ['flip {0} and attach it to {1}', [properties.leaderPilotCard, this.getTargetMessage(properties.target, context)]];
     }
 
     public override canAffectInternal(card: Card, context: TContext): boolean {

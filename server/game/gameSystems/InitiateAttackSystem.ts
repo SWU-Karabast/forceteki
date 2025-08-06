@@ -1,5 +1,5 @@
 import type { Card } from '../core/card/Card';
-import AbilityResolver from '../core/gameSteps/AbilityResolver';
+import { AbilityResolver } from '../core/gameSteps/AbilityResolver';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import type { AbilityContext } from '../core/ability/AbilityContext';
@@ -25,7 +25,8 @@ export interface IInitiateAttackProperties<TContext extends AbilityContext = Abi
  */
 export class InitiateAttackSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IInitiateAttackProperties<TContext>> {
     public override readonly name = 'initiateUnitAttack';
-    protected override readonly eventName = MetaEventName.InitiateAttack;
+    public override readonly eventName = MetaEventName.InitiateAttack;
+    public override readonly effectDescription = 'initiate an attack with {0}';
     protected override readonly defaultProperties: IInitiateAttackProperties = {
         ignoredRequirements: [],
         attackerCondition: () => true,
@@ -37,11 +38,6 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         const player = event.player;
         const newContext = (event.attackAbility as InitiateAttackAction).createContext(player);
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
-    }
-
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
-        return ['initiate attack with {0}', [properties.target]];
     }
 
     protected override addPropertiesToEvent(event, attacker: IUnitCard, context: TContext, additionalProperties: Partial<IInitiateAttackProperties<TContext>> = {}): void {

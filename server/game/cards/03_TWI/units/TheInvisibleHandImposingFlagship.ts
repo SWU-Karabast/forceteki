@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, TargetMode, Trait } from '../../../core/Constants';
 
@@ -10,13 +11,13 @@ export default class TheInvisibleHandImposingFlagship extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities(): void {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
+        registrar.addWhenPlayedAbility({
             title: 'Create 4 Battle Droid tokens.',
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid({ amount: 4 }),
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Exhaust any number of friendly Separatist units',
             optional: true,
             targetResolver: {

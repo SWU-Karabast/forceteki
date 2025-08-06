@@ -19,9 +19,14 @@ export enum DeckZoneDestination {
 }
 
 export enum SnapshotType {
+    Action = 'action',
+    Manual = 'manual',
+    Phase = 'phase'
+}
+
+export enum ChatObjectType {
     Player = 'player',
-    Phase = 'phase',
-    Round = 'round'
+    Card = 'card',
 }
 
 /**
@@ -83,6 +88,7 @@ export enum EffectName {
     CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
     CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
+    CloneUnit = 'cloneUnit',
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',
@@ -279,7 +285,6 @@ export enum EventName {
     OnLookAtCard = 'onLookAtCard',
     OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
-    OnPhaseCreated = 'onPhaseCreated',
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnPhaseStarted = 'onPhaseStarted',
@@ -515,4 +520,12 @@ export enum AlertType {
     Notification = 'notification',
     Warning = 'warning',
     Danger = 'danger',
+    ReadyStatus = 'readyStatus',
+}
+
+/** During a rollback, indicates what point in the round the snapshot is from */
+export enum RollbackRoundEntryPoint {
+    StartOfRound = 'startOfRound',
+    WithinActionPhase = 'withinActionPhase',
+    StartOfRegroupPhase = 'startOfRegroupPhase',
 }

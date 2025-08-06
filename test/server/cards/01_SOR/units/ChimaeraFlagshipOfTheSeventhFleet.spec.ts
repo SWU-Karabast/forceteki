@@ -30,7 +30,7 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 expect(context.getChatLogs(1)[0]).toContain(falcon1.title);
                 expect(context.getChatLogs(1)[0]).toContain(falcon2.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player2).toBeAbleToSelectExactly([falcon1, falcon2]);
                 context.player2.clickCard(falcon1);
@@ -71,7 +71,7 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 expect(context.getChatLogs(1)[0]).toContain(falcon1.title);
                 expect(context.getChatLogs(1)[0]).toContain(falcon2.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(falcon1).toBeInZone('hand');
                 expect(falcon2).toBeInZone('hand');
@@ -111,7 +111,7 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 expect(context.getChatLogs(1)[0]).toContain(falcon2.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(falcon1).toBeInZone('hand');
                 expect(falcon2).toBeInZone('hand');

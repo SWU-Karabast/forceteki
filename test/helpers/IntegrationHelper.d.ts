@@ -9,12 +9,41 @@ type Game = import('../../server/game/core/Game');
 type Player = import('../../server/game/core/Player');
 type GameFlowWrapper = import('./GameFlowWrapper');
 type PlayerInteractionWrapper = import('./PlayerInteractionWrapper');
+type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
+type SnapshotType = import('../../server/game/core/Constants').SnapshotType;
+type IGetSnapshotSettings = import('../../server/game/core/snapshot/SnapshotInterfaces').IGetSnapshotSettings;
+type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
 
 declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
 
+declare let undoIntegration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
+
+type SnapshotTypeValue = `${SnapshotType}`;
+
+interface ITestGetSnapshotSettings {
+    type: SnapshotTypeValue;
+    phaseOffset?: number;
+    actionOffset?: number;
+    snapshotId?: number;
+    playerId?: string;
+    phaseName?: string;
+}
+
+interface SnapshotUtils {
+    startOfTestSnapshot?: { player: Player; snapshotId: number };
+
+    getCurrentSnapshotId(): number | null;
+    getCurrentSnapshottedAction(): number | null;
+
+    countAvailableActionSnapshots: (playerId: string) => number;
+    countAvailableManualSnapshots: (playerId: string) => number;
+    rollbackToSnapshot: (settings: ITestGetSnapshotSettings) => boolean;
+    takeManualSnapshot: (playerId: string) => number;
+}
+
 interface SwuTestContextRef {
     context: SwuTestContext;
-    snapshotId?: number;
+    snapshot?: SnapshotUtils;
     setupTestAsync: (options?: SwuSetupTestOptions) => Promise;
 
     buildImportAllCardsTools: () => {
@@ -37,7 +66,6 @@ interface SwuTestContext {
     p1Leader: ILeaderCard;
     p2Base: IBaseCard;
     p2Leader: ILeaderCard;
-    snapshotId?: number;
 
     ignoreUnresolvedActionPhasePrompts: boolean;
     requireResolvedRegroupPhasePrompts: boolean;
@@ -119,6 +147,8 @@ declare namespace jasmine {
         toHaveExactDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
         toHaveExactEnabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
         toHaveExactDisabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
+        toBeCloneOf(card: any): boolean;
+        toBeVanillaClone(): boolean;
     }
 }
 
@@ -130,3 +160,11 @@ declare namespace jasmine {
  * @param timeout Custom timeout for an async spec.
  */
 declare function undoIt(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number): void;
+
+/**
+ * Takes a snapshot, runs the assertion code, then rolls back and repeats.
+ * @param context
+ * @param assertion Function that contains the code of your test that will be then be rolled back and repeated to ensure rolling back works.
+ * @param altAssertion If provided, will rollback after the assertions has been tested twice, to potentially test that changes have been properly undone.
+ */
+declare function rollback(contextRef: SwuTestContextRef, assertion: jasmine.ImplementationCallback, altAssertion?: jasmine.ImplementationCallback): void;

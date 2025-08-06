@@ -1,5 +1,6 @@
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class AsajjVentressHardenYourHeart extends NonLeaderUnitCard {
@@ -10,8 +11,8 @@ export default class AsajjVentressHardenYourHeart extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'Give another friendly Force unit +2/+0 for this phase',
             when: {
                 whenPlayed: true,

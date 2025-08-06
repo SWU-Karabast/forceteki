@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType } from '../../../core/Constants';
 
@@ -12,8 +13,8 @@ export default class LukeSkywalkerYouStillWithMe extends NonLeaderUnitCard {
 
     // TODO THRAWN2: use whenDefeated: true instead of onCardDefeated
 
-    public override setupCardAbilities () {
-        this.addPilotingAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addPilotingAbility({
             type: AbilityType.ReplacementEffect,
             title: 'Move Luke Skywalker to the ground arena instead of being defeated',
             when: {

@@ -46,7 +46,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                     invalid: [context.battlefieldMarine, context.wampa]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.getChatLogs(2)).toContain('player1 takes Cell Block Guard and Scout Bike Pursuer');
 
@@ -80,7 +80,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
 
                 // Click Done
                 expect(context.player1).toHaveEnabledPromptButton('Done');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Check card zone and that player 2 now active
                 expect(context.cellBlockGuard).toBeInZone('hand');

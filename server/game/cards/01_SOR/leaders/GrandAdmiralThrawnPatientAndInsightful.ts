@@ -1,4 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { IBasicAbilityRegistrar, ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { ILeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { PhaseName, TargetMode } from '../../../core/Constants';
 
@@ -10,10 +12,10 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addLookTrigger();
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        this.addLookTrigger(registrar, AbilityHelper);
 
-        this.addActionAbility({
+        registrar.addActionAbility({
             title: 'Reveal the top card of any player\'s deck',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
@@ -38,10 +40,10 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addLookTrigger();
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        this.addLookTrigger(registrar, AbilityHelper);
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Reveal the top card of any player\'s deck',
             optional: true,
             targetResolver: {
@@ -66,8 +68,8 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
         });
     }
 
-    private addLookTrigger() {
-        this.addTriggeredAbility({
+    private addLookTrigger(registrar: IBasicAbilityRegistrar<ILeaderUnitCard>, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'Look at the top card of each player\'s deck',
             when: {
                 onPhaseStarted: (event) => event.phase === PhaseName.Action

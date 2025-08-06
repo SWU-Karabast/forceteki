@@ -9,7 +9,7 @@ import * as Helpers from '../core/utils/Helpers';
 
 export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IPlayerTargetSystemProperties = IPlayerTargetSystemProperties> extends PlayerTargetSystem<TContext, TProperties> {
     public override name = 'useTheForce';
-    protected override eventName = EventName.OnCardLeavesPlay;
+    public override readonly eventName = EventName.OnCardLeavesPlay;
     public override readonly costDescription: string = 'using the Force';
 
     public override eventHandler(event): void {
@@ -27,7 +27,7 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
             return ['use the Force', []];
         }
 
-        return ['make {0} use the Force', [properties.target]];
+        return ['make {0} use the Force', [this.getTargetMessage(properties.target, context)]];
     }
 
     public override defaultTargets(context: TContext): Player[] {

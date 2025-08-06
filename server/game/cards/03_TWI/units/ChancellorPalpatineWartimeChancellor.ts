@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EffectName, RelativePlayer } from '../../../core/Constants';
 import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectBuilder';
@@ -15,21 +16,21 @@ export default class ChancellorPalpatineWartimeChancellor extends NonLeaderUnitC
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.cardsLeftPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsLeftPlayThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'Each token unit you create enters play ready.',
             targetController: RelativePlayer.Self,
             ongoingEffect: OngoingEffectBuilder.player.static(EffectName.TokenUnitsEnterPlayReady)
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Create a Clone Trooper token.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ filter: (entry) => entry.card.isUnit() }),
+                condition: () => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({}),
                 onTrue: AbilityHelper.immediateEffects.createCloneTrooper(),
             })
         });

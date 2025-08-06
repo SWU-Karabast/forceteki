@@ -1,5 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
@@ -11,8 +12,8 @@ export default class NowThereAreTwoOfThem extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'If you control exactly one unit, play a non-Vehicle unit from your hand that shares a Trait with the unit you control. It costs 5 less.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.getArenaUnits().length === 1,
@@ -22,7 +23,7 @@ export default class NowThereAreTwoOfThem extends EventCard {
                     cardCondition: (card, context) =>
                         !card.hasSomeTrait(Trait.Vehicle) &&
                         Array.from(context.player.getArenaUnits()[0].traits).some((trait) => card.hasSomeTrait(trait)),
-                    innerSystem: AbilityHelper.immediateEffects.playCardFromHand({
+                    immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 5 },
                         playAsType: WildcardCardType.Unit,
                     })

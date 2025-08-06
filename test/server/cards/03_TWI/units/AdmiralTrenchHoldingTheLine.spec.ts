@@ -31,7 +31,7 @@ describe('Admiral Trench, Holding the Line', function () {
             context.player2.clickCard(context.maul);
             context.player2.clickCard(context.fifthBrother);
             context.player2.clickCardNonChecking(context.imperialInterceptor);
-            context.player2.clickPrompt('Done');
+            context.player2.clickDone();
 
             expect(context.player2.hand).toContain(context.firstLegionSnowtrooper);
             expect(context.player2.hand).toContain(context.maul);
@@ -51,14 +51,14 @@ describe('Admiral Trench, Holding the Line', function () {
             expect(context.player2).toHavePrompt('Select a unit to exploit');
 
             context.player2.clickCard(context.firstLegionSnowtrooper);
-            context.player2.clickPrompt('Done');
+            context.player2.clickDone();
 
             expect(context.player2).toHavePrompt('Return up to 3 units that were defeated this phase from your discard pile to your hand.');
             expect(context.player2).toBeAbleToSelectExactly([context.firstLegionSnowtrooper]);
             expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose nothing']);
 
             context.player2.clickCard(context.firstLegionSnowtrooper);
-            context.player2.clickPrompt('Done');
+            context.player2.clickDone();
 
             expect(context.player2.hand).toContain(context.firstLegionSnowtrooper);
         });
@@ -76,10 +76,10 @@ describe('Admiral Trench, Holding the Line', function () {
             expect(context.player2.hand).toContain(context.firstLegionSnowtrooper);
 
             context.player1.clickCard(context.pillage);
-            context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Opponent discards');
             context.player2.clickCard(context.deathStarStormtrooper);
             context.player2.clickCard(context.firstLegionSnowtrooper);
-            context.player2.clickPrompt('Done');
+            context.player2.clickDone();
 
             expect(context.deathStarStormtrooper).toBeInZone('discard', context.player2);
             expect(context.firstLegionSnowtrooper).toBeInZone('discard', context.player2);

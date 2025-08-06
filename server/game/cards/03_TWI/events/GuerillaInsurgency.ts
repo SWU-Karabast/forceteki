@@ -1,6 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, ZoneName } from '../../../core/Constants';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { GameStateChangeRequired, RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class GuerillaInsurgency extends EventCard {
     protected override getImplementationId() {
@@ -10,26 +11,28 @@ export default class GuerillaInsurgency extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Each player defeats a resource they control and discards 2 cards from their hand. Deal 4 damage to each ground unit',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Resource,
+                    mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                     activePromptTitle: 'Defeat a resource you control',
                     effect: 'make {0} defeat a resource',
                     effectArgs: (context) => [context.player],
-                    innerSystem: AbilityHelper.immediateEffects.defeat()
+                    immediateEffect: AbilityHelper.immediateEffects.defeat()
                 }),
                 AbilityHelper.immediateEffects.selectCard({
                     controller: RelativePlayer.Opponent,
                     player: RelativePlayer.Opponent,
                     zoneFilter: ZoneName.Resource,
+                    mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                     activePromptTitle: 'Defeat a resource you control',
                     effect: 'make {0} defeat a resource',
                     effectArgs: (context) => [context.player.opponent],
-                    innerSystem: AbilityHelper.immediateEffects.defeat()
+                    immediateEffect: AbilityHelper.immediateEffects.defeat()
                 }),
                 AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                     target: context.game.getPlayers(),

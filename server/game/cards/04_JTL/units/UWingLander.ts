@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class UWingLander extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenPlayedAbility({
             title: 'Give 3 Experience tokens to this unit',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({
                 amount: 3,
@@ -19,7 +20,7 @@ export default class UWingLander extends NonLeaderUnitCard {
             })),
         });
 
-        this.addTriggeredAbility({
+        registrar.addTriggeredAbility({
             title: 'Attach an upgrade on this unit to another eligible friendly Vehicle unit',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,

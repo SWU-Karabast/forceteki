@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -11,8 +12,8 @@ export default class FennRauProtectorOfConcordDawn extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenPlayedAbility({
             title: 'Play an upgrade from your hand. It costs 2 less',
             optional: true,
             targetResolver: {
@@ -26,7 +27,7 @@ export default class FennRauProtectorOfConcordDawn extends NonLeaderUnitCard {
             }
         });
 
-        this.addTriggeredAbility({
+        registrar.addTriggeredAbility({
             title: 'Give an enemy unit -2/-2 for this phase.',
             when: {
                 onCardPlayed: (event, context) => event.attachTarget === context.source && event.card.isUpgrade()

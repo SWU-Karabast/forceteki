@@ -9,6 +9,7 @@ import { TriggerHandlingMode } from '../event/EventWindow';
 import * as Contract from '../utils/Contract';
 import type { GameObject } from '../GameObject';
 import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
+import type { MsgArg } from '../chat/GameChat';
 
 export type PlayerOrCard = Player | Card;
 
@@ -37,12 +38,12 @@ export interface IGameSystemProperties {
 // TODO: could we remove the default generic parameter so that all child classes are forced to declare it
 export abstract class GameSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IGameSystemProperties = IGameSystemProperties> {
     public readonly name: string = ''; // TODO: should these be abstract?
+    public abstract readonly eventName: EventName | MetaEventName;
     public readonly costDescription: string = '';
     public readonly effectDescription: string = '';
 
     protected readonly propertyFactory?: (context?: TContext) => TProperties;
     protected readonly properties?: TProperties;
-    protected abstract readonly eventName: EventName | MetaEventName;
     protected readonly defaultProperties: IGameSystemProperties = { cannotBeCancelled: false, optional: false };
     protected getDefaultTargets: (context: TContext) => any = (context) => this.defaultTargets(context);
 
@@ -116,16 +117,17 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         if (card.zoneName !== ZoneName.GroundArena && card.zoneName !== ZoneName.SpaceArena) {
             return {
                 card,
+                title: card.title,
                 controller: card.controller,
                 arena: card.zoneName
             };
         }
         Contract.assertTrue(card.canBeInPlay());
 
-
         if (card.isUnit() && !card.isAttached()) {
             return {
                 card,
+                title: card.title,
                 power: card.getPower(),
                 hp: card.getHp(),
                 type: card.type,
@@ -139,6 +141,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         if (card.isUpgrade()) {
             return {
                 card,
+                title: card.title,
                 power: card.getPower(),
                 hp: card.getHp(),
                 type: card.type,
@@ -179,12 +182,21 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
 
     public getCostMessage?(context: TContext): [string, any[]] {
         const { target } = this.generatePropertiesFromContext(context);
-        return [this.costDescription, [target]];
+        return [this.costDescription, [this.getTargetMessage(target, context)]];
     }
 
     public getEffectMessage(context: TContext, additionalProperties: Partial<TProperties> = {}): [string, any[]] {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
-        return [this.effectDescription, [target]];
+        return [this.effectDescription, [this.getTargetMessage(target, context)]];
+    }
+
+    public getTargetMessage(targets: PlayerOrCard | PlayerOrCard[], context: TContext): MsgArg[] {
+        return Helpers.asArray(targets).map((target) => {
+            if (target.isCard() && target.isBase()) {
+                return { format: '{0}\'s base', args: [target.controller] };
+            }
+            return target;
+        });
     }
 
     // TODO: is there a type we can provide for 'target'? Is it more than just players and cards?

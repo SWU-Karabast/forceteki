@@ -1,3 +1,5 @@
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
 import { ExhaustSourceType } from '../../../IDamageOrDefeatSource';
@@ -10,10 +12,10 @@ export default class KyloRensLightsaber extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
 
-        this.addReplacementEffectAbilityTargetingAttached({
+        registrar.addReplacementEffectAbilityTargetingAttached({
             title: 'This unit can\'t be exhausted by enemy card abilities',
             gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force),
             when: {

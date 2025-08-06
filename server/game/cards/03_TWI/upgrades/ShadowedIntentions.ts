@@ -1,3 +1,5 @@
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { ZoneName } from '../../../core/Constants';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
@@ -10,8 +12,8 @@ export default class ShadowedIntentions extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addReplacementEffectAbilityTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addReplacementEffectAbilityTargetingAttached({
             title: 'This unit can\'t be captured, defeated, or returned to its owner\'s hand by enemy card abilities',
             when: {
                 onCardCaptured: (event, context) =>

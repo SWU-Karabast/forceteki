@@ -13,6 +13,7 @@ export interface IRescueProperties extends ICardTargetSystemProperties {}
 export class RescueSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IRescueProperties = IRescueProperties> extends CardTargetSystem<TContext, TProperties> {
     public override readonly name = 'rescue';
     public override readonly eventName = EventName.OnRescue;
+    public override readonly effectDescription = 'rescue {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit];
 
     // Nothing to do in the event handler, the PutIntoPlaySystem event does the work
@@ -25,11 +26,6 @@ export class RescueSystem<TContext extends AbilityContext = AbilityContext, TPro
         }
 
         return super.canAffectInternal(card, context);
-    }
-
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { target } = this.generatePropertiesFromContext(context);
-        return ['{0} is rescued', [target]];
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {

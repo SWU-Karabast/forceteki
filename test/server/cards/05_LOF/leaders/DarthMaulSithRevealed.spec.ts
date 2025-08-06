@@ -40,7 +40,7 @@ describe('Darth Maul, Sith Revealed', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.consularSecurityForce);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Check that the costs were paid
                 expect(context.darthMaul.exhausted).toBe(true);
@@ -97,7 +97,7 @@ describe('Darth Maul, Sith Revealed', function() {
 
                 // Now we can click Done
                 expect(context.player1).toHaveEnabledPromptButton('Done');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Check that the damage was dealt correctly
                 expect(context.battlefieldMarine.damage).toBe(1);
@@ -221,7 +221,7 @@ describe('Darth Maul, Sith Revealed', function() {
                 context.player1.clickCard(context.consularSecurityForce);
 
                 expect(context.player1).toHaveEnabledPromptButton('Done');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Check that the damage was dealt correctly
                 expect(context.battlefieldMarine.damage).toBe(1);

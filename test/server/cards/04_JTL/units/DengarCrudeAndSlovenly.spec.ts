@@ -32,7 +32,7 @@ describe('Dengar, Crude and Slovenly', function() {
 
                 // Snowspeeder's is not Underworld so it should deal 2 indirect damage
                 context.player1.clickPrompt('Deal 2 indirect damage to a player. If attached unit is Underworld, deal 3 indirect damage instead.');
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 expect(context.player2).toBeAbleToSelectExactly([context.p2Base, context.atst]);
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.atst, 1],
@@ -58,7 +58,7 @@ describe('Dengar, Crude and Slovenly', function() {
 
                 // Cartel Spacer is Underworld so it should deal 3 indirect damage
                 expect(context.player1).not.toHavePassAbilityButton();
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 expect(context.player2).toBeAbleToSelectExactly([context.p2Base, context.atst]);
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.atst, 1],

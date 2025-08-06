@@ -6,6 +6,7 @@ export interface IPlayerPromptStateProperties {
     buttons?: IButton[];
     menuTitle: string;
     promptUuid: string;
+    playerIsNewlyActive?: boolean;
     promptTitle?: string;
     promptType?: PromptType;
 
@@ -21,6 +22,13 @@ export interface IPlayerPromptStateProperties {
     attackTargetingHighlightAttacker?: Card;
 }
 
+export interface ICardSelectionState {
+    selectable: boolean;
+    selected?: boolean;
+    unselectable?: boolean;
+    order?: number;
+}
+
 export class PlayerPromptState {
     public selectCardMode? = null;
     public selectOrder = false;
@@ -34,6 +42,7 @@ export class PlayerPromptState {
     public displayCards: IDisplayCard[] = [];
     public perCardButtons: IButton[] = [];
     public isOpponentEffect = null;
+    public playerIsNewlyActive = false;
 
     // not included in the state passed to the FE
     public attackTargetingHighlightAttacker?: Card = null;
@@ -80,6 +89,7 @@ export class PlayerPromptState {
         this.displayCards = prompt.displayCards ?? [];
         this.perCardButtons = prompt.perCardButtons ?? [];
         this.isOpponentEffect = prompt.isOpponentEffect;
+        this.playerIsNewlyActive = prompt.playerIsNewlyActive;
 
         // not included in the state passed to the FE
         this.attackTargetingHighlightAttacker = prompt.attackTargetingHighlightAttacker;
@@ -93,18 +103,24 @@ export class PlayerPromptState {
         this.clearSelectedCards();
     }
 
-    public getCardSelectionState(card: Card) {
+    public getCardSelectionState(card: Card): ICardSelectionState {
         const selectable = this._selectableCards.includes(card);
-        const index = this._selectedCards?.indexOf(card) ?? -1;
-        const result = {
-            selected: index !== -1,
-            selectable: selectable,
-            unselectable: this.selectCardMode && !selectable
-        };
 
-        if (index !== -1 && this.selectOrder) {
-            return Object.assign({ order: index + 1 }, result);
+        const index = this._selectedCards?.indexOf(card) ?? -1;
+        const selected = index !== -1;
+
+        if (!selectable) {
+            return { selectable, selected: selected ? true : undefined };
         }
+
+        const order = index !== -1 && this.selectOrder ? index + 1 : undefined;
+
+        const result = {
+            selectable,
+            selected,
+            unselectable: this.selectCardMode && !selectable,
+            order
+        };
 
         return result;
     }
@@ -122,7 +138,8 @@ export class PlayerPromptState {
             promptType: this.promptType,
             displayCards: this.displayCards,
             perCardButtons: this.perCardButtons,
-            isOpponentEffect: this.isOpponentEffect
+            isOpponentEffect: this.isOpponentEffect,
+            playerIsNewlyActive: this.playerIsNewlyActive,
             // attackTargetingHighlightAttacker is explicitly not included, it's not for passing to the FE
         };
     }

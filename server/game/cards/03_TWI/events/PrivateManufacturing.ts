@@ -1,6 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
-import AbilityHelper from '../../../AbilityHelper';
-import { RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import { GameStateChangeRequired, RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
 
 export default class PrivateManufacturing extends EventCard {
     protected override getImplementationId() {
@@ -10,8 +11,8 @@ export default class PrivateManufacturing extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Draw 2 cards. If you control no token units, put 2 cards from your hand on the bottom of your deck in any order.',
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.draw({ amount: 2 }),
@@ -23,8 +24,9 @@ export default class PrivateManufacturing extends EventCard {
                         controller: RelativePlayer.Self,
                         zoneFilter: ZoneName.Hand,
                         numCards: 2,
+                        mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                         effect: 'choose 2 cards to move to the bottom of their deck',
-                        innerSystem: AbilityHelper.immediateEffects.moveToBottomOfDeck()
+                        immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck()
                     })
                 })
             ])

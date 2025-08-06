@@ -22,11 +22,6 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
         event.card.deploy({ type: DeployType.LeaderUnit });
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: Partial<IDeployLeaderProperties> = {}): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
-        return ['deploy {0}', [properties.target]];
-    }
-
     public override canAffectInternal(card: Card, context: TContext): boolean {
         if (!card.isLeader() || card.isDeployableLeader() && card.deployed) {
             return false;

@@ -98,7 +98,7 @@ describe('The Emprerors Legion', function () {
 
             context.player1.passAction();
             context.player2.clickCard(context.forceThrow);
-            context.player2.clickPrompt('Opponent');
+            context.player2.clickPrompt('Opponent discards');
             context.player1.clickCard(context.atst);
 
             // play Wampa then defeat it, so it now has two separately defeated copies this phase

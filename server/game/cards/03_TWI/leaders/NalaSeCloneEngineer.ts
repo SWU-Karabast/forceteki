@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { AbilityType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 
@@ -10,7 +11,7 @@ export default class NalaSeCloneEngineer extends LeaderUnitCard {
         };
     }
 
-    private buildIgnoreCloneAspectAbility() {
+    private buildIgnoreCloneAspectAbility(AbilityHelper: IAbilityHelper) {
         return {
             title: 'Ignore the aspect penalty on Clone units you play',
             targetController: RelativePlayer.Self,
@@ -21,14 +22,14 @@ export default class NalaSeCloneEngineer extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addConstantAbility(this.buildIgnoreCloneAspectAbility());
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility(this.buildIgnoreCloneAspectAbility(AbilityHelper));
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addConstantAbility(this.buildIgnoreCloneAspectAbility());
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility(this.buildIgnoreCloneAspectAbility(AbilityHelper));
 
-        this.addConstantAbility({
+        registrar.addConstantAbility({
             title: 'Each friendly Clone gains When Defeated: Heal 2 damage from your base',
             matchTarget: (card, context) => card.isUnit() && card.hasSomeTrait(Trait.Clone) && card.controller === context.player,
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({

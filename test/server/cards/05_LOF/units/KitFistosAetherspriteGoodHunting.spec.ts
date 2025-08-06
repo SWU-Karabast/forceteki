@@ -28,7 +28,7 @@ describe('Kit Fisto\'s Aethersprite, Good Hunting', function() {
 
                 context.player1.clickCard(context.devotion);
                 context.player1.clickCard(context.entrenched);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.pykeSentinel.isUpgraded()).toBe(false);
                 expect(context.imperialInterceptor.isUpgraded()).toBe(true);
@@ -46,7 +46,7 @@ describe('Kit Fisto\'s Aethersprite, Good Hunting', function() {
 
                 context.player1.clickCard(context.imperialInterceptor);
                 context.player1.clickCard(context.shield);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.imperialInterceptor).toHaveExactUpgradeNames(['academy-training']);
             });

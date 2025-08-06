@@ -1,26 +1,20 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
-import type { Player } from '../../Player';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
-import type { Card } from '../../card/Card';
 import type { FormatMessage } from '../../chat/GameChat';
 import { AbilityRestriction } from '../../Constants';
+import type { Card } from '../../card/Card';
+import type Game from '../../Game';
 
 const leavePlayTypes = new Set(['discardFromPlay', 'returnToHand', 'returnToDeck', 'removeFromGame']);
 
 export interface RestrictionProperties {
     type: string;
-    cannot?: string;
-    applyingPlayer?: Player;
-    restrictedActionCondition?: (context: AbilityContext) => boolean;
-    source?: Card;
-    params?: any;
+    restrictedActionCondition?: (context: AbilityContext, source: Card) => boolean;
 }
 
 export class Restriction extends OngoingEffectValueWrapper<Restriction> {
     public readonly type: string;
-    public restrictedActionCondition?: (context: AbilityContext) => boolean;
-    public applyingPlayer?: Player;
-    public params?: any;
+    public restrictedActionCondition?: (context: AbilityContext, source: Card) => boolean;
 
     private static restrictionDescription?(type: string): FormatMessage {
         if (type === AbilityRestriction.Attack) {
@@ -36,18 +30,16 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
         return undefined;
     }
 
-    public constructor(properties: string | RestrictionProperties) {
+    public constructor(game: Game, properties: string | RestrictionProperties) {
         const effectDescription = Restriction.restrictionDescription(typeof properties === 'string' ? properties : properties.type);
 
-        super(null, effectDescription);
+        super(game, null, effectDescription);
 
         if (typeof properties === 'string') {
             this.type = properties;
         } else {
             this.type = properties.type;
             this.restrictedActionCondition = properties.restrictedActionCondition;
-            this.applyingPlayer = properties.applyingPlayer;
-            this.params = properties.params;
         }
     }
 
@@ -67,12 +59,12 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
         return this.checkRestriction(this.restrictedActionCondition, context);
     }
 
-    public checkRestriction(restriction: ((context: AbilityContext) => boolean) | undefined, context: AbilityContext) {
+    public checkRestriction(restriction: ((context: AbilityContext, source: Card) => boolean) | undefined, context: AbilityContext) {
         if (!restriction) {
             return true;
         } else if (!context) {
             throw new Error('checkRestriction called without a context');
         }
-        return restriction(context);
+        return restriction(context, this.context.source);
     }
 }

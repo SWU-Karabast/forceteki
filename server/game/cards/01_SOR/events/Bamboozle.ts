@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect, PlayType, WildcardCardType } from '../../../core/Constants';
 import { PlayEventAction } from '../../../actions/PlayEventAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
@@ -17,13 +18,13 @@ export default class Bamboozle extends EventCard {
     protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null) {
         const bamboozleAction = playType === PlayType.Smuggle || playType === PlayType.Piloting
             ? []
-            : [new PlayBamboozleAction(this, { playType })];
+            : [new PlayBamboozleAction(this, { playType }, this.game.abilityHelper)];
 
         return super.buildPlayCardActions(playType, propertyOverrides).concat(bamboozleAction);
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Exhaust a unit and return each upgrade on it to its owner\'s hand',
             cannotTargetFirst: true,
             targetResolver: {
@@ -40,7 +41,9 @@ export default class Bamboozle extends EventCard {
 }
 
 class PlayBamboozleAction extends PlayEventAction {
-    private static generateProperties(card: Bamboozle, properties: IPlayCardActionProperties) {
+    private abilityHelper: IAbilityHelper;
+
+    private static generateProperties(card: Bamboozle, properties: IPlayCardActionProperties, AbilityHelper: IAbilityHelper) {
         const discardCost = AbilityHelper.costs.discardCardFromOwnHand({ cardCondition: (c) => c !== card && c.hasSomeAspect(Aspect.Cunning) });
 
         return {
@@ -51,8 +54,9 @@ class PlayBamboozleAction extends PlayEventAction {
         };
     }
 
-    public constructor(card: Bamboozle, properties: IPlayCardActionProperties) {
-        super(card.game, card, PlayBamboozleAction.generateProperties(card, properties));
+    public constructor(card: Bamboozle, properties: IPlayCardActionProperties, AbilityHelper: IAbilityHelper) {
+        super(card.game, card, PlayBamboozleAction.generateProperties(card, properties, AbilityHelper));
+        this.abilityHelper = AbilityHelper;
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
@@ -62,7 +66,7 @@ class PlayBamboozleAction extends PlayEventAction {
                 {
                     ...this.createdWithProperties,
                     ...overrideProperties
-                })
-        );
+                }, this.abilityHelper)
+            , this.abilityHelper);
     }
 }

@@ -19,10 +19,10 @@ describe('Migs Mayfeld, Triggerman', function() {
 
                 // CASE 1: Can deal two damage to a unit or base after a card is discarded from own hand and can optionally pass
                 context.player1.clickCard(context.pillage);
-                context.player1.clickPrompt('You');
+                context.player1.clickPrompt('You discard');
                 context.player1.clickCard(context.commission);
                 context.player1.clickCard(context.fellTheDragon);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toBeAbleToSelectExactly([context.groguIrresistible, context.migsMayfeldTriggerman, context.wampa, context.systemPatrolCraft, context.p1Base, context.p2Base]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.p2Base);
@@ -34,7 +34,7 @@ describe('Migs Mayfeld, Triggerman', function() {
                 context.player1.clickCard(context.forcedSurrender);
                 context.player2.clickCard(context.confiscate);
                 context.player2.clickCard(context.daringRaid);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.player2).toBeActivePlayer();
 
                 // CASE 3: Is usable in the next round and from opponent discarding
@@ -63,7 +63,7 @@ describe('Migs Mayfeld, Triggerman', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.forceThrow);
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Opponent discards');
                 context.player2.clickCard(context.confiscate);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa.damage).toBe(1);

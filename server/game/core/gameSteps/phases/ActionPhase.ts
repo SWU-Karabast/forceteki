@@ -1,22 +1,43 @@
-import { EffectName, PhaseName, SnapshotType } from '../../Constants';
+import { EffectName, PhaseName } from '../../Constants';
 import type Game from '../../Game';
-import { Phase } from './Phase';
+import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ActionWindow } from '../ActionWindow';
+import type { SnapshotManager } from '../../snapshot/SnapshotManager';
+import type { IStep } from '../IStep';
 
 export class ActionPhase extends Phase {
+    private readonly getNextActionNumber: () => number;
+
     // each ActionWindow will use this handler to indicate if the window was passed or not
     private readonly passStatusHandler = (passed: boolean) => this.prevPlayerPassed = passed;
+
     private prevPlayerPassed = false;
 
-    public constructor(game: Game) {
-        super(game, PhaseName.Action);
-        this.initialise([
-            new SimpleStep(this.game, () => this.setupActionPhase(), 'setupActionPhase'),
-            new SimpleStep(this.game, () => this.queueNextAction(), 'queueNextAction'),
-            new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase'),
-            new SimpleStep(this.game, () => this.endPhase(), 'endPhase'),
-        ]);
+    public constructor(
+        game: Game,
+        getNextActionNumber: () => number,
+        snapshotManager: SnapshotManager,
+        initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal
+    ) {
+        super(game, PhaseName.Action, snapshotManager);
+
+        this.getNextActionNumber = getNextActionNumber;
+
+        const setupStep: IStep[] = [];
+        if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase) {
+            setupStep.push(new SimpleStep(this.game, () => this.setupActionPhase(), 'setupActionPhase'));
+        }
+
+        this.initialise(
+            [
+                ...setupStep,
+                new SimpleStep(this.game, () => this.queueNextAction(game.actionNumber), 'queueNextAction'),
+                new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase'),
+                new SimpleStep(this.game, () => this.endPhase(), 'endPhase'),
+            ],
+            initializeMode
+        );
     }
 
     private setupActionPhase() {
@@ -25,11 +46,17 @@ export class ActionPhase extends Phase {
         }
     }
 
-    public queueNextAction() {
-        if (this.game.isUndoEnabled) {
-            this.game.queueSimpleStep(() => this.game.gameObjectManager.takeSnapshot({ type: SnapshotType.Player }), 'actionTakeSnapshot');
-        }
-        this.game.queueStep(new ActionWindow(this.game, 'Action Window', 'action', this.prevPlayerPassed, this.passStatusHandler));
+    private queueNextAction(actionNumber: number) {
+        this.game.queueStep(new ActionWindow(
+            this.game,
+            'Action Window',
+            'action',
+            this.prevPlayerPassed,
+            this.passStatusHandler,
+            actionNumber,
+            this.snapshotManager
+        ));
+
         this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
     }
 
@@ -46,7 +73,7 @@ export class ActionPhase extends Phase {
 
         this.game.queueSimpleStep(() => {
             if (this.game.actionPhaseActivePlayer !== null) {
-                this.game.queueSimpleStep(() => this.queueNextAction(), 'queueNextAction');
+                this.game.queueSimpleStep(() => this.queueNextAction(this.getNextActionNumber()), 'queueNextAction');
             }
         }, 'check active player queue next action');
     }
@@ -56,21 +83,5 @@ export class ActionPhase extends Phase {
             player.cleanupFromActionPhase();
         }
         this.game.isInitiativeClaimed = false;
-    }
-
-    public override resetPhase(): void {
-        this.pipeline.clearSteps();
-    }
-
-    public takeSnapshot() {
-        return this.game.gameObjectManager.takeSnapshot({ type: SnapshotType.Phase, phaseName: 'Action' });
-    }
-
-    public rollbackToSnapshot(snapshotId: number | null) {
-        this.game.gameObjectManager.rollbackToSnapshot(snapshotId);
-        this.resetPhase();
-        this.queueNextAction();
-        // continue the action phase again.
-        this.continue();
     }
 }

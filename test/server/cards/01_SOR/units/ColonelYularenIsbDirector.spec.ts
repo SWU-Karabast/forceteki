@@ -78,6 +78,38 @@ describe('Colonel Yularen, ISB Director', function() {
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.p1Base.damage).toBe(3);
             });
+
+            it('should trigger twice when cloned with Clone', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clone', 'battlefield-marine'],
+                        groundArena: ['colonel-yularen#isb-director'],
+                        base: { card: 'nevarro-city', damage: 5 }
+                    },
+                    player2: {
+                        hand: ['vanguard-infantry']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // CASE 1: Clone heals when he is played as a copy of Colonel Yularen
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.colonelYularen);
+                context.player1.clickPrompt('Heal 1 damage from your base');
+                expect(context.clone).toBeCloneOf(context.colonelYularen);
+                expect(context.p1Base.damage).toBe(3); // 1 for Clone and 1 for Colonel Yularen
+
+                // CASE 2: no heal when opponent plays a Command unit
+                context.player2.clickCard(context.vanguardInfantry);
+                expect(context.p1Base.damage).toBe(3);
+
+                // CASE 3: heal happens when another friendly Command unit is played
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickPrompt('Heal 1 damage from your base');
+                expect(context.p1Base.damage).toBe(1); // 1 for Clone and 1 for Colonel Yularen
+            });
         });
     });
 });

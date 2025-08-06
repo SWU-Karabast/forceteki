@@ -1,6 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { GameStateChangeRequired, KeywordName, PlayType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -15,7 +16,7 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
         };
     }
 
-    private buildSmuggleCardAbility(): ICardTargetResolver<TriggeredAbilityContext<this>> {
+    private buildSmuggleCardAbility(AbilityHelper: IAbilityHelper): ICardTargetResolver<TriggeredAbilityContext<this>> {
         return {
             controller: RelativePlayer.Self,
             zoneFilter: ZoneName.Resource,
@@ -28,13 +29,13 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
         };
     }
 
-    private buildDefeatResourceAbility(): IThenAbilityPropsWithSystems<AbilityContext<this>> {
+    private buildDefeatResourceAbility(AbilityHelper: IAbilityHelper): IThenAbilityPropsWithSystems<AbilityContext<this>> {
         return {
             title: 'Defeat a resource you own and control',
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
-                cardCondition: (card) => card.owner === this.controller,
+                cardCondition: (card, context) => card.owner === context.source.controller,
                 mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                 activePromptTitle: 'Defeat a resource you own and control',
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
@@ -42,21 +43,21 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addActionAbility({
             title: 'Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control.',
             cost: AbilityHelper.costs.exhaustSelf(),
-            targetResolver: this.buildSmuggleCardAbility(),
-            then: this.buildDefeatResourceAbility()
+            targetResolver: this.buildSmuggleCardAbility(AbilityHelper),
+            then: this.buildDefeatResourceAbility(AbilityHelper)
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addActionAbility({
             title: 'Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control. Use this ability only once each round',
             limit: AbilityHelper.limit.perRound(1),
-            targetResolver: this.buildSmuggleCardAbility(),
-            then: this.buildDefeatResourceAbility()
+            targetResolver: this.buildSmuggleCardAbility(AbilityHelper),
+            then: this.buildDefeatResourceAbility(AbilityHelper)
         });
     }
 }

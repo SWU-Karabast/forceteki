@@ -1,6 +1,7 @@
 import { BaseCard } from '../../../core/card/BaseCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { CardType, RelativePlayer } from '../../../core/Constants';
+import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class PauCity extends BaseCard {
     protected override getImplementationId () {
@@ -10,8 +11,8 @@ export default class PauCity extends BaseCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'Each leader unit you control gets +0/+1',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: CardType.LeaderUnit,

@@ -11,7 +11,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 export type ISimultaneousSystemProperties<TContext extends AbilityContext = AbilityContext> = ISimultaneousOrSequentialSystemProperties<TContext>;
 
 export class SimultaneousSystem<TContext extends AbilityContext = AbilityContext> extends SimultaneousOrSequentialSystem<ISimultaneousSystemProperties<TContext>, TContext> {
-    protected override readonly eventName: MetaEventName.Simultaneous;
+    public override readonly eventName: MetaEventName.Simultaneous;
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { gameSystems } = this.generatePropertiesFromContext(context);

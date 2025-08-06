@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, Trait } from '../../../core/Constants';
 
@@ -10,18 +11,18 @@ export default class BiggsDarklighterTheyllNeverStopUs extends NonLeaderUnitCard
         };
     }
 
-    public override setupCardAbilities () {
-        this.addPilotingGainKeywordTargetingAttached({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addPilotingGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard.hasSomeTrait(Trait.Fighter),
             keyword: KeywordName.Overwhelm
         });
 
-        this.addPilotingGainKeywordTargetingAttached({
+        registrar.addPilotingGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard.hasSomeTrait(Trait.Speeder),
             keyword: KeywordName.Grit,
         });
 
-        this.addPilotingConstantAbilityTargetingAttached({
+        registrar.addPilotingConstantAbilityTargetingAttached({
             title: 'Transport attached unit gets +0/+1',
             condition: (context) => context.source.parentCard.hasSomeTrait(Trait.Transport),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({

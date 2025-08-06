@@ -1,6 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
-import * as Helpers from '../../../core/utils/Helpers';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { GameStateChangeRequired, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -15,8 +15,8 @@ export default class EndlessLegions extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Reveal any number of resources you control',
             targetResolver: {
                 mode: TargetMode.Unlimited,
@@ -28,11 +28,11 @@ export default class EndlessLegions extends EventCard {
                     promptedPlayer: RelativePlayer.Opponent
                 }),
             },
-            then: (context) => this.playRevealedCard([], context),
+            then: (context) => this.playRevealedCard([], context, AbilityHelper),
         });
     }
 
-    private playRevealedCard(playedCards: Card[], revealedCardsContext: AbilityContext): IThenAbilityPropsWithSystems<AbilityContext> {
+    private playRevealedCard(playedCards: Card[], revealedCardsContext: AbilityContext, AbilityHelper: IAbilityHelper): IThenAbilityPropsWithSystems<AbilityContext> {
         return {
             title: 'Play a revelead unit for free',
             targetResolver: {
@@ -40,7 +40,7 @@ export default class EndlessLegions extends EventCard {
                 zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
                 mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
-                cardCondition: (card: Card) => Helpers.asArray(revealedCardsContext.target).includes(card) && !playedCards.includes(card),
+                cardCondition: (card: Card) => revealedCardsContext.target?.includes(card) && !playedCards.includes(card),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Free },
                     playAsType: WildcardCardType.Unit,
@@ -48,7 +48,7 @@ export default class EndlessLegions extends EventCard {
                     nested: true,
                 })
             },
-            then: (context) => this.playRevealedCard([...playedCards, context.target], revealedCardsContext),
+            then: (context) => this.playRevealedCard([...playedCards, context.target], revealedCardsContext, AbilityHelper),
         };
     }
 }

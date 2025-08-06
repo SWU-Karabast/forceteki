@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Duration, RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
@@ -10,31 +11,30 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addPilotDeploy();
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addPilotDeploy();
+        registrar.addActionAbility({
             title: 'Select a friendly unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
-                    innerSystem: AbilityHelper.immediateEffects.forThisRoundCardEffect({
+                    immediateEffect: AbilityHelper.immediateEffects.forThisRoundCardEffect({
                         effect: AbilityHelper.ongoingEffects.loseAllAbilities(),
                         ongoingEffectDescription: 'remove all abilities from'
                     })
                 }),
                 AbilityHelper.immediateEffects.playerLastingEffect({
                     effect: AbilityHelper.ongoingEffects.additionalAction(),
-                    // TODO: This should be Duration.Persistent, but it isn't working correctly. We should investigate.
-                    duration: Duration.UntilEndOfPhase
+                    duration: Duration.Persistent
                 })
             ])
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addOnAttackAbility({
             title: 'Choose any number of friendly units. They lose all abilities for this round.',
             targetResolver: {
                 activePromptTitle: 'Choose friendly units to lose all abilities for this round',
@@ -49,7 +49,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
             }
         });
 
-        this.addPilotingGainTriggeredAbilityTargetingAttached({
+        registrar.addPilotingGainTriggeredAbilityTargetingAttached({
             title: 'Choose any number of friendly units. They lose all abilities for this round.',
             when: {
                 onAttack: true,

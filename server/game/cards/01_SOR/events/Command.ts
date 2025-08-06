@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { CardType, RelativePlayer, WildcardCardType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../../core/Constants';
 
 export default class Command extends EventCard {
@@ -10,8 +11,8 @@ export default class Command extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Command modal ability:',
             immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
                 amountOfChoices: 2,
@@ -20,7 +21,7 @@ export default class Command extends EventCard {
                         controller: WildcardRelativePlayer.Any,
                         cardTypeFilter: WildcardCardType.Unit,
                         zoneFilter: WildcardZoneName.AnyArena,
-                        innerSystem: AbilityHelper.immediateEffects.giveExperience({
+                        immediateEffect: AbilityHelper.immediateEffects.giveExperience({
                             amount: 2
                         })
                     }),
@@ -29,14 +30,14 @@ export default class Command extends EventCard {
                         cardTypeFilter: WildcardCardType.Unit,
                         zoneFilter: WildcardZoneName.AnyArena,
                         name: 'friendlyUnit',
-                        innerSystem: AbilityHelper.immediateEffects.selectCard({
+                        immediateEffect: AbilityHelper.immediateEffects.selectCard({
                             controller: RelativePlayer.Opponent,
                             cardTypeFilter: WildcardCardType.Unit,
                             zoneFilter: WildcardZoneName.AnyArena,
                             cardCondition: (card) => !card.unique,
                             name: 'enemyUnit',
-                            innerSystem: AbilityHelper.immediateEffects.damage((context) => ({
-                                amount: context.targets.friendlyUnit?.[0].getPower(),
+                            immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
+                                amount: context.targets.friendlyUnit?.getPower(),
                                 target: context.targets.enemyUnit
                             }))
                         })
@@ -48,7 +49,7 @@ export default class Command extends EventCard {
                         controller: RelativePlayer.Self,
                         cardTypeFilter: CardType.BasicUnit,
                         zoneFilter: ZoneName.Discard,
-                        innerSystem: AbilityHelper.immediateEffects.returnToHand()
+                        immediateEffect: AbilityHelper.immediateEffects.returnToHand()
                     }),
                 })
             })

@@ -59,18 +59,13 @@ export interface IDropdownListTargetResolver<TContext extends AbilityContext> ex
     mode: TargetMode.DropdownList;
     options: string[] | ((context: TContext) => string[]);
     condition?: (context: AbilityContext) => boolean;
+    logSelection?: boolean;
 }
 
 export interface ITargetResolverBase<TContext extends AbilityContext> {
     activePromptTitle?: ((context: TContext) => string) | string;
+    waitingPromptTitle?: string;
     appendToDefaultTitle?: string;
-    zoneFilter?: ZoneFilter | ZoneFilter[];
-
-    /** If zoneFilter includes ZoneName.Capture, use this to filter down to only the capture zones of specific units. Otherwise, all captured units in the arena will be targeted. */
-    capturedByFilter?: Card | Card[] | ((context: TContext) => (Card | Card[]));
-
-    /** Filter cards by their controller */
-    controller?: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
 
     // TODO: allow this be a concrete player object as well as a RelativePlayer enum
     /** Selects which player is choosing the target (defaults to the player controlling the source card) */
@@ -84,6 +79,7 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
 // TODO: add functionality to PlayerTargetResolver to autodetect any invalid target players.
 export interface IPlayerTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
     mode: TargetMode.Player | TargetMode.MultiplePlayers;
+    effectChoices?: (relativePlayer: RelativePlayer, context: TContext) => string;
     immediateEffect?: PlayerTargetSystem<TContext> | AggregateSystem<TContext>;
 }
 
@@ -94,6 +90,12 @@ interface ICardTargetResolverBase<TContext extends AbilityContext> extends ITarg
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     zoneFilter?: ZoneFilter | ZoneFilter[];
     cardCondition?: (card: Card, context?: TContext) => boolean;
+
+    /** If zoneFilter includes ZoneName.Capture, use this to filter down to only the capture zones of specific units. Otherwise, all captured units in the arena will be targeted. */
+    capturedByFilter?: Card | Card[] | ((context: TContext) => (Card | Card[]));
+
+    /** Filter cards by their controller */
+    controller?: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
 }
 
 interface ICardExactlyUpToTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {

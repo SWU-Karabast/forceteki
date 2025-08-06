@@ -21,7 +21,7 @@ export interface IMoveUnitBetweenArenasProperties extends ICardTargetSystemPrope
 
 export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IMoveUnitBetweenArenasProperties> {
     public override readonly name = 'move';
-    protected override readonly eventName = EventName.OnCardMoved;
+    public override readonly eventName = EventName.OnCardMoved;
     public override targetTypeFilter = [WildcardCardType.Unit];
 
     public eventHandler(event: any): void {
@@ -34,7 +34,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
             ? 'from the space arena to the ground arena'
             : 'from the ground arena to the space arena';
 
-        return ['move {0} ' + moveTypeString, [target]];
+        return [`move {0} ${moveTypeString}`, [this.getTargetMessage(target, context)]];
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IMoveUnitBetweenArenasProperties>): void {

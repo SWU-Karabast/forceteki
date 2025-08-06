@@ -43,7 +43,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPh
                     damageType: event.type,
                     damageSource: event.damageSource,
                     target: event.card,
-                    amount: event.amount,
+                    amount: event.damageDealt,
                     isIndirect: event.isIndirect,
                 })
         });

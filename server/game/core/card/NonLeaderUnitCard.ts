@@ -11,6 +11,8 @@ import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { ICardCanChangeControllers } from './CardInterfaces';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import type { INonLeaderUnitAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import { type IAbilityHelper } from '../../AbilityHelper';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
@@ -85,5 +87,16 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
 
 /** used for derived implementations classes. */
 export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
-    protected override state: never;
+    public declare state: never;
+
+    protected override getAbilityRegistrar(): INonLeaderUnitAbilityRegistrar {
+        return super.getAbilityRegistrar();
+    }
+
+    protected override callSetupWithRegistrar() {
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
 }

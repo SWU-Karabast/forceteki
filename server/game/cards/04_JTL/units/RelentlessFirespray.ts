@@ -1,6 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class RelentlessFirespray extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -10,10 +10,10 @@ export default class RelentlessFirespray extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addOnAttackAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addOnAttackAbility({
             title: 'Ready this unit',
-            limit: AbilityLimit.perRound(1),
+            limit: AbilityHelper.limit.perRound(1),
             immediateEffect: AbilityHelper.immediateEffects.ready((context) => ({
                 target: context.source
             }))

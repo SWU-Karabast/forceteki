@@ -3,6 +3,7 @@ export interface IUserDataEntity {
     username: string;
     preferences?: UserPreferences;
     showWelcomeMessage: boolean;
+    needsUsernameChange?: boolean;
 }
 
 // Interface for matchups a win here means the OP wins not opponents wins.
@@ -25,6 +26,13 @@ export interface IDeckStatsEntity {
 
 export interface UserPreferences {
     cardback?: string;
+    sound?: {
+        muteAllSound?: boolean;
+        muteCardAndButtonClickSound?: boolean;
+        muteYourTurn?: boolean;
+        muteChatSound?: boolean;
+        muteOpponentFoundSound?: boolean;
+    };
 }
 
 // Define user interface

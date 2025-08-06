@@ -1,3 +1,5 @@
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName } from '../../../core/Constants';
 
@@ -9,8 +11,8 @@ export default class Protector extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addGainKeywordTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addGainKeywordTargetingAttached({
             keyword: KeywordName.Sentinel
         });
     }

@@ -1,6 +1,8 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { INonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -16,12 +18,12 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'The first event played by each opponent each round loses all abilities',
             ongoingEffect: AbilityHelper.ongoingEffects.blankEventCard(),
             targetZoneFilter: WildcardZoneName.Any,
@@ -31,10 +33,10 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
         });
     }
 
-    private isFirstEventPlayedByThisOpponentThisPhase(card: Card, context: AbilityContext<this>) {
+    private isFirstEventPlayedByThisOpponentThisPhase(card: Card, context: AbilityContext<INonLeaderUnitCard>) {
         return card.controller !== context.source.controller &&
           card.type === CardType.Event &&
-          !context.source.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
+          !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
               playedCardEntry.playedBy === card.controller &&
               playedCardEntry.card.type === CardType.Event &&
               playedCardEntry.card !== card

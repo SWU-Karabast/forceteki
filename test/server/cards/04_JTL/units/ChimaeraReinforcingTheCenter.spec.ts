@@ -32,6 +32,33 @@ describe('Chimaera, Reinforcing the Center', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('cannot trigger a cloned When Defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['chimaera#reinforcing-the-center', 'clone'],
+                    },
+                    player2: {
+                        groundArena: ['wartime-trade-official']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.wartimeTradeOfficial);
+                expect(context.clone).toBeCloneOf(context.wartimeTradeOfficial);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.chimaera);
+                context.player1.clickCard(context.clone);
+
+                expect(context.player1.findCardsByName('battle-droid').length).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+
             it('should not defeat the selected unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -273,8 +300,8 @@ describe('Chimaera, Reinforcing the Center', function() {
                 context.player1.clickCard(context.chimaera);
                 context.player1.clickCard(context.zygerrianStarhopper);
 
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
-                context.player1.clickPrompt('Opponent');
+                expect(context.player1).toHaveEnabledPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent']);
+                context.player1.clickPrompt('Deal indirect damage to opponent');
 
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
                 expect(context.player2).not.toHaveChooseNothingButton();

@@ -1,5 +1,5 @@
 import type { Card } from '../core/card/Card';
-import AbilityResolver from '../core/gameSteps/AbilityResolver';
+import { AbilityResolver } from '../core/gameSteps/AbilityResolver';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
@@ -42,6 +42,7 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
 export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPlayCardProperties> {
     public override readonly name = 'playCard';
     public override readonly eventName = MetaEventName.PlayCard;
+    public override effectDescription = 'play {0}';
     protected override readonly targetTypeFilter = [CardType.BasicUnit, CardType.BasicUpgrade, CardType.Event];
     protected override readonly defaultProperties: IPlayCardProperties = {
         ignoredRequirements: ['phase'],
@@ -74,11 +75,6 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const newContext = ability.createContext(event.player);
 
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional, false, null, event.ignoredRequirements));
-    }
-
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
-        return ['play {0}', [properties.target]];
     }
 
     protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): void {

@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class ZiroTheHuttColorfulSchemer extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenPlayedAbility({
             title: 'Exhaust an enemy unit',
             optional: true,
             targetResolver: {
@@ -21,7 +22,7 @@ export default class ZiroTheHuttColorfulSchemer extends NonLeaderUnitCard {
             }
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Exhaust an enemy resource',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.exhaustResources({ amount: 1 }),

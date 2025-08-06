@@ -1,10 +1,11 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import {
     RelativePlayer,
     WildcardCardType,
     WildcardZoneName
 } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class Karabast extends EventCard {
     protected override getImplementationId () {
@@ -14,8 +15,8 @@ export default class Karabast extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'A friendly unit deals damage equal to its damage plus one to an enemy unit.',
             targetResolvers: {
                 friendlyUnit: {

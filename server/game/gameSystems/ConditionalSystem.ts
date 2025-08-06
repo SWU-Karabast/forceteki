@@ -3,10 +3,10 @@ import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
-import AbilityHelper from '../AbilityHelper';
 import { NoActionSystem } from './NoActionSystem';
 import * as Contract from '../core/utils/Contract';
 import type { Player } from '../core/Player';
+import { StaticAbilityHelper } from '../AbilityHelper';
 
 // TODO: allow providing only onTrue or onFalse in the properties so we don't need to use noAction()
 export interface IConditionalSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
@@ -16,13 +16,19 @@ export interface IConditionalSystemProperties<TContext extends AbilityContext = 
 }
 
 export class ConditionalSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, IConditionalSystemProperties<TContext>> {
-    protected override readonly eventName = MetaEventName.Conditional;
+    public override readonly eventName = MetaEventName.Conditional;
 
-    protected override readonly defaultProperties: IConditionalSystemProperties<TContext> = {
-        condition: null,
-        onTrue: AbilityHelper.immediateEffects.noAction(),
-        onFalse: AbilityHelper.immediateEffects.noAction(),
-    };
+    protected declare readonly defaultProperties: IConditionalSystemProperties<TContext>;
+
+    public constructor(propertiesOrPropertyFactory: IConditionalSystemProperties<TContext> | ((context?: TContext) => IConditionalSystemProperties<TContext>)) {
+        super(propertiesOrPropertyFactory);
+
+        this.defaultProperties = {
+            condition: null,
+            onTrue: StaticAbilityHelper.immediateEffects.noAction(),
+            onFalse: StaticAbilityHelper.immediateEffects.noAction(),
+        };
+    }
 
     public override getInnerSystems(properties: IConditionalSystemProperties<TContext>) {
         return [properties.onTrue, properties.onFalse];

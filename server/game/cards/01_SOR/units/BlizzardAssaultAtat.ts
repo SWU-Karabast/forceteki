@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { DamageType, ZoneName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
@@ -11,8 +12,8 @@ export default class BlizzardAssaultAtat extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'Deal the excess damage from the attack to an enemy ground unit',
             optional: true,
             when: {

@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../../core/Constants';
 
@@ -16,15 +17,15 @@ export default class NienNunbLoyalCoPilot extends NonLeaderUnitCard {
         return context.source.controller.getArenaCards({ trait: Trait.Pilot, otherThan: this }).length;
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'This unit gets +1/+0 for each other friendly Pilot unit and upgrade.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((_target, context) => ({
                 power: this.getOtherFriendlyPilotUnitsAndUpgradesCount(context), hp: 0
             }))
         });
 
-        this.addPilotingConstantAbilityTargetingAttached({
+        registrar.addPilotingConstantAbilityTargetingAttached({
             title: 'Attached unit gets +1/+0 for each other friendly Pilot unit and upgrade.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((_target, context) => ({
                 power: this.getOtherFriendlyPilotUnitsAndUpgradesCount(context), hp: 0

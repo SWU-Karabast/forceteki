@@ -1,6 +1,7 @@
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { PhaseName, TargetMode } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class Foresight extends UpgradeCard {
     protected override getImplementationId() {
@@ -10,8 +11,8 @@ export default class Foresight extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainTriggeredAbilityTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addGainTriggeredAbilityTargetingAttached({
             title: 'Name a card',
             when: {
                 onPhaseStarted: (event) => event.phase === PhaseName.Regroup

@@ -19,7 +19,7 @@ describe('Paladin Training Corvette', function() {
             context.player1.clickCard(context.grogu);
             context.player1.clickCard(context.maul);
             context.player1.clickCardNonChecking(context.darthMaul);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.player2).toBeActivePlayer();
 

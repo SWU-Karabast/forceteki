@@ -8,7 +8,7 @@ describe('Dagoyan Master', function() {
                         hand: ['dagoyan-master'],
                         groundArena: ['salacious-crumb#obnoxious-pet'],
                         spaceArena: ['cartel-spacer'],
-                        deck: ['jedi-knight', 'scout-bike-pursuer', 'fifth-brother#fear-hunter', 'battlefield-marine', 'rebel-pathfinder', 'alliance-dispatcher', 'echo-base-defender', 'frontline-shuttle'],
+                        deck: ['jedi-knight', 'scout-bike-pursuer', 'fifth-brother#fear-hunter', 'sorcerous-blast', 'rebel-pathfinder', 'alliance-dispatcher', 'echo-base-defender', 'frontline-shuttle'],
                         hasForceToken: true
                     },
                     player2: {
@@ -30,7 +30,7 @@ describe('Dagoyan Master', function() {
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.jediKnight, context.fifthBrother],
-                    invalid: [context.battlefieldMarine, context.rebelPathfinder, context.scoutBikePursuer]
+                    invalid: [context.sorcerousBlast, context.rebelPathfinder, context.scoutBikePursuer]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -43,7 +43,7 @@ describe('Dagoyan Master', function() {
 
                 // Check cards in deck
                 expect(context.player1.deck.length).toBe(7);
-                expect([context.fifthBrother, context.battlefieldMarine, context.rebelPathfinder, context.scoutBikePursuer]).toAllBeInBottomOfDeck(context.player1, 4);
+                expect([context.fifthBrother, context.sorcerousBlast, context.rebelPathfinder, context.scoutBikePursuer]).toAllBeInBottomOfDeck(context.player1, 4);
                 expect(context.player2).toBeActivePlayer();
             });
 

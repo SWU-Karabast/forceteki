@@ -22,7 +22,7 @@ describe('Allegiant General Pryde, Ruthless and Loyal', function () {
 
                 context.player1.clickCard(context.allegiantGeneralPryde);
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
 
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.p2Base, 2],
@@ -49,7 +49,7 @@ describe('Allegiant General Pryde, Ruthless and Loyal', function () {
 
                 context.player1.clickCard(context.allegiantGeneralPryde);
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
 
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.craftySmuggler, 1],
@@ -58,7 +58,7 @@ describe('Allegiant General Pryde, Ruthless and Loyal', function () {
 
                 expect(context.player1).toHaveEnabledPromptButtons([
                     'Defeat a non-unique upgrade on the unit: Battlefield Marine',
-                    'Defeat a non-unique upgrade on the unit: Crafty Smuggler'
+                    '(No effect) Defeat a non-unique upgrade on the unit: Crafty Smuggler'
                 ]);
 
                 context.player1.clickPrompt('Defeat a non-unique upgrade on the unit: Battlefield Marine');

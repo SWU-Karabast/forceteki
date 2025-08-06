@@ -1,6 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class ProtectThePod extends EventCard {
     protected override getImplementationId () {
@@ -10,8 +11,8 @@ export default class ProtectThePod extends EventCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'A friendly non-Vehicle unit deals damage equal to its remaining HP to an enemy unit',
             targetResolvers: {
                 friendlyUnit: {

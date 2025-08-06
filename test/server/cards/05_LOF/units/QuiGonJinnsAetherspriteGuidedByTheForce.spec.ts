@@ -734,7 +734,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player1.clickCard(context.countDooku);
                 context.player1.clickPrompt('Trigger exploit');
                 context.player1.clickCard(context.xwing);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.damage).toBe(2);
@@ -796,7 +796,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 // Play Qira, naming Takedown
                 context.player1.clickCard(context.qira);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.chooseListOption('Takedown');
 
                 // Aethersprite's ability is triggered
@@ -805,7 +805,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player1.clickPrompt('Trigger');
 
                 // Qira's ability resolves again, naming Vanquish
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.chooseListOption('Vanquish');
                 expect(context.player2).toBeActivePlayer();
 
@@ -836,7 +836,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 // Play Qira, naming Takedown
                 context.player1.clickCard(context.qira);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.chooseListOption('Takedown');
 
                 // Aethersprite's ability is triggered
@@ -845,7 +845,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player1.clickPrompt('Trigger');
 
                 // Qira's ability resolves again, naming Takedown
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.chooseListOption('Takedown');
                 expect(context.player2).toBeActivePlayer();
 
@@ -917,6 +917,74 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 expect(context.greenSquadronAwing).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
+        });
+
+        it('can trigger cloned abilities again', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'quigon-jinn#student-of-the-living-force',
+                    base: 'echo-base',
+                    hand: [
+                        'clone',
+                        'wing-leader',
+                    ],
+                    groundArena: ['leia-organa#defiant-princess'],
+                    spaceArena: [
+                        'quigon-jinns-aethersprite#guided-by-the-force'
+                    ],
+                },
+                player2: {
+                    hand: [
+                        'vanquish'
+                    ],
+                    spaceArena: [
+                        'green-squadron-awing',
+                        'phoenix-squadron-awing'
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Attack with the Aethersprite to activate the ability
+            context.player1.clickCard(context.quigonJinnsAethersprite);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.passAction();
+
+            // Play Clone to trigger Leia Organa's "When Played" ability
+            context.player1.clickCard(context.clone);
+            context.player1.clickCard(context.leiaOrgana);
+            expect(context.clone).toBeCloneOf(context.leiaOrgana);
+            expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
+            context.player1.clickPrompt('Ready a resource');
+
+            expect(context.player1.exhaustedResourceCount).toBe(6);
+
+            // Aethersprite's ability is triggered
+            expect(context.player1).toHavePassAbilityPrompt(prompt);
+            expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+            context.player1.clickPrompt('Trigger');
+
+            // Leia Organa's ability can be used again
+            expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
+            context.player1.clickPrompt('Ready a resource');
+
+            expect(context.player1.exhaustedResourceCount).toBe(5);
+
+            context.player2.passAction();
+
+            // Play Wing Leader to trigger its "When Played" ability
+            context.player1.clickCard(context.wingLeader);
+            expect(context.player1).toHavePrompt('Give 2 Experience tokens to another friendly Rebel unit');
+            expect(context.player1).toBeAbleToSelectExactly([context.leiaOrgana, context.clone]);
+            context.player1.clickCard(context.clone);
+
+            // Verify that the ability cannot be used again
+            expect(context.player1).not.toHavePassAbilityPrompt(prompt);
+            expect(context.clone).toHaveExactUpgradeNames(['experience', 'experience']);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

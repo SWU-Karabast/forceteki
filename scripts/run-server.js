@@ -9,9 +9,13 @@ function createEnvFile() {
         GAME_NODE_NAME: 'test1',
         GAME_NODE_SOCKET_IO_PORT: '9500',
         ENVIRONMENT: 'development',
-        SECRET: 'verysecret',
+        NEXTAUTH_SECRET: 'verysecret',
         // set this to "true" to force the local client to pull card data jsons from AWS instead of local folder
         FORCE_REMOTE_CARD_DATA: 'false',
+        // set this to "true" to force the local dev server to use action timers in public games
+        USE_LOCAL_ACTION_TIMER: 'false',
+        // set this to "true" to enable the use of local DynamoDB for account testing
+        USE_LOCAL_DYNAMODB: 'false',
         DISCORD_BUG_REPORT_WEBHOOK_URL: '',
     };
     return fs.writeFile(

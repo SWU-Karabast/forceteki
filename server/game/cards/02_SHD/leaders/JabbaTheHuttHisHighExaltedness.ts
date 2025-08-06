@@ -1,7 +1,7 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -11,8 +11,8 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addActionAbility({
             title: 'Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs 1 resource less."',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -22,16 +22,13 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                         keyword: KeywordName.Bounty,
                         ability: {
                             title: 'The next unit you play this phase costs 1 resource less',
-                            immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect(
-                                (context) => ({
-                                    targetController: context.player,
-                                    effect: AbilityHelper.ongoingEffects.decreaseCost({
-                                        cardTypeFilter: WildcardCardType.Unit,
-                                        limit: AbilityLimit.perGame(1),
-                                        amount: 1
-                                    })
+                            immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
+                                effect: AbilityHelper.ongoingEffects.decreaseCost({
+                                    cardTypeFilter: WildcardCardType.Unit,
+                                    limit: AbilityHelper.limit.perPlayerPerGame(1),
+                                    amount: 1
                                 })
-                            )
+                            })
                         }
                     })
                 })
@@ -39,8 +36,8 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'Another friendly unit captures an enemy non-leader unit',
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
@@ -60,7 +57,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
             }
         });
 
-        this.addActionAbility({
+        registrar.addActionAbility({
             title: 'Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs 2 resources less."',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
@@ -70,14 +67,13 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                         keyword: KeywordName.Bounty,
                         ability: {
                             title: 'The next unit you play this phase costs 2 resources less',
-                            immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect((context) => ({
-                                targetController: context.player,
+                            immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
-                                    limit: AbilityLimit.perGame(1),
+                                    limit: AbilityHelper.limit.perPlayerPerGame(1),
                                     amount: 2
                                 })
-                            }))
+                            })
                         }
                     })
                 })

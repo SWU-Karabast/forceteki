@@ -24,7 +24,7 @@ describe('I Had No Choice', function() {
                     expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.warzoneLieutenant, context.viperProbeDroid]);
                     context.player1.clickCard(context.wampa);
                     context.player1.clickCard(context.viperProbeDroid);
-                    context.player1.clickPrompt('Done');
+                    context.player1.clickDone();
 
                     expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.viperProbeDroid]);
                     context.player2.clickCard(context.viperProbeDroid);
@@ -32,6 +32,18 @@ describe('I Had No Choice', function() {
                     expect(context.viperProbeDroid).toBeInZone('hand', context.player2);
                     expect(context.wampa).toBeInBottomOfDeck(context.player1, 1);
                     expect(context.resilient).toBeInZone('discard', context.player1);
+                    expect(context.player2).toBeActivePlayer();
+                });
+
+                it('can choose nothing', function () {
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.iHadNoChoice);
+                    expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.warzoneLieutenant, context.viperProbeDroid]);
+                    context.player1.clickPrompt('Choose nothing');
+
+                    expect(context.viperProbeDroid).toBeInZone('groundArena', context.player2);
+                    expect(context.wampa).toBeInZone('groundArena', context.player1);
                     expect(context.player2).toBeActivePlayer();
                 });
             });

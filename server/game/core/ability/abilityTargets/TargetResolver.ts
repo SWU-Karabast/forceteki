@@ -5,6 +5,7 @@ import type { GameSystem } from '../../gameSystem/GameSystem';
 import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
 import { RelativePlayer, Stage } from '../../Constants';
 import type { Player } from '../../Player';
+import type { IPassAbilityHandler } from '../../gameSteps/AbilityResolver';
 
 export interface ITargetResult {
     canIgnoreAllCosts?: boolean;
@@ -50,14 +51,14 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
 
     protected abstract hasTargetsChosenByPlayerInternal(context: AbilityContext, player?: Player): boolean;
 
-    protected abstract resolveInternal(context: AbilityContext, targetResults: ITargetResult, passPrompt, player: Player);
+    protected abstract resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult, passPrompt?: IPassAbilityHandler): void;
 
     public canResolve(context: AbilityContext) {
         // if this depends on another target, that will check hasLegalTarget already
         return !!this.properties.dependsOn || this.hasLegalTarget(context);
     }
 
-    public resolve(context: AbilityContext, targetResults: ITargetResult, passPrompt = null) {
+    public resolve(context: AbilityContext, targetResults: ITargetResult, passPrompt?: IPassAbilityHandler) {
         if (targetResults.cancelled || targetResults.payCostsFirst || targetResults.delayTargeting) {
             return;
         }
@@ -72,7 +73,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
             return;
         }
 
-        this.resolveInternal(context, targetResults, passPrompt, player);
+        this.resolveInternal(player, context, targetResults, passPrompt);
     }
 
     protected getDefaultProperties(context: AbilityContext) {
@@ -81,7 +82,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
             activePromptTitle: activePromptTitleConcrete,
             waitingPromptTitle: 'waitingPromptTitle' in this.properties
                 ? this.properties.waitingPromptTitle as string
-                : (context.ability.type === 'action' ? 'Waiting for opponent to take an action or pass' : 'Waiting for opponent'),
+                : (context.ability?.type === 'action' ? 'Waiting for opponent to take an action or pass' : 'Waiting for opponent'),
             context: context,
             source: context.source
         };

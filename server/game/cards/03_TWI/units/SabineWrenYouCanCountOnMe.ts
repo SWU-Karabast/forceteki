@@ -1,5 +1,6 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Aspect } from '../../../core/Constants';
 import { AbilityRestriction, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
@@ -11,14 +12,14 @@ export default class SabineWrenYouCanCountOnMe extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'While this unit is exhausted, she can\'t be attacked',
             condition: (context) => context.source.exhausted,
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Discard the top card from your deck',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard((context) => ({

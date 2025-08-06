@@ -6,6 +6,8 @@ import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
 import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
 import { GiveExperienceSystem } from './GiveExperienceSystem';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 export type IDistributeExperienceSystemProperties<TContext extends AbilityContext = AbilityContext> = IDistributeAmongTargetsSystemProperties<TContext>;
 
@@ -14,7 +16,7 @@ export type IDistributeExperienceSystemProperties<TContext extends AbilityContex
  * Will prompt the user to select where to put the experience (unless auto-selecting a single target is possible).
  */
 export class DistributeExperienceSystem<TContext extends AbilityContext = AbilityContext> extends DistributeAmongTargetsSystem<TContext> {
-    protected override readonly eventName = MetaEventName.DistributeExperience;
+    public override readonly eventName = MetaEventName.DistributeExperience;
     public override readonly name = 'distributeExperience';
 
     public override promptType: DistributePromptType = StatefulPromptType.DistributeExperience;
@@ -31,7 +33,11 @@ export class DistributeExperienceSystem<TContext extends AbilityContext = Abilit
         return event.amount;
     }
 
-    protected override getDistributionType(): string {
-        return 'experience';
+    protected override getDistributionType(amount: number): string | FormatMessage {
+        return ChatHelpers.pluralize(amount, 'Experience token', 'Experience tokens');
+    }
+
+    protected override getDistributionVerb(): string {
+        return 'give';
     }
 }

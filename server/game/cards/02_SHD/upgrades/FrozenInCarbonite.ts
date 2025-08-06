@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { AbilityRestriction } from '../../../core/Constants';
 
@@ -11,17 +12,17 @@ export default class FrozenInCarbonite extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => card.isNonLeaderUnit());
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setAttachCondition((card: Card) => card.isNonLeaderUnit());
 
-        this.addWhenPlayedAbility({
+        registrar.addWhenPlayedAbility({
             title: 'Exhaust attached unit',
             immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => ({
                 target: context.source.parentCard
             }))
         });
 
-        this.addConstantAbilityTargetingAttached({
+        registrar.addConstantAbilityTargetingAttached({
             title: 'Attached unit can\'t ready',
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.Ready)
         });

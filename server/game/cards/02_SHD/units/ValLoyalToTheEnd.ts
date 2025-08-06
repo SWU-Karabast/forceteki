@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class ValLoyalToTheEnd extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenDefeatedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenDefeatedAbility({
             title: 'Give 2 Experience tokens to a friendly unit',
             targetResolver: {
                 controller: RelativePlayer.Self,
@@ -20,7 +21,7 @@ export default class ValLoyalToTheEnd extends NonLeaderUnitCard {
             }
         });
 
-        this.addBountyAbility({
+        registrar.addBountyAbility({
             title: 'Deal 3 damage to a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

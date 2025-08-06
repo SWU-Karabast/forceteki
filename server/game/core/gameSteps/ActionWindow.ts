@@ -1,23 +1,47 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { EventName, EffectName } from '../Constants.js';
+import { EventName, EffectName, SnapshotType } from '../Constants.js';
 import * as EnumHelpers from '../utils/EnumHelpers.js';
 import * as Contract from '../utils/Contract.js';
 import type Game from '../Game.js';
 import type { Player } from '../Player.js';
 import type { Card } from '../card/Card.js';
 import type { IPlayerPromptStateProperties } from '../PlayerPromptState.js';
-import type AbilityResolver from './AbilityResolver.js';
+import type { AbilityResolver } from './AbilityResolver.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import { PromptType, type IButton } from './PromptInterfaces.js';
+import type { SnapshotManager } from '../snapshot/SnapshotManager.js';
+import { SnapshotTimepoint } from '../snapshot/SnapshotInterfaces.js';
 
 export class ActionWindow extends UiPrompt {
-    private activePlayer: Player;
+    public readonly title: string;
+    public readonly windowName: string;
 
-    public constructor(game: Game, public title: string, public windowName: string, private prevPlayerPassed: boolean, private setPassStatus: (passed: boolean) => boolean, activePlayer?: Player) {
+    private readonly actionNumber: number;
+    private readonly activePlayer: Player;
+    private readonly prevPlayerPassed: boolean;
+    private readonly setPassStatus: (passed: boolean) => boolean;
+    private readonly snapshotManager: SnapshotManager;
+
+    public constructor(
+        game: Game,
+        title: string,
+        windowName: string,
+        prevPlayerPassed: boolean,
+        setPassStatus: (passed: boolean) => boolean,
+        actionNumber: number,
+        snapshotManager: SnapshotManager,
+        activePlayer?: Player
+    ) {
         super(game);
 
-        this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
+        this.title = title;
+        this.windowName = windowName;
+        this.prevPlayerPassed = prevPlayerPassed;
+        this.setPassStatus = setPassStatus;
+        this.snapshotManager = snapshotManager;
+        this.actionNumber = actionNumber;
 
+        this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
         this.activePlayer.actionTimer.stop();
 
         Contract.assertNotNullLike(this.activePlayer);
@@ -74,6 +98,8 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override continue() {
+        this.checkUpdateSnapshot();
+
         // TODO: do we need promptedActionWindows?
         if (!this.activePlayer.promptedActionWindows[this.windowName]) {
             this.pass();
@@ -90,11 +116,25 @@ export class ActionWindow extends UiPrompt {
         return completed;
     }
 
+    // TODO: see if there's better logic for determining when and how to advance the turn, take new snapshots, etc.
+    private checkUpdateSnapshot() {
+        if (
+            this.snapshotManager.currentSnapshottedTimepoint !== SnapshotTimepoint.Action ||
+            this.snapshotManager.currentSnapshottedAction !== this.actionNumber
+        ) {
+            this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.Action);
+            this.snapshotManager.takeSnapshot({
+                type: SnapshotType.Action,
+                playerId: this.activePlayer.id
+            });
+        }
+    }
+
     private stopActionTimer() {
         this.activePlayer.actionTimer.stop();
     }
 
-    public override activePrompt(player: Player): IPlayerPromptStateProperties {
+    public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         const { mustTakeCardAction, overrideActionPromptTitle } = this.getSelectableCards();
 
         const buttons: IButton[] = [

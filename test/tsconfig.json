@@ -9,7 +9,8 @@
         "checkJs": false,
         "lib": [
             "ES2020",
-            "ES2021.Intl"
+            "ES2021.Intl",
+            "ESNext.Decorators"
         ],
         "esModuleInterop": true,
         "strictBindCallApply": true,
@@ -24,6 +25,7 @@
         "noImplicitReturns": true,
         "noImplicitThis": false,
         "resolveJsonModule": true,
+        "incremental": true,
     },
     "include": [
         "../server/**/*",

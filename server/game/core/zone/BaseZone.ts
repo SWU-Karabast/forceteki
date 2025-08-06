@@ -22,7 +22,7 @@ type IBaseZoneCard = ILeaderCard | IBaseCard | ITokenCard;
 export class BaseZone extends ZoneAbstract<IBaseZoneCard, IBaseZoneState> {
     public readonly base: IBaseCard;
     public override readonly hiddenForPlayers: null;
-    public override readonly owner: Player;
+    public declare readonly owner: Player;
     public override readonly name: ZoneName.Base;
 
     public override get cards(): (IBaseZoneCard)[] {
@@ -68,6 +68,7 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard, IBaseZoneState> {
     }
 
     protected override setupDefaultState() {
+        super.setupDefaultState();
         this.state.leader = null;
     }
 

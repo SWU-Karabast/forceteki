@@ -1,11 +1,12 @@
 import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
-import type { IConstantAbilityProps, IOngoingEffectGenerator, NumericKeywordName } from '../../../Interfaces';
+import type { IAbilityPropsWithSystems, IConstantAbilityProps, IOngoingEffectGenerator, NumericKeywordName } from '../../../Interfaces';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import type { IAlternatePlayActionProperties, IPlayCardActionProperties, IPlayCardActionPropertiesBase, PlayCardAction } from '../../ability/PlayCardAction';
 import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
+import PreEnterPlayAbility from '../../ability/PreEnterPlayAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
@@ -15,6 +16,7 @@ import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
 import type { ICardState } from '../Card';
 import { Card } from '../Card';
+import type { ICardCanChangeControllers } from '../CardInterfaces';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
@@ -45,8 +47,7 @@ export interface ICardWithExhaustProperty extends Card {
     ready();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty {}
+export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty, ICardCanChangeControllers {}
 
 export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
     getPlayCardActions(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction[];
@@ -63,7 +64,9 @@ export interface IPlayableOrDeployableCardState extends ICardState {
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> extends Card<T> {
+export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> extends Card<T> implements IPlayableOrDeployableCard {
+    protected preEnterPlayAbilities: PreEnterPlayAbility[] = [];
+
     public get exhausted(): boolean {
         this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
         return this.state.exhausted;
@@ -341,6 +344,10 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
         const effect = OngoingEffectLibrary.ignoreSpecificAspectPenalties(costAdjusterProps);
         return this.buildCostAdjusterAbilityProps(condition, title, effect);
+    }
+
+    protected createPreEnterPlayAbility<TSource extends Card = this>(properties: IAbilityPropsWithSystems<AbilityContext<TSource>>): PreEnterPlayAbility {
+        return new PreEnterPlayAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('preEnterPlay'), properties));
     }
 
     private buildCostAdjusterGenericProperties() {

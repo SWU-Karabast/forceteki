@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { CardType, EventName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
@@ -12,8 +13,8 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addActionAbility({
             title: 'Discard a card from your hand. If you discard an Upgrade this way, draw a card',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.sequential([
@@ -31,8 +32,8 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'Play any number of Upgrades from your discard pile on this unit',
             optional: true,
             when: {
@@ -48,11 +49,11 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
                     attachTargetCondition: (attachTarget) => attachTarget === context.source
                 }))
             },
-            then: () => this.thenPlayAnotherUpgrade()
+            then: () => this.thenPlayAnotherUpgrade(AbilityHelper)
         });
     }
 
-    private thenPlayAnotherUpgrade(): IThenAbilityPropsWithSystems<TriggeredAbilityContext<this>> {
+    private thenPlayAnotherUpgrade(AbilityHelper: IAbilityHelper): IThenAbilityPropsWithSystems<TriggeredAbilityContext<this>> {
         return {
             title: 'Play another Upgrade from your discard pile on this unit',
             optional: true,
@@ -66,7 +67,7 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
                     attachTargetCondition: (attachTarget) => attachTarget === context.source
                 }))
             },
-            then: () => this.thenPlayAnotherUpgrade()
+            then: () => this.thenPlayAnotherUpgrade(AbilityHelper)
         };
     }
 }

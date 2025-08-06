@@ -78,10 +78,10 @@ describe('Regroup phase', function() {
                     expect(context.player1).toHaveExactPromptButtons(['Done']);
                     expect(context.player2).toHaveExactPromptButtons(['Done']);
 
-                    context.player1.clickPrompt('Done');
+                    context.player1.clickDone();
                     expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
                     expect(context.player2).toHaveExactPromptButtons(['Done']);
-                    context.player2.clickPrompt('Done');
+                    context.player2.clickDone();
 
                     expect(context.getChatLogs(4)).toContain('player1 has resourced 1 card from hand');
                     expect(context.getChatLogs(4)).toContain('player2 has not resourced any cards');
@@ -107,8 +107,8 @@ describe('Regroup phase', function() {
                     expect(context.player2.hand.length).toBe(4);
 
                     // Resources
-                    context.player2.clickPrompt('Done');
-                    context.player1.clickPrompt('Done');
+                    context.player2.clickDone();
+                    context.player1.clickDone();
 
                     // check board state
                     expect(context.player2.deck.length).toBe(0);
@@ -163,6 +163,7 @@ describe('Regroup phase', function() {
                     expect(context.ardentSympathizer.zoneName).toBe('discard');
                     expect(context.scoutBikePursuer.getPower()).toBe(1);
                     expect(context.allianceXwing.getPower()).toBe(2);
+                    expect(context.getChatLogs(4)).toContain('player1\'s Ardent Sympathizer is defeated due to having no remaining HP');
                 }
             );
         });
@@ -194,8 +195,8 @@ describe('Regroup phase', function() {
                 // player1 retains initiative
                 context.moveToRegroupPhase();
 
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
                 context.player1.clickPrompt('You');
@@ -218,8 +219,8 @@ describe('Regroup phase', function() {
                 context.player1.passAction();
                 context.player2.claimInitiative();
 
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 expect(context.player2).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
                 context.player2.clickPrompt('You');
@@ -306,6 +307,7 @@ describe('Regroup phase', function() {
             it('can allow the player to play a card, then initiate an attack with ambush', function() {
                 const { context } = contextRef;
                 context.moveToRegroupPhase();
+                expect(context.getChatLogs(1)).toContain('player2\'s Fireball is defeated by player2 due to having no remaining HP');
 
                 // Resolve BHQ ability to play Cloud-Rider
                 expect(context.player1).toHavePassAbilityPrompt(bhqPrompt);
@@ -424,8 +426,8 @@ describe('Regroup phase', function() {
                 expect(context.calculatingMagnaguard.hasSentinel()).toBe(true);
 
                 // Move to the action phase
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 expect(context.calculatingMagnaguard.hasSentinel()).toBe(false);
             });

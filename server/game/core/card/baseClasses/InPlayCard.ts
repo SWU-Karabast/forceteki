@@ -5,7 +5,7 @@ import type { IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStand
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
-import { CardType, RelativePlayer, StandardTriggeredAbilityType, TargetMode, Trait, WildcardZoneName, ZoneName } from '../../Constants';
+import { CardType, EffectName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, Trait, WildcardZoneName, ZoneName } from '../../Constants';
 import type { GameObjectRef } from '../../GameObjectBase';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
@@ -13,18 +13,21 @@ import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as Helpers from '../../utils/Helpers';
+import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import { InitializeCardStateOption, type Card } from '../Card';
 import type { ICardWithActionAbilities } from '../propertyMixins/ActionAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
-import type { ICardWithConstantAbilities } from '../propertyMixins/ConstantAbilityRegistration';
+import type { ICardWithConstantAbilities, IConstantAbilityRegistrar } from '../propertyMixins/ConstantAbilityRegistration';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import { WithCost } from '../propertyMixins/Cost';
-import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
+import type { ICardWithPreEnterPlayAbilities } from '../propertyMixins/PreEnterPlayAbilityRegistration';
+import type { ICardWithTriggeredAbilities, ITriggeredAbilityRegistrar } from '../propertyMixins/TriggeredAbilityRegistration';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
+import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 
-const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
+const InPlayCardParent = WithAllAbilityTypes(WithCost(PlayableOrDeployableCard));
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor<T extends IInPlayCardState = IInPlayCardState> = new (...args: any[]) => InPlayCard<T>;
@@ -37,14 +40,16 @@ export interface IInPlayCardState extends IPlayableOrDeployableCardState {
     parentCard: GameObjectRef<IUnitCard> | null;
 }
 
-export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities, ICardWithConstantAbilities, ICardWithTriggeredAbilities {
-    readonly printedUpgradeHp: number;
-    readonly printedUpgradePower: number;
+export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities<IInPlayCard>, ICardWithConstantAbilities<IInPlayCard>, ICardWithTriggeredAbilities<IInPlayCard>, ICardWithPreEnterPlayAbilities {
+    get printedUpgradeHp(): number;
+    get printedUpgradePower(): number;
     get disableOngoingEffectsForDefeat(): boolean;
     get inPlayId(): number;
     get mostRecentInPlayId(): number;
     get parentCard(): IUnitCard;
     get pendingDefeat(): boolean;
+    getUpgradeHp(): number;
+    getUpgradePower(): number;
     isInPlay(): boolean;
     registerPendingUniqueDefeat();
     checkUnique();
@@ -64,8 +69,8 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
  * 3. Uniqueness management
  */
 export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends InPlayCardParent<T> implements IInPlayCard {
-    public readonly printedUpgradeHp: number;
-    public readonly printedUpgradePower: number;
+    private readonly _printedUpgradeHp: number;
+    private readonly _printedUpgradePower: number;
 
     protected attachCondition: (card: Card) => boolean;
 
@@ -144,8 +149,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
           (cardData.upgradePower == null && cardData.upgradeHp == null));
 
         if (hasUpgradeStats) {
-            this.printedUpgradePower = cardData.upgradePower;
-            this.printedUpgradeHp = cardData.upgradeHp;
+            this._printedUpgradePower = cardData.upgradePower;
+            this._printedUpgradeHp = cardData.upgradeHp;
         }
     }
 
@@ -180,12 +185,38 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         Contract.assertNotNullLike(this.state.parentCard);
     }
 
+    public get printedUpgradeHp(): number {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const override = getPrintedAttributesOverride('printedUpgradeHp', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
+            }
+        }
+
+        return this._printedUpgradeHp;
+    }
+
+    public get printedUpgradePower(): number {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const override = getPrintedAttributesOverride('printedUpgradePower', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
+            }
+        }
+
+        return this._printedUpgradePower;
+    }
+
     public getUpgradeHp(): number {
         return this.printedUpgradeHp;
     }
 
     public getUpgradePower(): number {
         return this.printedUpgradePower;
+    }
+
+    protected get canBeUpgrade(): boolean {
+        return this.printedUpgradeHp != null && this.printedUpgradePower != null;
     }
 
     public attachTo(newParentCard: IUnitCard, newController?: Player) {
@@ -268,30 +299,43 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     // ********************************************* ABILITY SETUP *********************************************
-    protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
-        const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenPlayed]: true };
-        return this.addTriggeredAbility({ ...properties, when });
+    protected override getAbilityRegistrar(): IInPlayCardAbilityRegistrar<this> {
+        const registrar = super.getAbilityRegistrar() as IBasicAbilityRegistrar<this>;
+
+        return {
+            ...registrar,
+            addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties, registrar),
+            addWhenPlayedAbility: (properties) => this.addWhenPlayedAbility(properties, registrar),
+            addWhenDefeatedAbility: (properties) => this.addWhenDefeatedAbility(properties, registrar),
+            addIgnoreAllAspectPenaltiesAbility: (properties) => this.addIgnoreAllAspectPenaltiesAbility(properties, registrar),
+            addIgnoreSpecificAspectPenaltyAbility: (properties) => this.addIgnoreSpecificAspectPenaltyAbility(properties, registrar),
+        };
     }
 
-    protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
+    private addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>, registrar: ITriggeredAbilityRegistrar<this>): TriggeredAbility {
+        const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenPlayed]: true };
+        return registrar.addTriggeredAbility({ ...properties, when });
+    }
+
+    private addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>, registrar: ITriggeredAbilityRegistrar<this>): TriggeredAbility {
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenDefeated]: true };
         const triggeredProperties = Object.assign(properties, { when });
-        return this.addTriggeredAbility(triggeredProperties);
+        return registrar.addTriggeredAbility(triggeredProperties);
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
-    protected addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>): IConstantAbilityProps<this> {
-        return this.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
+    private addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
+        return registrar.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
     }
 
     /** Add a constant ability on the card that ignores all aspect penalties under the given condition */
-    protected addIgnoreAllAspectPenaltiesAbility(properties: IIgnoreAllAspectPenaltiesProps<this>): IConstantAbilityProps<this> {
-        return this.addConstantAbility(this.createConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties)));
+    private addIgnoreAllAspectPenaltiesAbility(properties: IIgnoreAllAspectPenaltiesProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
+        return registrar.addConstantAbility(this.createConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties)));
     }
 
     /** Add a constant ability on the card that ignores specific aspect penalties under the given condition */
-    protected addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreSpecificAspectPenaltyProps<this>): IConstantAbilityProps<this> {
-        return this.addConstantAbility(this.createConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties)));
+    private addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreSpecificAspectPenaltyProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
+        return registrar.addConstantAbility(this.createConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties)));
     }
 
     public override registerMove(movedFromZone: ZoneName): void {
@@ -363,8 +407,26 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         Contract.assertTrue(this.unique);
 
         // need to filter for other cards that have unique = true since Clone will create non-unique duplicates
-        const numUniqueDuplicatesInPlay = this.getDuplicatesInPlayForController().length;
+        const uniqueDuplicatesInPlay = this.getDuplicatesInPlayForController();
+        const numUniqueDuplicatesInPlay = uniqueDuplicatesInPlay.length;
+
         if (numUniqueDuplicatesInPlay === 0) {
+            return;
+        }
+
+        if (this.isUpgrade() && uniqueDuplicatesInPlay.every((duplicateCard) =>
+            duplicateCard.isUpgrade() &&
+            duplicateCard.parentCard === this.parentCard
+        )) {
+            // Band-aid fix for https://github.com/SWU-Karabast/forceteki/issues/1491
+            // We will default to defeating the oldest duplicate in play
+            uniqueDuplicatesInPlay.sort((a, b) => a.mostRecentInPlayId - b.mostRecentInPlayId);
+            this.resolveUniqueDefeat(uniqueDuplicatesInPlay[0]);
+            this.game.addMessage(
+                '{0} defeats 1 copy of {1} due to the uniqueness rule (the oldest copy is defeated by default)',
+                this.controller, this
+            );
+            this.resolveUniqueDefeat(uniqueDuplicatesInPlay[0]);
             return;
         }
 
@@ -393,14 +455,14 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
                         this.resolveUniqueDefeat(card);
                     }
                     this.game.addMessage(
-                        '{0} defeats {1} {2} of {3} due to the uniquenes rule',
+                        '{0} defeats {1} {2} of {3} due to the uniqueness rule',
                         this.controller, cardOrCards.length, cardOrCards.length > 1 ? 'copies' : 'copy', this
                     );
                     return true;
                 }
                 Contract.assertTrue(cardOrCards.canBeInPlay(), `Card ${cardOrCards.title} is not a IInPlayCard`);
                 this.game.addMessage(
-                    '{0} defeats 1 copy of {1} due to the uniquenes rule',
+                    '{0} defeats 1 copy of {1} due to the uniqueness rule',
                     this.controller, this
                 );
                 return this.resolveUniqueDefeat(cardOrCards);

@@ -10,12 +10,12 @@ import type { IOngoingCardEffectProps } from '../../Interfaces';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 import type { AbilityContext } from '../ability/AbilityContext';
 
-export class OngoingCardEffect extends OngoingEffect {
+export class OngoingCardEffect extends OngoingEffect<Card> {
     public readonly targetsSourceOnly: boolean;
     public readonly targetZoneFilter: ZoneFilter;
     public readonly targetCardTypeFilter: CardTypeFilter[];
     public readonly targetController: RelativePlayer;
-    public override matchTarget: Card | ((target: Card, context: AbilityContext) => boolean);
+    public declare matchTarget: Card | ((target: Card, context: AbilityContext) => boolean);
 
     public constructor(game: Game, source: Card, properties: IOngoingCardEffectProps, effect: OngoingEffectImpl<any>) {
         super(game, source, properties, effect);

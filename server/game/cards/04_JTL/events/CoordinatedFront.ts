@@ -1,5 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class CoordinatedFront extends EventCard {
@@ -10,8 +11,8 @@ export default class CoordinatedFront extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Give a ground unit and a space unit +2/+2 for this phase',
             targetResolvers: {
                 groundUnit: {

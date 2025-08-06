@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { Arena } from '../../../core/Constants';
 import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 
@@ -11,21 +12,22 @@ export default class TurbolaserSalvo extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Choose an arena',
             targetResolver: {
                 mode: TargetMode.Select,
                 activePromptTitle: 'Choose an arena',
+                showUnresolvable: true,
                 choices: {
-                    ['Ground']: this.eventEffect(ZoneName.GroundArena),
-                    ['Space']: this.eventEffect(ZoneName.SpaceArena),
+                    ['Ground']: this.eventEffect(ZoneName.GroundArena, AbilityHelper),
+                    ['Space']: this.eventEffect(ZoneName.SpaceArena, AbilityHelper),
                 }
             }
         });
     }
 
-    private eventEffect(arena: Arena) {
+    private eventEffect(arena: Arena, AbilityHelper: IAbilityHelper) {
         return AbilityHelper.immediateEffects.conditional((context) => ({
             condition: context.player.hasSomeArenaUnit({ arena: ZoneName.SpaceArena }),
             onTrue: AbilityHelper.immediateEffects.selectCard({
@@ -34,11 +36,11 @@ export default class TurbolaserSalvo extends EventCard {
                 zoneFilter: ZoneName.SpaceArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 name: 'friendlySpaceUnitDamageSource',
-                innerSystem: AbilityHelper.immediateEffects.damage((damageContext) => {
+                immediateEffect: AbilityHelper.immediateEffects.damage((damageContext) => {
                     return {
-                        amount: damageContext.targets.friendlySpaceUnitDamageSource?.[0].getPower(),
+                        amount: damageContext.targets.friendlySpaceUnitDamageSource?.getPower(),
                         target: damageContext.player.opponent.getArenaUnits({ arena: arena }),
-                        source: damageContext.targets.friendlySpaceUnitDamageSource?.[0]
+                        source: damageContext.targets.friendlySpaceUnitDamageSource
                     };
                 })
             }),

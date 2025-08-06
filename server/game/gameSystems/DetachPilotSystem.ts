@@ -16,7 +16,7 @@ export interface IDetachPilotProperties extends ICardTargetSystemProperties {}
 
 export class DetachPilotSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDetachPilotProperties> {
     public override readonly name = 'detach';
-    protected override readonly eventName = EventName.OnCardMoved;
+    public override readonly eventName = EventName.OnCardMoved;
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.UnitUpgrade];
 
     public eventHandler(event: any): void {
@@ -27,7 +27,7 @@ export class DetachPilotSystem<TContext extends AbilityContext = AbilityContext>
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { target } = this.generatePropertiesFromContext(context);
 
-        return ['detaches {0} and moves it to the ground arena', [target]];
+        return ['detaches {0} and moves it to the ground arena', [this.getTargetMessage(target, context)]];
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IDetachPilotProperties>): void {

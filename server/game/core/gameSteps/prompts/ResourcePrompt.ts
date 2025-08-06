@@ -48,7 +48,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         });
     }
 
-    public override activePrompt(): IPlayerPromptStateProperties {
+    public override activePromptInternal(): IPlayerPromptStateProperties {
         let promptText = null;
         if (this.nCardsToResource !== 1) {
             promptText = `Select ${this.nCardsToResource} cards to resource`;
@@ -92,7 +92,8 @@ export class ResourcePrompt extends AllPlayerPrompt {
 
     public override waitingPrompt() {
         return {
-            menuTitle: 'Waiting for opponent to choose cards to resource'
+            menuTitle: 'Waiting for opponent to choose cards to resource',
+            promptType: PromptType.Resource,
         };
     }
 

@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, RelativePlayer, Trait } from '../../../core/Constants';
 
@@ -11,8 +12,8 @@ export default class L337GetOutOfMySeat extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities () {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'If this unit would be defeated, you may instead attach her as an upgrade to a friendly Vehicle unit without a Pilot on it.',
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({
                 title: 'Attach to a friendly Vehicle unit without a pilot on it',
@@ -25,7 +26,7 @@ export default class L337GetOutOfMySeat extends NonLeaderUnitCard {
                     replacementImmediateEffect: AbilityHelper.immediateEffects.selectCard({
                         controller: RelativePlayer.Self,
                         cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && !card.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot)),
-                        innerSystem: AbilityHelper.immediateEffects.attachUpgrade<TriggeredAbilityContext<this>>((context) => ({
+                        immediateEffect: AbilityHelper.immediateEffects.attachUpgrade<TriggeredAbilityContext<this>>((context) => ({
                             target: context.target,
                             upgrade: context.source
                         }))

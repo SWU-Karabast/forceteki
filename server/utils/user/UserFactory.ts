@@ -6,6 +6,21 @@ import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
+import type { IUserDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
+
+
+const getDefaultSoundPreferences = () => ({
+    muteAllSound: false,
+    muteCardAndButtonClickSound: false,
+    muteChatSound: false,
+    muteYourTurn: false,
+    muteOpponentFoundSound: false,
+});
+
+const getDefaultPreferences = (): UserPreferences => ({
+    cardback: null,
+    sound: getDefaultSoundPreferences()
+});
 
 
 /**
@@ -92,6 +107,14 @@ export class UserFactory {
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
 
+            if (userProfile.needsUsernameChange) {
+                return {
+                    canChange: true,
+                    message: 'You are required to change your username.',
+                    typeOfMessage: 'green',
+                };
+            }
+
             const now = Date.now();
 
             const createdAt = new Date(userProfile.createdAt).getTime();
@@ -163,7 +186,6 @@ export class UserFactory {
                     message: 'The new username is the same as your current username.'
                 };
             }
-
             const createdAt = new Date(userProfile.createdAt).getTime();
             const lastChange = userProfile.usernameLastUpdatedAt
                 ? new Date(userProfile.usernameLastUpdatedAt).getTime()
@@ -175,7 +197,8 @@ export class UserFactory {
 
             // Check if this is the user's first username change timeframe
             // Outside the first week → enforce 1‑month cooldown
-            if (!isWithinFirstWeek) {
+            const canBypassChangeRestriction = isWithinFirstWeek || userProfile.needsUsernameChange;
+            if (!canBypassChangeRestriction) {
                 const nextChangeAllowedAtMs = lastChange + monthInMs;
                 if (now < nextChangeAllowedAtMs) {
                     const daysRemaining = Math.ceil((nextChangeAllowedAtMs - now) / (1000 * 60 * 60 * 24));
@@ -193,6 +216,7 @@ export class UserFactory {
             await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString(),
+                needsUsernameChange: false,
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);
@@ -211,13 +235,30 @@ export class UserFactory {
     /**
      * Update user preferences
      * @param userId The user ID
-     * @param preferences The updated preferences object
+     * @param updatedPreferences The updated preferences object
      * @returns True if update was successful
      */
-    public async updateUserPreferencesAsync(userId: string, preferences: Record<string, any>): Promise<void> {
+    public async updateUserPreferencesAsync(userId: string, updatedPreferences: Record<string, any>): Promise<UserPreferences> {
         try {
             const dbService = await this.dbServicePromise;
-            await dbService.saveUserSettingsAsync(userId, preferences);
+
+            // Get existing user preferences
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            const currentPreferences = userProfile?.preferences || {};
+
+            // Merge sound preferences with defaults if they don't exist
+            const mergedPreferences = {
+                ...getDefaultPreferences(),
+                ...currentPreferences,
+                ...updatedPreferences,
+                sound: {
+                    ...getDefaultSoundPreferences(),
+                    ...currentPreferences.sound,
+                    ...updatedPreferences.sound
+                }
+            };
+            await dbService.saveUserSettingsAsync(userId, mergedPreferences);
+            return mergedPreferences;
         } catch (error) {
             logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack } });
             throw error;
@@ -286,7 +327,8 @@ export class UserFactory {
                 createdAt: new Date().toISOString(),
                 usernameLastUpdatedAt: new Date().toISOString(),
                 showWelcomeMessage: true,
-                preferences: { cardback: null },
+                preferences: getDefaultPreferences(),
+                needsUsernameChange: false
             };
 
             // Create OAuth link
@@ -313,6 +355,36 @@ export class UserFactory {
             }
             // This catches both JWT verification errors and database errors
             logger.error('Authentication error:', { error: { message: error.message, stack: error.stack } });
+            throw error;
+        }
+    }
+
+
+    /**
+     * Verifies JWT token and creates an AuthenticatedUser from the provided user data
+     * @param token JWT token to verify
+     * @param userData User data to create the AuthenticatedUser with
+     * @returns AuthenticatedUser instance if token is valid, null otherwise
+     */
+    public verifyTokenAndCreateAuthenticatedUser(token: string, userData: IUserDataEntity): AuthenticatedUser | AnonymousUser | null {
+        try {
+            const secret = process.env.NEXTAUTH_SECRET;
+            Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
+
+            const decoded = jwt.verify(token, secret) as any;
+            if (!decoded.userId) {
+                throw new Error('Parameter userId missing in JWT token');
+            }
+
+            // Update the user data with the decoded UUID
+            const updatedUserData = {
+                ...userData,
+                id: decoded.userId
+            };
+
+            return new AuthenticatedUser(updatedUserData);
+        } catch (error) {
+            logger.error('Error verifying JWT token:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }

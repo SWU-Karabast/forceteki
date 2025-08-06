@@ -7,20 +7,32 @@ import type Game from '../Game';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
+import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import { GameObjectBase } from '../GameObjectBase';
+import { registerState, undoArray } from '../GameObjectUtils';
 
 interface ICustomDurationEvent {
     name: string;
     handler: (...args: any[]) => void;
-    effect: OngoingEffect;
+    effect: OngoingEffect<any>;
 }
 
-export class OngoingEffectEngine {
+
+export interface IOngoingEffectState extends IGameObjectBaseState {
+    effects: GameObjectRef<OngoingEffect<any>>[]; // TODO: Can we make OngoingEffect have an ID w/o using GameObjectBase? Probably, do it similiar to how snapshot IDs work.
+}
+
+@registerState()
+export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
     public events: EventRegistrar;
-    public effects: OngoingEffect[] = [];
     public customDurationEvents: ICustomDurationEvent[] = [];
     public effectsChangedSinceLastCheck = false;
 
-    public constructor(private game: Game) {
+    @undoArray()
+    public accessor effects: readonly OngoingEffect[] = [];
+
+    public constructor(game: Game) {
+        super(game);
         this.events = new EventRegistrar(game, this);
         this.events.register([
             EventName.OnAttackCompleted,
@@ -29,8 +41,8 @@ export class OngoingEffectEngine {
         ]);
     }
 
-    public add(effect: OngoingEffect) {
-        this.effects.push(effect);
+    public add(effect: OngoingEffect<any>) {
+        this.effects = [...this.effects, effect];
         if (effect.duration === Duration.Custom) {
             this.registerCustomDurationEvents(effect);
         }
@@ -39,8 +51,8 @@ export class OngoingEffectEngine {
     }
 
     public checkDelayedEffects(events: GameEvent[]) {
-        const effectsToTrigger: OngoingEffect[] = [];
-        const effectsToRemove: OngoingEffect[] = [];
+        const effectsToTrigger: OngoingEffect<any>[] = [];
+        const effectsToRemove: OngoingEffect<any>[] = [];
 
         for (const effect of this.effects.filter(
             (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
@@ -131,7 +143,7 @@ export class OngoingEffectEngine {
                     return limit.isAtMax(effect.context.player);
                 }
 
-                if (effect.duration !== Duration.Persistent) {
+                if (effect.duration !== Duration.Persistent && effect.duration !== Duration.Custom) {
                     return effect.matchTarget === card;
                 }
 
@@ -172,16 +184,20 @@ export class OngoingEffectEngine {
         });
     }
 
-    public unapplyAndRemove(match: (effect: OngoingEffect) => boolean) {
+    private unapplyEffect(effect: OngoingEffect<any>) {
+        effect.cancel();
+        if (effect.duration === Duration.Custom) {
+            this.unregisterCustomDurationEvents(effect);
+        }
+    }
+
+    public unapplyAndRemove(match: (effect: OngoingEffect<any>) => boolean) {
         let anyEffectRemoved = false;
-        const remainingEffects: OngoingEffect[] = [];
+        const remainingEffects: OngoingEffect<any>[] = [];
         for (const effect of this.effects) {
             if (match(effect)) {
                 anyEffectRemoved = true;
-                effect.cancel();
-                if (effect.duration === Duration.Custom) {
-                    this.unregisterCustomDurationEvents(effect);
-                }
+                this.unapplyEffect(effect);
             } else {
                 remainingEffects.push(effect);
             }
@@ -202,7 +218,7 @@ export class OngoingEffectEngine {
         this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfRound);
     }
 
-    private registerCustomDurationEvents(effect: OngoingEffect) {
+    private registerCustomDurationEvents(effect: OngoingEffect<any>) {
         if (!effect.until) {
             return;
         }
@@ -218,7 +234,7 @@ export class OngoingEffectEngine {
         }
     }
 
-    private unregisterCustomDurationEvents(effect: OngoingEffect) {
+    private unregisterCustomDurationEvents(effect: OngoingEffect<any>) {
         const remainingEvents: ICustomDurationEvent[] = [];
         for (const event of this.customDurationEvents) {
             if (event.effect === effect) {
@@ -230,11 +246,11 @@ export class OngoingEffectEngine {
         this.customDurationEvents = remainingEvents;
     }
 
-    private createCustomDurationHandler(customDurationEffect: OngoingEffect) {
+    private createCustomDurationHandler(customDurationEffect: OngoingEffect<any>) {
         return (...args) => {
             const event = args[0];
             const listener = customDurationEffect.until[event.name];
-            if (listener && listener(...args)) {
+            if (listener && listener(event, customDurationEffect.context)) {
                 customDurationEffect.cancel();
                 this.unregisterCustomDurationEvents(customDurationEffect);
                 this.effects = this.effects.filter((effect) => effect !== customDurationEffect);
@@ -244,5 +260,32 @@ export class OngoingEffectEngine {
 
     public getDebugInfo() {
         return this.effects.map((effect) => effect.getDebugInfo());
+    }
+
+    public override afterSetAllState(prevState: IOngoingEffectState) {
+        const prevStateEffectUuids = new Set(prevState.effects.map((x) => x.uuid));
+        const currStateEffectUuids = new Set(this.state.effects.map((x) => x.uuid));
+
+        // if an effect exists in this snapshot but not before rollback, we need to register its custom duration events
+        for (const currEffect of this.effects) {
+            if (!prevStateEffectUuids.has(currEffect.uuid)) {
+                if (currEffect.duration === Duration.Custom) {
+                    this.registerCustomDurationEvents(currEffect);
+                }
+            }
+        }
+
+        // if an effect existed before rollback but not in this snapshot, we need to unregister its custom duration events
+        for (const prevEffectRef of prevState.effects) {
+            if (!currStateEffectUuids.has(prevEffectRef.uuid)) {
+                const prevEffect = this.getObject(prevEffectRef);
+                if (prevEffect.duration === Duration.Custom) {
+                    this.unregisterCustomDurationEvents(prevEffect);
+                }
+            }
+        }
+
+        // resolve effects so that targets are recalculated
+        this.resolveEffects(true);
     }
 }

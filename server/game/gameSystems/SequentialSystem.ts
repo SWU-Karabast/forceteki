@@ -20,7 +20,7 @@ export type ISequentialSystemProperties<TContext extends AbilityContext = Abilit
  * In terms of game text, this is the exact behavior of "do [X], then do [Y], then do..." or "do [X] [N] times"
  */
 export class SequentialSystem<TContext extends AbilityContext = AbilityContext> extends SimultaneousOrSequentialSystem< ISequentialSystemProperties<TContext>, TContext> {
-    protected override readonly eventName: MetaEventName.Sequential;
+    public override readonly eventName: MetaEventName.Sequential;
 
     public override getEffectMessage(context: TContext): [string, any] {
         const { gameSystems } = super.generatePropertiesFromContext(context);

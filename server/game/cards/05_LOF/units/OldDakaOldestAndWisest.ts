@@ -1,6 +1,8 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { INonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EventName, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -13,14 +15,14 @@ export default class OldDakaOldestAndWisest extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenPlayedAbility({
             title: 'Defeat a friendly Night unit not named Old Daka',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
-                cardCondition: (card, _context) => card.hasSomeTrait(Trait.Night) && card.title !== 'Old Daka',
+                cardCondition: (card) => card.hasSomeTrait(Trait.Night) && card.title !== 'Old Daka',
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             },
             then: (thenContext) => ({
@@ -37,7 +39,7 @@ export default class OldDakaOldestAndWisest extends NonLeaderUnitCard {
         });
     }
 
-    private getTarget?(context: AbilityContext<this>): Card {
+    private getTarget?(context: AbilityContext<INonLeaderUnitCard>): Card {
         return context.events.find((event) => event.name === EventName.OnCardDefeated)?.card;
     }
 }

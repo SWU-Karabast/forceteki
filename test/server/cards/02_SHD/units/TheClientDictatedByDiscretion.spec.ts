@@ -41,6 +41,7 @@ describe('The Client, Dictated by Discretion', function() {
 
                 context.player1.clickCard(context.p1Base);
                 expect(context.p1Base.damage).toBe(5);
+                expect(context.getChatLogs(2)).toContain('player1 collects the "Heal 5 damage from a base" bounty on Wampa to heal 5 damage from player1\'s base');
 
                 // reset state
                 context.player2.moveCard(context.wampa, 'groundArena');

@@ -1,5 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class SelfDestruct extends EventCard {
@@ -10,8 +11,8 @@ export default class SelfDestruct extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Defeat a friendly unit. If you do, deal 4 damage to a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

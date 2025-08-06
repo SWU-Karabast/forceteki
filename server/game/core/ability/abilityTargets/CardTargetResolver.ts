@@ -1,6 +1,7 @@
 import type { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
 import type { AbilityContext } from '../AbilityContext';
 import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
+import type { ITargetResult } from './TargetResolver';
 import { TargetResolver } from './TargetResolver';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import type { Card } from '../../card/Card';
@@ -14,15 +15,17 @@ import type { GameSystem } from '../../gameSystem/GameSystem';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { BaseCardSelector } from '../../cardSelector/BaseCardSelector';
+import type { IPassAbilityHandler } from '../../gameSteps/AbilityResolver';
 
 /**
  * Target resolver for selecting cards for the target of an effect.
  */
 export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<AbilityContext>> {
-    private immediateEffect: GameSystem;
-    private selector: BaseCardSelector<AbilityContext>;
+    private readonly immediateEffect: GameSystem;
+    private readonly selector: BaseCardSelector<AbilityContext>;
+    private readonly targetMode: TargetMode;
 
-    private static choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
+    private static readonly choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
 
     public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
         if (!zoneFilter) {
@@ -38,6 +41,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         if (this.properties.mode === TargetMode.UpTo || this.properties.mode === TargetMode.UpToVariable) {
             this.properties.canChooseNoCards = this.properties.canChooseNoCards ?? true;
         }
+
+        this.targetMode = this.properties.mode || TargetMode.Single;
 
         if ('canChooseNoCards' in this.properties) {
             this.properties.optional = this.properties.optional || this.properties.canChooseNoCards;
@@ -60,7 +65,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
     private checkCardCondition(card: Card, context: AbilityContext, properties: ICardTargetResolver<AbilityContext>) {
         try {
-            const contextCopy = this.getContextCopy(card, context);
+            const contextCopy = this.getContextCopy(card, context, properties.mode);
             if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
@@ -78,9 +83,13 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         const contextCopy = context.copy();
         contextCopy.targets[this.name] = targetMode === TargetMode.Single || targetMode == null ? card : [card];
         if (this.name === 'target') {
-            contextCopy.target = card;
+            contextCopy.target = contextCopy.targets[this.name];
         }
         return contextCopy;
+    }
+
+    protected override setTargetResult(context: AbilityContext, target: Card | Card[]): void {
+        super.setTargetResult(context, this.targetMode === TargetMode.Single ? target : Helpers.asArray(target));
     }
 
     public override hasLegalTarget(context: AbilityContext) {
@@ -91,9 +100,12 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return this.selector.getAllLegalTargets(context);
     }
 
-    protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
-        const legalTargets = this.selector.getAllLegalTargets(context);
-        if (legalTargets.length === 0) {
+    public canTarget(card: Card, context: AbilityContext) {
+        return this.selector.canTarget(card, context, []);
+    }
+
+    protected override resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult, passPrompt?: IPassAbilityHandler) {
+        if (!this.hasLegalTarget(context)) {
             if (context.stage === Stage.PreTarget) {
                 // if there are no targets at the pretarget stage, delay targeting until after costs are paid
                 targetResults.delayTargeting = this;
@@ -101,6 +113,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             }
             return;
         }
+
+        const legalTargets = this.getAllLegalTargets(context);
 
         // A player can always choose not to pick a card from a zone that is hidden from their opponents
         // if doing so would reveal hidden information(i.e. that there are one or more valid cards in that zone) (SWU Comp Rules 2.0 1.17.4)
@@ -121,7 +135,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         ) {
             let effectiveTargetFound = false;
             for (const target of legalTargets) {
-                const contextWithTarget = this.getContextCopy(target, context, this.properties.mode);
+                const contextWithTarget = this.getContextCopy(target, context, this.targetMode);
 
                 if (this.immediateEffect.hasLegalTarget(contextWithTarget, {}, GameStateChangeRequired.MustFullyOrPartiallyResolve)) {
                     effectiveTargetFound = true;
@@ -150,23 +164,17 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             return;
         }
 
-        // create a copy of properties without cardCondition
-        let extractedProperties;
-        {
-            const { cardCondition, ...otherProperties } = this.properties;
-            extractedProperties = otherProperties;
+        const buttons = [];
+        if (targetResults.canCancel) {
+            buttons.push({ text: 'Cancel', arg: 'cancel' });
         }
 
-        const buttons = [];
         if (context.stage === Stage.PreTarget) {
             // TODO: figure out if we need these buttons
             /* if (!targetResults.noCostsFirstButton) {
                 buttons.push({ text: 'Pay costs first', arg: 'costsFirst' });
             }
             buttons.push({ text: 'Cancel', arg: 'cancel' });*/
-            if (targetResults.canCancel) {
-                buttons.push({ text: 'Cancel', arg: 'cancel' });
-            }
             if (passPrompt) {
                 buttons.push({ text: passPrompt.buttonText, arg: passPrompt.arg });
                 passPrompt.hasBeenShown = true;
@@ -182,7 +190,9 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             buttons: buttons,
             mustSelect: mustSelect,
             isOpponentEffect: player === context.player.opponent,
-            selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
+            selectCardMode: this.getSelectCardMode(context),
+            hideIfNoLegalTargets: this.properties.hideIfNoLegalTargets,
+            immediateEffect: this.immediateEffect,
             onSelect: (card) => {
                 this.setTargetResult(context, card);
                 return true;
@@ -211,7 +221,24 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
                 }
             }
         };
-        context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
+        context.game.promptForSelect(player, promptProperties);
+    }
+
+    /**
+     * Determines which SelectCardMode should be used for this target resolver
+     * @param context The current ability context
+     * @returns The selection mode to be used.
+     */
+    private getSelectCardMode(context: AbilityContext): SelectCardMode {
+        const targetMode = this.targetMode;
+        if (targetMode === TargetMode.Single) {
+            return SelectCardMode.Single;
+        } else if (targetMode === TargetMode.BetweenVariable && this.selector) {
+            if (this.selector.automaticFireOnSelect(context)) {
+                return SelectCardMode.Single;
+            }
+        }
+        return SelectCardMode.Multiple;
     }
 
     private promptForSingleOptionalTarget(context: AbilityContext, target: Card) {
@@ -230,7 +257,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         });
     }
 
-    private cancel(targetResults) {
+    private cancel(targetResults: ITargetResult) {
         targetResults.cancelled = true;
     }
 
@@ -251,7 +278,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         }
 
         return this.getAllLegalTargets(context).some((card) => {
-            const contextCopy = this.getContextCopy(card, context, this.properties.mode);
+            const contextCopy = this.getContextCopy(card, context, this.targetMode);
             if (this.properties.immediateEffect && this.properties.immediateEffect.hasTargetsChosenByPlayer(contextCopy, player)) {
                 return true;
             }

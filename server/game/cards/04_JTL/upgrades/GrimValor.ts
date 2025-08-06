@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { WildcardCardType } from '../../../core/Constants';
+import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class GrimValor extends UpgradeCard {
@@ -10,8 +11,8 @@ export default class GrimValor extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addGainWhenDefeatedAbilityTargetingAttached({
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'Exhaust a unit',
             optional: true,
             targetResolver: {

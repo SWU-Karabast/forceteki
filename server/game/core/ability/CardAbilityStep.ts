@@ -1,25 +1,26 @@
+import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility.js';
 import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
 import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck } from '../Constants.js';
 import * as AttackHelper from '../attack/AttackHelpers.js';
 import * as Helpers from '../utils/Helpers.js';
 import * as Contract from '../utils/Contract.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-import type Game from '../Game.js';
 import type { Card } from '../card/Card.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
 import type { GameEvent } from '../event/GameEvent.js';
 import type { Player } from '../Player.js';
 import type { AbilityContext } from './AbilityContext.js';
+import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
+import type Game from '../Game.js';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
-export class CardAbilityStep extends PlayerOrCardAbility {
-    public cannotTargetFirst: boolean;
-
+export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends PlayerOrCardAbility<T> {
     private handler: (context: AbilityContext) => void;
 
+    /** @param card The card this ability is attached to. */
     public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         Contract.assertFalse(
             properties.targetResolvers != null && properties.initiateAttack != null,
@@ -32,7 +33,6 @@ export class CardAbilityStep extends PlayerOrCardAbility {
         super(game, card, properties, type);
 
         this.handler = properties.handler || this.executeGameActions;
-        this.cannotTargetFirst = false;
     }
 
     public override executeHandler(context: AbilityContext) {
@@ -147,56 +147,71 @@ export class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** "Sub-ability-steps" are subsequent steps after the initial ability effect, such as "then" or "if you do" */
-    private getSubAbilityStepContext(context: AbilityContext, resolvedAbilityEvents: GameEvent[] = []) {
+    public getSubAbilityStepContext(context: AbilityContext, resolvedAbilityEvents: GameEvent[] = []) {
         if (this.properties.then) {
-            const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
-            const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
-            if (!then.thenCondition || then.thenCondition(context)) {
-                return this.buildSubAbilityStepContext(then, canBeTriggeredBy);
-            }
+            return this.buildThenSubAbilityStepContext(context);
+        }
 
+        if (this.properties.ifYouDo || this.properties.ifYouDoNot) {
+            return this.buildIfYouDoOrIfYouDoNotSubAbilityStepContext(context, resolvedAbilityEvents);
+        }
+
+        return null;
+    }
+
+    private buildThenSubAbilityStepContext(context: AbilityContext) {
+        if (!this.properties.then) {
             return null;
         }
 
-        let ifAbility;
-        let effectShouldResolve;
+        const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
+        const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
+        if (!then.thenCondition || then.thenCondition(context)) {
+            return this.buildSubAbilityStepContext(then, canBeTriggeredBy);
+        }
 
-        if (this.properties.ifYouDo) {
-            // if there are no resolved events, we can skip past evaluating "if you do" conditions
-            if (resolvedAbilityEvents.length === 0) {
-                return null;
-            }
-            ifAbility = this.properties.ifYouDo;
-            effectShouldResolve = true;
-        } else if (this.properties.ifYouDoNot) {
+        return null;
+    }
+
+    private buildIfYouDoOrIfYouDoNotSubAbilityStepContext(context: AbilityContext, resolvedAbilityEvents: GameEvent[] = []) {
+        if (resolvedAbilityEvents.length === 0) {
             // if there are no resolved events, "if you do not" check automatically succeeds
-            if (resolvedAbilityEvents.length === 0) {
+            if (this.properties.ifYouDoNot) {
                 return this.buildSubAbilityStepContext(
                     this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context),
                     context.player
                 );
             }
 
-            ifAbility = this.properties.ifYouDoNot;
-            effectShouldResolve = false;
-        } else {
+            // if there are no resolved events, we can skip past evaluating "if you do" conditions
             return null;
         }
-
-        const concreteIfAbility = this.getConcreteSubAbilityStepProperties(ifAbility, context);
-        const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
 
         // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
         const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
 
-        if (conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
-            return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+        if (this.properties.ifYouDo) {
+            const concreteIfAbility = this.getConcreteSubAbilityStepProperties(this.properties.ifYouDo, context);
+            const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
+
+            if (conditionalEvent.isResolvedOrReplacementResolved && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
+                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+            }
+        }
+
+        if (this.properties.ifYouDoNot) {
+            const concreteIfAbility = this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context);
+            const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
+
+            if (!conditionalEvent.isResolvedOrReplacementResolved) {
+                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+            }
         }
 
         return null;
     }
 
-    private getConcreteSubAbilityStepProperties(subAbilityStep, context: AbilityContext) {
+    private getConcreteSubAbilityStepProperties<TContext extends AbilityContext, TAbility extends IAbilityPropsWithSystems<TContext>>(subAbilityStep: ((context?: TContext) => TAbility) | TAbility, context: TContext) {
         const properties = typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
 
         // sub-steps will always pass to a parent window
@@ -220,7 +235,7 @@ export class CardAbilityStep extends PlayerOrCardAbility {
         return context.player;
     }
 
-    public override isCardAbility(): this is CardAbilityStep {
+    public override isCardAbilityStep(): this is CardAbilityStep {
         return true;
     }
 }

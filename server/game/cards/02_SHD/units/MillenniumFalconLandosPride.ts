@@ -1,8 +1,13 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { EventName, KeywordName, PlayType } from '../../../core/Constants';
+import { KeywordName, ZoneName } from '../../../core/Constants';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
 export default class MillenniumFalconLandosPride extends NonLeaderUnitCard {
+    private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
+
     protected override getImplementationId() {
         return {
             id: '5752414373',
@@ -10,18 +15,14 @@ export default class MillenniumFalconLandosPride extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(sourceCard: this) {
-        let lastPlayedFromHandId: number | null = null;
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
+        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
+    }
 
-        this.game.on(EventName.OnCardPlayed, (event) => {
-            if (event.card === sourceCard && event.playType === PlayType.PlayFromHand) {
-                lastPlayedFromHandId = event.card.inPlayId;
-            }
-        });
-
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'This unit gains Ambush if it was played from hand',
-            condition: (context) => context.source.isInPlay() && lastPlayedFromHandId === context.source.inPlayId,
+            condition: (context) => context.source.isInPlay() && this.cardsPlayedThisPhaseWatcher.someCardPlayed((entry) => entry.card === context.source && entry.inPlayId === context.source.inPlayId && entry.playEvent.originalZone === ZoneName.Hand),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
         });
     }

@@ -1,4 +1,5 @@
 import type { IActionTimer } from './IActionTimer';
+import { PlayerTimeRemainingStatus } from './IActionTimer';
 
 export class NoopActionTimer implements IActionTimer {
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -9,6 +10,11 @@ export class NoopActionTimer implements IActionTimer {
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public get isRunning(): boolean {
         return false;
+    }
+
+
+    public get timeRemainingStatus(): PlayerTimeRemainingStatus {
+        return PlayerTimeRemainingStatus.NoAlert;
     }
 
     public addSpecificTimeHandler(_timeSeconds: number, _handler: () => void) {

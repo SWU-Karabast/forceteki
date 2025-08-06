@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, DamageType, WildcardCardType } from '../../../core/Constants';
 import { DamageSystem } from '../../../gameSystems/DamageSystem';
@@ -11,8 +12,8 @@ export default class FinnOnTheRun extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addTriggeredAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'For this phase, if damage would be dealt to that unit, prevent 1 of that damage',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
@@ -27,7 +28,7 @@ export default class FinnOnTheRun extends NonLeaderUnitCard {
                         when: {
                             onDamageDealt: (event, context) => event.card === context.source && !event.isIndirect
                         },
-                        effect: 'Finn\'s ability prevents 1 damage to {1}',
+                        effect: 'prevent 1 damage to {1}',
                         effectArgs: (context) => [context.source],
                         replaceWith: {
                             replacementImmediateEffect: new DamageSystem((context) => ({

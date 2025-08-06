@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class DaringRaid extends EventCard {
     protected override getImplementationId() {
@@ -9,8 +10,8 @@ export default class DaringRaid extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Deal 2 damage to a unit or base',
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })

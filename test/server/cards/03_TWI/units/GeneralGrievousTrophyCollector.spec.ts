@@ -91,7 +91,7 @@ describe('General Grievous, Trophy Collector', function () {
             context.player1.clickCard(context.restoredArc170);
             expect(context.player1).toHaveEnabledPromptButtons(['Done']);
             context.player1.clickCardNonChecking(context.greenSquadronAwing);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.player2).toBeActivePlayer();
             expect(context.greenSquadronAwing).toBeInZone('spaceArena');

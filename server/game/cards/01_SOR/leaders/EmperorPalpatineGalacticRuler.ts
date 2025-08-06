@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
@@ -10,8 +11,8 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addActionAbility({
             // TODO: how do we want to handle prompts for targeting costs (i.e. the defeat unit cost)?
             title: 'Deal 1 damage to a unit and draw a card',
             cost: [
@@ -25,15 +26,15 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
-                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 })
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
                 }),
                 AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
             ])
         });
     }
 
-    protected override setupLeaderUnitSideAbilities() {
-        this.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addTriggeredAbility({
             title: 'Take control of a damaged non-leader unit',
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
@@ -44,7 +45,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
             }
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Defeat another friendly unit. If you do, deal 1 damage to a unit and draw a card',
             optional: true,
             targetResolver: {
@@ -58,7 +59,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 })
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
                     }),
                     AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
                 ])

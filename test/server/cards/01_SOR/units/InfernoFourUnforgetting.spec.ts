@@ -80,7 +80,7 @@ describe('Inferno Four - Unforgetting', function() {
                 const { context } = contextRef;
                 context.player1.clickCard(context.infernoFour);
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.foundling]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
             });
         });
 

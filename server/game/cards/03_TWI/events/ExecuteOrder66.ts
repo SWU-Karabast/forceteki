@@ -1,6 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait, WildcardCardType } from '../../../core/Constants';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
 import type { Player } from '../../../core/Player';
@@ -13,8 +14,8 @@ export default class ExecuteOrder66 extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Deal 6 damage to each Jedi unit.',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 6,
@@ -24,8 +25,8 @@ export default class ExecuteOrder66 extends EventCard {
                 title: 'For each unit defeated this way, its controller creates a Clone Trooper token.',
                 thenCondition: () => thenContext.resolvedEvents.length > 0,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    this.createCloneTroopers(thenContext, thenContext.player),
-                    this.createCloneTroopers(thenContext, thenContext.player.opponent)
+                    this.createCloneTroopers(thenContext, thenContext.player, AbilityHelper),
+                    this.createCloneTroopers(thenContext, thenContext.player.opponent, AbilityHelper)
                 ])
             })
         });
@@ -37,7 +38,7 @@ export default class ExecuteOrder66 extends EventCard {
         return playerJedis.concat(opponentJedis);
     }
 
-    private createCloneTroopers(thenContext: AbilityContext<Card>, player: Player) {
+    private createCloneTroopers(thenContext: AbilityContext<Card>, player: Player, AbilityHelper: IAbilityHelper) {
         const numberClones = thenContext.resolvedEvents.reduce((total, e) => total + (e.willDefeat && e.card.controller === player ? 1 : 0), 0);
 
         return AbilityHelper.immediateEffects.createCloneTrooper({

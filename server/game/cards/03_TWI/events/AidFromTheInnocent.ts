@@ -1,6 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
-import * as Helpers from '../../../core/utils/Helpers.js';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect, TargetMode } from '../../../core/Constants';
 
 export default class AidFromTheInnocent extends EventCard {
@@ -11,8 +11,8 @@ export default class AidFromTheInnocent extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Search the top 10 cards of your deck for 2 Heroism non-unit cards and discard them. For this phase, you may play the discarded cards, and they each cost 2 less.',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 targetMode: TargetMode.UpTo,
@@ -26,15 +26,15 @@ export default class AidFromTheInnocent extends EventCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: 'For this phase, you may play the discarded cards for 2 less each',
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous(
-                    Helpers.asArray(ifYouDoContext.selectedPromptCards).map((target) =>
+                    ifYouDoContext.selectedPromptCards?.flatMap((target) => [
                         AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                             target: target,
-                            effect: [
-                                AbilityHelper.ongoingEffects.canPlayFromDiscard(),
-                                AbilityHelper.ongoingEffects.decreaseCost({ amount: 2, match: (card) => card === target })
-                            ]
+                            effect: AbilityHelper.ongoingEffects.canPlayFromDiscard(),
+                        }),
+                        AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
+                            effect: AbilityHelper.ongoingEffects.decreaseCost({ amount: 2, match: (card) => card === target }),
                         })
-                    )
+                    ])
                 )
             })
         });

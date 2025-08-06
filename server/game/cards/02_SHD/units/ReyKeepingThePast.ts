@@ -1,5 +1,6 @@
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { Aspect, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class ReyKeepingThePast extends NonLeaderUnitCard {
@@ -10,14 +11,14 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addIgnoreSpecificAspectPenaltyAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addIgnoreSpecificAspectPenaltyAbility({
             title: 'While playing this unit, ignore her Heroism aspect penalty if you control Kylo Ren',
             ignoredAspect: Aspect.Heroism,
             condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Kylo Ren')
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'You may heal 2 damage from a unit. If it’s a non-Heroism unit, give a Shield token to it',
             optional: true,
             targetResolver: {

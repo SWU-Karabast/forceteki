@@ -1,18 +1,23 @@
 import type { ZoneFilter } from '../Constants';
 import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, PlayType } from '../Constants';
 import * as Contract from '../utils/Contract';
-import * as AbilityLimit from './AbilityLimit';
 import * as Helpers from '../utils/Helpers';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
-import type { FormatMessage } from '../chat/GameChat';
+import type { FormatMessage, MsgArg } from '../chat/GameChat';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import * as ChatHelpers from '../chat/ChatHelpers';
 import { CardAbilityStep } from './CardAbilityStep';
 import type { AbilityContext } from './AbilityContext';
+import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility';
+import { UnlimitedAbilityLimit } from './AbilityLimit';
 
-export abstract class CardAbility extends CardAbilityStep {
+export interface ICardAbilityState extends IPlayerOrCardAbilityState {
+    placeholder?: false;
+}
+
+export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityState> extends CardAbilityStep<T> {
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;
     public readonly zoneFilter: ZoneFilter | ZoneFilter[];
@@ -21,8 +26,8 @@ export abstract class CardAbility extends CardAbilityStep {
     public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
 
-        this.limit = properties.limit || AbilityLimit.unlimited();
-        this.limit.registerEvents(game);
+        this.limit = properties.limit || new UnlimitedAbilityLimit(this.game);
+        this.limit.registerEvents();
         this.limit.ability = this;
 
         this.printedAbility = properties.printedAbility ?? true;
@@ -117,7 +122,7 @@ export abstract class CardAbility extends CardAbilityStep {
         return zone;
     }
 
-    public override displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
+    public override displayMessage(context: AbilityContext, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
         if ('message' in this.properties && this.properties.message) {
             let messageArgs = 'messageArgs' in this.properties ? this.properties.messageArgs : [];
             if (typeof messageArgs === 'function') {
@@ -130,9 +135,9 @@ export abstract class CardAbility extends CardAbilityStep {
             return;
         }
 
-        const gainAbilitySource = context.ability && context.ability.gainAbilitySource;
+        const gainAbilitySource = context.ability && context.ability.isCardAbility() && context.ability.gainAbilitySource;
 
-        const messageArgs = [context.player, ` ${messageVerb} `, context.source];
+        const messageArgs: MsgArg[] = [context.player, ` ${messageVerb} `, context.source];
         if (gainAbilitySource) {
             if (gainAbilitySource !== context.source) {
                 messageArgs.push('\'s gained ability from ', gainAbilitySource);
@@ -179,12 +184,16 @@ export abstract class CardAbility extends CardAbilityStep {
             // to
             messageArgs.push(' to ');
             // discard Stoic Gunso
-            messageArgs.push({ message: this.game.gameChat.formatMessage(effectMessage, effectArgs) });
+            messageArgs.push({ format: effectMessage, args: effectArgs });
         }
         this.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }
 
     public override isActivatedAbility() {
         return [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.type);
+    }
+
+    public override isCardAbility(): this is CardAbility {
+        return true;
     }
 }

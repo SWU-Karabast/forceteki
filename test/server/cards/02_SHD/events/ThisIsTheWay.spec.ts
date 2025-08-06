@@ -38,7 +38,7 @@ describe('This is the Way', function () {
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.getChatLogs(2)).toContain('player1 takes Devotion and Sabine Wren');
                 expect(context.sabineWren).toBeInZone('hand');
                 expect(context.devotion).toBeInZone('hand');
@@ -70,7 +70,7 @@ describe('This is the Way', function () {
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.getChatLogs(2)).toContain('player1 takes Devotion');
                 expect(context.devotion).toBeInZone('hand');
 

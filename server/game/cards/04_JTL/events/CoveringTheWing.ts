@@ -1,5 +1,6 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { WildcardCardType } from '../../../core/Constants';
 
 export default class CoveringTheWing extends EventCard {
@@ -10,8 +11,8 @@ export default class CoveringTheWing extends EventCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.setEventAbility({
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
             title: 'Create an X-Wing token',
             immediateEffect: AbilityHelper.immediateEffects.createXWing(),
             then: (thenContext) => ({
@@ -20,7 +21,7 @@ export default class CoveringTheWing extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card !== thenContext.events[0]?.generatedTokens[0],
-                    innerSystem: AbilityHelper.immediateEffects.giveShield(),
+                    immediateEffect: AbilityHelper.immediateEffects.giveShield(),
                 })
             })
         });

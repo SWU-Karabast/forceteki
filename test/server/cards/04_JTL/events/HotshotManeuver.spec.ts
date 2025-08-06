@@ -25,7 +25,7 @@ describe('Hotshot Maneuver', function() {
                 context.player1.clickCard(context.p2Base);
 
                 // Trigger On Attack ability
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
 
                 expect(context.p2Base.damage).toBe(5);
             });
@@ -110,17 +110,17 @@ describe('Hotshot Maneuver', function() {
                 expect(context.player1).toHavePrompt('Choose an enemy unit to deal 2 damage to');
                 expect(context.player1).toBeAbleToSelectExactly([context.liberatedSlaves]);
                 context.player1.clickCard(context.liberatedSlaves);
+                expect(context.liberatedSlaves.damage).toBe(2);
 
                 // Trigger attack
                 context.player1.clickCard(context.p2Base);
 
                 // Trigger On Attack ability
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.p2Base, 1],
                 ]));
 
-                expect(context.liberatedSlaves.damage).toBe(2);
                 expect(context.p2Base.damage).toBe(5);
             });
 
@@ -149,14 +149,14 @@ describe('Hotshot Maneuver', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.liberatedSlaves, context.pykeSentinel]);
                 context.player1.clickCard(context.liberatedSlaves);
                 context.player1.clickCard(context.pykeSentinel);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Trigger attack
                 context.player1.clickCard(context.p2Base);
 
                 // Trigger On Attack ability
                 context.player1.clickPrompt('Deal 1 indirect damage to a player. If you control Boba Fett, deal 2 indirect damage instead');
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.p2Base, 1],
                 ]));
@@ -196,7 +196,7 @@ describe('Hotshot Maneuver', function() {
 
                 // Trigger On Attack ability
                 context.player1.clickPrompt('Deal 1 indirect damage to a player. If you control Boba Fett, deal 2 indirect damage instead');
-                context.player1.clickPrompt('Opponent');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.p2Base, 1],
                 ]));
@@ -257,11 +257,11 @@ describe('Hotshot Maneuver', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.liberatedSlaves, context.craftySmuggler, context.fettsFirespray]);
                 context.player1.clickCard(context.liberatedSlaves);
                 context.player1.clickCard(context.fettsFirespray);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Trigger attack
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('Give the defender -2/-2 for this phase');
+                context.player1.clickPrompt('(No effect) Give the defender -2/-2 for this phase');
 
                 expect(context.liberatedSlaves.damage).toBe(2);
                 expect(context.fettsFirespray.damage).toBe(2);

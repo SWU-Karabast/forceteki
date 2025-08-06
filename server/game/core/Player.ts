@@ -10,6 +10,7 @@ import * as Contract from './utils/Contract';
 import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
 import {
     AlertType,
+    ChatObjectType,
     EffectName,
     PlayType,
     RelativePlayer,
@@ -48,7 +49,7 @@ import type { IBaseCard } from './card/BaseCard';
 import { logger } from '../../logger';
 import { StandardActionTimer } from './actionTimer/StandardActionTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
-import type { IActionTimer } from './actionTimer/IActionTimer';
+import { PlayerTimeRemainingStatus, type IActionTimer } from './actionTimer/IActionTimer';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -62,6 +63,8 @@ export interface IPlayerState extends IGameObjectState {
     passedActionPhase: boolean;
     // IDeckList is made up of arrays and GameObjectRefs, so it's serializable.
     decklist: IDeckList;
+    promptState: PlayerPromptState;
+    costAdjusters: GameObjectRef<CostAdjuster>[];
 }
 
 export class Player extends GameObject<IPlayerState> {
@@ -105,6 +108,10 @@ export class Player extends GameObject<IPlayerState> {
         return this.game.gameObjectManager.get(this.state.base);
     }
 
+    private get costAdjusters(): readonly CostAdjuster[] {
+        return this.state.costAdjusters.map((x) => this.game.getFromRef(x));
+    }
+
     public get passedActionPhase() {
         return this.state.passedActionPhase;
     }
@@ -118,11 +125,11 @@ export class Player extends GameObject<IPlayerState> {
     }
 
     public get allCards() {
-        return this.state.decklist.allCards.map(this.game.getCard);
+        return this.state.decklist.allCards.map(this.game.getFromRef);
     }
 
     public get tokens() {
-        return this.state.decklist.tokens.map(this.game.getCard);
+        return this.state.decklist.tokens.map(this.game.getFromRef);
     }
 
     public get autoSingleTarget() {
@@ -137,19 +144,16 @@ export class Player extends GameObject<IPlayerState> {
     // STATE TODO: Does Deck need to be a GameObject?
     private decklistNames: Deck | null;
     public readonly actionTimer: IActionTimer;
-    private limitedPlayed: number;
 
-    private costAdjusters: any[];
-    private abilityMaxByIdentifier: Record<string, any>;
     public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
 
     public optionSettings: Partial<{ autoSingleTarget: boolean }>;
-    private resetTimerAtEndOfRound: boolean;
     private promptState: PlayerPromptState;
     public opponent: Player;
     private playableZones: PlayableZone[];
-    private noTimer: boolean;
     private _lastActionId = 0;
+
+    public activeForPreviousPrompt = false;
 
     public constructor(id: string, user: IUser, game: Game, useTimer = false) {
         super(game, user.username);
@@ -173,8 +177,16 @@ export class Player extends GameObject<IPlayerState> {
                 () => this.game.onActionTimerExpired(this),
                 (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId)
             );
-            this.actionTimer.addSpecificTimeHandler(20, () => this.game.addAlert(AlertType.Warning, '{0} has 20 seconds remaining to take an action before being kicked for inactivity', this));
-            this.actionTimer.addSpecificTimeHandler(10, () => this.game.addAlert(AlertType.Danger, '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this));
+            this.actionTimer.addSpecificTimeHandler(20,
+                (updateTimerStatusHandler) => {
+                    updateTimerStatusHandler(PlayerTimeRemainingStatus.Warning);
+                    this.game.addAlert(AlertType.Warning, '{0} has 20 seconds remaining to take an action before being kicked for inactivity', this);
+                });
+            this.actionTimer.addSpecificTimeHandler(10,
+                (updateTimerStatusHandler) => {
+                    updateTimerStatusHandler(PlayerTimeRemainingStatus.Danger);
+                    this.game.addAlert(AlertType.Danger, '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this);
+                });
         } else {
             this.actionTimer = new NoopActionTimer();
         }
@@ -188,23 +200,23 @@ export class Player extends GameObject<IPlayerState> {
         this.state.baseZone = null;
         this.state.deckZone = new DeckZone(game, this).getRef();
 
-        this.limitedPlayed = 0;
-
         /** @type {Deck} */
         this.decklistNames = null;
 
-        /** @type {CostAdjuster[]} */
-        this.costAdjusters = [];
-        this.abilityMaxByIdentifier = {}; // This records max limits for abilities
         this.promptedActionWindows = user.promptedActionWindows || {
             // these flags represent phase settings
             action: true,
             regroup: true
         };
         this.optionSettings = user.settings.optionSettings;
-        this.resetTimerAtEndOfRound = false;
 
         this.promptState = new PlayerPromptState(this);
+    }
+
+    protected override setupDefaultState() {
+        super.setupDefaultState();
+
+        this.state.costAdjusters = [];
     }
 
     /**
@@ -222,7 +234,7 @@ export class Player extends GameObject<IPlayerState> {
     private checkPlayerTimeoutConditions(promptUuid: string, playerActionId: number) {
         return this.game.currentOpenPrompt.uuid === promptUuid &&
           playerActionId === this._lastActionId &&
-          this.game.winner == null;
+          this.game.winnerNames.length === 0;
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
@@ -682,7 +694,7 @@ export class Player extends GameObject<IPlayerState> {
         this.state.base = preparedDecklist.base;
         this.state.leader = preparedDecklist.leader;
 
-        this.deckZone.initialize(preparedDecklist.deckCards.map((x) => this.game.getCard(x)));
+        this.deckZone.initialize(preparedDecklist.deckCards.map((x) => this.game.getFromRef(x)));
 
         // set up playable zones now that all relevant zones are created
         // STATE: This _is_ OK for now, as the gameObject references are still kept, but ideally these would also be changed to Refs in the future.
@@ -717,7 +729,7 @@ export class Player extends GameObject<IPlayerState> {
      * @param {CostAdjuster} costAdjuster
      */
     public addCostAdjuster(costAdjuster: CostAdjuster) {
-        this.costAdjusters.push(costAdjuster);
+        this.state.costAdjusters.push(costAdjuster.getRef());
     }
 
     /**
@@ -727,7 +739,7 @@ export class Player extends GameObject<IPlayerState> {
     public removeCostAdjuster(adjuster: CostAdjuster) {
         if (this.costAdjusters.includes(adjuster)) {
             adjuster.unregisterEvents();
-            this.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster);
+            this.state.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster).map((x) => x.getRef());
         }
     }
 
@@ -927,9 +939,6 @@ export class Player extends GameObject<IPlayerState> {
      * Called at the start of the Action Phase.  Resets some of the single round parameters
      */
     public resetForActionPhase() {
-        if (this.resetTimerAtEndOfRound) {
-            this.noTimer = false;
-        }
         this.passedActionPhase = false;
     }
 
@@ -1179,11 +1188,9 @@ export class Player extends GameObject<IPlayerState> {
      * @param {Player} activePlayer
      */
     public getSummaryForZone(zone: ZoneName, activePlayer: Player) {
-        const zoneCards = zone === ZoneName.Deck
-            ? this.drawDeck
-            : this.getCardsInZone(zone);
+        Contract.assertFalse(zone === ZoneName.Deck, 'getSummaryForZone should not be called for the deck as it is not used in the UI');
 
-        return zoneCards?.map((card) => {
+        return this.getCardsInZone(zone)?.map((card) => {
             return card.getSummary(activePlayer);
         }) ?? [];
     }
@@ -1253,6 +1260,13 @@ export class Player extends GameObject<IPlayerState> {
     //     };
     // }
 
+    public override getShortSummary() {
+        return {
+            ...super.getShortSummary(),
+            type: ChatObjectType.Player,
+        };
+    }
+
     // TODO STATE SAVE: clean this up
     // /**
     //  * This information is passed to the UI
@@ -1276,8 +1290,8 @@ export class Player extends GameObject<IPlayerState> {
                 resources: this.getSummaryForZone(ZoneName.Resource, activePlayer),
                 groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer),
                 spaceArena: this.getSummaryForZone(ZoneName.SpaceArena, activePlayer),
-                deck: this.getSummaryForZone(ZoneName.Deck, activePlayer),
-                discard: this.getSummaryForZone(ZoneName.Discard, activePlayer)
+                discard: this.getSummaryForZone(ZoneName.Discard, activePlayer),
+                // we don't get the deck summary here, as it is not needed in the UI
             },
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
@@ -1293,11 +1307,12 @@ export class Player extends GameObject<IPlayerState> {
             // stats: this.getStats(),
             user: safeUser,
             promptState: promptState,
-            canUndo: this.game.gameObjectManager.canUndo(this),
             isActionPhaseActivePlayer,
             clock: undefined,
             aspects: this.getAspects(),
-            hasForceToken: this.hasTheForce
+            hasForceToken: this.hasTheForce,
+            timeRemainingStatus: this.actionTimer.timeRemainingStatus,
+            numCardsInDeck: this.drawDeck?.length,
         };
 
         // if (this.showDeck) {
@@ -1379,6 +1394,10 @@ export class Player extends GameObject<IPlayerState> {
         }
 
         return state;
+    }
+
+    public override getGameObjectName(): string {
+        return 'Player';
     }
 
     /** @override */

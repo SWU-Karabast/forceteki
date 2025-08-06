@@ -23,7 +23,7 @@ export interface IRandomSelectionSystemProperties<TContext extends AbilityContex
  * targets to pass to the inner system.
  */
 export class RandomSelectionSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, IRandomSelectionSystemProperties<TContext>> {
-    protected override readonly eventName = MetaEventName.RandomSelection;
+    public override readonly eventName = MetaEventName.RandomSelection;
 
     public override getInnerSystems(properties: IRandomSelectionSystemProperties<TContext>) {
         return [properties.innerSystem];
@@ -35,7 +35,6 @@ export class RandomSelectionSystem<TContext extends AbilityContext = AbilityCont
 
         if (!context.targets.randomTarget) {
             const targets = Helpers.asArray(properties.target);
-
             const selectedTargets = Helpers.getRandomArrayElements(targets, properties.count, context.game.randomGenerator);
 
             context.targets.randomTarget = selectedTargets.length === 1 ? selectedTargets[0] : selectedTargets;
@@ -52,18 +51,8 @@ export class RandomSelectionSystem<TContext extends AbilityContext = AbilityCont
         const target = context.targets.randomTarget;
 
         const [innerEffectMessage, innerEffectArgs] = properties.innerSystem.getEffectMessage(context, additionalProperties);
-        const innerMessage = context.game.gameChat.formatMessage(innerEffectMessage, innerEffectArgs);
 
-        const messageArgs = [
-            'randomly select ',
-            target,
-            ' from ',
-            options,
-            ', and to ',
-            ...innerMessage
-        ];
-
-        return [this.generateFormatString(messageArgs), messageArgs];
+        return ['randomly select {0} from {1}, and to {2}', [this.getTargetMessage(target, context), this.getTargetMessage(options, context), { format: innerEffectMessage, args: innerEffectArgs }]];
     }
 
     public override canAffectInternal(target: Player | Card, context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

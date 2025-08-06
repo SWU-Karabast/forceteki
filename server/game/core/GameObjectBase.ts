@@ -1,4 +1,5 @@
 import type Game from './Game';
+import { copyState, registerState } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';
 
@@ -26,6 +27,7 @@ export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
 }
 
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
+@registerState()
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
     protected state: T;
 
@@ -49,7 +51,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         this.game.gameObjectManager.register(this);
     }
 
-    /** A overridable method so a child can set defaults for it's state. Always ensure to call super.onSetupGameState() as the first line if you do override this.  */
+    /** A overridable method so a child can set defaults for it's state. Always ensure to call super.setupDefaultState() as the first line if you do override this.  */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected setupDefaultState() { }
 
@@ -57,6 +59,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     public setState(state: T) {
         const oldState = this.state;
         this.state = structuredClone(state);
+        copyState(this, state);
         this.afterSetState(oldState);
     }
 
@@ -65,19 +68,29 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         return structuredClone(this.state);
     }
 
-    /** A function for game to call on all objects after all state has been rolled back. for example, to cache calculated values. */
+    /** A function for game to call on all objects after all state has been rolled back. Intended to be used when a class has state changes that have external changes, for example, updating OngoingEffectEngine. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public afterSetAllState() { }
+    public afterSetAllState(oldState: T) { }
 
-    /** A function for game to call after the state for this object has been rolled back. This can be used to compare old and new states and trigger function calls if needed. */
+    /** A function for game to call after the state for this object has been rolled back. Intended to be used when a class has state changes that have internal changes, such as caching state. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected afterSetState(oldState: T) { }
 
+    /**
+     * A function for game to call on all objects if they are being removed from the GameObject list (typically after a rollback to before the object was created).
+     * This is intended to be used for cleanup of any state that the object has that is not part of the state object.
+     *
+     * The most common example is removing event handlers that have been registered on Game.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public cleanupOnRemove(oldState: T) { }
+
+    /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
         const ref = { isRef: true, uuid: this.state.uuid };
 
         if (Helpers.isDevelopment()) {
-            // This property is for debugging purposes only and should never be referenced within the code.
+            // This property is for debugging purposes only and should never be referenced within the code. It will be wiped in a rollback, but for non-Undo debugging this works.
             Object.defineProperty(ref, 'gameObject', {
                 value: this,
                 writable: false,
@@ -89,8 +102,12 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         return ref as GameObjectRef<T>;
     }
 
-    /** Shortcut to get the Game Object from a Ref */
-    public getObject<T extends GameObjectBase>(ref: GameObjectRef<T>): T {
+    /** Shortcut to get the Game Object from a Ref. This is intentionally an arrow function to cause structured clone to break if called on this class. */
+    public getObject = <T extends GameObjectBase>(ref: GameObjectRef<T>): T => {
         return this.game.gameObjectManager.get(ref);
+    };
+
+    public getGameObjectName(): string {
+        return 'GameObject';
     }
 }

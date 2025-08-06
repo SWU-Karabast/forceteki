@@ -4,6 +4,8 @@ import * as Contract from '../../utils/Contract';
 import type { Player } from '../../Player';
 import type { IPlayableOrDeployableCardState, PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
+import type { ILeaderAbilityRegistrar } from '../AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export const LeaderPropertiesCard = WithLeaderProperties(PlayableOrDeployableCard);
 
@@ -30,18 +32,22 @@ export function WithLeaderProperties<TState extends IPlayableOrDeployableCardSta
             super(...args);
             Contract.assertEqual(this.printedType, CardType.Leader);
 
-            this.setupLeaderSideAbilities(this);
+            this.callSetupLeaderWithRegistrar();
         }
 
         public override isLeader(): this is ILeaderCard {
             return true;
         }
 
+        protected callSetupLeaderWithRegistrar() {
+            throw new Error('This method should be overridden in the subclass (such as LeaderUnitCard) to set up card abilities with the correct ability registrar type.');
+        }
+
         /**
          * Create card abilities for the leader (non-unit) side by calling subsequent methods with appropriate properties
          */
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        protected setupLeaderSideAbilities(sourceCard: this) { }
+        protected setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<ILeaderCard>, AbilityHelper: IAbilityHelper) { }
 
         // TODO TYPE REFACTOR: separate out the Leader types from the playable types
         public override getPlayCardActions() {

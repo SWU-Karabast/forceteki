@@ -4,7 +4,7 @@ import { WithCost } from './propertyMixins/Cost';
 import type { MoveZoneDestination } from '../Constants';
 import { CardType, EffectName, ZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
-import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
@@ -15,21 +15,31 @@ import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 import type { ICardCanChangeControllers } from './CardInterfaces';
 import type { InitializeCardStateOption } from './Card';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import type { IBasicAbilityRegistrar, IEventAbilityRegistrar } from './AbilityRegistrationInterfaces';
+import type { GameObjectRef } from '../GameObjectBase';
+import type { IAbilityHelper } from '../../AbilityHelper';
 
-const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
+// STATE TODO: This needs the eventAbility to be converted to state.
+const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard<IEventCardState>));
+
+export interface IEventCardState extends IPlayableOrDeployableCardState {
+    eventAbility: GameObjectRef<EventAbility>;
+}
 
 export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeControllers, ICardWithCostProperty {
     getEventAbility(): EventAbility;
 }
 
-export class EventCard extends EventCardParent {
-    private _eventAbility: EventAbility;
+export class EventCard extends EventCardParent implements IEventCard {
+    private get eventAbility(): EventAbility {
+        return this.game.getFromRef(this.state.eventAbility);
+    }
 
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Event);
 
-        Contract.assertFalse(this.hasImplementationFile && !this._eventAbility, 'Event card\'s ability was not initialized');
+        Contract.assertFalse(this.hasImplementationFile && !this.state.eventAbility, 'Event card\'s ability was not initialized');
 
         // currently the only constant abilities an event card can have are those that reduce cost, which are always active regardless of zone
         for (const constantAbility of this.constantAbilities) {
@@ -73,7 +83,7 @@ export class EventCard extends EventCardParent {
             });
         }
 
-        return this._eventAbility;
+        return this.eventAbility;
     }
 
     public override moveTo(targetZoneName: MoveZoneDestination, initializeCardState?: InitializeCardStateOption): void {
@@ -98,13 +108,28 @@ export class EventCard extends EventCardParent {
         }
     }
 
-    protected setEventAbility(properties: IEventAbilityProps) {
+    protected override getAbilityRegistrar(): IEventAbilityRegistrar {
+        return {
+            ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<EventCard>,
+            setEventAbility: (properties: IEventAbilityProps) => this.setEventAbility(properties),
+            addDecreaseCostAbility: (properties: IDecreaseCostAbilityProps<EventCard>) => this.addDecreaseCostAbility(properties),
+        };
+    }
+
+    protected override callSetupWithRegistrar() {
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
+
+    private setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;
-        this._eventAbility = new EventAbility(this.game, this, properties);
+        this.state.eventAbility = new EventAbility(this.game, this, properties).getRef();
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
-    protected addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>): void {
-        this.constantAbilities.push(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
+    private addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<EventCard>): void {
+        this.state.constantAbilities.push(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)).getRef());
     }
 }

@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityRestriction } from '../../../core/Constants';
 import * as Helpers from '../../../core/utils/Helpers';
@@ -11,14 +12,14 @@ export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupCardAbilities() {
-        this.addConstantAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addConstantAbility({
             title: 'Cannot be attacked if friendly units have at least 3 unique aspects',
-            condition: (context) => Helpers.countUniqueAspects(this.controller.getArenaUnits({ otherThan: context.source })) >= 3,
+            condition: (context) => Helpers.countUniqueAspects(context.source.controller.getArenaUnits({ otherThan: context.source })) >= 3,
             ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Deal 1 damage to the defender or a base',
             targetResolver: {
                 cardCondition: (card, context) => card.isBase() || context.event.attack.getAllTargets().includes(card),

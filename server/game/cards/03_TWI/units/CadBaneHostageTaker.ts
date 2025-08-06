@@ -1,4 +1,5 @@
-import AbilityHelper from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
@@ -11,8 +12,8 @@ export default class CadBaneHostageTaker extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities() {
-        this.addWhenPlayedAbility({
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addWhenPlayedAbility({
             title: 'This unit captures up to 3 enemy non-leader units with a total of 8 or less remaining HP',
             targetResolver: {
                 activePromptTitle: 'Choose up to 3 enemy non-leader units with a total of 8 or less remaining HP',
@@ -26,7 +27,7 @@ export default class CadBaneHostageTaker extends NonLeaderUnitCard {
             }
         });
 
-        this.addOnAttackAbility({
+        registrar.addOnAttackAbility({
             title: 'Rescue a card you own captured by Cad Bane and the opponent draws 2 cards',
             optional: true,
             playerChoosingOptional: RelativePlayer.Opponent,
