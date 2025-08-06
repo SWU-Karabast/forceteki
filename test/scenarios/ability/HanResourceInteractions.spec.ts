@@ -36,8 +36,8 @@ describe('Han Solo Resource Interaction Scenarios', function() {
 
                 context.player2.claimInitiative();
                 context.player1.passAction();
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 // Han defeats P2's Wampa and ensure it goes to P2 discard
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
@@ -82,8 +82,8 @@ describe('Han Solo Resource Interaction Scenarios', function() {
 
                 // player1 resources AT-ST prior to Han trigger
                 context.player1.clickCard(context.atst);
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 // Han pays for Falcon with Wampa and then defeats it
                 expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);

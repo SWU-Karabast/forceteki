@@ -37,7 +37,7 @@ describe('Following The Path', function () {
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.getChatLogs(1)[0]).toContain(context.jediKnight.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.secretiveSage.title);
 
@@ -80,7 +80,7 @@ describe('Following The Path', function () {
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.getChatLogs(1)[0]).toContain(context.jediKnight.title);
 
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top']);

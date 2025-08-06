@@ -70,7 +70,7 @@ describe('Cunning', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.theMandalorian, context.wampa, context.restoredArc170, context.atst, context.greenSquadronAwing]);
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.greenSquadronAwing);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.atst.exhausted).toBe(true);
                 expect(context.greenSquadronAwing.exhausted).toBe(true);
@@ -100,7 +100,7 @@ describe('Cunning', function () {
                 context.player1.clickPrompt(exhaustPrompt);
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.greenSquadronAwing);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.atst.exhausted).toBe(true);
                 expect(context.greenSquadronAwing.exhausted).toBe(true);

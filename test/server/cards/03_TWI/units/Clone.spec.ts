@@ -147,7 +147,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeVanillaClone();
 
                 context.player2.clickCard(context.qira);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 context.player2.chooseListOption('Clone');
 
                 context.player1.clickCard(context.clone);
@@ -317,7 +317,7 @@ describe('Clone', function() {
 
                 context.player2.clickCard(context.cadBane);
                 context.player2.clickCard(context.clone);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.clone).toBeCapturedBy(context.cadBane);
                 expect(context.clone).toBeVanillaClone();
 
@@ -932,9 +932,9 @@ describe('Clone', function() {
 
                 context.player2.clickCard(context.annihilator);
                 context.player2.clickCard(context.clone);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 context.player2.clickCardInDisplayCardPrompt(inDeckWampa);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.clone).toBeInZone('discard');
                 expect(context.clone).toBeVanillaClone();
                 expect(inHandWampa).toBeInZone('discard');
@@ -1035,7 +1035,7 @@ describe('Clone', function() {
                     context.readyCard(context.clone);
                     context.player1.clickCard(context.hanSolo);
                     context.player1.clickPrompt('Reveal the top card of your deck');
-                    context.player1.clickPrompt('Done');
+                    context.player1.clickDone();
                     context.player1.clickCard(context.clone);
                     context.player1.clickCard(context.p2Base);
                     expect(context.p2Base.damage).toBe(5); // 4 printed power + 1 from Han Solo's ability

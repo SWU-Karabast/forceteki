@@ -52,7 +52,7 @@ describe('Enticing Reward', function () {
                 // one click to confirm that additional cards can't be selected
                 context.player1.clickCardInDisplayCardPrompt(context.protector, true);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.getChatLogs(2)).toContain('player1 takes Devotion and Waylay');
                 expect(context.waylay).toBeInZone('hand');
                 expect(context.devotion).toBeInZone('hand');
@@ -122,7 +122,7 @@ describe('Enticing Reward', function () {
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.getChatLogs(2)).toContain('player1 takes Devotion and Waylay');
                 expect(context.waylay).toBeInZone('hand');
                 expect(context.devotion).toBeInZone('hand');

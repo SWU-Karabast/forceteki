@@ -41,7 +41,7 @@ describe('Prepare for Takeoff', function () {
                 // one click to confirm that additional cards can't be selected
                 context.player1.clickCardInDisplayCardPrompt(context.infernoFour, true);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.getChatLogs(3)).toContain('player1 plays Prepare for Takeoff to look at the top 8 cards of their deck');
                 expect(context.getChatLogs(3)).toContain('player1 takes Green Squadron A-Wing and Restored ARC-170');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
@@ -75,7 +75,7 @@ describe('Prepare for Takeoff', function () {
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
 

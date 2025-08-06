@@ -38,7 +38,7 @@ describe('ISB Agent', function() {
                     expect(context.player2).toHaveEnabledPromptButton('Done');
                     expect(context.getChatLogs(1)[0]).toContain(context.confiscate.title);
 
-                    context.player2.clickPrompt('Done');
+                    context.player2.clickDone();
 
                     expect(context.player1).toBeAbleToSelectExactly([context.isbAgent, context.atst, context.cartelSpacer, context.wampa, context.allianceXwing]);
                     context.player1.clickCard(context.wampa);

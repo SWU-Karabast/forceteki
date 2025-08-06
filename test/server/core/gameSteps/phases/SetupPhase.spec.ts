@@ -100,7 +100,7 @@ describe('Setup Phase', function() {
                 context.player1.clickCardNonChecking(context.player1.hand[2]);
                 expect(context.player1.selectedCards.length).toBe(2);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
 
 
@@ -138,7 +138,7 @@ describe('Setup Phase', function() {
                 context.player2.clickCardNonChecking(context.player2.hand[2]);
                 expect(context.player2.selectedCards.length).toBe(2);
 
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 // Check if resource length is correct
                 expect(context.player1.resources.length).toBe(2);
@@ -192,8 +192,8 @@ describe('Setup Phase', function() {
                 context.player2.clickCard(context.player2.hand[1]);
 
                 // finish resource step
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 // Check if resource length is correct
                 expect(context.player1.resources.length).toBe(2);

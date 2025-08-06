@@ -42,8 +42,8 @@ describe('Seasoned Fleet Admiral', function () {
                 const { context } = contextRef;
 
                 context.moveToRegroupPhase();
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
                 expect(context.player1).toBeActivePlayer();
                 expect(context.player1).toHavePrompt('Choose an action');
             });

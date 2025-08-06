@@ -67,7 +67,7 @@ describe('Consolidation of power', function () {
                 ]);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.allianceXwing);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.academyDefenseWalker,
                     context.homeOneAllianceFlagship,
@@ -99,7 +99,7 @@ describe('Consolidation of power', function () {
                 ]);
                 context.player1.clickCard(context.reinforcementWalker);
                 context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickPrompt('Choose nothing');
                 expect(context.player2).toBeActivePlayer();
@@ -125,7 +125,7 @@ describe('Consolidation of power', function () {
                     context.allianceXwing,
                 ]);
                 context.player1.clickCard(context.allianceXwing);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player2).toBeActivePlayer();
                 expect(context.allianceXwing).toBeInZone('discard');
             });

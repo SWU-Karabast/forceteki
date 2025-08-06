@@ -80,7 +80,7 @@ describe('Aayla Secura, Master of the Blade', function() {
                 context.player2.clickCard(context.secondWaylay);
                 context.player2.clickCard(context.aaylaSecura);
 
-                expect(context.player1.groundArena.length).toBe(2);
+                expect(context.player1.groundArenaUnits.length).toBe(2);
 
                 // Player 1 ambushes Aayla back into play, activating Coordinate and preventing combat damage
                 context.player1.clickCard(context.timelyIntervention);

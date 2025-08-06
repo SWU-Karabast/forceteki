@@ -38,7 +38,7 @@ describe('Osi Sobeck, Warden of the Citadel', function () {
             context.player1.clickPrompt('Trigger exploit');
 
             context.player1.clickCard(context.battlefieldMarine);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // can capture any enemy ground unit which cost 4 or less
             expect(context.player1).toBeAbleToSelectExactly([context.bailOrgana, context.scoutBikePursuer, context.yoda, context.wampa]);

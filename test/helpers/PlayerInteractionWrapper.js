@@ -172,6 +172,14 @@ class PlayerInteractionWrapper {
         return this.player.filterCardsInPlay((card) => card.zoneName === 'spaceArena');
     }
 
+    /**
+     * List of player's units in the space arena
+     * @return {BaseCard[]} - List of player's units currently in play in the space arena
+     */
+    get spaceArenaUnits() {
+        return this.spaceArena.filter((card) => card.isUnit());
+    }
+
     setSpaceArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
         this.setArenaUnits('spaceArena', this.spaceArena, newState, prevZones);
     }
@@ -182,6 +190,14 @@ class PlayerInteractionWrapper {
      */
     get groundArena() {
         return this.player.filterCardsInPlay((card) => card.zoneName === 'groundArena');
+    }
+
+    /**
+     * List of player's units in the ground arena
+     * @return {BaseCard[]} - List of player's units currently in play in the ground arena
+     */
+    get groundArenaUnits() {
+        return this.groundArena.filter((card) => card.isUnit());
     }
 
     setGroundArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
@@ -767,6 +783,16 @@ class PlayerInteractionWrapper {
             throw new TestSetupError(`${this.name} can't pass, because they don't have priority`);
         }
         this.clickPrompt('Pass');
+    }
+
+    /**
+     * Player clicks Done prompt
+     */
+    clickDone() {
+        if (!this.canAct) {
+            throw new TestSetupError(`${this.name} can't choose Done, because they don't have priority`);
+        }
+        this.clickPrompt('Done');
     }
 
     /**

@@ -26,7 +26,7 @@ describe('In The Shadows', function () {
                 context.player1.clickCard(context.fifthBrotherFearHunter);
                 context.player1.clickCard(context.eighthBrotherHuntTogether);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // check experience token
                 expect(context.villageTender.isUpgraded()).toBeFalse();
@@ -46,7 +46,7 @@ describe('In The Shadows', function () {
                 context.player1.clickCard(context.grandInquisitorYoureRightToBeAfraid);
                 context.player1.clickCard(context.fifthBrotherFearHunter);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // check experience token
                 expect(context.villageTender.isUpgraded()).toBeFalse();

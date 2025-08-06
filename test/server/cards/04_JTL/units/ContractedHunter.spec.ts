@@ -25,8 +25,8 @@ describe('Contracted Hunter', function() {
             expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
 
             // move to action phase
-            context.player1.clickPrompt('Done');
-            context.player2.clickPrompt('Done');
+            context.player1.clickDone();
+            context.player2.clickDone();
 
             // second chance ability is expired, can't play it from discard
             expect(context.contractedHunter).not.toHaveAvailableActionWhenClickedBy(context.player1);

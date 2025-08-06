@@ -39,7 +39,7 @@ describe('Lux Bonteri, Renegade Separatist', function () {
             context.player1.clickCard(context.droidekaSecurity);
             context.player1.clickPrompt('Trigger exploit');
             context.player1.clickCard(context.battlefieldMarine);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // droideka security was played with only 4 resource, lux ability triggers
             expect(context.player2).toBeAbleToSelectExactly([context.luxBonteri, context.kiadimundi, context.droidekaSecurity, context.huyang]);
