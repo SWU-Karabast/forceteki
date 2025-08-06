@@ -7,7 +7,7 @@ import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
 import { getHeapStatistics } from 'v8';
-import { freemem } from 'os';
+import { freemem, cpus } from 'os';
 
 import { logger } from '../logger';
 
@@ -106,6 +106,8 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
+    private lastCpuUsage: NodeJS.CpuUsage;
+    private lastCpuUsageTime: bigint;
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
     public readonly bugReportHandler: BugReportHandler;
@@ -159,6 +161,7 @@ export class GameServer {
 
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
+        logger.info(`GameServer: Detected ${cpus().length} logical CPU cores.`);
 
         // check if NEXTAUTH variable is set
         const secret = process.env.NEXTAUTH_SECRET;
@@ -247,6 +250,11 @@ export class GameServer {
         // set up periodic heap monitoring every 30 seconds
         this.logHeapStats();
         setInterval(() => this.logHeapStats(), 30000);
+
+        // set up periodic CPU monitoring every 30 seconds
+        this.lastCpuUsage = process.cpuUsage();
+        this.lastCpuUsageTime = process.hrtime.bigint();
+        setInterval(() => this.logCpuUsage(), 30000);
     }
 
     private setupAppRoutes(app: express.Application) {
@@ -1325,6 +1333,24 @@ export class GameServer {
         } catch (err) {
             logger.error('GameServer: Error in onSocketDisconnected:', err);
         }
+    }
+
+    private logCpuUsage(): void {
+        const cpuUsageDiff = process.cpuUsage(this.lastCpuUsage);
+        const nowTime = process.hrtime.bigint();
+        const elapsedTimeNanos = Number(nowTime - this.lastCpuUsageTime);
+
+        const elapsedUserNanos = cpuUsageDiff.user * 1000;
+        const elapsedSystemNanos = cpuUsageDiff.system * 1000;
+
+        const totalPercent = (((elapsedUserNanos + elapsedSystemNanos) / elapsedTimeNanos) * 100).toFixed(1);
+        const userPercent = (((elapsedUserNanos) / elapsedTimeNanos) * 100).toFixed(1);
+        const systemPercent = (((elapsedSystemNanos) / elapsedTimeNanos) * 100).toFixed(1);
+
+        logger.info(`[CpuStats] Total Usage: ${totalPercent}% (User: ${userPercent}%, System: ${systemPercent}%) | System Cores: ${cpus().length}`);
+
+        this.lastCpuUsageTime = nowTime;
+        this.lastCpuUsage = process.cpuUsage();
     }
 
     private logHeapStats(): void {
