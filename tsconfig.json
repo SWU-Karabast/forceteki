@@ -22,7 +22,8 @@
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "incremental": true,
     },
     // "include": ["server/jigoku/**/*"],
     "include": [
