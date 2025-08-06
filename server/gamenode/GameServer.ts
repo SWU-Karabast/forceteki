@@ -1337,9 +1337,10 @@ export class GameServer {
             const totalHeapSizeInMB = (heapStats.total_heap_size / 1024 / 1024).toFixed(1);
             const heapSizeLimitInMB = (heapStats.heap_size_limit / 1024 / 1024).toFixed(1);
             const heapUsagePercent = ((heapStats.used_heap_size / heapStats.heap_size_limit) * 100).toFixed(1);
+            const rssSizeInMB = (process.memoryUsage().rss / 1024 / 1024).toFixed(1);
 
             const freeSystemMemoryInGB = (freemem() / 1024 / 1024 / 1024).toFixed(2);
-            logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | System free: ${freeSystemMemoryInGB}GB`);
+            logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | Total physical usage: ${rssSizeInMB}MB | System free: ${freeSystemMemoryInGB}GB`);
         } catch (error) {
             logger.error(`Error logging heap stats: ${error}`);
         }
