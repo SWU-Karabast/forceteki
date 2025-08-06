@@ -723,6 +723,49 @@ class PlayerInteractionWrapper {
         return card;
     }
 
+    /**
+     * Clicks the first card in the specified zone.
+     * @param {String} zone - The zone to click the first card in.
+     * @param {Number} pos - The position of the card to click.
+     */
+    clickCardPosInZone(zone, pos, side = 'self', expectChange = true) {
+        if (pos < 0 || pos >= this.player[zone].length) {
+            throw new TestSetupError(`Position ${pos} is out of bounds for ${zone} zone`);
+        }
+
+        return this.clickCard(this.player[zone][pos], zone, side, expectChange);
+    }
+
+    /**
+     * Clicks the first card in the specified zone.
+     * @param {String} zone - The zone to click the first card in.
+     */
+    clickFirstCardInZone(zone, side = 'self', expectChange = true) {
+        return this.clickCardPosInZone(zone, 0, side, expectChange);
+    }
+
+    /**
+     * Clicks the card in the player's hand at the specified position.
+     * @param {Number} pos - The position of the card to click.
+     */
+    clickCardInHand(pos, expectChange = true) {
+        return this.clickCardPosInZone('hand', pos, 'self', expectChange);
+    }
+
+    /**
+     * Clicks the first card in the player's hand.
+     */
+    clickFirstCardInHand(expectChange = true) {
+        return this.clickCardInHand(0, expectChange);
+    }
+
+    /**
+     * Clicks the second card in the player's hand.
+     */
+    clickSecondCardInHand(expectChange = true) {
+        return this.clickCardInHand(1, expectChange);
+    }
+
     clickMenu(card, menuText) {
         if (typeof card === 'string') {
             card = this.findCardByName(card);
@@ -789,8 +832,8 @@ class PlayerInteractionWrapper {
      * Player clicks Done prompt
      */
     clickDone() {
-        if (!this.canAct) {
-            throw new TestSetupError(`${this.name} can't choose Done, because they don't have priority`);
+        if (!this.currentButtons.includes('Done')) {
+            throw new TestSetupError(`${this.name} can't click Done, because it is not present in the prompt`);
         }
         this.clickPrompt('Done');
     }

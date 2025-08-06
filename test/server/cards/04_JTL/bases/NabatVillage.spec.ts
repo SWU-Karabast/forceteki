@@ -58,7 +58,7 @@ describe('Nabat Village', function() {
                 context.player1.clickCard(context.lothalInsurgent);
                 context.player1.clickDone();
 
-                context.player2.clickCard(context.player2.hand[0]);
+                context.player2.clickFirstCardInHand();
                 context.player2.clickCard(context.player2.hand[1]);
                 context.player2.clickDone();
 
@@ -98,8 +98,8 @@ describe('Nabat Village', function() {
                 context.player1.clickCard(context.lothalInsurgent);
                 context.player1.clickDone();
 
-                context.player2.clickCard(context.player2.hand[0]);
-                context.player2.clickCard(context.player2.hand[1]);
+                context.player2.clickFirstCardInHand();
+                context.player2.clickSecondCardInHand();
                 context.player2.clickDone();
 
                 // First action phase - use Nabat Village

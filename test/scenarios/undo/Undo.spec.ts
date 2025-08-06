@@ -902,7 +902,7 @@ describe('Undo', function() {
                 const { context } = contextRef;
                 const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
-                context.player1.clickCard(context.player1.hand[0]);
+                context.player1.clickFirstCardInHand();
                 expect(context.player2).toHaveEnabledPromptButton(discardPrompt);
 
                 context.player2.clickPrompt(discardPrompt);
@@ -917,7 +917,7 @@ describe('Undo', function() {
                     snapshotId
                 });
 
-                context.player1.clickCard(context.player1.hand[0]);
+                context.player1.clickFirstCardInHand();
                 context.player2.clickPrompt(discardPrompt);
                 expect(context.player2.hand.length).toBe(4);
                 expect(context.player2.discard.length).toBe(1);
@@ -1059,7 +1059,7 @@ describe('Undo', function() {
                 const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
                 player1.passAction();
-                player2.clickCard(player2.hand[0]);
+                player2.clickFirstCardInHand();
 
                 contextRef.snapshot.rollbackToSnapshot({
                     type: 'manual',
@@ -1067,8 +1067,8 @@ describe('Undo', function() {
                     snapshotId
                 });
 
-                player1.clickCard(player1.hand[0]);
-                player2.clickCard(player2.hand[0]);
+                player1.clickFirstCardInHand();
+                player2.clickFirstCardInHand();
 
                 expect(player1.hand.length).toBe(0);
                 expect(player2.hand.length).toBe(0);
@@ -1082,7 +1082,7 @@ describe('Undo', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action', // 'regroup',
                     player1: {
-                        hand: ['ardent-sympathizer', 'ardent-sympathizer'],
+                        hand: ['ardent-sympathizer', 'death-star-stormtrooper'],
                         resources: 2,
                         deck: [],
                     },
@@ -1102,7 +1102,7 @@ describe('Undo', function() {
                 const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
                 player1.clickDone();
-                player2.clickCard(player2.hand[0]);
+                player2.clickFirstCardInHand();
                 player2.clickDone();
 
                 contextRef.snapshot.rollbackToSnapshot({
@@ -1111,11 +1111,11 @@ describe('Undo', function() {
                     snapshotId
                 });
 
-                player1.clickCard(player1.hand[0]);
+                player1.clickFirstCardInHand();
                 player1.clickDone();
-                player2.clickCard(player2.hand[0]);
+                player2.clickFirstCardInHand();
                 player2.clickDone();
-                player1.clickCard(player1.hand[0]);
+                player1.clickFirstCardInHand();
 
                 expect(context.game.roundNumber).toBe(2);
                 expect(player2).toBeActivePlayer();
@@ -1134,9 +1134,9 @@ describe('Undo', function() {
                 context.moveToRegroupPhase();
                 const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
-                player1.clickCard(player1.hand[0]);
+                player1.clickFirstCardInHand();
                 player1.clickDone();
-                player2.clickCard(player2.hand[0]);
+                player2.clickFirstCardInHand();
                 player2.clickDone();
 
                 contextRef.snapshot.rollbackToSnapshot({
@@ -1146,7 +1146,7 @@ describe('Undo', function() {
                 });
 
                 player1.clickDone();
-                player2.clickCard(player2.hand[0]);
+                player2.clickFirstCardInHand();
                 player2.clickDone();
 
                 expect(context.game.roundNumber).toBe(2);

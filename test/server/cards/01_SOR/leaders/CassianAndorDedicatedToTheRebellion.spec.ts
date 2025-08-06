@@ -56,13 +56,13 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 context.readyCard(context.cassianAndor);
                 context.player2.passAction();
 
-                // Deal 3+ damage using abilities now -- use two daring raids at the top of the hand
-                context.player1.clickCard(context.player1.hand[0]);
+                // Deal 3+ damage using abilities now -- use two daring raids
+                context.player1.clickCard(context.daringRaid);
                 context.player1.clickCard(context.p2Base);
                 context.player2.passAction();
 
                 // Select the remaining daring-raid
-                context.player1.clickCard(context.player1.hand[0]);
+                context.player1.clickCard(context.daringRaid);
                 context.player1.clickCard(context.p2Base);
                 context.player2.passAction();
 
