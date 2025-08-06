@@ -1,8 +1,8 @@
 describe('Omega, Part of the Squad', function() {
     integration(function(contextRef) {
         describe('Omega\'s Ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['omega#part-of-the-squad', 'omega#part-of-the-squad'],
@@ -10,11 +10,12 @@ describe('Omega, Part of the Squad', function() {
                         base: 'echo-base',
                         leader: 'hera-syndulla#spectre-two'
                     }
+                },
+                (context) => {
+                    const p1Omegas = context.player1.findCardsByName('omega#part-of-the-squad');
+                    context.firstOmega = p1Omegas[0];
+                    context.secondOmega = p1Omegas[1];
                 });
-                const { context } = contextRef;
-                const p1Omegas = context.player1.findCardsByName('omega#part-of-the-squad');
-                context.firstOmega = p1Omegas[0];
-                context.secondOmega = p1Omegas[1];
             });
 
             it('can draw a clone', function () {

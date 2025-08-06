@@ -36,8 +36,8 @@ describe('Bossk, Hunt By Instinct', function () {
         });
 
         describe('Bossk\'s piloting ability', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bossk#hunt-by-instinct'],
@@ -46,15 +46,14 @@ describe('Bossk, Hunt By Instinct', function () {
                     player2: {
                         groundArena: ['consular-security-force'],
                     }
+                },
+                (context) => {
+                    context.player1.clickCard(context.bossk);
+                    context.player1.clickPrompt('Play Bossk with Piloting');
+                    context.player1.clickCard(context.stolenLandspeeder);
+
+                    context.player2.passAction();
                 });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.bossk);
-                context.player1.clickPrompt('Play Bossk with Piloting');
-                context.player1.clickCard(context.stolenLandspeeder);
-
-                context.player2.passAction();
             });
 
             it('should does nothing because target is not a unit', function () {

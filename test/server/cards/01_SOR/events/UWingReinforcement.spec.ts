@@ -1,8 +1,8 @@
 describe('U-Wing Reinforcement', function() {
     integration(function(contextRef) {
         describe('U-Wing\'s ability', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'hera-syndulla#spectre-two',

@@ -2,8 +2,8 @@
 describe('Undo', function() {
     undoIntegration(function(contextRef) {
         describe('Death Trooper\'s When Played ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['death-trooper'],
@@ -52,8 +52,8 @@ describe('Undo', function() {
         });
 
         describe('2-1B Surgical Droid\'s ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -136,8 +136,8 @@ describe('Undo', function() {
         });
 
         describe('Snoke\'s constant ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['supreme-leader-snoke#shadow-ruler'],
@@ -200,8 +200,8 @@ describe('Undo', function() {
         });
 
         describe('Wolffe\'s ability', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wolffe#suspicious-veteran'],
@@ -290,8 +290,8 @@ describe('Undo', function() {
 
 
         describe('Pyrrhic Assault\'s ability', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['pyrrhic-assault'],
@@ -349,8 +349,8 @@ describe('Undo', function() {
         });
 
         describe('Huyang\'s ability', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['huyang#enduring-instructor'],
@@ -423,8 +423,8 @@ describe('Undo', function() {
         });
 
         describe('DJ\'s when played ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'chopper-base',
@@ -620,8 +620,8 @@ describe('Undo', function() {
 
 
         describe('Echo, Valiant Arc Trooper\'s constant Coordinate ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['echo#valiant-arc-trooper'],
@@ -668,8 +668,8 @@ describe('Undo', function() {
         });
 
         describe('Punch It\'s ability', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['punch-it'],
@@ -725,8 +725,8 @@ describe('Undo', function() {
         });
 
         describe('Tactical Advantage\'s ability', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['tactical-advantage'],
@@ -762,8 +762,8 @@ describe('Undo', function() {
         });
 
         describe('Bendu\'s on-attack ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -1010,8 +1010,8 @@ describe('Undo', function() {
         });
 
         describe('Action Phase Claim/Pass Cases', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['ardent-sympathizer'],
@@ -1078,8 +1078,8 @@ describe('Undo', function() {
         });
 
         describe('Regroup Phase Resource/Pass Cases', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action', // 'regroup',
                     player1: {
                         hand: ['ardent-sympathizer', 'death-star-stormtrooper'],

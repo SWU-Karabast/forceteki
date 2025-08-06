@@ -1,8 +1,8 @@
 describe('Reckless Torrent', function() {
     integration(function(contextRef) {
         describe('Reckless Torrent\'s when played Coordinate ability', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],

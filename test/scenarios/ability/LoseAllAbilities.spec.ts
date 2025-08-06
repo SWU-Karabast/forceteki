@@ -5,8 +5,8 @@
 describe('Lose All Abilities', function() {
     integration(function(contextRef) {
         describe('A unit that loses all abilities for a duration', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'kazuda-xiono#best-pilot-in-the-galaxy',

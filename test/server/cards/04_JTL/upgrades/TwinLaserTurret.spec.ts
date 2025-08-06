@@ -1,8 +1,8 @@
 describe('Twin Laser Turret', function() {
     integration(function(contextRef) {
         describe('Twin Laser Turret\'s attached unit gain on Attack ability\'s', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['twin-laser-turret'],

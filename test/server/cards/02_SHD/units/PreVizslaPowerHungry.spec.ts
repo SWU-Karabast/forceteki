@@ -1,8 +1,8 @@
 describe('Pre Vizsla, Power Hungry', function() {
     integration(function(contextRef) {
         describe('Pre Vizsla\'s when played ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['pre-vizsla#power-hungry'],
@@ -81,8 +81,8 @@ describe('Pre Vizsla, Power Hungry', function() {
         });
 
         describe('Pre Vizsla\'s on attack ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [

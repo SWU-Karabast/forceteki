@@ -1,8 +1,8 @@
 describe('Commandeer', function() {
     integration(function(contextRef) {
         describe('Commandeer\'s ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vanquish', 'independent-smuggler'],
@@ -12,12 +12,12 @@ describe('Commandeer', function() {
                     player2: {
                         hand: ['commandeer', 'chewbacca#faithful-first-mate'],
                     }
+                },
+                (context) => {
+                    context.player1.clickCard(context.independentSmuggler);
+                    context.player1.clickPrompt('Play Independent Smuggler with Piloting');
+                    context.player1.clickCard(context.greenSquadronAwing);
                 });
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.independentSmuggler);
-                context.player1.clickPrompt('Play Independent Smuggler with Piloting');
-                context.player1.clickCard(context.greenSquadronAwing);
             });
 
             it('takes control, ready it and will return enemy non-leader unit to owner\'s hand', function () {

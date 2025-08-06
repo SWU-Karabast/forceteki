@@ -2,8 +2,8 @@
 describe('Jetpack', function() {
     integration(function(contextRef) {
         describe('Jetpack\'s when played ability', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['jetpack', 'jetpack', 'survivors-gauntlet'],
@@ -13,15 +13,14 @@ describe('Jetpack', function() {
                         groundArena: ['wampa'],
                         hand: ['daring-raid']
                     }
+                },
+                (context) => {
+                    const [jetpack1, jetpack2] = context.player1.findCardsByName('jetpack');
+                    context.jetpack1 = jetpack1;
+                    context.jetpack2 = jetpack2;
+
+                    context.scavengerOriginalShield = context.player1.findCardByName('shield');
                 });
-
-                const { context } = contextRef;
-
-                const [jetpack1, jetpack2] = context.player1.findCardsByName('jetpack');
-                context.jetpack1 = jetpack1;
-                context.jetpack2 = jetpack2;
-
-                context.scavengerOriginalShield = context.player1.findCardByName('shield');
             });
 
             it('creates a shield and then defeats it at the beginning of the regroup phase', function() {

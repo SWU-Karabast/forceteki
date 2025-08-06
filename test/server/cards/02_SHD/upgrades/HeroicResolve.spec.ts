@@ -52,8 +52,8 @@ describe('Heroic Resolve', function() {
         });
 
         describe('Heroic Resolve\'s ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'frontier-atrt', upgrades: ['heroic-resolve', 'heroic-resolve', 'academy-training'] }],
@@ -64,11 +64,11 @@ describe('Heroic Resolve', function() {
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
+                },
+                (context) => {
+                    [context.p1HeroicResolve1, context.p1HeroicResolve2] = context.player1.findCardsByName('heroic-resolve');
+                    context.p2HeroicResolve = context.player2.findCardByName('heroic-resolve');
                 });
-
-                const { context } = contextRef;
-                [context.p1HeroicResolve1, context.p1HeroicResolve2] = context.player1.findCardsByName('heroic-resolve');
-                context.p2HeroicResolve = context.player2.findCardByName('heroic-resolve');
             });
 
             it('should allow any attached copy of Heroic Resolve to be defeated', function () {
@@ -117,8 +117,8 @@ describe('Heroic Resolve', function() {
         });
 
         describe('Heroic Resolve\'s ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'frontier-atrt', upgrades: ['heroic-resolve'] }],
@@ -130,11 +130,11 @@ describe('Heroic Resolve', function() {
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
+                },
+                (context) => {
+                    context.p1HeroicResolve = context.player1.findCardByName('heroic-resolve');
+                    context.p2HeroicResolve = context.player2.findCardByName('heroic-resolve');
                 });
-
-                const { context } = contextRef;
-                context.p1HeroicResolve = context.player1.findCardByName('heroic-resolve');
-                context.p2HeroicResolve = context.player2.findCardByName('heroic-resolve');
             });
 
             it('should work even if it is attached to an opponent\'s card', function () {

@@ -1,8 +1,8 @@
 describe('Capture system', function() {
     integration(function (contextRef) {
         describe('When a unit is captured', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['discerning-veteran']
@@ -14,12 +14,11 @@ describe('Capture system', function() {
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
-                });
-
-                const { context } = contextRef;
-
+                },
+                (context) => {
                 // capture Wampa with Discerning Veteran
-                context.player1.clickCard(context.discerningVeteran);
+                    context.player1.clickCard(context.discerningVeteran);
+                });
             });
 
             it('it should be in the captor\'s capture zone', function () {
@@ -171,8 +170,8 @@ describe('Capture system', function() {
         });
 
         describe('When multiple units are guarding captured units', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['evacuate', 'superlaser-blast'],

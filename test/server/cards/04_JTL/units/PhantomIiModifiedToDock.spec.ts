@@ -70,8 +70,8 @@ describe('Phantom II, Modified to Dock', function() {
         });
 
         describe('Phantom\'s constant ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: [
@@ -83,13 +83,12 @@ describe('Phantom II, Modified to Dock', function() {
                         hand: ['open-fire'],
                         spaceArena: ['the-starhawk#prototype-battleship'],
                     }
+                },
+                (context) => {
+                    context.player1.clickCard(context.phantomIi);
+                    context.player1.clickPrompt('Attach this as an upgrade to The Ghost');
+                    context.player1.clickCard(context.theGhost);
                 });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.phantomIi);
-                context.player1.clickPrompt('Attach this as an upgrade to The Ghost');
-                context.player1.clickCard(context.theGhost);
             });
 
             it('should give the attached unit +3/+3', function() {
@@ -119,8 +118,8 @@ describe('Phantom II, Modified to Dock', function() {
         });
 
         describe('When Phantom is attached', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: [
@@ -131,13 +130,12 @@ describe('Phantom II, Modified to Dock', function() {
                     player2: {
                         hand: ['vanquish', 'confiscate', 'bamboozle']
                     }
+                },
+                (context) => {
+                    context.player1.clickCard(context.phantomIi);
+                    context.player1.clickPrompt('Attach this as an upgrade to The Ghost');
+                    context.player1.clickCard(context.theGhost);
                 });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.phantomIi);
-                context.player1.clickPrompt('Attach this as an upgrade to The Ghost');
-                context.player1.clickCard(context.theGhost);
             });
 
             it('it should be defeated when the attached unit is defeated', function() {

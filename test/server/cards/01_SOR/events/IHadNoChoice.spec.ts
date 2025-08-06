@@ -2,8 +2,8 @@ describe('I Had No Choice', function() {
     integration(function(contextRef) {
         describe('I Had No Choice\'s ability', function() {
             describe('when there are two or more non-leader units in play', function() {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['i-had-no-choice'],
@@ -49,8 +49,8 @@ describe('I Had No Choice', function() {
             });
 
             describe('when there is only one non-leader unit in play', function() {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['i-had-no-choice'],
@@ -82,8 +82,8 @@ describe('I Had No Choice', function() {
             });
 
             describe('when there are no non-leader units in play', function() {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['i-had-no-choice'],

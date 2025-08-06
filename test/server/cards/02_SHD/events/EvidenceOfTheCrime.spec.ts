@@ -1,8 +1,8 @@
 describe('Evidence of the Crime', function() {
     integration(function(contextRef) {
         describe('Evidence of the Crime\'s ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['evidence-of-the-crime'],
@@ -22,13 +22,13 @@ describe('Evidence of the Crime', function() {
                         spaceArena: ['cartel-spacer'],
                         leader: { card: 'darth-vader#dark-lord-of-the-sith', deployed: true, upgrades: ['the-darksaber'] }
                     }
+                },
+                (context) => {
+                    context.p1BobaFettArmor = context.player1.findCardByName('boba-fetts-armor');
+                    context.p2BobaFettArmor = context.player2.findCardByName('boba-fetts-armor');
+                    context.bobaFettDisintegrator = context.player1.findCardByName('boba-fett#disintegrator');
+                    context.bobaFettDaimyo = context.player1.findCardByName('boba-fett#daimyo');
                 });
-
-                const { context } = contextRef;
-                context.p1BobaFettArmor = context.player1.findCardByName('boba-fetts-armor');
-                context.p2BobaFettArmor = context.player2.findCardByName('boba-fetts-armor');
-                context.bobaFettDisintegrator = context.player1.findCardByName('boba-fett#disintegrator');
-                context.bobaFettDaimyo = context.player1.findCardByName('boba-fett#daimyo');
             });
 
             it('should allow to attach upgrades own by the player to enemy units', function () {

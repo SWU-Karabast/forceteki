@@ -1,8 +1,8 @@
 describe('Stolen AT-Hauler', () => {
     integration(function(contextRef) {
         describe('Stolen AT-Hauler\'s when-defeated ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
@@ -14,11 +14,11 @@ describe('Stolen AT-Hauler', () => {
                         hand: ['takedown', 'no-glory-only-results'],
                         hasInitiative: true
                     }
+                },
+                (context) => {
+                    context.p1Takedown = context.player1.findCardByName('takedown');
+                    context.p2Takedown = context.player2.findCardByName('takedown');
                 });
-
-                const { context } = contextRef;
-                context.p1Takedown = context.player1.findCardByName('takedown');
-                context.p2Takedown = context.player2.findCardByName('takedown');
             });
 
             it('for this round, it allows the opponent to play it from its owner\'s discard pile for free', function() {

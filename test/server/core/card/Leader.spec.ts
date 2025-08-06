@@ -115,11 +115,11 @@ describe('Leader cards', function() {
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
+                },
+                (context) => {
+                    context.p1Base = context.player1.base;
+                    context.p2Base = context.player2.base;
                 });
-
-                const { context } = contextRef;
-                context.p1Base = context.player1.base;
-                context.p2Base = context.player2.base;
             });
 
             it('should have functioning keywords and be exhausted on attack', function () {

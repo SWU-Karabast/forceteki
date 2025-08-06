@@ -1,8 +1,8 @@
 describe('Delayed effects', function() {
     integration(function (contextRef) {
         describe('A delayed effect with duration "while source is in play" should', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'chopper-base',
@@ -17,14 +17,13 @@ describe('Delayed effects', function() {
                         hand: ['vanquish', 'discerning-veteran', 'waylay', 'change-of-heart'],
                         resources: 10
                     }
-                });
-
-                const { context } = contextRef;
-
+                },
+                (context) => {
                 // play out DJ and steal a resource
-                context.player1.clickCard(context.dj);
-                expect(context.player1.resources.length).toBe(11);
-                expect(context.player2.resources.length).toBe(9);
+                    context.player1.clickCard(context.dj);
+                    expect(context.player1.resources.length).toBe(11);
+                    expect(context.player2.resources.length).toBe(9);
+                });
             });
 
             it('trigger when the source card is defeated', function () {
@@ -119,8 +118,8 @@ describe('Delayed effects', function() {
         });
 
         describe('A delayed effect with duration "while source is in play", when the unique rule is triggered,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'chopper-base',
@@ -134,21 +133,20 @@ describe('Delayed effects', function() {
                     player2: {
                         resources: 10
                     }
+                },
+                (context) => {
+                    const [djInPlay, djInHand] = context.player1.findCardsByName('dj#blatant-thief');
+                    context.djInPlay = djInPlay;
+                    context.djInHand = djInHand;
+
+                    context.player1.clickCard(djInPlay);
+                    context.stolenResource1 = context.player1.resources.filter((resource) => resource.owner === context.player2Object)[0];
+                    context.player2.passAction();
+                    context.player1.readyResources(7);
+
+                    // set an explicit random seed so we can guarantee that different "random" cards are stolen between the two DJs
+                    context.game.setRandomSeed('12345');
                 });
-
-                const { context } = contextRef;
-
-                const [djInPlay, djInHand] = context.player1.findCardsByName('dj#blatant-thief');
-                context.djInPlay = djInPlay;
-                context.djInHand = djInHand;
-
-                context.player1.clickCard(djInPlay);
-                context.stolenResource1 = context.player1.resources.filter((resource) => resource.owner === context.player2Object)[0];
-                context.player2.passAction();
-                context.player1.readyResources(7);
-
-                // set an explicit random seed so we can guarantee that different "random" cards are stolen between the two DJs
-                context.game.setRandomSeed('12345');
             });
 
             it('should activate if the in-play card is defeated', function() {

@@ -2,8 +2,8 @@
 describe('In Debt To Crimson Dawn', function() {
     integration(function(contextRef) {
         describe('In Debt To Crimson Dawn\'s attached triggered ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'emperor-palpatine#galactic-ruler',
@@ -17,12 +17,11 @@ describe('In Debt To Crimson Dawn', function() {
                         ],
                         hand: ['bravado']
                     }
+                },
+                (context) => {
+                    context.player1.clickCard(context.inDebtToCrimsonDawn);
+                    context.player1.clickCard(context.frontierAtrt);
                 });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.inDebtToCrimsonDawn);
-                context.player1.clickCard(context.frontierAtrt);
             });
 
             it('should prompt controller of exhausted unit on regroup to select an option', function () {

@@ -1,8 +1,8 @@
 describe('Take Captive', function() {
     integration(function(contextRef) {
         describe('Take Captive\'s event ability', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['take-captive'],

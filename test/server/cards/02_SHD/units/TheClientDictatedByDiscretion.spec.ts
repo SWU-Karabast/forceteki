@@ -2,8 +2,8 @@ describe('The Client, Dictated by Discretion', function() {
     integration(function(contextRef) {
         describe('The Client\'s Bounty ability', function() {
             const prompt = 'For this phase, targeted unit gains: "Bounty — Heal 5 damage from a base."';
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: { card: 'kestro-city', damage: 10 },

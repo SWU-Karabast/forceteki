@@ -2,8 +2,8 @@ describe('FaceOff', function () {
     integration(function (contextRef) {
         describe('FaceOff\'s event ability', function () {
             describe('when no player has taken the initiative this phase', function () {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['face-off'],
@@ -38,8 +38,8 @@ describe('FaceOff', function () {
 
         describe('FaceOff\'s event ability', function () {
             describe('when no player has taken the initiative this phase', function () {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['face-off'],
@@ -70,8 +70,8 @@ describe('FaceOff', function () {
         });
 
         describe('when a player has taken the initiative this phase', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'seasoned-shoretrooper', exhausted: true }],

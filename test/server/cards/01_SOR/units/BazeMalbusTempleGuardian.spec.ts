@@ -2,8 +2,8 @@ describe('Baze Malbus, Temple Guardian', function() {
     integration(function (contextRef) {
         describe('Baze Malbus\'s ability', function() {
             describe('when the player does not have initiative', function () {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             groundArena: ['baze-malbus#temple-guardian'],
@@ -41,8 +41,8 @@ describe('Baze Malbus, Temple Guardian', function() {
             });
 
             describe('when the player has initiative', function () {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             groundArena: ['baze-malbus#temple-guardian'],

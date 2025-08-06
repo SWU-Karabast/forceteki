@@ -169,8 +169,8 @@ describe('Regroup phase', function() {
         });
 
         describe('trigger windows in the regroup phase should select the initiative player as choosing player for resolution of player order', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['millennium-falcon#piece-of-junk']
@@ -178,12 +178,11 @@ describe('Regroup phase', function() {
                     player2: {
                         hand: ['millennium-falcon#piece-of-junk']
                     }
+                },
+                (context) => {
+                    context.p1Falcon = context.player1.findCardByName('millennium-falcon#piece-of-junk');
+                    context.p2Falcon = context.player2.findCardByName('millennium-falcon#piece-of-junk');
                 });
-
-                const { context } = contextRef;
-
-                context.p1Falcon = context.player1.findCardByName('millennium-falcon#piece-of-junk');
-                context.p2Falcon = context.player2.findCardByName('millennium-falcon#piece-of-junk');
             });
 
             it('when initiative doesn\'t change hands during the action phase', function () {
@@ -257,8 +256,8 @@ describe('Regroup phase', function() {
         describe('chains of triggered abilities during the regroup phase', function() {
             const bhqPrompt = 'Collect Bounty: Search the top 5 cards of your deck, or 10 cards instead if this unit is unique, for a unit that costs 3 or less and play it for free.';
 
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [

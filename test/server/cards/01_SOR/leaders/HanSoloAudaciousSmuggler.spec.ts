@@ -1,8 +1,8 @@
 describe('Han Solo, Audacious Smuggler', function() {
     integration(function(contextRef) {
         describe('Han Solo\'s leader ability', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'han-solo#audacious-smuggler',

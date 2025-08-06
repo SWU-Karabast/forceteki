@@ -18,13 +18,13 @@ describe('Claim Initiative', function() {
         });
 
         describe('when a player has taken the initiative', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
+                },
+                (context) => {
+                    context.player1.claimInitiative();
                 });
-
-                const { context } = contextRef;
-                context.player1.claimInitiative();
             });
 
             it('the non-active player cannot claim the initiative', function () {
