@@ -42,7 +42,7 @@ describe('Hunter, Outcast Sergeant', function () {
                 // The resource is revealed to the opponent
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([resourceFalcon]);
                 expect(context.player2).toHaveEnabledPromptButton('Done');
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.getChatLogs(1)[0]).toContain(resourceFalcon.title); // confirm that there is a chat message for the card
 
                 expect(context.player2).toBeActivePlayer();
@@ -78,7 +78,7 @@ describe('Hunter, Outcast Sergeant', function () {
                 // The resource is revealed to the opponent
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([resourceLeia]);
                 expect(context.player2).toHaveEnabledPromptButton('Done');
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.getChatLogs(1)[0]).toContain(resourceLeia.title);
 
                 expect(context.player2).toBeActivePlayer();
@@ -114,7 +114,7 @@ describe('Hunter, Outcast Sergeant', function () {
                 // The resource is revealed to the opponent
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([resourceBattlefieldMarine]);
                 expect(context.player2).toHaveEnabledPromptButton('Done');
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.getChatLogs(1)[0]).toContain(resourceBattlefieldMarine.title);
 
                 expect(context.player2).toBeActivePlayer();
@@ -170,7 +170,7 @@ describe('Hunter, Outcast Sergeant', function () {
                 // The resource is revealed to the opponent
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([resourceFalcon]);
                 expect(context.player2).toHaveEnabledPromptButton('Done');
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.getChatLogs(1)[0]).toContain(resourceFalcon.title); // confirm that there is a chat message for the card
 
                 expect(context.player2).toBeActivePlayer();
@@ -208,7 +208,7 @@ describe('Hunter, Outcast Sergeant', function () {
                 // The resource is revealed to the opponent
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([resourceLeia]);
                 expect(context.player2).toHaveEnabledPromptButton('Done');
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.getChatLogs(1)[0]).toContain(resourceLeia.title);
 
                 expect(context.player2).toBeActivePlayer();
@@ -246,7 +246,7 @@ describe('Hunter, Outcast Sergeant', function () {
                 // The resource is revealed to the opponent
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([resourceBattlefieldMarine]);
                 expect(context.player2).toHaveEnabledPromptButton('Done');
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.getChatLogs(1)[0]).toContain(resourceBattlefieldMarine.title);
 
                 expect(context.player2).toBeActivePlayer();

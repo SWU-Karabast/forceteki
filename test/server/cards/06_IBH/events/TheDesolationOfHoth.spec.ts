@@ -29,7 +29,7 @@ describe('The Desolation of Hoth', function() {
 
                 // Select second target
                 context.player1.clickCard(context.admiralPiett);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Both targets should be defeated
                 expect(context.pykeSentinel).toBeInZone('discard', context.player2);
@@ -55,7 +55,7 @@ describe('The Desolation of Hoth', function() {
                 context.player1.clickCard(context.pykeSentinel);
 
                 // Choose to be done instead of selecting a second target
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Only the selected target should be defeated
                 expect(context.pykeSentinel).toBeInZone('discard', context.player2);
@@ -82,7 +82,7 @@ describe('The Desolation of Hoth', function() {
 
                 // Select the target
                 context.player1.clickCard(context.pykeSentinel);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Target should be defeated
                 expect(context.pykeSentinel).toBeInZone('discard', context.player2);
@@ -129,7 +129,7 @@ describe('The Desolation of Hoth', function() {
                 // Select one from each arena
                 context.player1.clickCard(context.pykeSentinel);
                 context.player1.clickCard(context.tielnFighter);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Both targets should be defeated
                 expect(context.pykeSentinel).toBeInZone('discard', context.player2);

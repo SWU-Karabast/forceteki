@@ -131,7 +131,7 @@ describe('Tech, Source of Insight', function () {
 
             expect(context.player1).toBeAbleToSelectExactly([context.tech, context.tobiasBeckett]);
             context.player1.clickCard(context.tobiasBeckett);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.tobiasBeckett).toBeInZone('discard');
             expect(context.infiltratingDemolisher).toBeInZone('groundArena');

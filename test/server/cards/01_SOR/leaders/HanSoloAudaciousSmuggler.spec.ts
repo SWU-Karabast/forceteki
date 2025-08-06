@@ -27,8 +27,8 @@ describe('Han Solo, Audacious Smuggler', function() {
 
                 context.player2.claimInitiative();
                 context.player1.passAction();
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.aggression, context.sparkOfRebellion, context.protector, context.atst]);
@@ -64,8 +64,8 @@ describe('Han Solo, Audacious Smuggler', function() {
 
                 context.player2.claimInitiative();
                 context.player1.passAction();
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 context.player1.clickCard(context.wampa);
@@ -92,8 +92,8 @@ describe('Han Solo, Audacious Smuggler', function() {
 
                 context.player2.claimInitiative();
                 context.player1.passAction();
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.aggression, context.sparkOfRebellion, context.protector, context.atst]);
@@ -113,8 +113,8 @@ describe('Han Solo, Audacious Smuggler', function() {
 
                 context.player2.claimInitiative();
                 context.player1.passAction();
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.vanquish, context.sparkOfRebellion, context.protector, context.atst]);
@@ -147,8 +147,8 @@ describe('Han Solo, Audacious Smuggler', function() {
 
                 context.player2.claimInitiative();
                 context.player1.passAction();
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 context.player1.clickCard(context.wampa);
@@ -176,8 +176,8 @@ describe('Han Solo, Audacious Smuggler', function() {
 
                 context.player2.claimInitiative();
                 context.player1.passAction();
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.aggression, context.sparkOfRebellion, context.protector, context.atst]);

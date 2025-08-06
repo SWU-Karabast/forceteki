@@ -27,7 +27,7 @@ describe('Claim Initiative', function() {
                 context.player1.claimInitiative();
             });
 
-            it('the active player can claim the initiative', function () {
+            it('the non-active player cannot claim the initiative', function () {
                 const { context } = contextRef;
 
                 expect(context.player2).toBeActivePlayer();

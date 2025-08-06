@@ -43,7 +43,7 @@ describe('Reprocess\' ability', function () {
             context.player1.clickCard(context.regionalSympathizers);
             context.player1.clickCardNonChecking(context.atst);
             context.player1.clickCardNonChecking(context.wampa);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 4);
             expect(context.echoBaseDefender).toBeInBottomOfDeck(context.player1, 4);
@@ -101,7 +101,7 @@ describe('Reprocess\' ability', function () {
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickCard(context.echoBaseDefender);
             context.player1.clickCard(context.specforceSoldier);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 3);
             expect(context.echoBaseDefender).toBeInBottomOfDeck(context.player1, 3);

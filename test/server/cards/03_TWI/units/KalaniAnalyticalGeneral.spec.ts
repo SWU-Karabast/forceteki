@@ -30,7 +30,7 @@ describe('Kalani Analytical General ability\'s', function() {
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickCardNonChecking(context.ploKoon);
             context.player1.clickCardNonChecking(context.allianceXwing);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
             expect(context.specforceSoldier.getHp()).toBe(4);
             expect(context.specforceSoldier.getPower()).toBe(4);
             expect(context.battlefieldMarine.getHp()).toBe(5);
@@ -72,7 +72,7 @@ describe('Kalani Analytical General ability\'s', function() {
             context.player1.clickCardNonChecking(context.specforceSoldier);
             context.player1.clickCardNonChecking(context.yoda);
             context.player1.clickCardNonChecking(context.allianceXwing);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
             expect(context.ploKoon.getHp()).toBe(8);
             expect(context.ploKoon.getPower()).toBe(5);
             expect(context.ploKoon.damage).toBe(5);

@@ -59,8 +59,8 @@ describe('The Zillo Beast, Awoken from the Depths', function() {
             context.moveToRegroupPhase();
             expect(context.theZilloBeast.damage).toBe(4);
 
-            context.player1.clickPrompt('Done');
-            context.player2.clickPrompt('Done');
+            context.player1.clickDone();
+            context.player2.clickDone();
 
             // defeat Zillo Beast with Reinforcement Walker
             context.player1.clickCard(context.theZilloBeast);

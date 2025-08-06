@@ -20,7 +20,7 @@ describe('Wing Guard Security Team', function() {
 
             context.player1.clickCard(context.wrecker);
             context.player1.clickCard(context.distantPatroller);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.player2).toBeActivePlayer();
             expect(context.wrecker).toHaveExactUpgradeNames(['shield']);

@@ -261,7 +261,7 @@ describe('The Starhawk, Prototype Battleship', function() {
             context.player1.clickCard(context.infiltratingDemolisher);
             context.player1.clickPrompt('Trigger Exploit');
             context.player1.clickCard(context.theStarhawk);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });

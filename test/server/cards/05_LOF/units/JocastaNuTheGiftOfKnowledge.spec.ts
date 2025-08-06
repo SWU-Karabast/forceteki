@@ -54,7 +54,7 @@ describe('Jocasta Nu, The Gift of Knowledge', function() {
                 context.player1.clickCard(context.darthVaderTwilightOfTheApprentice);
 
                 // Player 2 plays Liberated by Darkness to take control of Yoda
-                context.player2.clickCard(context.player2.hand[0]);
+                context.player2.clickFirstCardInHand();
                 context.player2.clickCard(context.yodaOldMaster);
 
                 context.player1.clickCard(context.jocastaNuTheGiftOfKnowledge);

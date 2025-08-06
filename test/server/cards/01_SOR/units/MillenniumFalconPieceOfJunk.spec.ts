@@ -30,8 +30,8 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 context.player1.passAction();
 
                 // skip ramp
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 // should pay 1 resource or return falcon in hand
                 expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
@@ -51,8 +51,8 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 context.player1.passAction();
 
                 // skip ramp
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 // return falcon to hand
                 expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);

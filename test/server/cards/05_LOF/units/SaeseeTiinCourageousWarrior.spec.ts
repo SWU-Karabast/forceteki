@@ -21,7 +21,7 @@ describe('Saesee Tiin, Courageous', function() {
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.saeseeTiinCourageousWarrior);
             context.player1.clickCard(context.adelphiPatrolWing);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.wampa.damage).toBe(1);
             expect(context.saeseeTiinCourageousWarrior.damage).toBe(1);
@@ -50,7 +50,7 @@ describe('Saesee Tiin, Courageous', function() {
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.saeseeTiinCourageousWarrior, context.battlefieldMarine, context.rebelPathfinder, context.adelphiPatrolWing]);
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.adelphiPatrolWing);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.wampa.damage).toBe(1);
             expect(context.saeseeTiinCourageousWarrior.damage).toBe(0);

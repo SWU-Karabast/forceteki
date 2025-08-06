@@ -85,7 +85,7 @@ describe('Simultaneous triggers', function() {
                 expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
                 expect(context.player1.hand.length).toBe(0);
                 context.player1.clickPrompt('You');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1.hand.length).toBe(1);
 
                 expect(context.player2).toBeAbleToSelectExactly([context.allianceXwing, context.battlefieldMarine]);
@@ -113,7 +113,7 @@ describe('Simultaneous triggers', function() {
                 expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
                 expect(context.player1.hand.length).toBe(0);
                 context.player1.clickPrompt('You');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1.hand.length).toBe(1);
 
                 expect(context.player2).toBeActivePlayer();

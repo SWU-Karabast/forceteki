@@ -664,7 +664,7 @@ describe('Uniqueness rule', function() {
                 expect(context.player1).toHavePrompt('Choose which copies of Obi-Wan Kenobi, Following Fate to defeat');
                 expect(context.player1).toHaveExactPromptButtons(['Done']);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.getChatLogs(1)).toContain('player1 defeats 2 copies of Obi-Wan Kenobi due to the uniqueness rule');
                 expect(obi1).toBeInZone('discard');
@@ -736,7 +736,7 @@ describe('Uniqueness rule', function() {
                 expect(context.player1).toHavePrompt('Choose which copies of Obi-Wan Kenobi, Following Fate to defeat');
                 expect(context.player1).toHaveExactPromptButtons(['Done']);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(obi1).toBeInZone('groundArena');
                 expect(obi2).toBeInZone('discard');

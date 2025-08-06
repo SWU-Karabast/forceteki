@@ -172,6 +172,14 @@ class PlayerInteractionWrapper {
         return this.player.filterCardsInPlay((card) => card.zoneName === 'spaceArena');
     }
 
+    /**
+     * List of player's units in the space arena
+     * @return {BaseCard[]} - List of player's units currently in play in the space arena
+     */
+    get spaceArenaUnits() {
+        return this.spaceArena.filter((card) => card.isUnit());
+    }
+
     setSpaceArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
         this.setArenaUnits('spaceArena', this.spaceArena, newState, prevZones);
     }
@@ -182,6 +190,14 @@ class PlayerInteractionWrapper {
      */
     get groundArena() {
         return this.player.filterCardsInPlay((card) => card.zoneName === 'groundArena');
+    }
+
+    /**
+     * List of player's units in the ground arena
+     * @return {BaseCard[]} - List of player's units currently in play in the ground arena
+     */
+    get groundArenaUnits() {
+        return this.groundArena.filter((card) => card.isUnit());
     }
 
     setGroundArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
@@ -707,6 +723,49 @@ class PlayerInteractionWrapper {
         return card;
     }
 
+    /**
+     * Clicks the first card in the specified zone.
+     * @param {String} zone - The zone to click the first card in.
+     * @param {Number} pos - The position of the card to click.
+     */
+    clickCardPosInZone(zone, pos, side = 'self', expectChange = true) {
+        if (pos < 0 || pos >= this.player[zone].length) {
+            throw new TestSetupError(`Position ${pos} is out of bounds for ${zone} zone`);
+        }
+
+        return this.clickCard(this.player[zone][pos], zone, side, expectChange);
+    }
+
+    /**
+     * Clicks the first card in the specified zone.
+     * @param {String} zone - The zone to click the first card in.
+     */
+    clickFirstCardInZone(zone, side = 'self', expectChange = true) {
+        return this.clickCardPosInZone(zone, 0, side, expectChange);
+    }
+
+    /**
+     * Clicks the card in the player's hand at the specified position.
+     * @param {Number} pos - The position of the card to click.
+     */
+    clickCardInHand(pos, expectChange = true) {
+        return this.clickCardPosInZone('hand', pos, 'self', expectChange);
+    }
+
+    /**
+     * Clicks the first card in the player's hand.
+     */
+    clickFirstCardInHand(expectChange = true) {
+        return this.clickCardInHand(0, expectChange);
+    }
+
+    /**
+     * Clicks the second card in the player's hand.
+     */
+    clickSecondCardInHand(expectChange = true) {
+        return this.clickCardInHand(1, expectChange);
+    }
+
     clickMenu(card, menuText) {
         if (typeof card === 'string') {
             card = this.findCardByName(card);
@@ -767,6 +826,16 @@ class PlayerInteractionWrapper {
             throw new TestSetupError(`${this.name} can't pass, because they don't have priority`);
         }
         this.clickPrompt('Pass');
+    }
+
+    /**
+     * Player clicks Done prompt
+     */
+    clickDone() {
+        if (!this.currentButtons.includes('Done')) {
+            throw new TestSetupError(`${this.name} can't click Done, because it is not present in the prompt`);
+        }
+        this.clickPrompt('Done');
     }
 
     /**

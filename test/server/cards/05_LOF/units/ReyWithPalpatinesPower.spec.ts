@@ -20,8 +20,8 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.claimInitiative();
                 context.player2.passAction();
 
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 expect(context.player1).toBeActivePlayer();
                 expect(context.rey).toBeInZone('hand');
@@ -120,7 +120,7 @@ describe('Rey, With Palpatine\'s Power', function() {
 
                 // Rey is revealed
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([context.reyWithPalpatinesPower]);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.concordDawnInterceptors]);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -157,7 +157,7 @@ describe('Rey, With Palpatine\'s Power', function() {
 
                 // Rey is revealed
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([context.rey]);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.concordDawnInterceptors]);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -228,7 +228,7 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickPrompt('Trigger');
 
                 // Rey is revealed
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.concordDawnInterceptors]);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -243,7 +243,7 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickPrompt('Trigger');
 
                 // Rey is revealed
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.concordDawnInterceptors]);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -295,7 +295,7 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickPrompt('Trigger');
 
                 // Rey is revealed
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.concordDawnInterceptors]);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -330,7 +330,7 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([context.reyWithPalpatinesPower]);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 context.player1.clickCard(context.p2Base);
 

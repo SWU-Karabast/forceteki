@@ -24,7 +24,7 @@ describe('Pillage', function() {
                 player2.clickCard(imperialInterceptor);
                 player2.clickCard(wampa);
                 player2.clickCardNonChecking(battlefieldMarine);
-                player2.clickPrompt('Done');
+                player2.clickDone();
 
                 expect(wampa).toBeInZone('discard');
                 expect(imperialInterceptor).toBeInZone('discard');
@@ -96,7 +96,7 @@ describe('Pillage', function() {
 
                 player1.clickCard(imperialInterceptor);
                 player1.clickCard(wampa);
-                player1.clickPrompt('Done');
+                player1.clickDone();
 
                 expect(wampa).toBeInZone('discard');
                 expect(imperialInterceptor).toBeInZone('discard');

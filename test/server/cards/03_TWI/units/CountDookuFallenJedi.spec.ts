@@ -25,7 +25,7 @@ describe('Count Dooku, Fallen Jedi', function() {
                 // choose exploit targets
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battleDroid);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
@@ -53,7 +53,7 @@ describe('Count Dooku, Fallen Jedi', function() {
                 // choose exploit targets
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battleDroid);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
@@ -79,7 +79,7 @@ describe('Count Dooku, Fallen Jedi', function() {
                 // choose exploit targets
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battleDroid);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
@@ -102,7 +102,7 @@ describe('Count Dooku, Fallen Jedi', function() {
 
                 // choose only one exploit target
                 context.player1.clickCard(context.wampa);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // choose damage target
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);

@@ -33,7 +33,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
                 // extra click on AT-ST to confirm that the Exploit limit is 1
                 context.player1.clickCardNonChecking(context.atst);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // confirm Exploit results
                 expect(context.battleDroid).toBeInZone('outsideTheGame');
@@ -61,7 +61,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 context.player1.clickCard(context.cartelSpacer);
                 // extra click on AT-ST to confirm that the Exploit limit is 3
                 context.player1.clickCardNonChecking(context.atst);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // confirm Exploit results
                 expect(context.snowspeeder).toBeInZone('discard');
@@ -90,7 +90,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
                 // extra click on AT-ST to confirm that the Exploit limit is 1
                 context.player1.clickCardNonChecking(context.atst);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // confirm Exploit results
                 expect(context.snowspeeder).toBeInZone('discard');
@@ -163,7 +163,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.snowspeeder);
                 context.player1.clickCardNonChecking(context.cartelSpacer);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // confirm Exploit results
                 expect(context.snowspeeder).toBeInZone('discard');
@@ -206,7 +206,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.snowspeeder);
                 context.player1.clickCardNonChecking(context.cartelSpacer);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // confirm Exploit results
                 expect(context.snowspeeder).toBeInZone('discard');
@@ -265,7 +265,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.snowspeeder);
                 context.player1.clickCardNonChecking(context.cartelSpacer);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // confirm Exploit results
                 expect(context.snowspeeder).toBeInZone('discard');
@@ -309,7 +309,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 context.player1.clickCard(context.snowspeeder);
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCardNonChecking(context.countDooku);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // confirm Exploit results
                 expect(context.snowspeeder).toBeInZone('discard');
@@ -356,7 +356,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 context.player1.clickCard(context.snowspeeder);
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCardNonChecking(context.countDooku);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // confirm Exploit results
                 expect(context.snowspeeder).toBeInZone('discard');

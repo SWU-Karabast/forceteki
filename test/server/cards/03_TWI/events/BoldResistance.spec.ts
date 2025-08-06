@@ -38,7 +38,7 @@ describe('Bold Resistance', function() {
 
                 // Select the 3rd unit
                 context.player1.clickCard(context.wingLeader);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.greenSquadronAwing.getPower()).toBe(3);
                 expect(context.vanguardAce.getPower()).toBe(3);
                 expect(context.wingLeader.getPower()).toBe(4);
@@ -62,7 +62,7 @@ describe('Bold Resistance', function() {
                 // test opponent card select -- and this is matching vehicle trait and should still boost its attack after clicking Done
                 context.player1.clickCard(context.atst);
                 expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wingLeader, context.atst, context.vanguardAce]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.atst.getPower()).toBe(8);
 
                 // Reset

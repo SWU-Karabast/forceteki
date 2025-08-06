@@ -102,7 +102,7 @@ describe('Psychometry', function() {
                 context.player2.clickCard(context.namelessTerror);
                 context.player2.clickCard(context.yoda);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 context.player1.clickCard(context.psychometry);
                 expect(context.player1).toBeAbleToSelectExactly([context.yoda]);
