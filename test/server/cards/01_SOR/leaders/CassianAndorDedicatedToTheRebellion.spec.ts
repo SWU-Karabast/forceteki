@@ -3,7 +3,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
         describe('Cassian Andor\'s leader ability', function() {
             const prompt = 'If you\'ve dealt 3 or more damage to an enemy base this phase, draw a card.';
 
-            it('should draw a card aftering dealing 3 damage to an enemy base with an attack', async function() {
+            it('should draw a card aftering dealing 3 damage using from multiple scenarios', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -57,12 +57,12 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 context.player2.passAction();
 
                 // Deal 3+ damage using abilities now -- use two daring raids in hand
-                context.player1.clickCard(context.daringRaid, 'hand');
+                context.player1.clickCard(context.player1.findCardByName('daring-raid', 'hand'));
                 context.player1.clickCard(context.p2Base);
                 context.player2.passAction();
 
                 // Select the remaining daring-raid
-                context.player1.clickCard(context.daringRaid, 'hand');
+                context.player1.clickCard(context.player1.findCardByName('daring-raid', 'hand'));
                 context.player1.clickCard(context.p2Base);
                 context.player2.passAction();
 
