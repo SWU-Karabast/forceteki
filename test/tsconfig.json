@@ -25,6 +25,7 @@
         "noImplicitReturns": true,
         "noImplicitThis": false,
         "resolveJsonModule": true,
+        "incremental": true,
     },
     "include": [
         "../server/**/*",
