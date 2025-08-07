@@ -247,14 +247,19 @@ export class GameServer {
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
-        // set up periodic heap monitoring every 30 seconds
-        this.logHeapStats();
-        setInterval(() => this.logHeapStats(), 30000);
-
-        // set up periodic CPU monitoring every 30 seconds
+        // initialize cpu usage stats
         this.lastCpuUsage = process.cpuUsage();
         this.lastCpuUsageTime = process.hrtime.bigint();
-        setInterval(() => this.logCpuUsage(), 30000);
+
+        // log an initial memory and cpu usage
+        this.logHeapStats();
+        this.logCpuUsage();
+
+        // set up periodic memory and cpu monitoring for every 30 seconds
+        setInterval(() => {
+            this.logHeapStats();
+            this.logCpuUsage();
+        }, 30000);
     }
 
     private setupAppRoutes(app: express.Application) {
@@ -1336,21 +1341,25 @@ export class GameServer {
     }
 
     private logCpuUsage(): void {
-        const cpuUsageDiff = process.cpuUsage(this.lastCpuUsage);
-        const nowTime = process.hrtime.bigint();
-        const elapsedTimeNanos = Number(nowTime - this.lastCpuUsageTime);
+        try {
+            const cpuUsageDiff = process.cpuUsage(this.lastCpuUsage);
+            const nowTime = process.hrtime.bigint();
+            const elapsedTimeNanos = Number(nowTime - this.lastCpuUsageTime);
 
-        const elapsedUserNanos = cpuUsageDiff.user * 1000;
-        const elapsedSystemNanos = cpuUsageDiff.system * 1000;
+            const elapsedUserNanos = cpuUsageDiff.user * 1000;
+            const elapsedSystemNanos = cpuUsageDiff.system * 1000;
 
-        const totalPercent = (((elapsedUserNanos + elapsedSystemNanos) / elapsedTimeNanos) * 100).toFixed(1);
-        const userPercent = (((elapsedUserNanos) / elapsedTimeNanos) * 100).toFixed(1);
-        const systemPercent = (((elapsedSystemNanos) / elapsedTimeNanos) * 100).toFixed(1);
+            const totalPercent = (((elapsedUserNanos + elapsedSystemNanos) / elapsedTimeNanos) * 100).toFixed(1);
+            const userPercent = (((elapsedUserNanos) / elapsedTimeNanos) * 100).toFixed(1);
+            const systemPercent = (((elapsedSystemNanos) / elapsedTimeNanos) * 100).toFixed(1);
 
-        logger.info(`[CpuStats] Total Usage: ${totalPercent}% (User: ${userPercent}%, System: ${systemPercent}%) | System Cores: ${cpus().length}`);
+            logger.info(`[CpuStats] Total Usage: ${totalPercent}% (User: ${userPercent}%, System: ${systemPercent}%) | System Cores: ${cpus().length}`);
 
-        this.lastCpuUsageTime = nowTime;
-        this.lastCpuUsage = process.cpuUsage();
+            this.lastCpuUsageTime = nowTime;
+            this.lastCpuUsage = process.cpuUsage();
+        } catch (error) {
+            logger.error(`Error logging cpu stats: ${error}`);
+        }
     }
 
     private logHeapStats(): void {
