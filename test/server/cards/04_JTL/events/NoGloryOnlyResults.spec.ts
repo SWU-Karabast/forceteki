@@ -71,6 +71,28 @@ describe('No Glory, Only Results', function() {
             expect(context.p2Base.damage).toBe(2);
         });
 
+        it('No Glory, Only Results\'s ability should allow defeating a friendly unit when there are no enemy units', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['oomseries-officer'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player 1 plays No Glory, Only Results
+            context.player1.clickCard(context.noGloryOnlyResults);
+            expect(context.player1).toBeAbleToSelectExactly([context.oomseriesOfficer]);
+
+            // Choose OOM-Series Officer and defeat it
+            context.player1.clickCard(context.oomseriesOfficer);
+            context.player1.clickCard(context.p2Base);
+            expect(context.oomseriesOfficer).toBeInZone('discard');
+            expect(context.p2Base.damage).toBe(2);
+        });
+
         it('No Glory, Only Results\'s ability should trigger Snoke ability before defeating it', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',

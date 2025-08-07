@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { WildcardCardType } from '../../../core/Constants';
+import { GameStateChangeRequired, WildcardCardType } from '../../../core/Constants';
 
 export default class NoGloryOnlyResults extends EventCard {
     protected override getImplementationId() {
@@ -18,7 +18,8 @@ export default class NoGloryOnlyResults extends EventCard {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
                     newController: context.player,
-                }))
+                })),
+                mustChangeGameState: GameStateChangeRequired.None
             },
             then: (thenContext) => ({
                 title: `Defeat ${thenContext.target?.title}`,
