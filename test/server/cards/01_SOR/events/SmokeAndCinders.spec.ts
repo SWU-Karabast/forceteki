@@ -46,7 +46,7 @@ describe('Smoke and Cinders', function() {
                     .filter((card) => card.title === 'Underworld Thug')
                     .forEach((card) => context.player1.clickCard(card));
                 context.player1.clickCardNonChecking(context.yoda);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player2).toHavePrompt('Choose a card to discard for Smoke and Cinders\'s effect');
                 expect(context.player2).toBeAbleToSelectExactly(context.player2.hand);
@@ -76,7 +76,7 @@ describe('Smoke and Cinders', function() {
                     .slice(0, 2)
                     .forEach((card) => context.player2.clickCard(card));
                 context.player2.clickCardNonChecking(context.gamorreanGuards);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.handSize).toBe(2);

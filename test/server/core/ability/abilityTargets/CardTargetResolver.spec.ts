@@ -23,7 +23,7 @@ are selected. Determine root cause and fix it so this test case passes. */
 //                 expect(context.player1).toHaveChooseNothingButton();
 
 //                 context.player1.clickPrompt('Choose nothing');
-//                 context.player1.clickPrompt('Done');
+//                 context.player1.clickDone();
 //                 expect(context.player2).toBeActivePlayer();
 
 //                 // confirm that the epic action is used

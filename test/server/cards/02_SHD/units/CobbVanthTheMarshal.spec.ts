@@ -242,7 +242,7 @@ describe('Cobb Vanth, The Marshal', function() {
 
                 context.player1.clickCard(context.restock);
                 context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.battlefieldMarine).toBeInZone('deck');
                 expect(context.player1.exhaustedResourceCount).toBe(1);

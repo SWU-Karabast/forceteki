@@ -30,7 +30,7 @@ describe('IG-2000, Assassins\'s Aggressor', function () {
             context.player1.clickCard(context.atst);
             context.player1.clickCard(context.ig2000);
             context.player1.clickCardNonChecking(context.tieAdvanced);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // Assert the damage
             expect(context.wampa.damage).toBe(1);
@@ -48,7 +48,7 @@ describe('IG-2000, Assassins\'s Aggressor', function () {
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tieAdvanced, context.ig2000]);
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.atst);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // Assert the damage
             expect(context.wampa.damage).toBe(1);
@@ -96,7 +96,7 @@ describe('IG-2000, Assassins\'s Aggressor', function () {
             context.player1.clickCard(context.hanSoloReluctantHero);
             context.player1.clickCard(context.ig2000);
             context.player1.clickCardNonChecking(context.tieAdvanced);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // Assert the damage
             expect(context.hanSoloAudaciousSmuggler.damage).toBe(1);

@@ -89,7 +89,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([
                     inHandWampa
                 ]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(inHandWampa).toBeInZone('discard');
 
@@ -127,7 +127,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                     inHandPilotBoba,
                     context.cartelSpacer
                 ]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(inHandBoba).toBeInZone('discard');
                 expect(inHandPilotBoba).toBeInZone('discard');
@@ -172,7 +172,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickCardInDisplayCardPrompt(inDeckPilotBoba);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(inDeckBoba).toBeInZone('discard');
                 expect(inDeckPilotBoba).toBeInZone('discard');
@@ -216,7 +216,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                     inHandPilotBoba,
                     context.cartelTurncoat
                 ]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(inHandBoba).toBeInZone('discard');
                 expect(inHandPilotBoba).toBeInZone('discard');
@@ -234,7 +234,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickCardInDisplayCardPrompt(inDeckPilotBoba);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(inDeckBoba).toBeInZone('discard');
                 expect(inDeckPilotBoba).toBeInZone('discard');
@@ -277,7 +277,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             //         inHandLurkingTIE,
             //         context.cartelTurncoat
             //     ]);
-            //     context.player1.clickPrompt('Done');
+            //     context.player1.clickDone();
 
             //     expect(inHandLurkingTIE).toBeInZone('discard');
 
@@ -291,7 +291,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             //     expect(context.player2).toHavePrompt('Waiting for opponent to use Annihilator');
 
             //     context.player1.clickCardInDisplayCardPrompt(inDeckLurkingTIE);
-            //     context.player1.clickPrompt('Done');
+            //     context.player1.clickDone();
 
             //     expect(inDeckLurkingTIE).toBeInZone('discard');
 
@@ -324,7 +324,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 context.player1.clickCard(context.annihilator);
                 context.player1.clickCard(player2LeaderBoba);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(inHandBoba).toBeInZone('discard');
                 expect(inHandPilotBoba).toBeInZone('discard');
@@ -337,7 +337,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
                 expect(context.player1).toHaveEnabledPromptButton('Done');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(inDeckBoba).toBeInZone('discard');
                 expect(inDeckPilotBoba).toBeInZone('deck');
@@ -386,7 +386,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 inHandPilotBoba,
                 context.cartelTurncoat
             ]);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(inHandBoba).toBeInZone('discard');
             expect(inHandPilotBoba).toBeInZone('discard');
@@ -401,7 +401,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             expect(context.player1).toHaveEnabledPromptButton('Done');
 
             context.player1.clickCardInDisplayCardPrompt(inDeckPilotBoba);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(inDeckBoba).toBeInZone('discard');
             expect(inDeckPilotBoba).toBeInZone('discard');
@@ -438,7 +438,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             context.player2.clickCard(context.atst);
 
             // click "Done" for hand display prompt and discard L3's from hand
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(inHandL337).toBeInZone('discard');
             expect(inHandL337Pilot).toBeInZone('discard');
@@ -453,7 +453,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             expect(context.player1).toHaveEnabledPromptButton('Done');
 
             context.player1.clickCardInDisplayCardPrompt(inDeckL337Pilot);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.atst).toHaveExactUpgradeNames(['l337#get-out-of-my-seat']);
             expect(inPlayL337).toBeInZone('groundArena');

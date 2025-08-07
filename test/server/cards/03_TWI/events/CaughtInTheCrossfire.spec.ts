@@ -31,7 +31,7 @@ describe('Caught In The Crossfire', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.clanWrenRescuer, context.sabineWren]);
                 context.player1.clickCard(context.clanWrenRescuer);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.clanWrenRescuer).toBeInZone('discard');
@@ -47,7 +47,7 @@ describe('Caught In The Crossfire', function() {
                 context.player1.clickCard(context.headhunterSquadron);
                 context.player1.clickCardNonChecking(context.avenger);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.cartelSpacer.damage).toBe(1);

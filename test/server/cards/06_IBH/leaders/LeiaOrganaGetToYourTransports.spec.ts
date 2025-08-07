@@ -44,7 +44,7 @@ describe('Leia Organa, Get To Your Transports', function () {
             context.player1.clickCard(context.wampa);
             expect(context.player1).not.toHavePrompt('Done');
             context.player1.clickCard(context.battlefieldMarine);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.player2).toBeActivePlayer();
             expect(context.wampa.damage).toBe(1);

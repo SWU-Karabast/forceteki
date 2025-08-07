@@ -30,7 +30,7 @@ describe('There Is No Escape', function() {
             context.player1.clickCard(context.contractedHunter);
             context.player1.clickCard(context.fireball);
             context.player1.clickCard(context.lurkingTiePhantom);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             context.player2.passAction();
 
@@ -88,7 +88,7 @@ describe('There Is No Escape', function() {
             ]);
             context.player1.clickCard(context.kyloRen);
             context.player1.clickCard(context.jangoFett);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // Kylo has 5 power after losing abilities
             expect(context.kyloRen.getPower()).toBe(5);
@@ -135,7 +135,7 @@ describe('There Is No Escape', function() {
             // Play There Is No Escape to remove Krennic's abilities
             context.player1.clickCard(context.thereIsNoEscape);
             context.player1.clickCard(context.directorKrennic);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // Ruthless Raider no longer has power buff
             expect(context.ruthlessRaider.getPower()).toBe(4);

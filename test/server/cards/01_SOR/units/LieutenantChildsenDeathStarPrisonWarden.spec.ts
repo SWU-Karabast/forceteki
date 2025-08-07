@@ -43,11 +43,11 @@ describe('Lieutenant Childsen', function() {
                     context.player1.clickCard(context.lieutenantChildsen);
                     expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.vanquish]);
                     context.player1.clickCard(context.pykeSentinel);
-                    context.player1.clickPrompt('Done');
+                    context.player1.clickDone();
 
                     expect(context.player2).toHaveExactViewableDisplayPromptCards([context.pykeSentinel]);
                     expect(context.getChatLogs(1)[0]).toContain(context.pykeSentinel.title);
-                    context.player2.clickPrompt('Done');
+                    context.player2.clickDone();
 
                     expect(context.lieutenantChildsen).toHaveExactUpgradeNames(['experience']);
                     expect(context.player2).toBeActivePlayer();
@@ -62,14 +62,14 @@ describe('Lieutenant Childsen', function() {
                     context.player1.clickCard(context.resilient);
                     context.player1.clickCard(context.pykeSentinel);
                     context.player1.clickCardNonChecking(context.systemPatrolCraft);
-                    context.player1.clickPrompt('Done');
+                    context.player1.clickDone();
 
                     expect(context.player2).toHaveExactViewableDisplayPromptCards([context.cargoJuggernaut, context.vanquish, context.resilient, context.pykeSentinel]);
                     expect(context.getChatLogs(1)[0]).toContain(context.cargoJuggernaut.title);
                     expect(context.getChatLogs(1)[0]).toContain(context.vanquish.title);
                     expect(context.getChatLogs(1)[0]).toContain(context.resilient.title);
                     expect(context.getChatLogs(1)[0]).toContain(context.pykeSentinel.title);
-                    context.player2.clickPrompt('Done');
+                    context.player2.clickDone();
 
                     expect(context.lieutenantChildsen).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience']);
                     expect(context.player2).toBeActivePlayer();

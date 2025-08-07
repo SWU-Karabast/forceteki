@@ -20,7 +20,7 @@ describe('I\'ll Cover For You', function() {
 
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.tieBomber);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atst.damage).toBe(1);

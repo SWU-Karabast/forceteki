@@ -31,7 +31,7 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickCard(context.daringRaid);
             context.player1.clickCardNonChecking(context.specforceSoldier);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.sneakAttack).toBeInZone('discard');
             expect(context.battlefieldMarine).toBeInZone('discard');
@@ -91,7 +91,7 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
             context.player1.clickCard(context.poeDameron);
             context.player1.clickCard(context.p2Base);
             context.player1.clickCard(context.specforceSoldier);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
             expect(context.specforceSoldier).toBeInZone('discard');
 
             expect(context.player1).toHaveEnabledPromptButtons([

@@ -57,7 +57,7 @@ describe('Kragan Gorr, Warbird Captain', function () {
                 context.player2.clickCard(context.darthMaul);
                 context.player2.clickCard(context.battlefieldMarine);
                 context.player2.clickCard(context.wampa);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.player1).toBeActivePlayer();
             });

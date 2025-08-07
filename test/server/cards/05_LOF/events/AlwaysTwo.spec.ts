@@ -46,7 +46,7 @@ describe('Always Two', function () {
             expect(context.player1).toHaveEnabledPromptButton('Done');
 
             // Confirm the selection
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // Check that the selected units received 2 Shield and 2 Experience tokens
             const expectedUpgrades = ['shield', 'shield', 'experience', 'experience'];

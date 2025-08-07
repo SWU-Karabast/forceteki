@@ -28,7 +28,7 @@ describe('Sweep the Area', function() {
                 // red three chosen, cannot select more unit because combined cost is reached
                 expect(context.player1).not.toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine, context.specforceSoldier, context.cantinaBraggart, context.isbAgent]);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player2).toBeActivePlayer();
                 expect(context.redThree).toBeInZone('hand', context.player1);
             });
@@ -50,7 +50,7 @@ describe('Sweep the Area', function() {
                 // 2 unit selected, cannot select more
                 expect(context.player1).not.toBeAbleToSelectExactly([context.redThree, context.battlefieldMarine, context.greenSquadronAwing, context.isbAgent]);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player2).toBeActivePlayer();
                 expect(context.specforceSoldier).toBeInZone('hand', context.player2);
                 expect(context.cantinaBraggart).toBeInZone('hand', context.player2);

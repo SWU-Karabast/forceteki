@@ -47,7 +47,7 @@ describe('Inquisitor\'s Lightsaber', function () {
             context.player1.clickCard(context.darthMaul);
             context.player1.clickCard(context.consularSecurityForce);
             context.player1.clickCard(context.rey);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.player2).toBeActivePlayer();
             expect(context.consularSecurityForce.damage).toBe(8); // 5+1+2

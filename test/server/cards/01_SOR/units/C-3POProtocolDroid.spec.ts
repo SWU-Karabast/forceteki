@@ -35,7 +35,7 @@ describe('C-3PO, Protocol Droid', function() {
                 // P1 draws the card and it is revealed to P2
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([context.wampa]);
                 expect(context.player2).toHaveEnabledPromptButton('Done');
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.getChatLogs(1)[0]).toContain(context.wampa.title); // confirm that there is a chat message for the card
 
                 expect(context.wampa).toBeInZone('hand');
@@ -53,7 +53,7 @@ describe('C-3PO, Protocol Droid', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
                 expect(context.getChatLogs(1)[0]).not.toContain(context.battlefieldMarine.title);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.battlefieldMarine).toBeInZone('deck');

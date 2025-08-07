@@ -149,7 +149,7 @@ describe('Hotshot Maneuver', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.liberatedSlaves, context.pykeSentinel]);
                 context.player1.clickCard(context.liberatedSlaves);
                 context.player1.clickCard(context.pykeSentinel);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Trigger attack
                 context.player1.clickCard(context.p2Base);
@@ -257,7 +257,7 @@ describe('Hotshot Maneuver', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.liberatedSlaves, context.craftySmuggler, context.fettsFirespray]);
                 context.player1.clickCard(context.liberatedSlaves);
                 context.player1.clickCard(context.fettsFirespray);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Trigger attack
                 context.player1.clickCard(context.p2Base);

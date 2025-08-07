@@ -36,7 +36,7 @@ describe('Pristesses of the Force, Eternal', function () {
                 context.player1.clickCard(context.concordDawnInterceptors);
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCardNonChecking(context.namelessTerror);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.priestessesOfTheForce).toHaveExactUpgradeNames(['shield']);
                 expect(context.houseKastSoldier).toHaveExactUpgradeNames(['shield']);
@@ -81,7 +81,7 @@ describe('Pristesses of the Force, Eternal', function () {
                 context.player1.clickCard(context.houseKastSoldier);
                 context.player1.clickCard(context.mandalorianWarrior);
                 context.player1.clickCard(context.concordDawnInterceptors);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.priestessesOfTheForce).toHaveExactUpgradeNames(['shield']);
                 expect(context.houseKastSoldier).toHaveExactUpgradeNames(['shield']);
