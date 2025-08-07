@@ -40,7 +40,7 @@ describe('Private Manufacturing', function () {
                 context.player1.clickCard(context.advancedReconCommando);
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1.hand.length).toBe(2);
                 expect([context.republicTacticalOfficer, context.advancedReconCommando]).toAllBeInBottomOfDeck(context.player1, 2);
                 expect(context.getChatLogs(2)).toEqual([

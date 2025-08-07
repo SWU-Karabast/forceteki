@@ -26,7 +26,7 @@ describe('Yoda, Old Master', function() {
                 expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
                 context.player1.clickPrompt('You');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.player2.hand.length).toBe(0);
                 expect(context.player2).toBeActivePlayer();
@@ -41,7 +41,7 @@ describe('Yoda, Old Master', function() {
                 expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
                 context.player1.clickPrompt('Opponent');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(1);
                 expect(context.player2).toBeActivePlayer();
@@ -57,7 +57,7 @@ describe('Yoda, Old Master', function() {
 
                 context.player1.clickPrompt('You');
                 context.player1.clickPrompt('Opponent');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.player2.hand.length).toBe(1);
                 expect(context.player2).toBeActivePlayer();
@@ -71,7 +71,7 @@ describe('Yoda, Old Master', function() {
                 expect(context.yoda).toBeInZone('discard');
                 expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(0);
                 expect(context.player2).toBeActivePlayer();
@@ -97,7 +97,7 @@ describe('Yoda, Old Master', function() {
             expect(context.player2).toHaveEnabledPromptButtons(['You', 'Opponent', 'Done']);
 
             context.player2.clickPrompt('You');
-            context.player2.clickPrompt('Done');
+            context.player2.clickDone();
             expect(context.player2.hand.length).toBe(1);
             expect(context.player1.hand.length).toBe(0);
             expect(context.player1).toBeActivePlayer();

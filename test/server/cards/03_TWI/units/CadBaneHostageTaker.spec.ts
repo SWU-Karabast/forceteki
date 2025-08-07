@@ -41,7 +41,7 @@ describe('Cad Bane, Hostage Taker', function() {
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.wingLeader, context.battlefieldMarine, context.deathStarStormtrooper]);
 
             context.player1.clickCardNonChecking(context.deathStarStormtrooper);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.wampa).toBeCapturedBy(context.cadBane);
             expect(context.wingLeader).toBeCapturedBy(context.cadBane);

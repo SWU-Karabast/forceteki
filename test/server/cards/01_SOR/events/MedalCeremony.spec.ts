@@ -70,7 +70,7 @@ describe('Medal Ceremony', function() {
                 // click on a fourth card just to confirm it doesn't work
                 context.player1.clickCardNonChecking(context.consularSecurityForce);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
                 expect(context.chirrutImwe).toHaveExactUpgradeNames(['experience']);
                 expect(context.allianceXwing).toHaveExactUpgradeNames(['experience']);
@@ -102,7 +102,7 @@ describe('Medal Ceremony', function() {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.consularSecurityForce);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
                 expect(context.consularSecurityForce).toHaveExactUpgradeNames(['experience']);
             });
@@ -131,7 +131,7 @@ describe('Medal Ceremony', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
                 expect(context.consularSecurityForce.isUpgraded()).toBe(false);
             });

@@ -31,7 +31,7 @@ describe('Don\'t Get Cocky', function() {
                 context.player1.clickCard(context.atatSuppressor);
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.allianceDispatcher]);
                 expect(context.getChatLogs(1)[0]).toContain(context.allianceDispatcher.title);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toHavePrompt('Current total cost: 1\nSelect one:');
                 expect(context.player1).toHaveEnabledPromptButtons(['Reveal another card', 'Stop revealing cards']);
@@ -49,7 +49,7 @@ describe('Don\'t Get Cocky', function() {
                 context.player1.clickCard(context.atatSuppressor);
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.allianceDispatcher]);
                 expect(context.getChatLogs(1)[0]).toContain(context.allianceDispatcher.title);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 context.player1.clickPrompt('Reveal another card');
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([
@@ -57,7 +57,7 @@ describe('Don\'t Get Cocky', function() {
                     context.medalCeremony
                 ]);
                 expect(context.getChatLogs(1)[0]).toContain(context.medalCeremony.title);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toHavePrompt('Current total cost: 1\nSelect one:');
                 expect(context.player1).toHaveEnabledPromptButtons(['Reveal another card', 'Stop revealing cards']);
 
@@ -68,7 +68,7 @@ describe('Don\'t Get Cocky', function() {
                     context.medalCeremony
                 ]);
                 expect(context.getChatLogs(1)[0]).toContain(context.wildernessFighter.title);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toHavePrompt('Current total cost: 4\nSelect one:');
                 expect(context.player1).toHaveEnabledPromptButtons(['Reveal another card', 'Stop revealing cards']);
 
@@ -80,7 +80,7 @@ describe('Don\'t Get Cocky', function() {
                     context.medalCeremony
                 ]);
                 expect(context.getChatLogs(1)[0]).toContain(context.consortiumStarviper.title);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toHavePrompt('Current total cost: 7\nSelect one:');
                 expect(context.player1).toHaveEnabledPromptButtons(['Reveal another card', 'Stop revealing cards']);
 
@@ -96,15 +96,15 @@ describe('Don\'t Get Cocky', function() {
                 context.player1.clickCard(context.dontGetCocky);
                 context.player1.clickCard(context.atatSuppressor);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toHavePrompt('Current total cost: 9\nSelect one:');
                 context.player1.clickPrompt('Stop revealing cards');
                 expect(context.atatSuppressor.damage).toBe(0);
@@ -118,20 +118,20 @@ describe('Don\'t Get Cocky', function() {
                 context.player1.clickCard(context.dontGetCocky);
                 context.player1.clickCard(context.atatSuppressor);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toHavePrompt('Current total cost: 11\nSelect one:');
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 // 7 cards revealed, no choices left
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atatSuppressor.damage).toBe(0);
@@ -146,11 +146,11 @@ describe('Don\'t Get Cocky', function() {
                 context.player1.clickCard(context.dontGetCocky);
                 context.player1.clickCard(context.atatSuppressor);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.clickPrompt('Reveal another card');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atatSuppressor.damage).toBe(5);

@@ -56,11 +56,11 @@ describe('Nabat Village', function() {
                 // Resource step
                 context.player1.clickCard(context.timelyIntervention);
                 context.player1.clickCard(context.lothalInsurgent);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
-                context.player2.clickCard(context.player2.hand[0]);
+                context.player2.clickFirstCardInHand();
                 context.player2.clickCard(context.player2.hand[1]);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 // Check that Player 1 has to put three cards on the bottom of their deck
                 expect(context.player1).toHavePrompt('Select 3 cards');
@@ -76,7 +76,7 @@ describe('Nabat Village', function() {
 
                 context.player1.clickCard(context.restock);
                 expect(context.player1).toHaveEnabledPromptButton('Done');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect([context.wampa, context.concordDawnInterceptors, context.restock]).toAllBeInBottomOfDeck(context.player1, 3);
                 expect(context.player1).toBeActivePlayer();
@@ -96,23 +96,23 @@ describe('Nabat Village', function() {
                 // Resource
                 context.player1.clickCard(context.timelyIntervention);
                 context.player1.clickCard(context.lothalInsurgent);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
-                context.player2.clickCard(context.player2.hand[0]);
-                context.player2.clickCard(context.player2.hand[1]);
-                context.player2.clickPrompt('Done');
+                context.player2.clickFirstCardInHand();
+                context.player2.clickSecondCardInHand();
+                context.player2.clickDone();
 
                 // First action phase - use Nabat Village
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.concordDawnInterceptors);
                 context.player1.clickCard(context.restock);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Pass to second phase and skip resourcing
                 context.player1.claimInitiative();
                 context.player2.passAction();
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 expect(context.player1).toBeActivePlayer();
             });

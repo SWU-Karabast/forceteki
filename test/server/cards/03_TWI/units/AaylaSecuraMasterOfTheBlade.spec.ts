@@ -80,7 +80,7 @@ describe('Aayla Secura, Master of the Blade', function() {
                 context.player2.clickCard(context.secondWaylay);
                 context.player2.clickCard(context.aaylaSecura);
 
-                expect(context.player1.groundArena.length).toBe(2);
+                expect(context.player1.groundArenaUnits.length).toBe(2);
 
                 // Player 1 ambushes Aayla back into play, activating Coordinate and preventing combat damage
                 context.player1.clickCard(context.timelyIntervention);
@@ -161,6 +161,19 @@ describe('Aayla Secura, Master of the Blade', function() {
                 expect(context.aaylaSecura.damage).toBe(0);
                 expect(context.aaylaSecura.isUpgraded()).toBeFalse();
                 expect(context.consularSecurityForce.damage).toBe(6);
+            });
+
+            it('has the Twi\'lek trait (as per errata)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['aayla-secura#master-of-the-blade']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                expect(context.aaylaSecura.traits).toContain('twi\'lek');
             });
         });
     });

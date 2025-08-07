@@ -38,7 +38,7 @@ describe('Qi\'ra, Playing Her Part', function () {
                 context.changeOfHeart
             ]);
 
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
             context.player1.chooseListOption('Battlefield Marine');

@@ -22,7 +22,7 @@ describe('Migs Mayfeld, Triggerman', function() {
                 context.player1.clickPrompt('You discard');
                 context.player1.clickCard(context.commission);
                 context.player1.clickCard(context.fellTheDragon);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.player1).toBeAbleToSelectExactly([context.groguIrresistible, context.migsMayfeldTriggerman, context.wampa, context.systemPatrolCraft, context.p1Base, context.p2Base]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.p2Base);
@@ -34,7 +34,7 @@ describe('Migs Mayfeld, Triggerman', function() {
                 context.player1.clickCard(context.forcedSurrender);
                 context.player2.clickCard(context.confiscate);
                 context.player2.clickCard(context.daringRaid);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.player2).toBeActivePlayer();
 
                 // CASE 3: Is usable in the next round and from opponent discarding

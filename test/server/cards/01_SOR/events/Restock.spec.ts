@@ -33,7 +33,7 @@ describe('Restock', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.atst);
                 context.player1.clickCardNonChecking(context.pykeSentinel);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // selected cards should be in bottom on deck
                 expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 4);
@@ -60,7 +60,7 @@ describe('Restock', function () {
 
                 context.player1.clickCard(context.specforceSoldier);
                 context.player1.clickCard(context.echoBaseDefender);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // selected cards should be in bottom on deck
                 expect(context.consularSecurityForce).toBeInBottomOfDeck(context.player2, 3);

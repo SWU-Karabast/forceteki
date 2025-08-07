@@ -72,7 +72,70 @@ describe('Calculated Lethality', function () {
                 expect(context.fifthBrother).toBeInZone('discard');
                 expect(context.corellianFreighter).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             });
-            // TODO ADD A TEST WITH LURKIN TIE PHANTOM
+
+            it('does not defeat Lurking TIE Phantom, but does still distribute experience', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['calculated-lethality'],
+                        groundArena: [
+                            'pyke-sentinel'
+                        ]
+                    },
+                    player2: {
+                        spaceArena: [
+                            { card: 'lurking-tie-phantom', upgrades: ['experience', 'experience'] }
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.calculatedLethality);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.pykeSentinel,
+                    context.lurkingTiePhantom
+                ]);
+                context.player1.clickCard(context.lurkingTiePhantom);
+
+                expect(context.lurkingTiePhantom).toBeInZone('spaceArena');
+
+                expect(context.pykeSentinel).toHaveExactUpgradeNames(['experience', 'experience']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should do nothing if no unit can be targeted', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['calculated-lethality']
+                    },
+                    player2: {
+                        groundArena: [
+                            {
+                                card: 'iden-versio#adapt-or-die',
+                                damage: 0,
+                                exhausted: true,
+                                upgrades: [
+                                    'shield',
+                                    'legal-authority'
+                                ],
+                                capturedUnits: [
+                                    'resupply-carrier'
+                                ]
+                            }
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.calculatedLethality);
+                expect(context.player1).toHavePrompt('Playing Calculated Lethality will have no effect. Are you sure you want to play it?');
+
+                context.player1.clickPrompt('Play anyway');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

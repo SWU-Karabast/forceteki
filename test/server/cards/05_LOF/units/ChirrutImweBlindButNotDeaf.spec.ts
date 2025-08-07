@@ -98,7 +98,7 @@ describe('Chirrut Imwe, Blind, but not Deaf', function() {
                 context.player2.clickCard(context.darthMaul);
                 context.player2.clickCard(context.perimeterAtrt);
                 context.player2.clickCard(context.chirrutImwe);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
                 expect(context.player1).toHavePassAbilityPrompt('Use the Force to give -2/-0 to the attacker for this attack');
 
                 context.player1.clickPrompt('Trigger');

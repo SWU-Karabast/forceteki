@@ -734,7 +734,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player1.clickCard(context.countDooku);
                 context.player1.clickPrompt('Trigger exploit');
                 context.player1.clickCard(context.xwing);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.damage).toBe(2);
@@ -796,7 +796,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 // Play Qira, naming Takedown
                 context.player1.clickCard(context.qira);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.chooseListOption('Takedown');
 
                 // Aethersprite's ability is triggered
@@ -805,7 +805,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player1.clickPrompt('Trigger');
 
                 // Qira's ability resolves again, naming Vanquish
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.chooseListOption('Vanquish');
                 expect(context.player2).toBeActivePlayer();
 
@@ -836,7 +836,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 // Play Qira, naming Takedown
                 context.player1.clickCard(context.qira);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.chooseListOption('Takedown');
 
                 // Aethersprite's ability is triggered
@@ -845,7 +845,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player1.clickPrompt('Trigger');
 
                 // Qira's ability resolves again, naming Takedown
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 context.player1.chooseListOption('Takedown');
                 expect(context.player2).toBeActivePlayer();
 

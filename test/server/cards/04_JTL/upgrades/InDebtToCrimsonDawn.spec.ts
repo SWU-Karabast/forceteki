@@ -35,8 +35,8 @@ describe('In Debt To Crimson Dawn', function() {
                 context.player1.claimInitiative();
                 context.player2.passAction();
 
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 expect(context.player2).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Frontier AT-RT']);
                 context.player2.clickPrompt('Exhaust Frontier AT-RT');
@@ -56,8 +56,8 @@ describe('In Debt To Crimson Dawn', function() {
                 context.player1.claimInitiative();
                 context.player2.passAction();
 
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 expect(context.player2).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Frontier AT-RT']);
                 context.player2.clickPrompt('Pay 2 resources');
@@ -107,8 +107,8 @@ describe('In Debt To Crimson Dawn', function() {
                 context.player1.claimInitiative();
 
                 // Click through resourcing step
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 // Player 1 should be prompted for In Debt To Crimson Dawn's ability
                 expect(context.player1).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Frontier AT-RT']);
@@ -146,8 +146,8 @@ describe('In Debt To Crimson Dawn', function() {
             context.player2.claimInitiative();
             context.player1.passAction();
 
-            context.player2.clickPrompt('Done');
-            context.player1.clickPrompt('Done');
+            context.player2.clickDone();
+            context.player1.clickDone();
 
             expect(context.player1).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Green Squadron A-Wing']);
             context.player1.clickPrompt('Exhaust Green Squadron A-Wing');

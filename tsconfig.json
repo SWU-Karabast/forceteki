@@ -9,7 +9,8 @@
         "checkJs": true,
         "lib": [
             "ES2020",
-            "ES2021.Intl"
+            "ES2021.Intl",
+            "ESNext.Decorators"
         ],
         "esModuleInterop": true,
         "strictBindCallApply": true,
@@ -22,7 +23,8 @@
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "incremental": true,
     },
     // "include": ["server/jigoku/**/*"],
     "include": [

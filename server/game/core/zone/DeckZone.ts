@@ -1,4 +1,3 @@
-import type seedrandom from 'seedrandom';
 import type { Card } from '../card/Card';
 import type { MoveZoneDestination } from '../Constants';
 import { ZoneName, DeckZoneDestination, WildcardRelativePlayer } from '../Constants';
@@ -11,6 +10,7 @@ import type { GameEvent } from '../event/GameEvent';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import type Game from '../Game';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { IRandomness } from '../Randomness';
 
 export interface IDeckZoneState extends IGameObjectBaseState {
     deck: GameObjectRef<IPlayableCard>[];
@@ -24,7 +24,7 @@ export interface IDeckZoneState extends IGameObjectBaseState {
 
 export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implements IAddRemoveZone {
     public override readonly hiddenForPlayers: WildcardRelativePlayer.Any;
-    public override readonly owner: Player;
+    public declare owner: Player;
     public override readonly name: ZoneName.Deck;
 
     public override get cards(): IPlayableCard[] {
@@ -143,7 +143,7 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
         this.state.searchingCards.splice(foundCardInSearchingCardsIdx, 1);
     }
 
-    public shuffle(randomGenerator: seedrandom) {
+    public shuffle(randomGenerator: IRandomness) {
         this.state.deck = Helpers.shuffle(this.state.deck, randomGenerator);
     }
 

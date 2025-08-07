@@ -1,8 +1,9 @@
+
 describe('Undo', function() {
     undoIntegration(function(contextRef) {
         describe('Death Trooper\'s When Played ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['death-trooper'],
@@ -51,8 +52,8 @@ describe('Undo', function() {
         });
 
         describe('2-1B Surgical Droid\'s ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -135,8 +136,8 @@ describe('Undo', function() {
         });
 
         describe('Snoke\'s constant ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['supreme-leader-snoke#shadow-ruler'],
@@ -199,8 +200,8 @@ describe('Undo', function() {
         });
 
         describe('Wolffe\'s ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wolffe#suspicious-veteran'],
@@ -289,8 +290,8 @@ describe('Undo', function() {
 
 
         describe('Pyrrhic Assault\'s ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['pyrrhic-assault'],
@@ -348,8 +349,8 @@ describe('Undo', function() {
         });
 
         describe('Huyang\'s ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['huyang#enduring-instructor'],
@@ -422,8 +423,8 @@ describe('Undo', function() {
         });
 
         describe('DJ\'s when played ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'chopper-base',
@@ -619,8 +620,8 @@ describe('Undo', function() {
 
 
         describe('Echo, Valiant Arc Trooper\'s constant Coordinate ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['echo#valiant-arc-trooper'],
@@ -667,8 +668,8 @@ describe('Undo', function() {
         });
 
         describe('Punch It\'s ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['punch-it'],
@@ -724,8 +725,8 @@ describe('Undo', function() {
         });
 
         describe('Tactical Advantage\'s ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['tactical-advantage'],
@@ -761,8 +762,8 @@ describe('Undo', function() {
         });
 
         describe('Bendu\'s on-attack ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -879,6 +880,282 @@ describe('Undo', function() {
                 // context.player1.clickCard(context.wroshyrTreeTender);
                 // expect(context.player1.exhaustedResourceCount).toBe(1);
                 // expect(context.wroshyrTreeTender).toBeInZone('groundArena');
+            });
+        });
+
+        describe('Randomness cases', function () {
+            it('should discard the same card after undo', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['political-pressure'],
+                        resources: 2,
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'chopper-base',
+                    },
+                    player2: {
+                        hand: ['pyke-sentinel', 'b2-legionnaires', 'gladiator-star-destroyer', 'republic-arc170', 'ryloth-militia'],
+                        resources: 2
+                    }
+                });
+                const discardPrompt = 'Trigger';
+                const { context } = contextRef;
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+
+                context.player1.clickFirstCardInHand();
+                expect(context.player2).toHaveEnabledPromptButton(discardPrompt);
+
+                context.player2.clickPrompt(discardPrompt);
+                expect(context.player2.hand.length).toBe(4);
+
+                const discardedCard = context.player2.discard[0];
+                expect(context.player2.hand).not.toContain(discardedCard);
+
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+
+                context.player1.clickFirstCardInHand();
+                context.player2.clickPrompt(discardPrompt);
+                expect(context.player2.hand.length).toBe(4);
+                expect(context.player2.discard.length).toBe(1);
+                expect(context.player2.discard[0]).toBe(discardedCard);
+            });
+
+            it('should give the same top deck after shuffle', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        deck: [
+                            'death-trooper',
+                            'pyke-sentinel',
+                            'cartel-spacer',
+                            'wampa',
+                            'superlaser-technician',
+                            'tieln-fighter',
+                            '21b-surgical-droid',
+                            'r2d2#ignoring-protocol',
+                            'c3po#protocol-droid',
+                            'wolffe#suspicious-veteran'
+                        ],
+                        resources: 2,
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'chopper-base',
+                    },
+                    player2: {
+                        resources: 2
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.game.shuffleDeck(context.player1Object.id);
+                const topDeck = context.player1.deck[0];
+
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+                context.game.shuffleDeck(context.player1Object.id);
+
+                expect(context.player1.deck[0]).toBe(topDeck);
+            });
+
+            it('should give the same top deck after two snapshots', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        deck: [
+                            'death-trooper',
+                            'pyke-sentinel',
+                            'cartel-spacer',
+                            'wampa',
+                            'superlaser-technician',
+                            'tieln-fighter',
+                            '21b-surgical-droid',
+                            'r2d2#ignoring-protocol',
+                            'c3po#protocol-droid',
+                            'wolffe#suspicious-veteran'
+                        ],
+                        resources: 2,
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'chopper-base',
+                    },
+                    player2: {
+                        resources: 2
+                    }
+                });
+                const { context } = contextRef;
+
+                context.game.shuffleDeck(context.player1Object.id);
+                const topDeck = context.player1.deck[0];
+
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.game.shuffleDeck(context.player1Object.id);
+                contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                context.game.shuffleDeck(context.player1Object.id);
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+                context.game.shuffleDeck(context.player1Object.id);
+
+                expect(context.player1.deck[0]).toBe(topDeck);
+            });
+        });
+
+        describe('Action Phase Claim/Pass Cases', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['ardent-sympathizer'],
+                        resources: 3,
+                        groundArena: [],
+                    },
+                    player2: {
+                        hand: ['crafty-smuggler'],
+                        resources: 3,
+                        groundArena: [],
+                    },
+                });
+            });
+
+            it('should allow a player to undo then claim initiative after other player already claimed', function() {
+                const { context } = contextRef;
+                const { player1, player2 } = context;
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+
+                player1.claimInitiative();
+                contextRef.snapshot.takeManualSnapshot(context.player1Object);
+
+                player2.passAction();
+                player1.clickDone();
+                player2.clickDone();
+
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+
+                player1.passAction();
+                player2.claimInitiative();
+                player2.clickDone();
+                player1.clickDone();
+
+                expect(context.game.roundNumber).toBe(2);
+                expect(player2).toBeActivePlayer();
+            });
+
+            it('should allow a player to undo then play a card after passing', function() {
+                const { context } = contextRef;
+                const { player1, player2 } = context;
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+
+                player1.passAction();
+                player2.clickFirstCardInHand();
+
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+
+                player1.clickFirstCardInHand();
+                player2.clickFirstCardInHand();
+
+                expect(player1.hand.length).toBe(0);
+                expect(player2.hand.length).toBe(0);
+                expect(player1.groundArenaUnits.length).toBe(1);
+                expect(player2.groundArenaUnits.length).toBe(1);
+            });
+        });
+
+        describe('Regroup Phase Resource/Pass Cases', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action', // 'regroup',
+                    player1: {
+                        hand: ['ardent-sympathizer', 'death-star-stormtrooper'],
+                        resources: 2,
+                        deck: [],
+                    },
+                    player2: {
+                        hand: ['crafty-smuggler'],
+                        resources: 2,
+                        deck: []
+                    }
+                });
+            });
+
+            it('should allow a player to resource after undo if they passed on resourcing before', function() {
+                const { context } = contextRef;
+                const { player1, player2 } = context;
+                // TODO: look into why we can't start from regroup phase
+                context.moveToRegroupPhase();
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+
+                player1.clickDone();
+                player2.clickFirstCardInHand();
+                player2.clickDone();
+
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+
+                player1.clickFirstCardInHand();
+                player1.clickDone();
+                player2.clickFirstCardInHand();
+                player2.clickDone();
+                player1.clickFirstCardInHand();
+
+                expect(context.game.roundNumber).toBe(2);
+                expect(player2).toBeActivePlayer();
+                expect(player1.hand.length).toBe(0);
+                expect(player1.resources.length).toBe(3);
+                expect(player2.resources.length).toBe(3);
+                expect(player1.groundArenaUnits.length).toBe(1);
+                expect(player1.base.damage).toBe(6);
+                expect(player2.base.damage).toBe(6);
+            });
+
+            it('should allow a player to undo then pass on resourcing after already resourcing', function() {
+                const { context } = contextRef;
+                const { player1, player2 } = context;
+                // TODO: look into why we can't start from regroup phase
+                context.moveToRegroupPhase();
+                const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+
+                player1.clickFirstCardInHand();
+                player1.clickDone();
+                player2.clickFirstCardInHand();
+                player2.clickDone();
+
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1Object.id,
+                    snapshotId
+                });
+
+                player1.clickDone();
+                player2.clickFirstCardInHand();
+                player2.clickDone();
+
+                expect(context.game.roundNumber).toBe(2);
+                expect(player1).toBeActivePlayer();
+                expect(player1.hand.length).toBe(2);
+                expect(player1.resources.length).toBe(2);
+                expect(player2.resources.length).toBe(3);
+                expect(player1.base.damage).toBe(6);
+                expect(player2.base.damage).toBe(6);
             });
         });
     });

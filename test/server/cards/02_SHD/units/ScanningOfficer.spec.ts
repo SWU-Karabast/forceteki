@@ -18,7 +18,7 @@ describe('Scanning Officer', function () {
             expect(context.getChatLogs(1)[0]).toContain(context.pykeSentinel.title);
             expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
             expect(context.getChatLogs(1)[0]).toContain(context.karabast.title);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.pykeSentinel).toBeInZone('resource');
             expect(context.wampa).toBeInZone('resource');
@@ -45,7 +45,7 @@ describe('Scanning Officer', function () {
             expect(context.getChatLogs(1)[0]).toContain(context.pykeSentinel.title);
             expect(context.getChatLogs(1)[0]).toContain(context.collectionsStarhopper.title);
             expect(context.getChatLogs(1)[0]).toContain(context.recklessGunslinger.title);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.collectionsStarhopper).toBeInZone('discard');
             expect(context.recklessGunslinger).toBeInZone('discard');
@@ -72,7 +72,7 @@ describe('Scanning Officer', function () {
             expect(context.getChatLogs(1)[0]).toContain(context.pykeSentinel.title);
             expect(context.getChatLogs(1)[0]).toContain(context.collectionsStarhopper.title);
             expect(context.getChatLogs(1)[0]).toContain(context.recklessGunslinger.title);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.collectionsStarhopper).toBeInZone('discard');
             expect(context.recklessGunslinger).toBeInZone('discard');
@@ -111,7 +111,7 @@ describe('Scanning Officer', function () {
             expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
             expect(context.getChatLogs(1)[0]).toContain(context.recklessGunslinger.title);
             expect(context.getChatLogs(1)[0]).toContain(context.armedToTheTeeth.title);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.recklessGunslinger).toBeInZone('discard');
             expect(context.armedToTheTeeth).toBeInZone('discard');
@@ -138,7 +138,7 @@ describe('Scanning Officer', function () {
             expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
             expect(context.getChatLogs(1)[0]).toContain(context.pykeSentinel.title);
             expect(context.getChatLogs(1)[0]).toContain(context.moistureFarmer.title);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.wampa).toBeInZone('discard');
             expect(context.pykeSentinel).toBeInZone('discard');

@@ -46,7 +46,7 @@ describe('Twin Laser Turret', function() {
                 context.player1.clickCardNonChecking(context.escortSkiff);
                 context.player1.clickCardNonChecking(context.consularSecurityForce);
                 context.player1.clickCardNonChecking(context.frontierAtrt);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.wampa.damage).toBe(1);
                 expect(context.battlefieldMarine.isUpgraded()).toBeFalse();
                 expect(context.battlefieldMarine.damage).toBe(0); // because of the shield
@@ -100,7 +100,7 @@ describe('Twin Laser Turret', function() {
 
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.greenSquadronAwing);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.greenSquadronAwing.damage).toBe(1);
 
                 expect(context.wampa.damage).toBe(0);

@@ -76,7 +76,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                 expect(context.getChatLogs(1)[0]).toContain(context.endlessLegions.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.theDarksaber.title);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player2).toHaveExactDisplayPromptCards({
                     selectable: [context.wampa, context.cartelSpacer, context.endlessLegions, context.theDarksaber]
@@ -108,7 +108,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                     selected: [context.endlessLegions, context.wampa],
                     selectable: [context.theDarksaber, context.cartelSpacer]
                 });
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.endlessLegions).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
@@ -151,7 +151,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                 expect(context.getChatLogs(1)[0]).toContain(context.endlessLegions.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.theDarksaber.title);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player2).toHaveExactDisplayPromptCards({
                     selectable: [context.wampa, context.cartelSpacer, context.endlessLegions, context.theDarksaber]
@@ -183,7 +183,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                     selected: [context.endlessLegions, context.wampa],
                     selectable: [context.theDarksaber, context.cartelSpacer]
                 });
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.endlessLegions).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
@@ -225,13 +225,13 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                 expect(context.getChatLogs(1)[0]).toContain(context.cartelSpacer.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.endlessLegions.title);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player2).toHaveExactSelectableDisplayPromptCards([context.wampa, context.cartelSpacer, context.endlessLegions]);
 
                 context.player2.clickCardInDisplayCardPrompt(context.endlessLegions);
                 context.player2.clickCardInDisplayCardPrompt(context.wampa);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.endlessLegions).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
@@ -256,7 +256,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                 expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.cartelSpacer.title);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.cartelSpacer).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
@@ -280,7 +280,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
 
                 expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.wampa).toBeInZone('discard');
                 expect(context.player1.deck).toEqual([]);
