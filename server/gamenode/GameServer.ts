@@ -251,10 +251,9 @@ export class GameServer {
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
-        // initialize cpu usage stats
+        // initialize cpu usage and event loop stats
         this.lastCpuUsage = process.cpuUsage();
         this.lastCpuUsageTime = process.hrtime.bigint();
-
         this.loopDelayHistogram = monitorEventLoopDelay({ resolution: 10 });
         this.loopDelayHistogram.enable();
         this.lastLoopUtilization = performance.eventLoopUtilization();
