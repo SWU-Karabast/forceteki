@@ -19,7 +19,6 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
     };
 
     public eventHandler(event): void {
-        console.log(`\n*** DrawSystem: drawing ${event.amount} cards for player ${event.player.name}`);
         event.player.drawCardsToHand(event.amount);
     }
 

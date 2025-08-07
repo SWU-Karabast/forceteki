@@ -2,7 +2,6 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType } from '../../../core/Constants';
-import { EventResolutionStatus } from '../../../core/event/GameEvent';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
@@ -28,7 +27,8 @@ export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 2 }),
             when: {
                 onCardPlayed: (event, context) => this.isSecondCardPlayedByOpponentThisPhase(event, context)
-            }
+            },
+            limit: AbilityHelper.limit.perPhase(1)
         });
     }
 
