@@ -200,6 +200,95 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('when deployed, resolves upgrade triggers as they are played', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kylo-ren#were-not-done-yet',
+                        base: 'fortress-vader',
+                        spaceArena: [
+                            'inferno-four#unforgetting'
+                        ],
+                        groundArena: [
+                            'doctor-pershing#experimenting-with-life'
+                        ],
+                        discard: [
+                            'craving-power',
+                            'fallen-lightsaber',
+                            'snapshot-reflexes'
+                        ]
+                    },
+                    player2: {
+                        spaceArena: ['devastator#inescapable']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Deploy Kylo Ren
+                context.player1.clickCard(context.kyloRen);
+                context.player1.clickPrompt('Deploy Kylo Ren');
+
+                // Verify playable Upgrades from discard
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.fallenLightsaber,
+                    context.cravingPower,
+                    context.snapshotReflexes
+                ]);
+
+                // Verify we could choose nothing
+                expect(context.player1).toHaveEnabledPromptButton('Pass');
+
+                // Choose Craving Power
+                context.player1.clickCard(context.cravingPower);
+                expect(context.player1).toHavePrompt('Attach Craving Power to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.kyloRen]);
+                context.player1.clickCard(context.kyloRen);
+
+                // Cost was paid and upgrade was attached
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.kyloRen).toHaveExactUpgradeNames([
+                    'craving-power'
+                ]);
+
+                expect(context.player1).toHavePrompt('Deal damage to an enemy unit equal to attached unit\'s power');
+                expect(context.player1).toBeAbleToSelectExactly([context.devastator]);
+                context.player1.clickCard(context.devastator);
+                expect(context.devastator.damage).toBe(7);
+
+                // Choose Fallen Lightsaber
+                context.player1.clickCard(context.fallenLightsaber);
+                expect(context.player1).toHavePrompt('Attach Fallen Lightsaber to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.kyloRen]);
+                context.player1.clickCard(context.kyloRen);
+
+                // Cost was paid and upgrade was attached
+                expect(context.player1.exhaustedResourceCount).toBe(10);
+                expect(context.kyloRen).toHaveExactUpgradeNames([
+                    'fallen-lightsaber',
+                    'craving-power'
+                ]);
+
+                // Choose Snapshot Reflexes
+                context.player1.clickCard(context.snapshotReflexes);
+                expect(context.player1).toHavePrompt('Attach Snapshot Reflexes to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.kyloRen]);
+                context.player1.clickCard(context.kyloRen);
+
+                // Cost was paid and upgrade was attached
+                expect(context.player1.exhaustedResourceCount).toBe(13);
+                expect(context.kyloRen).toHaveExactUpgradeNames([
+                    'fallen-lightsaber',
+                    'craving-power',
+                    'snapshot-reflexes'
+                ]);
+
+                expect(context.player1).toHavePassAbilityPrompt('Attack with attached unit');
+                context.player1.clickPrompt('Pass');
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('only allows playing upgrades that can be paid for', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
