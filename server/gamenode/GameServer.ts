@@ -261,7 +261,7 @@ export class GameServer {
         // log initial memory state on startup
         this.logHeapStats();
 
-        // set up periodic memory and cpu monitoring for every 30 seconds
+        // set up periodic memory, cpu and event loop monitoring for every 30 seconds
         setInterval(() => {
             this.logHeapStats();
             this.logCpuUsage();
