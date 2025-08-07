@@ -22,7 +22,7 @@ export type IAllArenasForPlayerSpecificTypeCardFilterProperties = Omit<IAllArena
  * Can't add or remove cards but all accessor operations are supported.
  */
 export class AllArenasZone extends ConcreteOrMetaArenaZone {
-    public override readonly hiddenForPlayers: null;
+    public declare readonly hiddenForPlayers: null;
     public override readonly name: WildcardZoneName.AnyArena;
 
     private groundArena: GroundArenaZone;
