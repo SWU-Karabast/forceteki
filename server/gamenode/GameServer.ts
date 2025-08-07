@@ -8,6 +8,7 @@ import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
 import { getHeapStatistics } from 'v8';
 import { freemem, cpus } from 'os';
+import { monitorEventLoopDelay, performance, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
 
 import { logger } from '../logger';
 
@@ -108,6 +109,9 @@ export class GameServer {
     private readonly queue: QueueHandler = new QueueHandler();
     private lastCpuUsage: NodeJS.CpuUsage;
     private lastCpuUsageTime: bigint;
+    private loopDelayHistogram: IntervalHistogram;
+    private lastLoopUtilization: EventLoopUtilization;
+
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
     public readonly bugReportHandler: BugReportHandler;
@@ -251,14 +255,18 @@ export class GameServer {
         this.lastCpuUsage = process.cpuUsage();
         this.lastCpuUsageTime = process.hrtime.bigint();
 
-        // log an initial memory and cpu usage
+        this.loopDelayHistogram = monitorEventLoopDelay({ resolution: 10 });
+        this.loopDelayHistogram.enable();
+        this.lastLoopUtilization = performance.eventLoopUtilization();
+
+        // log initial memory state on startup
         this.logHeapStats();
-        this.logCpuUsage();
 
         // set up periodic memory and cpu monitoring for every 30 seconds
         setInterval(() => {
             this.logHeapStats();
             this.logCpuUsage();
+            this.logEventLoopStats();
         }, 30000);
     }
 
@@ -1377,4 +1385,24 @@ export class GameServer {
             logger.error(`Error logging heap stats: ${error}`);
         }
     }
+
+    private logEventLoopStats(): void {
+        try {
+            const currentUtilization = performance.eventLoopUtilization();
+            const deltaUtilization = performance.eventLoopUtilization(currentUtilization, this.lastLoopUtilization);
+
+            const eventLoopPercent = (deltaUtilization.utilization * 100).toFixed(1);
+            const loopDelayMinMs = (this.loopDelayHistogram.min / 1e6).toFixed(1);
+            const loopDelayP50Ms = (this.loopDelayHistogram.percentile(50) / 1e6).toFixed(1);
+            const loopDelayP90Ms = (this.loopDelayHistogram.percentile(90) / 1e6).toFixed(1);
+            const loopDelayMaxMs = (this.loopDelayHistogram.max / 1e6).toFixed(1);
+            logger.info(`[EventLoopStats] Event Loop Utilization: ${eventLoopPercent}% | Event Loop Duration (ms): min: ${loopDelayMinMs}, P50: ${loopDelayP50Ms}, P90: ${loopDelayP90Ms}, max: ${loopDelayMaxMs}`);
+
+            this.lastLoopUtilization = currentUtilization;
+            this.loopDelayHistogram.reset();
+        } catch (error) {
+            logger.error(`Error logging event loop stats: ${error}`);
+        }
+    }
 }
+
