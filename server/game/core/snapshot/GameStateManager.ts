@@ -80,7 +80,6 @@ export class GameStateManager implements IGameObjectRegistrar {
             go.setState(updatedState);
         }
 
-        // TODO THIS PR: can this be safely moved above afterSetAllState?
         for (const removed of removals) {
             removed.go.cleanupOnRemove(removed.oldState);
         }
