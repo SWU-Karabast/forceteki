@@ -2,6 +2,8 @@ import { logger } from '../../logger';
 import type Game from '../../game/core/Game';
 import type { Player } from '../../game/core/Player';
 import type { IDecklistInternal } from '../deck/DeckInterfaces';
+import type { IBaseCard } from '../../game/core/card/BaseCard';
+import { Aspect } from '../../game/core/Constants';
 
 
 interface TurnResults {
@@ -159,6 +161,31 @@ export class SwuStatsHandler {
     }
 
     /**
+    * Determines the color of a base card based on its aspects
+    */
+    private getBaseColor(base: IBaseCard): string {
+        if (!base || !base.aspects) {
+            return 'colorless';
+        }
+
+        const aspectColorMap = {
+            [Aspect.Aggression]: 'red',
+            [Aspect.Command]: 'green',
+            [Aspect.Cunning]: 'yellow',
+            [Aspect.Vigilance]: 'blue'
+        };
+
+        for (const aspect of base.aspects) {
+            if (aspectColorMap[aspect]) {
+                return aspectColorMap[aspect];
+            }
+        }
+
+        // If no colored aspects found, it's colorless
+        return 'colorless';
+    }
+
+    /**
      * Build player data for a single player
      */
     private buildPlayerData(
@@ -172,7 +199,7 @@ export class SwuStatsHandler {
         const leaderStr = player.leader?.id;
         const baseStr = player.base?.id;
         const opponentLeaderStr = opponentPlayer.leader?.id;
-
+        const opponentBaseColor = this.getBaseColor(opponentPlayer.base);
         return {
             deckId: deckLink ? deckLink.split('https://swustats.net/TCGEngine/')[1] : '',
             leader: leaderStr,
@@ -181,7 +208,7 @@ export class SwuStatsHandler {
             result: winner === playerNumber ? 1 : 0,
             firstPlayer: game.initialFirstPlayer?.id === player.id ? 1 : 0,
             opposingHero: opponentLeaderStr,
-            opposingBaseColor: 'red',
+            opposingBaseColor: opponentBaseColor,
             cardResults: [],
             turnResults: []
         };
