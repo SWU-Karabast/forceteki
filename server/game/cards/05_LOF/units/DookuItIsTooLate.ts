@@ -6,7 +6,7 @@ import { AbilityRestriction, KeywordName } from '../../../core/Constants';
 export default class DookuItIsTooLate extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'dooku#it-is-too-late-id',
+            id: '3052907071',
             internalName: 'dooku#it-is-too-late',
         };
     }
