@@ -6,7 +6,7 @@ import { EventName, Trait } from '../../../core/Constants';
 export default class SecondSisterSeekingTheHolocron extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'second-sister#seeking-the-holocron-id',
+            id: '9288795472',
             internalName: 'second-sister#seeking-the-holocron',
         };
     }

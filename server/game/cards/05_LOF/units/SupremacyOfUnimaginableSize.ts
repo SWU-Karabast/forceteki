@@ -6,7 +6,7 @@ import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants
 export default class SupremacyOfUnimaginableSize extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'supremacy#of-unimaginable-size-id',
+            id: '4478482436',
             internalName: 'supremacy#of-unimaginable-size',
         };
     }

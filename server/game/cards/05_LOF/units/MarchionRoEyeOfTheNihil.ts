@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class MarchionRoEyeOfTheNihil extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'marchion-ro#eye-of-the-nihil-id',
+            id: '4627342747',
             internalName: 'marchion-ro#eye-of-the-nihil',
         };
     }

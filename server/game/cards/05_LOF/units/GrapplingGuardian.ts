@@ -6,7 +6,7 @@ import { WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class GrapplingGuardian extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'grappling-guardian-id',
+            id: '2404240951',
             internalName: 'grappling-guardian',
         };
     }
