@@ -50,7 +50,7 @@ describe('Geonosis Patrol Fighter', function() {
             expect(context.player1).not.toHaveEnabledPromptButton('Done');
             context.player1.clickCard(context.asajjVentress);
             context.player1.clickCard(context.separatistCommando);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // Validating ability is optional
             expect(context.player1).toHavePassAbilityButton();

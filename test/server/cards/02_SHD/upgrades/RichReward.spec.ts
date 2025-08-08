@@ -26,7 +26,7 @@ describe('Rich Reward', function() {
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.concordDawnInterceptors);
                 context.player2.clickCardNonChecking(context.atst);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.wampa).toHaveExactUpgradeNames(['experience']);
                 expect(context.concordDawnInterceptors).toHaveExactUpgradeNames(['experience']);
@@ -56,7 +56,7 @@ describe('Rich Reward', function() {
                 expect(context.player2).toHavePrompt('Collect Bounty: Give an Experience token to each of up to 2 units');
 
                 context.player2.clickCard(context.yoda);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 expect(context.yoda).toHaveExactUpgradeNames(['experience']);
                 expect(context.player2).toBeActivePlayer();

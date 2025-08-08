@@ -121,7 +121,7 @@ describe('As I Have Foreseen', function () {
                     expect(context.player1).toHaveEnabledPromptButton('Done');
                     expect(context.getChatLogs(1)[0]).not.toContain(context.zuckuss.title);
 
-                    context.player1.clickPrompt('Done');
+                    context.player1.clickDone();
 
                     expect(context.player2).toBeActivePlayer();
                     expect(context.zuckuss).toBeInZone('deck');

@@ -62,6 +62,30 @@ describe('Anakin Skywalker, What It Takes To Win', function () {
                 context.ignoreUnresolvedActionPhasePrompts = true;
             });
 
+            it('should deal 2 damage to his base and heal with Restore from the attack', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'anakin-skywalker#what-it-takes-to-win',
+                        base: { card: 'dagobah-swamp', damage: 0 },
+                        groundArena: ['moisture-farmer'],
+                        resources: 5
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Use Anakin and have Moisture Farmer attack - the game should end before Restore resolves
+                context.player1.clickCard(context.anakinSkywalker);
+                expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer]);
+                context.player1.clickCard(context.moistureFarmer);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p1Base.damage).toBe(0); // 2 damage from Anakin, 2 heal from Restore
+            });
+
             it('should buff attack against both targets if attacker can attack multiple targets', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -82,7 +106,7 @@ describe('Anakin Skywalker, What It Takes To Win', function () {
                 context.player1.clickCard(context.darthMaul);
                 context.player1.clickCard(context.moistureFarmer);
                 context.player1.clickCard(context.cantinaBraggart);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.moistureFarmer.damage).toBe(7);
                 expect(context.cantinaBraggart.damage).toBe(7);

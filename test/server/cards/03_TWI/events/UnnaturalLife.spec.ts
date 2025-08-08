@@ -40,8 +40,8 @@ describe('Unnatural Life', function() {
                 context.moveToRegroupPhase();
                 expect(context.zuckuss).toBeInZone('discard');
 
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 // Make sure the player can't play Zuckuss again
                 context.player1.setHand([context.unnaturalLife]);

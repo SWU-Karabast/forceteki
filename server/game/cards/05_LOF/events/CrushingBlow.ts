@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class CrushingBlow extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'crushing-blow-id',
+            id: '4218264341',
             internalName: 'crushing-blow',
         };
     }

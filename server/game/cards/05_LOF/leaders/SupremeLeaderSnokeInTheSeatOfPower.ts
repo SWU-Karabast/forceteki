@@ -8,7 +8,7 @@ import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbi
 export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'supreme-leader-snoke#in-the-seat-of-power-id',
+            id: '9919167831',
             internalName: 'supreme-leader-snoke#in-the-seat-of-power',
         };
     }

@@ -58,7 +58,7 @@ describe('Darth Maul\'s Lightsaber', () => {
                 // Resolve Maul's On Attack ability
                 context.player1.clickCard(context.cellBlockGuard);
                 context.player1.clickCard(context.phaseiiiDarkTrooper);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Check the result of the attack
                 expect(context.cellBlockGuard).toBeInZone('discard');
@@ -93,7 +93,7 @@ describe('Darth Maul\'s Lightsaber', () => {
                 // Choose to attack both units for Maul's ability
                 context.player1.clickCard(context.cellBlockGuard);
                 context.player1.clickCard(context.phaseiiiDarkTrooper);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Check the result of the attack
                 expect(context.cellBlockGuard).toBeInZone('discard');
@@ -158,7 +158,7 @@ describe('Darth Maul\'s Lightsaber', () => {
                 // Resolve Maul's On Attack ability
                 context.player1.clickCard(context.cellBlockGuard);
                 context.player1.clickCard(context.phaseiiiDarkTrooper);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Check the result of the attack
                 expect(maulLeader.exhausted).toBeTrue();
