@@ -11,12 +11,52 @@ import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, undoArray } from '../GameObjectUtils';
 
-interface ICustomDurationEvent {
-    name: string;
-    handler: (...args: any[]) => void;
-    effect: OngoingEffect<any>;
+interface ICustomDurationEventState extends IGameObjectBaseState {
+    isRegistered: boolean;
 }
 
+class CustomDurationEvent extends GameObjectBase<ICustomDurationEventState> {
+    public readonly name: string;
+    public readonly handler: (...args: any[]) => void;
+    public readonly effect: OngoingEffect<any>;
+
+    public constructor(game: Game, name: string, handler: (...args: any[]) => void, effect: OngoingEffect<any>) {
+        super(game);
+        this.name = name;
+        this.handler = handler;
+        this.effect = effect;
+    }
+
+    protected override setupDefaultState(): void {
+        this.state.isRegistered = false;
+    }
+
+    public registerEvent(): void {
+        this.state.isRegistered = true;
+        this.game.on(this.name, this.handler);
+    }
+
+    public unregisterEvent(): void {
+        this.state.isRegistered = false;
+        this.game.removeListener(this.name, this.handler);
+    }
+
+    protected override afterSetState(oldState: ICustomDurationEventState): void {
+        if (this.state.isRegistered !== oldState.isRegistered) {
+            if (this.state.isRegistered) {
+                this.registerEvent();
+            } else {
+                this.unregisterEvent();
+            }
+        }
+    }
+
+    public override cleanupOnRemove(oldState: ICustomDurationEventState): void {
+        if (oldState.isRegistered) {
+            this.unregisterEvent();
+        }
+    }
+}
 
 export interface IOngoingEffectState extends IGameObjectBaseState {
     effects: GameObjectRef<OngoingEffect<any>>[]; // TODO: Can we make OngoingEffect have an ID w/o using GameObjectBase? Probably, do it similiar to how snapshot IDs work.
@@ -25,11 +65,13 @@ export interface IOngoingEffectState extends IGameObjectBaseState {
 @registerState()
 export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
     public events: EventRegistrar;
-    public customDurationEvents: ICustomDurationEvent[] = [];
     public effectsChangedSinceLastCheck = false;
 
     @undoArray()
     public accessor effects: readonly OngoingEffect[] = [];
+
+    @undoArray()
+    public accessor customDurationEvents: readonly CustomDurationEvent[] = [];
 
     public constructor(game: Game) {
         super(game);
@@ -224,25 +266,28 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         }
 
         const handler = this.createCustomDurationHandler(effect);
+
+        const newEvents: CustomDurationEvent[] = [];
         for (const eventName of Object.keys(effect.until)) {
-            this.customDurationEvents.push({
-                name: eventName,
-                handler: handler,
-                effect: effect
-            });
-            this.game.on(eventName, handler);
+            const newEvent = new CustomDurationEvent(this.game, eventName, handler, effect);
+            newEvent.registerEvent();
+            newEvents.push(newEvent);
         }
+
+        this.customDurationEvents = [...this.customDurationEvents, ...newEvents];
     }
 
     private unregisterCustomDurationEvents(effect: OngoingEffect<any>) {
-        const remainingEvents: ICustomDurationEvent[] = [];
+        const remainingEvents: CustomDurationEvent[] = [];
+
         for (const event of this.customDurationEvents) {
             if (event.effect === effect) {
-                this.game.removeListener(event.name, event.handler);
+                event.unregisterEvent();
             } else {
                 remainingEvents.push(event);
             }
         }
+
         this.customDurationEvents = remainingEvents;
     }
 
@@ -262,29 +307,7 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         return this.effects.map((effect) => effect.getDebugInfo());
     }
 
-    public override afterSetAllState(prevState: IOngoingEffectState) {
-        const prevStateEffectUuids = new Set(prevState.effects.map((x) => x.uuid));
-        const currStateEffectUuids = new Set(this.state.effects.map((x) => x.uuid));
-
-        // if an effect exists in this snapshot but not before rollback, we need to register its custom duration events
-        for (const currEffect of this.effects) {
-            if (!prevStateEffectUuids.has(currEffect.uuid)) {
-                if (currEffect.duration === Duration.Custom) {
-                    this.registerCustomDurationEvents(currEffect);
-                }
-            }
-        }
-
-        // if an effect existed before rollback but not in this snapshot, we need to unregister its custom duration events
-        for (const prevEffectRef of prevState.effects) {
-            if (!currStateEffectUuids.has(prevEffectRef.uuid)) {
-                const prevEffect = this.getObject(prevEffectRef);
-                if (prevEffect.duration === Duration.Custom) {
-                    this.unregisterCustomDurationEvents(prevEffect);
-                }
-            }
-        }
-
+    public override afterSetAllState(_prevState: IOngoingEffectState) {
         // resolve effects so that targets are recalculated
         this.resolveEffects(true);
     }

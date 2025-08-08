@@ -203,6 +203,8 @@ class GameStateBuilder {
             context.cardPropertyNames.push(card.propertyName);
         });
 
+        Util.refreshGameState(context.game);
+
         if (options.phase !== 'setup') {
             // reset snapshot history after setup so that the history doesn't hold any snapshots of the game state before setup
             context.game.snapshotManager.clearAllSnapshots();
@@ -220,8 +222,6 @@ class GameStateBuilder {
                 playerId: context.game.getActivePlayer().id,
             });
         }
-
-        Util.refreshGameState(context.game);
 
         this.attachAbbreviatedContextInfo(context, context);
     }
