@@ -48,8 +48,11 @@ global.integration = function (definitions, enableUndo = false) {
          */
         const contextRef = {
             context: null,
-            setupTestAsync: async function (options) {
+            setupTestAsync: async function (options, extraSetup) {
                 await this.context.setupTestAsync(options);
+                if (extraSetup) {
+                    extraSetup(this.context);
+                }
             }
         };
         beforeEach(function () {

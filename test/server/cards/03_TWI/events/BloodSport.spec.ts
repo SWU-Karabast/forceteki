@@ -2,8 +2,8 @@ describe('Blood Sport', function() {
     integration(function(contextRef) {
         describe('Blood Sport\'s ability', function() {
             describe('when ground arena is not empty', function() {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['blood-sport'],

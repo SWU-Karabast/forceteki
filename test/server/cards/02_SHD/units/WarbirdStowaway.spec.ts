@@ -2,8 +2,8 @@ describe('Warbird Stowaway', function () {
     integration(function (contextRef) {
         describe('Warbird Stowaway\'s ability', function () {
             describe('when the player does not have initiative', function () {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             groundArena: ['warbird-stowaway'],
@@ -27,8 +27,8 @@ describe('Warbird Stowaway', function () {
             });
 
             describe('when the player has initiative', function () {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             groundArena: ['warbird-stowaway'],

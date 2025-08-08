@@ -44,7 +44,7 @@ interface SnapshotUtils {
 interface SwuTestContextRef {
     context: SwuTestContext;
     snapshot?: SnapshotUtils;
-    setupTestAsync: (options?: SwuSetupTestOptions) => Promise;
+    setupTestAsync: (options?: SwuSetupTestOptions, extraSetup?: (context: SwuTestContext) => void) => Promise;
 
     buildImportAllCardsTools: () => {
         deckBuilder: DeckBuilder;

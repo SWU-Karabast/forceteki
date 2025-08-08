@@ -1,8 +1,8 @@
 describe('Card lasting effects', function() {
     integration(function (contextRef) {
         describe('A card lasting effect with duration "while source is in play" should', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['huyang#enduring-instructor'],
@@ -11,13 +11,12 @@ describe('Card lasting effects', function() {
                     player2: {
                         hand: ['vanquish', 'discerning-veteran', 'waylay', 'change-of-heart']
                     }
+                },
+                (context) => {
+                    // play out Huyang and target Wampa with his effect
+                    context.player1.clickCard(context.huyang);
+                    context.player1.clickCard(context.wampa);
                 });
-
-                const { context } = contextRef;
-
-                // play out Huyang and target Wampa with his effect
-                context.player1.clickCard(context.huyang);
-                context.player1.clickCard(context.wampa);
             });
 
             it('have effect while the source is in play and go away when it is defeated', function () {
@@ -128,8 +127,8 @@ describe('Card lasting effects', function() {
         });
 
         describe('A card lasting effect with duration "while source is in play", when the unique rule is triggered,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['huyang#enduring-instructor', 'huyang#enduring-instructor'],
@@ -138,21 +137,20 @@ describe('Card lasting effects', function() {
                     player2: {
                         hand: ['daring-raid']
                     }
+                },
+                (context) => {
+                    const [huyangInPlay, huyangInHand] = context.player1.findCardsByName('huyang#enduring-instructor');
+                    context.huyangInPlay = huyangInPlay;
+                    context.huyangInHand = huyangInHand;
+
+                    // play the first Huyang and put +2/+2 on the Stormtrooper
+                    context.player1.clickCard(huyangInPlay);
+                    context.player1.clickCard(context.deathStarStormtrooper);
+
+                    // then hit it with Daring Raid so it will die if the Huyang effect is lost
+                    context.player2.clickCard(context.daringRaid);
+                    context.player2.clickCard(context.deathStarStormtrooper);
                 });
-
-                const { context } = contextRef;
-
-                const [huyangInPlay, huyangInHand] = context.player1.findCardsByName('huyang#enduring-instructor');
-                context.huyangInPlay = huyangInPlay;
-                context.huyangInHand = huyangInHand;
-
-                // play the first Huyang and put +2/+2 on the Stormtrooper
-                context.player1.clickCard(huyangInPlay);
-                context.player1.clickCard(context.deathStarStormtrooper);
-
-                // then hit it with Daring Raid so it will die if the Huyang effect is lost
-                context.player2.clickCard(context.daringRaid);
-                context.player2.clickCard(context.deathStarStormtrooper);
             });
 
             it('should expire before the new effect can resolve if the in-play copy is defeated', function() {

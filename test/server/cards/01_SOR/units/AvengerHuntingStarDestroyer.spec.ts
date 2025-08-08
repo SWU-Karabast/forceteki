@@ -1,8 +1,8 @@
 describe('Avenger, Hunting Star Destroyer', function() {
     integration(function(contextRef) {
         describe('Avenger\'s destroy ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['avenger#hunting-star-destroyer'],
@@ -15,11 +15,11 @@ describe('Avenger, Hunting Star Destroyer', function() {
                         spaceArena: ['cartel-spacer', 'avenger#hunting-star-destroyer'],
                         leader: { card: 'grand-moff-tarkin#oversector-governor', deployed: true }
                     }
+                },
+                (context) => {
+                    context.p1Avenger = context.player1.findCardByName('avenger#hunting-star-destroyer');
+                    context.p2Avenger = context.player2.findCardByName('avenger#hunting-star-destroyer');
                 });
-
-                const { context } = contextRef;
-                context.p1Avenger = context.player1.findCardByName('avenger#hunting-star-destroyer');
-                context.p2Avenger = context.player2.findCardByName('avenger#hunting-star-destroyer');
             });
 
             it('forces opponent to defeat friendly non-leader unit when Avenger is played', function () {

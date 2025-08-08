@@ -1,8 +1,8 @@
 describe('Abilities', function() {
     integration(function (contextRef) {
         describe('When played ability, on attack ability', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'wampa'],
@@ -14,10 +14,11 @@ describe('Abilities', function() {
                         groundArena: ['battlefield-marine'],
                         hand: ['waylay', 'waylay']
                     }
+                },
+                (context) => {
+                    context.firstWaylay = context.player2.hand[0];
+                    context.secondWaylay = context.player2.hand[1];
                 });
-                const { context } = contextRef;
-                context.firstWaylay = context.player2.hand[0];
-                context.secondWaylay = context.player2.hand[1];
             });
 
             it('on attack ability should trigger only once after the unit was removed from play and played again', function () {
@@ -54,8 +55,8 @@ describe('Abilities', function() {
         });
 
         describe('Constant abilities', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
@@ -65,10 +66,11 @@ describe('Abilities', function() {
                         groundArena: ['battlefield-marine', 'general-dodonna#massassi-group-commander'],
                         hand: ['waylay']
                     }
+                },
+                (context) => {
+                    context.firstWaylay = context.player1.hand[0];
+                    context.secondWaylay = context.player2.hand[0];
                 });
-                const { context } = contextRef;
-                context.firstWaylay = context.player1.hand[0];
-                context.secondWaylay = context.player2.hand[0];
             });
 
             it('negative constant effects should only trigger once after the unit was removed from play and played again',

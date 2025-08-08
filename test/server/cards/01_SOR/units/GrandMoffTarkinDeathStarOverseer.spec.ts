@@ -1,8 +1,8 @@
 describe('Grand Moff Tarkin, Death Star Overseer', function() {
     integration(function(contextRef) {
         describe('Grand Moff Tarkin\'s Ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['grand-moff-tarkin#death-star-overseer'],
@@ -12,11 +12,11 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                         hand: ['grand-moff-tarkin#death-star-overseer'],
                         deck: ['system-patrol-craft', 'clan-wren-rescuer', 'village-protectors', 'concord-dawn-interceptors', 'gentle-giant', 'frontier-atrt', 'cargo-juggernaut', 'public-enemy']
                     }
+                },
+                (context) => {
+                    context.p1Tarkin = context.player1.findCardByName('grand-moff-tarkin#death-star-overseer');
+                    context.p2tarkin = context.player2.findCardByName('grand-moff-tarkin#death-star-overseer');
                 });
-
-                const { context } = contextRef;
-                context.p1Tarkin = context.player1.findCardByName('grand-moff-tarkin#death-star-overseer');
-                context.p2tarkin = context.player2.findCardByName('grand-moff-tarkin#death-star-overseer');
             });
 
             it('should prompt to choose up to 2 Imperials from the top 5 cards, reveal chosen, draw them, and put the rest on the bottom of the deck', function () {

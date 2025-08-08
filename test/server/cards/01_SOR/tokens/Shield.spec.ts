@@ -49,8 +49,8 @@ describe('Shield', function() {
         });
 
         describe('Shield\'s ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['cartel-spacer']
@@ -58,10 +58,10 @@ describe('Shield', function() {
                     player2: {
                         spaceArena: [{ card: 'tieln-fighter', upgrades: ['shield', 'shield'] }]
                     }
+                },
+                (context) => {
+                    context.shields = context.player2.findCardsByName('shield');
                 });
-
-                const { context } = contextRef;
-                context.shields = context.player2.findCardsByName('shield');
             });
 
             it('should defeat itself to prevent damage to the attached unit', function () {

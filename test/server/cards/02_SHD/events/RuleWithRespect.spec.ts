@@ -1,8 +1,8 @@
 describe('Rule With Respect', function() {
     integration(function(contextRef) {
         describe('Rule With Respect\'s event ability', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['rule-with-respect', 'battlefield-marine', 'death-star-stormtrooper', 'tieln-fighter', 'change-of-heart', 'waylay'],

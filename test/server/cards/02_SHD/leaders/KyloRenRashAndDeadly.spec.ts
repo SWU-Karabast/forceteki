@@ -1,8 +1,8 @@
 describe('Kylo Ren, Rash And Deadly', function() {
     integration(function(contextRef) {
         describe('Kylo Ren\'s leader undeployed ability', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay', 'protector'],
@@ -82,8 +82,8 @@ describe('Kylo Ren, Rash And Deadly', function() {
         });
 
         describe('Kylo Ren\'s leader deployed ability', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['death-star-stormtrooper', 'scout-bike-pursuer', 'tieln-fighter', 'seasoned-shoretrooper', 'partisan-insurgent', 'surprise-strike'],

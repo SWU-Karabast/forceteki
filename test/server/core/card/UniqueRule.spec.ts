@@ -1,8 +1,8 @@
 describe('Uniqueness rule', function() {
     integration(function(contextRef) {
         describe('When another copy of a unique unit in play enters play for the same controller,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['chopper#metal-menace', 'clone'],
@@ -12,13 +12,13 @@ describe('Uniqueness rule', function() {
                         hand: ['takedown'],
                         groundArena: ['chopper#metal-menace']
                     },
+                },
+                (context) => {
+                    const p1Choppers = context.player1.findCardsByName('chopper#metal-menace');
+                    context.chopperInHand = p1Choppers.find((chopper) => chopper.zoneName === 'hand');
+                    context.chopperInPlay = p1Choppers.find((chopper) => chopper.zoneName === 'groundArena');
+                    context.p2Chopper = context.player2.findCardByName('chopper#metal-menace');
                 });
-
-                const { context } = contextRef;
-                const p1Choppers = context.player1.findCardsByName('chopper#metal-menace');
-                context.chopperInHand = p1Choppers.find((chopper) => chopper.zoneName === 'hand');
-                context.chopperInPlay = p1Choppers.find((chopper) => chopper.zoneName === 'groundArena');
-                context.p2Chopper = context.player2.findCardByName('chopper#metal-menace');
             });
 
             it('the player should be prompted to choose a copy to defeat', function () {
@@ -87,8 +87,8 @@ describe('Uniqueness rule', function() {
         });
 
         describe('When another copy of a unique upgrade in play enters play for the same controller,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['lukes-lightsaber'],
@@ -103,13 +103,13 @@ describe('Uniqueness rule', function() {
                     player2: {
                         groundArena: [{ card: 'wild-rancor', upgrades: ['lukes-lightsaber'] }]
                     }
+                },
+                (context) => {
+                    const p1Lightsabers = context.player1.findCardsByName('lukes-lightsaber');
+                    context.lightsaberInHand = p1Lightsabers.find((lightsaber) => lightsaber.zoneName === 'hand');
+                    context.lightsaberInPlay = p1Lightsabers.find((lightsaber) => lightsaber.zoneName === 'groundArena');
+                    context.p2Lightsaber = context.player2.findCardByName('lukes-lightsaber');
                 });
-
-                const { context } = contextRef;
-                const p1Lightsabers = context.player1.findCardsByName('lukes-lightsaber');
-                context.lightsaberInHand = p1Lightsabers.find((lightsaber) => lightsaber.zoneName === 'hand');
-                context.lightsaberInPlay = p1Lightsabers.find((lightsaber) => lightsaber.zoneName === 'groundArena');
-                context.p2Lightsaber = context.player2.findCardByName('lukes-lightsaber');
             });
 
             it('when played on a different unit, the player should be prompted to choose a copy to defeat', function () {
@@ -149,8 +149,8 @@ describe('Uniqueness rule', function() {
         });
 
         describe('When another copy of a unique piloting card enters play for the same controller,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -165,12 +165,12 @@ describe('Uniqueness rule', function() {
                     player2: {
                         groundArena: ['battlefield-marine']
                     }
+                },
+                (context) => {
+                    [context.hanSolo1, context.hanSolo2] = context.player1.findCardsByName('han-solo#has-his-moments');
+                    context.shdFalcon = context.player1.findCardByName('millennium-falcon#landos-pride');
+                    context.jtlFalcon = context.player1.findCardByName('millennium-falcon#get-out-and-push');
                 });
-
-                const { context } = contextRef;
-                [context.hanSolo1, context.hanSolo2] = context.player1.findCardsByName('han-solo#has-his-moments');
-                context.shdFalcon = context.player1.findCardByName('millennium-falcon#landos-pride');
-                context.jtlFalcon = context.player1.findCardByName('millennium-falcon#get-out-and-push');
             });
 
             it('and they are played differently, the player should be prompted to choose a copy to defeat', function () {
@@ -290,8 +290,8 @@ describe('Uniqueness rule', function() {
         });
 
         describe('When a duplicate of a unique card is played that triggers its own ability on play,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['colonel-yularen#isb-director'],
@@ -301,12 +301,12 @@ describe('Uniqueness rule', function() {
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
+                },
+                (context) => {
+                    const p1Yularens = context.player1.findCardsByName('colonel-yularen#isb-director');
+                    context.yularenInHand = p1Yularens.find((yularen) => yularen.zoneName === 'hand');
+                    context.yularenInPlay = p1Yularens.find((yularen) => yularen.zoneName === 'groundArena');
                 });
-
-                const { context } = contextRef;
-                const p1Yularens = context.player1.findCardsByName('colonel-yularen#isb-director');
-                context.yularenInHand = p1Yularens.find((yularen) => yularen.zoneName === 'hand');
-                context.yularenInPlay = p1Yularens.find((yularen) => yularen.zoneName === 'groundArena');
             });
 
             it('the trigger should happen twice', function () {
@@ -335,8 +335,8 @@ describe('Uniqueness rule', function() {
         });
 
         describe('When a duplicate of a unique card is played which triggers its copy\'s ability on defeat,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['agent-kallus#seeking-the-rebels'],
@@ -345,12 +345,12 @@ describe('Uniqueness rule', function() {
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
+                },
+                (context) => {
+                    const p1Kalluss = context.player1.findCardsByName('agent-kallus#seeking-the-rebels');
+                    context.kallusInHand = p1Kalluss.find((kallus) => kallus.zoneName === 'hand');
+                    context.kallusInPlay = p1Kalluss.find((kallus) => kallus.zoneName === 'groundArena');
                 });
-
-                const { context } = contextRef;
-                const p1Kalluss = context.player1.findCardsByName('agent-kallus#seeking-the-rebels');
-                context.kallusInHand = p1Kalluss.find((kallus) => kallus.zoneName === 'hand');
-                context.kallusInPlay = p1Kalluss.find((kallus) => kallus.zoneName === 'groundArena');
             });
 
             it('and the copy in play is chosen for defeat, the ability should trigger', function () {
@@ -409,8 +409,8 @@ describe('Uniqueness rule', function() {
         });
 
         describe('When a duplicate of a unique card is played,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['admiral-motti#brazen-and-scornful'],
@@ -420,12 +420,12 @@ describe('Uniqueness rule', function() {
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
+                },
+                (context) => {
+                    const p1Mottis = context.player1.findCardsByName('admiral-motti#brazen-and-scornful');
+                    context.mottiInHand = p1Mottis.find((motti) => motti.zoneName === 'hand');
+                    context.mottiInPlay = p1Mottis.find((motti) => motti.zoneName === 'groundArena');
                 });
-
-                const { context } = contextRef;
-                const p1Mottis = context.player1.findCardsByName('admiral-motti#brazen-and-scornful');
-                context.mottiInHand = p1Mottis.find((motti) => motti.zoneName === 'hand');
-                context.mottiInPlay = p1Mottis.find((motti) => motti.zoneName === 'groundArena');
             });
 
             it('and the in play copy is chosen for defeat, it should be able to target the copy from hand with a when defeated ability', function () {
@@ -478,8 +478,8 @@ describe('Uniqueness rule', function() {
         });
 
         describe('When a duplicate of a unique card with an ongoing effect is played,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['supreme-leader-snoke#shadow-ruler'],
@@ -491,12 +491,12 @@ describe('Uniqueness rule', function() {
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
+                },
+                (context) => {
+                    const p1Snokes = context.player1.findCardsByName('supreme-leader-snoke#shadow-ruler');
+                    context.snokeInHand = p1Snokes.find((snoke) => snoke.zoneName === 'hand');
+                    context.snokeInPlay = p1Snokes.find((snoke) => snoke.zoneName === 'groundArena');
                 });
-
-                const { context } = contextRef;
-                const p1Snokes = context.player1.findCardsByName('supreme-leader-snoke#shadow-ruler');
-                context.snokeInHand = p1Snokes.find((snoke) => snoke.zoneName === 'hand');
-                context.snokeInPlay = p1Snokes.find((snoke) => snoke.zoneName === 'groundArena');
             });
 
             it('the ongoing effects should never be active at the same time if the copy in play is defeated', function () {

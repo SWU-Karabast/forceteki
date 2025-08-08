@@ -1,8 +1,8 @@
 describe('Snapshot types', function() {
     undoIntegration(function(contextRef) {
         describe('During the action phase,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['death-trooper'],
@@ -15,10 +15,8 @@ describe('Snapshot types', function() {
                         hand: ['battlefield-marine'],
                         hasInitiative: true
                     }
-                });
-
-                const { context } = contextRef;
-
+                },
+                (context) => {
                 // starting state:
                 // p1Base damage: 0
                 // p2Base damage: 0
@@ -26,109 +24,110 @@ describe('Snapshot types', function() {
                 // Death Trooper in hand
                 // No damage on units
 
-                contextRef.snapshot.takeManualSnapshot(context.player1Object);
-                context.p1ManualSnapshot1Id = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1ManualSnapshot1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                    context.p1ManualSnapshot1Id = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1ManualSnapshot1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
-                context.player2.clickCard(context.battlefieldMarine);
+                    context.player2.clickCard(context.battlefieldMarine);
 
-                context.player1.clickCard(context.cartelSpacer);
-                context.player1.clickCard(context.p2Base);
+                    context.player1.clickCard(context.cartelSpacer);
+                    context.player1.clickCard(context.p2Base);
 
-                // state after pre-history actions (P2 action -2 offset):
-                // p1Base damage: 0
-                // p2Base damage: 2
-                // Battlefield Marine in play
-                // Death Trooper in hand
-                // No damage on units
+                    // state after pre-history actions (P2 action -2 offset):
+                    // p1Base damage: 0
+                    // p2Base damage: 2
+                    // Battlefield Marine in play
+                    // Death Trooper in hand
+                    // No damage on units
 
-                context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
-                context.player2.clickCard(context.superlaserTechnician);
-                context.player2.clickCard(context.p1Base);
+                    context.player2.clickCard(context.superlaserTechnician);
+                    context.player2.clickCard(context.p1Base);
 
-                // state after P2 first action (P1 action -2 offset):
-                // p1Base damage: 2
-                // p2Base damage: 2
-                // Battlefield Marine in play
-                // Death Trooper in hand
-                // No damage on units
+                    // state after P2 first action (P1 action -2 offset):
+                    // p1Base damage: 2
+                    // p2Base damage: 2
+                    // Battlefield Marine in play
+                    // Death Trooper in hand
+                    // No damage on units
 
-                context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
-                // Play Death Trooper
-                context.player1.clickCard(context.deathTrooper);
+                    // Play Death Trooper
+                    context.player1.clickCard(context.deathTrooper);
 
-                // Choose Friendly
-                context.player1.clickCard(context.deathTrooper);
+                    // Choose Friendly
+                    context.player1.clickCard(context.deathTrooper);
 
-                // Choose Enemy
-                context.player1.clickCard(context.wampa);
-                expect(context.deathTrooper.damage).toEqual(2);
-                expect(context.wampa.damage).toEqual(2);
+                    // Choose Enemy
+                    context.player1.clickCard(context.wampa);
+                    expect(context.deathTrooper.damage).toEqual(2);
+                    expect(context.wampa.damage).toEqual(2);
 
-                // state after P1 first action (P2 action -1 offset):
-                // p1Base damage: 2
-                // p2Base damage: 2
-                // Battlefield Marine in play
-                // Death Trooper in play
-                // Death Trooper damage: 2
-                // Wampa damage: 2
+                    // state after P1 first action (P2 action -1 offset):
+                    // p1Base damage: 2
+                    // p2Base damage: 2
+                    // Battlefield Marine in play
+                    // Death Trooper in play
+                    // Death Trooper damage: 2
+                    // Wampa damage: 2
 
-                contextRef.snapshot.takeManualSnapshot(context.player2Object);
-                context.p2ManualSnapshot1Id = contextRef.snapshot.getCurrentSnapshotId();
-                context.p2ManualSnapshot1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    contextRef.snapshot.takeManualSnapshot(context.player2Object);
+                    context.p2ManualSnapshot1Id = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p2ManualSnapshot1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
-                context.p2Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p2Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    context.p2Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p2Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
-                context.player2.clickCard(context.wampa);
-                context.player2.clickCard(context.p1Base);
+                    context.player2.clickCard(context.wampa);
+                    context.player2.clickCard(context.p1Base);
 
-                // state after P2 first action (P1 action -1 offset):
-                // p1Base damage: 6
-                // p2Base damage: 2
-                // Battlefield Marine in play
-                // Death Trooper in play
-                // Death Trooper damage: 2
-                // Wampa damage: 2
+                    // state after P2 first action (P1 action -1 offset):
+                    // p1Base damage: 6
+                    // p2Base damage: 2
+                    // Battlefield Marine in play
+                    // Death Trooper in play
+                    // Death Trooper damage: 2
+                    // Wampa damage: 2
 
-                context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
-                context.player1.clickCard(context.secretiveSage);
-                context.player1.clickCard(context.p2Base);
+                    context.player1.clickCard(context.secretiveSage);
+                    context.player1.clickCard(context.p2Base);
 
-                // state after P1 second action (P2 action 0 offset):
-                // p1Base damage: 6
-                // p2Base damage: 4
-                // Battlefield Marine in play
-                // Death Trooper in play
-                // Death Trooper damage: 2
-                // Wampa damage: 2
+                    // state after P1 second action (P2 action 0 offset):
+                    // p1Base damage: 6
+                    // p2Base damage: 4
+                    // Battlefield Marine in play
+                    // Death Trooper in play
+                    // Death Trooper damage: 2
+                    // Wampa damage: 2
 
-                context.p2Action3SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p2Action3ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    context.p2Action3SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p2Action3ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
-                context.player2.clickCard(context.tielnFighter);
-                context.player2.clickCard(context.p1Base);
+                    context.player2.clickCard(context.tielnFighter);
+                    context.player2.clickCard(context.p1Base);
 
-                // state after P2 second action (P1 action 0 offset):
-                // p1Base damage: 8
-                // p2Base damage: 4
-                // Battlefield Marine in play
-                // Death Trooper in play
-                // Death Trooper damage: 2
-                // Wampa damage: 2
+                    // state after P2 second action (P1 action 0 offset):
+                    // p1Base damage: 8
+                    // p2Base damage: 4
+                    // Battlefield Marine in play
+                    // Death Trooper in play
+                    // Death Trooper damage: 2
+                    // Wampa damage: 2
 
-                contextRef.snapshot.takeManualSnapshot(context.player1Object);
-                context.p1ManualSnapshot2Id = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1ManualSnapshot2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                    context.p1ManualSnapshot2Id = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1ManualSnapshot2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
-                context.p1Action3SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1Action3ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    context.p1Action3SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1Action3ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                });
             });
 
             const assertActionPhaseStartState = (context, checkManualSnapshots = true) => {
@@ -789,8 +788,8 @@ describe('Snapshot types', function() {
         });
 
         describe('After multiple rounds,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['death-trooper'],
@@ -803,77 +802,76 @@ describe('Snapshot types', function() {
                         hand: ['battlefield-marine'],
                         hasInitiative: true
                     }
+                },
+                (context) => {
+                    context.player2.clickCard(context.battlefieldMarine);
+
+                    context.player1.clickCard(context.cartelSpacer);
+                    context.player1.clickCard(context.p2Base);
+
+                    context.player2.clickCard(context.superlaserTechnician);
+                    context.player2.clickCard(context.p1Base);
+
+                    // Play Death Trooper
+                    context.player1.clickCard(context.deathTrooper);
+
+                    // Choose Friendly
+                    context.player1.clickCard(context.deathTrooper);
+
+                    // Choose Enemy
+                    context.player1.clickCard(context.wampa);
+                    expect(context.deathTrooper.damage).toEqual(2);
+                    expect(context.wampa.damage).toEqual(2);
+
+                    context.moveToRegroupPhase();
+
+                    context.regroupPhase1ManualSnapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                    context.regroupPhase1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    context.regroupPhase1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                    context.player2.clickDone();
+                    context.player1.clickDone();
+
+                    context.actionPhase2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    context.actionPhase2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                    // state after first action phase:
+                    // p1Base damage: 2
+                    // p2Base damage: 2
+                    // Battlefield Marine in play
+                    // Death Trooper in play
+                    // Death Trooper damage: 2
+                    // Wampa damage: 2
+
+                    context.player2.clickCard(context.wampa);
+                    context.player2.clickCard(context.p1Base);
+
+                    context.player1.clickCard(context.secretiveSage);
+                    context.player1.clickCard(context.p2Base);
+
+                    context.moveToRegroupPhase();
+
+                    context.regroupPhase2ManualSnapshotId = contextRef.snapshot.takeManualSnapshot(context.player2Object);
+                    context.regroupPhase2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    context.regroupPhase2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                    context.player2.clickDone();
+                    context.player1.clickDone();
+
+                    context.actionPhase3ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                    context.actionPhase3SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                    // state after second action phase:
+                    // p1Base damage: 6
+                    // p2Base damage: 4
+                    // Battlefield Marine in play
+                    // Death Trooper in play
+                    // Death Trooper damage: 2
+                    // Wampa damage: 2
+
+                    context.player2.clickCard(context.tielnFighter);
+                    context.player2.clickCard(context.p1Base);
                 });
-
-                const { context } = contextRef;
-
-                context.player2.clickCard(context.battlefieldMarine);
-
-                context.player1.clickCard(context.cartelSpacer);
-                context.player1.clickCard(context.p2Base);
-
-                context.player2.clickCard(context.superlaserTechnician);
-                context.player2.clickCard(context.p1Base);
-
-                // Play Death Trooper
-                context.player1.clickCard(context.deathTrooper);
-
-                // Choose Friendly
-                context.player1.clickCard(context.deathTrooper);
-
-                // Choose Enemy
-                context.player1.clickCard(context.wampa);
-                expect(context.deathTrooper.damage).toEqual(2);
-                expect(context.wampa.damage).toEqual(2);
-
-                context.moveToRegroupPhase();
-
-                context.regroupPhase1ManualSnapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
-                context.regroupPhase1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-                context.regroupPhase1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-
-                context.player2.clickDone();
-                context.player1.clickDone();
-
-                context.actionPhase2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-                context.actionPhase2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-
-                // state after first action phase:
-                // p1Base damage: 2
-                // p2Base damage: 2
-                // Battlefield Marine in play
-                // Death Trooper in play
-                // Death Trooper damage: 2
-                // Wampa damage: 2
-
-                context.player2.clickCard(context.wampa);
-                context.player2.clickCard(context.p1Base);
-
-                context.player1.clickCard(context.secretiveSage);
-                context.player1.clickCard(context.p2Base);
-
-                context.moveToRegroupPhase();
-
-                context.regroupPhase2ManualSnapshotId = contextRef.snapshot.takeManualSnapshot(context.player2Object);
-                context.regroupPhase2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-                context.regroupPhase2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-
-                context.player2.clickDone();
-                context.player1.clickDone();
-
-                context.actionPhase3ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-                context.actionPhase3SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-
-                // state after second action phase:
-                // p1Base damage: 6
-                // p2Base damage: 4
-                // Battlefield Marine in play
-                // Death Trooper in play
-                // Death Trooper damage: 2
-                // Wampa damage: 2
-
-                context.player2.clickCard(context.tielnFighter);
-                context.player2.clickCard(context.p1Base);
             });
 
             const assertPhase2State = (context) => {
@@ -1034,8 +1032,8 @@ describe('Snapshot types', function() {
         });
 
         describe('During a short first action phase,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['death-trooper'],
@@ -1048,29 +1046,28 @@ describe('Snapshot types', function() {
                         hand: ['battlefield-marine'],
                         hasInitiative: true
                     }
+                },
+                (context) => {
+                    context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    context.player2.clickCard(context.battlefieldMarine);
+
+                    context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    context.player1.clickCard(context.cartelSpacer);
+                    context.player1.clickCard(context.p2Base);
+
+                    context.p2Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p2Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    context.player2.clickCard(context.superlaserTechnician);
+                    context.player2.clickCard(context.p1Base);
+
+                    context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
                 });
-
-                const { context } = contextRef;
-
-                context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                context.player2.clickCard(context.battlefieldMarine);
-
-                context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                context.player1.clickCard(context.cartelSpacer);
-                context.player1.clickCard(context.p2Base);
-
-                context.p2Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p2Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                context.player2.clickCard(context.superlaserTechnician);
-                context.player2.clickCard(context.p1Base);
-
-                context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
             });
 
             it('action snapshots cannot revert back further than the beginning of the phase for the non-active player', function () {
@@ -1116,8 +1113,8 @@ describe('Snapshot types', function() {
         });
 
         describe('During a short action phase after a regroup phase,', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['death-trooper'],
@@ -1130,38 +1127,37 @@ describe('Snapshot types', function() {
                         hand: ['battlefield-marine'],
                         hasInitiative: true
                     }
+                },
+                (context) => {
+                    context.player2.clickCard(context.battlefieldMarine);
+
+                    context.player1.clickCard(context.cartelSpacer);
+                    context.player1.clickCard(context.p2Base);
+
+                    context.player2.clickCard(context.superlaserTechnician);
+                    context.player2.clickCard(context.p1Base);
+
+                    context.p1FurthestSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1FurthestSnapshotActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    context.player1.clickCard(context.secretiveSage);
+                    context.player1.clickCard(context.p2Base);
+
+                    // move to next action phase - involves one additional action from each player
+                    context.p2FurthestSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p2FurthestSnapshotActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    context.player2.clickPrompt('Pass');
+                    context.player1.clickPrompt('Pass');
+                    context.player2.clickDone();
+                    context.player1.clickDone();
+
+                    context.player2.clickCard(context.battlefieldMarine);
+                    context.player2.clickCard(context.p1Base);
+
+                    context.player1.clickCard(context.cartelSpacer);
+                    context.player1.clickCard(context.p2Base);
                 });
-
-                const { context } = contextRef;
-
-                context.player2.clickCard(context.battlefieldMarine);
-
-                context.player1.clickCard(context.cartelSpacer);
-                context.player1.clickCard(context.p2Base);
-
-                context.player2.clickCard(context.superlaserTechnician);
-                context.player2.clickCard(context.p1Base);
-
-                context.p1FurthestSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1FurthestSnapshotActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                context.player1.clickCard(context.secretiveSage);
-                context.player1.clickCard(context.p2Base);
-
-                // move to next action phase - involves one additional action from each player
-                context.p2FurthestSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p2FurthestSnapshotActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                context.player2.clickPrompt('Pass');
-                context.player1.clickPrompt('Pass');
-                context.player2.clickDone();
-                context.player1.clickDone();
-
-                context.player2.clickCard(context.battlefieldMarine);
-                context.player2.clickCard(context.p1Base);
-
-                context.player1.clickCard(context.cartelSpacer);
-                context.player1.clickCard(context.p2Base);
             });
 
             it('action snapshots can revert back into the previous action phase for the active player', function () {
@@ -1200,8 +1196,8 @@ describe('Snapshot types', function() {
         });
 
         describe('effects at the start of the action phase', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -1218,37 +1214,36 @@ describe('Snapshot types', function() {
                             contextRef.context.player1.clickDone();
                         }
                     }
+                },
+                (context) => {
+                    context.moveToNextActionPhase();
+
+                    context.startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.startOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    // thrawn ability reveal top deck of each player (happens at beginning of action phase)
+                    expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                        { card: context.rivalsFall, displayText: 'Yourself' },
+                        { card: context.specforceSoldier, displayText: 'Opponent' }
+                    ]);
+
+                    context.player1.clickDone();
+
+                    context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    context.player1.clickCard(context.battlefieldMarine);
+                    context.player1.clickCard(context.p2Base);
+
+                    context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    context.player2.clickCard(context.wampa);
+                    context.player2.clickCard(context.p1Base);
+
+                    context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
                 });
-
-                const { context } = contextRef;
-
-                context.moveToNextActionPhase();
-
-                context.startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.startOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                // thrawn ability reveal top deck of each player (happens at beginning of action phase)
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([
-                    { card: context.rivalsFall, displayText: 'Yourself' },
-                    { card: context.specforceSoldier, displayText: 'Opponent' }
-                ]);
-
-                context.player1.clickDone();
-
-                context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickCard(context.p2Base);
-
-                context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                context.player2.clickCard(context.wampa);
-                context.player2.clickCard(context.p1Base);
-
-                context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
             });
 
             const assertActionPhaseStartState = (context) => {
@@ -1308,8 +1303,8 @@ describe('Snapshot types', function() {
         });
 
         describe('effects at the start of the regroup phase', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['inferno-four#unforgetting', 'system-patrol-craft'],
@@ -1319,34 +1314,33 @@ describe('Snapshot types', function() {
                         spaceArena: ['green-squadron-awing'],
                         groundArena: ['wampa']
                     }
+                },
+                (context) => {
+                    // Play Ruthless Raider from hand
+                    context.player1.clickCard(context.sneakAttack);
+                    context.player1.clickCard(context.ruthlessRaider);
+
+                    // Select Enemy Unit and Base. Not able to select friendly units
+                    expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                    context.player1.clickCard(context.greenSquadronAwing);
+
+                    // Check damage on unit and base
+                    expect(context.p2Base.damage).toBe(2);
+                    expect(context.greenSquadronAwing.damage).toBe(2);
+
+                    context.moveToRegroupPhase();
+
+                    context.startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.startOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    // RR is defeated by Sneak Attack effect. Select Enemy Unit and Base. Not able to select friendly units
+                    expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                    context.player1.clickCard(context.greenSquadronAwing);
+
+                    // Check damage on unit and base
+                    expect(context.p2Base.damage).toBe(4);
+                    expect(context.greenSquadronAwing).toBeInZone('discard');
                 });
-
-                const { context } = contextRef;
-
-                // Play Ruthless Raider from hand
-                context.player1.clickCard(context.sneakAttack);
-                context.player1.clickCard(context.ruthlessRaider);
-
-                // Select Enemy Unit and Base. Not able to select friendly units
-                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
-                context.player1.clickCard(context.greenSquadronAwing);
-
-                // Check damage on unit and base
-                expect(context.p2Base.damage).toBe(2);
-                expect(context.greenSquadronAwing.damage).toBe(2);
-
-                context.moveToRegroupPhase();
-
-                context.startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.startOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                // RR is defeated by Sneak Attack effect. Select Enemy Unit and Base. Not able to select friendly units
-                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
-                context.player1.clickCard(context.greenSquadronAwing);
-
-                // Check damage on unit and base
-                expect(context.p2Base.damage).toBe(4);
-                expect(context.greenSquadronAwing).toBeInZone('discard');
             });
 
             const assertRegroupPhaseStartState = (context) => {

@@ -226,6 +226,7 @@ export default tseslint.config(
             "no-useless-concat": ["warn"],
             "no-useless-constructor": ["warn"],
             "array-bracket-spacing": ["error", "never"],
+            "no-unreachable": ["error"],
             "@typescript-eslint/no-unused-vars": ["error", {
                 "vars": "local",
             }],

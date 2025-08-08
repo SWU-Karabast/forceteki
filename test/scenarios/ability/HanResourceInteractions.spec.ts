@@ -1,8 +1,8 @@
 describe('Han Solo Resource Interaction Scenarios', function() {
     integration(function(contextRef) {
         describe('Han Solo\'s interaction with DJ\'s resource steal ability', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'han-solo#audacious-smuggler',
@@ -49,8 +49,8 @@ describe('Han Solo Resource Interaction Scenarios', function() {
         });
 
         describe('Han Solo\'s interaction with Millenium Falcon\'s resource payment', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'han-solo#audacious-smuggler',

@@ -2,8 +2,8 @@ describe('Impropriety Among Thieves', function () {
     integration(function (contextRef) {
         describe('Impropriety Among Thieves\'s event ability', function () {
             describe('when there are no ready non-leader units in play', function () {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['impropriety-among-thieves'],
@@ -70,8 +70,8 @@ describe('Impropriety Among Thieves', function () {
             });
 
             describe('when there are ready non-leader units in play', function () {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['impropriety-among-thieves'],
@@ -281,8 +281,8 @@ describe('Impropriety Among Thieves', function () {
             });
 
             describe('when a unit is taken with traitorous ability', function () {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['impropriety-among-thieves'],

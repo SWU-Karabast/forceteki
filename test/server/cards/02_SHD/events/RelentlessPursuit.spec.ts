@@ -1,8 +1,8 @@
 describe('Relentless Pursuit', function() {
     integration(function(contextRef) {
         describe('Relentless Pursuit\'s event ability', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['relentless-pursuit'],

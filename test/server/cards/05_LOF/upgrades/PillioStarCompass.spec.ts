@@ -1,8 +1,8 @@
 describe('Pillio Star Compass', function() {
     integration(function(contextRef) {
         describe('Pillio Star Compass\'s Ability', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['mas-amedda#vice-chair'],

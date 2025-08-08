@@ -5,8 +5,8 @@
 describe('Lose All Abilities', function() {
     integration(function(contextRef) {
         describe('Some meta-relavant and edge cases worth covering:', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'kazuda-xiono#best-pilot-in-the-galaxy', deployed: true },

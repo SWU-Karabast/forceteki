@@ -1,8 +1,8 @@
 describe('Take control system', function() {
     integration(function(contextRef) {
         describe('When a player takes control of a unit in the arena', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
@@ -19,13 +19,12 @@ describe('Take control system', function() {
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
-                });
-
-                const { context } = contextRef;
-
+                },
+                (context) => {
                 // flip Palpatine to take control of Lom Pyke
-                context.player1.clickCard(context.emperorPalpatine);
-                context.player1.clickPrompt('Deploy Emperor Palpatine');
+                    context.player1.clickCard(context.emperorPalpatine);
+                    context.player1.clickPrompt('Deploy Emperor Palpatine');
+                });
             });
 
             it('it should keep all state', function () {

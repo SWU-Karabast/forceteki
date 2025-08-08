@@ -2,8 +2,8 @@ describe('Commission', function () {
     integration(function (contextRef) {
         describe('Commission\'s ability - ', function () {
             describe('when there is one or more valid option,', function () {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['commission'],
@@ -76,8 +76,8 @@ describe('Commission', function () {
             });
 
             describe('when the deck is empty,', function() {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['commission'],
@@ -101,8 +101,8 @@ describe('Commission', function () {
             });
 
             describe('when there are no valid options,', function() {
-                beforeEach(async function () {
-                    await contextRef.setupTestAsync({
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['commission'],

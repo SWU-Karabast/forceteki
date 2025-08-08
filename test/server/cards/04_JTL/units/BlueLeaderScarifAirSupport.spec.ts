@@ -211,8 +211,8 @@ describe('Blue Leader, Scarif Air Support', function() {
         });
 
         describe('After Blue Leader has moved to the ground arena', function() {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -225,15 +225,13 @@ describe('Blue Leader, Scarif Air Support', function() {
                     player2: {
                         hand: ['shoot-down', 'wild-rancor', 'takedown']
                     }
+                },
+                (context) => {
+                    context.player1.clickCard(context.blueLeader);
+                    expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', '(No effect) Ambush']);
+                    context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
+                    context.player1.clickPrompt('Trigger');
                 });
-
-                // setup Blue Leader in ground arena for each test
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.blueLeader);
-                expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', '(No effect) Ambush']);
-                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-                context.player1.clickPrompt('Trigger');
             });
 
             it('it should not be explicitly targetable for \'choose a space unit\' effects', function() {

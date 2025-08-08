@@ -1,8 +1,8 @@
 describe('Count Dooku, Fallen Jedi', function() {
     integration(function(contextRef) {
         describe('Count Dooku\'s when played ability', function () {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['count-dooku#fallen-jedi'],
