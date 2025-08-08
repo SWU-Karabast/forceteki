@@ -46,7 +46,8 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay((context) => ({
                     playAsType: WildcardCardType.Upgrade,
                     canPlayFromAnyZone: true,
-                    attachTargetCondition: (attachTarget) => attachTarget === context.source
+                    attachTargetCondition: (attachTarget) => attachTarget === context.source,
+                    nested: true
                 }))
             },
             then: () => this.thenPlayAnotherUpgrade(AbilityHelper)
@@ -64,7 +65,8 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay((context) => ({
                     playAsType: WildcardCardType.Upgrade,
                     canPlayFromAnyZone: true,
-                    attachTargetCondition: (attachTarget) => attachTarget === context.source
+                    attachTargetCondition: (attachTarget) => attachTarget === context.source,
+                    nested: true
                 }))
             },
             then: () => this.thenPlayAnotherUpgrade(AbilityHelper)
