@@ -87,6 +87,8 @@ interface SwuTestContext {
     skipSetupPhase();
     startGameAsync(): Promise;
 
+    setupCallCount: number;
+
     // To account for any dynamically added cards or objects, we have a free-form accessor.
     [field: string]: any;
 }

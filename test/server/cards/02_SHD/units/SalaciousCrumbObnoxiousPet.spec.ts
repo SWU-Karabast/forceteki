@@ -31,8 +31,8 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
         });
 
         describe('Crumb\'s action ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('should deal 1 damage to any selected ground unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['salacious-crumb#obnoxious-pet', 'wampa'],
@@ -42,9 +42,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                         spaceArena: ['cartel-spacer']
                     }
                 });
-            });
 
-            it('should deal 1 damage to any selected ground unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.salaciousCrumb);
