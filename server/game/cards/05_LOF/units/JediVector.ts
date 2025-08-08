@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class JediVector extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'jedi-vector-id',
+            id: '0035741177',
             internalName: 'jedi-vector'
         };
     }
