@@ -151,6 +151,8 @@ import type { IRandomSelectionSystemProperties } from './RandomSelectionSystem';
 import { RandomSelectionSystem } from './RandomSelectionSystem';
 import type { ISearchEntireDeckProperties } from './SearchEntireDeckSystem';
 import { SearchEntireDeckSystem } from './SearchEntireDeckSystem';
+import type { ICreateSpyProperties } from './CreateSpySystem';
+import { CreateSpySystem } from './CreateSpySystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -197,6 +199,9 @@ export function createXWing<TContext extends AbilityContext = AbilityContext>(pr
 }
 export function createTieFighter<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTieFighterProperties, TContext> = {}) {
     return new CreateTieFighterSystem<TContext>(propertyFactory);
+}
+export function createSpy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateSpyProperties, TContext> = {}) {
+    return new CreateSpySystem<TContext>(propertyFactory);
 }
 export function theForceIsWithYou<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateForceTokenProperties, TContext> = {}) {
     return new CreateForceTokenSystem<TContext>(propertyFactory);
