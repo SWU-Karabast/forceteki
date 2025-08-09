@@ -137,7 +137,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             for (const target of legalTargets) {
                 const contextWithTarget = this.getContextCopy(target, context, this.targetMode);
 
-                if (this.immediateEffect.hasLegalTarget(contextWithTarget, {}, GameStateChangeRequired.MustFullyOrPartiallyResolve)) {
+                if (this.immediateEffect.hasLegalTarget(contextWithTarget, {}, this.properties.mustChangeGameState || GameStateChangeRequired.MustFullyOrPartiallyResolve)) {
                     effectiveTargetFound = true;
                     break;
                 }
