@@ -31,6 +31,12 @@ export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
     protected state: T;
 
+    private _hasRef = false;
+
+    public get hasRef() {
+        return this._hasRef;
+    }
+
     /** ID given by the game engine. */
     public get uuid() {
         return this.state.uuid;
@@ -87,6 +93,8 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
+        this._hasRef = true;
+
         const ref = { isRef: true, uuid: this.state.uuid };
 
         if (Helpers.isDevelopment()) {

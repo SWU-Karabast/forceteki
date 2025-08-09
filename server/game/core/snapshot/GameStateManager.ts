@@ -50,7 +50,26 @@ export class GameStateManager implements IGameObjectRegistrar {
         }
     }
 
-    public getAllGameStates(): IGameObjectBaseState[] {
+    public buildGameStateForSnapshot(): IGameObjectBaseState[] {
+        const removals: GameObjectBase[] = [];
+
+        // Indexes in last to first for the purpose of removal.
+        for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
+            const go = this.allGameObjects[i];
+
+            if (!go.hasRef) {
+                // If the GameObjectBase doesn't have a ref, it means it was never used in the game, so we can skip it.
+                removals.push(go);
+            }
+        }
+
+        this.allGameObjects = this.allGameObjects.filter((_, index) => !removals.includes(index));
+
+        for (const removed of removals) {
+            this.gameObjectMapping.delete(removed.uuid);
+        }
+
+        // Return the state of all game objects that are still in the game.
         return this.allGameObjects.map((go) => go.getState());
     }
 
