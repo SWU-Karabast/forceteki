@@ -363,6 +363,7 @@ export enum KeywordName {
     Raid = 'raid',
     Restore = 'restore',
     Piloting = 'piloting',
+    Plot = 'plot',
     Saboteur = 'saboteur',
     Sentinel = 'sentinel',
     Shielded = 'shielded',

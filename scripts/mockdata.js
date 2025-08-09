@@ -74,6 +74,10 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Armor of Fortune',
+        power: 0,
+        upgradePower: 0,
+        upgradeHp: 3,
+        hp: 3,
         hasNonKeywordAbility: false,
         keywords: ['plot'],
         aspects: ['vigilance'],
