@@ -233,6 +233,7 @@ export enum TokenUnitName {
     CloneTrooper = 'cloneTrooper',
     XWing = 'xwing',
     TIEFighter = 'tieFighter',
+    Spy = 'spy',
 }
 
 export enum TokenCardName {
