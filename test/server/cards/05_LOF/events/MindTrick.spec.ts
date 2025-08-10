@@ -36,7 +36,7 @@ describe('Mind Trick', function () {
             // Select Cantina Braggart and Captain Tarkin to exhaust
             context.player1.clickCard(context.cantinaBraggart);
             context.player1.clickCard(context.captainTarkin);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.player2).toBeActivePlayer();
 
@@ -81,7 +81,7 @@ describe('Mind Trick', function () {
             context.player1.clickCard(context.redThree);
             context.player1.clickCard(context.cantinaBraggart);
             context.player1.clickCard(context.captainTarkin);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.player2).toBeActivePlayer();
             expect(context.redThree.exhausted).toBeTrue();

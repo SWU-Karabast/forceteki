@@ -94,7 +94,7 @@ describe('War Juggernaut', function() {
                 context.player1.clickCard(context.firstLegionSnowtrooper);
                 context.player1.clickCard(context.maulShadowCollectiveVisionary);
                 context.player1.clickCard(context.ruthlessRaider);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // War Juggernaut should have 9 power (3 from card and 6 from damaged units)
                 expect(context.warJuggernaut.getPower()).toBe(9);

@@ -80,10 +80,6 @@ export class GameStateManager implements IGameObjectRegistrar {
                 go.setState(updatedState);
             }
 
-            // Inform GOs that all states have been updated.
-            for (const update of updates) {
-                update.go.afterSetAllState(update.oldState);
-            }
             for (const removed of removals) {
                 removed.go.cleanupOnRemove(removed.oldState);
             }
@@ -95,7 +91,10 @@ export class GameStateManager implements IGameObjectRegistrar {
                 this.gameObjectMapping.delete(removed.go.uuid);
             }
 
-            this._lastGameObjectId = snapshot.lastGameObjectId;
+            // Inform GOs that all states have been updated.
+            for (const update of updates) {
+                update.go.afterSetAllState(update.oldState);
+            }
         } finally {
             this._isRollingBack = false;
         }

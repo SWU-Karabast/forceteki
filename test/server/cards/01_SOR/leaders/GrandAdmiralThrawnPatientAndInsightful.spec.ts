@@ -17,7 +17,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                     },
                     phaseTransitionHandler: (phase) => {
                         if (phase === 'action') {
-                            contextRef.context.player1.clickPrompt('Done');
+                            contextRef.context.player1.clickDone();
                         }
                     }
                 });
@@ -37,7 +37,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                 // confirm that there is no chat message for the cards
                 expect(context.getChatLogs(1)[0]).not.toContain(context.rivalsFall.title);
                 expect(context.getChatLogs(1)[0]).not.toContain(context.specforceSoldier.title);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toBeActivePlayer();
             });
@@ -96,7 +96,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                     },
                     phaseTransitionHandler: (phase) => {
                         if (phase === 'action') {
-                            contextRef.context.player1.clickPrompt('Done');
+                            contextRef.context.player1.clickDone();
                         }
                     }
                 });
@@ -114,7 +114,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
 
                 // confirm that there is no chat message for the cards
                 expect(context.getChatLogs(1)[0]).not.toContain(context.rivalsFall.title);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toBeActivePlayer();
             });
@@ -167,7 +167,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                     },
                     phaseTransitionHandler: (phase) => {
                         if (phase === 'action') {
-                            contextRef.context.player1.clickPrompt('Done');
+                            contextRef.context.player1.clickDone();
                         }
                     }
                 });
@@ -208,7 +208,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                     },
                     phaseTransitionHandler: (phase) => {
                         if (phase === 'action') {
-                            contextRef.context.player1.clickPrompt('Done');
+                            contextRef.context.player1.clickDone();
                         }
                     }
                 });
@@ -228,7 +228,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                 // confirm that there is no chat message for the cards
                 expect(context.getChatLogs(1)[0]).not.toContain(context.rivalsFall.title);
                 expect(context.getChatLogs(1)[0]).not.toContain(context.specforceSoldier.title);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toBeActivePlayer();
             });
@@ -297,7 +297,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                     },
                     phaseTransitionHandler: (phase) => {
                         if (phase === 'action') {
-                            contextRef.context.player1.clickPrompt('Done');
+                            contextRef.context.player1.clickDone();
                         }
                     }
                 });
@@ -315,7 +315,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
 
                 // confirm that there is no chat message for the cards
                 expect(context.getChatLogs(1)[0]).not.toContain(context.rivalsFall.title);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toBeActivePlayer();
             });
@@ -367,7 +367,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                     },
                     phaseTransitionHandler: (phase) => {
                         if (phase === 'action') {
-                            contextRef.context.player1.clickPrompt('Done');
+                            contextRef.context.player1.clickDone();
                         }
                     }
                 });

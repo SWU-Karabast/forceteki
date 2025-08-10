@@ -143,8 +143,8 @@ describe('Bounty Hunter\'s Quarry', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(0);
 
                 // Pass on resourcing
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 // Check that the last two cards in the deck before collecting the bounty are now in hand
                 expect(context.superlaserTechnician).toBeInZone('hand');

@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class Shatterpoint extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'shatterpoint-id',
+            id: '0033766648',
             internalName: 'shatterpoint',
         };
     }

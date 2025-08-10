@@ -58,7 +58,7 @@ describe('Jump to Lightspeed', function() {
                 context.player1.clickCard(context.entrenched);
                 context.player1.clickCard(context.academyTraining);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.millenniumFalcon).toBeInZone('hand');
                 expect(context.entrenched).toBeInZone('hand');
@@ -109,7 +109,7 @@ describe('Jump to Lightspeed', function() {
                 context.player1.clickCard(context.millenniumFalcon);
                 expect(context.player1).toBeAbleToSelectExactly([context.shield, context.experience]);
                 context.player1.clickCard(context.shield);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.millenniumFalcon).toBeInZone('hand');
                 expect([context.shield, context.experience]).toAllBeInZone('outsideTheGame');
@@ -138,7 +138,7 @@ describe('Jump to Lightspeed', function() {
                 context.player1.clickCard(context.millenniumFalcon);
                 expect(context.player1).toBeAbleToSelectExactly([context.entrenched]);
                 context.player1.clickCard(context.entrenched);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.millenniumFalcon).toBeInZone('hand');
                 expect(context.entrenched).toBeInZone('hand', context.player2);
@@ -205,7 +205,7 @@ describe('Jump to Lightspeed', function() {
                 context.player1.clickCard(xwing);
                 expect(context.player1).toBeAbleToSelectExactly([context.entrenched]);
                 context.player1.clickCard(context.entrenched);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(xwing).toBeInZone('outsideTheGame');
                 expect(context.entrenched).toBeInZone('hand');

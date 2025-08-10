@@ -23,7 +23,7 @@ describe('Lando Calrissian, Responsible Businessman', function() {
                 expect(context.player1).toBeAbleToSelectExactly(context.player1.resources);
                 context.player1.clickCard(context.player1.resources.find((card) => card.exhausted));
                 context.player1.clickCard(context.player1.resources.find((card) => !card.exhausted));
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1.handSize).toBe(2);
                 expect(context.player1.exhaustedResourceCount).toBe(4);

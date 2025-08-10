@@ -57,7 +57,7 @@ describe('Bodhi Rook', function () {
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.sabineWren, context.battlefieldMarine, context.infernoFour]
                 });
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
             });
         });
     });

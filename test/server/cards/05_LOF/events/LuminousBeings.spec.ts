@@ -30,7 +30,7 @@ describe('Luminous Beings', function () {
                 player1.clickCard(context.obiwanKenobi);
                 player1.clickCard(context.yoda);
                 player1.clickCardNonChecking(context.aaylaSecura);
-                player1.clickPrompt('Done');
+                player1.clickDone();
 
                 // Two units were selected, so we should be able to give +4/+4 to two units
                 expect(player1).toBeAbleToSelectExactly([context.yaddle, context.wampa, context.swoopRacer, context.atst]);
@@ -38,7 +38,7 @@ describe('Luminous Beings', function () {
                 player1.clickCard(context.wampa);
                 player1.clickCard(context.swoopRacer);
                 player1.clickCardNonChecking(context.atst);
-                player1.clickPrompt('Done');
+                player1.clickDone();
 
                 // Verify the units got +4/+4
                 expect(context.yaddle.getPower()).toBe(6);
@@ -78,14 +78,14 @@ describe('Luminous Beings', function () {
 
                 player1.clickCard(context.lukeSkywalker);
                 player1.clickCard(context.obiwanKenobi);
-                player1.clickPrompt('Done');
+                player1.clickDone();
 
                 // Two units were selected, so we should be able to give +4/+4 to two units
                 expect(player1).toBeAbleToSelectExactly([context.yaddle, context.wampa, context.swoopRacer, context.atst]);
                 player1.clickCard(context.yaddle);
                 player1.clickCard(context.wampa);
                 player1.clickCardNonChecking(context.swoopRacer);
-                player1.clickPrompt('Done');
+                player1.clickDone();
 
                 // Verify the units got +4/+4
                 expect(context.yaddle.getPower()).toBe(6);

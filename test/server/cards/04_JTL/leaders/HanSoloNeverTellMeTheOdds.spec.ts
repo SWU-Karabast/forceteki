@@ -19,7 +19,7 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 expect(context.getChatLogs(1)[0]).toContain(context.daringRaid.title);
 
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.daringRaid]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender]);
                 expect(context.hanSolo.exhausted).toBeTrue();
@@ -45,7 +45,7 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 context.player1.clickPrompt('Reveal the top card of your deck');
                 expect(context.getChatLogs(1)[0]).toContain(context.helloThere.title);
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.helloThere]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender]);
                 expect(context.hanSolo.exhausted).toBeTrue();
@@ -71,7 +71,7 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 context.player1.clickPrompt('Reveal the top card of your deck');
                 expect(context.getChatLogs(1)[0]).toContain(context.surpriseStrike.title);
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.surpriseStrike]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toBeAbleToSelectExactly([context.moddedCohort]);
                 expect(context.hanSolo.exhausted).toBeTrue();
@@ -95,7 +95,7 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 context.player1.clickPrompt('Reveal the top card of your deck');
                 expect(context.getChatLogs(1)[0]).toContain(context.helloThere.title);
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.helloThere]);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.hanSolo.exhausted).toBeTrue();
                 expect(context.player2).toBeActivePlayer();

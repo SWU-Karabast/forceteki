@@ -68,8 +68,8 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.passAction();
                 context.player2.clickCard(context.superlaserBlast);
 
-                expect(context.player1.groundArena.length).toBe(0);
-                expect(context.player1.spaceArena.length).toBe(0);
+                expect(context.player1.groundArenaUnits.length).toBe(0);
+                expect(context.player1.spaceArenaUnits.length).toBe(0);
 
                 // Use Kazuda's ability with no friendly units on board
                 context.player1.clickCard(context.kazudaXiono);
@@ -132,7 +132,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 // Select Contracted Hunter and Fireball
                 context.player1.clickCard(context.contractedHunter);
                 context.player1.clickCard(context.fireball);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Trigger K2SO's ability to ensure it is still active
                 context.player2.clickCard(context.takedown);
@@ -194,7 +194,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.kazudaXiono);
                 context.player1.clickCard(context.contractedHunter);
                 context.player1.clickCard(context.fireball);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Restore still happens b/c it was triggered before blanking resolved
                 expect(context.p1Base.damage).toBe(8);
@@ -309,7 +309,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 // Select Contracted Hunter and Fireball
                 context.player1.clickCard(context.contractedHunter);
                 context.player1.clickCard(context.fireball);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Move to the regroup phase
                 context.moveToRegroupPhase();
@@ -379,7 +379,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 // Remove his ability from Fireball (among others)
                 context.player1.clickCard(context.contractedHunter);
                 context.player1.clickCard(context.fireball);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Restore still happens b/c it was triggered before blanking resolved
                 expect(context.p1Base.damage).toBe(8);

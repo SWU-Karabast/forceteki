@@ -71,7 +71,7 @@ describe('Corrupted Saber', () => {
                 context.player1.clickCard(context.darthMaul);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.consularSecurityForce);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Both defenders only did 1 damage each
                 expect(context.darthMaul.damage).toBe(2);

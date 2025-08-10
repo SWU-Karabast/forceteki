@@ -35,8 +35,8 @@ describe('Forced Surrender', function() {
                     context.player1.moveCard(context.forcedSurrender, 'hand');
                     context.player1.passAction();
 
-                    context.player2.clickPrompt('Done');
-                    context.player1.clickPrompt('Done');
+                    context.player2.clickDone();
+                    context.player1.clickDone();
 
                     expect(context.player1.handSize).toBe(3);
                     expect(context.player2.handSize).toBe(2);
@@ -151,7 +151,7 @@ describe('Forced Surrender', function() {
                 const p2BaseDamageBeforeDraw = context.p2Base.damage;
                 context.player1.clickPrompt('You');
                 context.player1.clickPrompt('Opponent');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
                 expect(context.p1Base.damage).toBe(p1BaseDamageBeforeDraw + 3);
                 expect(context.p2Base.damage).toBe(p2BaseDamageBeforeDraw + 3);
 

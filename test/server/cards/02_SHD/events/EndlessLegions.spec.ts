@@ -68,7 +68,7 @@ describe('Endless Legions', function() {
             context.player1.clickCard(context.frozenInCarbonite);
             context.player1.clickCard(context.wrecker);
             context.player1.clickCard(context.battlefieldMarine);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.getChatLogs(1)[0]).toContain(context.resupply.title);
             expect(context.getChatLogs(1)[0]).toContain(context.relentless.title);
@@ -89,7 +89,7 @@ describe('Endless Legions', function() {
                 context.wrecker,
                 context.battlefieldMarine,
             ]);
-            context.player2.clickPrompt('Done');
+            context.player2.clickDone();
 
             expect(context.player1).not.toHaveChooseNothingButton();
 
@@ -209,7 +209,7 @@ describe('Endless Legions', function() {
             context.player1.clickCard(context.resupply);
             context.player1.clickCard(context.frozenInCarbonite);
             context.player1.clickCard(context.confiscate);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.getChatLogs(1)[0]).toContain(context.resupply.title);
             expect(context.getChatLogs(1)[0]).toContain(context.frozenInCarbonite.title);
@@ -220,7 +220,7 @@ describe('Endless Legions', function() {
                 context.frozenInCarbonite,
                 context.confiscate
             ]);
-            context.player2.clickPrompt('Done');
+            context.player2.clickDone();
 
             expect(context.player2).toBeActivePlayer();
         });

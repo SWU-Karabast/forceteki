@@ -242,7 +242,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 context.player2.clickPrompt(defeatPrompt);
                 context.player2.clickCard(context.lukeSkywalker);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 context.player2.clickPrompt(damagePrompt);
                 context.player2.clickCard(context.wampa);
@@ -275,7 +275,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 context.player1.clickCard(context.powerFailure);
                 context.player1.clickCard(context.allianceXwing);
                 context.player1.clickCard(context.lukeSkywalker);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.lukeSkywalker).toBeInZone('base');
                 expect(context.player2).toBeActivePlayer();

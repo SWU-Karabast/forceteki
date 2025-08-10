@@ -82,7 +82,7 @@ describe('Arquitens Assault Cruiser', function() {
 
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCard(context.imperialInterceptor);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.imperialInterceptor).toBeInZone('discard', context.player2);
                 expect(context.cartelSpacer).toBeInZone('resource', context.player1);

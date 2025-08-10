@@ -80,7 +80,7 @@ describe('Vambrace Grappleshot', function() {
             context.player1.clickCard(context.darthMaul);
             context.player1.clickCard(context.cantinaBraggart);
             context.player1.clickCard(context.moistureFarmer);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // Use Vambrace Flamethrower to spread 3 damage
             expect(context.moistureFarmer.exhausted).toBe(true);

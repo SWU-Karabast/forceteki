@@ -76,7 +76,7 @@ describe('Force Speed', function() {
 
                 context.player1.clickCard(context.snapshotReflexes);
                 context.player1.clickCard(context.independentSmuggler);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Both upgrades should be returned to their owners' hands
                 expect(context.snapshotReflexes).toBeInZone('hand', context.player2);
@@ -93,7 +93,7 @@ describe('Force Speed', function() {
                 context.player1.clickCard(context.darthMaul);
                 context.player1.clickCard(context.consularSecurityForce);
                 context.player1.clickCard(context.sundariPeacekeeper);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Ability is triggered
                 expect(context.player1).toHavePrompt(prompt);
@@ -108,7 +108,7 @@ describe('Force Speed', function() {
                 context.player1.clickCard(context.shield);
                 context.player1.clickCard(context.experience);
                 context.player1.clickCard(context.perilousPosition);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Token upagrades are removed from the game instead of being returned to hand
                 expect(context.shield).toBeInZone('outsideTheGame');

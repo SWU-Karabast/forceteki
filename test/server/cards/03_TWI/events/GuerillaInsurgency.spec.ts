@@ -45,13 +45,13 @@ describe('Guerilla Insurgency', function() {
                 expect(context.player1).not.toHavePrompt('Done');
                 context.player1.clickCard('in-pursuit');
                 context.player1.clickCardNonChecking('droid-deployment');
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player2).toHavePrompt('Choose 2 cards to discard for Guerilla Insurgency\'s effect');
                 expect(context.player2).toBeAbleToSelectExactly(['force-choke', 'pillage']);
                 context.player2.clickCard('force-choke');
                 context.player2.clickCard('pillage');
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 // Assert defeated resources
                 expect(context.player1.resources.length).toBe(10);

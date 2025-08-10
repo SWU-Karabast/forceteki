@@ -57,7 +57,7 @@ describe('Tip The Scale', function () {
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.sabineWren, context.battlefieldMarine, context.infernoFour]
                 });
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
             });
 
             it('should look at an opponent\'s hand and discard a non-unit card from it.', async function () {

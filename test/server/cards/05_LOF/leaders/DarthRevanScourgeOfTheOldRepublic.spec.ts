@@ -254,7 +254,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.imperialInterceptor);
 
                 context.player1.clickCard(context.imperialInterceptor);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
@@ -323,7 +323,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.darthMaul);
                 context.player1.clickCard(context.warzoneLieutenant);
                 context.player1.clickCard(context.consularSecurityForce);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
@@ -338,7 +338,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.darthMaul);
                 context.player1.clickCard(context.warzoneLieutenant);
                 context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
@@ -611,7 +611,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.darthMaul);
                 context.player1.clickCard(context.warzoneLieutenant);
                 context.player1.clickCard(context.consularSecurityForce);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
@@ -625,7 +625,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.darthMaul);
                 context.player1.clickCard(context.warzoneLieutenant);
                 context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Choose resolution order
                 expect(context.player1).toHavePrompt('Choose an ability to resolve:');

@@ -56,7 +56,7 @@ describe('The Invisible Hand Imposing Flagship\'s ability', function() {
             context.player1.clickCard(battleDroidTokens[1]);
             context.player1.clickCard(battleDroidTokens[2]);
             context.player1.clickCard(context.vanguardDroidBomber);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
             expect(battleDroidTokens[1].exhausted).toBe(true);
             expect(battleDroidTokens[2].exhausted).toBe(true);
             expect(context.vanguardDroidBomber.exhausted).toBe(true);
