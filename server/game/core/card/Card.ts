@@ -214,6 +214,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.state.facedown;
     }
 
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public override get hasRef(): boolean {
+        return true;
+    }
+
     public get internalName(): string {
         return this._internalName;
     }

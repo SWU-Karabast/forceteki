@@ -47,6 +47,11 @@ export abstract class ZoneAbstract<TCard extends Card = Card, TState extends IGa
         return this.getCards();
     }
 
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public override get hasRef(): boolean {
+        return true;
+    }
+
     public constructor(game: Game, owner?: Player) {
         super(game);
         this.owner = owner ?? game;
