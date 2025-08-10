@@ -15,6 +15,7 @@ export class GameStateManager implements IGameObjectRegistrar {
     private readonly gameObjectMapping = new Map<string, GameObjectBase>();
 
     private _lastGameObjectId = -1;
+    private _isRollingBack = false;
 
     public get lastGameObjectId(): number {
         return this._lastGameObjectId;
@@ -56,44 +57,48 @@ export class GameStateManager implements IGameObjectRegistrar {
 
     public rollbackToSnapshot(snapshot: IGameSnapshot) {
         Contract.assertNotNullLike(snapshot, 'Empty snapshot provided for rollback');
+        this._isRollingBack = true;
+        try {
+            this.game.state = structuredClone(snapshot.gameState);
 
-        this.game.state = structuredClone(snapshot.gameState);
+            const removals: { index: number; go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+            const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
 
-        const removals: { index: number; go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
-        const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+            const snapshotStatesByUuid = new Map<string, IGameObjectBaseState>(snapshot.states.map((x) => [x.uuid, x]));
 
-        const snapshotStatesByUuid = new Map<string, IGameObjectBaseState>(snapshot.states.map((x) => [x.uuid, x]));
+            // Indexes in last to first for the purpose of removal.
+            for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
+                const go = this.allGameObjects[i];
 
-        // Indexes in last to first for the purpose of removal.
-        for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
-            const go = this.allGameObjects[i];
+                const updatedState = snapshotStatesByUuid.get(go.uuid);
+                if (!updatedState) {
+                    removals.push({ index: i, go, oldState: go.getState() });
+                    continue;
+                }
 
-            const updatedState = snapshotStatesByUuid.get(go.uuid);
-            if (!updatedState) {
-                removals.push({ index: i, go, oldState: go.getState() });
-                continue;
+                updates.push({ go, oldState: go.getState() });
+                go.setState(updatedState);
             }
 
-            updates.push({ go, oldState: go.getState() });
-            go.setState(updatedState);
-        }
+            // Inform GOs that all states have been updated.
+            for (const update of updates) {
+                update.go.afterSetAllState(update.oldState);
+            }
+            for (const removed of removals) {
+                removed.go.cleanupOnRemove(removed.oldState);
+            }
 
-        // Inform GOs that all states have been updated.
-        for (const update of updates) {
-            update.go.afterSetAllState(update.oldState);
-        }
-        for (const removed of removals) {
-            removed.go.cleanupOnRemove(removed.oldState);
-        }
+            // Remove GOs that hadn't yet been created by this point.
+            // Because the for loop to determine removals is done from end to beginning, we don't have to worry about deleted indexes causing a problem when the array shifts.
+            for (const removed of removals) {
+                this.allGameObjects.splice(removed.index, 1);
+                this.gameObjectMapping.delete(removed.go.uuid);
+            }
 
-        // Remove GOs that hadn't yet been created by this point.
-        // Because the for loop to determine removals is done from end to beginning, we don't have to worry about deleted indexes causing a problem when the array shifts.
-        for (const removed of removals) {
-            this.allGameObjects.splice(removed.index, 1);
-            this.gameObjectMapping.delete(removed.go.uuid);
+            this._lastGameObjectId = snapshot.lastGameObjectId;
+        } finally {
+            this._isRollingBack = false;
         }
-
-        this._lastGameObjectId = snapshot.lastGameObjectId;
     }
 
     private afterTakeSnapshot() {

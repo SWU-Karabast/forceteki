@@ -6,14 +6,14 @@ import type { IDamageSource } from '../IDamageOrDefeatSource';
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type Game from '../core/Game';
-import type { UnwrapRef } from '../core/GameObjectBase';
+import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
 // STATE TODO: This is a bad one. IDamageSource can have a lot of GameObjects and other nested references.
 export interface DamageDealtEntry {
     damageType: DamageType;
     damageSource: IDamageSource;
     targetType: CardType;
-    targetController: Player;
+    targetController: GameObjectRef<Player>;
     amount: number;
     isIndirect: boolean;
 }
@@ -30,7 +30,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPh
     }
 
     protected override mapCurrentValue(stateValue: DamageDealtEntry[]): UnwrapRef<DamageDealtEntry[]> {
-        return stateValue.map((x) => ({ ...x }));
+        return stateValue.map((x) => ({ ...x, targetController: this.game.getFromRef(x.targetController) }));
     }
 
     public getDamageDealtByPlayer(player: Player, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): UnwrapRef<IDamageDealtThisPhase> {
@@ -52,7 +52,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPh
                     damageType: event.type,
                     damageSource: event.damageSource,
                     targetType: event.card.type,
-                    targetController: event.card.controller,
+                    targetController: event.card.controller?.getRef(),
                     amount: event.damageDealt,
                     isIndirect: event.isIndirect,
                 })

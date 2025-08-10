@@ -882,6 +882,24 @@ describe('Undo', function() {
             });
         });
 
+        describe('The force token', function () {
+            undoIt('does not have any error when using a CardsLeftPlayThisPhaseWatcher', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'yoda#sensing-darkness',
+                        hand: ['cure-wounds'],
+                        hasForceToken: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.cureWounds);
+                expect(context.player1.hasTheForce).toBe(false);
+            });
+        });
+
         describe('Randomness cases', function () {
             it('should discard the same card after undo', async function () {
                 await contextRef.setupTestAsync({

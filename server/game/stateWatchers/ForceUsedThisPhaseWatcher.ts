@@ -44,7 +44,7 @@ export class ForceUsedThisPhaseWatcher extends StateWatcher<IForceUsedThisPhase>
             },
             update: (currentState: IForceUsedThisPhase, event: any) =>
                 currentState.concat({
-                    player: event.player,
+                    player: event.player.getRef(),
                 })
         });
     }
