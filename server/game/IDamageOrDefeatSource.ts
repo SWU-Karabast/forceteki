@@ -33,7 +33,6 @@ export interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
     attack: Attack;
     damageDealtBy: IUnitCard[];
     isOverwhelmDamage: boolean;
-    event: any;
 }
 
 export interface IDamagedOrDefeatedByAbility extends IDamageOrDefeatSourceBase {
@@ -43,7 +42,6 @@ export interface IDamagedOrDefeatedByAbility extends IDamageOrDefeatSourceBase {
     //       existing code and guarantee that it's always set.
     /* The player controlling the card that caused the damage */
     controller?: Player;
-    event: any;
 }
 
 export interface IDefeatedByUniqueRule extends IDamageOrDefeatSourceBase {
