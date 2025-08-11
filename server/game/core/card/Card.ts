@@ -215,7 +215,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public override get hasRef(): boolean {
+    public override get alwaysTrackState(): boolean {
         return true;
     }
 

@@ -48,7 +48,7 @@ export abstract class ZoneAbstract<TCard extends Card = Card, TState extends IGa
     }
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public override get hasRef(): boolean {
+    public override get alwaysTrackState(): boolean {
         return true;
     }
 

@@ -34,7 +34,7 @@ export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityL
     }
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public override get hasRef(): boolean {
+    public override get alwaysTrackState(): boolean {
         return true;
     }
 

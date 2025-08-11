@@ -29,12 +29,20 @@ export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
 @registerState()
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
+    public readonly game: Game;
+
     protected state: T;
 
     private _hasRef = false;
 
     public get hasRef() {
-        return this._hasRef;
+        return this._hasRef || this.alwaysTrackState;
+    }
+
+    /** Subclasses can override this to force the state manager to keep track of this object, even if refs aren't created for it */
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    protected get alwaysTrackState() {
+        return false;
     }
 
     /** ID given by the game engine. */
@@ -47,9 +55,8 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         this.state.uuid = value;
     }
 
-    public constructor(
-        public readonly game: Game
-    ) {
+    public constructor(game: Game) {
+        this.game = game;
         // @ts-expect-error state is a generic object that is defined by the deriving classes, it's essentially w/e the children want it to be.
         this.state = {};
         // All state defaults *must* happen before registration, so we can't rely on the derived constructor to set the defaults as register will already be called.

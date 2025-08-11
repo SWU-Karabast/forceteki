@@ -68,7 +68,7 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
     public effectsChangedSinceLastCheck = false;
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public override get hasRef(): boolean {
+    public override get alwaysTrackState(): boolean {
         return true;
     }
 
