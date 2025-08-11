@@ -33,6 +33,12 @@ export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityL
         this.state.ability = value.getRef();
     }
 
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public override get hasRef(): boolean {
+        return true;
+    }
+
+
     protected override setupDefaultState(): void {
         super.setupDefaultState();
 

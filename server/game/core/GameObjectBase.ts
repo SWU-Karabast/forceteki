@@ -48,7 +48,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     }
 
     public constructor(
-        public game: Game
+        public readonly game: Game
     ) {
         // @ts-expect-error state is a generic object that is defined by the deriving classes, it's essentially w/e the children want it to be.
         this.state = {};
