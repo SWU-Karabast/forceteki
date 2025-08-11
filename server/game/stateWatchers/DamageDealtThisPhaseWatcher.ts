@@ -7,11 +7,10 @@ import type { Card } from '../core/card/Card';
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
-// STATE TODO: This is a bad one. IDamageSource can have a lot of GameObjects and other nested references.
 export interface DamageDealtEntry {
     damageType: DamageType;
     damageSourcePlayer: GameObjectRef<Player>;
-    // damageSource: IDamageSource;
+    damageSourceEventId: number;
     targetType: CardType;
     targetController: GameObjectRef<Player>;
     amount: number;
@@ -51,6 +50,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPh
                 currentState.concat({
                     damageType: event.type,
                     damageSourcePlayer: event.damageSource.player?.getRef(),
+                    damageSourceEventId: event.damageSource.eventId,
                     targetType: event.card.type,
                     targetController: event.card.controller?.getRef(),
                     amount: event.damageDealt,

@@ -216,7 +216,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             player: context.player,
             damageDealtBy,
             isOverwhelmDamage: false,
-            // event
+            event
         };
 
         event.damageSource = attackDamageSource;
@@ -240,6 +240,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             player: context.player,
             damageDealtBy: [properties.sourceAttack.attacker],
             isOverwhelmDamage: true,
+            event
         };
 
         event.damageSource = overwhelmDamageSource;
@@ -250,6 +251,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             type: DamageSourceType.Ability,
             player: context.player,
             card: context.source,
+            event
         };
 
         event.damageSource = excessDamageSource;
@@ -261,6 +263,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             type: DamageSourceType.Ability,
             player: properties.source?.controller ?? context.player,
             card: properties.source ?? context.source,
+            event
         };
 
         if (context.isTriggered() && context.event.name === EventName.OnCardDefeated) {
