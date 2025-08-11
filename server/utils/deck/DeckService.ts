@@ -13,19 +13,17 @@ import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 export class DeckService {
     private dbServicePromise = getDynamoDbServiceAsync();
     private readonly baseMapping30 = {
-        uncolored: 'SOR_020',
-        aggression: 'SOR_019',
-        command: 'SOR_022',
-        cunning: 'SOR_025',
-        vigilance: 'SOR_028'
+        aggression: 'SOR_027',
+        command: 'SOR_024',
+        cunning: 'SOR_029',
+        vigilance: 'SOR_020'
     };
 
     private readonly baseMapping28 = {
-        uncolored: 'SOR_021',
-        aggression: 'SOR_020',
-        command: 'SOR_023',
-        cunning: 'SOR_026',
-        vigilance: 'SOR_029'
+        aggression: 'LOF_027',
+        command: 'LOF_024',
+        cunning: 'LOF_029',
+        vigilance: 'LOF_020'
     };
 
 
@@ -354,19 +352,14 @@ export class DeckService {
 
         // Create a map to aggregate stats by leader + base combination
         const aggregatedStats = new Map<string, IMatchupStatEntity>();
-
-        // Process each opponent stat and aggregate
         for (const opponentStat of deck.stats.statsByMatchup) {
-            // Try to find card IDs for the leader and base internal names
             const leaderCardId = await cardDataGetter.getCardByNameAsync(opponentStat.leaderId);
             const baseCardId = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);
 
-            // If conversion was successful, use the card IDs
             Contract.assertNotNullLike(leaderCardId && baseCardId, `When converting match stats to for FE leaderCardId ${leaderCardId} and baseCardId ${baseCardId} are null`);
 
             const convertedLeaderId = leaderCardId.setId.set + '_' + leaderCardId.setId.number;
 
-            // For bases, group basic bases by aspect+HP, keep special bases individual
             const convertedBaseId = await this.convertBaseIdForStats(baseCardId, cardDataGetter);
 
             const matchupKey = `${convertedLeaderId}|${convertedBaseId}`;
@@ -405,9 +398,8 @@ export class DeckService {
     * @returns boolean True if this is a basic base
     */
     private isBasicBase(baseCardData: any): boolean {
-        const aspects = baseCardData.aspects || [];
         const hp = baseCardData.hp;
-        return !((hp !== 28 && hp !== 30) || aspects.length === 0);
+        return !((hp !== 28 && hp !== 30));
     }
 
     /**
@@ -417,9 +409,7 @@ export class DeckService {
     private createBasicBaseGroupId(baseCardData: any): string {
         const aspects = baseCardData.aspects || [];
         const hp = baseCardData.hp;
-
-        // Single aspect - convert to lowercase for consistency
-        const aspect = aspects[0].toLowerCase();
-        return `${aspect}_${hp}hp`;
+        const mapping = hp === 30 ? this.baseMapping30 : this.baseMapping28;
+        return mapping[aspects[0]];
     }
 }
