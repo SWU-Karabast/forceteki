@@ -105,8 +105,13 @@ export class DeckValidator {
         return unimplementedCards;
     }
 
-    public getMinimumSideboardedDeckSize(baseId: string): number {
+    public getMinimumSideboardedDeckSize(baseId: string, format: SwuGameFormat): number {
         const baseData = this.getCardCheckData(baseId);
+
+        if (format === SwuGameFormat.Open) {
+            return 30 + (baseData.minDeckSizeModifier ?? 0);
+        }
+
         return 50 + (baseData.minDeckSizeModifier ?? 0);
     }
 
@@ -183,7 +188,7 @@ export class DeckValidator {
             const deckCards: ISwuDbCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
 
             const baseData = this.getCardCheckData(deck.base.id);
-            const minBoardedSize = this.getMinimumSideboardedDeckSize(deck.base.id);
+            const minBoardedSize = this.getMinimumSideboardedDeckSize(deck.base.id, format);
             const decklistCardsCount = this.getTotalCardCount(deckCards);
             const boardedCardsCount = this.getTotalCardCount(deck.deck);
             const sideboardCardsCount = deck.sideboard ? this.getTotalCardCount(deck.sideboard) : 0;
