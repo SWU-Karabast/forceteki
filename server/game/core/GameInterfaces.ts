@@ -2,6 +2,11 @@ import type { GameMode } from '../../GameMode';
 import type { Lobby } from '../../gamenode/Lobby';
 import type { IUser } from '../../Settings';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
+import type { Attack } from './attack/Attack';
+import type { EventWindow } from './event/EventWindow';
+import type { AbilityResolver } from './gameSteps/AbilityResolver';
+import type { ActionWindow } from './gameSteps/ActionWindow';
+import type { UiPrompt } from './gameSteps/prompts/UiPrompt';
 import * as Contract from './utils/Contract';
 
 export interface GameConfiguration {
@@ -17,6 +22,14 @@ export interface GameConfiguration {
     buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     userTimeoutDisconnect: (userId: string) => void;
     enableUndo?: boolean;
+}
+
+export interface ICurrentlyResolving {
+    abilityResolver?: AbilityResolver;
+    actionWindow?: ActionWindow;
+    attack?: Attack;
+    eventWindow?: EventWindow;
+    openPrompt?: UiPrompt;
 }
 
 export function validateGameConfiguration(configuration: GameConfiguration): void {
