@@ -67,7 +67,7 @@ export class SwuStatsHandler {
     public constructor() {
         // Use environment variable for API URL, defaulting to the known endpoint
         this.apiUrl = 'https://swustats.net/TCGEngine/APIs/SubmitGameResult.php';
-        this.apiKey = process.env.SWUStatsAPIKey;
+        this.apiKey = process.env.SWUSTATS_API_KEY;
         const isDev = process.env.ENVIRONMENT === 'development';
         if (!this.apiKey) {
             logger.warn('SWUStatsHandler: No API key configured. Stats may not be accepted by SWUstats.');
