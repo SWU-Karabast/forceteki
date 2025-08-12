@@ -75,6 +75,11 @@ export class Player extends GameObject<IPlayerState> {
     public disconnected: boolean;
     public left: boolean;
 
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public override get alwaysTrackState(): boolean {
+        return true;
+    }
+
     // TODO: Convert all Zones to Refs and let the GameStateManager keep them there alone?
     public get handZone(): HandZone {
         return this.game.gameObjectManager.get(this.state.handZone);

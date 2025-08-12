@@ -27,7 +27,7 @@ export default class HeartlessTactics extends EventCard {
                 title: 'If it has 0 power and isn\'t a leader, return it to its owner\'s hand',
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: () => thenContext.target.isNonLeaderUnit() && thenContext.target.getPower() === 0,
+                    condition: () => thenContext.target != null && thenContext.target.isNonLeaderUnit() && thenContext.target.getPower() === 0,
                     onTrue: AbilityHelper.immediateEffects.returnToHand({ target: thenContext.target }),
                 })
             })

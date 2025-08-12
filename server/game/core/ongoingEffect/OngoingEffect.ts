@@ -80,6 +80,9 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
 
         this.impl.duration = this.duration;
         this.impl.isConditional = !!properties.condition;
+
+        // bit of a hack to keep the impl object added to the game state
+        this.impl.getRef();
     }
 
     protected override setupDefaultState() {
