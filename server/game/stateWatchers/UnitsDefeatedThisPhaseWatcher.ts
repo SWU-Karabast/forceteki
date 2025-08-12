@@ -8,7 +8,6 @@ import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef, UnwrapRefObject } from '../core/GameObjectBase';
 
-// TODO: add a "defeatedBy: Player" field here.
 export interface DefeatedUnitEntry {
     unit: GameObjectRef<IUnitCard>;
     inPlayId: number;
