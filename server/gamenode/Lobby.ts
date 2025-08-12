@@ -20,6 +20,8 @@ import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
 import { AlertType } from '../game/core/Constants';
 import { v4 as uuidv4 } from 'uuid';
+import type { IDiscordDispatcher } from '../game/core/DiscordDispatcher';
+import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 
 interface LobbySpectator {
     id: string;
@@ -66,6 +68,7 @@ export class Lobby {
     private readonly testGameBuilder?: any;
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
+    private readonly _discordDispatcher: IDiscordDispatcher = new DiscordDispatcher();
 
     private game?: Game;
     public users: LobbyUser[] = [];
@@ -848,6 +851,8 @@ export class Lobby {
             logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
             severeGameMessage = true;
             maxErrorCountExceeded = true;
+            this._discordDispatcher.formatAndSendServerErrorAsync(error, this.id)
+                .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
         }
 
         // const gameState = game.getState();
@@ -1018,7 +1023,7 @@ export class Lobby {
         }
     }
 
-    // Report bug method
+    // Report bug method; front-end RPC from sendLobbyMessage()
     private async reportBug(socket: Socket, ...args: any): Promise<void> {
         try {
             // Parse description as JSON if it's in JSON format

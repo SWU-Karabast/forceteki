@@ -52,6 +52,7 @@ const { getAbilityHelper } = require('../AbilityHelper.js');
 const { PhaseInitializeMode } = require('./gameSteps/phases/Phase.js');
 const { Randomness } = require('../core/Randomness.js');
 const { Lobby } = require('../../gamenode/Lobby.js');
+const { DiscordDispatcher } = require('./DiscordDispatcher.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -175,6 +176,9 @@ class Game extends EventEmitter {
 
         /** @private @readonly @type {Lobby} */
         this._router = options.router;
+
+        /** @private @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
+        this._discordDispatcher = new DiscordDispatcher();
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
@@ -1776,13 +1780,22 @@ class Game extends EventEmitter {
         const rollbackResult = this._snapshotManager.rollbackTo(settings);
 
         if (!rollbackResult.success) {
-            // TODO: Discord web hook to log the rollback failure
-            logger.error('Rollback failed', {
-                lobbyId: this._router.id,
-                gameId: this.id,
-                settings,
-                preUndoState,
-            });
+            if (process.env.NODE_ENV !== 'test') {
+                logger.error('Rollback failed', {
+                    lobbyId: this._router.id,
+                    gameId: this.id,
+                    settings,
+                    preUndoState,
+                });
+
+                this.sendUndoFailureToDiscordAsync({
+                    gameId: this.id,
+                    lobbyId: this._router.id,
+                    settings,
+                    preUndoState,
+                });
+            }
+
             return false;
         }
 
@@ -1797,11 +1810,13 @@ class Game extends EventEmitter {
             preUndoState,
             postUndoState,
         };
-        logger.debug('Rollback completed', {
-            lobbyId: this._router.id,
-            gameId: this.id,
-            gameStates,
-        });
+        if (process.env.NODE_ENV !== 'test') {
+            logger.info('Rollback completed', {
+                lobbyId: this._router.id,
+                gameId: this.id,
+                gameStates,
+            });
+        }
         this.pipeline.clearSteps();
         this.initializePipelineForRound(roundEntryPoint);
         this.pipeline.continue(this);
@@ -1882,6 +1897,27 @@ class Game extends EventEmitter {
             player1: player1.capturePlayerState('player1'),
             player2: player2.capturePlayerState('player2'),
         };
+    }
+
+    /** @private @param {import('../../../server/game/Interfaces.js').ISerializedUndoFailureState} undoFailureData @returns {Promise<boolean>} */
+    sendUndoFailureToDiscordAsync(undoFailureData) {
+        const lobbyId = this._router.id;
+        return this._discordDispatcher.formatAndSendUndoFailureReportAsync(undoFailureData)
+            .then((_) => {
+                logger.info('Undo failure successfully sent to Discord', {
+                    lobbyId
+                });
+
+                return true;
+            })
+            .catch((error) => {
+                logger.error('Failed to send undo failure to Discord', {
+                    error: { message: error.message, stack: error.stack },
+                    lobbyId
+                });
+
+                return false;
+            });
     }
 
     // return this.getSummary(notInactivePlayerName);

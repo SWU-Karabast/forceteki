@@ -40,5 +40,5 @@ export const logger = winston.createLogger({
         winston.format.timestamp(),
         winston.format.errors({ stack: true }),
         isRunningInAWS ? winston.format.json() : logFormatter
-    )
+    ),
 });
