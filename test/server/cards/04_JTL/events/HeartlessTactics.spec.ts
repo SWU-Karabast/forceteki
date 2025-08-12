@@ -60,5 +60,21 @@ describe('Heartless Tactics', function () {
                 expect(context.battlefieldMarine.getPower()).toBe(1);
             });
         });
+
+        it('does nothing if there are no valid targets', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['heartless-tactics'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.heartlessTactics);
+            context.player1.clickPrompt('Play anyway');
+
+            expect(context.heartlessTactics).toBeInZone('discard');
+        });
     });
 });

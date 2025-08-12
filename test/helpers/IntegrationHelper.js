@@ -184,6 +184,8 @@ global.undoIt = function(expectation, assertion, timeout) {
             throw new Error('Snapshot ID invalid');
         }
 
+        const messagesBeforeAssertion = context.game.gameChat.messages.slice();
+
         await assertion();
         if (snapshotUtils.startOfTestSnapshot?.snapshotId == null) {
             // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
@@ -198,6 +200,9 @@ global.undoIt = function(expectation, assertion, timeout) {
             // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
             return;
         }
+
+        context.game.gameChat.messages = messagesBeforeAssertion;
+
         await assertion();
     }, timeout);
 };

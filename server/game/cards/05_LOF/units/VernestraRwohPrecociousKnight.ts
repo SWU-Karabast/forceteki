@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class VernestraRwohPrecociousKnight extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'vernestra-rwoh#precocious-knight-id',
+            id: '2940037100',
             internalName: 'vernestra-rwoh#precocious-knight',
         };
     }

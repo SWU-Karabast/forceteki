@@ -23,8 +23,9 @@ export default class OverwhelmingBarrage extends EventCard {
             },
             then: (thenContext) => ({
                 title: 'Deal damage equal to the unit\'s power divided as you choose among any number of other units',
+                thenCondition: (context) => context.target != null,
                 immediateEffect: AbilityHelper.immediateEffects.distributeDamageAmong({
-                    amountToDistribute: thenContext.target.getPower(),
+                    amountToDistribute: thenContext.target?.getPower(),
                     canChooseNoTargets: true,
                     controller: WildcardRelativePlayer.Any,
                     cardTypeFilter: WildcardCardType.Unit,

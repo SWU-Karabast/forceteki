@@ -7,7 +7,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 export default class APrecariousPredicament extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'a-precarious-predicament-id',
+            id: '5562351003',
             internalName: 'a-precarious-predicament',
         };
     }
