@@ -1,9 +1,12 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { StateWatcherName } from '../Constants';
+import { GameEvent } from '../event/GameEvent';
 import type Game from '../Game';
-import type { UnwrapRef } from '../GameObjectBase';
+import { GameObjectBase, type UnwrapRef } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
+import { isDevelopment } from '../utils/Helpers';
+import { is } from '../utils/TypeHelpers';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
 /**
@@ -67,6 +70,28 @@ export abstract class StateWatcher<TState> {
     }
 
     protected addUpdater(properties: IStateListenerProperties<TState>) {
+        if (isDevelopment()) {
+            Object.keys(properties).forEach((prop) => {
+                let value = properties[prop];
+                if (!value) {
+                    return;
+                }
+                if (is.array(value)) {
+                    // No elements to check
+                    if (value.length === 0) {
+                        return;
+                    }
+
+                    value = value[0];
+                }
+                if (value instanceof GameObjectBase) {
+                    throw new Error(`State Watcher contains invalid state. Property "${prop}" is GameObject which is not allowed. Use GameObjectRef instead and call go.getRef() to capture the reference in state.`);
+                }
+                if (value instanceof GameEvent) {
+                    throw new Error(`State Watcher contains invalid state. Property "${prop}" is a GameEvent which is not allowed.`);
+                }
+            });
+        }
         this.stateUpdaters.push(properties);
     }
 

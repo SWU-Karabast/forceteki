@@ -16,6 +16,7 @@ export class GameStateManager implements IGameObjectRegistrar {
     private allGameObjects: GameObjectBase[] = [];
 
     private _lastGameObjectId = -1;
+    // unused for now but will be used to detect GO creation during the rollback process later on.
     private _isRollingBack = false;
 
     public get lastGameObjectId(): number {

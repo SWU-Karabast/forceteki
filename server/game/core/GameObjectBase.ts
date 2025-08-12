@@ -26,15 +26,23 @@ export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
     uuid: string;
 }
 
+/**
+ * A type that takes a type and creates a version of it where any properties of type GameObjectRefs<T> are replaced with T.
+ * Used to enforce that any GameObjectRef fields on the type are mapped to GameObjects.
+ */
 export type UnwrapRef<T> = T extends unknown[] ?
     (UnwrapRefArray<T>) :
     (T extends object ? UnwrapRefObject<T> : never);
 
+/** If the type is an array, unpack the array and check if the elements are either GameObjectRefs directly, or objects which can contain GameObjectRefs. */
 export type UnwrapRefArray<T extends unknown[]> = T extends (infer R)[] ? (R extends GameObjectRef<infer U> ? U[] : UnwrapRefObject<R>[]) : never;
 
+/** This loops through each property in T and maps it to a new type. */
 export type UnwrapRefObject<T> = {
     [P in keyof T]: UnwrapRefProperty<T[P]>
 };
+
+/** Will directly return the type, or if it's a GameObjectRef or array of GameObjectRef, return the inner GameObject type of the GameObjectRef instead. * */
 type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
     U :
     (T extends (infer R)[] ? (R extends GameObjectRef<infer U> ? U[] : R[]) :

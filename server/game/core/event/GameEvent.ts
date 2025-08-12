@@ -30,6 +30,8 @@ export class GameEvent {
     private replacementEvents: any[] = [];
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
     private _window: EventWindow = null;
+
+    /** A unique ID which can be captured in state if necessary. */
     private readonly _eventId: number;
 
     public get context(): AbilityContext | null {
