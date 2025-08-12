@@ -1788,7 +1788,7 @@ class Game extends EventEmitter {
                     preUndoState,
                 });
 
-                this.sendUndoFailureToDiscordAsync({
+                this._discordDispatcher.formatAndSendUndoFailureReportAsync({
                     gameId: this.id,
                     lobbyId: this._router.id,
                     settings,
@@ -1897,27 +1897,6 @@ class Game extends EventEmitter {
             player1: player1.capturePlayerState('player1'),
             player2: player2.capturePlayerState('player2'),
         };
-    }
-
-    /** @private @param {import('../../../server/game/Interfaces.js').ISerializedUndoFailureState} undoFailureData @returns {Promise<boolean>} */
-    sendUndoFailureToDiscordAsync(undoFailureData) {
-        const lobbyId = this._router.id;
-        return this._discordDispatcher.formatAndSendUndoFailureReportAsync(undoFailureData)
-            .then((_) => {
-                logger.info('Undo failure successfully sent to Discord', {
-                    lobbyId
-                });
-
-                return true;
-            })
-            .catch((error) => {
-                logger.error('Failed to send undo failure to Discord', {
-                    error: { message: error.message, stack: error.stack },
-                    lobbyId
-                });
-
-                return false;
-            });
     }
 
     // return this.getSummary(notInactivePlayerName);
