@@ -17,7 +17,6 @@ function createEnvFile() {
         // set this to "true" to enable the use of local DynamoDB for account testing
         USE_LOCAL_DYNAMODB: 'false',
         DISCORD_BUG_REPORT_WEBHOOK_URL: '',
-        SWUStatsURL: 'https://swustats.net/TCGEngine/APIs/SubmitGameResult.php',
         SWUStatsAPIKey: ''
     };
     return fs.writeFile(
