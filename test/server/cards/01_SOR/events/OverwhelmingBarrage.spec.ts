@@ -129,5 +129,28 @@ describe('Overwhelming Barrage', function() {
                 context.player1.setDistributeDamagePromptState(new Map([]));
             });
         });
+
+        describe('Overwhelming Barrage\'s ability, if there are no friendly units', function() {
+            it('should do nothing', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['overwhelming-barrage'],
+                        groundArena: []
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.overwhelmingBarrage);
+                context.player1.clickPrompt('Play anyway');
+
+                expect(context.overwhelmingBarrage).toBeInZone('discard');
+                expect(context.consularSecurityForce.damage).toBe(0);
+            });
+        });
     });
 });
