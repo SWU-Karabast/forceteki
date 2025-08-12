@@ -51,7 +51,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         }
     }
 
-    public buildGameStateForSnapshot(): IGameObjectBaseState[] {
+    public removeUnusedGameObjects() {
         const removalUuids = new Set<string>();
         const removalIndexes = new Set<number>();
 
@@ -71,6 +71,10 @@ export class GameStateManager implements IGameObjectRegistrar {
         for (const removeUuid of removalUuids) {
             this.gameObjectMapping.delete(removeUuid);
         }
+    }
+
+    public buildGameStateForSnapshot(): IGameObjectBaseState[] {
+        this.removeUnusedGameObjects();
 
         // Return the state of all game objects that are still in the game.
         return this.allGameObjects.map((go) => go.getState());
