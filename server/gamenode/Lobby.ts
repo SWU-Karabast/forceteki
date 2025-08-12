@@ -13,7 +13,7 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
 import type { SwuGameFormat } from '../SwuGameFormat';
-import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
+import type { IDecklistInternal, IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
@@ -32,16 +32,26 @@ interface LobbyUser extends LobbySpectator {
     state: 'connected' | 'disconnected';
     ready: boolean;
     deck?: Deck;
+    decklist?: any;
     deckValidationErrors?: IDeckValidationFailures;
     importDeckValidationErrors?: IDeckValidationFailures;
     reportedBugs: number;
+}
+export enum DeckSource {
+    SWUStats = 'swuStats',
+    SWUDB = 'swuDb',
+    SWUnlimitedDB = 'swUnlimitedDb',
+    Unknown = 'unknown'
 }
 
 interface PlayerDetails {
     user: User;
     deckID: string;
+    deckLink: string;
+    deckSource: DeckSource;
     leaderID: string;
     baseID: string;
+    deck: IDecklistInternal;
 }
 
 export enum MatchType {
@@ -88,7 +98,7 @@ export class Lobby {
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         gameServer: GameServer,
-        testGameBuilder?: any
+        testGameBuilder?: any,
     ) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
@@ -207,6 +217,7 @@ export class Lobby {
             socket: null,
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck,
+            decklist,
             reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
@@ -432,6 +443,7 @@ export class Lobby {
         // if the deck doesn't have any errors set it as active.
         if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
+            activeUser.decklist = args[0];
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(activeUser.deck.getDecklist(),
                 this.gameFormat);
             activeUser.importDeckValidationErrors = null;
@@ -625,6 +637,34 @@ export class Lobby {
         this.game = game;
     }
 
+    /**
+     * Helper method to determine deck source from deck link or other data
+     */
+    private determineDeckSource(deckLink?: string, deckSource?: string): DeckSource {
+        if (deckSource) {
+            const upperDeckSource = deckSource.toUpperCase();
+            const enumValues = Object.values(DeckSource);
+
+            for (const enumValue of enumValues) {
+                if (enumValue.toUpperCase() === upperDeckSource) {
+                    return enumValue;
+                }
+            }
+        }
+        // Fallback to determining from deckLink
+        if (deckLink) {
+            if (deckLink.includes('swustats.net')) {
+                return DeckSource.SWUStats;
+            } else if (deckLink.includes('swudb.com')) {
+                return DeckSource.SWUDB;
+            } else if (deckLink.includes('swunlimiteddb.com')) {
+                return DeckSource.SWUnlimitedDB;
+            }
+        }
+        // Default fallback
+        return DeckSource.Unknown;
+    }
+
     private async onStartGameAsync() {
         try {
             this.rematchRequest = null;
@@ -648,6 +688,9 @@ export class Lobby {
                         baseID: user.deck.base.id,
                         leaderID: user.deck.leader.id,
                         deckID: user.deck.id,
+                        deckLink: user.decklist.deckLink,
+                        deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
+                        deck: user.deck.getDecklist()
                     });
                 }
             });
@@ -961,7 +1004,19 @@ export class Lobby {
             await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
             await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
 
-            logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
+            logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${game.id}`);
+            const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
+                this.playersDetails.find((u) => u.user.getId() === id)?.deckSource === DeckSource.SWUStats
+            );
+            // Send to SWUstats if handler is available
+            if (eitherFromSWUStats) {
+                await this.server.SwuStatsHandler.sendGameResultAsync(
+                    game,
+                    this.playersDetails.find((u) => u.user.getId() === player1.id).deckLink,
+                    this.playersDetails.find((u) => u.user.getId() === player2.id).deckLink,
+                );
+                logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
+            }
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck stats:`, error);
         }
