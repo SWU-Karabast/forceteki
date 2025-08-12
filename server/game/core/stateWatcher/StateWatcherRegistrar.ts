@@ -25,6 +25,11 @@ export class StateWatcherRegistrar extends GameObjectBase<IStateWatcherRegistrar
         this.state.watchedState = new Map();
     }
 
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public override get alwaysTrackState(): boolean {
+        return true;
+    }
+
     public isRegistered(watcherKey: string) {
         return this.watchedState.has(watcherKey);
     }
