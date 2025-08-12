@@ -360,7 +360,7 @@ export class DeckService {
 
             const convertedLeaderId = leaderCardId.setId.set + '_' + leaderCardId.setId.number;
 
-            const convertedBaseId = await this.convertBaseIdForStats(baseCardId, cardDataGetter);
+            const convertedBaseId = await this.asyncConvertBaseIdForStats(baseCardId, cardDataGetter);
 
             const matchupKey = `${convertedLeaderId}|${convertedBaseId}`;
 
@@ -384,7 +384,7 @@ export class DeckService {
         return deck;
     }
 
-    private async convertBaseIdForStats(baseCard: any, cardDataGetter: CardDataGetter): Promise<string> {
+    private async asyncConvertBaseIdForStats(baseCard: any, cardDataGetter: CardDataGetter): Promise<string> {
         const baseCardData = await cardDataGetter.getCardAsync(baseCard.id);
 
         if (this.isBasicBase(baseCardData)) {
@@ -399,7 +399,7 @@ export class DeckService {
     */
     private isBasicBase(baseCardData: any): boolean {
         const hp = baseCardData.hp;
-        return !((hp !== 28 && hp !== 30));
+        return ((hp === 28 || hp === 30));
     }
 
     /**
