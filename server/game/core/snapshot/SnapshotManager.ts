@@ -175,6 +175,10 @@ export class SnapshotManager {
         return this.manualSnapshots.get(playerId)?.getSnapshotCount() ?? 0;
     }
 
+    public countAvailablePhaseSnapshots(phaseName: PhaseName.Action | PhaseName.Regroup): number {
+        return this.phaseSnapshots.getSnapshotCount(phaseName);
+    }
+
     public clearAllSnapshots(): void {
         this.actionSnapshots.clearAllSnapshots();
         this.phaseSnapshots.clearAllSnapshots();
