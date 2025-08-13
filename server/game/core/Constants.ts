@@ -233,6 +233,7 @@ export enum TokenUnitName {
     CloneTrooper = 'cloneTrooper',
     XWing = 'xwing',
     TIEFighter = 'tieFighter',
+    Spy = 'spy',
 }
 
 export enum TokenCardName {
@@ -362,6 +363,7 @@ export enum KeywordName {
     Raid = 'raid',
     Restore = 'restore',
     Piloting = 'piloting',
+    Plot = 'plot',
     Saboteur = 'saboteur',
     Sentinel = 'sentinel',
     Shielded = 'shielded',
