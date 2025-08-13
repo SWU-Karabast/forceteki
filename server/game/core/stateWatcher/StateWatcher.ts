@@ -88,7 +88,7 @@ export abstract class StateWatcher<TState> {
                     throw new Error(`State Watcher contains invalid state. Property "${prop}" is GameObject which is not allowed. Use GameObjectRef instead and call go.getRef() to capture the reference in state.`);
                 }
                 if (value instanceof GameEvent) {
-                    throw new Error(`State Watcher contains invalid state. Property "${prop}" is a GameEvent which is not allowed.`);
+                    throw new Error(`State Watcher contains invalid state. Property "${prop}" is a GameEvent which is not allowed.Capture the relevant properties off the GameEvent instead and store them in the watcher state. See DamageDealtThisPhaseWatcher for an example.`);
                 }
             });
         }
