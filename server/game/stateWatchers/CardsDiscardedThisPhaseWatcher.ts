@@ -5,26 +5,33 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract';
+import type Game from '../core/Game';
+import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
 export interface DiscardedCardEntry {
-    card: Card;
-    discardedFromPlayer: Player;
+    card: GameObjectRef<Card>;
+    discardedFromPlayer: GameObjectRef<Player>;
     discardedFromZone: ZoneName;
     discardedPlayId: number;
 }
 
 export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEntry[]> {
     public constructor(
+        game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.CardsDiscardedThisPhase, registrar, card);
+        super(game, StateWatcherName.CardsDiscardedThisPhase, registrar, card);
+    }
+
+    protected override mapCurrentValue(stateValue: DiscardedCardEntry[]): UnwrapRef<DiscardedCardEntry[]> {
+        return stateValue.map((x) => ({ card: this.game.getFromRef(x.card), discardedFromPlayer: this.game.getFromRef(x.discardedFromPlayer), discardedFromZone: x.discardedFromZone, discardedPlayId: x.discardedPlayId }));
     }
 
     /**
      * Returns an array of {@link DiscardedCardEntry} objects representing every card discarded in this phase so far and the player who drew that card
      */
-    public override getCurrentValue(): DiscardedCardEntry[] {
+    public override getCurrentValue() {
         return super.getCurrentValue();
     }
 
@@ -38,8 +45,8 @@ export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEn
                 Contract.assertTrue(event.card != null);
                 Contract.assertTrue(event.discardedFromZone != null);
                 return currentState.concat({
-                    card: event.card,
-                    discardedFromPlayer: event.card.controller,
+                    card: event.card.getRef(),
+                    discardedFromPlayer: event.card.controller.getRef(),
                     discardedFromZone: event.discardedFromZone,
                     discardedPlayId: event.card.mostRecentInPlayId,
                 });

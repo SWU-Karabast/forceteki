@@ -1,7 +1,12 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { StateWatcherName } from '../Constants';
+import { GameEvent } from '../event/GameEvent';
+import type Game from '../Game';
+import { GameObjectBase, type UnwrapRef } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
+import { isDevelopment } from '../utils/Helpers';
+import { is } from '../utils/TypeHelpers';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
 /**
@@ -20,6 +25,7 @@ import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
  * - a set of event triggers which will update the stored state to keep the history
  */
 export abstract class StateWatcher<TState> {
+    protected readonly game: Game;
     private readonly registrationKey: string;
     private stateUpdaters: IStateListenerProperties<TState>[] = [];
     public readonly name: StateWatcherName;
@@ -33,10 +39,12 @@ export abstract class StateWatcher<TState> {
     };
 
     public constructor(
+        game: Game,
         name: StateWatcherName,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
+        this.game = game;
         this.name = name;
         this.registrar = registrar;
         this.registrationKey = card.internalName + '.' + name;
@@ -54,11 +62,36 @@ export abstract class StateWatcher<TState> {
     // Returns the value that the state will be initialized to at the beginning of the phase
     protected abstract getResetValue(): TState;
 
-    public getCurrentValue(): TState {
-        return this.registrar.getStateValue(this.registrationKey) as TState;
+    /** A function to map any GameObjectRefs in the stateValue to their game objects. If no GameObjectRefs are used, you can simply return the stateValue as-is. */
+    protected abstract mapCurrentValue(stateValue: TState): UnwrapRef<TState>;
+
+    public getCurrentValue(): UnwrapRef<TState> {
+        return this.mapCurrentValue(this.registrar.getStateValue(this.registrationKey) as TState);
     }
 
     protected addUpdater(properties: IStateListenerProperties<TState>) {
+        if (isDevelopment()) {
+            Object.keys(properties).forEach((prop) => {
+                let value = properties[prop];
+                if (!value) {
+                    return;
+                }
+                if (is.array(value)) {
+                    // No elements to check
+                    if (value.length === 0) {
+                        return;
+                    }
+
+                    value = value[0];
+                }
+                if (value instanceof GameObjectBase) {
+                    throw new Error(`State Watcher contains invalid state. Property "${prop}" is GameObject which is not allowed. Use GameObjectRef instead and call go.getRef() to capture the reference in state.`);
+                }
+                if (value instanceof GameEvent) {
+                    throw new Error(`State Watcher contains invalid state. Property "${prop}" is a GameEvent which is not allowed.Capture the relevant properties off the GameEvent instead and store them in the watcher state. See DamageDealtThisPhaseWatcher for an example.`);
+                }
+            });
+        }
         this.stateUpdaters.push(properties);
     }
 
