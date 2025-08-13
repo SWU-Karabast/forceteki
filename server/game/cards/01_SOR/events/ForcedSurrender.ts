@@ -3,6 +3,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { CardType } from '../../../core/Constants';
 
 export default class ForcedSurrender extends EventCard {
     private damageDealtThisPhaseWatcher: DamageDealtThisPhaseWatcher;
@@ -28,8 +29,8 @@ export default class ForcedSurrender extends EventCard {
                         ...new Set(
                             this.damageDealtThisPhaseWatcher.getDamageDealtByPlayer(
                                 context.player,
-                                (damage) => damage.target.isBase() && damage.target.controller !== context.player
-                            ).map((damage) => damage.target.controller)
+                                (damage) => damage.targetType === CardType.Base && damage.targetController !== context.player
+                            ).map((damage) => damage.targetController)
                         )
                     ],
                     amount: 2
