@@ -15,7 +15,8 @@ const parsedEnv = z
         NEXTAUTH_SECRET: z.string().optional(),
         DISCORD_BUG_REPORT_WEBHOOK_URL: z.string().optional(),
         DISCORD_ERROR_REPORT_WEBHOOK_URL: z.string().optional(),
-        ADDITIONAL_CORS_ORIGINS: z.string().optional()
+        ADDITIONAL_CORS_ORIGINS: z.string().optional(),
+        SWUStatsAPIKey: z.string().optional(),
     })
     .safeParse(process.env);
 
@@ -82,3 +83,4 @@ export const AWS_REGION = parsedEnv.data.AWS_REGION;
 export const AWS_ACCESS_KEY_ID = parsedEnv.data.AWS_ACCESS_KEY_ID;
 export const AWS_SECRET_ACCESS_KEY = parsedEnv.data.AWS_SECRET_ACCESS_KEY;
 export const NEXTAUTH_SECRET = parsedEnv.data.NEXTAUTH_SECRET;
+export const SWUStatsAPIKey = parsedEnv.data.SWUStatsAPIKey;
