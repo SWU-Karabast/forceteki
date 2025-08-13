@@ -5,24 +5,31 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
+import type Game from '../core/Game';
+import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
 export interface AttackEntry {
-    attacker: IUnitCard;
+    attacker: GameObjectRef<IUnitCard>;
     attackerInPlayId: number;
-    attackingPlayer: Player;
-    targets: IAttackableCard[];
+    attackingPlayer: GameObjectRef<Player>;
+    targets: GameObjectRef<IAttackableCard>[];
     targetInPlayId?: number;
-    defendingPlayer: Player;
+    defendingPlayer: GameObjectRef<Player>;
 }
 
 export type IAttacksThisPhase = AttackEntry[];
 
 export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
     public constructor(
+        game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.AttacksThisPhase, registrar, card);
+        super(game, StateWatcherName.AttacksThisPhase, registrar, card);
+    }
+
+    protected override mapCurrentValue(stateValue: IAttacksThisPhase): UnwrapRef<IAttacksThisPhase> {
+        return stateValue.map((x) => ({ attacker: this.game.getFromRef(x.attacker), attackerInPlayId: x.attackerInPlayId, attackingPlayer: this.game.getFromRef(x.attackingPlayer), targets: x.targets.map((y) => this.game.getFromRef(y)), targetInPlayId: x.targetInPlayId, defendingPlayer: this.game.getFromRef(x.defendingPlayer) }));
     }
 
     /**
@@ -30,12 +37,12 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
      * phase so far. Lists the attacker and target cards and which player was attacking
      * or defending.
      */
-    public override getCurrentValue(): IAttacksThisPhase {
+    public override getCurrentValue() {
         return super.getCurrentValue();
     }
 
     /** Filters the list of attack events in the state and returns the attackers that match */
-    public getAttackers(filter: (entry: AttackEntry) => boolean): Card[] {
+    public getAttackers(filter: (entry: UnwrapRef<AttackEntry>) => boolean): Card[] {
         return this.getCurrentValue()
             .filter(filter)
             .map((entry) => entry.attacker);
@@ -49,7 +56,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
      * Filters the list of attack events in the state and returns the attackers that match.
      * Selects only units that are currently in play as the same copy (in-play id) that performed the attack.
      */
-    public getAttackersInPlay(filter: (entry: AttackEntry) => boolean): Card[] {
+    public getAttackersInPlay(filter: (entry: UnwrapRef<AttackEntry>) => boolean): Card[] {
         return this.getCurrentValue()
             .filter((entry) => entry.attacker.isInPlay() && entry.attacker.inPlayId === entry.attackerInPlayId)
             .filter(filter)
@@ -58,7 +65,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
 
     public someUnitAttackedControlledByPlayer({ controller, filter }: {
         controller: Player;
-        filter?: (event: AttackEntry) => boolean;
+        filter?: (event: UnwrapRef<AttackEntry>) => boolean;
     }) {
         return this.getAttackers((entry) => {
             const additionalFilter = filter ? filter(entry) : true;
@@ -74,12 +81,12 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
             },
             update: (currentState: IAttacksThisPhase, event: any) =>
                 currentState.concat({
-                    attacker: event.attack.attacker,
+                    attacker: event.attack.attacker.getRef(),
                     attackerInPlayId: event.attack.attacker.inPlayId,
-                    attackingPlayer: event.attack.attacker.controller,
-                    targets: event.attack.getAllTargets(),
+                    attackingPlayer: event.attack.attacker.controller.getRef(),
+                    targets: event.attack.getAllTargets().map((x) => x.getRef()),
                     targetInPlayId: event.attack.targetInPlayId,
-                    defendingPlayer: event.attack.getDefendingPlayer(),
+                    defendingPlayer: event.attack.getDefendingPlayer().getRef(),
                 })
         });
     }
