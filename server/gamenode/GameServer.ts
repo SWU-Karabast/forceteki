@@ -254,22 +254,24 @@ export class GameServer {
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
-        // initialize cpu usage and event loop stats
-        this.lastCpuUsage = process.cpuUsage();
-        this.lastCpuUsageTime = process.hrtime.bigint();
-        this.loopDelayHistogram = monitorEventLoopDelay({ resolution: 10 });
-        this.loopDelayHistogram.enable();
-        this.lastLoopUtilization = performance.eventLoopUtilization();
+        if (process.env.ENVIRONMENT !== 'development') {
+            // initialize cpu usage and event loop stats
+            this.lastCpuUsage = process.cpuUsage();
+            this.lastCpuUsageTime = process.hrtime.bigint();
+            this.loopDelayHistogram = monitorEventLoopDelay({ resolution: 10 });
+            this.loopDelayHistogram.enable();
+            this.lastLoopUtilization = performance.eventLoopUtilization();
 
-        // log initial memory state on startup
-        this.logHeapStats();
-
-        // set up periodic memory, cpu and event loop monitoring for every 30 seconds
-        setInterval(() => {
+            // log initial memory state on startup
             this.logHeapStats();
-            this.logCpuUsage();
-            this.logEventLoopStats();
-        }, 30000);
+
+            // set up periodic memory, cpu and event loop monitoring for every 30 seconds
+            setInterval(() => {
+                this.logHeapStats();
+                this.logCpuUsage();
+                this.logEventLoopStats();
+            }, 30000);
+        }
     }
 
     private setupAppRoutes(app: express.Application) {
