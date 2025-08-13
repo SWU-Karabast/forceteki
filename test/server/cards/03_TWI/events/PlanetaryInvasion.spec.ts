@@ -34,7 +34,7 @@ describe('Planetary Invasion', function () {
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.specforceSoldier);
             context.player1.clickCardNonChecking(context.atst);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.battlefieldMarine.exhausted).toBeFalse();
             expect(context.battlefieldMarine.getPower()).toBe(4);

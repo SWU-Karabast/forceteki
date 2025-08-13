@@ -38,8 +38,8 @@ describe('Claiming initiative', function() {
                 context.player2.passAction();
 
                 // Regroup phase
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 // New phase
                 expect(context.player1).toBeActivePlayer();
@@ -55,8 +55,8 @@ describe('Claiming initiative', function() {
                 expect(context.player2).toHaveExactPromptButtons(['Done']);
                 expect(context.player1).toHaveExactPromptButtons(['Done']);
 
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 // New phase
                 expect(context.player2).toBeActivePlayer();
@@ -73,8 +73,8 @@ describe('Claiming initiative', function() {
                 expect(context.player2).toHaveExactPromptButtons(['Done']);
                 expect(context.player1).toHaveExactPromptButtons(['Done']);
 
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 // New phase
                 expect(context.player2).toBeActivePlayer();

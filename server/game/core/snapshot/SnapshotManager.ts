@@ -72,6 +72,8 @@ export class SnapshotManager {
     /** Indicates that we're on a new action and that a new action snapshot can be taken */
     public moveToNextTimepoint(timepoint: SnapshotTimepoint) {
         if (!this.undoEnabled) {
+            // if undo is not enabled, still do explicit GO cleanup to avoid heavy memory usage
+            this._gameStateManager.removeUnusedGameObjects();
             return;
         }
 

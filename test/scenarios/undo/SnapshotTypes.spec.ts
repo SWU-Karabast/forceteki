@@ -832,8 +832,8 @@ describe('Snapshot types', function() {
                 context.regroupPhase1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
                 context.regroupPhase1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
 
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 context.actionPhase2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
                 context.actionPhase2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
@@ -858,8 +858,8 @@ describe('Snapshot types', function() {
                 context.regroupPhase2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
                 context.regroupPhase2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
 
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 context.actionPhase3ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
                 context.actionPhase3SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
@@ -918,8 +918,8 @@ describe('Snapshot types', function() {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
 
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 context.player2.clickCard(context.tielnFighter);
                 context.player2.clickCard(context.p1Base);
@@ -941,8 +941,8 @@ describe('Snapshot types', function() {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
 
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 context.player2.clickCard(context.tielnFighter);
                 context.player2.clickCard(context.p1Base);
@@ -965,8 +965,8 @@ describe('Snapshot types', function() {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
 
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.p1Base);
@@ -994,8 +994,8 @@ describe('Snapshot types', function() {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
 
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.p1Base);
@@ -1023,8 +1023,8 @@ describe('Snapshot types', function() {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
 
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 context.player2.clickCard(context.tielnFighter);
                 context.player2.clickCard(context.p1Base);
@@ -1154,8 +1154,8 @@ describe('Snapshot types', function() {
 
                 context.player2.clickPrompt('Pass');
                 context.player1.clickPrompt('Pass');
-                context.player2.clickPrompt('Done');
-                context.player1.clickPrompt('Done');
+                context.player2.clickDone();
+                context.player1.clickDone();
 
                 context.player2.clickCard(context.battlefieldMarine);
                 context.player2.clickCard(context.p1Base);
@@ -1215,7 +1215,7 @@ describe('Snapshot types', function() {
                     },
                     phaseTransitionHandler: (phase) => {
                         if (phase === 'action') {
-                            contextRef.context.player1.clickPrompt('Done');
+                            contextRef.context.player1.clickDone();
                         }
                     }
                 });
@@ -1233,7 +1233,7 @@ describe('Snapshot types', function() {
                     { card: context.specforceSoldier, displayText: 'Opponent' }
                 ]);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
                 context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
@@ -1280,7 +1280,7 @@ describe('Snapshot types', function() {
                     { card: context.specforceSoldier, displayText: 'Opponent' }
                 ]);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toBeActivePlayer();
             });
@@ -1382,8 +1382,8 @@ describe('Snapshot types', function() {
                 assertRegroupPhaseRaiderDefeatedState(context);
 
                 // move to action phase to confirm that everything still works
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
                 context.player1.clickCard(context.systemPatrolCraft);
                 context.player1.clickCard(context.p2Base);
             });
@@ -1392,8 +1392,8 @@ describe('Snapshot types', function() {
                 const { context } = contextRef;
 
                 // move to action phase
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
                 context.player1.clickCard(context.systemPatrolCraft);
                 context.player1.clickCard(context.p2Base);
 
@@ -1415,8 +1415,8 @@ describe('Snapshot types', function() {
                 assertRegroupPhaseRaiderDefeatedState(context);
 
                 // move to action phase to confirm that everything still works
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
                 context.player1.clickCard(context.systemPatrolCraft);
                 context.player1.clickCard(context.p2Base);
             });

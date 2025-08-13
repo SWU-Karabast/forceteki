@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class SorcerousBlast extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'sorcerous-blast-id',
+            id: '6001143439',
             internalName: 'sorcerous-blast',
         };
     }

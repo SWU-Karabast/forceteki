@@ -35,7 +35,7 @@ describe('Aid From the Innocent ', function() {
                 // one click to confirm that additional cards can't be selected
                 context.player1.clickCardInDisplayCardPrompt(context.rebelAssault, true);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.dropIn).toBeInZone('discard');
                 expect(context.helloThere).toBeInZone('discard');
@@ -80,7 +80,7 @@ describe('Aid From the Innocent ', function() {
                 // Select two cards
                 context.player1.clickCardInDisplayCardPrompt(context.dropIn);
                 context.player1.clickCardInDisplayCardPrompt(context.helloThere);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 context.player2.passAction();
 
@@ -120,14 +120,14 @@ describe('Aid From the Innocent ', function() {
                 // Put it in the deck
                 context.player1.clickCard(context.restock);
                 context.player1.clickCard(context.dropIn);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 context.player1.clickCard(context.aidFromTheInnocent);
 
                 // Select two cards
                 context.player1.clickCardInDisplayCardPrompt(context.dropIn);
                 context.player1.clickCardInDisplayCardPrompt(context.helloThere);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Play one of the cards
                 context.player1.clickCard(context.dropIn);

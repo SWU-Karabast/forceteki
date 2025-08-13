@@ -222,7 +222,7 @@ describe('Lose All Abilities', function() {
                 context.player1.clickCard(context.consularSecurityForce);
                 context.player1.clickCard(context.grogu);
                 context.player1.clickCard(context.contractedHunter);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Player 2 plays Takedown to defeat Contracted Hunter because he is not protected by Shadowed Intentions
                 context.player2.clickCard(context.takedown);

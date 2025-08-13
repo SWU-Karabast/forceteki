@@ -37,8 +37,8 @@ describe('Zorii Bliss', function() {
 
                 // Verify we move on to regroup phase
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 // Pass again to make sure we don't have to discard again
                 expect(context.player1).toBeActivePlayer();
@@ -84,8 +84,8 @@ describe('Zorii Bliss', function() {
 
                 // Verify we move on to regroup phase
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 // Pass again to make sure we don't have to discard again
                 expect(context.player1).toBeActivePlayer();

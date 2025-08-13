@@ -151,6 +151,46 @@ class Game extends EventEmitter {
         this.state.currentPhase = value;
     }
 
+    get currentAbilityResolver() {
+        return this.currentlyResolving.abilityResolver;
+    }
+
+    set currentAbilityResolver(value) {
+        this.currentlyResolving.abilityResolver = value;
+    }
+
+    get currentActionWindow() {
+        return this.currentlyResolving.actionWindow;
+    }
+
+    set currentActionWindow(value) {
+        this.currentlyResolving.actionWindow = value;
+    }
+
+    get currentAttack() {
+        return this.currentlyResolving.attack;
+    }
+
+    set currentAttack(value) {
+        this.currentlyResolving.attack = value;
+    }
+
+    get currentEventWindow() {
+        return this.currentlyResolving.eventWindow;
+    }
+
+    set currentEventWindow(value) {
+        this.currentlyResolving.eventWindow = value;
+    }
+
+    get currentOpenPrompt() {
+        return this.currentlyResolving.openPrompt;
+    }
+
+    set currentOpenPrompt(value) {
+        this.currentlyResolving.openPrompt = value;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -186,9 +226,6 @@ class Game extends EventEmitter {
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
 
-        /** @type { ActionWindow | null } */
-        this.currentActionWindow = null;
-
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this.#debug = { pipeline: false };
         // Experimental flags, intended only for manual testing. Use the enable methods to temporarily flag these on during tests.
@@ -197,14 +234,7 @@ class Game extends EventEmitter {
         this.manualMode = false;
         this.gameMode = details.gameMode;
 
-        /** @type { EventWindow } */
-        this.currentEventWindow = null;
-        this.currentAttack = null;
-
-        this.currentActionWindow = null;
-
-        /** @type {import('./gameSteps/prompts/UiPrompt.js').UiPrompt} */
-        this.currentOpenPrompt = null;
+        this.initializeCurrentlyResolving();
 
         /** @private @readonly @type {import('./Randomness.js').IRandomness} */
         this._randomGenerator = new Randomness();
@@ -227,9 +257,6 @@ class Game extends EventEmitter {
         this.movedCards = [];
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
-
-        /** @type {AbilityResolver | null} */
-        this.currentAbilityResolver = null;
 
         this.initialiseTokens(this.cardDataGetter.tokenData);
 
@@ -303,6 +330,17 @@ class Game extends EventEmitter {
      */
     buildSafeTimeout(callback, delayMs, errorMessage) {
         return this.buildSafeTimeoutHandler(callback, delayMs, errorMessage);
+    }
+
+    initializeCurrentlyResolving() {
+        /** @type {import('./GameInterfaces.js').ICurrentlyResolving} */
+        this.currentlyResolving = {
+            abilityResolver: null,
+            actionWindow: null,
+            attack: null,
+            eventWindow: null,
+            openPrompt: null
+        };
     }
 
     get messages() {
@@ -1799,6 +1837,7 @@ class Game extends EventEmitter {
 
     postRollbackOperations(roundEntryPoint = null) {
         this.pipeline.clearSteps();
+        this.initializeCurrentlyResolving();
         this.initializePipelineForRound(roundEntryPoint);
         this.pipeline.continue(this);
     }

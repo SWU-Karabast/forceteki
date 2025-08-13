@@ -24,7 +24,7 @@ describe('I Had No Choice', function() {
                     expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.warzoneLieutenant, context.viperProbeDroid]);
                     context.player1.clickCard(context.wampa);
                     context.player1.clickCard(context.viperProbeDroid);
-                    context.player1.clickPrompt('Done');
+                    context.player1.clickDone();
 
                     expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.viperProbeDroid]);
                     context.player2.clickCard(context.viperProbeDroid);

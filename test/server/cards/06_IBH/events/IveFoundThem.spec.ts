@@ -54,7 +54,7 @@ describe('I\'ve Found Them', function() {
                     invalid: [context.aggression, context.aPrecariousPredicament, context.itsWorse],
                 });
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // All cards should be discarded since none are units
                 expect(context.aggression).toBeInZone('discard', context.player1);

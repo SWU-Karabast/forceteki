@@ -672,7 +672,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 context.player1.clickCard(context.captainTarkin);
                 context.player1.clickCard(context.quasarTieCarrier);
                 context.player1.clickCard(context.admiralPiett);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.player1).toHaveExactPromptButtons([
                     'Exhaust the damaged enemy unit: Pantoran Starship Thief',

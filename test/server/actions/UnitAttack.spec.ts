@@ -172,7 +172,7 @@ describe('Basic attack', function() {
 
             // Discard selection for Poe ability
             context.player1.clickCard(context.sneakAttack);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             context.player1.clickPrompt('Defeat an upgrade.');
             context.player1.clickCard(context.traitorous);

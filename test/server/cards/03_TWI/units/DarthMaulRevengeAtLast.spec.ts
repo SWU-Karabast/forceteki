@@ -94,7 +94,7 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.player1).not.toHaveEnabledPromptButton('Done');
             expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa, context.p2Base]);
             context.player1.clickCard(context.moistureFarmer);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(0);
             expect(context.moistureFarmer).toBeInZone('discard');
@@ -122,7 +122,7 @@ describe('Darth Maul, Revenge At Last', function() {
 
             expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa]);
             context.player1.clickCard(context.wampa);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(4);
             expect(context.moistureFarmer).toBeInZone('discard');
@@ -151,7 +151,7 @@ describe('Darth Maul, Revenge At Last', function() {
 
             expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa, context.cantinaBraggart, context.guerillaSoldier]);
             context.player1.clickCard(context.wampa);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(4);
             expect(context.moistureFarmer).toBeInZone('discard');
@@ -185,7 +185,7 @@ describe('Darth Maul, Revenge At Last', function() {
 
             expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa, context.cantinaBraggart, context.guerillaSoldier]);
             context.player1.clickCard(context.wampa);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(4);
             expect(context.moistureFarmer).toBeInZone('discard');
@@ -209,7 +209,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.darthMaul);
             context.player1.clickCard(context.battleDroidEscort);
             context.player1.clickCard(context.vanguardInfantry);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.player2).toHaveExactPromptButtons(['Create a Battle Droid token.', 'Give an Experience token to a unit']);
             context.player2.clickPrompt('Create a Battle Droid token.');
@@ -238,7 +238,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.moistureFarmer]);
             context.player1.clickCard(context.moistureFarmer);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(3);
             expect(context.battlefieldMarine).toBeInZone('discard');
@@ -287,7 +287,7 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.villageProtectors]);
             expect(context.player1).toHaveEnabledPromptButton('Done');
             context.player1.clickCard(context.villageProtectors);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(4);
             expect(context.pykeSentinel).toBeInZone('discard');
@@ -315,7 +315,7 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.villageProtectors, context.moistureFarmer, context.academyGraduate]);
             expect(context.player1).toHaveEnabledPromptButton('Done');
             context.player1.clickCard(context.villageProtectors);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(4);
             expect(context.pykeSentinel).toBeInZone('discard');
@@ -343,7 +343,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.p2Base);
 
             expect(context.player1).toBeAbleToSelectExactly([context.p2Base]);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(0);
             expect(context.p2Base.damage).toBe(5);
@@ -365,7 +365,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.darthMaul);
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.moistureFarmer);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul).toBeInZone('discard');
             expect(context.wampa.damage).toBe(4); // Damage reduced by 1 from electrostaff
@@ -388,7 +388,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.darthMaul);
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.moistureFarmer);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(0);
             expect(context.shield).not.toBeAttachedTo(context.darthMaul);
@@ -410,7 +410,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.darthMaul);
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.moistureFarmer);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(4);
             expect(context.moistureFarmer.damage).toBe(0);
@@ -434,7 +434,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.darthMaul);
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.moistureFarmer);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             context.player2.clickPrompt('Defeat shield to prevent attached unit from taking damage');
 
@@ -461,7 +461,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.darthMaul);
             context.player1.clickCard(context.bobaFett);
             context.player1.clickCard(context.moistureFarmer);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(5);
             expect(context.moistureFarmer).toBeInZone('discard'); // If damage were reduced, this would survive
@@ -484,7 +484,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.darthMaul);
             context.player1.clickCard(context.cantinaBraggart);
             context.player1.clickCard(context.moistureFarmer);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(0);
             expect(context.player1).toHaveEnabledPromptButtons(['Deal 2 damage to the defending player’s base: Cantina Braggart', 'Deal 2 damage to the defending player’s base: Moisture Farmer']);
@@ -512,7 +512,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.cantinaBraggart);
             context.player1.clickCard(context.moistureFarmer);
             expect(context.darthMaul.getPower()).toBe(6);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // Gain +2 damage for 1 damage on each target
             expect(context.darthMaul.getPower()).toBe(8);
@@ -547,7 +547,7 @@ describe('Darth Maul, Revenge At Last', function() {
 
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.cantinaBraggart);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(0);
             expect(context.wampa).toBeInZone('discard');
@@ -573,7 +573,7 @@ describe('Darth Maul, Revenge At Last', function() {
 
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.cantinaBraggart);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(0);
             expect(context.wampa).toBeInZone('discard');
@@ -600,7 +600,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.darthMaul);
             context.player1.clickCard(context.moistureFarmer);
             context.player1.clickCard(context.cantinaBraggart);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(0);
             expect(context.moistureFarmer).toBeInZone('discard');
@@ -630,7 +630,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.darthMaul);
             context.player1.clickCard(context.moistureFarmer);
             context.player1.clickCard(context.cantinaBraggart);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(0);
             expect(context.moistureFarmer).toBeInZone('discard');
@@ -658,7 +658,7 @@ describe('Darth Maul, Revenge At Last', function() {
 
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.cantinaBraggart);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(0);
             expect(context.cantinaBraggart).toBeInZone('discard');
@@ -685,7 +685,7 @@ describe('Darth Maul, Revenge At Last', function() {
 
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.cantinaBraggart);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(0);
             expect(context.cantinaBraggart).toBeInZone('discard');
@@ -719,7 +719,7 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa]);
 
             context.player1.clickCard(context.wampa);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
             expect(context.clone.damage).toBe(4);
             expect(context.moistureFarmer).toBeInZone('discard');
             expect(context.wampa).toBeInZone('discard');

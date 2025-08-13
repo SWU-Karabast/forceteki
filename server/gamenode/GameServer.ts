@@ -7,7 +7,8 @@ import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
 import { getHeapStatistics } from 'v8';
-import { freemem } from 'os';
+import { freemem, cpus } from 'os';
+import { monitorEventLoopDelay, performance, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
 
 import { logger } from '../logger';
 
@@ -30,6 +31,7 @@ import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
 import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
+import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 
 
 /**
@@ -106,9 +108,15 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
+    private lastCpuUsage: NodeJS.CpuUsage;
+    private lastCpuUsageTime: bigint;
+    private loopDelayHistogram: IntervalHistogram;
+    private lastLoopUtilization: EventLoopUtilization;
+
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
     public readonly bugReportHandler: BugReportHandler;
+    public readonly SwuStatsHandler: SwuStatsHandler;
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -159,6 +167,7 @@ export class GameServer {
 
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
+        logger.info(`GameServer: Detected ${cpus().length} logical CPU cores.`);
 
         // check if NEXTAUTH variable is set
         const secret = process.env.NEXTAUTH_SECRET;
@@ -241,12 +250,28 @@ export class GameServer {
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.bugReportHandler = new BugReportHandler();
+        this.SwuStatsHandler = new SwuStatsHandler();
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
-        // set up periodic heap monitoring every 30 seconds
-        this.logHeapStats();
-        setInterval(() => this.logHeapStats(), 30000);
+        if (process.env.ENVIRONMENT !== 'development') {
+            // initialize cpu usage and event loop stats
+            this.lastCpuUsage = process.cpuUsage();
+            this.lastCpuUsageTime = process.hrtime.bigint();
+            this.loopDelayHistogram = monitorEventLoopDelay({ resolution: 10 });
+            this.loopDelayHistogram.enable();
+            this.lastLoopUtilization = performance.eventLoopUtilization();
+
+            // log initial memory state on startup
+            this.logHeapStats();
+
+            // set up periodic memory, cpu and event loop monitoring for every 30 seconds
+            setInterval(() => {
+                this.logHeapStats();
+                this.logCpuUsage();
+                this.logEventLoopStats();
+            }, 30000);
+        }
     }
 
     private setupAppRoutes(app: express.Application) {
@@ -1327,6 +1352,28 @@ export class GameServer {
         }
     }
 
+    private logCpuUsage(): void {
+        try {
+            const cpuUsageDiff = process.cpuUsage(this.lastCpuUsage);
+            const nowTime = process.hrtime.bigint();
+            const elapsedTimeNanos = Number(nowTime - this.lastCpuUsageTime);
+
+            const elapsedUserNanos = cpuUsageDiff.user * 1000;
+            const elapsedSystemNanos = cpuUsageDiff.system * 1000;
+
+            const totalPercent = (((elapsedUserNanos + elapsedSystemNanos) / elapsedTimeNanos) * 100).toFixed(1);
+            const userPercent = (((elapsedUserNanos) / elapsedTimeNanos) * 100).toFixed(1);
+            const systemPercent = (((elapsedSystemNanos) / elapsedTimeNanos) * 100).toFixed(1);
+
+            logger.info(`[CpuStats] Total Usage: ${totalPercent}% (User: ${userPercent}%, System: ${systemPercent}%) | System Cores: ${cpus().length}`);
+
+            this.lastCpuUsageTime = nowTime;
+            this.lastCpuUsage = process.cpuUsage();
+        } catch (error) {
+            logger.error(`Error logging cpu stats: ${error}`);
+        }
+    }
+
     private logHeapStats(): void {
         try {
             const heapStats = getHeapStatistics();
@@ -1334,11 +1381,32 @@ export class GameServer {
             const totalHeapSizeInMB = (heapStats.total_heap_size / 1024 / 1024).toFixed(1);
             const heapSizeLimitInMB = (heapStats.heap_size_limit / 1024 / 1024).toFixed(1);
             const heapUsagePercent = ((heapStats.used_heap_size / heapStats.heap_size_limit) * 100).toFixed(1);
+            const rssSizeInMB = (process.memoryUsage().rss / 1024 / 1024).toFixed(1);
 
             const freeSystemMemoryInGB = (freemem() / 1024 / 1024 / 1024).toFixed(2);
-            logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | System free: ${freeSystemMemoryInGB}GB`);
+            logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | Total physical usage: ${rssSizeInMB}MB | System free: ${freeSystemMemoryInGB}GB`);
         } catch (error) {
             logger.error(`Error logging heap stats: ${error}`);
         }
     }
+
+    private logEventLoopStats(): void {
+        try {
+            const currentUtilization = performance.eventLoopUtilization();
+            const deltaUtilization = performance.eventLoopUtilization(currentUtilization, this.lastLoopUtilization);
+
+            const eventLoopPercent = (deltaUtilization.utilization * 100).toFixed(1);
+            const loopDelayMinMs = (this.loopDelayHistogram.min / 1e6).toFixed(1);
+            const loopDelayP50Ms = (this.loopDelayHistogram.percentile(50) / 1e6).toFixed(1);
+            const loopDelayP90Ms = (this.loopDelayHistogram.percentile(90) / 1e6).toFixed(1);
+            const loopDelayMaxMs = (this.loopDelayHistogram.max / 1e6).toFixed(1);
+            logger.info(`[EventLoopStats] Event Loop Utilization: ${eventLoopPercent}% | Event Loop Duration (ms): min: ${loopDelayMinMs}, P50: ${loopDelayP50Ms}, P90: ${loopDelayP90Ms}, max: ${loopDelayMaxMs}`);
+
+            this.lastLoopUtilization = currentUtilization;
+            this.loopDelayHistogram.reset();
+        } catch (error) {
+            logger.error(`Error logging event loop stats: ${error}`);
+        }
+    }
 }
+

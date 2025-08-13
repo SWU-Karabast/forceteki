@@ -64,7 +64,7 @@ describe('Aggression', function () {
                 context.player1.clickCard(context.shield);
                 context.player1.clickCard(context.experience);
                 context.player1.clickCardNonChecking(context.entrenched);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 expect(context.restoredArc170.isUpgraded()).toBeFalse();
                 expect(context.atst.isUpgraded()).toBeFalse();

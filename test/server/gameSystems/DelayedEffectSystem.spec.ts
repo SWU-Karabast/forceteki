@@ -144,8 +144,8 @@ describe('Delayed effects', function() {
 
                 context.player1.clickCard(djInPlay);
                 context.stolenResource1 = context.player1.resources.filter((resource) => resource.owner === context.player2Object)[0];
-                context.player2.passAction();
                 context.player1.readyResources(7);
+                context.player2.passAction();
 
                 // set an explicit random seed so we can guarantee that different "random" cards are stolen between the two DJs
                 context.game.setRandomSeed('12345');

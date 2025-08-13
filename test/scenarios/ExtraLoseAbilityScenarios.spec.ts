@@ -46,7 +46,7 @@ describe('Lose All Abilities', function() {
 
                 // Choose Millennium Falcon to remove its ability
                 context.player1.clickCard(context.millenniumFalcon);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Move to next action phase
                 context.moveToNextActionPhase();
@@ -58,8 +58,8 @@ describe('Lose All Abilities', function() {
                 context.moveToRegroupPhase();
 
                 // Resource
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 // Falcon tax is back
                 expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
@@ -86,7 +86,7 @@ describe('Lose All Abilities', function() {
                 context.player1.clickCard(context.ruthlessRaider);
                 context.player1.clickCard(context.millenniumFalcon);
                 context.player1.clickCard(context.fireball);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Move to the regroup phase
                 context.moveToRegroupPhase();
@@ -103,7 +103,7 @@ describe('Lose All Abilities', function() {
                 context.player1.clickCard(context.kazudaXiono);
                 context.player1.clickCard(context.consularSecurityForce);
                 context.player1.clickCard(context.fireball);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 context.player2.passAction();
 
@@ -132,7 +132,7 @@ describe('Lose All Abilities', function() {
                 context.player1.clickCard(context.kazudaXiono);
                 context.player1.clickCard(context.consularSecurityForce);
                 context.player1.clickCard(context.val);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Player 2 defeats Val with takedown
                 context.player2.clickCard(context.takedown);

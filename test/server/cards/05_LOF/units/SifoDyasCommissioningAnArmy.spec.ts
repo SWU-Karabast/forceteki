@@ -33,7 +33,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                     invalid: [context.pykeSentinel, context.atst, context.wrecker, context.fives]
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.batchBrothers);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Play Batch Brothers for free
                 const playerResources = context.player1.resources.length;
@@ -66,7 +66,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                     invalid: [context.pykeSentinel, context.atst, context.wrecker, context.fives]
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.batchBrothers);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Game moves to next action phase
                 expect(context.player1).toBeAbleToSelect(context.batchBrothers);
@@ -97,7 +97,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                     invalid: [context.pykeSentinel, context.atst, context.wrecker, context.fives]
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.cloneHeavyGunner);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Play Batch Brothers for free
                 const playerResources = context.player1.resources.length;
@@ -135,7 +135,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                 });
                 context.player2.clickCardInDisplayCardPrompt(context.republicTacticalOfficer);
                 context.player2.clickCardInDisplayCardPrompt(context.clonePilot);
-                context.player2.clickPrompt('Done');
+                context.player2.clickDone();
 
                 // Play Batch Brothers for free
                 const playerResources = context.player2.resources.length;
@@ -196,7 +196,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                     invalid: [context.pykeSentinel, context.atst, context.wrecker, context.fives]
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.batchBrothers);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Player plays Batch Brothers for free
                 expect(context.player1).toBeAbleToSelect(context.batchBrothers);
@@ -227,7 +227,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                     invalid: [context.pykeSentinel, context.atst, context.wrecker, context.fives]
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.batchBrothers);
-                context.player1.clickPrompt('Done');
+                context.player1.clickDone();
 
                 // Opponent cannot play Batch Brothers for free
                 expect(context.player1).toBeAbleToSelect(context.batchBrothers);
