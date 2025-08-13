@@ -94,6 +94,7 @@ export interface IGameState {
     isInitiativeClaimed: boolean;
     allCards: GameObjectRef<Card>[];
     actionNumber: number;
+    lastGameEventId: number;
     readonly winnerNames: string[];
     currentPhase: PhaseName | null;
 }

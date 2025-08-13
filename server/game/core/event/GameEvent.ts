@@ -18,6 +18,10 @@ export class GameEvent {
     public order = 0;
     public isContingent = false;
 
+    public get eventId() {
+        return this._eventId;
+    }
+
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
@@ -26,6 +30,9 @@ export class GameEvent {
     private replacementEvents: any[] = [];
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
     private _window: EventWindow = null;
+
+    /** A unique ID which can be captured in state if necessary. */
+    private readonly _eventId: number;
 
     public get context(): AbilityContext | null {
         return this._context;
@@ -82,6 +89,7 @@ export class GameEvent {
         }
 
         this._context = context;
+        this._eventId = context.game.getNextGameEventId();
 
         Contract.assertTrue(params == null || !('context' in params), `Attempting set 'context' property for ${this} via params. Context must be set via constructor parameter`);
 

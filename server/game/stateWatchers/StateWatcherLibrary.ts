@@ -11,17 +11,57 @@ import { CardsDiscardedThisPhaseWatcher } from './CardsDiscardedThisPhaseWatcher
 import { UnitsHealedThisPhaseWatcher } from './UnitsHealedThisPhaseWatcher';
 import { LeadersDeployedThisPhaseWatcher } from './LeadersDeployedThisPhaseWatcher';
 import { ForceUsedThisPhaseWatcher } from './ForceUsedThisPhaseWatcher';
+import type Game from '../core/Game';
 
-export = {
-    attacksThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new AttacksThisPhaseWatcher(registrar, card),
-    cardsDiscardedThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new CardsDiscardedThisPhaseWatcher(registrar, card),
-    cardsDrawnThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new CardsDrawnThisPhaseWatcher(registrar, card),
-    cardsEnteredPlayThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new CardsEnteredPlayThisPhaseWatcher(registrar, card),
-    cardsLeftPlayThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new CardsLeftPlayThisPhaseWatcher(registrar, card),
-    cardsPlayedThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new CardsPlayedThisPhaseWatcher(registrar, card),
-    damageDealtThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new DamageDealtThisPhaseWatcher(registrar, card),
-    forceUsedThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new ForceUsedThisPhaseWatcher(registrar, card),
-    leadersDeployedThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new LeadersDeployedThisPhaseWatcher(registrar, card),
-    unitsDefeatedThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new UnitsDefeatedThisPhaseWatcher(registrar, card),
-    unitsHealedThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new UnitsHealedThisPhaseWatcher(registrar, card),
-};
+
+export class StateWatcherLibrary {
+    private readonly game: Game;
+
+    public constructor(game: Game) {
+        this.game = game;
+    }
+
+    public attacksThisPhase(registrar: StateWatcherRegistrar, card: Card) {
+        return new AttacksThisPhaseWatcher(this.game, registrar, card);
+    }
+
+    public cardsDiscardedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
+        return new CardsDiscardedThisPhaseWatcher(this.game, registrar, card);
+    }
+
+    public cardsDrawnThisPhase(registrar: StateWatcherRegistrar, card: Card) {
+        return new CardsDrawnThisPhaseWatcher(this.game, registrar, card);
+    }
+
+    public cardsEnteredPlayThisPhase(registrar: StateWatcherRegistrar, card: Card) {
+        return new CardsEnteredPlayThisPhaseWatcher(this.game, registrar, card);
+    }
+
+    public cardsLeftPlayThisPhase(registrar: StateWatcherRegistrar, card: Card) {
+        return new CardsLeftPlayThisPhaseWatcher(this.game, registrar, card);
+    }
+
+    public cardsPlayedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
+        return new CardsPlayedThisPhaseWatcher(this.game, registrar, card);
+    }
+
+    public damageDealtThisPhase(registrar: StateWatcherRegistrar, card: Card) {
+        return new DamageDealtThisPhaseWatcher(this.game, registrar, card);
+    }
+
+    public forceUsedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
+        return new ForceUsedThisPhaseWatcher(this.game, registrar, card);
+    }
+
+    public leadersDeployedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
+        return new LeadersDeployedThisPhaseWatcher(this.game, registrar, card);
+    }
+
+    public unitsDefeatedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
+        return new UnitsDefeatedThisPhaseWatcher(this.game, registrar, card);
+    }
+
+    public unitsHealedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
+        return new UnitsHealedThisPhaseWatcher(this.game, registrar, card);
+    }
+}

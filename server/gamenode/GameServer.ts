@@ -31,6 +31,7 @@ import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
 import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
+import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 
 
 /**
@@ -115,6 +116,7 @@ export class GameServer {
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
     public readonly bugReportHandler: BugReportHandler;
+    public readonly SwuStatsHandler: SwuStatsHandler;
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -248,25 +250,28 @@ export class GameServer {
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.bugReportHandler = new BugReportHandler();
+        this.SwuStatsHandler = new SwuStatsHandler();
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
-        // initialize cpu usage and event loop stats
-        this.lastCpuUsage = process.cpuUsage();
-        this.lastCpuUsageTime = process.hrtime.bigint();
-        this.loopDelayHistogram = monitorEventLoopDelay({ resolution: 10 });
-        this.loopDelayHistogram.enable();
-        this.lastLoopUtilization = performance.eventLoopUtilization();
+        if (process.env.ENVIRONMENT !== 'development') {
+            // initialize cpu usage and event loop stats
+            this.lastCpuUsage = process.cpuUsage();
+            this.lastCpuUsageTime = process.hrtime.bigint();
+            this.loopDelayHistogram = monitorEventLoopDelay({ resolution: 10 });
+            this.loopDelayHistogram.enable();
+            this.lastLoopUtilization = performance.eventLoopUtilization();
 
-        // log initial memory state on startup
-        this.logHeapStats();
-
-        // set up periodic memory, cpu and event loop monitoring for every 30 seconds
-        setInterval(() => {
+            // log initial memory state on startup
             this.logHeapStats();
-            this.logCpuUsage();
-            this.logEventLoopStats();
-        }, 30000);
+
+            // set up periodic memory, cpu and event loop monitoring for every 30 seconds
+            setInterval(() => {
+                this.logHeapStats();
+                this.logCpuUsage();
+                this.logEventLoopStats();
+            }, 30000);
+        }
     }
 
     private setupAppRoutes(app: express.Application) {
