@@ -1,6 +1,14 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { AbilityRestriction, CardType, DamageType, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
+import {
+    AbilityRestriction,
+    CardType,
+    DamageType,
+    EffectName,
+    EventName,
+    GameStateChangeRequired,
+    WildcardCardType
+} from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
@@ -185,7 +193,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         event.availableExcessDamage = damageAmount - Math.min(damageAmount, card.remainingHp);
 
         // Check if the damage will defeat the card, this can be used by abilities (e.g. Tarfful) to determine if the card will be defeated or not
-        event.willDefeat = damageAmount >= card.remainingHp;
+        event.willDefeat = damageAmount >= card.remainingHp && !card.hasOngoingEffect(EffectName.CannotBeDefeatedByDamage);
     }
 
     private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
