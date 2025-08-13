@@ -231,7 +231,7 @@ global.rollback = function(contextRef, assertion, altAssertion) {
 
     assertion();
 
-    contextRef.snapshot.rollbackToSnapshotInternal({
+    contextRef.snapshot.rollbackToSnapshot({
         type: 'manual',
         playerId: context.player1Object.id,
         snapshotId
@@ -240,7 +240,7 @@ global.rollback = function(contextRef, assertion, altAssertion) {
     assertion();
 
     if (altAssertion) {
-        contextRef.snapshot.rollbackToSnapshotInternal({
+        contextRef.snapshot.rollbackToSnapshot({
             type: 'manual',
             playerId: context.player1Object.id,
             snapshotId
