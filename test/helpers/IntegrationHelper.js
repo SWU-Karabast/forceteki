@@ -76,7 +76,7 @@ global.integration = function (definitions, enableUndo = false) {
             contextRef.snapshot = {
                 getCurrentSnapshotId: () => gameFlowWrapper.snapshotManager?.currentSnapshotId,
                 getCurrentSnapshottedAction: () => gameFlowWrapper.snapshotManager?.currentSnapshottedAction,
-                rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshot(settings),
+                rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshotInternal(settings),
                 countAvailableActionSnapshots: (playerId) => newContext.game.countAvailableActionSnapshots(playerId),
                 countAvailableManualSnapshots: (playerId) => newContext.game.countAvailableManualSnapshots(playerId),
                 takeManualSnapshot: (playerId) => newContext.game.takeManualSnapshot(playerId),
@@ -199,7 +199,7 @@ global.undoIt = function(expectation, assertion, timeout) {
             // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
             return;
         }
-        const rolledBack = context.game.rollbackToSnapshot({
+        const rolledBack = context.game.rollbackToSnapshotInternal({
             type: SnapshotType.Manual,
             playerId: snapshotUtils.startOfTestSnapshot.player.id,
             snapshotId: snapshotUtils.startOfTestSnapshot.snapshotId
@@ -231,7 +231,7 @@ global.rollback = function(contextRef, assertion, altAssertion) {
 
     assertion();
 
-    contextRef.snapshot.rollbackToSnapshot({
+    contextRef.snapshot.rollbackToSnapshotInternal({
         type: 'manual',
         playerId: context.player1Object.id,
         snapshotId
@@ -240,7 +240,7 @@ global.rollback = function(contextRef, assertion, altAssertion) {
     assertion();
 
     if (altAssertion) {
-        contextRef.snapshot.rollbackToSnapshot({
+        contextRef.snapshot.rollbackToSnapshotInternal({
             type: 'manual',
             playerId: context.player1Object.id,
             snapshotId
