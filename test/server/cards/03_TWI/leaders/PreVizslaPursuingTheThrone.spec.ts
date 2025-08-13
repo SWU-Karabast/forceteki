@@ -51,7 +51,7 @@ describe('Pre Vizsla, Pursuing the Throne', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Pre Vizsla\'s leader deployed abilityshould have Saboteur while we have 3 cards or more in hand and +2/+0 while we have 6 cards or more in hand', async function () {
+        it('Pre Vizsla\'s leader deployed ability should have Saboteur while we have 3 cards or more in hand and +2/+0 while we have 6 cards or more in hand', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

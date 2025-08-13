@@ -133,9 +133,9 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
             }
 
             return {
-                event,
                 card: context.source,
                 ...defeatSource,
+                event,
                 type: DefeatSourceType.NonCombatDamage,
             };
         }
@@ -147,7 +147,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
             type: DefeatSourceType.Ability,
             player: context.player,
             card: context.source,
-            event
+            event,
         };
     }
 
