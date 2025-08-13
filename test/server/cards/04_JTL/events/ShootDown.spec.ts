@@ -67,5 +67,34 @@ describe('Shoot Down', function () {
                 expect(context.p2Base.damage).toBe(0);
             });
         });
+
+        it('should not deal damage to base if target cannot be defeat by damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['shoot-down'],
+                    spaceArena: ['alliance-xwing'],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    hand: ['the-tragedy-of-plagueis'],
+                    spaceArena: ['tieln-fighter'],
+                    groundArena: ['atst'],
+                    hasInitiative: true,
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.theTragedyOfPlagueis);
+            context.player2.clickCard(context.tielnFighter);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            context.player1.clickCard(context.shootDown);
+            context.player1.clickCard(context.tielnFighter);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.tielnFighter).toBeInZone('spaceArena');
+            expect(context.p2Base.damage).toBe(0);
+        });
     });
 });
