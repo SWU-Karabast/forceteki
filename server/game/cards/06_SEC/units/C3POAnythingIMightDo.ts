@@ -15,9 +15,9 @@ export default class C3POAnythingIMightDo extends NonLeaderUnitCard {
         registrar.addActionAbility({
             title: 'Give a unit +2/+2 for this phase',
             cost: [abilityHelper.costs.exhaustSelf(), abilityHelper.costs.returnSelfToHandFromPlay()],
+            cannotTargetFirst: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card, context) => card !== context.source,
                 immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: abilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                 })
