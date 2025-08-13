@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
+import { CardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
 
@@ -27,8 +28,8 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
                     const damageDealtToBase = this.damageDealtThisPhaseWatcher.getDamageDealtByPlayer(
                         context.player,
                         (damage) =>
-                            damage.target.isBase() &&
-                            damage.target.controller !== context.player
+                            damage.targetType === CardType.Base &&
+                            damage.targetController !== context.player
                     ).reduce((sum, damage) => sum + damage.amount, 0);
 
                     return damageDealtToBase >= 3;

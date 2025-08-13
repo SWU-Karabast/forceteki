@@ -55,30 +55,30 @@ describe('Frontline Shuttle', function() {
 
                 expect(context.player2).toBeActivePlayer();
             });
+        });
 
-            it('should not attack base if enemy has no units', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        spaceArena: ['frontline-shuttle'],
-                        groundArena: ['battlefield-marine', 'r2d2#ignoring-protocol', 'c3po#protocol-droid']
-                    },
-                    player2: {
-                        groundArena: [],
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.frontlineShuttle);
-
-                context.player1.clickPrompt('Attack with a unit, even if it’s exhausted. It can’t attack bases for this attack.');
-                context.player1.clickPrompt('Use it anyway');
-
-                expect(context.player2.base.damage).toBe(0);
-                expect(context.frontlineShuttle).toBeInZone('discard');
-                expect(context.player2).toBeActivePlayer();
+        it('Frontline Shuttle\'s ability should not attack base if enemy has no units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['frontline-shuttle'],
+                    groundArena: ['battlefield-marine', 'r2d2#ignoring-protocol', 'c3po#protocol-droid']
+                },
+                player2: {
+                    groundArena: [],
+                }
             });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.frontlineShuttle);
+
+            context.player1.clickPrompt('Attack with a unit, even if it’s exhausted. It can’t attack bases for this attack.');
+            context.player1.clickPrompt('Use it anyway');
+
+            expect(context.player2.base.damage).toBe(0);
+            expect(context.frontlineShuttle).toBeInZone('discard');
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

@@ -89,6 +89,14 @@ global.integration = function (definitions, enableUndo = false) {
              * @param {SwuSetupTestOptions} options
              */
             const setupGameStateWrapperAsync = async (options) => {
+                const maxSetupCount = newContext.isUndoTest ? 2 : 1;
+
+                if (newContext.setupCallCount >= maxSetupCount) {
+                    throw new TestSetupError(`There have been ${newContext.setupCallCount + 1} calls to setupTestAsync during the course of this test case (expected at most ${maxSetupCount}). This usually indicates that a test case has setupTestAsync both in a beforeEach and in the body of the test case itself.`);
+                }
+
+                newContext.setupCallCount++;
+
                 // If this isn't an Undo Test, or this is an Undo Test that has the setup within the undoIt call rather than a beforeEach, run the setup.
                 // this is to prevent repeated setup calls when we run the test twice in an Undo test.
                 if (!newContext.isUndoTest || this.contextRef.snapshot?.startOfTestSnapshot == null) {
@@ -184,6 +192,8 @@ global.undoIt = function(expectation, assertion, timeout) {
             throw new Error('Snapshot ID invalid');
         }
 
+        const messagesBeforeAssertion = context.game.gameChat.messages.slice();
+
         await assertion();
         if (snapshotUtils.startOfTestSnapshot?.snapshotId == null) {
             // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
@@ -198,6 +208,9 @@ global.undoIt = function(expectation, assertion, timeout) {
             // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
             return;
         }
+
+        context.game.gameChat.messages = messagesBeforeAssertion;
+
         await assertion();
     }, timeout);
 };

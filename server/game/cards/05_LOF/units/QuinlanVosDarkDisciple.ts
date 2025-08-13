@@ -6,7 +6,7 @@ import { CardType, RelativePlayer } from '../../../core/Constants';
 export default class QuinlanVosDarkDisciple extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'quinlan-vos#dark-disciple-id',
+            id: '7008431159',
             internalName: 'quinlan-vos#dark-disciple',
         };
     }

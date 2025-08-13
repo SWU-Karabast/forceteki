@@ -5,13 +5,14 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
+import type Game from '../core/Game';
+import type { GameObjectRef, UnwrapRef, UnwrapRefObject } from '../core/GameObjectBase';
 
-// TODO: add a "defeatedBy: Player" field here.
 export interface DefeatedUnitEntry {
-    unit: IUnitCard;
+    unit: GameObjectRef<IUnitCard>;
     inPlayId: number;
-    controlledBy: Player;
-    defeatedBy?: Player;
+    controlledBy: GameObjectRef<Player>;
+    defeatedBy?: GameObjectRef<Player>;
 }
 
 interface InPlayUnit {
@@ -21,19 +22,24 @@ interface InPlayUnit {
 
 export type IUnitsDefeatedThisPhase = DefeatedUnitEntry[];
 
-export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntry[]> {
+export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<IUnitsDefeatedThisPhase> {
     public constructor(
+        game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(StateWatcherName.UnitsDefeatedThisPhase, registrar, card);
+        super(game, StateWatcherName.UnitsDefeatedThisPhase, registrar, card);
+    }
+
+    protected override mapCurrentValue(stateValue: IUnitsDefeatedThisPhase): UnwrapRefObject<DefeatedUnitEntry>[] {
+        return stateValue.map((x) => ({ inPlayId: x.inPlayId, unit: this.game.getFromRef(x.unit), controlledBy: this.game.getFromRef(x.controlledBy), defeatedBy: this.game.getFromRef(x.defeatedBy) }));
     }
 
     /**
      * Returns an array of {@link DefeatedUnitEntry} objects representing every unit defeated
      * this phase so far, as well as the controlling and defeating player.
      */
-    public override getCurrentValue(): IUnitsDefeatedThisPhase {
+    public override getCurrentValue() {
         return super.getCurrentValue();
     }
 
@@ -45,7 +51,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     }
 
     /** Get the list of the units that were defeated this phase */
-    public someUnitDefeatedThisPhase(filter: (entry: DefeatedUnitEntry) => boolean): boolean {
+    public someUnitDefeatedThisPhase(filter: (entry: UnwrapRef<DefeatedUnitEntry>) => boolean): boolean {
         return this.getCurrentValue().filter(filter).length > 0;
     }
 
@@ -81,7 +87,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
                 onCardDefeated: (event) => EnumHelpers.isUnit(event.lastKnownInformation.type)
             },
             update: (currentState: IUnitsDefeatedThisPhase, event: any) =>
-                currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.lastKnownInformation.controller, defeatedBy: event.defeatSource.player })
+                currentState.concat({ unit: event.card.getRef(), inPlayId: event.card.mostRecentInPlayId, controlledBy: event.lastKnownInformation.controller.getRef(), defeatedBy: event.defeatSource.player?.getRef() })
         });
     }
 

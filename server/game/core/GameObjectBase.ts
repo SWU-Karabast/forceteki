@@ -26,10 +26,46 @@ export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
     uuid: string;
 }
 
+/**
+ * A type that takes a type and creates a version of it where any properties of type GameObjectRefs<T> are replaced with T.
+ * Used to enforce that any GameObjectRef fields on the type are mapped to GameObjects.
+ */
+export type UnwrapRef<T> = T extends unknown[] ?
+    (UnwrapRefArray<T>) :
+    (T extends object ? UnwrapRefObject<T> : never);
+
+/** If the type is an array, unpack the array and check if the elements are either GameObjectRefs directly, or objects which can contain GameObjectRefs. */
+export type UnwrapRefArray<T extends unknown[]> = T extends (infer R)[] ? (R extends GameObjectRef<infer U> ? U[] : UnwrapRefObject<R>[]) : never;
+
+/** This loops through each property in T and maps it to a new type. */
+export type UnwrapRefObject<T> = {
+    [P in keyof T]: UnwrapRefProperty<T[P]>
+};
+
+/** Will directly return the type, or if it's a GameObjectRef or array of GameObjectRef, return the inner GameObject type of the GameObjectRef instead. * */
+type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
+    U :
+    (T extends (infer R)[] ? (R extends GameObjectRef<infer U> ? U[] : R[]) :
+        T);
+
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
 @registerState()
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
+    public readonly game: Game;
+
     protected state: T;
+
+    private _hasRef = false;
+
+    public get hasRef() {
+        return this._hasRef || this.alwaysTrackState;
+    }
+
+    /** Subclasses can override this to force the state manager to keep track of this object, even if refs aren't created for it */
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    protected get alwaysTrackState() {
+        return false;
+    }
 
     /** ID given by the game engine. */
     public get uuid() {
@@ -41,9 +77,8 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         this.state.uuid = value;
     }
 
-    public constructor(
-        public game: Game
-    ) {
+    public constructor(game: Game) {
+        this.game = game;
         // @ts-expect-error state is a generic object that is defined by the deriving classes, it's essentially w/e the children want it to be.
         this.state = {};
         // All state defaults *must* happen before registration, so we can't rely on the derived constructor to set the defaults as register will already be called.
@@ -65,7 +100,11 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     public getState() {
         // This *must* return a copy, without any references, hence the use of structuredClone.
-        return structuredClone(this.state);
+        try {
+            return structuredClone(this.state);
+        } catch (ex) {
+            throw new Error(`Unable to retrieve the copied state for ${this.getGameObjectName()}.\nError: ${ex.toString()}\nCurrent State:\n\n${JSON.stringify(this.state)}\n\n`);
+        }
     }
 
     /** A function for game to call on all objects after all state has been rolled back. Intended to be used when a class has state changes that have external changes, for example, updating OngoingEffectEngine. */
@@ -87,6 +126,8 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
+        this._hasRef = true;
+
         const ref = { isRef: true, uuid: this.state.uuid };
 
         if (Helpers.isDevelopment()) {
