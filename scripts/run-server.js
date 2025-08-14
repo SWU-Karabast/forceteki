@@ -18,7 +18,7 @@ function createEnvFile() {
         USE_LOCAL_DYNAMODB: 'false',
         DISCORD_BUG_REPORT_WEBHOOK_URL: '',
         DISCORD_ERROR_REPORT_WEBHOOK_URL: '',
-        SWUStatsAPIKey: ''
+        SWUSTATS_API_KEY: ''
     };
     return fs.writeFile(
         envPath,

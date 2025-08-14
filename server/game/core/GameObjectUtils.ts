@@ -152,6 +152,8 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
                     instance[field] = newState[field];
                 }
             }
+
+            // STATE TODO: Once objects can be GC'd and we can recreate objects during rollback, this will need to happen *after* the new objects are created.
             if (metaState[stateArrayMetadata]) {
                 const metaArrays = metaState[stateArrayMetadata] as string[];
                 for (const field of metaArrays) {

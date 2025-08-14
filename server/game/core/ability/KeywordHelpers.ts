@@ -91,6 +91,7 @@ export const isNumericType: Record<KeywordName, boolean> = {
     [KeywordName.Hidden]: false,
     [KeywordName.Overwhelm]: false,
     [KeywordName.Piloting]: false,
+    [KeywordName.Plot]: false,
     [KeywordName.Raid]: true,
     [KeywordName.Restore]: true,
     [KeywordName.Saboteur]: false,
@@ -108,6 +109,7 @@ export const hasWhileInPlayAbility: Record<KeywordName, boolean> = {
     [KeywordName.Hidden]: true,
     [KeywordName.Overwhelm]: false,
     [KeywordName.Piloting]: false,
+    [KeywordName.Plot]: false,
     [KeywordName.Raid]: false,
     [KeywordName.Restore]: false,
     [KeywordName.Saboteur]: false,
@@ -222,6 +224,8 @@ function getRegexForKeyword(keyword: KeywordName) {
             return /(?:^|(?:\n))Overwhelm/g;
         case KeywordName.Piloting:
             return /Piloting\s\[\s*(\d+)\s+resource(?:s)?\s*([\w\s]*)\]/g;
+        case KeywordName.Plot:
+            return /(?:^|(?:\n))Plot/g;
         case KeywordName.Raid:
             return /(?:^|(?:\n))Raid ([\d]+)/g;
         case KeywordName.Restore:
