@@ -13,7 +13,7 @@ const GameStateBuilder = require('./GameStateBuilder.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const { cards } = require('../../server/game/cards/Index.js');
 const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
-const { SnapshotType } = require('../../server/game/core/Constants.js');
+const { SnapshotType, PhaseName } = require('../../server/game/core/Constants.js');
 
 // set to true to run all tests with undo enabled
 const ENABLE_UNDO_ALL_TESTS = false;
@@ -33,6 +33,13 @@ if (!jasmine.getEnv().configuration().random) {
 const gameStateBuilder = new GameStateBuilder();
 
 function buildStartOfTestSnapshot(game) {
+    if (game.currentPhase === PhaseName.Setup) {
+        return {
+            type: SnapshotType.Phase,
+            PhaseName: PhaseName.Setup
+        };
+    }
+
     const activePlayer = game.getActivePlayer();
 
     return {
