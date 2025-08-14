@@ -37,11 +37,16 @@ export interface IDiscordDispatcher {
 }
 
 export class DiscordDispatcher implements IDiscordDispatcher {
-    private static readonly _bugReportWebhookUrl: string = process.env.DISCORD_BUG_REPORT_WEBHOOK_URL || '';
-    private static readonly _serverErrorWebhookUrl: string = process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL || '';
+    private readonly _bugReportWebhookUrl: string;
+    private readonly _serverErrorWebhookUrl: string;
+
+    public constructor() {
+        this._bugReportWebhookUrl = process.env.DISCORD_BUG_REPORT_WEBHOOK_URL || '';
+        this._serverErrorWebhookUrl = process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL || '';
+    }
 
     public formatAndSendBugReportAsync(bugReport: ISerializedReportState): Promise<string | boolean> {
-        if (!DiscordDispatcher._bugReportWebhookUrl) {
+        if (!this._bugReportWebhookUrl) {
             // If no webhook URL is configured, just log it
             logger.warn('Bug report could not be sent to Discord: No webhook URL configured for bug reports');
 
@@ -137,11 +142,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         });
 
         // Send to Discord webhook with file attachment using our custom function
-        return httpPostFormData(DiscordDispatcher._bugReportWebhookUrl, formData);
+        return httpPostFormData(this._bugReportWebhookUrl, formData);
     }
 
     public formatAndSendUndoFailureReportAsync(undoFailure: ISerializedUndoFailureState): Promise<string | boolean> {
-        if (!DiscordDispatcher._serverErrorWebhookUrl) {
+        if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
             logger.warn('Undo failure could not be sent to Discord: No webhook URL configured for server errors');
             return Promise.resolve(false);
@@ -204,11 +209,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             contentType: 'application/json',
         });
 
-        return httpPostFormData(DiscordDispatcher._serverErrorWebhookUrl, formData);
+        return httpPostFormData(this._serverErrorWebhookUrl, formData);
     }
 
     public formatAndSendServerErrorAsync(error: Error, lobbyId: string): Promise<EitherPostResponseOrBooolean> {
-        if (!DiscordDispatcher._serverErrorWebhookUrl) {
+        if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
             logger.warn('Server error could not be sent to Discord: No webhook URL configured for server errors');
             return Promise.resolve(false);
@@ -246,7 +251,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             ]
         };
 
-        return httpPostFormData(DiscordDispatcher._serverErrorWebhookUrl, data);
+        return httpPostFormData(this._serverErrorWebhookUrl, data);
     }
 
     /**
