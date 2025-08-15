@@ -46,7 +46,7 @@ const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
 const { CostAdjuster } = require('./cost/CostAdjuster.js');
 const { logger } = require('../../logger.js');
-const { SnapshotManager } = require('./snapshot/SnapshotManager.js');
+const { SnapshotManager, UndoMode } = require('./snapshot/SnapshotManager.js');
 const AbilityHelper = require('../AbilityHelper.js');
 const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
 const { getAbilityHelper } = require('../AbilityHelper.js');
@@ -119,7 +119,7 @@ class Game extends EventEmitter {
     }
 
     get isUndoEnabled() {
-        return this.snapshotManager.undoEnabled;
+        return this.snapshotManager.undoMode === UndoMode.Full;
     }
 
     get actionNumber() {
@@ -208,7 +208,7 @@ class Game extends EventEmitter {
         validateGameOptions(options);
 
         /** @private */
-        this.snapshotManager = new SnapshotManager(this, details.enableUndo);
+        this.snapshotManager = new SnapshotManager(this, details.undoMode);
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 

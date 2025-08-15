@@ -20,6 +20,7 @@ import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
 import { AlertType } from '../game/core/Constants';
 import { v4 as uuidv4 } from 'uuid';
+import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 
 interface LobbySpectator {
     id: string;
@@ -741,7 +742,7 @@ export class Lobby {
             owner: 'Order66',
             gameMode: GameMode.Premier,
             players,
-            enableUndo: process.env.ENVIRONMENT === 'development',
+            undoMode: process.env.ENVIRONMENT === 'development' ? UndoMode.Full : UndoMode.CurrentSnapshotOnly,
             cardDataGetter: this.cardDataGetter,
             useActionTimer,
             pushUpdate: () => this.sendGameState(this.game),
