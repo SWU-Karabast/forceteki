@@ -1,11 +1,20 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type Game from '../../Game';
+import type { GameObject } from '../../GameObject';
+import type { GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 
-export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapper<TValue> {
-    private targetStates: Record<string, any> = {};
+export interface IDetachedOngoingEffectValueWrapperState<TTarget extends GameObject = GameObject> extends IGameObjectBaseState {
+    targetStates: Map<string, GameObjectRef<TTarget>>;
+}
+
+export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapper<TValue, IDetachedOngoingEffectValueWrapperState> {
     public readonly applyFunc: any;
     public readonly unapplyFunc: any;
+
+    private get targetStates() {
+        return this.state.targetStates;
+    }
 
     public constructor(
         game: Game,
