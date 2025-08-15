@@ -896,7 +896,7 @@ export class Lobby {
             logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
             severeGameMessage = true;
             maxErrorCountExceeded = true;
-            this.discordDispatcher.formatAndSendServerErrorAsync('Too many errors for request.', error, this.id)
+            this.discordDispatcher.formatAndSendServerErrorAsync(`Maximum error count ${this.gameMessageErrorCount} exceeded, game halted to prevent server crash`, error, this.id)
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
         }
 
