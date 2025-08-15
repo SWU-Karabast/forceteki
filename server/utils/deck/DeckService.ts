@@ -12,6 +12,20 @@ import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
  */
 export class DeckService {
     private dbServicePromise = getDynamoDbServiceAsync();
+    private readonly baseMapping30 = {
+        aggression: 'SOR_027',
+        command: 'SOR_024',
+        cunning: 'SOR_029',
+        vigilance: 'SOR_020'
+    };
+
+    private readonly baseMapping28 = {
+        aggression: 'LOF_027',
+        command: 'LOF_024',
+        cunning: 'LOF_029',
+        vigilance: 'LOF_020'
+    };
+
 
     /**
      * Get all decks for a user with favorites first
@@ -336,20 +350,66 @@ export class DeckService {
             return Promise.resolve(deck);
         }
 
-        // Process each opponent stat
-        deck.stats.statsByMatchup = await Promise.all(
-            deck.stats.statsByMatchup.map(async (opponentStat) => {
-                // Try to find card IDs for the leader and base internal names
-                const leaderCardId = await cardDataGetter.getCardByNameAsync(opponentStat.leaderId);
-                const baseCardId = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);
+        // Create a map to aggregate stats by leader + base combination
+        const aggregatedStats = new Map<string, IMatchupStatEntity>();
+        for (const opponentStat of deck.stats.statsByMatchup) {
+            const leaderCardId = await cardDataGetter.getCardByNameAsync(opponentStat.leaderId);
+            const baseCardId = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);
 
-                // If conversion was successful, use the card IDs
-                Contract.assertNotNullLike(leaderCardId && baseCardId, `When converting match stats to for FE leaderCardId ${leaderCardId} and baseCardId ${baseCardId} are null`);
-                opponentStat.leaderId = leaderCardId.setId.set + '_' + leaderCardId.setId.number;
-                opponentStat.baseId = baseCardId.setId.set + '_' + baseCardId.setId.number;
-                return opponentStat;
-            })
-        );
+            Contract.assertNotNullLike(leaderCardId && baseCardId, `When converting match stats to for FE leaderCardId ${leaderCardId} and baseCardId ${baseCardId} are null`);
+
+            const convertedLeaderId = leaderCardId.setId.set + '_' + leaderCardId.setId.number;
+
+            const convertedBaseId = await this.asyncConvertBaseIdForStats(baseCardId, cardDataGetter);
+
+            const matchupKey = `${convertedLeaderId}|${convertedBaseId}`;
+
+            const existingStats = aggregatedStats.get(matchupKey);
+            if (existingStats) {
+                existingStats.wins += opponentStat.wins;
+                existingStats.losses += opponentStat.losses;
+                existingStats.draws += opponentStat.draws;
+            } else {
+                aggregatedStats.set(matchupKey, {
+                    leaderId: convertedLeaderId,
+                    baseId: convertedBaseId,
+                    wins: opponentStat.wins,
+                    losses: opponentStat.losses,
+                    draws: opponentStat.draws
+                });
+            }
+        }
+        // Convert the aggregated map back to an array
+        deck.stats.statsByMatchup = Array.from(aggregatedStats.values());
         return deck;
+    }
+
+    private async asyncConvertBaseIdForStats(baseCard: any, cardDataGetter: CardDataGetter): Promise<string> {
+        const baseCardData = await cardDataGetter.getCardAsync(baseCard.id);
+
+        if (this.isBasicBase(baseCardData)) {
+            return this.createBasicBaseGroupId(baseCardData);
+        }
+        return baseCard.setId.set + '_' + baseCard.setId.number;
+    }
+
+    /**
+    * @param baseCardData The card data object
+    * @returns boolean True if this is a basic base
+    */
+    private isBasicBase(baseCardData: any): boolean {
+        const hp = baseCardData.hp;
+        return ((hp === 28 || hp === 30));
+    }
+
+    /**
+    * @param baseCardData The card data object
+    * @returns string The grouped identifier
+    */
+    private createBasicBaseGroupId(baseCardData: any): string {
+        const aspects = baseCardData.aspects || [];
+        const hp = baseCardData.hp;
+        const mapping = hp === 30 ? this.baseMapping30 : this.baseMapping28;
+        return mapping[aspects[0]];
     }
 }
