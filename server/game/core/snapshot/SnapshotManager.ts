@@ -1,11 +1,11 @@
-import { PhaseName } from '../Constants';
+import { PhaseName, RollbackSetupEntryPoint } from '../Constants';
 import { RollbackRoundEntryPoint as RollbackRoundEntryPoint } from '../Constants';
 import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
-import type { SnapshotTimepoint } from './SnapshotInterfaces';
-import { type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
+import type { IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, SnapshotTimepoint } from './SnapshotInterfaces';
+import { RollbackEntryPointType, type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
 import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
@@ -140,7 +140,7 @@ export class SnapshotManager {
         if (rolledBackSnapshotIdx != null) {
             // Throw out all snapshots after the rollback snapshot.
             this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
-            return { success: true, roundEntryPoint: this.getRoundEntryPointAfterRollback(settings) };
+            return { success: true, entryPoint: this.getEntryPointAfterRollback(settings) };
         }
 
         return { success: false };
@@ -160,14 +160,36 @@ export class SnapshotManager {
         return offset;
     }
 
-    private getRoundEntryPointAfterRollback(settings: IGetSnapshotSettings): RollbackRoundEntryPoint {
+    private getEntryPointAfterRollback(settings: IGetSnapshotSettings): IRollbackSetupEntryPoint | IRollbackRoundEntryPoint {
         switch (settings.type) {
             case SnapshotType.Action:
-                return RollbackRoundEntryPoint.WithinActionPhase;
+                return {
+                    type: RollbackEntryPointType.Round,
+                    entryPoint: RollbackRoundEntryPoint.WithinActionPhase,
+                };
             case SnapshotType.Phase:
-                return settings.phaseName === PhaseName.Action ? RollbackRoundEntryPoint.StartOfRound : RollbackRoundEntryPoint.StartOfRegroupPhase;
+                switch (settings.phaseName) {
+                    case PhaseName.Setup:
+                        return {
+                            type: RollbackEntryPointType.Setup,
+                            entryPoint: RollbackSetupEntryPoint.StartOfSetupPhase,
+                        };
+                    case PhaseName.Action:
+                        return {
+                            type: RollbackEntryPointType.Round,
+                            entryPoint: RollbackRoundEntryPoint.StartOfRound,
+                        };
+                    case PhaseName.Regroup:
+                        return {
+                            type: RollbackEntryPointType.Round,
+                            entryPoint: RollbackRoundEntryPoint.StartOfRegroupPhase,
+                        };
+                }
             case SnapshotType.Manual:
-                return this.snapshotFactory.currentSnapshottedPhase === PhaseName.Action ? RollbackRoundEntryPoint.WithinActionPhase : RollbackRoundEntryPoint.StartOfRegroupPhase;
+                return {
+                    type: RollbackEntryPointType.Round,
+                    entryPoint: this.snapshotFactory.currentSnapshottedPhase === PhaseName.Action ? RollbackRoundEntryPoint.WithinActionPhase : RollbackRoundEntryPoint.StartOfRegroupPhase
+                };
             default:
                 Contract.fail(`Unimplemented snapshot type: ${(settings as any).type}`);
         }

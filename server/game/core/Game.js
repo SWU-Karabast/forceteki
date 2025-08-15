@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -52,6 +52,7 @@ const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
 const { getAbilityHelper } = require('../AbilityHelper.js');
 const { PhaseInitializeMode } = require('./gameSteps/phases/Phase.js');
 const { Randomness } = require('../core/Randomness.js');
+const { RollbackEntryPointType } = require('./snapshot/SnapshotInterfaces.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -1122,15 +1123,34 @@ class Game extends EventEmitter {
         );
 
         this.resolveGameState(true);
-        this.pipeline.initialise([
-            new SetupPhase(this, this.snapshotManager),
-            new SimpleStep(this, () => this.beginRound(), 'beginRound')
-        ]);
+        this.initializePipelineForSetup();
 
         this.playStarted = true;
         this.startedAt = new Date();
 
         this.continue();
+    }
+
+    /**
+     * Initializes the pipeline for the game setup.
+     * Accepts a parameter indicating whether this operation is due to a rollback, and if so, to what point in the setup.
+     *
+     * @param {RollbackSetupEntryPoint | null} rollbackEntryPoint
+     */
+    initializePipelineForSetup(rollbackEntryPoint = null) {
+        const setupPhaseInitializeMode =
+            rollbackEntryPoint === RollbackSetupEntryPoint.StartOfSetupPhase
+                ? PhaseInitializeMode.RollbackToStartOfPhase
+                : PhaseInitializeMode.Normal;
+
+        const setupPhaseStep = [
+            new SetupPhase(this, this.snapshotManager, setupPhaseInitializeMode)
+        ];
+
+        this.pipeline.initialise([
+            ...setupPhaseStep,
+            new SimpleStep(this, () => this.beginRound(), 'beginRound')
+        ]);
     }
 
     /*
@@ -1843,15 +1863,22 @@ class Game extends EventEmitter {
             return false;
         }
 
-        this.postRollbackOperations(rollbackResult.roundEntryPoint);
+        this.postRollbackOperations(rollbackResult.entryPoint);
 
         return true;
     }
 
-    postRollbackOperations(roundEntryPoint = null) {
+    /**
+     * @param {import('./snapshot/SnapshotInterfaces.js').IRollbackSetupEntryPoint | import('./snapshot/SnapshotInterfaces.js').IRollbackRoundEntryPoint} entryPoint
+     */
+    postRollbackOperations(entryPoint) {
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
-        this.initializePipelineForRound(roundEntryPoint);
+        if (entryPoint.type === RollbackEntryPointType.Setup) {
+            this.initializePipelineForSetup(entryPoint.entryPoint);
+        } else if (entryPoint.type === RollbackEntryPointType.Round) {
+            this.initializePipelineForRound(entryPoint.entryPoint);
+        }
         this.pipeline.continue(this);
     }
 
