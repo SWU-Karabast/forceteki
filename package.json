@@ -1,7 +1,7 @@
 {
   "type": "commonjs",
   "scripts": {
-    "dev": "node scripts/run-server.js",
+    "dev": "cross-env NODE_ENV=development node scripts/run-server.js",
     "build": "node scripts/build-server.js",
     "build-dev": "node scripts/build-dev.js",
     "build-test": "node scripts/build-test.js",
