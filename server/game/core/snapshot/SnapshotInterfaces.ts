@@ -1,5 +1,5 @@
 import type { Card } from '../card/Card';
-import type { PhaseName, RollbackRoundEntryPoint, SnapshotType } from '../Constants';
+import type { PhaseName, RollbackRoundEntryPoint, RollbackSetupEntryPoint, SnapshotType } from '../Constants';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import type { Player } from '../Player';
 import type { IRandomness } from '../Randomness';
@@ -57,9 +57,24 @@ interface IRollbackResultBase {
     success: boolean;
 }
 
+export enum RollbackEntryPointType {
+    Setup = 'setup',
+    Round = 'round',
+}
+
+export interface IRollbackSetupEntryPoint {
+    type: RollbackEntryPointType.Setup;
+    entryPoint: RollbackSetupEntryPoint;
+}
+
+export interface IRollbackRoundEntryPoint {
+    type: RollbackEntryPointType.Round;
+    entryPoint: RollbackRoundEntryPoint;
+}
+
 interface IRollbackResultSuccess extends IRollbackResultBase {
     success: true;
-    roundEntryPoint: RollbackRoundEntryPoint;
+    entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint;
 }
 
 interface IRollbackResultFailure extends IRollbackResultBase {
