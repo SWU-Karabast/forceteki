@@ -127,6 +127,9 @@ export class SnapshotManager {
             case SnapshotType.Phase:
                 rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName, this.checkGetOffset(settings.phaseOffset));
                 break;
+            case SnapshotType.Quick:
+                rolledBackSnapshotIdx = this.actionSnapshots.rollbackToSnapshot(settings.playerId, 0);
+                break;
             default:
                 throw new Error(`Unimplemented snapshot type: ${(settings as any).type}`);
         }

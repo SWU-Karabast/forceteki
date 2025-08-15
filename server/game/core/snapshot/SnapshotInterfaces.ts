@@ -23,7 +23,12 @@ export interface IPhaseSnapshotSettings extends ISnapshotSettingsBase {
     phaseName: PhaseName;
 }
 
-export type ISnapshotSettings = IActionSnapshotSettings | IPhaseSnapshotSettings | IManualSnapshotSettings;
+export interface IQuickSnapshotSettings extends ISnapshotSettingsBase {
+    type: SnapshotType.Quick;
+    playerId: string;
+}
+
+export type ISnapshotSettings = IActionSnapshotSettings | IPhaseSnapshotSettings | IManualSnapshotSettings | IQuickSnapshotSettings;
 
 export interface IGetActionSnapshotSettings extends IActionSnapshotSettings {
 
@@ -51,7 +56,7 @@ export interface IGetPhaseSnapshotSettings extends IPhaseSnapshotSettings {
     phaseOffset?: number;
 }
 
-export type IGetSnapshotSettings = IGetActionSnapshotSettings | IGetManualSnapshotSettings | IGetPhaseSnapshotSettings;
+export type IGetSnapshotSettings = IGetActionSnapshotSettings | IGetManualSnapshotSettings | IGetPhaseSnapshotSettings | IQuickSnapshotSettings;
 
 interface IRollbackResultBase {
     success: boolean;

@@ -1828,7 +1828,7 @@ class Game extends EventEmitter {
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
      * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshot(playerId, settings) {
+    rollbackToSnapshot(_playerId, settings) {
         return this.rollbackToSnapshotInternal(settings);
     }
 
