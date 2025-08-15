@@ -1808,6 +1808,12 @@ class Game extends EventEmitter {
         return this.snapshotManager.countAvailablePhaseSnapshots(phaseName);
     }
 
+    /** @param {string} playerId */
+    hasAvailableQuickSnapshot(playerId) {
+        Contract.assertNotNullLike(playerId);
+        return this.snapshotManager.hasAvailableQuickSnapshot(playerId);
+    }
+
     /**
      * Takes a manual snapshot of the current game state for the given player
      *

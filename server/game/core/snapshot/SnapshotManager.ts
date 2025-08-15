@@ -165,6 +165,8 @@ export class SnapshotManager {
                 return settings.phaseName === PhaseName.Action ? RollbackRoundEntryPoint.StartOfRound : RollbackRoundEntryPoint.StartOfRegroupPhase;
             case SnapshotType.Manual:
                 return this.snapshotFactory.currentSnapshottedPhase === PhaseName.Action ? RollbackRoundEntryPoint.WithinActionPhase : RollbackRoundEntryPoint.StartOfRegroupPhase;
+            case SnapshotType.Quick:
+                return RollbackRoundEntryPoint.WithinActionPhase;
             default:
                 Contract.fail(`Unimplemented snapshot type: ${(settings as any).type}`);
         }
@@ -180,6 +182,10 @@ export class SnapshotManager {
 
     public countAvailablePhaseSnapshots(phaseName: PhaseName.Action | PhaseName.Regroup): number {
         return this.phaseSnapshots.getSnapshotCount(phaseName);
+    }
+
+    public hasAvailableQuickSnapshot(playerId): boolean {
+        return this.actionSnapshots.getSnapshotCount(playerId) > 0;
     }
 
     public clearAllSnapshots(): void {

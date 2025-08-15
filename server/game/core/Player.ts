@@ -1352,6 +1352,7 @@ export class Player extends GameObject<IPlayerState> {
             actionSnapshots: availableActionSnapshots,
             actionPhaseSnapshots: this.game.countAvailablePhaseSnapshots(PhaseName.Action),
             regroupPhaseSnapshots: this.game.countAvailablePhaseSnapshots(PhaseName.Regroup),
+            hasQuickSnapshot: this.game.hasAvailableQuickSnapshot(this.id),
         };
     }
 
