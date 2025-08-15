@@ -20,6 +20,9 @@ import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
 import { AlertType } from '../game/core/Constants';
 import { v4 as uuidv4 } from 'uuid';
+import { UndoMode } from '../game/core/snapshot/SnapshotManager';
+import type { IDiscordDispatcher } from '../game/core/DiscordDispatcher';
+import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 
 interface LobbySpectator {
     id: string;
@@ -76,6 +79,7 @@ export class Lobby {
     private readonly testGameBuilder?: any;
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
+    private readonly discordDispatcher: IDiscordDispatcher = new DiscordDispatcher();
 
     private game?: Game;
     public users: LobbyUser[] = [];
@@ -741,7 +745,7 @@ export class Lobby {
             owner: 'Order66',
             gameMode: GameMode.Premier,
             players,
-            enableUndo: process.env.ENVIRONMENT === 'development',
+            undoMode: process.env.ENVIRONMENT === 'development' ? UndoMode.Full : UndoMode.CurrentSnapshotOnly,
             cardDataGetter: this.cardDataGetter,
             useActionTimer,
             pushUpdate: () => this.sendGameState(this.game),
@@ -892,6 +896,8 @@ export class Lobby {
             logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
             severeGameMessage = true;
             maxErrorCountExceeded = true;
+            this.discordDispatcher.formatAndSendServerErrorAsync(`Maximum error count ${this.gameMessageErrorCount} exceeded, game halted to prevent server crash`, error, this.id)
+                .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
         }
 
         // const gameState = game.getState();
@@ -1006,7 +1012,8 @@ export class Lobby {
             await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
 
             logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${game.id}`);
-            const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
+
+            /* const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
                 this.playersDetails.find((u) => u.user.getId() === id)?.deckSource === DeckSource.SWUStats
             );
             // Send to SWUstats if handler is available
@@ -1017,7 +1024,7 @@ export class Lobby {
                     this.playersDetails.find((u) => u.user.getId() === player2.id).deckLink,
                 );
                 logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
-            }
+            }*/
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck stats:`, error);
         }
@@ -1074,7 +1081,7 @@ export class Lobby {
         }
     }
 
-    // Report bug method
+    // Report bug method; front-end RPC from sendLobbyMessage()
     private async reportBug(socket: Socket, ...args: any): Promise<void> {
         try {
             // Parse description as JSON if it's in JSON format

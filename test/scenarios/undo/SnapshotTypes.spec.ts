@@ -1,5 +1,96 @@
 describe('Snapshot types', function() {
     undoIntegration(function(contextRef) {
+        describe('During the setup phase,', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'setup',
+                    player1: {
+                        deck: ['armed-to-the-teeth',
+                            'collections-starhopper',
+                            'covert-strength',
+                            'chewbacca#pykesbane',
+                            'battlefield-marine',
+                            'battlefield-marine',
+                            'battlefield-marine',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                        ],
+                    },
+                    player2: {
+                        deck: [
+                            'moisture-farmer',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'wampa',
+                            'atst',
+                            'atst',
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Determine the first player
+                context.selectInitiativePlayer(context.player1);
+
+                // Draw starting hands
+                expect(context.player1.handSize).toBe(6);
+                expect(context.player2.handSize).toBe(6);
+
+                // Choose whether to take a mulligan
+                context.player1.clickPrompt('Mulligan');
+                context.player2.clickPrompt('Keep');
+
+                // Resource two cards
+                context.player1.clickFirstCardInHand();
+                context.player1.clickCard(context.player1.hand[1]);
+                context.player1.clickDone();
+                context.player2.clickFirstCardInHand();
+                context.player2.clickCard(context.player2.hand[1]);
+                context.player2.clickDone();
+
+                // Start of the action phase
+                expect(context.player1).toBeActivePlayer();
+                expect(context.player2).toHavePrompt('Waiting for opponent to take an action or pass');
+            });
+
+            const assertSetupPhaseStartState = (context) => {
+                expect(context.game.initiativePlayer).toBeNull();
+                expect(context.player1.handSize).toBe(0);
+                expect(context.player2.handSize).toBe(0);
+                expect(context.player1.deckSize).toBe(11);
+                expect(context.player2.deckSize).toBe(11);
+            };
+
+            describe('phase snapshots', function () {
+                it('can revert back to the beginning of the setup phase', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'phase',
+                        phaseName: 'setup'
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertSetupPhaseStartState(context);
+
+                    // Determine the first player
+                    context.selectInitiativePlayer(context.player1);
+
+                    // Draw starting hands
+                    expect(context.player1.handSize).toBe(6);
+                    expect(context.player2.handSize).toBe(6);
+                });
+            });
+        });
+
         describe('During the action phase,', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
