@@ -1,7 +1,7 @@
 import type Game from '../../Game';
 import type { GameStateManager } from '../GameStateManager';
 import type { IGetCurrentSnapshotHandler, IUpdateCurrentSnapshotHandler } from '../SnapshotFactory';
-import type { IGameSnapshot } from '../SnapshotInterfaces';
+import type { IGameSnapshot, ISnapshotProperties } from '../SnapshotInterfaces';
 import type { IClearNewerSnapshotsBinding } from './SnapshotContainerBase';
 import { SnapshotContainerBase } from './SnapshotContainerBase';
 import * as Contract from '../../utils/Contract.js';
@@ -63,14 +63,17 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
     }
 
     /**
-     * Rolls back to the snapshot at the given key with the specified offset, if it exists.
-     *
-     * @param key The key of the snapshot to roll back to if possible
-     * @param offset The offset from the key's latest snapshot to roll back to. 0 is current snapshot, -1 is the most recent snapshot before current, -2 is the previous snapshot, etc.
-     * Cannot be greater than the maximum history length (i.e. `-maxHistoryLength`).
-     * @returns The ID of the snapshot that was rolled back to, or `null` if it does not exist
+     * Get properties of a snapshot at the given key and offset without exposing the full snapshot object.
      */
-    public rollbackToSnapshot(key: T, offset: number): number | null {
+    public getSnapshotProperties(key: T, offset = 0): ISnapshotProperties | null {
+        const snapshot = this.getSnapshotInternal(key, offset);
+        return snapshot ? this.extractSnapshotProperties(snapshot) : null;
+    }
+
+    /**
+     * Internal method to get a snapshot by key and offset.
+     */
+    private getSnapshotInternal(key: T, offset: number): IGameSnapshot | null {
         Contract.assertTrue(offset <= 0 && offset > -this.maxHistoryLength, `Snapshot offset must be less than 1 and greater than than max history length (-${this.maxHistoryLength}), got ${offset}`);
 
         const snapshotHistory = this.snapshots.get(key);
@@ -82,9 +85,24 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
             return null;    // Cannot rollback further than the available snapshots for this key
         }
 
-        const snapshot = snapshotHistory[snapshotHistory.length + offset - 1];
-        super.rollbackToSnapshotInternal(snapshot);
+        return snapshotHistory[snapshotHistory.length + offset - 1];
+    }
 
+    /**
+     * Rolls back to the snapshot at the given key with the specified offset, if it exists.
+     *
+     * @param key The key of the snapshot to roll back to if possible
+     * @param offset The offset from the key's latest snapshot to roll back to. 0 is current snapshot, -1 is the most recent snapshot before current, -2 is the previous snapshot, etc.
+     * Cannot be greater than the maximum history length (i.e. `-maxHistoryLength`).
+     * @returns The ID of the snapshot that was rolled back to, or `null` if it does not exist
+     */
+    public rollbackToSnapshot(key: T, offset: number): number | null {
+        const snapshot = this.getSnapshotInternal(key, offset);
+        if (!snapshot) {
+            return null;
+        }
+
+        super.rollbackToSnapshotInternal(snapshot);
         return snapshot.id;
     }
 

@@ -73,6 +73,12 @@ interface IRollbackResultFailure extends IRollbackResultBase {
 
 export type IRollbackResult = IRollbackResultSuccess | IRollbackResultFailure;
 
+export interface ISnapshotProperties {
+    roundNumber: number;
+    actionNumber: number;
+    currentPhase: PhaseName;
+}
+
 export enum SnapshotTimepoint {
     StartOfPhase = 'startOfPhase',
     Action = 'action',
