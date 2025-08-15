@@ -20,6 +20,7 @@ import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
 import { AlertType } from '../game/core/Constants';
 import { v4 as uuidv4 } from 'uuid';
+import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 
 interface LobbySpectator {
     id: string;
@@ -741,7 +742,7 @@ export class Lobby {
             owner: 'Order66',
             gameMode: GameMode.Premier,
             players,
-            enableUndo: process.env.ENVIRONMENT === 'development',
+            undoMode: process.env.ENVIRONMENT === 'development' ? UndoMode.Full : UndoMode.CurrentSnapshotOnly,
             cardDataGetter: this.cardDataGetter,
             useActionTimer,
             pushUpdate: () => this.sendGameState(this.game),
@@ -1006,7 +1007,8 @@ export class Lobby {
             await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
 
             logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${game.id}`);
-            const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
+
+            /* const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
                 this.playersDetails.find((u) => u.user.getId() === id)?.deckSource === DeckSource.SWUStats
             );
             // Send to SWUstats if handler is available
@@ -1017,7 +1019,7 @@ export class Lobby {
                     this.playersDetails.find((u) => u.user.getId() === player2.id).deckLink,
                 );
                 logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
-            }
+            }*/
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck stats:`, error);
         }
