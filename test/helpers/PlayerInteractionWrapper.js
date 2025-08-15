@@ -403,6 +403,10 @@ class PlayerInteractionWrapper {
         return this.player.hand.length;
     }
 
+    get deckSize() {
+        return this.player.decklist.deckCards.length;
+    }
+
     get readyResourceCount() {
         return this.player.readyResourceCount;
     }
