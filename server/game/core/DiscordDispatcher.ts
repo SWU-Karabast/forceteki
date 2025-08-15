@@ -29,11 +29,12 @@ export interface IDiscordDispatcher {
 
     /**
      * Format and send a server error report to Discord
+     * @param description A brief description of the error context
      * @param error The error object to report
      * @param lobbyId The lobby ID associated with the error
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
-    formatAndSendServerErrorAsync(error: Error, lobbyId: string): Promise<EitherPostResponseOrBoolean>;
+    formatAndSendServerErrorAsync(description: string, error: Error, lobbyId: string): Promise<EitherPostResponseOrBoolean>;
 }
 
 export class DiscordDispatcher implements IDiscordDispatcher {
@@ -77,18 +78,18 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             {
                 name: 'Lobby ID',
                 value: bugReport.lobbyId,
-                inline: true
+                inline: true,
             },
             {
                 name: 'Game ID',
                 value: bugReport.gameId || 'N/A',
-                inline: true
+                inline: true,
             },
             {
                 name: 'Timestamp',
                 value: bugReport.timestamp,
-                inline: true
-            }
+                inline: true,
+            },
         ];
 
         // Add screen resolution if available
@@ -127,8 +128,8 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                     color: 0xFF0000, // Red color
                     description: embedDescription,
                     fields,
-                    timestamp: new Date().toISOString()
-                }
+                    timestamp: new Date().toISOString(),
+                },
             ]
         };
 
@@ -169,23 +170,23 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             {
                 name: 'Lobby ID',
                 value: undoFailure.lobbyId,
-                inline: true
+                inline: true,
             },
             {
                 name: 'Game ID',
                 value: undoFailure.gameId || 'N/A',
-                inline: true
+                inline: true,
             },
             {
                 name: 'Pre Undo State',
                 value: 'See attached JSON file for the pre-undo game state',
-                inline: false
+                inline: false,
             },
             {
                 name: 'Snapshot Settings',
                 value: 'See attached JSON file for the snapshot settings used during the undo attempt',
-                inline: false
-            }
+                inline: false,
+            },
         ];
 
         const formData = new FormData();
@@ -225,7 +226,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         return httpPostFormData(this._serverErrorWebhookUrl, formData);
     }
 
-    public formatAndSendServerErrorAsync(error: Error, lobbyId: string): Promise<EitherPostResponseOrBoolean> {
+    public formatAndSendServerErrorAsync(description: string, error: Error, lobbyId: string): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
             if (process.env.NODE_ENV !== 'test') {
@@ -234,7 +235,10 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             return Promise.resolve(false);
         }
 
-        const embedDescription = 'A server error occurred that requires attention.';
+        // Truncate description if it's too long for Discord embeds
+        const embedDescription = description.length > 1024
+            ? description.substring(0, 1021) + '...'
+            : description;
         // Truncate error stack if it's too long for Discord embeds
         const embedErrorStack = error.stack?.length > 1024
             ? error.stack.substring(0, 1021) + '...'
@@ -242,20 +246,25 @@ export class DiscordDispatcher implements IDiscordDispatcher {
 
         const fields = [
             {
+                name: 'Server Error Deescription',
+                value: embedDescription,
+                inline: false,
+            },
+            {
                 name: 'Lobby ID',
                 value: lobbyId,
-                inline: true
+                inline: true,
             },
             {
                 name: 'Error Message',
                 value: error.message,
-                inline: false
+                inline: false,
             },
             {
                 name: 'Stack Trace',
                 value: embedErrorStack || 'No stack trace available',
-                inline: false
-            }
+                inline: false,
+            },
         ];
 
         const data: IDiscordFormat = {
@@ -266,8 +275,8 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                     color: 0xFF0000, // Red color
                     description: embedDescription,
                     fields,
-                    timestamp: new Date().toISOString()
-                }
+                    timestamp: new Date().toISOString(),
+                },
             ]
         };
 

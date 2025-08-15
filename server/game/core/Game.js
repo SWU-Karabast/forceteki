@@ -1256,12 +1256,6 @@ class Game extends EventEmitter {
         player.passedActionPhase = true;
         this.createEventAndOpenWindow(EventName.OnClaimInitiative, null, { player }, TriggerHandlingMode.ResolvesTriggers);
 
-        try {
-            throw new Error('Test exception');
-        } catch (error) {
-            this.discordDispatcher.formatAndSendServerErrorAsync(error, this._router.id);
-        }
-
         // update game state for the sake of constant abilities that check initiative
         this.resolveGameState();
     }
