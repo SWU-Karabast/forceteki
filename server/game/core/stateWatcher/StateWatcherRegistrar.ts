@@ -1,20 +1,21 @@
-import type { IStateListenerProperties } from '../../Interfaces';
+import type { StateWatcherName } from '../Constants';
 import type Game from '../Game';
-import { GameObjectBase, type IGameObjectBaseState } from '../GameObjectBase';
-import * as Contract from '../utils/Contract';
+import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import { GameObjectBase } from '../GameObjectBase';
+import type { StateWatcher } from './StateWatcher';
 
 export interface IStateWatcherRegistrarState extends IGameObjectBaseState {
-    watchedState: Map<string, any>;
+    watchers: Map<string, GameObjectRef<StateWatcher>>;
 }
-
+// TODO: This piece's job is now to simply register the names of the state watchers. If a name exists, return that instance.
 /**
  * Helper for managing the operation of {@link StateWatcher} implementations.
  * Holds the state objects that the watchers interact with, registers the
  * triggers for updating them, and tracks which watcher types are registered.
  */
 export class StateWatcherRegistrar extends GameObjectBase<IStateWatcherRegistrarState> {
-    private get watchedState() {
-        return this.state.watchedState;
+    private get watchers() {
+        return this.state.watchers;
     }
 
     public constructor(game: Game) {
@@ -22,7 +23,7 @@ export class StateWatcherRegistrar extends GameObjectBase<IStateWatcherRegistrar
     }
 
     protected override setupDefaultState() {
-        this.state.watchedState = new Map();
+        this.state.watchers = new Map();
     }
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -30,58 +31,55 @@ export class StateWatcherRegistrar extends GameObjectBase<IStateWatcherRegistrar
         return true;
     }
 
-    public isRegistered(watcherKey: string) {
-        return this.watchedState.has(watcherKey);
+    public isRegistered(name: StateWatcherName) {
+        return this.state.watchers.has(name);
     }
 
-    public register(watcherKey: string, initialValue: unknown, listeners: IStateListenerProperties<unknown>[]) {
-        if (this.isRegistered(watcherKey)) {
-            return;
+    public registerWatcher(name: StateWatcherName, watcherFactory: () => StateWatcher) {
+        const watcherRef = this.state.watchers.get(name);
+        if (!this.isRegistered(name)) {
+            const watcher = watcherFactory();
+            this.state.watchers.set(name, watcher.getRef());
+            return watcher;
         }
-
-        // set the initial state value
-        this.setStateValue(watcherKey, initialValue, true);
-
-        for (const listener of listeners) {
-            const eventNames = Object.keys(listener.when);
-
-            // build a handler that will use the listener's update handler to generate a new state value and then store it
-            const stateUpdateHandler = (event) => {
-                if (!listener.when[event.name](event)) {
-                    return;
-                }
-
-                const currentStateValue = this.getStateValue(watcherKey);
-                const updatedStateValue = listener.update(currentStateValue, event);
-                this.setStateValue(watcherKey, updatedStateValue);
-            };
-
-            eventNames.forEach((eventName) => this.game.on(eventName, stateUpdateHandler));
-        }
+        return this.game.getFromRef(watcherRef);
     }
 
-    public getStateValue(watcherKey: string): unknown {
-        if (!this.assertRegistered(watcherKey)) {
-            return null;
-        }
+    // public register(watcherKey: string, initialValue: unknown) {
+    //     if (this.isRegistered(watcherKey)) {
+    //         return;
+    //     }
 
-        return this.watchedState.get(watcherKey);
-    }
+    //     // set the initial state value
+    //     this.setStateValue(watcherKey, initialValue, true);
+    // }
 
-    public setStateValue(watcherKey: string, newValue: unknown, initializing: boolean = false) {
-        if (!initializing && !this.assertRegistered(watcherKey)) {
-            return;
-        }
+    // public getStateValue<T = unknown>(watcherKey: string): T {
+    //     if (!this.assertRegistered(watcherKey)) {
+    //         return null;
+    //     }
 
-        this.watchedState.set(watcherKey, newValue);
-    }
+    //     return this.watchedState.get(watcherKey);
+    // }
 
-    private assertRegistered(watcherKey: string) {
-        Contract.assertTrue(this.isRegistered(watcherKey),
-            `Watcher '${watcherKey}' not found in registered watcher list: ${Array.from(this.watchedState.keys()).join(', ')}`);
+    // public setStateValue(watcherKey: string, newValue: unknown, initializing: boolean = false) {
+    //     if (!initializing && !this.assertRegistered(watcherKey)) {
+    //         return;
+    //     }
 
-        return true;
-    }
+    //     this.state.watchedState.set(watcherKey, newValue);
+    // }
+
+    // private assertRegistered(watcherKey: string) {
+    //     Contract.assertTrue(this.isRegistered(watcherKey),
+    //         () => `Watcher '${watcherKey}' not found in registered watcher list: ${Array.from(this.watchedState.keys()).join(', ')}`);
+
+    //     return true;
+    // }
+
+    // protected override afterSetState(oldState: IStateWatcherRegistrarState): void {
+
+    // }
 
     public override getGameObjectName(): string {
         return 'StateWatcherRegistrar';

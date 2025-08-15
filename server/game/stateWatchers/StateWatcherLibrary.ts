@@ -12,6 +12,7 @@ import { UnitsHealedThisPhaseWatcher } from './UnitsHealedThisPhaseWatcher';
 import { LeadersDeployedThisPhaseWatcher } from './LeadersDeployedThisPhaseWatcher';
 import { ForceUsedThisPhaseWatcher } from './ForceUsedThisPhaseWatcher';
 import type Game from '../core/Game';
+import { StateWatcherName } from '../core/Constants';
 
 
 export class StateWatcherLibrary {
@@ -22,7 +23,7 @@ export class StateWatcherLibrary {
     }
 
     public attacksThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new AttacksThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.AttacksThisPhase, () => new AttacksThisPhaseWatcher(this.game, registrar, card));
     }
 
     public cardsDiscardedThisPhase(registrar: StateWatcherRegistrar, card: Card) {

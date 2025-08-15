@@ -9,7 +9,10 @@ const stateObjectMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
 
-// Decorator to capture the names of any accessors flagged as @undoState, @undoObject, or @undoArray for copyState, and then clear the array for the next derived class to use.
+/**
+ * Decorator to capture the names of any accessors flagged as @undoState, @undoObject, or @undoArray for copyState, and then clear the array for the next derived class to use.
+ * @param fullCopyOnly If true, simply uses the bulk copy method rather than using any meta data.
+ */
 export function registerState<T extends GameObjectBase>() {
     return function (targetClass: any, context: ClassDecoratorContext) {
         const parentClass = Object.getPrototypeOf(targetClass);
