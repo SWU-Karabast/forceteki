@@ -56,7 +56,9 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     public formatAndSendBugReportAsync(bugReport: ISerializedReportState): Promise<string | boolean> {
         if (!this._bugReportWebhookUrl) {
             // If no webhook URL is configured, just log it
-            logger.warn('Bug report could not be sent to Discord: No webhook URL configured for bug reports');
+            if (process.env.NODE_ENV !== 'test') {
+                logger.warn('Bug report could not be sent to Discord: No webhook URL configured for bug reports');
+            }
 
             return Promise.resolve(false);
         }
@@ -156,9 +158,12 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     public formatAndSendUndoFailureReportAsync(undoFailure: ISerializedUndoFailureState): Promise<string | boolean> {
         if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
-            logger.warn('Undo failure could not be sent to Discord: No webhook URL configured for server errors');
+            if (process.env.NODE_ENV !== 'test') {
+                logger.warn('Undo failure could not be sent to Discord: No webhook URL configured for server errors');
+            }
             return Promise.resolve(false);
         }
+
         const embedDescription = 'Undo failed due to an unexpected error.';
         const fields = [
             {
@@ -223,7 +228,9 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     public formatAndSendServerErrorAsync(error: Error, lobbyId: string): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
-            logger.warn('Server error could not be sent to Discord: No webhook URL configured for server errors');
+            if (process.env.NODE_ENV !== 'test') {
+                logger.warn('Server error could not be sent to Discord: No webhook URL configured for server errors');
+            }
             return Promise.resolve(false);
         }
 

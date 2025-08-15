@@ -3,6 +3,7 @@ import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../Gam
 import type { IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
+import { DiscordDispatcher } from '../DiscordDispatcher';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
@@ -33,7 +34,12 @@ export class GameStateManager implements IGameObjectRegistrar {
         }
 
         const ref = this.gameObjectMapping.get(gameObjectRef.uuid);
-        Contract.assertNotNullLike(ref, `Tried to get a Game Object but the UUID is not registered: ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`);
+        try {
+            Contract.assertNotNullLike(ref, `Tried to get a Game Object but the UUID is not registered: ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`);
+        } catch (error) {
+            const discordDispatcher = new DiscordDispatcher();
+            discordDispatcher.formatAndSendServerErrorAsync(error, this.game.lobbyId);
+        }
         return ref as T;
     }
 

@@ -201,6 +201,10 @@ class Game extends EventEmitter {
         return this.state.lastGameEventId;
     }
 
+    get lobbyId() {
+        return this._router.id;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -1885,19 +1889,14 @@ class Game extends EventEmitter {
 
             return true;
         } catch (error) {
-            logger.error('Error during rollback', {
-                lobbyId: this._router.id,
-                gameId: this.id,
-                error: error.message,
-                stack: error.stack
-            });
-
             if (process.env.NODE_ENV !== 'test') {
                 logger.error('Rollback failed', {
                     lobbyId: this._router.id,
                     gameId: this.id,
                     settings,
                     preUndoState,
+                    error: error.message,
+                    stack: error.stack,
                 });
 
                 this.discordDispatcher.formatAndSendUndoFailureReportAsync({
@@ -1907,7 +1906,8 @@ class Game extends EventEmitter {
                     preUndoState,
                 });
             }
-            return false;
+
+            throw error;
         }
     }
 
