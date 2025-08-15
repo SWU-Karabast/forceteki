@@ -222,7 +222,7 @@ class Game extends EventEmitter {
         this._router = options.router;
 
         /** @private @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
-        this._discordDispatcher = new DiscordDispatcher();
+        this.discordDispatcher = new DiscordDispatcher();
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
@@ -1847,9 +1847,25 @@ class Game extends EventEmitter {
         }
 
         const preUndoState = this.captureGameState('any');
-        const rollbackResult = this._snapshotManager.rollbackTo(settings);
 
-        if (!rollbackResult.success) {
+        try {
+            const rollbackResult = this._snapshotManager.rollbackTo(settings);
+
+            if (!rollbackResult.success) {
+                return false;
+            }
+
+            this.postRollbackOperations(rollbackResult.roundEntryPoint, preUndoState);
+
+            return true;
+        } catch (error) {
+            logger.error('Error during rollback', {
+                lobbyId: this._router.id,
+                gameId: this.id,
+                error: error.message,
+                stack: error.stack
+            });
+
             if (process.env.NODE_ENV !== 'test') {
                 logger.error('Rollback failed', {
                     lobbyId: this._router.id,
@@ -1858,20 +1874,15 @@ class Game extends EventEmitter {
                     preUndoState,
                 });
 
-                this._discordDispatcher.formatAndSendUndoFailureReportAsync({
+                this.discordDispatcher.formatAndSendUndoFailureReportAsync({
                     gameId: this.id,
                     lobbyId: this._router.id,
                     settings,
                     preUndoState,
                 });
             }
-
             return false;
         }
-
-        this.postRollbackOperations(rollbackResult.roundEntryPoint, preUndoState);
-
-        return true;
     }
 
     postRollbackOperations(roundEntryPoint = null, preUndoState = null) {

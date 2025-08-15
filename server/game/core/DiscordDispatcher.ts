@@ -9,7 +9,7 @@ interface IDiscordFormat {
     embeds: any[];
 }
 
-type EitherPostResponseOrBooolean = string | boolean;
+type EitherPostResponseOrBoolean = string | boolean;
 
 export interface IDiscordDispatcher {
 
@@ -18,14 +18,14 @@ export interface IDiscordDispatcher {
      * @param bugReport The bug report data
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
-    formatAndSendBugReportAsync(bugReport: ISerializedReportState): Promise<EitherPostResponseOrBooolean>;
+    formatAndSendBugReportAsync(bugReport: ISerializedReportState): Promise<EitherPostResponseOrBoolean>;
 
     /**
      * Format the undo failure report as a Discord message and dispatch it
      * @param undoFailure The undo failure data
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
-    formatAndSendUndoFailureReportAsync(undoFailure: ISerializedUndoFailureState): Promise<EitherPostResponseOrBooolean>;
+    formatAndSendUndoFailureReportAsync(undoFailure: ISerializedUndoFailureState): Promise<EitherPostResponseOrBoolean>;
 
     /**
      * Format and send a server error report to Discord
@@ -33,7 +33,7 @@ export interface IDiscordDispatcher {
      * @param lobbyId The lobby ID associated with the error
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
-    formatAndSendServerErrorAsync(error: Error, lobbyId: string): Promise<EitherPostResponseOrBooolean>;
+    formatAndSendServerErrorAsync(error: Error, lobbyId: string): Promise<EitherPostResponseOrBoolean>;
 }
 
 export class DiscordDispatcher implements IDiscordDispatcher {
@@ -43,6 +43,21 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     public constructor() {
         this._bugReportWebhookUrl = process.env.DISCORD_BUG_REPORT_WEBHOOK_URL || '';
         this._serverErrorWebhookUrl = process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL || '';
+        if (process.env.ENVIRONMENT === 'development') {
+            if (!this._bugReportWebhookUrl) {
+                logger.warn('No Discord webhook URL configured for bug reports. Bug reports will not be sent to Discord.');
+            }
+            if (!this._serverErrorWebhookUrl) {
+                logger.warn('No Discord webhook URL configured for server error reports. Server error reports will not be sent to Discord.');
+            }
+        } else if (process.env.ENVIRONMENT === 'production') {
+            if (!this._bugReportWebhookUrl) {
+                throw new Error('No Discord webhook URL configured for bug reports. Bug reports cannot be sent to Discord.');
+            }
+            if (!this._serverErrorWebhookUrl) {
+                throw new Error('No Discord webhook URL configured for server error reports. Server error reports cannot be sent to Discord.');
+            }
+        }
     }
 
     public formatAndSendBugReportAsync(bugReport: ISerializedReportState): Promise<string | boolean> {
@@ -212,7 +227,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         return httpPostFormData(this._serverErrorWebhookUrl, formData);
     }
 
-    public formatAndSendServerErrorAsync(error: Error, lobbyId: string): Promise<EitherPostResponseOrBooolean> {
+    public formatAndSendServerErrorAsync(error: Error, lobbyId: string): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
             logger.warn('Server error could not be sent to Discord: No webhook URL configured for server errors');
@@ -220,6 +235,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         }
 
         const embedDescription = 'A server error occurred that requires attention.';
+        // Truncate error stack if it's too long for Discord embeds
+        const embedErrorStack = error.stack?.length > 1024
+            ? error.stack.substring(0, 1021) + '...'
+            : error.stack;
+
         const fields = [
             {
                 name: 'Lobby ID',
@@ -233,7 +253,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             },
             {
                 name: 'Stack Trace',
-                value: error.stack || 'No stack trace available',
+                value: embedErrorStack || 'No stack trace available',
                 inline: false
             }
         ];

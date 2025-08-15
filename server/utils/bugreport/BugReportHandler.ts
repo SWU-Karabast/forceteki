@@ -8,7 +8,7 @@ import type { IDiscordDispatcher } from '../../game/core/DiscordDispatcher';
 import { DiscordDispatcher } from '../../game/core/DiscordDispatcher';
 
 export class BugReportHandler {
-    private readonly _discordDispatcher: IDiscordDispatcher = new DiscordDispatcher();
+    private readonly discordDispatcher: IDiscordDispatcher = new DiscordDispatcher();
 
     /**
      * Send a bug report to Discord via webhook
@@ -36,7 +36,7 @@ export class BugReportHandler {
 
             logger.info(`Bug report received from user ${bugReport.reporter.username}`, logData);
             // Create Discord message content
-            const discordResponse = await this._discordDispatcher.formatAndSendBugReportAsync(bugReport);
+            const discordResponse = await this.discordDispatcher.formatAndSendBugReportAsync(bugReport);
             if (discordResponse === false) {
                 return false;
             }

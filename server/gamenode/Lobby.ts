@@ -78,7 +78,7 @@ export class Lobby {
     private readonly testGameBuilder?: any;
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
-    private readonly _discordDispatcher: IDiscordDispatcher = new DiscordDispatcher();
+    private readonly discordDispatcher: IDiscordDispatcher = new DiscordDispatcher();
 
     private game?: Game;
     public users: LobbyUser[] = [];
@@ -895,7 +895,7 @@ export class Lobby {
             logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
             severeGameMessage = true;
             maxErrorCountExceeded = true;
-            this._discordDispatcher.formatAndSendServerErrorAsync(error, this.id)
+            this.discordDispatcher.formatAndSendServerErrorAsync(error, this.id)
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
         }
 
