@@ -214,7 +214,7 @@ class Game extends EventEmitter {
         validateGameOptions(options);
 
         /** @private @readonly @type {import('./snapshot/SnapshotManager.js').SnapshotManager} */
-        this.snapshotManager = new SnapshotManager(this, details.undoMode);
+        this._snapshotManager = new SnapshotManager(this, details.undoMode);
 
         /** @private @readonly @type {import('./Randomness.js').IRandomness} */
         this._randomGenerator = new Randomness();
@@ -1252,6 +1252,12 @@ class Game extends EventEmitter {
         player.passedActionPhase = true;
         this.createEventAndOpenWindow(EventName.OnClaimInitiative, null, { player }, TriggerHandlingMode.ResolvesTriggers);
 
+        try {
+            throw new Error('Test exception');
+        } catch (error) {
+            this.discordDispatcher.formatAndSendServerErrorAsync(error, this._router.id);
+        }
+
         // update game state for the sake of constant abilities that check initiative
         this.resolveGameState();
     }
@@ -1875,7 +1881,7 @@ class Game extends EventEmitter {
                 return false;
             }
 
-            this.postRollbackOperations(rollbackResult.roundEntryPoint, preUndoState);
+            this.postRollbackOperations(rollbackResult.entryPoint, preUndoState);
 
             return true;
         } catch (error) {
@@ -1907,8 +1913,21 @@ class Game extends EventEmitter {
 
     /**
      * @param {import('./snapshot/SnapshotInterfaces.js').IRollbackSetupEntryPoint | import('./snapshot/SnapshotInterfaces.js').IRollbackRoundEntryPoint} entryPoint
+     * @param {import ('../Interfaces.js').ISerializedGameState} preUndoState
      */
-    postRollbackOperations(entryPoint) {
+    postRollbackOperations(entryPoint, preUndoState) {
+        const postUndoState = this.captureGameState('any');
+        const gameStates = {
+            preUndoState,
+            postUndoState,
+        };
+        if (process.env.NODE_ENV !== 'test') {
+            logger.info('Rollback completed', {
+                lobbyId: this._router.id,
+                gameId: this.id,
+                gameStates,
+            });
+        }
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
         if (entryPoint.type === RollbackEntryPointType.Setup) {

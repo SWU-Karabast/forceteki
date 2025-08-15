@@ -43,14 +43,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     public constructor() {
         this._bugReportWebhookUrl = process.env.DISCORD_BUG_REPORT_WEBHOOK_URL || '';
         this._serverErrorWebhookUrl = process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL || '';
-        if (process.env.ENVIRONMENT === 'development') {
-            if (!this._bugReportWebhookUrl) {
-                logger.warn('No Discord webhook URL configured for bug reports. Bug reports will not be sent to Discord.');
-            }
-            if (!this._serverErrorWebhookUrl) {
-                logger.warn('No Discord webhook URL configured for server error reports. Server error reports will not be sent to Discord.');
-            }
-        } else if (process.env.ENVIRONMENT === 'production') {
+        if (process.env.ENVIRONMENT === 'production') {
             if (!this._bugReportWebhookUrl) {
                 throw new Error('No Discord webhook URL configured for bug reports. Bug reports cannot be sent to Discord.');
             }
@@ -271,7 +264,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             ]
         };
 
-        return httpPostFormData(this._serverErrorWebhookUrl, data);
+        const formData = new FormData();
+        // Add the message payload
+        formData.append('payload_json', JSON.stringify(data));
+
+        return httpPostFormData(this._serverErrorWebhookUrl, formData);
     }
 
     /**
