@@ -43,7 +43,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     public constructor() {
         this._bugReportWebhookUrl = process.env.DISCORD_BUG_REPORT_WEBHOOK_URL || '';
         this._serverErrorWebhookUrl = process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL || '';
-        if (process.env.ENVIRONMENT === 'production') {
+        if (process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test') {
             if (!this._bugReportWebhookUrl) {
                 throw new Error('No Discord webhook URL configured for bug reports. Bug reports cannot be sent to Discord.');
             }
