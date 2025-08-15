@@ -14,6 +14,12 @@ import type { SnapshotMap } from './container/SnapshotMap';
 const maxActionSnapshots = 3; // Number of actions saved for undo in a turn (per player)
 const maxPhaseSnapshots = 2; // Current and previous of a specific phase
 
+export enum UndoMode {
+    Disabled = 'disabled',
+    Full = 'full',
+    CurrentSnapshotOnly = 'currentSnapshotOnly',
+}
+
 /**
  * The "interface" class for managing snapshots in the game.
  * Instantiates all of the snapshot mechanisms and manages them internally.
@@ -22,7 +28,7 @@ const maxPhaseSnapshots = 2; // Current and previous of a specific phase
  * Also manages the GameStateManager which is used to manage GameObjects and overall game state.
  */
 export class SnapshotManager {
-    public readonly undoEnabled: boolean;
+    public readonly undoMode: UndoMode;
 
     private readonly _gameStateManager: GameStateManager;
     protected readonly snapshotFactory: SnapshotFactory;
@@ -58,11 +64,11 @@ export class SnapshotManager {
         return this._gameStateManager;
     }
 
-    public constructor(game: Game, enableUndo = false) {
+    public constructor(game: Game, undoMode: UndoMode = UndoMode.Disabled) {
         this._gameStateManager = new GameStateManager(game);
         this.snapshotFactory = new SnapshotFactory(game, this._gameStateManager);
 
-        this.undoEnabled = enableUndo;
+        this.undoMode = undoMode;
 
         this.actionSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(maxActionSnapshots);
         this.phaseSnapshots = this.snapshotFactory.createSnapshotHistoryMap<PhaseName>(maxPhaseSnapshots);
@@ -71,7 +77,7 @@ export class SnapshotManager {
 
     /** Indicates that we're on a new action and that a new action snapshot can be taken */
     public moveToNextTimepoint(timepoint: SnapshotTimepoint) {
-        if (!this.undoEnabled) {
+        if (this.undoMode === UndoMode.Disabled) {
             // if undo is not enabled, still do explicit GO cleanup to avoid heavy memory usage
             this._gameStateManager.removeUnusedGameObjects();
             return;
@@ -81,7 +87,7 @@ export class SnapshotManager {
     }
 
     public takeSnapshot(settings: ISnapshotSettings): number {
-        if (!this.undoEnabled) {
+        if (this.undoMode !== UndoMode.Full) {
             return -1;
         }
 
@@ -112,7 +118,7 @@ export class SnapshotManager {
     }
 
     public rollbackTo(settings: IGetSnapshotSettings): IRollbackResult {
-        if (!this.undoEnabled) {
+        if (this.undoMode !== UndoMode.Full) {
             return { success: false };
         }
 

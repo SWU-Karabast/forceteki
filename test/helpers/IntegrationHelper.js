@@ -14,6 +14,7 @@ const DeckBuilder = require('./DeckBuilder.js');
 const { cards } = require('../../server/game/cards/Index.js');
 const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 const { SnapshotType } = require('../../server/game/core/Constants.js');
+const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
 
 // set to true to run all tests with undo enabled
 const ENABLE_UNDO_ALL_TESTS = false;
@@ -65,7 +66,7 @@ global.integration = function (definitions, enableUndo = false) {
                 gameRouter,
                 { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
                 { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } },
-                enableUndo
+                enableUndo ? UndoMode.Full : UndoMode.Disabled
             );
 
             /** @type {SwuTestContext} */
