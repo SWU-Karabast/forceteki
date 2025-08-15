@@ -10,6 +10,8 @@ import * as Contract from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
 import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { SnapshotMap } from './container/SnapshotMap';
+import { ActionWindow } from '../gameSteps/ActionWindow';
+import { VariableResourcePrompt } from '../gameSteps/prompts/VariableResourcePrompt';
 
 const maxActionSnapshots = 3; // Number of actions saved for undo in a turn (per player)
 const maxPhaseSnapshots = 2; // Current and previous of a specific phase
@@ -127,10 +129,12 @@ export class SnapshotManager {
         // Handle Quick snapshots with specialized logic
         if (settings.type === SnapshotType.Quick) {
             const quickResult = this.handleQuickRollback(settings.playerId);
-            if (quickResult.snapshotId != null && quickResult.roundEntryPoint != null) {
+
+            if (quickResult) {
                 this.snapshotFactory.clearNewerSnapshots(quickResult.snapshotId);
                 return { success: true, entryPoint: quickResult.roundEntryPoint };
             }
+
             return { success: false };
         }
 
@@ -159,14 +163,23 @@ export class SnapshotManager {
         return { success: false };
     }
 
-    private handleQuickRollback(playerId: string): { snapshotId: number | null; roundEntryPoint: IRollbackRoundEntryPoint | null } {
-        // If we're currently in regroup phase, always roll back to most recent regroup snapshot
-        if (this.game.currentPhase === PhaseName.Regroup) {
+    private handleQuickRollback(playerId: string) {
+        const playerPrompt = this.game.getPlayerById(playerId).promptState;
+        const playerPromptTitle = playerPrompt.promptTitle;
+
+        // If we're currently in regroup phase and the player has at least selected cards, we'll roll back to start of regroup phase
+        if (
+            this.game.currentPhase === PhaseName.Regroup &&
+            (playerPromptTitle !== VariableResourcePrompt.title || playerPrompt.selectedCards.length > 0)
+        ) {
             return this.rollbackToLastRegroupSnapshot();
         }
 
+        // if we're at the beginning of the action window (nothing clicked), we'll revert back to the action before this one
+        const actionOffset = playerPromptTitle === ActionWindow.title ? -1 : 0;
+
         // Otherwise, see if we can roll back to the most recent action phase snapshot
-        const actionProps = this.actionSnapshots.getSnapshotProperties(playerId, 0);
+        const actionProps = this.actionSnapshots.getSnapshotProperties(playerId, actionOffset);
         if (!actionProps) {
             // If there are no remaining action snapshots, check if there were any actions between us and the most recent regroup phase snapshot.
             // If not, we can roll back to the regroup phase snapshot since it was the most recent timepoint anyway
@@ -174,7 +187,7 @@ export class SnapshotManager {
                 return this.rollbackToLastRegroupSnapshot();
             }
 
-            return { snapshotId: null, roundEntryPoint: null };
+            return null;
         }
 
         if (actionProps.roundNumber < this.game.roundNumber) {
@@ -184,12 +197,12 @@ export class SnapshotManager {
         return this.rollbackToLastActionSnapshot(playerId);
     }
 
-    private rollbackToLastRegroupSnapshot(): { snapshotId: number | null; roundEntryPoint: IRollbackRoundEntryPoint | null } {
+    private rollbackToLastRegroupSnapshot(): { snapshotId: number; roundEntryPoint: IRollbackRoundEntryPoint } | null {
         const snapshotId = this.phaseSnapshots.rollbackToSnapshot(PhaseName.Regroup, 0);
         return { snapshotId, roundEntryPoint: { type: RollbackEntryPointType.Round, entryPoint: RollbackRoundEntryPoint.StartOfRegroupPhase } };
     }
 
-    private checkRollBackToPreviousRound(actionProps: { roundNumber: number }, playerId: string): { snapshotId: number | null; roundEntryPoint: IRollbackRoundEntryPoint | null } {
+    private checkRollBackToPreviousRound(actionProps: { roundNumber: number }, playerId: string): { snapshotId: number; roundEntryPoint: IRollbackRoundEntryPoint } {
         // Validate action is not from too far back
         Contract.assertFalse(
             actionProps.roundNumber < this.game.roundNumber - 1,
@@ -217,7 +230,7 @@ export class SnapshotManager {
     /**
      * Rolls back to the action snapshot for the specified player.
      */
-    private rollbackToLastActionSnapshot(playerId: string): { snapshotId: number | null; roundEntryPoint: IRollbackRoundEntryPoint | null } {
+    private rollbackToLastActionSnapshot(playerId: string): { snapshotId: number; roundEntryPoint: IRollbackRoundEntryPoint } {
         const snapshotId = this.actionSnapshots.rollbackToSnapshot(playerId, 0);
         return { snapshotId, roundEntryPoint: { type: RollbackEntryPointType.Round, entryPoint: RollbackRoundEntryPoint.WithinActionPhase } };
     }

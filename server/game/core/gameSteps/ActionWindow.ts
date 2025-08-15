@@ -13,8 +13,8 @@ import type { SnapshotManager } from '../snapshot/SnapshotManager.js';
 import { SnapshotTimepoint } from '../snapshot/SnapshotInterfaces.js';
 
 export class ActionWindow extends UiPrompt {
-    public readonly title: string;
-    public readonly windowName: string;
+    public static readonly title = 'Action Window';
+    public static readonly windowName = 'action';
 
     private readonly actionNumber: number;
     private readonly activePlayer: Player;
@@ -24,8 +24,6 @@ export class ActionWindow extends UiPrompt {
 
     public constructor(
         game: Game,
-        title: string,
-        windowName: string,
         prevPlayerPassed: boolean,
         setPassStatus: (passed: boolean) => boolean,
         actionNumber: number,
@@ -33,9 +31,6 @@ export class ActionWindow extends UiPrompt {
         activePlayer?: Player
     ) {
         super(game);
-
-        this.title = title;
-        this.windowName = windowName;
         this.prevPlayerPassed = prevPlayerPassed;
         this.setPassStatus = setPassStatus;
         this.snapshotManager = snapshotManager;
@@ -101,7 +96,7 @@ export class ActionWindow extends UiPrompt {
         this.checkUpdateSnapshot();
 
         // TODO: do we need promptedActionWindows?
-        if (!this.activePlayer.promptedActionWindows[this.windowName]) {
+        if (!this.activePlayer.promptedActionWindows[ActionWindow.windowName]) {
             this.pass();
         }
 
@@ -149,7 +144,7 @@ export class ActionWindow extends UiPrompt {
         return {
             menuTitle: overrideActionPromptTitle ?? 'Choose an action',
             buttons: buttons,
-            promptTitle: this.title,
+            promptTitle: ActionWindow.title,
             promptUuid: this.uuid,
             promptType: PromptType.ActionWindow
         };
