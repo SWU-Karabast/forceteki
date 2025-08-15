@@ -27,6 +27,8 @@ import type { DelayedEffectType } from './gameSystems/DelayedEffectSystem';
 import type { IUpgradeCard } from './core/card/CardInterfaces';
 import type { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
 import type { FormatMessage } from './core/chat/GameChat';
+import type { ISnapshotSettingsBase } from './core/snapshot/SnapshotInterfaces';
+import type { Lobby } from '../gamenode/Lobby';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -353,6 +355,13 @@ export interface ISerializedReportState {
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;
     viewport?: { width: number; height: number } | null;
+}
+
+export interface ISerializedUndoFailureState {
+    lobbyId: Lobby['id'];
+    gameId: Game['id'];
+    settings: ISnapshotSettingsBase;
+    preUndoState: ISerializedGameState;
 }
 
 export interface IEventRegistration<Handler = () => void> {

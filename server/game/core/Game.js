@@ -1,5 +1,4 @@
 const EventEmitter = require('events');
-const seedrandom = require('seedrandom');
 
 const { GameChat } = require('./chat/GameChat.js');
 const { OngoingEffectEngine } = require('./ongoingEffect/OngoingEffectEngine.js');
@@ -53,6 +52,8 @@ const { getAbilityHelper } = require('../AbilityHelper.js');
 const { PhaseInitializeMode } = require('./gameSteps/phases/Phase.js');
 const { Randomness } = require('../core/Randomness.js');
 const { RollbackEntryPointType } = require('./snapshot/SnapshotInterfaces.js');
+const { Lobby } = require('../../gamenode/Lobby.js');
+const { DiscordDispatcher } = require('./DiscordDispatcher.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -119,6 +120,10 @@ class Game extends EventEmitter {
         return this.#debug.pipeline;
     }
 
+    get snapshotManager() {
+        return this._snapshotManager;
+    }
+
     get isUndoEnabled() {
         return this.snapshotManager.undoMode === UndoMode.Full;
     }
@@ -133,7 +138,7 @@ class Game extends EventEmitter {
     }
 
     get gameObjectManager() {
-        return this.snapshotManager.gameObjectManager;
+        return this._snapshotManager.gameObjectManager;
     }
 
     get winnerNames() {
@@ -196,6 +201,10 @@ class Game extends EventEmitter {
         return this.state.lastGameEventId;
     }
 
+    get lobbyId() {
+        return this._router.id;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -208,8 +217,17 @@ class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
-        /** @private */
-        this.snapshotManager = new SnapshotManager(this, details.undoMode);
+        /** @private @readonly @type {import('./snapshot/SnapshotManager.js').SnapshotManager} */
+        this._snapshotManager = new SnapshotManager(this, details.undoMode);
+
+        /** @private @readonly @type {import('./Randomness.js').IRandomness} */
+        this._randomGenerator = new Randomness();
+
+        /** @private @readonly @type {Lobby} */
+        this._router = options.router;
+
+        /** @private @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
+        this.discordDispatcher = new DiscordDispatcher();
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
@@ -240,9 +258,6 @@ class Game extends EventEmitter {
         this.gameMode = details.gameMode;
 
         this.initializeCurrentlyResolving();
-
-        /** @private @readonly @type {import('./Randomness.js').IRandomness} */
-        this._randomGenerator = new Randomness();
 
         /** @type { import('./snapshot/SnapshotInterfaces.js').IGameState } */
         this.state = {
@@ -294,8 +309,6 @@ class Game extends EventEmitter {
         this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
 
         this.setMaxListeners(0);
-
-        this.router = options.router;
     }
 
 
@@ -304,7 +317,7 @@ class Game extends EventEmitter {
      * @param {Error} e
      */
     reportError(e, severeGameMessage = false) {
-        this.router.handleError(this, e, severeGameMessage);
+        this._router.handleError(this, e, severeGameMessage);
     }
 
     /**
@@ -828,11 +841,11 @@ class Game extends EventEmitter {
         }
         this.finishedAt = new Date();
         this.gameEndReason = reason;
-        // this.router.gameWon(this, reason, winner);
-        // TODO Tests failed since this.router doesn't exist for them we use an if statement to unblock.
+        // this._router.gameWon(this, reason, winner);
+        // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
-        if (typeof this.router.sendGameState === 'function') {
-            this.router.sendGameState(this); // call the function if it exists
+        if (typeof this._router.sendGameState === 'function') {
+            this._router.sendGameState(this); // call the function if it exists
         } else {
             this.queueStep(new GameOverPrompt(this));
         }
@@ -1197,7 +1210,7 @@ class Game extends EventEmitter {
                     Contract.fail(`Unknown rollback entry point: ${rollbackEntryPoint}`);
             }
 
-            actionPhaseStep.push(new ActionPhase(this, () => this.getNextActionNumber(), this.snapshotManager, actionInitializeMode));
+            actionPhaseStep.push(new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode));
         }
 
         const regroupInitializeMode =
@@ -1206,7 +1219,7 @@ class Game extends EventEmitter {
                 : PhaseInitializeMode.Normal;
 
         const regroupPhaseStep = [
-            new RegroupPhase(this, this.snapshotManager, regroupInitializeMode)
+            new RegroupPhase(this, this._snapshotManager, regroupInitializeMode)
         ];
 
         this.pipeline.initialise([
@@ -1836,7 +1849,7 @@ class Game extends EventEmitter {
     takeManualSnapshot(player) {
         if (this.isUndoEnabled) {
             Contract.assertHasProperty(player, 'id', 'Player must have an id to take a manual snapshot');
-            return this.snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId: player.id });
+            return this._snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId: player.id });
         }
 
         return -1;
@@ -1857,21 +1870,58 @@ class Game extends EventEmitter {
             return false;
         }
 
-        const rollbackResult = this.snapshotManager.rollbackTo(settings);
+        const preUndoState = this.captureGameState('any');
 
-        if (!rollbackResult.success) {
-            return false;
+        try {
+            const rollbackResult = this._snapshotManager.rollbackTo(settings);
+
+            if (!rollbackResult.success) {
+                return false;
+            }
+
+            this.postRollbackOperations(rollbackResult.entryPoint, preUndoState);
+
+            return true;
+        } catch (error) {
+            if (process.env.NODE_ENV !== 'test') {
+                logger.error('Rollback failed', {
+                    lobbyId: this._router.id,
+                    gameId: this.id,
+                    settings,
+                    preUndoState,
+                    error: error.message,
+                    stack: error.stack,
+                });
+
+                this.discordDispatcher.formatAndSendUndoFailureReportAsync({
+                    gameId: this.id,
+                    lobbyId: this._router.id,
+                    settings,
+                    preUndoState,
+                });
+            }
+
+            throw error;
         }
-
-        this.postRollbackOperations(rollbackResult.entryPoint);
-
-        return true;
     }
 
     /**
      * @param {import('./snapshot/SnapshotInterfaces.js').IRollbackSetupEntryPoint | import('./snapshot/SnapshotInterfaces.js').IRollbackRoundEntryPoint} entryPoint
+     * @param {import ('../Interfaces.js').ISerializedGameState} preUndoState
      */
-    postRollbackOperations(entryPoint) {
+    postRollbackOperations(entryPoint, preUndoState) {
+        const postUndoState = this.captureGameState('any');
+        const gameStates = {
+            preUndoState,
+            postUndoState,
+        };
+        if (process.env.NODE_ENV !== 'test') {
+            logger.info('Rollback completed', {
+                lobbyId: this._router.id,
+                gameId: this.id,
+                gameStates,
+            });
+        }
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
         if (entryPoint.type === RollbackEntryPointType.Setup) {
@@ -1915,7 +1965,7 @@ class Game extends EventEmitter {
 
     /**
      * Captures the current game state for a bug report
-     * @param reportingPlayer
+     * @param {string} reportingPlayer
      * @returns A simplified game state representation
      */
     captureGameState(reportingPlayer) {
@@ -1945,7 +1995,7 @@ class Game extends EventEmitter {
                 player1 = players[1];
                 player2 = players[0];
                 break;
-            case 'testrun':
+            case 'any':
                 player1 = players[0];
                 player2 = players[1];
                 break;
