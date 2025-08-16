@@ -1,13 +1,17 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
-import type { Card } from '../card/Card';
 import type { StateWatcherName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type Game from '../Game';
-import { GameObjectBase, type UnwrapRef } from '../GameObjectBase';
+import type { IGameObjectBaseState, UnwrapRef } from '../GameObjectBase';
+import { GameObjectBase } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
 import { isDevelopment } from '../utils/Helpers';
 import { is } from '../utils/TypeHelpers';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
+
+export interface IStateWatcherState<TState> extends IGameObjectBaseState {
+    entries: TState[];
+}
 
 /**
  * State watchers are used for cards that need to refer to events that happened in the past.
@@ -24,12 +28,11 @@ import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
  * - a state reset method that provides an initial state to reset to
  * - a set of event triggers which will update the stored state to keep the history
  */
-export abstract class StateWatcher<TState> {
-    protected readonly game: Game;
-    private readonly registrationKey: string;
-    private stateUpdaters: IStateListenerProperties<TState>[] = [];
+export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWatcherState<TState>> {
+    private stateUpdaters: IStateListenerProperties<TState[]>[] = [];
+    private readonly allUpdaters;
     public readonly name: StateWatcherName;
-    private readonly registrar: StateWatcherRegistrar;
+    private eventNameMapping = new Map<string, (...args: any[]) => void>();
 
     // the state reset trigger is the end of the phase
     private stateResetTrigger: IStateListenerResetProperties = {
@@ -41,35 +44,44 @@ export abstract class StateWatcher<TState> {
     public constructor(
         game: Game,
         name: StateWatcherName,
-        registrar: StateWatcherRegistrar,
-        card: Card
+        registrar: StateWatcherRegistrar
     ) {
-        this.game = game;
+        super(game);
         this.name = name;
-        this.registrar = registrar;
-        this.registrationKey = card.internalName + '.' + name;
+        Contract.assertFalse(registrar.isRegistered(name), `State Watcher type "${name}" is already registered.`);
 
-        if (registrar.isRegistered(this.registrationKey)) {
-            return;
-        }
+        this.setupWatcher();
+        Contract.assertTrue(this.stateUpdaters.length > 0, 'No state updaters registered');
 
-        this.registrar.register(this.registrationKey, this.getResetValue(), this.generateListenerRegistrations());
+        const stateResetUpdater: IStateListenerProperties<TState[]> = Object.assign(this.stateResetTrigger, { update: () => this.getResetValue() });
+        this.allUpdaters = this.stateUpdaters.concat(stateResetUpdater);
+        this.registerListeners();
+    }
+
+    protected override setupDefaultState(): void {
+        this.state.entries = [];
+    }
+
+    // This will remain for the life of the game, and will only be remove on rollback in the case of a token. At that point the associated card will also be removed, and it should be GC'd normally.
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    protected override get alwaysTrackState(): boolean {
+        return true;
     }
 
     // Child classes override this method to perform their addUpdater() calls
     protected abstract setupWatcher(): void;
 
     // Returns the value that the state will be initialized to at the beginning of the phase
-    protected abstract getResetValue(): TState;
+    protected abstract getResetValue(): TState[];
 
     /** A function to map any GameObjectRefs in the stateValue to their game objects. If no GameObjectRefs are used, you can simply return the stateValue as-is. */
-    protected abstract mapCurrentValue(stateValue: TState): UnwrapRef<TState>;
+    protected abstract mapCurrentValue(stateValue: TState[]): UnwrapRef<TState>[];
 
-    public getCurrentValue(): UnwrapRef<TState> {
-        return this.mapCurrentValue(this.registrar.getStateValue(this.registrationKey) as TState);
+    public getCurrentValue(): UnwrapRef<TState>[] {
+        return this.mapCurrentValue(this.state.entries);
     }
 
-    protected addUpdater(properties: IStateListenerProperties<TState>) {
+    protected addUpdater(properties: IStateListenerProperties<TState[]>) {
         if (isDevelopment()) {
             Object.keys(properties).forEach((prop) => {
                 let value = properties[prop];
@@ -95,15 +107,39 @@ export abstract class StateWatcher<TState> {
         this.stateUpdaters.push(properties);
     }
 
-    /** Generates a set of properties for registering the triggers of this watcher */
-    private generateListenerRegistrations(): IStateListenerProperties<TState>[] {
-        this.setupWatcher();
+    private registerListeners() {
+        Contract.assertTrue(this.eventNameMapping.size === 0, 'State Watacher listeners already registered.');
+        const listeners = this.allUpdaters;
 
-        Contract.assertTrue(this.stateUpdaters.length > 0, 'No state updaters registered');
+        for (const listener of listeners) {
+            const eventNames = Object.keys(listener.when);
 
-        const stateResetUpdater: IStateListenerProperties<TState> =
-            Object.assign(this.stateResetTrigger, { update: () => this.getResetValue() });
+            // build a handler that will use the listener's update handler to generate a new state value and then store it
+            const stateUpdateHandler = (event) => {
+                if (!listener.when[event.name](event)) {
+                    return;
+                }
 
-        return this.stateUpdaters.concat(stateResetUpdater);
+                const currentStateValue = this.state.entries;
+                const updatedStateValue = listener.update(currentStateValue, event);
+                this.state.entries = updatedStateValue;
+            };
+
+            eventNames.forEach((eventName) => {
+                this.game.on(eventName, stateUpdateHandler);
+                this.eventNameMapping.set(eventName, stateUpdateHandler);
+            });
+        }
+    }
+
+    private unregisterListeners() {
+        this.eventNameMapping.forEach((stateUpdateHandler, eventName) => {
+            this.game.off(eventName, stateUpdateHandler);
+        });
+        this.eventNameMapping.clear();
+    }
+
+    public override cleanupOnRemove(oldState: IStateWatcherState<TState>): void {
+        this.unregisterListeners();
     }
 }

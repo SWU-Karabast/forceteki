@@ -12,13 +12,11 @@ export interface DrawnCardEntry {
     card: GameObjectRef<Card>;
 }
 
-export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry[]> {
+export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry> {
     public constructor(
         game: Game,
-        registrar: StateWatcherRegistrar,
-        card: Card
-    ) {
-        super(game, StateWatcherName.CardsDrawnThisPhase, registrar, card);
+        registrar: StateWatcherRegistrar) {
+        super(game, StateWatcherName.CardsDrawnThisPhase, registrar);
     }
 
     protected override mapCurrentValue(stateValue: DrawnCardEntry[]): UnwrapRef<DrawnCardEntry[]> {

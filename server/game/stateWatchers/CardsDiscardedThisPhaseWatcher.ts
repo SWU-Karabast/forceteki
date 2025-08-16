@@ -15,13 +15,11 @@ export interface DiscardedCardEntry {
     discardedPlayId: number;
 }
 
-export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEntry[]> {
+export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEntry> {
     public constructor(
         game: Game,
-        registrar: StateWatcherRegistrar,
-        card: Card
-    ) {
-        super(game, StateWatcherName.CardsDiscardedThisPhase, registrar, card);
+        registrar: StateWatcherRegistrar) {
+        super(game, StateWatcherName.CardsDiscardedThisPhase, registrar);
     }
 
     protected override mapCurrentValue(stateValue: DiscardedCardEntry[]): UnwrapRef<DiscardedCardEntry[]> {

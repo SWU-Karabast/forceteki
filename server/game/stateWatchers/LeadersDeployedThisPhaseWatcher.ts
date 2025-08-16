@@ -1,7 +1,6 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
-import type { Card } from '../core/card/Card';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
@@ -10,16 +9,14 @@ export interface DeployedLeaderEntry {
     card: GameObjectRef<IPlayableCard>;
 }
 
-export class LeadersDeployedThisPhaseWatcher extends StateWatcher<DeployedLeaderEntry[]> {
+export class LeadersDeployedThisPhaseWatcher extends StateWatcher<DeployedLeaderEntry> {
     public constructor(
         game: Game,
-        registrar: StateWatcherRegistrar,
-        card: Card
-    ) {
-        super(game, StateWatcherName.LeadersDeployedThisPhase, registrar, card);
+        registrar: StateWatcherRegistrar) {
+        super(game, StateWatcherName.LeadersDeployedThisPhase, registrar);
     }
 
-    protected override mapCurrentValue(stateValue: DeployedLeaderEntry[]) {
+    protected override mapCurrentValue(stateValue: DeployedLeaderEntry[]): UnwrapRef<DeployedLeaderEntry>[] {
         return stateValue.map((x) => ({ card: this.game.getFromRef(x.card) }));
     }
 
