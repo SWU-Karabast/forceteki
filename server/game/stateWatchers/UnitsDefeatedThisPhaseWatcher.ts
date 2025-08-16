@@ -2,7 +2,6 @@ import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
-import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type Game from '../core/Game';
@@ -20,18 +19,14 @@ interface InPlayUnit {
     inPlayId: number;
 }
 
-export type IUnitsDefeatedThisPhase = DefeatedUnitEntry[];
-
-export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<IUnitsDefeatedThisPhase> {
+export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntry> {
     public constructor(
         game: Game,
-        registrar: StateWatcherRegistrar,
-        card: Card
-    ) {
-        super(game, StateWatcherName.UnitsDefeatedThisPhase, registrar, card);
+        registrar: StateWatcherRegistrar) {
+        super(game, StateWatcherName.UnitsDefeatedThisPhase, registrar);
     }
 
-    protected override mapCurrentValue(stateValue: IUnitsDefeatedThisPhase): UnwrapRefObject<DefeatedUnitEntry>[] {
+    protected override mapCurrentValue(stateValue: DefeatedUnitEntry[]): UnwrapRefObject<DefeatedUnitEntry>[] {
         return stateValue.map((x) => ({ inPlayId: x.inPlayId, unit: this.game.getFromRef(x.unit), controlledBy: this.game.getFromRef(x.controlledBy), defeatedBy: this.game.getFromRef(x.defeatedBy) }));
     }
 
@@ -86,12 +81,12 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<IUnitsDefeatedTh
             when: {
                 onCardDefeated: (event) => EnumHelpers.isUnit(event.lastKnownInformation.type)
             },
-            update: (currentState: IUnitsDefeatedThisPhase, event: any) =>
+            update: (currentState: DefeatedUnitEntry[], event: any) =>
                 currentState.concat({ unit: event.card.getRef(), inPlayId: event.card.mostRecentInPlayId, controlledBy: event.lastKnownInformation.controller.getRef(), defeatedBy: event.defeatSource.player?.getRef() })
         });
     }
 
-    protected override getResetValue(): IUnitsDefeatedThisPhase {
+    protected override getResetValue(): DefeatedUnitEntry[] {
         return [];
     }
 }

@@ -1,28 +1,22 @@
-import type { IStateListenerProperties } from '../../Interfaces';
+import type { StateWatcherName } from '../Constants';
 import type Game from '../Game';
-import { GameObjectBase, type IGameObjectBaseState } from '../GameObjectBase';
-import * as Contract from '../utils/Contract';
+import { GameObjectBase } from '../GameObjectBase';
+import { registerState, undoMap } from '../GameObjectUtils';
+import type { StateWatcher } from './StateWatcher';
 
-export interface IStateWatcherRegistrarState extends IGameObjectBaseState {
-    watchedState: Map<string, any>;
-}
-
+// TODO: This piece's job is now to simply register the names of the state watchers. If a name exists, return that instance.
 /**
  * Helper for managing the operation of {@link StateWatcher} implementations.
  * Holds the state objects that the watchers interact with, registers the
  * triggers for updating them, and tracks which watcher types are registered.
  */
-export class StateWatcherRegistrar extends GameObjectBase<IStateWatcherRegistrarState> {
-    private get watchedState() {
-        return this.state.watchedState;
-    }
+@registerState()
+export class StateWatcherRegistrar extends GameObjectBase {
+    @undoMap()
+    private accessor watchers: ReadonlyMap<string, StateWatcher> = new Map();
 
     public constructor(game: Game) {
         super(game);
-    }
-
-    protected override setupDefaultState() {
-        this.state.watchedState = new Map();
     }
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -30,57 +24,18 @@ export class StateWatcherRegistrar extends GameObjectBase<IStateWatcherRegistrar
         return true;
     }
 
-    public isRegistered(watcherKey: string) {
-        return this.watchedState.has(watcherKey);
+    public isRegistered(watcherName: StateWatcherName) {
+        return this.watchers.has(watcherName);
     }
 
-    public register(watcherKey: string, initialValue: unknown, listeners: IStateListenerProperties<unknown>[]) {
-        if (this.isRegistered(watcherKey)) {
-            return;
+    public registerWatcher<TWatcher extends StateWatcher>(name: StateWatcherName, watcherFactory: () => TWatcher): TWatcher {
+        let watcher = this.watchers.get(name) as TWatcher;
+        if (!watcher) {
+            watcher = watcherFactory();
+            const watchers = new Map(this.watchers).set(name, watcher);
+            this.watchers = watchers;
         }
-
-        // set the initial state value
-        this.setStateValue(watcherKey, initialValue, true);
-
-        for (const listener of listeners) {
-            const eventNames = Object.keys(listener.when);
-
-            // build a handler that will use the listener's update handler to generate a new state value and then store it
-            const stateUpdateHandler = (event) => {
-                if (!listener.when[event.name](event)) {
-                    return;
-                }
-
-                const currentStateValue = this.getStateValue(watcherKey);
-                const updatedStateValue = listener.update(currentStateValue, event);
-                this.setStateValue(watcherKey, updatedStateValue);
-            };
-
-            eventNames.forEach((eventName) => this.game.on(eventName, stateUpdateHandler));
-        }
-    }
-
-    public getStateValue(watcherKey: string): unknown {
-        if (!this.assertRegistered(watcherKey)) {
-            return null;
-        }
-
-        return this.watchedState.get(watcherKey);
-    }
-
-    public setStateValue(watcherKey: string, newValue: unknown, initializing: boolean = false) {
-        if (!initializing && !this.assertRegistered(watcherKey)) {
-            return;
-        }
-
-        this.watchedState.set(watcherKey, newValue);
-    }
-
-    private assertRegistered(watcherKey: string) {
-        Contract.assertTrue(this.isRegistered(watcherKey),
-            `Watcher '${watcherKey}' not found in registered watcher list: ${Array.from(this.watchedState.keys()).join(', ')}`);
-
-        return true;
+        return watcher;
     }
 
     public override getGameObjectName(): string {

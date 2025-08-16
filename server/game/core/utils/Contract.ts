@@ -29,15 +29,15 @@ class AssertContractCheckImpl implements IContractCheckImpl {
 // TODO: this is configured like this so we can potentially have configurable settings once we understand the FE needs better
 const contractCheckImpl: IContractCheckImpl = new AssertContractCheckImpl(false);
 
-export function assertTrue(cond: boolean, message?: string): asserts cond {
+export function assertTrue(cond: boolean, message?: string | (() => string)): asserts cond {
     if (!cond) {
-        contractCheckImpl.fail(message ?? 'False condition');
+        contractCheckImpl.fail(typeof message === 'function' ? message() : (message ?? 'False condition'));
     }
 }
 
-export function assertFalse(cond: boolean, message?: string): asserts cond is false {
+export function assertFalse(cond: boolean, message?: string | (() => string)): asserts cond is false {
     if (cond) {
-        contractCheckImpl.fail(message ?? 'True condition');
+        contractCheckImpl.fail(typeof message === 'function' ? message() : (message ?? 'True condition'));
     }
 }
 

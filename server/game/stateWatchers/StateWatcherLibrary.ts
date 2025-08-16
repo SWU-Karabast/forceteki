@@ -12,6 +12,7 @@ import { UnitsHealedThisPhaseWatcher } from './UnitsHealedThisPhaseWatcher';
 import { LeadersDeployedThisPhaseWatcher } from './LeadersDeployedThisPhaseWatcher';
 import { ForceUsedThisPhaseWatcher } from './ForceUsedThisPhaseWatcher';
 import type Game from '../core/Game';
+import { StateWatcherName } from '../core/Constants';
 
 
 export class StateWatcherLibrary {
@@ -21,47 +22,48 @@ export class StateWatcherLibrary {
         this.game = game;
     }
 
+    // CLEANUP TASK: Remove card from the function call and then all of the implementations that use these.
     public attacksThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new AttacksThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.AttacksThisPhase, () => new AttacksThisPhaseWatcher(this.game, registrar));
     }
 
     public cardsDiscardedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new CardsDiscardedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.CardsDiscardedThisPhase, () => new CardsDiscardedThisPhaseWatcher(this.game, registrar));
     }
 
     public cardsDrawnThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new CardsDrawnThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.CardsDrawnThisPhase, () => new CardsDrawnThisPhaseWatcher(this.game, registrar));
     }
 
     public cardsEnteredPlayThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new CardsEnteredPlayThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.CardsEnteredPlayThisPhase, () => new CardsEnteredPlayThisPhaseWatcher(this.game, registrar));
     }
 
     public cardsLeftPlayThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new CardsLeftPlayThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.CardsLeftPlayThisPhase, () => new CardsLeftPlayThisPhaseWatcher(this.game, registrar));
     }
 
     public cardsPlayedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new CardsPlayedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.CardsPlayedThisPhase, () => new CardsPlayedThisPhaseWatcher(this.game, registrar));
     }
 
     public damageDealtThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new DamageDealtThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.DamageDealtThisPhase, () => new DamageDealtThisPhaseWatcher(this.game, registrar));
     }
 
     public forceUsedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new ForceUsedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.ForceUsedThisPhase, () => new ForceUsedThisPhaseWatcher(this.game, registrar));
     }
 
     public leadersDeployedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new LeadersDeployedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.LeadersDeployedThisPhase, () => new LeadersDeployedThisPhaseWatcher(this.game, registrar));
     }
 
     public unitsDefeatedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new UnitsDefeatedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.UnitsDefeatedThisPhase, () => new UnitsDefeatedThisPhaseWatcher(this.game, registrar));
     }
 
     public unitsHealedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new UnitsHealedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.UnitsHealedThisPhase, () => new UnitsHealedThisPhaseWatcher(this.game, registrar));
     }
 }

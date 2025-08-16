@@ -3,7 +3,6 @@ import type { CardType, DamageType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
-import type { Card } from '../core/card/Card';
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
@@ -19,13 +18,11 @@ export interface DamageDealtEntry {
 
 export type IDamageDealtThisPhase = DamageDealtEntry[];
 
-export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPhase> {
+export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> {
     public constructor(
         game: Game,
-        registrar: StateWatcherRegistrar,
-        card: Card
-    ) {
-        super(game, StateWatcherName.DamageDealtThisPhase, registrar, card);
+        registrar: StateWatcherRegistrar) {
+        super(game, StateWatcherName.DamageDealtThisPhase, registrar);
     }
 
     protected override mapCurrentValue(stateValue: DamageDealtEntry[]): UnwrapRef<DamageDealtEntry[]> {

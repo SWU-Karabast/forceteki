@@ -22,15 +22,11 @@ export interface PlayedCardEntry {
     playedAsType: CardType;
 }
 
-export type ICardsPlayedThisPhase = PlayedCardEntry[];
-
-export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]> {
+export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry> {
     public constructor(
         game: Game,
-        registrar: StateWatcherRegistrar,
-        card: Card
-    ) {
-        super(game, StateWatcherName.CardsPlayedThisPhase, registrar, card);
+        registrar: StateWatcherRegistrar) {
+        super(game, StateWatcherName.CardsPlayedThisPhase, registrar);
     }
 
     protected override mapCurrentValue(stateValue: PlayedCardEntry[]): UnwrapRef<PlayedCardEntry[]> {
@@ -63,7 +59,7 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
             when: {
                 onCardPlayed: () => true,
             },
-            update: (currentState: ICardsPlayedThisPhase, event: any) =>
+            update: (currentState: PlayedCardEntry[], event: any) =>
                 currentState.concat({
                     card: event.card.getRef(),
                     playEventId: event.eventId,
@@ -78,7 +74,7 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
         });
     }
 
-    protected override getResetValue(): ICardsPlayedThisPhase {
+    protected override getResetValue(): PlayedCardEntry[] {
         return [];
     }
 }
