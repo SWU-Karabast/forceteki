@@ -1,7 +1,6 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
-import type { Card } from '../core/card/Card';
 import type { Player } from '../core/Player';
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
@@ -13,9 +12,7 @@ export interface ForceUsedEntry {
 export class ForceUsedThisPhaseWatcher extends StateWatcher<ForceUsedEntry> {
     public constructor(
         game: Game,
-        registrar: StateWatcherRegistrar,
-        card: Card
-    ) {
+        registrar: StateWatcherRegistrar) {
         super(game, StateWatcherName.ForceUsedThisPhase, registrar);
     }
 

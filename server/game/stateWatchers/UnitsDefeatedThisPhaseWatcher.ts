@@ -2,7 +2,6 @@ import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
-import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type Game from '../core/Game';
@@ -23,9 +22,7 @@ interface InPlayUnit {
 export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntry> {
     public constructor(
         game: Game,
-        registrar: StateWatcherRegistrar,
-        card: Card
-    ) {
+        registrar: StateWatcherRegistrar) {
         super(game, StateWatcherName.UnitsDefeatedThisPhase, registrar);
     }
 

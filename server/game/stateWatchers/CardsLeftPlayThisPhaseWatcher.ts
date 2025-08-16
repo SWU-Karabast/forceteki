@@ -1,5 +1,4 @@
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
-import type { Card } from '../core/card/Card';
 import type { CardType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type Game from '../core/Game';
@@ -16,7 +15,7 @@ export interface CardLeftPlayEntry {
 }
 
 export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntry> {
-    public constructor(game: Game, registrar: StateWatcherRegistrar, card: Card) {
+    public constructor(game: Game, registrar: StateWatcherRegistrar) {
         super(game, StateWatcherName.CardsLeftPlayThisPhase, registrar);
     }
 

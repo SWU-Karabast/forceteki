@@ -20,9 +20,7 @@ export interface AttackEntry {
 export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
     public constructor(
         game: Game,
-        registrar: StateWatcherRegistrar,
-        card: Card
-    ) {
+        registrar: StateWatcherRegistrar) {
         super(game, StateWatcherName.AttacksThisPhase, registrar);
     }
 

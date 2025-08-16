@@ -25,9 +25,7 @@ export interface PlayedCardEntry {
 export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry> {
     public constructor(
         game: Game,
-        registrar: StateWatcherRegistrar,
-        card: Card
-    ) {
+        registrar: StateWatcherRegistrar) {
         super(game, StateWatcherName.CardsPlayedThisPhase, registrar);
     }
 

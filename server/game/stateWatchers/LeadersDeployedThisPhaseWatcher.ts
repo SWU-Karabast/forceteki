@@ -1,7 +1,6 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
-import type { Card } from '../core/card/Card';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
@@ -13,9 +12,7 @@ export interface DeployedLeaderEntry {
 export class LeadersDeployedThisPhaseWatcher extends StateWatcher<DeployedLeaderEntry> {
     public constructor(
         game: Game,
-        registrar: StateWatcherRegistrar,
-        card: Card
-    ) {
+        registrar: StateWatcherRegistrar) {
         super(game, StateWatcherName.LeadersDeployedThisPhase, registrar);
     }
 
