@@ -64,7 +64,6 @@ export interface IPlayerState extends IGameObjectState {
     passedActionPhase: boolean;
     // IDeckList is made up of arrays and GameObjectRefs, so it's serializable.
     decklist: IDeckList;
-    promptState: PlayerPromptState;
     costAdjusters: GameObjectRef<CostAdjuster>[];
 }
 
@@ -146,6 +145,10 @@ export class Player extends GameObject<IPlayerState> {
         return this._lastActionId;
     }
 
+    public get promptState() {
+        return this._promptState;
+    }
+
     private canTakeActionsThisPhase: null;
     // STATE TODO: Does Deck need to be a GameObject?
     private decklistNames: Deck | null;
@@ -154,7 +157,7 @@ export class Player extends GameObject<IPlayerState> {
     public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
 
     public optionSettings: Partial<{ autoSingleTarget: boolean }>;
-    private promptState: PlayerPromptState;
+    private _promptState: PlayerPromptState;
     public opponent: Player;
     private playableZones: PlayableZone[];
     private _lastActionId = 0;
@@ -216,7 +219,7 @@ export class Player extends GameObject<IPlayerState> {
         };
         this.optionSettings = user.settings.optionSettings;
 
-        this.promptState = new PlayerPromptState(this);
+        this._promptState = new PlayerPromptState(this);
     }
 
     protected override setupDefaultState() {
@@ -1152,11 +1155,11 @@ export class Player extends GameObject<IPlayerState> {
     }
 
     public get selectableCards() {
-        return this.promptState.selectableCards;
+        return this._promptState.selectableCards;
     }
 
     public get selectedCards() {
-        return this.promptState.selectedCards;
+        return this._promptState.selectedCards;
     }
 
     /**
@@ -1164,22 +1167,22 @@ export class Player extends GameObject<IPlayerState> {
      * @param {Card[]} cards
      */
     public setSelectedCards(cards: Card[]) {
-        this.promptState.setSelectedCards(cards);
+        this._promptState.setSelectedCards(cards);
     }
 
     public clearSelectedCards() {
-        this.promptState.clearSelectedCards();
+        this._promptState.clearSelectedCards();
     }
 
     /**
      * @param {Card[]} cards
      */
     public setSelectableCards(cards: Card[]) {
-        this.promptState.setSelectableCards(cards);
+        this._promptState.setSelectableCards(cards);
     }
 
     public clearSelectableCards() {
-        this.promptState.clearSelectableCards();
+        this._promptState.clearSelectableCards();
     }
 
     public getSummaryForHand(list, activePlayer) {
@@ -1214,23 +1217,23 @@ export class Player extends GameObject<IPlayerState> {
      * @param {Card} card
      */
     public getCardSelectionState(card: Card) {
-        return this.promptState.getCardSelectionState(card);
+        return this._promptState.getCardSelectionState(card);
     }
 
     public getAttackerHighlightingState(card: Card) {
-        return this.promptState.attackTargetingHighlightAttacker === card;
+        return this._promptState.attackTargetingHighlightAttacker === card;
     }
 
     public currentPrompt() {
-        return this.promptState.getState();
+        return this._promptState.getState();
     }
 
     public setPrompt(prompt) {
-        this.promptState.setPrompt(prompt);
+        this._promptState.setPrompt(prompt);
     }
 
     public cancelPrompt() {
-        this.promptState.cancelPrompt();
+        this._promptState.cancelPrompt();
     }
 
     public isTopCardShown(activePlayer: Player = this) {
@@ -1280,7 +1283,7 @@ export class Player extends GameObject<IPlayerState> {
     //  */
     public getStateSummary(activePlayer) {
         const isActivePlayer = activePlayer === this;
-        const promptState = isActivePlayer ? this.promptState.getState() : {};
+        const promptState = isActivePlayer ? this._promptState.getState() : {};
         const { ...safeUser } = this.user;
 
         let isActionPhaseActivePlayer = null;
@@ -1352,6 +1355,7 @@ export class Player extends GameObject<IPlayerState> {
             actionSnapshots: availableActionSnapshots,
             actionPhaseSnapshots: this.game.countAvailablePhaseSnapshots(PhaseName.Action),
             regroupPhaseSnapshots: this.game.countAvailablePhaseSnapshots(PhaseName.Regroup),
+            hasQuickSnapshot: this.game.hasAvailableQuickSnapshot(this.id),
         };
     }
 

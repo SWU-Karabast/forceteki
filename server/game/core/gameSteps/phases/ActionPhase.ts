@@ -49,8 +49,6 @@ export class ActionPhase extends Phase {
     private queueNextAction(actionNumber: number) {
         this.game.queueStep(new ActionWindow(
             this.game,
-            'Action Window',
-            'action',
             this.prevPlayerPassed,
             this.passStatusHandler,
             actionNumber,

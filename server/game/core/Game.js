@@ -1841,6 +1841,12 @@ class Game extends EventEmitter {
         return this.snapshotManager.countAvailablePhaseSnapshots(phaseName);
     }
 
+    /** @param {string} playerId */
+    hasAvailableQuickSnapshot(playerId) {
+        Contract.assertNotNullLike(playerId);
+        return this.snapshotManager.hasAvailableQuickSnapshot(playerId);
+    }
+
     /**
      * Takes a manual snapshot of the current game state for the given player
      *
@@ -1861,7 +1867,7 @@ class Game extends EventEmitter {
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
      * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshot(playerId, settings) {
+    rollbackToSnapshot(_playerId, settings) {
         return this.rollbackToSnapshotInternal(settings);
     }
 
