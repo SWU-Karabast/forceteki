@@ -15,11 +15,9 @@ export interface CardLeftPlayEntry {
     cardType: CardType;
 }
 
-export type ICardsLeftPlayThisPhase = CardLeftPlayEntry[];
-
-export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntry[]> {
+export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntry> {
     public constructor(game: Game, registrar: StateWatcherRegistrar, card: Card) {
-        super(game, StateWatcherName.CardsLeftPlayThisPhase, registrar, card);
+        super(game, StateWatcherName.CardsLeftPlayThisPhase, registrar);
     }
 
     protected override mapCurrentValue(stateValue: CardLeftPlayEntry[]): UnwrapRef<CardLeftPlayEntry[]> {

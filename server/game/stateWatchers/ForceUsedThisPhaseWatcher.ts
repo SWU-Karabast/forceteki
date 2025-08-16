@@ -10,15 +10,13 @@ export interface ForceUsedEntry {
     player: GameObjectRef<Player>;
 }
 
-export type IForceUsedThisPhase = ForceUsedEntry[];
-
-export class ForceUsedThisPhaseWatcher extends StateWatcher<IForceUsedThisPhase> {
+export class ForceUsedThisPhaseWatcher extends StateWatcher<ForceUsedEntry> {
     public constructor(
         game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(game, StateWatcherName.ForceUsedThisPhase, registrar, card);
+        super(game, StateWatcherName.ForceUsedThisPhase, registrar);
     }
 
     protected override mapCurrentValue(stateValue: ForceUsedEntry[]): UnwrapRef<ForceUsedEntry[]> {
@@ -42,14 +40,14 @@ export class ForceUsedThisPhaseWatcher extends StateWatcher<IForceUsedThisPhase>
             when: {
                 onForceUsed: () => true,
             },
-            update: (currentState: IForceUsedThisPhase, event: any) =>
+            update: (currentState: ForceUsedEntry[], event: any) =>
                 currentState.concat({
                     player: event.player.getRef(),
                 })
         });
     }
 
-    protected override getResetValue(): IForceUsedThisPhase {
+    protected override getResetValue(): ForceUsedEntry[] {
         return [];
     }
 }

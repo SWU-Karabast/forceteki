@@ -19,13 +19,13 @@ export interface DamageDealtEntry {
 
 export type IDamageDealtThisPhase = DamageDealtEntry[];
 
-export class DamageDealtThisPhaseWatcher extends StateWatcher<IDamageDealtThisPhase> {
+export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> {
     public constructor(
         game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(game, StateWatcherName.DamageDealtThisPhase, registrar, card);
+        super(game, StateWatcherName.DamageDealtThisPhase, registrar);
     }
 
     protected override mapCurrentValue(stateValue: DamageDealtEntry[]): UnwrapRef<DamageDealtEntry[]> {

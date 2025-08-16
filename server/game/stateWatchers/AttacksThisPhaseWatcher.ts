@@ -17,18 +17,16 @@ export interface AttackEntry {
     defendingPlayer: GameObjectRef<Player>;
 }
 
-export type IAttacksThisPhase = AttackEntry[];
-
-export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
+export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
     public constructor(
         game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(game, StateWatcherName.AttacksThisPhase, registrar, card);
+        super(game, StateWatcherName.AttacksThisPhase, registrar);
     }
 
-    protected override mapCurrentValue(stateValue: IAttacksThisPhase): UnwrapRef<IAttacksThisPhase> {
+    protected override mapCurrentValue(stateValue: AttackEntry[]): UnwrapRef<AttackEntry>[] {
         return stateValue.map((x) => ({ attacker: this.game.getFromRef(x.attacker), attackerInPlayId: x.attackerInPlayId, attackingPlayer: this.game.getFromRef(x.attackingPlayer), targets: x.targets.map((y) => this.game.getFromRef(y)), targetInPlayId: x.targetInPlayId, defendingPlayer: this.game.getFromRef(x.defendingPlayer) }));
     }
 
@@ -79,7 +77,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
             when: {
                 onAttackDeclared: () => true,
             },
-            update: (currentState: IAttacksThisPhase, event: any) =>
+            update: (currentState: AttackEntry[], event: any) =>
                 currentState.concat({
                     attacker: event.attack.attacker.getRef(),
                     attackerInPlayId: event.attack.attacker.inPlayId,
@@ -91,7 +89,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
         });
     }
 
-    protected override getResetValue(): IAttacksThisPhase {
+    protected override getResetValue(): AttackEntry[] {
         return [];
     }
 }

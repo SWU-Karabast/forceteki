@@ -10,16 +10,16 @@ export interface DeployedLeaderEntry {
     card: GameObjectRef<IPlayableCard>;
 }
 
-export class LeadersDeployedThisPhaseWatcher extends StateWatcher<DeployedLeaderEntry[]> {
+export class LeadersDeployedThisPhaseWatcher extends StateWatcher<DeployedLeaderEntry> {
     public constructor(
         game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(game, StateWatcherName.LeadersDeployedThisPhase, registrar, card);
+        super(game, StateWatcherName.LeadersDeployedThisPhase, registrar);
     }
 
-    protected override mapCurrentValue(stateValue: DeployedLeaderEntry[]) {
+    protected override mapCurrentValue(stateValue: DeployedLeaderEntry[]): UnwrapRef<DeployedLeaderEntry>[] {
         return stateValue.map((x) => ({ card: this.game.getFromRef(x.card) }));
     }
 

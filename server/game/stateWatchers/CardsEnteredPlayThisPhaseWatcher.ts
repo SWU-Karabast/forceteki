@@ -12,16 +12,14 @@ export interface EnteredCardEntry {
     playedBy: GameObjectRef<Player>;
 }
 
-export type ICardsEnteredPlayThisPhase = EnteredCardEntry[];
-
 // there is a known issue where CardsEnteredPlayThisPhaseWatcher currently doesn't work with leaders
-export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<ICardsEnteredPlayThisPhase> {
+export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEntry> {
     public constructor(
         game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(game, StateWatcherName.CardsEnteredPlayThisPhase, registrar, card);
+        super(game, StateWatcherName.CardsEnteredPlayThisPhase, registrar);
     }
 
     protected override mapCurrentValue(stateValue: EnteredCardEntry[]): UnwrapRef<EnteredCardEntry[]> {
@@ -54,12 +52,12 @@ export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<ICardsEntered
             when: {
                 onUnitEntersPlay: () => true,
             },
-            update: (currentState: ICardsEnteredPlayThisPhase, event: any) =>
+            update: (currentState: EnteredCardEntry[], event: any) =>
                 currentState.concat({ card: event.card.getRef(), playedBy: event.card.controller.getRef() })
         });
     }
 
-    protected override getResetValue(): ICardsEnteredPlayThisPhase {
+    protected override getResetValue(): EnteredCardEntry[] {
         return [];
     }
 }

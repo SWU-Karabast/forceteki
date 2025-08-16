@@ -17,7 +17,7 @@ const { SnapshotType, PhaseName } = require('../../server/game/core/Constants.js
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
 
 // set to true to run all tests with undo enabled
-const ENABLE_UNDO_ALL_TESTS = false;
+const ENABLE_UNDO_ALL_TESTS = true;
 
 // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
 if (!jasmine.getEnv().configuration().random) {

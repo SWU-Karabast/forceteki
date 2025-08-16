@@ -5,6 +5,7 @@ Symbol.metadata ??= Symbol.for('Symbol.metadata');
 const stateMetadata = Symbol();
 const stateSimpleMetadata = Symbol();
 const stateArrayMetadata = Symbol();
+const stateMapMetadata = Symbol();
 const stateObjectMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
@@ -104,6 +105,36 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
     };
 }
 
+export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>() {
+    return function (
+        target: ClassAccessorDecoratorTarget<T, ReadonlyMap<string, TValue>>,
+        context: ClassAccessorDecoratorContext<T, ReadonlyMap<string, TValue>>
+    ): ClassAccessorDecoratorResult<T, ReadonlyMap<string, TValue>> {
+        if (context.static || context.private) {
+            throw new Error('Can only serialize public instance members.');
+        }
+        if (typeof context.name === 'symbol') {
+            throw new Error('Cannot serialize symbol-named properties.');
+        }
+
+        // Get or create the state related metadata object.
+        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
+        metaState[stateMapMetadata] ??= [];
+        (metaState[stateMapMetadata] as string[]).push(context.name);
+
+        // Use the backing fields as the cache, and write refs to the state.
+        return {
+            get(this) {
+                return target.get.call(this);
+            },
+            set(this: GameObjectBase, newValue) {
+                this.state[context.name as string] = new Map(Array.from(newValue, ([key, value]) => [key, value.getRef()]));
+                target.set.call(this, newValue);
+            }
+        };
+    };
+}
+
 export function undoObject<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
@@ -162,6 +193,13 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
                 for (const field of metaArrays) {
                     // It's a little extra work but that's far less than when we did it every time it did a get call to the accessor.
                     instance[field] = (newState[field] as GameObjectRef[])?.map((x) => instance.game.getFromRef(x));
+                }
+            }
+            if (metaState[stateMapMetadata]) {
+                const metaMaps = metaState[stateMapMetadata] as string[];
+                for (const field of metaMaps) {
+                    const mappedEntries: [string, GameObjectBase][] = Array.from((newState[field] as Map<string, GameObjectRef>), ([key, value]) => [key, instance.game.getFromRef(value)]);
+                    instance[field] = new Map(mappedEntries);
                 }
             }
             if (metaState[stateObjectMetadata]) {

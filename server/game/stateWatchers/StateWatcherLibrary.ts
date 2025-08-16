@@ -27,42 +27,42 @@ export class StateWatcherLibrary {
     }
 
     public cardsDiscardedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new CardsDiscardedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.CardsDiscardedThisPhase, () => new CardsDiscardedThisPhaseWatcher(this.game, registrar, card));
     }
 
     public cardsDrawnThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new CardsDrawnThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.CardsDrawnThisPhase, () => new CardsDrawnThisPhaseWatcher(this.game, registrar, card));
     }
 
     public cardsEnteredPlayThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new CardsEnteredPlayThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.CardsEnteredPlayThisPhase, () => new CardsEnteredPlayThisPhaseWatcher(this.game, registrar, card));
     }
 
     public cardsLeftPlayThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new CardsLeftPlayThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.CardsLeftPlayThisPhase, () => new CardsLeftPlayThisPhaseWatcher(this.game, registrar, card));
     }
 
     public cardsPlayedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new CardsPlayedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.CardsPlayedThisPhase, () => new CardsPlayedThisPhaseWatcher(this.game, registrar, card));
     }
 
     public damageDealtThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new DamageDealtThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.DamageDealtThisPhase, () => new DamageDealtThisPhaseWatcher(this.game, registrar, card));
     }
 
     public forceUsedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new ForceUsedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.ForceUsedThisPhase, () => new ForceUsedThisPhaseWatcher(this.game, registrar, card));
     }
 
     public leadersDeployedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new LeadersDeployedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.LeadersDeployedThisPhase, () => new LeadersDeployedThisPhaseWatcher(this.game, registrar, card));
     }
 
     public unitsDefeatedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new UnitsDefeatedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.UnitsDefeatedThisPhase, () => new UnitsDefeatedThisPhaseWatcher(this.game, registrar, card));
     }
 
     public unitsHealedThisPhase(registrar: StateWatcherRegistrar, card: Card) {
-        return new UnitsHealedThisPhaseWatcher(this.game, registrar, card);
+        return registrar.registerWatcher(StateWatcherName.UnitsHealedThisPhase, () => new UnitsHealedThisPhaseWatcher(this.game, registrar, card));
     }
 }

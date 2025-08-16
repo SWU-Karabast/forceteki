@@ -15,13 +15,13 @@ export interface HealedUnitEntry {
 
 export type IUnitsHealedThisPhase = HealedUnitEntry[];
 
-export class UnitsHealedThisPhaseWatcher extends StateWatcher<IUnitsHealedThisPhase> {
+export class UnitsHealedThisPhaseWatcher extends StateWatcher<HealedUnitEntry> {
     public constructor(
         game: Game,
         registrar: StateWatcherRegistrar,
         card: Card
     ) {
-        super(game, StateWatcherName.UnitsHealedThisPhase, registrar, card);
+        super(game, StateWatcherName.UnitsHealedThisPhase, registrar);
     }
 
     /**
@@ -32,7 +32,7 @@ export class UnitsHealedThisPhaseWatcher extends StateWatcher<IUnitsHealedThisPh
         return super.getCurrentValue();
     }
 
-    protected override mapCurrentValue(stateValue: IUnitsHealedThisPhase): UnwrapRefObject<HealedUnitEntry>[] {
+    protected override mapCurrentValue(stateValue: HealedUnitEntry[]): UnwrapRefObject<HealedUnitEntry>[] {
         return stateValue.map((x) => ({ inPlayId: x.inPlayId, unit: this.game.getFromRef(x.unit), controlledBy: this.game.getFromRef(x.controlledBy) }));
     }
 
