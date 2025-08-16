@@ -22,7 +22,7 @@ export class StateWatcherLibrary {
         this.game = game;
     }
 
-    // CLEANUP TASK: Remove card from the function call and then all of the cards that use these.
+    // CLEANUP TASK: Remove card from the function call and then all of the implementations that use these.
     public attacksThisPhase(registrar: StateWatcherRegistrar, card: Card) {
         return registrar.registerWatcher(StateWatcherName.AttacksThisPhase, () => new AttacksThisPhaseWatcher(this.game, registrar));
     }
