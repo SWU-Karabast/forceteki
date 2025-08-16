@@ -1,7 +1,7 @@
 import type Game from '../../Game';
 import type { GameStateManager } from '../GameStateManager';
 import type { IGetCurrentSnapshotHandler, IUpdateCurrentSnapshotHandler } from '../SnapshotFactory';
-import type { IGameSnapshot } from '../SnapshotInterfaces';
+import type { IGameSnapshot, ISnapshotProperties } from '../SnapshotInterfaces';
 import type { IClearNewerSnapshotsBinding } from './SnapshotContainerBase';
 import { SnapshotContainerBase } from './SnapshotContainerBase';
 import * as Contract from '../../utils/Contract.js';
@@ -47,6 +47,27 @@ export class SnapshotArray extends SnapshotContainerBase {
     }
 
     /**
+     * Get properties of a snapshot at the given offset without exposing the full snapshot object.
+     */
+    public getSnapshotProperties(offset = 0): ISnapshotProperties | null {
+        const snapshot = this.getSnapshotInternal(offset);
+        return snapshot ? this.extractSnapshotProperties(snapshot) : null;
+    }
+
+    /**
+     * Internal method to get a snapshot by offset.
+     */
+    private getSnapshotInternal(offset: number): IGameSnapshot | null {
+        Contract.assertTrue(offset < 0 && offset >= -this.maxLength, `Snapshot offset must be less than one and greater than or equal than max history length (-${this.maxLength}), got ${offset}`);
+
+        if (Math.abs(offset) >= this.snapshots.length) {
+            return null; // Cannot access further than the available snapshots
+        }
+
+        return this.snapshots[this.snapshots.length + offset];
+    }
+
+    /**
      * Rolls back to a snapshot at the given offset from the current action point.
      *
      * @param offset The offset from the current action's snapshot to roll back to. -1 is the most recent snapshot (before current), -2 is the previous snapshot, etc.
@@ -54,15 +75,12 @@ export class SnapshotArray extends SnapshotContainerBase {
      * @returns The ID of the snapshot that was rolled back to, or `null` if there is not enough snapshot history to go back that far
      */
     public rollbackToSnapshot(offset: number): number | null {
-        Contract.assertTrue(offset < 0 && offset >= -this.maxLength, `Snapshot offset must be less than one and greater than or equal than max history length (-${this.maxLength}), got ${offset}`);
-
-        if (Math.abs(offset) >= this.snapshots.length) {
-            return null; // Cannot rollback further than the available snapshots
+        const snapshot = this.getSnapshotInternal(offset);
+        if (!snapshot) {
+            return null;
         }
 
-        const snapshot = this.snapshots[this.snapshots.length + offset];
         super.rollbackToSnapshotInternal(snapshot);
-
         return snapshot.id;
     }
 
