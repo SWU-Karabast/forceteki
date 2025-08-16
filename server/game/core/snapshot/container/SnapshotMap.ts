@@ -1,4 +1,4 @@
-import type { IGameSnapshot } from '../SnapshotInterfaces';
+import type { IGameSnapshot, ISnapshotProperties } from '../SnapshotInterfaces';
 import { SnapshotContainerBase } from './SnapshotContainerBase';
 
 /**
@@ -23,13 +23,28 @@ export class SnapshotMap<T> extends SnapshotContainerBase {
     }
 
     /**
+     * Get properties of a snapshot at the given key without exposing the full snapshot object.
+     */
+    public getSnapshotProperties(key: T): ISnapshotProperties | null {
+        const snapshot = this.getSnapshotInternal(key);
+        return snapshot ? this.extractSnapshotProperties(snapshot) : null;
+    }
+
+    /**
+     * Internal method to get a snapshot by key.
+     */
+    private getSnapshotInternal(key: T): IGameSnapshot | null {
+        return this.snapshots.get(key) ?? null;
+    }
+
+    /**
      * Rolls back to the snapshot at the given key, if it exists.
      *
      * @param key The key of the snapshot to roll back to if possible
      * @returns The ID of the snapshot that was rolled back to, or `null` if the key does not exist in the map
      */
     public rollbackToSnapshot(key: T): number | null {
-        const snapshot = this.snapshots.get(key);
+        const snapshot = this.getSnapshotInternal(key);
         if (!snapshot) {
             return null;
         }

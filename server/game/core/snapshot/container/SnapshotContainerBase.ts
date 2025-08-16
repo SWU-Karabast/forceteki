@@ -1,7 +1,7 @@
 import type { IGetCurrentSnapshotHandler, IUpdateCurrentSnapshotHandler } from '../SnapshotFactory';
 import type { GameStateManager } from '../GameStateManager';
 import type Game from '../../Game';
-import type { IGameSnapshot } from '../SnapshotInterfaces';
+import type { IGameSnapshot, ISnapshotProperties } from '../SnapshotInterfaces';
 
 export type IClearNewerSnapshotsHandler = (snapshotId: number) => void;
 
@@ -42,11 +42,26 @@ export abstract class SnapshotContainerBase {
     /** Delete any snapshots newer than the given snapshotId. Used with undo to remove snapshots that are now invalid. */
     protected abstract clearNewerSnapshots(snapshotId: number): void;
 
+    /** Get properties of a snapshot without exposing the full snapshot object. */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public abstract getSnapshotProperties(...lookupArgs: any[]): ISnapshotProperties | null;
+
     public abstract clearAllSnapshots(): void;
 
     protected rollbackToSnapshotInternal(snapshot: IGameSnapshot): void {
         this.gameStateManager.rollbackToSnapshot(snapshot);
         this.updateCurrentSnapshotFn(snapshot);
         this.game.randomGenerator.restore(snapshot.rngState);
+    }
+
+    /**
+     * Extract properties from a snapshot without exposing the full object.
+     */
+    protected extractSnapshotProperties(snapshot: IGameSnapshot): ISnapshotProperties {
+        return {
+            roundNumber: snapshot.roundNumber,
+            actionNumber: snapshot.actionNumber,
+            currentPhase: snapshot.phase
+        };
     }
 }
