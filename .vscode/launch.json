@@ -17,6 +17,7 @@
       "request": "launch",
       "command": "npm run dev",
       "env": {
+        "NODE_ENV": "development",
         "NODE_OPTIONS": "--enable-source-maps"
       },
     },
