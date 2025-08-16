@@ -48,6 +48,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWa
     ) {
         super(game);
         this.name = name;
+        Contract.assertFalse(registrar.isRegistered(name), `State Watcher type "${name}" is already registered.`);
 
         this.setupWatcher();
         Contract.assertTrue(this.stateUpdaters.length > 0, 'No state updaters registered');
