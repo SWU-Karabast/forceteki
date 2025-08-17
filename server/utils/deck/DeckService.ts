@@ -13,17 +13,17 @@ import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 export class DeckService {
     private dbServicePromise = getDynamoDbServiceAsync();
     private readonly baseMapping30 = {
-        aggression: 'SOR_027',
-        command: 'SOR_024',
-        cunning: 'SOR_029',
-        vigilance: 'SOR_020'
+        aggression: 'Base-Red',
+        command: 'Base-Green',
+        cunning: 'Base-Yellow',
+        vigilance: 'Base-Blue'
     };
 
     private readonly baseMapping28 = {
-        aggression: 'LOF_027',
-        command: 'LOF_024',
-        cunning: 'LOF_029',
-        vigilance: 'LOF_020'
+        aggression: 'Base-Red-Force',
+        command: 'Base-Green-Force',
+        cunning: 'Base-Yellow-Force',
+        vigilance: 'Base-Blue-Force'
     };
 
 
