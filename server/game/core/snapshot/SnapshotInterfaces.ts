@@ -1,5 +1,5 @@
 import type { Card } from '../card/Card';
-import type { PhaseName, RollbackRoundEntryPoint, SnapshotType } from '../Constants';
+import type { PhaseName, RollbackRoundEntryPoint, RollbackSetupEntryPoint, SnapshotType } from '../Constants';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import type { Player } from '../Player';
 import type { IRandomness } from '../Randomness';
@@ -23,7 +23,12 @@ export interface IPhaseSnapshotSettings extends ISnapshotSettingsBase {
     phaseName: PhaseName;
 }
 
-export type ISnapshotSettings = IActionSnapshotSettings | IPhaseSnapshotSettings | IManualSnapshotSettings;
+export interface IQuickSnapshotSettings extends ISnapshotSettingsBase {
+    type: SnapshotType.Quick;
+    playerId: string;
+}
+
+export type ISnapshotSettings = IActionSnapshotSettings | IPhaseSnapshotSettings | IManualSnapshotSettings | IQuickSnapshotSettings;
 
 export interface IGetActionSnapshotSettings extends IActionSnapshotSettings {
 
@@ -51,15 +56,30 @@ export interface IGetPhaseSnapshotSettings extends IPhaseSnapshotSettings {
     phaseOffset?: number;
 }
 
-export type IGetSnapshotSettings = IGetActionSnapshotSettings | IGetManualSnapshotSettings | IGetPhaseSnapshotSettings;
+export type IGetSnapshotSettings = IGetActionSnapshotSettings | IGetManualSnapshotSettings | IGetPhaseSnapshotSettings | IQuickSnapshotSettings;
 
 interface IRollbackResultBase {
     success: boolean;
 }
 
+export enum RollbackEntryPointType {
+    Setup = 'setup',
+    Round = 'round',
+}
+
+export interface IRollbackSetupEntryPoint {
+    type: RollbackEntryPointType.Setup;
+    entryPoint: RollbackSetupEntryPoint;
+}
+
+export interface IRollbackRoundEntryPoint {
+    type: RollbackEntryPointType.Round;
+    entryPoint: RollbackRoundEntryPoint;
+}
+
 interface IRollbackResultSuccess extends IRollbackResultBase {
     success: true;
-    roundEntryPoint: RollbackRoundEntryPoint;
+    entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint;
 }
 
 interface IRollbackResultFailure extends IRollbackResultBase {
@@ -67,6 +87,12 @@ interface IRollbackResultFailure extends IRollbackResultBase {
 }
 
 export type IRollbackResult = IRollbackResultSuccess | IRollbackResultFailure;
+
+export interface ISnapshotProperties {
+    roundNumber: number;
+    actionNumber: number;
+    currentPhase: PhaseName;
+}
 
 export enum SnapshotTimepoint {
     StartOfPhase = 'startOfPhase',

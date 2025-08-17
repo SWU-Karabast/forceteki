@@ -13,7 +13,8 @@ const GameStateBuilder = require('./GameStateBuilder.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const { cards } = require('../../server/game/cards/Index.js');
 const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
-const { SnapshotType } = require('../../server/game/core/Constants.js');
+const { SnapshotType, PhaseName } = require('../../server/game/core/Constants.js');
+const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
 
 // set to true to run all tests with undo enabled
 const ENABLE_UNDO_ALL_TESTS = false;
@@ -33,6 +34,13 @@ if (!jasmine.getEnv().configuration().random) {
 const gameStateBuilder = new GameStateBuilder();
 
 function buildStartOfTestSnapshot(game) {
+    if (game.currentPhase === PhaseName.Setup) {
+        return {
+            type: SnapshotType.Phase,
+            PhaseName: PhaseName.Setup
+        };
+    }
+
     const activePlayer = game.getActivePlayer();
 
     return {
@@ -65,7 +73,7 @@ global.integration = function (definitions, enableUndo = false) {
                 gameRouter,
                 { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
                 { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } },
-                enableUndo
+                enableUndo ? UndoMode.Full : UndoMode.Disabled
             );
 
             /** @type {SwuTestContext} */
@@ -76,9 +84,9 @@ global.integration = function (definitions, enableUndo = false) {
             contextRef.snapshot = {
                 getCurrentSnapshotId: () => gameFlowWrapper.snapshotManager?.currentSnapshotId,
                 getCurrentSnapshottedAction: () => gameFlowWrapper.snapshotManager?.currentSnapshottedAction,
-                rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshot(settings),
-                countAvailableActionSnapshots: (playerId) => gameFlowWrapper.snapshotManager?.countAvailableActionSnapshots(playerId),
-                countAvailableManualSnapshots: (playerId) => gameFlowWrapper.snapshotManager?.countAvailableManualSnapshots(playerId),
+                rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshotInternal(settings),
+                countAvailableActionSnapshots: (playerId) => newContext.game.countAvailableActionSnapshots(playerId),
+                countAvailableManualSnapshots: (playerId) => newContext.game.countAvailableManualSnapshots(playerId),
                 takeManualSnapshot: (playerId) => newContext.game.takeManualSnapshot(playerId),
             };
 
@@ -160,7 +168,7 @@ global.integration = function (definitions, enableUndo = false) {
                 throw new TestSetupError(`The test ended with an unresolved prompt in ${context.game.currentPhase} phase for one or both players. Unresolved prompts:\n${activePromptsText}`);
             }
             try {
-                context.game.captureGameState('testrun');
+                context.game.captureGameState('any');
             } catch (error) {
                 throw new TestSetupError('Failed to correctly serialize post-test game state', { error: { message: error.message, stack: error.stack } });
             }
@@ -199,7 +207,7 @@ global.undoIt = function(expectation, assertion, timeout) {
             // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
             return;
         }
-        const rolledBack = context.game.rollbackToSnapshot({
+        const rolledBack = context.game.rollbackToSnapshotInternal({
             type: SnapshotType.Manual,
             playerId: snapshotUtils.startOfTestSnapshot.player.id,
             snapshotId: snapshotUtils.startOfTestSnapshot.snapshotId

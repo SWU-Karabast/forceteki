@@ -7,6 +7,7 @@ import type { EventWindow } from './event/EventWindow';
 import type { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { ActionWindow } from './gameSteps/ActionWindow';
 import type { UiPrompt } from './gameSteps/prompts/UiPrompt';
+import type { UndoMode } from './snapshot/SnapshotManager';
 import * as Contract from './utils/Contract';
 
 export interface GameConfiguration {
@@ -21,7 +22,7 @@ export interface GameConfiguration {
     pushUpdate: () => void;
     buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     userTimeoutDisconnect: (userId: string) => void;
-    enableUndo?: boolean;
+    undoMode?: UndoMode;
 }
 
 export interface ICurrentlyResolving {

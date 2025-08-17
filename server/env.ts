@@ -14,8 +14,9 @@ const parsedEnv = z
         AWS_SECRET_ACCESS_KEY: z.string().optional(),
         NEXTAUTH_SECRET: z.string().optional(),
         DISCORD_BUG_REPORT_WEBHOOK_URL: z.string().optional(),
+        DISCORD_ERROR_REPORT_WEBHOOK_URL: z.string().optional(),
         ADDITIONAL_CORS_ORIGINS: z.string().optional(),
-        SWUStatsAPIKey: z.string().optional(),
+        SWUSTATS_API_KEY: z.string().optional(),
     })
     .safeParse(process.env);
 
@@ -76,9 +77,10 @@ export const gameNodeSocketIoPort = parsedEnv.data.GAME_NODE_SOCKET_IO_PORT;
 // export const maxGames = parsedEnv.data.MAX_GAMES;
 // export const mqUrl = parsedEnv.data.MQ_URL;
 export const DISCORD_BUG_REPORT_WEBHOOK_URL = parsedEnv.data.DISCORD_BUG_REPORT_WEBHOOK_URL;
+export const DISCORD_ERROR_REPORT_WEBHOOK_URL = parsedEnv.data.DISCORD_ERROR_REPORT_WEBHOOK_URL;
 // export const sentryDsn = parsedEnv.data.SENTRY_DSN;
 export const AWS_REGION = parsedEnv.data.AWS_REGION;
 export const AWS_ACCESS_KEY_ID = parsedEnv.data.AWS_ACCESS_KEY_ID;
 export const AWS_SECRET_ACCESS_KEY = parsedEnv.data.AWS_SECRET_ACCESS_KEY;
 export const NEXTAUTH_SECRET = parsedEnv.data.NEXTAUTH_SECRET;
-export const SWUStatsAPIKey = parsedEnv.data.SWUStatsAPIKey;
+export const SWUSTATS_API_KEY = parsedEnv.data.SWUSTATS_API_KEY;

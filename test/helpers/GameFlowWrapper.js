@@ -7,14 +7,16 @@ const TestSetupError = require('./TestSetupError.js');
 const playableCardTitles = require('../json/_playableCardTitles.json');
 const Util = require('./Util.js');
 const { GameMode } = require('../../server/GameMode.js');
+const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
 
 class GameFlowWrapper {
     /**
      * @param {any} router
      * @param {PlayerInfo} player1Info
      * @param {PlayerInfo} player2Info
+     * @param {UndoMode} undoMode
      */
-    constructor(cardDataGetter, router, player1Info, player2Info, enableUndo = false) {
+    constructor(cardDataGetter, router, player1Info, player2Info, undoMode = UndoMode.Disabled) {
         /** @type {import('../../server/game/core/GameInterfaces.js').GameConfiguration} */
         var details = {
             name: `${player1Info.username}'s game`,
@@ -30,7 +32,7 @@ class GameFlowWrapper {
             pushUpdate: () => true,
             buildSafeTimeout: () => undefined,
             userTimeoutDisconnect: () => undefined,
-            enableUndo,
+            undoMode,
         };
 
         this.game = new Game(details, { router });

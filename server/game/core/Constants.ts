@@ -21,7 +21,8 @@ export enum DeckZoneDestination {
 export enum SnapshotType {
     Action = 'action',
     Manual = 'manual',
-    Phase = 'phase'
+    Phase = 'phase',
+    Quick = 'quick',
 }
 
 export enum ChatObjectType {
@@ -233,6 +234,7 @@ export enum TokenUnitName {
     CloneTrooper = 'cloneTrooper',
     XWing = 'xwing',
     TIEFighter = 'tieFighter',
+    Spy = 'spy',
 }
 
 export enum TokenCardName {
@@ -362,6 +364,7 @@ export enum KeywordName {
     Raid = 'raid',
     Restore = 'restore',
     Piloting = 'piloting',
+    Plot = 'plot',
     Saboteur = 'saboteur',
     Sentinel = 'sentinel',
     Shielded = 'shielded',
@@ -528,4 +531,8 @@ export enum RollbackRoundEntryPoint {
     StartOfRound = 'startOfRound',
     WithinActionPhase = 'withinActionPhase',
     StartOfRegroupPhase = 'startOfRegroupPhase',
+}
+
+export enum RollbackSetupEntryPoint {
+    StartOfSetupPhase = 'startOfSetupPhase',
 }

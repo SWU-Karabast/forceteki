@@ -1,5 +1,4 @@
 const EventEmitter = require('events');
-const seedrandom = require('seedrandom');
 
 const { GameChat } = require('./chat/GameChat.js');
 const { OngoingEffectEngine } = require('./ongoingEffect/OngoingEffectEngine.js');
@@ -22,7 +21,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -46,12 +45,15 @@ const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
 const { CostAdjuster } = require('./cost/CostAdjuster.js');
 const { logger } = require('../../logger.js');
-const { SnapshotManager } = require('./snapshot/SnapshotManager.js');
+const { SnapshotManager, UndoMode } = require('./snapshot/SnapshotManager.js');
 const AbilityHelper = require('../AbilityHelper.js');
 const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
 const { getAbilityHelper } = require('../AbilityHelper.js');
 const { PhaseInitializeMode } = require('./gameSteps/phases/Phase.js');
 const { Randomness } = require('../core/Randomness.js');
+const { RollbackEntryPointType } = require('./snapshot/SnapshotInterfaces.js');
+const { Lobby } = require('../../gamenode/Lobby.js');
+const { DiscordDispatcher } = require('./DiscordDispatcher.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -118,8 +120,12 @@ class Game extends EventEmitter {
         return this.#debug.pipeline;
     }
 
+    get snapshotManager() {
+        return this._snapshotManager;
+    }
+
     get isUndoEnabled() {
-        return this.snapshotManager.undoEnabled;
+        return this.snapshotManager.undoMode === UndoMode.Full;
     }
 
     get actionNumber() {
@@ -132,7 +138,7 @@ class Game extends EventEmitter {
     }
 
     get gameObjectManager() {
-        return this.snapshotManager.gameObjectManager;
+        return this._snapshotManager.gameObjectManager;
     }
 
     get winnerNames() {
@@ -195,6 +201,10 @@ class Game extends EventEmitter {
         return this.state.lastGameEventId;
     }
 
+    get lobbyId() {
+        return this._router.id;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -207,8 +217,17 @@ class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
-        /** @private */
-        this.snapshotManager = new SnapshotManager(this, details.enableUndo);
+        /** @private @readonly @type {import('./snapshot/SnapshotManager.js').SnapshotManager} */
+        this._snapshotManager = new SnapshotManager(this, details.undoMode);
+
+        /** @private @readonly @type {import('./Randomness.js').IRandomness} */
+        this._randomGenerator = new Randomness();
+
+        /** @private @readonly @type {Lobby} */
+        this._router = options.router;
+
+        /** @private @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
+        this.discordDispatcher = new DiscordDispatcher();
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
@@ -239,9 +258,6 @@ class Game extends EventEmitter {
         this.gameMode = details.gameMode;
 
         this.initializeCurrentlyResolving();
-
-        /** @private @readonly @type {import('./Randomness.js').IRandomness} */
-        this._randomGenerator = new Randomness();
 
         /** @type { import('./snapshot/SnapshotInterfaces.js').IGameState } */
         this.state = {
@@ -293,8 +309,6 @@ class Game extends EventEmitter {
         this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
 
         this.setMaxListeners(0);
-
-        this.router = options.router;
     }
 
 
@@ -303,7 +317,7 @@ class Game extends EventEmitter {
      * @param {Error} e
      */
     reportError(e, severeGameMessage = false) {
-        this.router.handleError(this, e, severeGameMessage);
+        this._router.handleError(this, e, severeGameMessage);
     }
 
     /**
@@ -827,11 +841,11 @@ class Game extends EventEmitter {
         }
         this.finishedAt = new Date();
         this.gameEndReason = reason;
-        // this.router.gameWon(this, reason, winner);
-        // TODO Tests failed since this.router doesn't exist for them we use an if statement to unblock.
+        // this._router.gameWon(this, reason, winner);
+        // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
-        if (typeof this.router.sendGameState === 'function') {
-            this.router.sendGameState(this); // call the function if it exists
+        if (typeof this._router.sendGameState === 'function') {
+            this._router.sendGameState(this); // call the function if it exists
         } else {
             this.queueStep(new GameOverPrompt(this));
         }
@@ -1122,15 +1136,34 @@ class Game extends EventEmitter {
         );
 
         this.resolveGameState(true);
-        this.pipeline.initialise([
-            new SetupPhase(this, this.snapshotManager),
-            new SimpleStep(this, () => this.beginRound(), 'beginRound')
-        ]);
+        this.initializePipelineForSetup();
 
         this.playStarted = true;
         this.startedAt = new Date();
 
         this.continue();
+    }
+
+    /**
+     * Initializes the pipeline for the game setup.
+     * Accepts a parameter indicating whether this operation is due to a rollback, and if so, to what point in the setup.
+     *
+     * @param {RollbackSetupEntryPoint | null} rollbackEntryPoint
+     */
+    initializePipelineForSetup(rollbackEntryPoint = null) {
+        const setupPhaseInitializeMode =
+            rollbackEntryPoint === RollbackSetupEntryPoint.StartOfSetupPhase
+                ? PhaseInitializeMode.RollbackToStartOfPhase
+                : PhaseInitializeMode.Normal;
+
+        const setupPhaseStep = [
+            new SetupPhase(this, this.snapshotManager, setupPhaseInitializeMode)
+        ];
+
+        this.pipeline.initialise([
+            ...setupPhaseStep,
+            new SimpleStep(this, () => this.beginRound(), 'beginRound')
+        ]);
     }
 
     /*
@@ -1177,7 +1210,7 @@ class Game extends EventEmitter {
                     Contract.fail(`Unknown rollback entry point: ${rollbackEntryPoint}`);
             }
 
-            actionPhaseStep.push(new ActionPhase(this, () => this.getNextActionNumber(), this.snapshotManager, actionInitializeMode));
+            actionPhaseStep.push(new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode));
         }
 
         const regroupInitializeMode =
@@ -1186,7 +1219,7 @@ class Game extends EventEmitter {
                 : PhaseInitializeMode.Normal;
 
         const regroupPhaseStep = [
-            new RegroupPhase(this, this.snapshotManager, regroupInitializeMode)
+            new RegroupPhase(this, this._snapshotManager, regroupInitializeMode)
         ];
 
         this.pipeline.initialise([
@@ -1790,6 +1823,30 @@ class Game extends EventEmitter {
         return {};
     }
 
+    /** @param {string} playerId */
+    countAvailableActionSnapshots(playerId) {
+        Contract.assertNotNullLike(playerId);
+        return this.snapshotManager.countAvailableActionSnapshots(playerId);
+    }
+
+    /** @param {string} playerId */
+    countAvailableManualSnapshots(playerId) {
+        Contract.assertNotNullLike(playerId);
+        return this.snapshotManager.countAvailableManualSnapshots(playerId);
+    }
+
+    /** @param {PhaseName.Action | PhaseName.Regroup} phaseName */
+    countAvailablePhaseSnapshots(phaseName) {
+        Contract.assertNotNullLike(phaseName);
+        return this.snapshotManager.countAvailablePhaseSnapshots(phaseName);
+    }
+
+    /** @param {string} playerId */
+    hasAvailableQuickSnapshot(playerId) {
+        Contract.assertNotNullLike(playerId);
+        return this.snapshotManager.hasAvailableQuickSnapshot(playerId);
+    }
+
     /**
      * Takes a manual snapshot of the current game state for the given player
      *
@@ -1798,7 +1855,7 @@ class Game extends EventEmitter {
     takeManualSnapshot(player) {
         if (this.isUndoEnabled) {
             Contract.assertHasProperty(player, 'id', 'Player must have an id to take a manual snapshot');
-            return this.snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId: player.id });
+            return this._snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId: player.id });
         }
 
         return -1;
@@ -1810,26 +1867,74 @@ class Game extends EventEmitter {
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
      * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshot(settings) {
+    rollbackToSnapshot(_playerId, settings) {
+        return this.rollbackToSnapshotInternal(settings);
+    }
+
+    rollbackToSnapshotInternal(settings) {
         if (!this.isUndoEnabled) {
             return false;
         }
 
-        const rollbackResult = this.snapshotManager.rollbackTo(settings);
+        const preUndoState = this.captureGameState('any');
 
-        if (!rollbackResult.success) {
-            return false;
+        try {
+            const rollbackResult = this._snapshotManager.rollbackTo(settings);
+
+            if (!rollbackResult.success) {
+                return false;
+            }
+
+            this.postRollbackOperations(rollbackResult.entryPoint, preUndoState);
+
+            return true;
+        } catch (error) {
+            if (process.env.NODE_ENV !== 'test') {
+                logger.error('Rollback failed', {
+                    lobbyId: this._router.id,
+                    gameId: this.id,
+                    settings,
+                    preUndoState,
+                    error: error.message,
+                    stack: error.stack,
+                });
+
+                this.discordDispatcher.formatAndSendUndoFailureReportAsync({
+                    gameId: this.id,
+                    lobbyId: this._router.id,
+                    settings,
+                    preUndoState,
+                });
+            }
+
+            throw error;
         }
-
-        this.postRollbackOperations(rollbackResult.roundEntryPoint);
-
-        return true;
     }
 
-    postRollbackOperations(roundEntryPoint = null) {
+    /**
+     * @param {import('./snapshot/SnapshotInterfaces.js').IRollbackSetupEntryPoint | import('./snapshot/SnapshotInterfaces.js').IRollbackRoundEntryPoint} entryPoint
+     * @param {import ('../Interfaces.js').ISerializedGameState} preUndoState
+     */
+    postRollbackOperations(entryPoint, preUndoState) {
+        const postUndoState = this.captureGameState('any');
+        const gameStates = {
+            preUndoState,
+            postUndoState,
+        };
+        if (process.env.NODE_ENV !== 'test') {
+            logger.info('Rollback completed', {
+                lobbyId: this._router.id,
+                gameId: this.id,
+                gameStates,
+            });
+        }
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
-        this.initializePipelineForRound(roundEntryPoint);
+        if (entryPoint.type === RollbackEntryPointType.Setup) {
+            this.initializePipelineForSetup(entryPoint.entryPoint);
+        } else if (entryPoint.type === RollbackEntryPointType.Round) {
+            this.initializePipelineForRound(entryPoint.entryPoint);
+        }
         this.pipeline.continue(this);
     }
 
@@ -1866,7 +1971,7 @@ class Game extends EventEmitter {
 
     /**
      * Captures the current game state for a bug report
-     * @param reportingPlayer
+     * @param {string} reportingPlayer
      * @returns A simplified game state representation
      */
     captureGameState(reportingPlayer) {
@@ -1896,7 +2001,7 @@ class Game extends EventEmitter {
                 player1 = players[1];
                 player2 = players[0];
                 break;
-            case 'testrun':
+            case 'any':
                 player1 = players[0];
                 player2 = players[1];
                 break;

@@ -6,6 +6,8 @@ import { ResourcePrompt } from './ResourcePrompt';
 import { PromptType, SelectCardMode } from '../PromptInterfaces';
 
 export class VariableResourcePrompt extends ResourcePrompt {
+    public static readonly title = 'Resource Step';
+
     private readonly minCardsToResource: number;
     private readonly maxCardsToResource: number;
 
@@ -25,7 +27,7 @@ export class VariableResourcePrompt extends ResourcePrompt {
             selectCardMode: SelectCardMode.Multiple,
             menuTitle: promptText,
             buttons: [{ text: 'Done', arg: 'done' }],
-            promptTitle: 'Resource Step',
+            promptTitle: VariableResourcePrompt.title,
             promptUuid: this.uuid,
             promptType: PromptType.Resource
         };
