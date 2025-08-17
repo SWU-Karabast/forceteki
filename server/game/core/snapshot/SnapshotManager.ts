@@ -43,8 +43,8 @@ export class SnapshotManager {
     ]);
 
     private static readonly TestSnapshotLimits = new Map<SnapshotType, number>([
-        [SnapshotType.Action, 2],
-        [SnapshotType.Phase, 1],
+        [SnapshotType.Action, 3],
+        [SnapshotType.Phase, 2],
     ]);
 
     public readonly undoMode: UndoMode;
