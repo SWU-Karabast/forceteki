@@ -13,9 +13,6 @@ import type { SnapshotMap } from './container/SnapshotMap';
 import { ActionWindow } from '../gameSteps/ActionWindow';
 import { VariableResourcePrompt } from '../gameSteps/prompts/VariableResourcePrompt';
 
-const maxActionSnapshots = 3; // Number of actions saved for undo in a turn (per player)
-const maxPhaseSnapshots = 2; // Current and previous of a specific phase
-
 export enum UndoMode {
     Disabled = 'disabled',
     Full = 'full',
@@ -40,6 +37,16 @@ enum QuickRollbackPoint {
  * Also manages the GameStateManager which is used to manage GameObjects and overall game state.
  */
 export class SnapshotManager {
+    private static readonly FullSnapshotLimits = new Map<SnapshotType, number>([
+        [SnapshotType.Action, 3],
+        [SnapshotType.Phase, 2],
+    ]);
+
+    private static readonly TestSnapshotLimits = new Map<SnapshotType, number>([
+        [SnapshotType.Action, 2],
+        [SnapshotType.Phase, 1],
+    ]);
+
     public readonly undoMode: UndoMode;
 
     private readonly game: Game;
@@ -84,8 +91,10 @@ export class SnapshotManager {
 
         this.undoMode = undoMode;
 
-        this.actionSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(maxActionSnapshots);
-        this.phaseSnapshots = this.snapshotFactory.createSnapshotHistoryMap<PhaseName>(maxPhaseSnapshots);
+        const limits = undoMode === UndoMode.Full ? SnapshotManager.FullSnapshotLimits : SnapshotManager.TestSnapshotLimits;
+
+        this.actionSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(limits.get(SnapshotType.Action));
+        this.phaseSnapshots = this.snapshotFactory.createSnapshotHistoryMap<PhaseName>(limits.get(SnapshotType.Phase));
         this.manualSnapshots = new Map<string, SnapshotMap<number>>();
     }
 
