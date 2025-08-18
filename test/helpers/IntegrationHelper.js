@@ -87,6 +87,7 @@ global.integration = function (definitions, enableUndo = false) {
                 rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshotInternal(settings),
                 countAvailableActionSnapshots: (playerId) => newContext.game.countAvailableActionSnapshots(playerId),
                 countAvailableManualSnapshots: (playerId) => newContext.game.countAvailableManualSnapshots(playerId),
+                hasAvailableQuickSnapshot: (playerId) => newContext.game.hasAvailableQuickSnapshot(playerId),
                 takeManualSnapshot: (playerId) => newContext.game.takeManualSnapshot(playerId),
             };
 

@@ -26,7 +26,8 @@ interface IQuickRollbackResult {
 
 enum QuickRollbackPoint {
     Regroup = 'regroup',
-    Action = 'action',
+    CurrentAction = 'currentAction',
+    PreviousAction = 'previousAction',
 }
 
 /**
@@ -183,8 +184,9 @@ export class SnapshotManager {
             case QuickRollbackPoint.Regroup:
                 result = this.quickRollbackToLastRegroupSnapshot();
                 break;
-            case QuickRollbackPoint.Action:
-                result = this.quickRollbackToLastActionSnapshot(playerId);
+            case QuickRollbackPoint.CurrentAction:
+            case QuickRollbackPoint.PreviousAction:
+                result = this.quickRollbackToActionSnapshot(playerId, quickResult);
                 break;
             case null:
             case undefined:
@@ -228,13 +230,13 @@ export class SnapshotManager {
         }
 
         if (actionProps.roundNumber < this.game.roundNumber) {
-            return this.getQuickRollbackPreviousRound(actionProps, playerId);
+            return this.getQuickRollbackPreviousRound(actionProps);
         }
 
-        return QuickRollbackPoint.Action;
+        return actionOffset === 0 ? QuickRollbackPoint.CurrentAction : QuickRollbackPoint.PreviousAction;
     }
 
-    private getQuickRollbackPreviousRound(actionSnapshotProps: ISnapshotProperties, playerId: string): QuickRollbackPoint {
+    private getQuickRollbackPreviousRound(actionSnapshotProps: ISnapshotProperties): QuickRollbackPoint {
         // Validate action is not from too far back
         Contract.assertFalse(
             actionSnapshotProps.roundNumber < this.game.roundNumber - 1,
@@ -255,7 +257,7 @@ export class SnapshotManager {
 
         // No regroup snapshot available, fall back to action snapshot
         // Note: This uses the action snapshot even though it's from previous round
-        return QuickRollbackPoint.Action;
+        return QuickRollbackPoint.PreviousAction;
     }
 
     private quickRollbackToLastRegroupSnapshot(): IQuickRollbackResult {
@@ -269,8 +271,8 @@ export class SnapshotManager {
     /**
      * Rolls back to the action snapshot for the specified player.
      */
-    private quickRollbackToLastActionSnapshot(playerId: string): IQuickRollbackResult {
-        const snapshotId = this.actionSnapshots.rollbackToSnapshot(playerId, 0);
+    private quickRollbackToActionSnapshot(playerId: string, quickRollbackPoint: QuickRollbackPoint.CurrentAction | QuickRollbackPoint.PreviousAction): IQuickRollbackResult {
+        const snapshotId = this.actionSnapshots.rollbackToSnapshot(playerId, quickRollbackPoint === QuickRollbackPoint.CurrentAction ? 0 : -1);
 
         Contract.assertNotNullLike(snapshotId, 'Attempted to roll back to action snapshot for quick rollback, but no such snapshot exists.');
 

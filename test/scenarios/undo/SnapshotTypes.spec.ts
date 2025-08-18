@@ -96,7 +96,7 @@ describe('Snapshot types', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['death-trooper'],
+                        hand: ['death-trooper', 'daring-raid'],
                         groundArena: ['secretive-sage'],
                         spaceArena: ['cartel-spacer']
                     },
@@ -755,6 +755,357 @@ describe('Snapshot types', function() {
 
                     assertP2Action1State(context);
                 });
+            });
+
+            describe('quick snapshots', function () {
+                it('are reported as available when there is an action snapshot available', function () {
+                    const { context } = contextRef;
+
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeTrue();
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeTrue();
+                });
+
+                it('can revert back two actions for the active player', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    assertP1Action1State(context);
+                });
+
+                it('will revert back one action for the active player when at the action window prompt', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertP1Action2State(context);
+                });
+
+                it('will revert back to beginning of current action for the active player if a prompt is open', function () {
+                    const { context } = contextRef;
+
+                    // open target prompt for Daring Raid
+                    context.player1.clickCard(context.daringRaid);
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertP1Action3State(context);
+
+                    // do a new action to ensure we can continue from this point
+                    context.player1.passAction();
+                    expect(context.player2).toBeActivePlayer();
+                });
+
+                it('cannot revert back further than the total history for the active player, and will report no quick undo available - but non-active player can still revert one more time', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    assertP1Action1State(context);
+
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeFalse();
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult3).toBeFalse();
+
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeTrue();
+                    const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult4).toBeTrue();
+
+                    assertP2Action1State(context);
+                });
+
+                // it('can revert back three actions for the non-active player', function () {
+                //     const { context } = contextRef;
+
+                //     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: -2
+                //     });
+                //     expect(rollbackResult).toBeTrue();
+
+                //     assertP2Action1State(context);
+
+                //     // repeat action to ensure we can continue from this point
+                //     context.player2.clickCard(context.superlaserTechnician);
+                //     context.player2.clickCard(context.p1Base);
+                //     expect(context.p1Base.damage).toEqual(2);
+                // });
+
+                // it('can revert back two actions for the non-active player', function () {
+                //     const { context } = contextRef;
+
+                //     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: -1
+                //     });
+                //     expect(rollbackResult).toBeTrue();
+
+                //     assertP2Action2State(context);
+
+                //     // repeat action to ensure we can continue from this point
+                //     context.player2.clickCard(context.wampa);
+                //     context.player2.clickCard(context.p1Base);
+                //     expect(context.p1Base.damage).toEqual(6);
+                // });
+
+                // it('can revert back one action for the non-active player', function () {
+                //     const { context } = contextRef;
+
+                //     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: 0
+                //     });
+                //     expect(rollbackResult).toBeTrue();
+
+                //     assertP2Action3State(context);
+
+                //     // repeat action to ensure we can continue from this point
+                //     context.player2.clickCard(context.tielnFighter);
+                //     context.player2.clickCard(context.p1Base);
+                //     expect(context.p1Base.damage).toEqual(8);
+                // });
+
+                // it('can revert back one action for the non-active player as the default', function () {
+                //     const { context } = contextRef;
+
+                //     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id
+                //     });
+                //     expect(rollbackResult).toBeTrue();
+
+                //     assertP2Action3State(context);
+
+                //     // repeat action to ensure we can continue from this point
+                //     context.player2.clickCard(context.tielnFighter);
+                //     context.player2.clickCard(context.p1Base);
+                //     expect(context.p1Base.damage).toEqual(8);
+                // });
+
+                // it('cannot attempt to revert back more than three actions for the non-active player', function () {
+                //     const { context } = contextRef;
+
+                //     expect(() => {
+                //         contextRef.snapshot.rollbackToSnapshot({
+                //             type: 'action',
+                //             playerId: context.player2.id,
+                //             actionOffset: -3
+                //         });
+                //     }).toThrowError(Error, 'Contract assertion failure: Snapshot offset must be less than 1 and greater than than max history length (-3), got -3');
+                // });
+
+                // it('cannot revert back further than the total history for the non-active player (1 + 2)', function () {
+                //     const { context } = contextRef;
+
+                //     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: -1
+                //     });
+                //     expect(rollbackResult1).toBeTrue();
+
+                //     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: -2
+                //     });
+                //     expect(rollbackResult2).toBeFalse();
+
+                //     assertP2Action2State(context);
+                // });
+
+                // it('cannot revert back further than the total history for the non-active player (2 + 1)', function () {
+                //     const { context } = contextRef;
+
+                //     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: -2
+                //     });
+                //     expect(rollbackResult1).toBeTrue();
+
+                //     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: -1
+                //     });
+                //     expect(rollbackResult2).toBeFalse();
+
+                //     assertP2Action1State(context);
+                // });
+
+                // it('can undo to earliest available action for the active player, repeat the actions, then undo again', function () {
+                //     const { context } = contextRef;
+
+                //     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player1.id,
+                //         actionOffset: -2
+                //     });
+                //     expect(rollbackResult1).toBeTrue();
+
+                //     // Play Death Trooper
+                //     context.player1.clickCard(context.deathTrooper);
+
+                //     // Choose Friendly
+                //     context.player1.clickCard(context.deathTrooper);
+
+                //     // Choose Enemy
+                //     context.player1.clickCard(context.wampa);
+                //     expect(context.deathTrooper.damage).toEqual(2);
+                //     expect(context.wampa.damage).toEqual(2);
+
+                //     context.player2.clickCard(context.wampa);
+                //     context.player2.clickCard(context.p1Base);
+
+                //     context.player1.clickCard(context.secretiveSage);
+                //     context.player1.clickCard(context.p2Base);
+
+                //     context.player2.clickCard(context.tielnFighter);
+                //     context.player2.clickCard(context.p1Base);
+
+                //     assertP1Action3State(context, contextRef.snapshot.getCurrentSnapshotId(), false);
+
+                //     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player1.id,
+                //         actionOffset: -2
+                //     });
+                //     expect(rollbackResult2).toBeTrue();
+
+                //     assertP1Action1State(context, contextRef.snapshot.getCurrentSnapshotId(), false);
+                // });
+
+                // it('can undo to earliest available action for the non-active player, repeat the actions, then undo again', function () {
+                //     const { context } = contextRef;
+
+                //     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: -2
+                //     });
+                //     expect(rollbackResult1).toBeTrue();
+
+                //     context.player2.clickCard(context.superlaserTechnician);
+                //     context.player2.clickCard(context.p1Base);
+
+                //     // Play Death Trooper
+                //     context.player1.clickCard(context.deathTrooper);
+
+                //     // Choose Friendly
+                //     context.player1.clickCard(context.deathTrooper);
+
+                //     // Choose Enemy
+                //     context.player1.clickCard(context.wampa);
+                //     expect(context.deathTrooper.damage).toEqual(2);
+                //     expect(context.wampa.damage).toEqual(2);
+
+                //     context.player2.clickCard(context.wampa);
+                //     context.player2.clickCard(context.p1Base);
+
+                //     context.player1.clickCard(context.secretiveSage);
+                //     context.player1.clickCard(context.p2Base);
+
+                //     context.player2.clickCard(context.tielnFighter);
+                //     context.player2.clickCard(context.p1Base);
+
+                //     assertP1Action3State(context, contextRef.snapshot.getCurrentSnapshotId(), false);
+
+                //     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: -2
+                //     });
+                //     expect(rollbackResult2).toBeTrue();
+
+                //     assertP2Action1State(context, contextRef.snapshot.getCurrentSnapshotId(), false);
+                // });
+
+                // it('can walk back through the action history, alternating player actions', function () {
+                //     const { context } = contextRef;
+
+                //     const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: 0
+                //     });
+                //     expect(rollbackResult1).toBeTrue();
+
+                //     assertP2Action3State(context);
+
+                //     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player1.id,
+                //         actionOffset: 0
+                //     });
+                //     expect(rollbackResult2).toBeTrue();
+
+                //     assertP1Action2State(context);
+
+                //     const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: 0
+                //     });
+                //     expect(rollbackResult3).toBeTrue();
+
+                //     assertP2Action2State(context);
+
+                //     const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player1.id,
+                //         actionOffset: 0
+                //     });
+                //     expect(rollbackResult4).toBeTrue();
+
+                //     assertP1Action1State(context);
+
+                //     const rollbackResult5 = contextRef.snapshot.rollbackToSnapshot({
+                //         type: 'action',
+                //         playerId: context.player2.id,
+                //         actionOffset: 0
+                //     });
+                //     expect(rollbackResult5).toBeTrue();
+
+                //     assertP2Action1State(context);
+                // });
             });
 
             describe('phase snapshots', function () {
