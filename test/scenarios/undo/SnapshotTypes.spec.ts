@@ -1393,7 +1393,7 @@ describe('Snapshot types', function() {
                     });
                     expect(rollbackResult3).toBeTrue();
 
-                    // roll back to actual action take in action phase
+                    // roll back to actual action taken in action phase
                     expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeTrue();
                     const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'quick',

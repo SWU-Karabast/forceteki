@@ -7,6 +7,7 @@ import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler, Snapshot
 import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { PhaseName } from '../Constants';
+import type { QuickSnapshotType } from './SnapshotManager';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
 export type IUpdateCurrentSnapshotHandler = (snapshot: IGameSnapshot) => void;
@@ -32,6 +33,10 @@ export class SnapshotFactory {
 
     private lastAssignedSnapshotId = -1;
 
+    public get currentSnapshotId(): number | null {
+        return this.currentActionSnapshot?.id ?? null;
+    }
+
     public get currentSnapshottedAction(): number | null {
         return this.currentActionSnapshot?.actionNumber ?? null;
     }
@@ -44,10 +49,6 @@ export class SnapshotFactory {
         return this.currentActionSnapshot?.roundNumber ?? null;
     }
 
-    public get currentSnapshotId(): number | null {
-        return this.currentActionSnapshot?.id ?? null;
-    }
-
     public get currentSnapshottedTimepoint(): SnapshotTimepoint | null {
         return this.currentActionSnapshot?.timepoint ?? null;
     }
@@ -55,6 +56,10 @@ export class SnapshotFactory {
     public constructor(game: Game, gameStateManager: GameStateManager) {
         this.game = game;
         this.gameStateManager = gameStateManager;
+    }
+
+    public getCurrentSnapshotQuickRollbackPoint(playerId: string): QuickSnapshotType | null {
+        return this.currentActionSnapshot?.previousQuickSnapshotForPlayer?.get(playerId) ?? null;
     }
 
     /** @deprecated This is implemented but not currently used or tested */
@@ -116,7 +121,7 @@ export class SnapshotFactory {
      * Called when we reach a new "snapshottable" game point (usually a new player action).
      * This will create a snapshot of the current game state and all game objects.
      */
-    public createSnapshotForCurrentTimepoint(timepoint: SnapshotTimepoint): void {
+    public createSnapshotForCurrentTimepoint(timepoint: SnapshotTimepoint, previousQuickSnapshotForPlayer?: Map<string, QuickSnapshotType>): void {
         // TODO: add a guard here that will fail if the current action is already snapshotted,
         // this should be called exactly once per action
 
@@ -131,6 +136,7 @@ export class SnapshotFactory {
             phase: this.game.currentPhase,
             gameState: structuredClone(this.game.state),
             states: this.gameStateManager.buildGameStateForSnapshot(),
+            previousQuickSnapshotForPlayer: previousQuickSnapshotForPlayer ? structuredClone(previousQuickSnapshotForPlayer) : null,
             rngState: this.game.randomGenerator.rngState
         };
 

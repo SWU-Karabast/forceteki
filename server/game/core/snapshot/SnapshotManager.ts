@@ -4,14 +4,14 @@ import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
-import type { IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties, SnapshotTimepoint } from './SnapshotInterfaces';
+import type { IRollbackRoundEntryPoint, IRollbackSetupEntryPoint } from './SnapshotInterfaces';
+import { SnapshotTimepoint } from './SnapshotInterfaces';
 import { RollbackEntryPointType, type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
 import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { SnapshotMap } from './container/SnapshotMap';
-import { ActionWindow } from '../gameSteps/ActionWindow';
-import { VariableResourcePrompt } from '../gameSteps/prompts/VariableResourcePrompt';
+import { PromptType } from '../gameSteps/PromptInterfaces';
 
 export enum UndoMode {
     Disabled = 'disabled',
@@ -28,6 +28,11 @@ enum QuickRollbackPoint {
     Regroup = 'regroup',
     CurrentAction = 'currentAction',
     PreviousAction = 'previousAction',
+}
+
+export enum QuickSnapshotType {
+    Action = 'action',
+    Regroup = 'regroup',
 }
 
 /**
@@ -100,14 +105,68 @@ export class SnapshotManager {
     }
 
     /** Indicates that we're on a new action and that a new action snapshot can be taken */
-    public moveToNextTimepoint(timepoint: SnapshotTimepoint) {
+    public moveToNextTimepoint(timepoint: SnapshotTimepoint, actingPlayerId?: string) {
         if (this.undoMode === UndoMode.Disabled) {
             // if undo is not enabled, still do explicit GO cleanup to avoid heavy memory usage
             this._gameStateManager.removeUnusedGameObjects();
             return;
         }
 
-        this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint);
+        const previousQuickSnapshotForPlayer = this.buildNextQuickSnapshotsMap(actingPlayerId);
+
+        this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint, previousQuickSnapshotForPlayer);
+    }
+
+    /**
+     * Builds a map indicating what type of quick rollback to do in order to get _to_ the current snapshot from the next snapshot in the "quick snapshot" sequence
+     * @param actingPlayerId the player who is considered active for the current snapshot. null if both players are (e.g. for resourcing)
+     */
+    private buildNextQuickSnapshotsMap(actingPlayerId?: string): Map<string, QuickSnapshotType> | null {
+        const timepoint = this.currentSnapshottedTimepoint;
+        if (timepoint == null) {
+            return null;
+        }
+
+        // start-of-action-phase snapshots are not included in the quick undo history so we just propagate the values forward to preserve them
+        if (
+            timepoint === SnapshotTimepoint.StartOfPhase
+        ) {
+            if (this.currentSnapshottedPhase === PhaseName.Action) {
+                return new Map<string, QuickSnapshotType>(this.game.getPlayers().map((player) => [player.id, this.snapshotFactory.getCurrentSnapshotQuickRollbackPoint(player.id)]));
+            }
+
+            // TODO: we currently filter out setup phase snapshots from quick undo history, we'll adjust once those are fully implemented
+            if (this.currentSnapshottedPhase === PhaseName.Setup) {
+                return null;
+            }
+        }
+
+        const quickSnapshots = new Map<string, QuickSnapshotType>();
+
+        for (const player of this.game.getPlayers()) {
+            // if the player was not active for this snapshot, just reuse the previous value
+            if (actingPlayerId != null && player.id !== actingPlayerId) {
+                quickSnapshots.set(player.id, this.snapshotFactory.getCurrentSnapshotQuickRollbackPoint(player.id));
+                continue;
+            }
+
+            switch (timepoint) {
+                case SnapshotTimepoint.Action:
+                    quickSnapshots.set(player.id, QuickSnapshotType.Action);
+                    break;
+                case SnapshotTimepoint.StartOfPhase:
+                    Contract.assertTrue(this.currentSnapshottedPhase === PhaseName.Regroup, `Attempting to save quick snapshot for start of unknown phase type: ${this.currentSnapshottedPhase}`);
+                    quickSnapshots.set(player.id, QuickSnapshotType.Regroup);
+                    break;
+                case null:
+                case undefined:
+                    break;
+                default:
+                    throw new Error(`Unrecognized timepoint: ${this.snapshotFactory.currentSnapshottedTimepoint}`);
+            }
+        }
+
+        return quickSnapshots;
     }
 
     public takeSnapshot(settings: ISnapshotSettings): number {
@@ -203,64 +262,65 @@ export class SnapshotManager {
      * Returns the snapshot type to do a quick rollback to, if available
      */
     private getQuickRollbackPoint(playerId: string): QuickRollbackPoint | null {
-        const playerPrompt = this.game.getPlayerById(playerId).promptState;
-        const playerPromptTitle = playerPrompt.promptTitle;
+        const player = this.game.getPlayerById(playerId);
+        const playerPromptType = player.promptState.promptType;
 
-        // If we're currently in regroup phase and the player has at least selected cards, we'll roll back to start of regroup phase
-        if (this.game.currentPhase === PhaseName.Regroup) {
-            // if we're not at the very start of the regroup phase, roll back to start of regroup
-            if (playerPromptTitle !== VariableResourcePrompt.title || playerPrompt.selectedCards.length > 0) {
-                return QuickRollbackPoint.Regroup;
-            }
-
-            // otherwise, roll back to the previous action snapshot if available
-            return this.actionSnapshots.getSnapshotCount(playerId) > 0 ? QuickRollbackPoint.CurrentAction : null;
+        // if we're currently in resource selection and the player has already clicked "done", we'll roll back to start of resource selection
+        if (
+            this.game.currentPhase === PhaseName.Regroup &&
+            playerPromptType === PromptType.Resource &&
+            this.game.currentOpenPrompt.isAllPlayerPrompt() &&
+            this.game.currentOpenPrompt.completionCondition(player)
+        ) {
+            return this.getCurrentQuickRollbackPoint();
         }
 
-        // if we're at the beginning of the action window (nothing clicked), we'll revert back to the action before this one
-        const actionOffset = playerPromptTitle === ActionWindow.title ? -1 : 0;
+        // TODO THIS PR: update the chunk below to account for phase boundary prompts (e.g Sneak Attack or Thrawn1 trigger)
 
-        // Otherwise, see if we can roll back to the most recent action phase snapshot
-        const actionProps = this.actionSnapshots.getSnapshotProperties(playerId, actionOffset);
-        if (!actionProps) {
-            // If there are no remaining action snapshots, check if there were any actions between us and the most recent regroup phase snapshot.
-            // If not, we can roll back to the regroup phase snapshot since it was the most recent timepoint anyway
-            if (this.phaseSnapshots.getSnapshotProperties(PhaseName.Regroup, 0)?.actionNumber === this.currentSnapshottedAction) {
-                return QuickRollbackPoint.Regroup;
-            }
-
-            return null;
+        // if we're in the middle of an action, revert to start of action
+        if (this.currentSnapshottedTimepoint === SnapshotTimepoint.Action && playerPromptType !== PromptType.ActionWindow) {
+            return QuickRollbackPoint.CurrentAction;
         }
 
-        if (actionProps.roundNumber < this.game.roundNumber) {
-            return this.getQuickRollbackPreviousRound(actionProps);
-        }
+        // otherwise, just default to whatever prior quick rollback point is stored on the snapshot (if available)
+        const quickRollbackSnapshotType = this.snapshotFactory.getCurrentSnapshotQuickRollbackPoint(playerId);
+        switch (quickRollbackSnapshotType) {
+            case QuickSnapshotType.Action:
+                let minActionSnapshots: number;
+                let rollbackPoint: QuickRollbackPoint;
 
-        return actionOffset === 0 ? QuickRollbackPoint.CurrentAction : QuickRollbackPoint.PreviousAction;
+                if (this.currentSnapshottedTimepoint === SnapshotTimepoint.Action) {
+                    minActionSnapshots = 2;
+                    rollbackPoint = QuickRollbackPoint.PreviousAction;
+                } else {
+                    minActionSnapshots = 1;
+                    rollbackPoint = QuickRollbackPoint.CurrentAction;
+                }
+
+                return this.countAvailableActionSnapshots(playerId) >= minActionSnapshots ? rollbackPoint : null;
+
+            case QuickSnapshotType.Regroup:
+                const minRegroupSnapshots = this.currentSnapshottedTimepoint === SnapshotTimepoint.StartOfPhase ? 2 : 1;
+                return this.countAvailablePhaseSnapshots(PhaseName.Regroup) >= minRegroupSnapshots ? QuickRollbackPoint.Regroup : null;
+
+            case null:
+            case undefined:
+                return null;
+
+            default:
+                Contract.fail(`Unrecognized quick rollback point: ${quickRollbackSnapshotType}`);
+        }
     }
 
-    private getQuickRollbackPreviousRound(actionSnapshotProps: ISnapshotProperties): QuickRollbackPoint {
-        // Validate action is not from too far back
-        Contract.assertFalse(
-            actionSnapshotProps.roundNumber < this.game.roundNumber - 1,
-            `Attempting to do quick undo and found that most recent available action is from ${this.game.roundNumber - actionSnapshotProps.roundNumber} rounds ago, which is too far back.`
-        );
-
-        // Try to find the regroup snapshot from the previous round
-        const regroupProps = this.phaseSnapshots.getSnapshotProperties(PhaseName.Regroup, 0);
-        if (regroupProps) {
-            Contract.assertFalse(
-                regroupProps.roundNumber < actionSnapshotProps.roundNumber,
-                `Attempting to do quick undo and found that most recent available regroup snapshot is from ${this.game.roundNumber - regroupProps.roundNumber} rounds ago, which is too far back.`
-            );
-
-            // Roll back to regroup snapshot
-            return QuickRollbackPoint.Regroup;
+    private getCurrentQuickRollbackPoint(): QuickRollbackPoint {
+        switch (this.currentSnapshottedTimepoint) {
+            case SnapshotTimepoint.Action:
+                return QuickRollbackPoint.CurrentAction;
+            case SnapshotTimepoint.StartOfPhase:
+                return QuickRollbackPoint.Regroup;
+            default:
+                Contract.fail(`Unrecognized snapshot timepoint type: ${this.currentSnapshottedTimepoint}`);
         }
-
-        // No regroup snapshot available, fall back to action snapshot
-        // Note: This uses the action snapshot even though it's from previous round
-        return QuickRollbackPoint.PreviousAction;
     }
 
     private quickRollbackToLastRegroupSnapshot(): IQuickRollbackResult {
