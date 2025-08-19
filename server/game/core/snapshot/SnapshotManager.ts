@@ -207,11 +207,14 @@ export class SnapshotManager {
         const playerPromptTitle = playerPrompt.promptTitle;
 
         // If we're currently in regroup phase and the player has at least selected cards, we'll roll back to start of regroup phase
-        if (
-            this.game.currentPhase === PhaseName.Regroup &&
-            (playerPromptTitle !== VariableResourcePrompt.title || playerPrompt.selectedCards.length > 0)
-        ) {
-            return QuickRollbackPoint.Regroup;
+        if (this.game.currentPhase === PhaseName.Regroup) {
+            // if we're not at the very start of the regroup phase, roll back to start of regroup
+            if (playerPromptTitle !== VariableResourcePrompt.title || playerPrompt.selectedCards.length > 0) {
+                return QuickRollbackPoint.Regroup;
+            }
+
+            // otherwise, roll back to the previous action snapshot if available
+            return this.actionSnapshots.getSnapshotCount(playerId) > 0 ? QuickRollbackPoint.CurrentAction : null;
         }
 
         // if we're at the beginning of the action window (nothing clicked), we'll revert back to the action before this one
