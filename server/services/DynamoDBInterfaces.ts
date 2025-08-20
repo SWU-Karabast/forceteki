@@ -6,12 +6,16 @@ export interface IUserDataEntity {
     needsUsernameChange?: boolean;
 }
 
+export interface IFEMatchupStatEntity extends IMatchupStatEntity {
+    leaderMelee: string;
+    baseMelee: string;
+}
+
+
 // Interface for matchups a win here means the OP wins not opponents wins.
 export interface IMatchupStatEntity {
     leaderId: string;
-    leaderMelee?: string;
     baseId: string;
-    baseMelee?: string;
     wins: number;
     losses: number;
     draws: number;
