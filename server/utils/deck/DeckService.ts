@@ -13,17 +13,17 @@ import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 export class DeckService {
     private dbServicePromise = getDynamoDbServiceAsync();
     private readonly baseMapping30 = {
-        aggression: 'Base-Red',
-        command: 'Base-Green',
-        cunning: 'Base-Yellow',
-        vigilance: 'Base-Blue'
+        aggression: '30hp-aggression-base',
+        command: '30hp-command-base',
+        cunning: '30hp-cunning-base',
+        vigilance: '30hp-vigilance-base'
     };
 
     private readonly baseMapping28 = {
-        aggression: 'Base-Red-Force',
-        command: 'Base-Green-Force',
-        cunning: 'Base-Yellow-Force',
-        vigilance: 'Base-Blue-Force'
+        aggression: '28hp-aggression-base',
+        command: '28hp-command-base',
+        cunning: '28hp-cunning-base',
+        vigilance: '28-vigilance-base'
     };
 
 
@@ -353,14 +353,14 @@ export class DeckService {
         // Create a map to aggregate stats by leader + base combination
         const aggregatedStats = new Map<string, IMatchupStatEntity>();
         for (const opponentStat of deck.stats.statsByMatchup) {
-            const leaderCardId = await cardDataGetter.getCardByNameAsync(opponentStat.leaderId);
-            const baseCardId = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);
+            const leaderCard = await cardDataGetter.getCardByNameAsync(opponentStat.leaderId);
+            const baseCard = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);
 
-            Contract.assertNotNullLike(leaderCardId && baseCardId, `When converting match stats to for FE leaderCardId ${leaderCardId} and baseCardId ${baseCardId} are null`);
+            Contract.assertNotNullLike(leaderCard || baseCard, `When converting match stats to for FE leaderCardId ${leaderCard} and baseCardId ${baseCard} are null`);
 
-            const convertedLeaderId = leaderCardId.setId.set + '_' + leaderCardId.setId.number;
+            const convertedLeaderId = leaderCard.setId.set + '_' + leaderCard.setId.number;
 
-            const convertedBaseId = await this.asyncConvertBaseIdForStats(baseCardId, cardDataGetter);
+            const convertedBaseId = await this.convertBaseIdForStatsAsync(baseCard, cardDataGetter);
 
             const matchupKey = `${convertedLeaderId}|${convertedBaseId}`;
 
@@ -384,17 +384,17 @@ export class DeckService {
         return deck;
     }
 
-    private async asyncConvertBaseIdForStats(baseCard: any, cardDataGetter: CardDataGetter): Promise<string> {
+    private async convertBaseIdForStatsAsync(baseCard: any, cardDataGetter: CardDataGetter): Promise<string> {
         const baseCardData = await cardDataGetter.getCardAsync(baseCard.id);
 
         if (this.isBasicBase(baseCardData)) {
-            return this.createBasicBaseGroupId(baseCardData);
+            return this.createBasicBaseAggregatedId(baseCardData);
         }
         return baseCard.setId.set + '_' + baseCard.setId.number;
     }
 
     /**
-    * @param baseCardData The card data object
+    * @param baseCardData The card data object of a basic 28hp force base and a 30hp force base
     * @returns boolean True if this is a basic base
     */
     private isBasicBase(baseCardData: any): boolean {
@@ -406,7 +406,7 @@ export class DeckService {
     * @param baseCardData The card data object
     * @returns string The grouped identifier
     */
-    private createBasicBaseGroupId(baseCardData: any): string {
+    private createBasicBaseAggregatedId(baseCardData: any): string {
         const aspects = baseCardData.aspects || [];
         const hp = baseCardData.hp;
         const mapping = hp === 30 ? this.baseMapping30 : this.baseMapping28;
