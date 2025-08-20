@@ -20,10 +20,10 @@ export class DeckService {
     };
 
     private readonly baseMapping28 = {
-        aggression: '28hp-aggression-base',
-        command: '28hp-command-base',
-        cunning: '28hp-cunning-base',
-        vigilance: '28-vigilance-base'
+        aggression: '28hp-aggression-force-base',
+        command: '28hp-command-force-base',
+        cunning: '28hp-cunning-force-base',
+        vigilance: '28-vigilance-force-base'
     };
 
 
