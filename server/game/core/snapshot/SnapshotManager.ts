@@ -110,7 +110,7 @@ export class SnapshotManager {
     }
 
     public takeSnapshot(settings: ISnapshotSettings): number {
-        if (this.undoMode !== UndoMode.Full) {
+        if (this.undoMode === UndoMode.Disabled) {
             return -1;
         }
 
