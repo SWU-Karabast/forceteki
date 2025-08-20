@@ -9,7 +9,9 @@ export interface IUserDataEntity {
 // Interface for matchups a win here means the OP wins not opponents wins.
 export interface IMatchupStatEntity {
     leaderId: string;
+    leaderMelee?: string;
     baseId: string;
+    baseMelee?: string;
     wins: number;
     losses: number;
     draws: number;

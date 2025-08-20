@@ -359,10 +359,11 @@ export class DeckService {
             Contract.assertNotNullLike(leaderCard || baseCard, `When converting match stats to for FE leaderCardId ${leaderCard} and baseCardId ${baseCard} are null`);
 
             const convertedLeaderId = leaderCard.setId.set + '_' + leaderCard.setId.number;
+            const convertedLeaderMelee = leaderCard.title + `${leaderCard.subtitle ? ` | ${leaderCard.subtitle}` : ''}`;
 
-            const convertedBaseId = await this.convertBaseIdForStatsAsync(baseCard, cardDataGetter);
+            const convertedBase = await this.convertBaseIdForStatsAsync(baseCard, cardDataGetter);
 
-            const matchupKey = `${convertedLeaderId}|${convertedBaseId}`;
+            const matchupKey = `${convertedLeaderId}|${convertedBase.setId}`;
 
             const existingStats = aggregatedStats.get(matchupKey);
             if (existingStats) {
@@ -372,7 +373,9 @@ export class DeckService {
             } else {
                 aggregatedStats.set(matchupKey, {
                     leaderId: convertedLeaderId,
-                    baseId: convertedBaseId,
+                    leaderMelee: convertedLeaderMelee,
+                    baseId: convertedBase.setId,
+                    baseMelee: convertedBase.meleeId,
                     wins: opponentStat.wins,
                     losses: opponentStat.losses,
                     draws: opponentStat.draws
@@ -384,13 +387,13 @@ export class DeckService {
         return deck;
     }
 
-    private async convertBaseIdForStatsAsync(baseCard: any, cardDataGetter: CardDataGetter): Promise<string> {
+    private async convertBaseIdForStatsAsync(baseCard: any, cardDataGetter: CardDataGetter): Promise<{ setId: string; meleeId: string }> {
         const baseCardData = await cardDataGetter.getCardAsync(baseCard.id);
 
         if (this.isBasicBase(baseCardData)) {
             return this.createBasicBaseAggregatedId(baseCardData);
         }
-        return baseCard.setId.set + '_' + baseCard.setId.number;
+        return { setId: baseCard.setId.set + '_' + baseCard.setId.number, meleeId: baseCardData.title + `${baseCardData.subtitle ? ` | ${baseCardData.subtitle}` : ''}` };
     }
 
     /**
@@ -406,10 +409,10 @@ export class DeckService {
     * @param baseCardData The card data object
     * @returns string The grouped identifier
     */
-    private createBasicBaseAggregatedId(baseCardData: any): string {
+    private createBasicBaseAggregatedId(baseCardData: any): { setId: string; meleeId: string } {
         const aspects = baseCardData.aspects || [];
         const hp = baseCardData.hp;
         const mapping = hp === 30 ? this.baseMapping30 : this.baseMapping28;
-        return mapping[aspects[0]];
+        return { setId: mapping[aspects[0]], meleeId: mapping[aspects[0]] };
     }
 }
