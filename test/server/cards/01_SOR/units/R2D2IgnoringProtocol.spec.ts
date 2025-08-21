@@ -16,7 +16,7 @@ describe('R2D2 - Ignoring Protocol', function() {
 
             it('while playing/attacking lets you look at the top card of the deck and decide whether to put it on the bottom or top of deck.', function () {
                 const { context } = contextRef;
-                let preSwapDeck = context.player1.deck;
+                let preSwapDeck = context.player1.deck.concat();
 
                 // Case 1 on play move top card to bottom
                 context.player1.clickCard(context.r2d2);
@@ -26,14 +26,14 @@ describe('R2D2 - Ignoring Protocol', function() {
 
                 // check board state
                 expect(context.player1.deck.length).toBe(5);
-                expect(context.player1.deck[0]).toEqual(preSwapDeck[1]);
-                expect(context.player1.deck[4]).toEqual(preSwapDeck[0]);
+                expect(context.player1.deck[0]).toBe(preSwapDeck[1]);
+                expect(context.player1.deck[4]).toBe(preSwapDeck[0]);
                 expect(context.player2).toBeActivePlayer();
 
                 // record new state.
                 context.player2.passAction();
                 context.readyCard(context.r2d2);
-                preSwapDeck = context.player1.deck;
+                preSwapDeck = context.player1.deck.concat();
 
                 // Case 2 on attack move to top
                 context.player1.clickCard(context.r2d2);

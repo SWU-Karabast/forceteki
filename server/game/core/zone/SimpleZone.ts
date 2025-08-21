@@ -1,12 +1,8 @@
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
 import type { Aspect, CardTypeFilter, KeywordName, MoveZoneDestination, Trait } from '../Constants';
-import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { ZoneAbstract } from './ZoneAbstract';
-
-export interface ISimpleZoneState<TCard extends Card> extends IGameObjectBaseState {
-    cards: GameObjectRef<TCard>[];
-}
+import { registerState, undoArray } from '../GameObjectUtils';
 
 /**
  * Collection of filters for searching cards in a zone.
@@ -31,26 +27,21 @@ export interface IAddRemoveZone {
     removeCard(card: Card): void;
 }
 
-export interface IZoneState<TCard extends Card> extends IGameObjectBaseState {
-    cards: GameObjectRef<TCard>[];
-}
-
 /**
  * Base class for all Zones that contain a list of Cards. Defines some common properties and methods.
  */
-export abstract class SimpleZone<TCard extends Card = Card, TState extends IZoneState<TCard> = IZoneState<TCard>> extends ZoneAbstract<TCard, TState> {
+@registerState()
+export abstract class SimpleZone<TCard extends Card = Card> extends ZoneAbstract<TCard> {
     /** Number of cards in the zone */
     public override get count(): number {
-        return this.state.cards.length;
+        return this._cards.length;
     }
+
+    @undoArray(true)
+    protected accessor _cards: readonly TCard[] = [];
 
     public override get cards(): TCard[] {
-        return this.state.cards.map((x) => this.game.gameObjectManager.get(x));
-    }
-
-    protected override setupDefaultState() {
-        super.setupDefaultState();
-        this.state.cards = [];
+        return this._cards as TCard[];
     }
 
     /** Get the cards from this zone with an optional filter */
@@ -61,15 +52,15 @@ export abstract class SimpleZone<TCard extends Card = Card, TState extends IZone
     public addCard(card: TCard) {
         Contract.assertFalse(this.cards.includes(card), `Attempting to add card ${card.internalName} to ${this} twice`);
 
-        this.state.cards.push(card.getRef());
+
+        this._cards = [...this._cards, card];
     }
 
     public removeCard(card: Card) {
-        const cardIdx = this.cards.indexOf(card as TCard);
+        const cards = this.cards.filter((x) => x !== card);
+        Contract.assertFalse(cards.length === this._cards.length, `Attempting to remove card ${card.internalName} from ${this} but it is not there. Its current zone is ${card.zone}.`);
 
-        Contract.assertFalse(cardIdx === -1, `Attempting to remove card ${card.internalName} from ${this} but it is not there. Its current zone is ${card.zone}.`);
-
-        this.state.cards.splice(cardIdx, 1);
+        this._cards = cards;
     }
 
     public override toString() {
