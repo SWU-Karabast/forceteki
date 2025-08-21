@@ -14,7 +14,7 @@ const stateClassesStr: Record<string, string> = {};
 
 /**
  * Decorator to capture the names of any accessors flagged as @undoState, @undoObject, or @undoArray for copyState, and then clear the array for the next derived class to use.
- * @param useFullCopy If true, simply uses the bulk copy method rather than using any meta data. This is flagged *per prototype*, and only affects  This is going to be slower, but helps if we have state not easily capturable by the undo decorators.
+ * @param useFullCopy If true, simply uses the bulk copy method rather than using any meta data. This is going to be slower, but helps if we have state not easily capturable by the undo decorators.
  */
 export function registerState<T extends GameObjectBase>(useFullCopy = false) {
     return function (targetClass: any, context: ClassDecoratorContext) {
@@ -218,7 +218,7 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
                 return function(...args) {
                     Contract.assertTrue(args.length <= 2, 'State Array Splice does not support adding elements to the array.');
                     const result = Reflect.apply(target[prop], target, args);
-                    // @ts-expect-error call the same method on the internal state.
+                    // @ts-expect-error Override accessibility and call the same method on the internal state.
                     Reflect.apply(go.state[name][prop], go.state[name], args);
 
                     return result;
@@ -226,7 +226,7 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
             } else if (prop === 'push' || prop === 'unshift') {
                 return function(...args) {
                     const result = Reflect.apply(target[prop], target, args);
-                    // @ts-expect-error call the same method on the internal state.
+                    // @ts-expect-error Override accessibility and call the same method on the internal state.
                     Reflect.apply(go.state[name][prop], go.state[name], args.map((x) => x.getRef()));
 
                     return result;
