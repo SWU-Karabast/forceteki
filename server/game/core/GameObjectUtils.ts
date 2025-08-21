@@ -207,6 +207,7 @@ export function undoObject<T extends GameObjectBase, TValue extends GameObjectBa
     };
 }
 
+/** Uses proxies to cause any in-place mutation functions to also affect the underlying state. */
 export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, arr: readonly TValue[], name: string) {
     // @ts-expect-error these functions can bypass the accessibility safeties.
     Contract.assertTrue(Object.prototype.hasOwnProperty.call(go.state, name), 'Property ' + name + ' not found on the state of the GameObject');
