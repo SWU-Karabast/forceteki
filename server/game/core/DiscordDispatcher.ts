@@ -239,10 +239,6 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         const embedDescription = description.length > 1024
             ? description.substring(0, 1021) + '...'
             : description;
-        // Truncate error stack if it's too long for Discord embeds
-        const embedErrorStack = error.stack?.length > 1024
-            ? error.stack.substring(0, 1021) + '...'
-            : error.stack;
 
         const fields = [
             {
@@ -262,7 +258,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             },
             {
                 name: 'Stack Trace',
-                value: embedErrorStack || 'No stack trace available',
+                value: 'See attached text file for full stack trace',
                 inline: false,
             },
         ];
@@ -283,6 +279,12 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         const formData = new FormData();
         // Add the message payload
         formData.append('payload_json', JSON.stringify(data));
+
+        const fileName = `server-error-stack-trace-${lobbyId}-${new Date().getTime()}.txt`;
+        formData.append('files[0]', Buffer.from(error.stack || ''), {
+            filename: fileName,
+            contentType: 'text/plain',
+        });
 
         return httpPostFormData(this._serverErrorWebhookUrl, formData);
     }

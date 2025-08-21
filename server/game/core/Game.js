@@ -205,6 +205,17 @@ class Game extends EventEmitter {
         return this._router.id;
     }
 
+    get serverErrorCount() {
+        return this._serverErrorCount;
+    }
+
+    /**
+     * Increments the server error count by 1 and returns the new count.
+     */
+    incrementServerErrorCount() {
+        return ++this._serverErrorCount;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -225,6 +236,9 @@ class Game extends EventEmitter {
 
         /** @private @readonly @type {Lobby} */
         this._router = options.router;
+
+        /** @private @type {number} */
+        this._serverErrorCount = 0;
 
         /** @private @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
         this.discordDispatcher = new DiscordDispatcher();
