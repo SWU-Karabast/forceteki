@@ -77,13 +77,11 @@ export function undoState<T extends GameObjectBase, TValue extends string | numb
     };
 }
 
-// Forces the incoming value to be either a boolean literal, or a constant boolean.
+// Forces the incoming value to be either a boolean literal, or a constant boolean. This is meant to be used with const generic arguments.
 type ConstantBoolean<T extends boolean> = boolean extends T ? never : T;
 
 /**
- *
  * @param readonly If false, returns the array wrapped in a Proxy object, which allows the safe use of push, pop, unshift, and splice. If true, returns the array as-is and requires it be marked as readonly.
- * @returns
  */
 export function undoArray<T extends GameObjectBase, TValue extends GameObjectBase, const TReadonly extends boolean>(readonly: ConstantBoolean<TReadonly> = (true as ConstantBoolean<TReadonly>)) {
     return function (
