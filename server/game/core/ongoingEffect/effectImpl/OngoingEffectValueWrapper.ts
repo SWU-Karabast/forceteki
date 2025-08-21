@@ -5,11 +5,6 @@ import type { IGameObjectBaseState } from '../../GameObjectBase';
 import { GameObjectBase } from '../../GameObjectBase';
 import { registerState } from '../../GameObjectUtils';
 
-// STATE TODO: I don't think value needs to be state, I think GainedAbility needs the state.
-// export interface IOngoingEffectValueWrapperState<T> extends IGameObjectBaseState {
-//     value: T;
-// }
-
 @registerState()
 export class OngoingEffectValueWrapper<TValue, TState extends IGameObjectBaseState = IGameObjectBaseState> extends GameObjectBase<TState> {
     private readonly value: TValue;
