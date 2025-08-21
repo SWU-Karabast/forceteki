@@ -139,8 +139,8 @@ export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>
             },
             init(this: GameObjectBase, value) {
                 Contract.assertTrue(value.size === 0, 'UndoMap cannot be init with entries');
-                // If this is not-null, create a equivalent map in the state. Otherwise, leave it as-is.
                 this.state[name] = value;
+                // If this is not-null, create a equivalent map in the state. Otherwise, leave it as-is.
                 return value ? new UndoMap(this, name) : value;
             },
         };
@@ -219,8 +219,8 @@ export function undoObject<T extends GameObjectBase, TValue extends GameObjectBa
     };
 }
 
-/** Uses proxies to cause any in-place mutation functions to also affect the underlying state. */
-export function UndoSafeRecord<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, record: Record<string, TValue>, name: string) {
+/** Experimental: Uses proxies to cause any in-place mutation functions to also affect the underlying state. */
+function UndoSafeRecord<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, record: Record<string, TValue>, name: string) {
     // @ts-expect-error these functions can bypass the accessibility safeties.
     Contract.assertTrue(Object.prototype.hasOwnProperty.call(go.state, name), 'Property ' + name + ' not found on the state of the GameObject');
 
