@@ -28,8 +28,6 @@ export function registerState<T extends GameObjectBase>(useFullCopy = false) {
             context.metadata[fullCopyMetadata] = true;
         }
         if (metaState) {
-            // HACK: For now we always are full copying state.
-            metaState[fullCopyMetadata] = true;
             // Move metadata from the stateMedata symbol to the name of the class, so that we can look it up later in copyStruct.
             context.metadata[targetClass.name] = metaState;
             // Delete field to clear for the next derived class, if any.
