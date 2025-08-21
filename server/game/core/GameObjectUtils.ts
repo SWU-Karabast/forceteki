@@ -108,11 +108,12 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
     };
 }
 
+/** Creates a undo safe Map object that can be mutated in-place. */
 export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
-        target: ClassAccessorDecoratorTarget<T, ReadonlyMap<string, TValue>>,
-        context: ClassAccessorDecoratorContext<T, ReadonlyMap<string, TValue>>
-    ): ClassAccessorDecoratorResult<T, ReadonlyMap<string, TValue>> {
+        target: ClassAccessorDecoratorTarget<T, Map<string, TValue>>,
+        context: ClassAccessorDecoratorContext<T, Map<string, TValue>>
+    ): ClassAccessorDecoratorResult<T, Map<string, TValue>> {
         if (context.static || context.private) {
             throw new Error('Can only serialize public instance members.');
         }
@@ -124,6 +125,7 @@ export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateMapMetadata] ??= [];
         (metaState[stateMapMetadata] as string[]).push(context.name);
+        const name = context.name;
 
         // Use the backing fields as the cache, and write refs to the state.
         return {
@@ -131,9 +133,16 @@ export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>
                 return target.get.call(this);
             },
             set(this: GameObjectBase, newValue) {
-                this.state[context.name as string] = new Map(Array.from(newValue, ([key, value]) => [key, value.getRef()]));
-                target.set.call(this, newValue);
-            }
+                // The below UndoMap instantiation will also load the state map with all of it's values.
+                this.state[name] = newValue ? new Map(Array.from(newValue, ([key, value]) => [key, value.getRef()])) : newValue;
+                target.set.call(this, newValue ? new UndoMap(this, name, newValue.entries()) : newValue);
+            },
+            init(this: GameObjectBase, value) {
+                Contract.assertTrue(value.size === 0, 'UndoMap cannot be init with entries');
+                // If this is not-null, create a equivalent map in the state. Otherwise, leave it as-is.
+                this.state[name] = value;
+                return value ? new UndoMap(this, name) : value;
+            },
         };
     };
 }
@@ -292,19 +301,25 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
     }
 }
 
-// WIP Undo Safe Map.
+// A custom class to pass through any values to the underlying state Map.
 class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
     private go: GameObjectBase;
     private prop: string;
-    public constructor(go: GameObjectBase, prop: string) {
-        super();
+    private init = false;
+    public constructor(go: GameObjectBase, prop: string, entries?: Iterable<readonly [string, TValue]> | null) {
+        super(entries);
+        Contract.assertNotNullLike(go, 'Game Object cannot be null');
         this.go = go;
         this.prop = prop;
+        this.init = true;
     }
 
     public override set(key: string, value: TValue): this {
-        // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).set(key, value?.getRef());
+        // Set is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
+        if (this.init) {
+            // @ts-expect-error Overriding state accessibility
+            (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).set(key, value?.getRef());
+        }
         return super.set(key, value);
     }
 
@@ -312,5 +327,11 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
         // @ts-expect-error Overriding state accessibility
         (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).delete(key);
         return super.delete(key);
+    }
+
+    public override clear(): void {
+        // @ts-expect-error Overriding state accessibility
+        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).clear(key);
+        super.clear();
     }
 }

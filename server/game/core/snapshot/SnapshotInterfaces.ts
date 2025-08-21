@@ -107,7 +107,7 @@ export interface IGameSnapshot {
     phase: PhaseName;
     timepoint: SnapshotTimepoint;
 
-    gameState: IGameState;
+    gameState: Buffer;
     states: Buffer;
     rngState: IRandomness['rngState'];
 }

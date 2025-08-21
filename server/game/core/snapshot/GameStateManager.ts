@@ -97,7 +97,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         Contract.assertNotNullLike(snapshot, 'Empty snapshot provided for rollback');
         this._isRollingBack = true;
         try {
-            this.game.state = structuredClone(snapshot.gameState);
+            this.game.state = v8.deserialize(snapshot.gameState);
 
             const removals: { index: number; go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
             const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
