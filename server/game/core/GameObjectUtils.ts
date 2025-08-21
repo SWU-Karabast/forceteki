@@ -1,4 +1,6 @@
 import type { GameObjectBase, GameObjectRef } from './GameObjectBase';
+import { to } from './utils/TypeHelpers';
+import * as Contract from './utils/Contract';
 
 // @ts-expect-error Symbol.metadata is not yet a standard.
 Symbol.metadata ??= Symbol.for('Symbol.metadata');
@@ -6,6 +8,7 @@ const stateMetadata = Symbol();
 const stateSimpleMetadata = Symbol();
 const stateArrayMetadata = Symbol();
 const stateMapMetadata = Symbol();
+const stateRecordMetadata = Symbol();
 const stateObjectMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
@@ -135,6 +138,42 @@ export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>
     };
 }
 
+export function undoRecord<T extends GameObjectBase, TValue extends GameObjectBase>() {
+    return function (
+        target: ClassAccessorDecoratorTarget<T, Record<string, TValue>>,
+        context: ClassAccessorDecoratorContext<T, Record<string, TValue>>
+    ): ClassAccessorDecoratorResult<T, Record<string, TValue>> {
+        if (context.static || context.private) {
+            throw new Error('Can only serialize public instance members.');
+        }
+        if (typeof context.name === 'symbol') {
+            throw new Error('Cannot serialize symbol-named properties.');
+        }
+
+        // Get or create the state related metadata object.
+        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
+        metaState[stateRecordMetadata] ??= [];
+        (metaState[stateRecordMetadata] as string[]).push(context.name);
+        const name = context.name;
+
+        // Use the backing fields as the cache, and write refs to the state.
+        return {
+            get(this) {
+                return target.get.call(this);
+            },
+            set(this: GameObjectBase, newValue) {
+                this.state[name] = to.record(Object.keys(newValue), (key) => key, (key) => newValue[key]?.getRef());
+                target.set.call(this, UndoSafeRecord(this, newValue, name));
+            },
+            init(this: GameObjectBase, value) {
+                this.state[name] = value ? {} : value;
+                return value ? UndoSafeRecord(this, value, name) : value;
+            },
+        };
+    };
+}
+
+
 export function undoObject<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
@@ -171,6 +210,31 @@ export function undoObject<T extends GameObjectBase, TValue extends GameObjectBa
     };
 }
 
+/** Uses proxies to cause any in-place mutation functions to also affect the underlying state. */
+export function UndoSafeRecord<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, record: Record<string, TValue>, name: string) {
+    // @ts-expect-error these functions can bypass the accessibility safeties.
+    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go.state, name), 'Property ' + name + ' not found on the state of the GameObject');
+
+    const proxiedRecord = new Proxy(record, {
+        set(target, prop, newValue, receiver) {
+            const result = Reflect.set(target, prop, newValue, receiver);
+            // @ts-expect-error Override accessibility and set the same property on the internal state.
+            Reflect.set(go.state[name], prop, newValue?.getRef(), go.state[name]);
+            return result;
+        },
+        deleteProperty(target, prop: string) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            delete target[prop];
+            // @ts-expect-error Override accessibility and set the same property on the internal state.
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            delete go.state[prop];
+            return true;
+        },
+    });
+
+    return proxiedRecord;
+}
+
 export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
     let baseClass = Object.getPrototypeOf(instance);
     while (baseClass) {
@@ -202,6 +266,13 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
                     instance[field] = new Map(mappedEntries);
                 }
             }
+            if (metaState[stateRecordMetadata]) {
+                const metaRecords = metaState[stateRecordMetadata] as string[];
+                for (const field of metaRecords) {
+                    const newValue = (newState[field] as Record<string, GameObjectRef>);
+                    instance[field] = to.record(Object.keys(newValue), (key) => key, (key) => instance.game.getFromRef(newValue[key]));
+                }
+            }
             if (metaState[stateObjectMetadata]) {
                 const metaObjects = metaState[stateObjectMetadata] as string[];
                 for (const field of metaObjects) {
@@ -218,5 +289,28 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
         }
         // Continue to the next parent class in the prototype chain and check again.
         baseClass = newBaseClass;
+    }
+}
+
+// WIP Undo Safe Map.
+class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
+    private go: GameObjectBase;
+    private prop: string;
+    public constructor(go: GameObjectBase, prop: string) {
+        super();
+        this.go = go;
+        this.prop = prop;
+    }
+
+    public override set(key: string, value: TValue): this {
+        // @ts-expect-error Overriding state accessibility
+        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).set(key, value?.getRef());
+        return super.set(key, value);
+    }
+
+    public override delete(key: string): boolean {
+        // @ts-expect-error Overriding state accessibility
+        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).delete(key);
+        return super.delete(key);
     }
 }
