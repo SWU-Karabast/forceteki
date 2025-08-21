@@ -1,7 +1,7 @@
 import type {
     IDeckDataEntity,
     IDeckStatsEntity,
-    IFEMatchupStatEntity,
+    IFeMatchupStatEntity,
     ILocalStorageDeckData,
     IMatchupStatEntity
 } from '../../services/DynamoDBInterfaces';
@@ -357,7 +357,7 @@ export class DeckService {
         }
 
         // Create a map to aggregate stats by leader + base combination
-        const aggregatedStats = new Map<string, IFEMatchupStatEntity>();
+        const aggregatedStats = new Map<string, IFeMatchupStatEntity>();
         for (const opponentStat of deck.stats.statsByMatchup) {
             const leaderCard = await cardDataGetter.getCardByNameAsync(opponentStat.leaderId);
             const baseCard = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);

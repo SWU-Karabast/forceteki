@@ -6,7 +6,7 @@ export interface IUserDataEntity {
     needsUsernameChange?: boolean;
 }
 
-export interface IFEMatchupStatEntity extends IMatchupStatEntity {
+export interface IFeMatchupStatEntity extends IMatchupStatEntity {
     leaderMelee: string;
     baseMelee: string;
 }
