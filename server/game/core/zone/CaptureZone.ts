@@ -2,11 +2,13 @@ import type { Card } from '../card/Card';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import { ZoneName } from '../Constants';
 import type Game from '../Game';
+import { registerState } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import { SimpleZone } from './SimpleZone';
 
 // STATE TODO: Because these spawn during the Game's life span, do we need to make the captor a Ref? Hm, in-place no, but for file saves yes.
+@registerState()
 export class CaptureZone extends SimpleZone<IUnitCard> {
     public readonly captor: IUnitCard;
     public override readonly hiddenForPlayers: null;

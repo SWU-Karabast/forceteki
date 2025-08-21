@@ -9,42 +9,35 @@ import { ZoneAbstract } from './ZoneAbstract';
 import type { GameEvent } from '../event/GameEvent';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import type Game from '../Game';
-import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import type { IRandomness } from '../Randomness';
+import { registerState, undoArray } from '../GameObjectUtils';
 
-export interface IDeckZoneState extends IGameObjectBaseState {
-    deck: GameObjectRef<IPlayableCard>[];
-
-    // cards that have been selected for a search effect are considered "in the deck zone" but not "in the deck"
-    // while the effect is resolving (see SWU 8.27.7).
-    // These cards will be moved back to deck if they are somehow still there at the end of the action (e.g. the
-    // U-Wing into ... into opponent Regional Governor scenario).
-    searchingCards: GameObjectRef<IPlayableCard>[];
-}
-
-export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implements IAddRemoveZone {
+@registerState()
+export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZone {
     public override readonly hiddenForPlayers: WildcardRelativePlayer.Any;
     public declare owner: Player;
     public override readonly name: ZoneName.Deck;
 
+    @undoArray(false)
+    private accessor _deck: IPlayableCard[] = [];
+
+    @undoArray(false)
+    private accessor _searchingCards: IPlayableCard[] = [];
+
     public override get cards(): IPlayableCard[] {
-        return this.state.deck.concat(this.state.searchingCards).map((x) => this.game.gameObjectManager.get(x));
+        return this._deck.concat(this._searchingCards);
     }
 
-    public get deck(): IPlayableCard[] {
-        return this.state.deck.map((x) => this.game.gameObjectManager.get(x));
-    }
-
-    public get searchingCards(): IPlayableCard[] {
-        return this.state.searchingCards.map((x) => this.game.gameObjectManager.get(x));
+    public get deck(): readonly IPlayableCard[] {
+        return this._deck;
     }
 
     public override get count() {
-        return this.state.deck.length;
+        return this._deck.length;
     }
 
     public get topCard(): IPlayableCard | null {
-        return this.state.deck.length > 0 ? this.game.gameObjectManager.get(this.state.deck[0]) : null;
+        return this._deck.length > 0 ? this._deck[0] : null;
     }
 
     public constructor(game: Game, owner: Player) {
@@ -54,14 +47,8 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
         this.name = ZoneName.Deck;
     }
 
-    protected override setupDefaultState(): void {
-        super.setupDefaultState();
-        this.state.deck = [];
-        this.state.searchingCards = [];
-    }
-
     public initialize(cards: IPlayableCard[]) {
-        this.state.deck = cards.map((x) => x.getRef());
+        this._deck = cards;
 
         cards.forEach((card) => card.initializeZone(this));
     }
@@ -95,7 +82,7 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
     }
 
     public addCardToBottom(card: IPlayableCard) {
-        this.addCard(card, DeckZoneDestination.DeckTop);
+        this.addCard(card, DeckZoneDestination.DeckBottom);
     }
 
     public addCard(card: IPlayableCard, zone: DeckZoneDestination) {
@@ -105,10 +92,10 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
 
         switch (zone) {
             case DeckZoneDestination.DeckTop:
-                this.state.deck.unshift(card.getRef());
+                this._deck.unshift(card);
                 return;
             case DeckZoneDestination.DeckBottom:
-                this.state.deck.push(card.getRef());
+                this._deck.push(card);
                 return;
             default:
                 Contract.fail(`Unknown value for DeckZoneDestination enum: ${zone}`);
@@ -116,15 +103,14 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
     }
 
     public removeTopCard(): IPlayableCard | null {
-        const card = this.state.deck.pop();
-        return this.game.gameObjectManager.get(card);
+        return this._deck.pop();
     }
 
     public removeCard(card: Card) {
         Contract.assertTrue(card.isPlayable());
 
-        const foundCardInDeckIdx = this.tryGetCardIdx(card, this.state.deck);
-        const foundCardInSearchingCardsIdx = this.tryGetCardIdx(card, this.state.searchingCards);
+        const foundCardInDeckIdx = this.tryGetCardIdx(card, this._deck);
+        const foundCardInSearchingCardsIdx = this.tryGetCardIdx(card, this._searchingCards);
 
         Contract.assertFalse(
             foundCardInDeckIdx == null && foundCardInSearchingCardsIdx == null,
@@ -136,15 +122,15 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
         );
 
         if (foundCardInDeckIdx != null) {
-            this.state.deck.splice(foundCardInDeckIdx, 1);
+            this._deck.splice(foundCardInDeckIdx, 1);
             return;
         }
 
-        this.state.searchingCards.splice(foundCardInSearchingCardsIdx, 1);
+        this._searchingCards.splice(foundCardInSearchingCardsIdx, 1);
     }
 
     public shuffle(randomGenerator: IRandomness) {
-        this.state.deck = Helpers.shuffle(this.state.deck, randomGenerator);
+        this._deck = Helpers.shuffle(this._deck, randomGenerator);
     }
 
     /**
@@ -156,28 +142,29 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
         for (const card of Helpers.asArray(cards)) {
             Contract.assertTrue(card.isPlayable());
 
-            const foundCardInDeckIdx = this.tryGetCardIdx(card, this.state.deck);
+            const foundCardInDeckIdx = this.tryGetCardIdx(card, this._deck);
             Contract.assertNotNullLike(
                 foundCardInDeckIdx,
                 `Attempting to move card ${card.internalName} to the searching area of ${this} but it is not in the deck. Its current zone is ${card.zone}.`
             );
 
-            this.state.deck.splice(foundCardInDeckIdx, 1);
-            this.state.searchingCards.push(card.getRef());
+            this._deck.splice(foundCardInDeckIdx, 1);
+            this._searchingCards.push(card);
         }
 
         triggeringEvent.addCleanupHandler(() => {
-            for (const card of this.searchingCards) {
-                Contract.assertFalse(this.state.deck.some((x) => x.uuid === card.uuid), `Attempting to move ${card.internalName} back to deck from search area but it is already in the deck`);
-                this.state.deck.push(card.getRef());
+            const deck = this._deck;
+            for (const card of this._searchingCards) {
+                Contract.assertFalse(deck.some((x) => x === card), `Attempting to move ${card.internalName} back to deck from search area but it is already in the deck`);
+                deck.push(card);
             }
 
-            this.state.searchingCards = [];
+            this._searchingCards = [];
         });
     }
 
-    private tryGetCardIdx(card: IPlayableCard, list: GameObjectRef<IPlayableCard>[]): number | null {
-        const idx = list.findIndex((x) => x.uuid === card.uuid);
+    private tryGetCardIdx(card: IPlayableCard, list: readonly IPlayableCard[]): number | null {
+        const idx = list.findIndex((x) => x === card);
         return idx === -1 ? null : idx;
     }
 

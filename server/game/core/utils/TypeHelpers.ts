@@ -122,5 +122,18 @@ export const to = {
         }
 
         return date;
+    },
+
+    record<T, TValue = T>(arr: T[], keyFunc: (item: T) => string | number, valueFunc?: (item: T) => TValue): Record<string | number, TValue> {
+        const result: Record<string | number, TValue> = {};
+
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < arr.length; i++) {
+            const item = arr[i];
+            const key = keyFunc(item);
+            result[key] = valueFunc ? valueFunc(item) : item as unknown as TValue;
+        }
+
+        return result;
     }
 };
