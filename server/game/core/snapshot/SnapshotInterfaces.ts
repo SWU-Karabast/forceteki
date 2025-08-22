@@ -1,6 +1,6 @@
 import type { Card } from '../card/Card';
 import type { PhaseName, RollbackRoundEntryPoint, RollbackSetupEntryPoint, SnapshotType } from '../Constants';
-import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { GameObjectRef } from '../GameObjectBase';
 import type { Player } from '../Player';
 import type { IRandomness } from '../Randomness';
 
@@ -109,8 +109,8 @@ export interface IGameSnapshot {
     phase: PhaseName;
     timepoint: SnapshotTimepoint;
 
-    gameState: IGameState;
-    states: IGameObjectBaseState[];
+    gameState: Buffer;
+    states: Buffer;
     rngState: IRandomness['rngState'];
 }
 

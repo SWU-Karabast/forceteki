@@ -3,15 +3,15 @@ import type { EffectName } from '../../Constants';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { OngoingEffectImpl } from './OngoingEffectImpl';
 import type Game from '../../Game';
-import type { GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
+import { registerState, undoObject } from '../../GameObjectUtils';
 
-export interface IStaticOngoingEffectImplState<TValue> extends IGameObjectBaseState {
-    valueWrapper: GameObjectRef<OngoingEffectValueWrapper<TValue>>;
-}
+@registerState()
+export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
+    @undoObject()
+    private accessor _valueWrapper: OngoingEffectValueWrapper<TValue>;
 
-export default class StaticOngoingEffectImpl<TValue, TState extends IStaticOngoingEffectImplState<TValue> = IStaticOngoingEffectImplState<TValue>> extends OngoingEffectImpl<TValue, TState> {
     public get valueWrapper() {
-        return this.game.getFromRef(this.state.valueWrapper);
+        return this._valueWrapper;
     }
 
     public override get effectDescription() {
@@ -22,24 +22,24 @@ export default class StaticOngoingEffectImpl<TValue, TState extends IStaticOngoi
         super(game, type);
 
         if (value instanceof OngoingEffectValueWrapper) {
-            this.state.valueWrapper = value.getRef();
+            this._valueWrapper = value;
         } else {
-            this.state.valueWrapper = new OngoingEffectValueWrapper(game, value).getRef();
+            this._valueWrapper = new OngoingEffectValueWrapper(game, value);
         }
     }
 
     public apply(effect, target) {
         target.addOngoingEffect(effect);
-        this.valueWrapper.apply(target);
+        this._valueWrapper.apply(target);
     }
 
     public unapply(effect, target) {
         target.removeOngoingEffect(effect);
-        this.valueWrapper.unapply(target);
+        this._valueWrapper.unapply(target);
     }
 
     public getValue(target) {
-        return this.valueWrapper.getValue();
+        return this._valueWrapper.getValue();
     }
 
     public recalculate(target) {
@@ -48,11 +48,11 @@ export default class StaticOngoingEffectImpl<TValue, TState extends IStaticOngoi
 
     public override setContext(context: AbilityContext) {
         super.setContext(context);
-        this.valueWrapper.setContext(context);
+        this._valueWrapper.setContext(context);
     }
 
     public override getDebugInfo() {
-        return Object.assign(super.getDebugInfo(), { value: this.valueWrapper });
+        return Object.assign(super.getDebugInfo(), { value: this._valueWrapper });
     }
 }
 

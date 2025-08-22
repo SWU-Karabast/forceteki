@@ -2,10 +2,11 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import type { FormatMessage } from '../../chat/GameChat';
 import type { Duration, EffectName } from '../../Constants';
 import type Game from '../../Game';
-import type { IGameObjectBaseState } from '../../GameObjectBase';
 import { GameObjectBase } from '../../GameObjectBase';
+import { registerState } from '../../GameObjectUtils';
 
-export abstract class OngoingEffectImpl<TValue, TState extends IGameObjectBaseState = IGameObjectBaseState> extends GameObjectBase<TState> {
+@registerState()
+export abstract class OngoingEffectImpl<TValue> extends GameObjectBase {
     public duration?: Duration = null;
     public isConditional = false;
     protected context?: AbilityContext = null;

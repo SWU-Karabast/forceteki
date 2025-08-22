@@ -93,9 +93,16 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     /** Sets the state.  */
     public setState(state: T) {
         const oldState = this.state;
-        this.state = structuredClone(state);
-        copyState(this, state);
+        this.state = state;
+        copyState(this, this.state);
         this.afterSetState(oldState);
+    }
+
+    /**
+     * @deprecated Be ***very*** careful with this function. This returns a direct reference and should only be used for serialization, never keep this reference stored anywhere.
+     */
+    public getStateUnsafe() {
+        return this.state;
     }
 
     public getState() {
