@@ -175,7 +175,9 @@ describe('Snapshot types', function() {
                     expect(context.player1.handSize).toBe(6);
                     expect(context.player2.handSize).toBe(6);
                 });
+            });
 
+            describe('action snapshots', function () {
                 it('player 1 can revert back to before the mulligan', function () {
                     const { context } = contextRef;
 
@@ -275,6 +277,81 @@ describe('Snapshot types', function() {
                         'atst',
                     ]);
                 });
+            });
+        });
+
+        describe('Within the setup phase,', function() {
+            it('can revert back from resourcing to mulligan', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'setup',
+                    player1: {
+                        deck: ['armed-to-the-teeth',
+                            'collections-starhopper',
+                            'covert-strength',
+                            'chewbacca#pykesbane',
+                            'battlefield-marine',
+                            'battlefield-marine',
+                            'battlefield-marine',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                        ],
+                    },
+                    player2: {
+                        deck: [
+                            'moisture-farmer',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'wampa',
+                            'atst',
+                            'atst',
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.game.setRandomSeed(123456);
+
+                // Determine the first player
+                context.selectInitiativePlayer(context.player1);
+
+                // Draw starting hands
+                expect(context.player1.handSize).toBe(6);
+                expect(context.player2.handSize).toBe(6);
+                const player1StartingHand = context.player1.hand;
+                const player2StartingHand = context.player2.hand;
+
+                // Choose whether to take a mulligan
+                context.player1.clickPrompt('Mulligan');
+                context.player2.clickPrompt('Keep');
+
+                expect(context.player1.hand).not.toEqual(player1StartingHand);
+                expect(context.player2.hand).toEqual(player2StartingHand);
+
+                // Rollback to the mulligan step
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player2.id,
+                    actionOffset: -1,
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(context.player1.hand).toEqual(player1StartingHand);
+                expect(context.player2.hand).toEqual(player2StartingHand);
+
+                // Choose whether to take a mulligan
+                context.player1.clickPrompt('Keep');
+                context.player2.clickPrompt('Mulligan');
+
+                expect(context.player1.hand).toEqual(player1StartingHand);
+                expect(context.player2.hand).not.toEqual(player2StartingHand);
             });
         });
 
