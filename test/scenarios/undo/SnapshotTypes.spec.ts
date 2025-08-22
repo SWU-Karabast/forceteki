@@ -1972,6 +1972,60 @@ describe('Snapshot types', function() {
                 context.player1.clickCard(context.p2Base);
             });
         });
+
+        describe('After a sequence of short action phases,', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action'
+                });
+
+                const { context } = contextRef;
+
+                context.moveToNextActionPhase();
+                context.moveToNextActionPhase();
+                context.moveToNextActionPhase();
+            });
+
+            it('quick snapshots can go back as far as the last action and and no further if a required regroup phase snapshot is not available', function () {
+                const { context } = contextRef;
+
+                // roll back to regroup phase
+                const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult1).toBeTrue();
+
+                // roll back to pass button click for ending action phase
+                const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult2).toBeTrue();
+
+                // roll back to regroup phase
+                const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult3).toBeTrue();
+
+                // roll back to pass button click for ending action phase
+                const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult4).toBeTrue();
+
+                // no more quick rollbacks available, out of regroup phase snapshots
+                expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeFalse();
+                const rollbackResult5 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult5).toBeFalse();
+            });
+        });
     });
 
     // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file

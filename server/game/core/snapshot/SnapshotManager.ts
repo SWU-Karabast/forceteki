@@ -264,7 +264,7 @@ export class SnapshotManager {
             return QuickRollbackPoint.Current;
         }
 
-        // TODO THIS PR: update the chunk below to account for phase boundary prompts (e.g Sneak Attack or Thrawn1 trigger)
+        // TODO: update the chunk below to account for phase boundary prompts (e.g Sneak Attack or Thrawn1 trigger)
 
         // if we're in the middle of an action, revert to start of action
         if (this.currentSnapshottedTimepoint === SnapshotTimepoint.Action && playerPromptType !== PromptType.ActionWindow) {
