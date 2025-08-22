@@ -4,7 +4,8 @@ import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
-import type { IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties, SnapshotTimepoint } from './SnapshotInterfaces';
+import type { IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';
+import { SnapshotTimepoint } from './SnapshotInterfaces';
 import { RollbackEntryPointType, type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
@@ -43,8 +44,8 @@ export class SnapshotManager {
     ]);
 
     private static readonly TestSnapshotLimits = new Map<SnapshotType, number>([
-        [SnapshotType.Action, 3],
-        [SnapshotType.Phase, 2],
+        [SnapshotType.Action, 2],
+        [SnapshotType.Phase, 1],
     ]);
 
     public readonly undoMode: UndoMode;
@@ -294,10 +295,19 @@ export class SnapshotManager {
     private getEntryPointAfterRollback(settings: IGetSnapshotSettings): IRollbackSetupEntryPoint | IRollbackRoundEntryPoint {
         switch (settings.type) {
             case SnapshotType.Action:
-                return {
-                    type: RollbackEntryPointType.Round,
-                    entryPoint: RollbackRoundEntryPoint.WithinActionPhase,
-                };
+                switch (this.currentSnapshottedTimepoint) {
+                    case SnapshotTimepoint.Mulligan:
+                    case SnapshotTimepoint.Resource:
+                        return {
+                            type: RollbackEntryPointType.Setup,
+                            entryPoint: RollbackSetupEntryPoint.WithinSetupPhase,
+                        };
+                    default:
+                        return {
+                            type: RollbackEntryPointType.Round,
+                            entryPoint: RollbackRoundEntryPoint.WithinActionPhase,
+                        };
+                }
             case SnapshotType.Phase:
                 switch (settings.phaseName) {
                     case PhaseName.Setup:

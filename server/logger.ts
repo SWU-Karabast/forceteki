@@ -42,3 +42,16 @@ export const logger = winston.createLogger({
         isRunningInAWS ? winston.format.json() : logFormatter
     ),
 });
+
+const jsonOnlyFormatter = winston.format.printf((info) => {
+    // Only output if message is an object, otherwise do nothing
+    if (typeof info.message === 'object') {
+        return JSON.stringify(info.message);
+    }
+    return '';
+});
+
+export const jsonOnlyLogger = winston.createLogger({
+    transports: [new winston.transports.Console()],
+    format: jsonOnlyFormatter
+});
