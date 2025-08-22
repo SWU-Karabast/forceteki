@@ -98,7 +98,9 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         this.afterSetState(oldState);
     }
 
-    /** Be ***very*** careful with this function. This returns a direct reference and should only be used for serialization, never keep this reference stored anywhere. */
+    /**
+     * @deprecated Be ***very*** careful with this function. This returns a direct reference and should only be used for serialization, never keep this reference stored anywhere.
+     */
     public getStateUnsafe() {
         return this.state;
     }
