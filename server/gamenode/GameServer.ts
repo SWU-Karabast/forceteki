@@ -10,7 +10,7 @@ import { getHeapStatistics } from 'v8';
 import { freemem, cpus } from 'os';
 import { monitorEventLoopDelay, performance, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
 
-import { logger } from '../logger';
+import { logger, jsonOnlyLogger } from '../logger';
 
 import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
@@ -32,6 +32,7 @@ import { DeckService } from '../utils/deck/DeckService';
 import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
+import { GameServerMetrics } from '../utils/GameServerMetrics';
 
 
 /**
@@ -1395,12 +1396,17 @@ export class GameServer {
             const currentUtilization = performance.eventLoopUtilization();
             const deltaUtilization = performance.eventLoopUtilization(currentUtilization, this.lastLoopUtilization);
 
-            const eventLoopPercent = (deltaUtilization.utilization * 100).toFixed(1);
-            const loopDelayMinMs = (this.loopDelayHistogram.min / 1e6).toFixed(1);
-            const loopDelayP50Ms = (this.loopDelayHistogram.percentile(50) / 1e6).toFixed(1);
-            const loopDelayP90Ms = (this.loopDelayHistogram.percentile(90) / 1e6).toFixed(1);
-            const loopDelayMaxMs = (this.loopDelayHistogram.max / 1e6).toFixed(1);
-            logger.info(`[EventLoopStats] Event Loop Utilization: ${eventLoopPercent}% | Event Loop Duration (ms): min: ${loopDelayMinMs}, P50: ${loopDelayP50Ms}, P90: ${loopDelayP90Ms}, max: ${loopDelayMaxMs}`);
+            const eventLoopPercent = deltaUtilization.utilization * 100;
+            const loopDelayP50Ms = this.loopDelayHistogram.percentile(50) / 1e6;
+            const loopDelayP90Ms = this.loopDelayHistogram.percentile(90) / 1e6;
+            const loopDelayP99Ms = this.loopDelayHistogram.percentile(99) / 1e6;
+            const loopDelayMaxMs = this.loopDelayHistogram.max / 1e6;
+
+            // Log a standard human readable log
+            logger.info(`[EventLoopStats] Event Loop Utilization: ${eventLoopPercent.toFixed(1)}% | Event Loop Duration (ms): P50: ${loopDelayP50Ms.toFixed(1)}, P90: ${loopDelayP90Ms.toFixed(1)}, P99: ${loopDelayP99Ms.toFixed(1)}, max: ${loopDelayMaxMs.toFixed(1)}`);
+
+            // Log this again in EMF format for CloudWatch metrics capture
+            jsonOnlyLogger.info(GameServerMetrics.eventLoopPerformance(eventLoopPercent, loopDelayP50Ms, loopDelayP90Ms, loopDelayP99Ms, loopDelayMaxMs));
 
             this.lastLoopUtilization = currentUtilization;
             this.loopDelayHistogram.reset();
