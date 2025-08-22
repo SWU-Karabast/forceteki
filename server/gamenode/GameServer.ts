@@ -255,8 +255,7 @@ export class GameServer {
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
-        //if (process.env.ENVIRONMENT !== 'development') {
-        if (true) {
+        if (process.env.ENVIRONMENT !== 'development') {
             // initialize cpu usage and event loop stats
             this.lastCpuUsage = process.cpuUsage();
             this.lastCpuUsageTime = process.hrtime.bigint();
@@ -272,7 +271,7 @@ export class GameServer {
                 this.logHeapStats();
                 this.logCpuUsage();
                 this.logEventLoopStats();
-            }, 5000);
+            }, 30000);
         }
     }
 
