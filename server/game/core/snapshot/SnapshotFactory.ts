@@ -3,11 +3,11 @@ import type { GameStateManager } from './GameStateManager';
 import type { IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotArray } from './container/SnapshotArray';
-import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler, SnapshotContainerBase } from './container/SnapshotContainerBase';
+import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler } from './container/SnapshotContainerBase';
 import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { PhaseName } from '../Constants';
-import type { QuickSnapshotType } from './SnapshotManager';
+import { MetaSnapshotArray } from './container/MetaSnapshotArray';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
 export type IUpdateCurrentSnapshotHandler = (snapshot: IGameSnapshot) => void;
@@ -58,10 +58,6 @@ export class SnapshotFactory {
         this.gameStateManager = gameStateManager;
     }
 
-    public getCurrentSnapshotQuickRollbackPoint(playerId: string): QuickSnapshotType | null {
-        return this.currentActionSnapshot?.previousQuickSnapshotForPlayer?.get(playerId) ?? null;
-    }
-
     /** @deprecated This is implemented but not currently used or tested */
     public createSnapshotArray(maxLength: number): SnapshotArray {
         return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
@@ -101,6 +97,12 @@ export class SnapshotFactory {
         );
     }
 
+    public createMetaSnapshotArray(): MetaSnapshotArray {
+        return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
+            new MetaSnapshotArray(clearNewerSnapshotsBinding)
+        );
+    }
+
     public clearCurrentSnapshot(): void {
         this.currentActionSnapshot = null;
     }
@@ -121,7 +123,7 @@ export class SnapshotFactory {
      * Called when we reach a new "snapshottable" game point (usually a new player action).
      * This will create a snapshot of the current game state and all game objects.
      */
-    public createSnapshotForCurrentTimepoint(timepoint: SnapshotTimepoint, previousQuickSnapshotForPlayer?: Map<string, QuickSnapshotType>): void {
+    public createSnapshotForCurrentTimepoint(timepoint: SnapshotTimepoint): void {
         // TODO: add a guard here that will fail if the current action is already snapshotted,
         // this should be called exactly once per action
 
@@ -136,7 +138,6 @@ export class SnapshotFactory {
             phase: this.game.currentPhase,
             gameState: structuredClone(this.game.state),
             states: this.gameStateManager.buildGameStateForSnapshot(),
-            previousQuickSnapshotForPlayer: previousQuickSnapshotForPlayer ? structuredClone(previousQuickSnapshotForPlayer) : null,
             rngState: this.game.randomGenerator.rngState
         };
 
@@ -164,7 +165,7 @@ export class SnapshotFactory {
     }
 
     /** Helper method for correctly building snapshot containers in a way that they can pass back a handle for calling the `clearNewerSnapshots()` method */
-    private createSnapshotContainerWithClearSnapshotsBinding<T extends SnapshotContainerBase>(
+    private createSnapshotContainerWithClearSnapshotsBinding<T>(
         containerCreateHandler: (clearNewerSnapshotsBinding: IClearNewerSnapshotsBinding) => T
     ): T {
         const clearNewerSnapshotsBinding: IClearNewerSnapshotsBinding = { clearNewerSnapshots: null };

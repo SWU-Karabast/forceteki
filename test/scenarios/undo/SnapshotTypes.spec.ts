@@ -1451,20 +1451,20 @@ describe('Snapshot types', function() {
                     assertP1Round2ActionState(context);
 
                     // roll back to phase 1 regroup even though there are no more action snapshots
-                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeTrue();
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeTrue();
                     const rollbackResult5 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'quick',
-                        playerId: context.player2.id
+                        playerId: context.player1.id
                     });
                     expect(rollbackResult5).toBeTrue();
 
                     assertRegroupPhase1State(context);
 
                     // no more quick rollbacks available
-                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeFalse();
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeFalse();
                     const rollbackResult6 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'quick',
-                        playerId: context.player2.id
+                        playerId: context.player1.id
                     });
                     expect(rollbackResult6).toBeFalse();
                 });

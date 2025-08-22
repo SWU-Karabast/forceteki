@@ -26,14 +26,18 @@ export class SnapshotMap<T> extends SnapshotContainerBase {
      * Get properties of a snapshot at the given key without exposing the full snapshot object.
      */
     public getSnapshotProperties(key: T): ISnapshotProperties | null {
-        const snapshot = this.getSnapshotInternal(key);
+        const snapshot = this.getSnapshot(key);
         return snapshot ? this.extractSnapshotProperties(snapshot) : null;
+    }
+
+    protected override getAllSnapshots(): IGameSnapshot[] {
+        return Array.from(this.snapshots.values());
     }
 
     /**
      * Internal method to get a snapshot by key.
      */
-    private getSnapshotInternal(key: T): IGameSnapshot | null {
+    private getSnapshot(key: T): IGameSnapshot | null {
         return this.snapshots.get(key) ?? null;
     }
 
@@ -44,7 +48,7 @@ export class SnapshotMap<T> extends SnapshotContainerBase {
      * @returns The ID of the snapshot that was rolled back to, or `null` if the key does not exist in the map
      */
     public rollbackToSnapshot(key: T): number | null {
-        const snapshot = this.getSnapshotInternal(key);
+        const snapshot = this.getSnapshot(key);
         if (!snapshot) {
             return null;
         }

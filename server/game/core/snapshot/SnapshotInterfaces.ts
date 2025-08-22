@@ -3,7 +3,6 @@ import type { PhaseName, RollbackRoundEntryPoint, RollbackSetupEntryPoint, Snaps
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import type { Player } from '../Player';
 import type { IRandomness } from '../Randomness';
-import type { QuickSnapshotType } from './SnapshotManager';
 
 export interface ISnapshotSettingsBase {
     type: SnapshotType;
@@ -93,6 +92,7 @@ export interface ISnapshotProperties {
     roundNumber: number;
     actionNumber: number;
     currentPhase: PhaseName;
+    snapshotId: number;
 }
 
 export enum SnapshotTimepoint {
@@ -107,7 +107,6 @@ export interface IGameSnapshot {
     roundNumber: number;
     phase: PhaseName;
     timepoint: SnapshotTimepoint;
-    previousQuickSnapshotForPlayer?: Map<string, QuickSnapshotType>;
 
     gameState: IGameState;
     states: IGameObjectBaseState[];
