@@ -3,7 +3,6 @@ import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../Gam
 import type { IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
-import { DiscordDispatcher } from '../DiscordDispatcher';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
@@ -15,7 +14,6 @@ export class GameStateManager implements IGameObjectRegistrar {
 
     private readonly game: Game;
     private readonly gameObjectMapping = new Map<string, GameObjectBase>();
-    private readonly discordDispatcher: DiscordDispatcher = new DiscordDispatcher();
 
     private allGameObjects: GameObjectBase[] = [];
 
@@ -45,7 +43,7 @@ export class GameStateManager implements IGameObjectRegistrar {
                 if (this.game.incrementServerErrorCount() === GameStateManager.MaxServerErrorCount) {
                     errorMessage += ` Max server error count of ${GameStateManager.MaxServerErrorCount} reached, no more errors will be reported for Lobby ${this.game.lobbyId} with Game ID ${this.game.id}.`;
                 }
-                this.discordDispatcher.formatAndSendServerErrorAsync(errorMessage, error, this.game.lobbyId);
+                this.game.discordDispatcher.formatAndSendServerErrorAsync(errorMessage, error, this.game.lobbyId);
             }
 
             throw error;

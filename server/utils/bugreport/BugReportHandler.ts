@@ -5,17 +5,14 @@ import type {
     ISerializedReportState, MessageText
 } from '../../game/Interfaces';
 import type { IDiscordDispatcher } from '../../game/core/DiscordDispatcher';
-import { DiscordDispatcher } from '../../game/core/DiscordDispatcher';
 
 export class BugReportHandler {
-    private readonly discordDispatcher: IDiscordDispatcher = new DiscordDispatcher();
-
     /**
      * Send a bug report to Discord via webhook
      * @param bugReport The bug report data
      * @returns Promise that resolves to true if successful, false otherwise
      */
-    public async sendBugReportToDiscord(bugReport: ISerializedReportState): Promise<boolean> {
+    public async sendBugReportToDiscord(bugReport: ISerializedReportState, gameDiscordDispatcher: IDiscordDispatcher): Promise<boolean> {
         try {
             // Always log the bug report
             const logData = {
@@ -36,7 +33,7 @@ export class BugReportHandler {
 
             logger.info(`Bug report received from user ${bugReport.reporter.username}`, logData);
             // Create Discord message content
-            const discordResponse = await this.discordDispatcher.formatAndSendBugReportAsync(bugReport);
+            const discordResponse = await gameDiscordDispatcher.formatAndSendBugReportAsync(bugReport);
             if (discordResponse === false) {
                 return false;
             }

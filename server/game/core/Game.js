@@ -240,7 +240,7 @@ class Game extends EventEmitter {
         /** @private @type {number} */
         this._serverErrorCount = 0;
 
-        /** @private @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
+        /** @public @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
         this.discordDispatcher = new DiscordDispatcher();
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
