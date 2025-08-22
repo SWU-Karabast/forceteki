@@ -4,22 +4,37 @@ import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ResourcePrompt } from '../prompts/ResourcePrompt';
 import { MulliganPrompt } from '../prompts/MulliganPrompt';
-import { PhaseName } from '../../Constants';
+import { PhaseName, SnapshotType } from '../../Constants';
 import { PromptType } from '../PromptInterfaces';
-import * as Contract from '../../utils/Contract';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
+import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
+import type { IStep } from '../IStep';
 
 export class SetupPhase extends Phase {
     public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
-        Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToWithinPhase, 'SetupPhase does not support rolling back to the middle of the phase');
-
         super(game, PhaseName.Setup, snapshotManager);
+
+        const setupStep: IStep[] = [];
+        if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase) {
+            setupStep.push(
+                new SimpleStep(game, () => this.chooseFirstPlayer(), 'chooseFirstPlayer'),
+                new SimpleStep(game, () => this.drawStartingHands(), 'drawStartingHands'),
+                new SimpleStep(game, () => this.takeSnapshotBeforeMulligan(), 'takeSnapshotBeforeMulligan'),
+            );
+        }
+
+        const mulliganStep: IStep[] = [];
+        if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase || snapshotManager.currentSnapshottedTimepoint === SnapshotTimepoint.Mulligan) {
+            mulliganStep.push(
+                new MulliganPrompt(game),
+                new SimpleStep(game, () => this.takeSnapshotBeforeResource(), 'takeSnapshotBeforeResource'),
+            );
+        }
 
         this.initialise(
             [
-                new SimpleStep(game, () => this.chooseFirstPlayer(), 'chooseFirstPlayer'),
-                new SimpleStep(game, () => this.drawStartingHands(), 'drawStartingHands'),
-                new MulliganPrompt(game),
+                ...setupStep,
+                ...mulliganStep,
                 new ResourcePrompt(game, 2),
 
                 // there aren't clear game rules yet for resolving events that trigger during the setup step, so we skip the event window here
@@ -27,6 +42,26 @@ export class SetupPhase extends Phase {
             ],
             initializeMode
         );
+    }
+
+    private takeSnapshotBeforeMulligan() {
+        this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.Mulligan);
+        this.game.getPlayers().forEach((player) => {
+            this.snapshotManager.takeSnapshot({
+                type: SnapshotType.Action,
+                playerId: player.id
+            });
+        });
+    }
+
+    private takeSnapshotBeforeResource() {
+        this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.Resource);
+        this.game.getPlayers().forEach((player) => {
+            this.snapshotManager.takeSnapshot({
+                type: SnapshotType.Action,
+                playerId: player.id
+            });
+        });
     }
 
     private chooseFirstPlayer() {

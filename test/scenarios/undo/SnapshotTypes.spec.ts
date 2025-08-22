@@ -37,16 +37,51 @@ describe('Snapshot types', function() {
 
                 const { context } = contextRef;
 
+                context.game.setRandomSeed(123456);
+
                 // Determine the first player
                 context.selectInitiativePlayer(context.player1);
 
                 // Draw starting hands
                 expect(context.player1.handSize).toBe(6);
                 expect(context.player2.handSize).toBe(6);
+                expect(context.player1.hand.map((card) => card.internalName)).toEqual([
+                    'battlefield-marine',
+                    'moment-of-peace',
+                    'collections-starhopper',
+                    'moment-of-peace',
+                    'chewbacca#pykesbane',
+                    'moment-of-peace',
+                ]);
+                expect(context.player2.hand.map((card) => card.internalName)).toEqual([
+                    'atst',
+                    'atst',
+                    'wampa',
+                    'atst',
+                    'atst',
+                    'moisture-farmer',
+                ]);
 
                 // Choose whether to take a mulligan
                 context.player1.clickPrompt('Mulligan');
                 context.player2.clickPrompt('Keep');
+
+                expect(context.player1.hand.map((card) => card.internalName)).toEqual([
+                    'armed-to-the-teeth',
+                    'collections-starhopper',
+                    'battlefield-marine',
+                    'chewbacca#pykesbane',
+                    'moment-of-peace',
+                    'battlefield-marine',
+                ]);
+                expect(context.player2.hand.map((card) => card.internalName)).toEqual([
+                    'atst',
+                    'atst',
+                    'wampa',
+                    'atst',
+                    'atst',
+                    'moisture-farmer',
+                ]);
 
                 // Resource two cards
                 context.player1.clickFirstCardInHand();
@@ -55,6 +90,15 @@ describe('Snapshot types', function() {
                 context.player2.clickFirstCardInHand();
                 context.player2.clickCard(context.player2.hand[1]);
                 context.player2.clickDone();
+
+                expect(context.player1.resources.map((card) => card.internalName)).toEqual([
+                    'armed-to-the-teeth',
+                    'collections-starhopper',
+                ]);
+                expect(context.player2.resources.map((card) => card.internalName)).toEqual([
+                    'atst',
+                    'atst',
+                ]);
 
                 // Start of the action phase
                 expect(context.player1).toBeActivePlayer();
@@ -65,8 +109,51 @@ describe('Snapshot types', function() {
                 expect(context.game.initiativePlayer).toBeNull();
                 expect(context.player1.handSize).toBe(0);
                 expect(context.player2.handSize).toBe(0);
-                expect(context.player1.deckSize).toBe(11);
-                expect(context.player2.deckSize).toBe(11);
+                expect(context.player1.deck.length).toBe(11);
+                expect(context.player2.deck.length).toBe(11);
+            };
+
+            const assertSetupPhaseBeforeMulliganState = (context) => {
+                expect(context.game.initiativePlayer).toBe(context.player1Object);
+                expect(context.player1.hand.map((card) => card.internalName)).toEqual([
+                    'battlefield-marine',
+                    'moment-of-peace',
+                    'collections-starhopper',
+                    'moment-of-peace',
+                    'chewbacca#pykesbane',
+                    'moment-of-peace',
+                ]);
+                expect(context.player2.hand.map((card) => card.internalName)).toEqual([
+                    'atst',
+                    'atst',
+                    'wampa',
+                    'atst',
+                    'atst',
+                    'moisture-farmer',
+                ]);
+                expect(context.player1.deck.length).toBe(5);
+                expect(context.player2.deck.length).toBe(5);
+            };
+
+            const assertSetupPhaseBeforeResourceState = (context) => {
+                expect(context.player1.hand.map((card) => card.internalName)).toEqual([
+                    'armed-to-the-teeth',
+                    'collections-starhopper',
+                    'battlefield-marine',
+                    'chewbacca#pykesbane',
+                    'moment-of-peace',
+                    'battlefield-marine',
+                ]);
+                expect(context.player2.hand.map((card) => card.internalName)).toEqual([
+                    'atst',
+                    'atst',
+                    'wampa',
+                    'atst',
+                    'atst',
+                    'moisture-farmer',
+                ]);
+                expect(context.player1.resources.length).toBe(0);
+                expect(context.player2.resources.length).toBe(0);
             };
 
             describe('phase snapshots', function () {
@@ -87,6 +174,106 @@ describe('Snapshot types', function() {
                     // Draw starting hands
                     expect(context.player1.handSize).toBe(6);
                     expect(context.player2.handSize).toBe(6);
+                });
+
+                it('player 1 can revert back to before the mulligan', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        actionOffset: -2, // -2 because player 1 has the initiative
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertSetupPhaseBeforeMulliganState(context);
+
+                    const beforeMulliganHand = context.player1.hand;
+                    const beforePlayer2Hand = context.player2.hand;
+                    context.player1.clickPrompt('Mulligan');
+                    context.player2.clickPrompt('Keep');
+
+                    expect(beforeMulliganHand).not.toEqual(context.player1.hand);
+                    expect(beforePlayer2Hand).toEqual(context.player2.hand);
+                });
+
+                it('player 2 can revert back to before the mulligan', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player2.id,
+                        actionOffset: -1, // -1 because player 2 has not the initiative
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertSetupPhaseBeforeMulliganState(context);
+
+                    const beforeMulliganHand = context.player1.hand;
+                    const beforePlayer2Hand = context.player2.hand;
+                    context.player1.clickPrompt('Keep');
+                    context.player2.clickPrompt('Mulligan');
+
+                    expect(beforeMulliganHand).toEqual(context.player1.hand);
+                    expect(beforePlayer2Hand).not.toEqual(context.player2.hand);
+                });
+
+                it('player 1 can revert back to before resourcing', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        actionOffset: -1, // -1 because player 1 has the initiative
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertSetupPhaseBeforeResourceState(context);
+
+                    context.player1.clickFirstCardInHand();
+                    context.player1.clickCard(context.player1.hand[1]);
+                    context.player1.clickDone();
+                    context.player2.clickFirstCardInHand();
+                    context.player2.clickCard(context.player2.hand[1]);
+                    context.player2.clickDone();
+
+                    expect(context.player1.resources.map((card) => card.internalName)).toEqual([
+                        'armed-to-the-teeth',
+                        'collections-starhopper',
+                    ]);
+                    expect(context.player2.resources.map((card) => card.internalName)).toEqual([
+                        'atst',
+                        'atst',
+                    ]);
+                });
+
+                it('player 2 can revert back to before resourcing', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player2.id,
+                        actionOffset: 0, // 0 because player 2 has not the initiative
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertSetupPhaseBeforeResourceState(context);
+
+                    context.player1.clickFirstCardInHand();
+                    context.player1.clickCard(context.player1.hand[1]);
+                    context.player1.clickDone();
+                    context.player2.clickFirstCardInHand();
+                    context.player2.clickCard(context.player2.hand[1]);
+                    context.player2.clickDone();
+
+                    expect(context.player1.resources.map((card) => card.internalName)).toEqual([
+                        'armed-to-the-teeth',
+                        'collections-starhopper',
+                    ]);
+                    expect(context.player2.resources.map((card) => card.internalName)).toEqual([
+                        'atst',
+                        'atst',
+                    ]);
                 });
             });
         });
