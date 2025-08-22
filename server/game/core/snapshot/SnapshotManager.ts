@@ -21,12 +21,6 @@ export enum UndoMode {
     CurrentSnapshotOnly = 'currentSnapshotOnly',
 }
 
-// enum QuickRollbackPoint {
-//     Regroup = 'regroup',
-//     CurrentAction = 'currentAction',
-//     PreviousAction = 'previousAction',
-// }
-
 export enum QuickSnapshotType {
     Action = 'action',
     Regroup = 'regroup',
@@ -273,36 +267,6 @@ export class SnapshotManager {
 
         return QuickRollbackPoint.Previous;
     }
-
-    // private getCurrentQuickRollbackPoint(): QuickRollbackPoint {
-    //     switch (this.currentSnapshottedTimepoint) {
-    //         case SnapshotTimepoint.Action:
-    //             return QuickRollbackPoint.CurrentAction;
-    //         case SnapshotTimepoint.StartOfPhase:
-    //             return QuickRollbackPoint.Regroup;
-    //         default:
-    //             Contract.fail(`Unrecognized snapshot timepoint type: ${this.currentSnapshottedTimepoint}`);
-    //     }
-    // }
-
-    // private quickRollbackToLastRegroupSnapshot(): IQuickRollbackResult {
-    //     const snapshotId = this.phaseSnapshots.rollbackToSnapshot(PhaseName.Regroup, 0);
-
-    //     Contract.assertNotNullLike(snapshotId, 'Attempted to roll back to regroup phase snapshot for quick rollback, but no such snapshot exists.');
-
-    //     return { snapshotId, roundEntryPoint: { type: RollbackEntryPointType.Round, entryPoint: RollbackRoundEntryPoint.StartOfRegroupPhase } };
-    // }
-
-    // /**
-    //  * Rolls back to the action snapshot for the specified player.
-    //  */
-    // private quickRollbackToActionSnapshot(playerId: string, quickRollbackPoint: QuickRollbackPoint.CurrentAction | QuickRollbackPoint.PreviousAction): IQuickRollbackResult {
-    //     const snapshotId = this.actionSnapshots.rollbackToSnapshot(playerId, quickRollbackPoint === QuickRollbackPoint.CurrentAction ? 0 : -1);
-
-    //     Contract.assertNotNullLike(snapshotId, 'Attempted to roll back to action snapshot for quick rollback, but no such snapshot exists.');
-
-    //     return { snapshotId, roundEntryPoint: { type: RollbackEntryPointType.Round, entryPoint: RollbackRoundEntryPoint.WithinActionPhase } };
-    // }
 
     private rollbackManualSnapshot(settings: IGetManualSnapshotSettings): number {
         const rolledBackSnapshotIdx = this.manualSnapshots.get(settings.playerId)?.rollbackToSnapshot(settings.snapshotId);
