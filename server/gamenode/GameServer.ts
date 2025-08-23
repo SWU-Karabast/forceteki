@@ -844,19 +844,25 @@ export class GameServer {
 
     private getOngoingGamesData() {
         const ongoingGames = [];
+        let numberOfOngoingGames = 0;
 
         // Loop through all lobbies and check if they have an ongoing game
         for (const lobby of this.lobbies.values()) {
             if (lobby.hasOngoingGame()) {
                 const gameState = lobby.getGamePreview();
                 if (gameState) {
-                    ongoingGames.push(gameState);
+                    numberOfOngoingGames++;
+
+                    // don't show entries for private games
+                    if (lobby.gameType !== MatchType.Private) {
+                        ongoingGames.push(gameState);
+                    }
                 }
             }
         }
 
         return {
-            numberOfOngoingGames: ongoingGames.length,
+            numberOfOngoingGames,
             ongoingGames
         };
     }
