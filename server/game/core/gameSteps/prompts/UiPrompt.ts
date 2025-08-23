@@ -6,6 +6,7 @@ import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Helpers from '../../utils/Helpers';
 import type { IButton } from '../PromptInterfaces';
 import type Game from '../../Game';
+import type { AllPlayerPrompt } from './AllPlayerPrompt';
 
 export abstract class UiPrompt extends BaseStep {
     public readonly uuid = uuid();
@@ -97,6 +98,10 @@ export abstract class UiPrompt extends BaseStep {
         }
 
         this.highlightSelectableCards();
+    }
+
+    public isAllPlayerPrompt(): this is AllPlayerPrompt {
+        return false;
     }
 
     protected startActionTimer(player: Player) {

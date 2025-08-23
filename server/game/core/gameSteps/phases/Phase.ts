@@ -32,7 +32,9 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     protected initialise(steps: IStep[], initializeMode: PhaseInitializeMode): void {
-        const startStep: IStep[] = [];
+        const startStep: IStep[] = [
+            new SimpleStep(this.game, () => this.game.currentPhase = this.name, 'setCurrentPhase')
+        ];
 
         // skip the start step if we're rolling back to somewhere within the phase
         if (initializeMode === PhaseInitializeMode.Normal) {
@@ -62,7 +64,6 @@ export abstract class Phase extends BaseStepWithPipeline {
 
     protected startPhase(): void {
         this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => {
-            this.game.currentPhase = this.name;
             if (this.name !== PhaseName.Setup) {
                 this.game.addAlert(AlertType.Notification, 'Turn: {0} - {1} Phase', this.game.roundNumber, Helpers.upperCaseFirstLetter(this.name));
             }

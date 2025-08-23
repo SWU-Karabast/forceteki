@@ -50,14 +50,18 @@ export class SnapshotArray extends SnapshotContainerBase {
      * Get properties of a snapshot at the given offset without exposing the full snapshot object.
      */
     public getSnapshotProperties(offset = 0): ISnapshotProperties | null {
-        const snapshot = this.getSnapshotInternal(offset);
+        const snapshot = this.getSnapshot(offset);
         return snapshot ? this.extractSnapshotProperties(snapshot) : null;
+    }
+
+    protected override getAllSnapshots(): IGameSnapshot[] {
+        return this.snapshots;
     }
 
     /**
      * Internal method to get a snapshot by offset.
      */
-    private getSnapshotInternal(offset: number): IGameSnapshot | null {
+    private getSnapshot(offset: number): IGameSnapshot | null {
         Contract.assertTrue(offset < 0 && offset >= -this.maxLength, `Snapshot offset must be less than one and greater than or equal than max history length (-${this.maxLength}), got ${offset}`);
 
         if (Math.abs(offset) >= this.snapshots.length) {
@@ -75,7 +79,7 @@ export class SnapshotArray extends SnapshotContainerBase {
      * @returns The ID of the snapshot that was rolled back to, or `null` if there is not enough snapshot history to go back that far
      */
     public rollbackToSnapshot(offset: number): number | null {
-        const snapshot = this.getSnapshotInternal(offset);
+        const snapshot = this.getSnapshot(offset);
         if (!snapshot) {
             return null;
         }

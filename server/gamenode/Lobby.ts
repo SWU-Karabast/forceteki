@@ -635,7 +635,8 @@ export class Lobby {
             this.cardDataGetter,
             router,
             { id: 'exe66', username: 'Order66' },
-            { id: 'th3w4y', username: 'ThisIsTheWay' }
+            { id: 'th3w4y', username: 'ThisIsTheWay' },
+            UndoMode.Full
         );
 
         this.game = game;
