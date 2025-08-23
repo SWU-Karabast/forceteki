@@ -34,7 +34,7 @@ export interface IDiscordDispatcher {
      * @param lobbyId The lobby ID associated with the error
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
-    formatAndSendServerErrorAsync(description: string, error: Error, lobbyId: string): Promise<EitherPostResponseOrBoolean>;
+    formatAndSendServerErrorAsync(description: string, error: Error, lobbyId: string, ignoreCount: boolean): Promise<EitherPostResponseOrBoolean>;
 }
 
 export class DiscordDispatcher implements IDiscordDispatcher {
@@ -274,7 +274,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         return httpPostFormData(this._serverErrorWebhookUrl, formData);
     }
 
-    public formatAndSendServerErrorAsync(description: string, error: Error, lobbyId: string): Promise<EitherPostResponseOrBoolean> {
+    public formatAndSendServerErrorAsync(description: string, error: Error, lobbyId: string, ignoreCount: boolean = false): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
             if (process.env.NODE_ENV !== 'test') {
@@ -282,13 +282,15 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             }
             return Promise.resolve(false);
         }
-        if (this._serverErrorCount >= DiscordDispatcher.MaxServerErrorCount) {
+        if (!ignoreCount && this._serverErrorCount >= DiscordDispatcher.MaxServerErrorCount) {
             if (process.env.NODE_ENV !== 'test') {
                 logger.warn('Server error could not be sent to Discord: Maximum error count reached for server errors');
             }
             return Promise.resolve(false);
         }
-        this._serverErrorCount++;
+        if (!ignoreCount) {
+            this._serverErrorCount++;
+        }
 
         // Truncate description if it's too long for Discord embeds
         const embedDescription = description.length > 1024
