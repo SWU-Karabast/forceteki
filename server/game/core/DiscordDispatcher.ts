@@ -38,7 +38,6 @@ export interface IDiscordDispatcher {
 }
 
 export class DiscordDispatcher implements IDiscordDispatcher {
-    private static readonly MaxBugReportErrorCount = 3;
     private static readonly MaxServerErrorCount = 3;
     private static readonly MaxUndoErrorCount = 3;
     private readonly _bugReportWebhookUrl: string;
@@ -60,7 +59,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         }
     }
 
-    public async formatAndSendBugReportAsync(bugReport: ISerializedReportState): Promise<string | boolean> {
+    public async formatAndSendBugReportAsync(bugReport: ISerializedReportState): Promise<EitherPostResponseOrBoolean> {
         // Always log the bug report
         const logData = {
             lobbyId: bugReport.lobbyId,
@@ -88,12 +87,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
 
             return false;
         }
-        if (this._bugReportErrorCount >= DiscordDispatcher.MaxBugReportErrorCount) {
-            if (process.env.NODE_ENV !== 'test') {
-                logger.warn('Bug report could not be sent to Discord: Maximum error count reached for bug reports');
-            }
-            return false;
-        }
+
         this._bugReportErrorCount++;
         // Truncate description if it's too long for Discord embeds
         const embedDescription = bugReport.description.length > 1024
@@ -203,7 +197,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         }
     }
 
-    public formatAndSendUndoFailureReportAsync(undoFailure: ISerializedUndoFailureState): Promise<string | boolean> {
+    public formatAndSendUndoFailureReportAsync(undoFailure: ISerializedUndoFailureState): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
             if (process.env.NODE_ENV !== 'test') {

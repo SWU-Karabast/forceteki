@@ -3,6 +3,8 @@ import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../Gam
 import type { IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
+import { to } from '../utils/TypeHelpers';
+import v8 from 'node:v8';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
@@ -82,29 +84,29 @@ export class GameStateManager implements IGameObjectRegistrar {
         }
     }
 
-    public buildGameStateForSnapshot(): IGameObjectBaseState[] {
+    public buildGameStateForSnapshot(): Buffer {
         this.removeUnusedGameObjects();
 
         // Return the state of all game objects that are still in the game.
-        return this.allGameObjects.map((go) => go.getState());
+        return v8.serialize(to.record(this.allGameObjects, (item) => item.uuid, (item) => item.getStateUnsafe()));
     }
 
     public rollbackToSnapshot(snapshot: IGameSnapshot) {
         Contract.assertNotNullLike(snapshot, 'Empty snapshot provided for rollback');
         this._isRollingBack = true;
         try {
-            this.game.state = structuredClone(snapshot.gameState);
+            this.game.state = v8.deserialize(snapshot.gameState);
 
             const removals: { index: number; go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
             const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
 
-            const snapshotStatesByUuid = new Map<string, IGameObjectBaseState>(snapshot.states.map((x) => [x.uuid, x]));
+            const snapshotStatesByUuid = v8.deserialize(snapshot.states) as Record<string, IGameObjectBaseState>;
 
             // Indexes in last to first for the purpose of removal.
             for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
                 const go = this.allGameObjects[i];
 
-                const updatedState = snapshotStatesByUuid.get(go.uuid);
+                const updatedState = snapshotStatesByUuid[go.uuid];
                 if (!updatedState) {
                     removals.push({ index: i, go, oldState: go.getState() });
                     continue;
