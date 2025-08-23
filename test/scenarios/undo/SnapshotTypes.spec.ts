@@ -1690,47 +1690,96 @@ describe('Snapshot types', function() {
                     const { context } = contextRef;
 
                     // roll back to regroup phase in round 2
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    assertRegroupPhase2State(context);
+
+                    // roll back to pass button click for ending action phase
                     const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'quick',
                         playerId: context.player1.id
                     });
                     expect(rollbackResult2).toBeTrue();
 
-                    assertRegroupPhase2State(context);
-
-                    // roll back to pass button click for ending action phase
+                    // roll back to actual action take in action phase
                     const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'quick',
                         playerId: context.player1.id
                     });
                     expect(rollbackResult3).toBeTrue();
 
-                    // roll back to actual action take in action phase
+                    assertP1Round2ActionState(context);
+
+                    // roll back to phase 1 regroup even though there are no more action snapshots
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeTrue();
                     const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'quick',
                         playerId: context.player1.id
                     });
                     expect(rollbackResult4).toBeTrue();
 
-                    assertP1Round2ActionState(context);
-
-                    // roll back to phase 1 regroup even though there are no more action snapshots
-                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeTrue();
-                    const rollbackResult5 = contextRef.snapshot.rollbackToSnapshot({
-                        type: 'quick',
-                        playerId: context.player1.id
-                    });
-                    expect(rollbackResult5).toBeTrue();
-
                     assertRegroupPhase1State(context);
 
                     // no more quick rollbacks available
                     expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeFalse();
-                    const rollbackResult6 = contextRef.snapshot.rollbackToSnapshot({
+                    const rollbackResult5 = contextRef.snapshot.rollbackToSnapshot({
                         type: 'quick',
                         playerId: context.player1.id
                     });
-                    expect(rollbackResult6).toBeFalse();
+                    expect(rollbackResult5).toBeFalse();
+                });
+
+                it('will work correctly after a rollback to start of regroup phase', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'phase',
+                        phaseName: 'regroup'
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    // roll back to pass button click for ending action phase
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult3).toBeTrue();
+
+                    // roll back to actual action taken in action phase
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeTrue();
+                    const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult4).toBeTrue();
+
+                    assertP2Round2ActionState(context);
+                });
+
+                it('will work correctly after a rollback to previous action', function () {
+                    const { context } = contextRef;
+
+                    // roll back to pass button click for ending action phase
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        actionOffset: -1
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    // roll back to actual action taken in action phase
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeTrue();
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    assertP1Round2ActionState(context);
                 });
             });
 
