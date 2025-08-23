@@ -868,11 +868,13 @@ export class GameServer {
         };
     }
 
-    private getUserCount() {
+    private getGameAndPlayerCounts() {
         let playerCount = 0;
         let spectatorCount = 0;
         let anonymousPlayerCount = 0;
         let anonymousSpectatorCount = 0;
+
+        const totalGameCount = this.lobbies.size;
 
         for (const lobby of this.lobbies.values()) {
             playerCount += lobby.users.length;
@@ -885,6 +887,7 @@ export class GameServer {
         const totalUserCount = playerCount + spectatorCount;
 
         return {
+            totalGameCount,
             totalUserCount,
             playerCount,
             spectatorCount,
@@ -1449,19 +1452,19 @@ export class GameServer {
 
     private logPlayerStats(): void {
         try {
-            const userCount = this.getUserCount();
-            const anonymousPlayerPercentage = userCount.playerCount > 0
-                ? ((userCount.anonymousPlayerCount / userCount.playerCount) * 100).toFixed(1)
+            const gameAndPlayerCounts = this.getGameAndPlayerCounts();
+            const anonymousPlayerPercentage = gameAndPlayerCounts.playerCount > 0
+                ? ((gameAndPlayerCounts.anonymousPlayerCount / gameAndPlayerCounts.playerCount) * 100).toFixed(1)
                 : '0.0';
-            const anonymousSpectatorPercentage = userCount.spectatorCount > 0
-                ? ((userCount.anonymousSpectatorCount / userCount.spectatorCount) * 100).toFixed(1)
+            const anonymousSpectatorPercentage = gameAndPlayerCounts.spectatorCount > 0
+                ? ((gameAndPlayerCounts.anonymousSpectatorCount / gameAndPlayerCounts.spectatorCount) * 100).toFixed(1)
                 : '0.0';
 
             // Log a standard human readable log
-            logger.info(`[PlayerStats] Total User Count: ${userCount.totalUserCount} | Player Count: ${userCount.playerCount} (${anonymousPlayerPercentage}% anon) | Spectator Count: ${userCount.spectatorCount} (${anonymousSpectatorPercentage}% anon)`);
+            logger.info(`[PlayerStats] ${gameAndPlayerCounts.totalUserCount} total users playing in ${gameAndPlayerCounts.totalGameCount} games | Player Count: ${gameAndPlayerCounts.playerCount} (${anonymousPlayerPercentage}% anon) | Spectator Count: ${gameAndPlayerCounts.spectatorCount} (${anonymousSpectatorPercentage}% anon)`);
 
             // Log this again in EMF format for CloudWatch custom metrics capture
-            jsonOnlyLogger.info(GameServerMetrics.playerCount(userCount.totalUserCount, userCount.spectatorCount));
+            jsonOnlyLogger.info(GameServerMetrics.gameAndPlayerCount(gameAndPlayerCounts.totalUserCount, gameAndPlayerCounts.spectatorCount, gameAndPlayerCounts.totalGameCount));
         } catch (error) {
             logger.error(`Error logging player stats: ${error}`);
         }

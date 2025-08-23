@@ -18,7 +18,8 @@ export const GAMESERVER_METRICS = {
     EventLoopDelayP99: 'Milliseconds',   // 99th percentile delay
     EventLoopDelayMax: 'Milliseconds',   // Maximum delay
     TotalUserCount: 'Count',             // Total number of users
-    SpectatorCount: 'Count'              // Spectator count
+    SpectatorCount: 'Count',             // Spectator count
+    TotalGameCount: 'Count'              // Total number of games (lobbies)
 } as const;
 
 export type GameServerMetricName = keyof typeof GAMESERVER_METRICS;
@@ -103,10 +104,11 @@ export namespace GameServerMetrics {
         });
     }
 
-    export function playerCount(totalUserCount: number, spectatorCount: number): EmfDocument {
+    export function gameAndPlayerCount(totalUserCount: number, spectatorCount: number, totalGameCount: number): EmfDocument {
         return create({
             TotalUserCount: totalUserCount,
-            SpectatorCount: spectatorCount
+            SpectatorCount: spectatorCount,
+            TotalGameCount: totalGameCount
         });
     }
 }
