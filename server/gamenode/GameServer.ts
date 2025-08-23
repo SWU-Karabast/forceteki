@@ -255,7 +255,7 @@ export class GameServer {
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
-        if (process.env.ENVIRONMENT !== 'development') {
+        if (process.env.ENVIRONMENT !== 'development' || process.env.FORCE_ENABLE_STATS_LOGGING === 'true') {
             // initialize cpu usage and event loop stats
             this.lastCpuUsage = process.cpuUsage();
             this.lastCpuUsageTime = process.hrtime.bigint();
@@ -271,6 +271,7 @@ export class GameServer {
                 this.logHeapStats();
                 this.logCpuUsage();
                 this.logEventLoopStats();
+                this.logPlayerStats();
             }, 30000);
         }
     }
@@ -867,6 +868,31 @@ export class GameServer {
         };
     }
 
+    private getUserCount() {
+        let playerCount = 0;
+        let spectatorCount = 0;
+        let anonymousPlayerCount = 0;
+        let anonymousSpectatorCount = 0;
+
+        for (const lobby of this.lobbies.values()) {
+            playerCount += lobby.users.length;
+            spectatorCount += lobby.spectators.length;
+
+            anonymousPlayerCount += lobby.users.filter((user) => user.socket?.user?.isAnonymousUser() === true).length;
+            anonymousSpectatorCount += lobby.spectators.filter((spectator) => spectator.socket?.user?.isAnonymousUser() === true).length;
+        }
+
+        const totalUserCount = playerCount + spectatorCount;
+
+        return {
+            totalUserCount,
+            playerCount,
+            spectatorCount,
+            anonymousPlayerCount,
+            anonymousSpectatorCount
+        };
+    }
+
     private lobbiesWithOpenSeat() {
         return new Map(
             Array.from(this.lobbies.entries()).filter(([, lobby]) =>
@@ -1418,6 +1444,26 @@ export class GameServer {
             this.loopDelayHistogram.reset();
         } catch (error) {
             logger.error(`Error logging event loop stats: ${error}`);
+        }
+    }
+
+    private logPlayerStats(): void {
+        try {
+            const userCount = this.getUserCount();
+            const anonymousPlayerPercentage = userCount.playerCount > 0
+                ? ((userCount.anonymousPlayerCount / userCount.playerCount) * 100).toFixed(1)
+                : '0.0';
+            const anonymousSpectatorPercentage = userCount.spectatorCount > 0
+                ? ((userCount.anonymousSpectatorCount / userCount.spectatorCount) * 100).toFixed(1)
+                : '0.0';
+
+            // Log a standard human readable log
+            logger.info(`[PlayerStats] Total User Count: ${userCount.totalUserCount} | Player Count: ${userCount.playerCount} (${anonymousPlayerPercentage}% anon) | Spectator Count: ${userCount.spectatorCount} (${anonymousSpectatorPercentage}% anon)`);
+
+            // Log this again in EMF format for CloudWatch custom metrics capture
+            jsonOnlyLogger.info(GameServerMetrics.playerCount(userCount.totalUserCount, userCount.spectatorCount));
+        } catch (error) {
+            logger.error(`Error logging player stats: ${error}`);
         }
     }
 }

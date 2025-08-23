@@ -10,12 +10,15 @@
  */
 
 // Essential GameServer metrics - focused on memory and heap compaction
+// Reminder: the first 10 custom metrics are free on AWS
 export const GAMESERVER_METRICS = {
     EventLoopUtilization: 'Percent',     // Event loop utilization percentage
     EventLoopDelayP50: 'Milliseconds',   // 50th percentile delay
     EventLoopDelayP90: 'Milliseconds',   // 90th percentile delay
     EventLoopDelayP99: 'Milliseconds',   // 99th percentile delay
     EventLoopDelayMax: 'Milliseconds',   // Maximum delay
+    TotalUserCount: 'Count',             // Total number of users
+    SpectatorCount: 'Count'              // Spectator count
 } as const;
 
 export type GameServerMetricName = keyof typeof GAMESERVER_METRICS;
@@ -97,6 +100,13 @@ export namespace GameServerMetrics {
             EventLoopDelayP90: Math.round(delayP90 * 10) / 10,
             EventLoopDelayP99: Math.round(delayP99 * 10) / 10,
             EventLoopDelayMax: Math.round(delayMax * 10) / 10
+        });
+    }
+
+    export function playerCount(totalUserCount: number, spectatorCount: number): EmfDocument {
+        return create({
+            TotalUserCount: totalUserCount,
+            SpectatorCount: spectatorCount
         });
     }
 }
