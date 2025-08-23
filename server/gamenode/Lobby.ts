@@ -21,6 +21,7 @@ import type { GameServer } from './GameServer';
 import { AlertType } from '../game/core/Constants';
 import { v4 as uuidv4 } from 'uuid';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
+import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 
 interface LobbySpectator {
     id: string;
@@ -1109,7 +1110,7 @@ export class Lobby {
             const gameMessages = this.game.getLogMessages();
             const opponent = this.users.find((u) => u.id !== socket.user.id);
             // Create bug report
-            const bugReport = this.server.bugReportHandler.createBugReport(
+            const bugReport = formatBugReport(
                 parsedDescription,
                 gameState,
                 socket.user,
@@ -1122,9 +1123,9 @@ export class Lobby {
             );
 
             // Send to Discord
-            const success = await this.server.bugReportHandler.sendBugReportToDiscord(bugReport, this.game.discordDispatcher);
+            const success = await this.game.discordDispatcher.formatAndSendBugReportAsync(bugReport);
             if (!success) {
-                throw new Error('Bug report failed to send to discord. No webhook configured');
+                throw new Error('Bug report failed to send to discord. See logs for details.');
             }
 
             // we find the user

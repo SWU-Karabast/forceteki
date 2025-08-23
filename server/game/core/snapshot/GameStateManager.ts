@@ -10,8 +10,6 @@ export interface IGameObjectRegistrar {
 }
 
 export class GameStateManager implements IGameObjectRegistrar {
-    private static readonly MaxServerErrorCount = 5;
-
     private readonly game: Game;
     private readonly gameObjectMapping = new Map<string, GameObjectBase>();
 
@@ -35,16 +33,11 @@ export class GameStateManager implements IGameObjectRegistrar {
         }
 
         const ref = this.gameObjectMapping.get(gameObjectRef.uuid);
-        let errorMessage = `Tried to get a Game Object but the UUID is not registered: ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
+        const errorMessage = `Tried to get a Game Object but the UUID is not registered: ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {
-            if (this.game.serverErrorCount < GameStateManager.MaxServerErrorCount) {
-                if (this.game.incrementServerErrorCount() === GameStateManager.MaxServerErrorCount) {
-                    errorMessage += ` Max server error count of ${GameStateManager.MaxServerErrorCount} reached, no more errors will be reported for Lobby ${this.game.lobbyId} with Game ID ${this.game.id}.`;
-                }
-                this.game.discordDispatcher.formatAndSendServerErrorAsync(errorMessage, error, this.game.lobbyId);
-            }
+            this.game.discordDispatcher.formatAndSendServerErrorAsync(errorMessage, error, this.game.lobbyId);
 
             throw error;
         }
