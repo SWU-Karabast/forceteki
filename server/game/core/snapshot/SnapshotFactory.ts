@@ -3,10 +3,11 @@ import type { GameStateManager } from './GameStateManager';
 import type { IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotArray } from './container/SnapshotArray';
-import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler, SnapshotContainerBase } from './container/SnapshotContainerBase';
+import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler } from './container/SnapshotContainerBase';
 import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { PhaseName } from '../Constants';
+import { MetaSnapshotArray } from './container/MetaSnapshotArray';
 import v8 from 'node:v8';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
@@ -33,6 +34,10 @@ export class SnapshotFactory {
 
     private lastAssignedSnapshotId = -1;
 
+    public get currentSnapshotId(): number | null {
+        return this.currentActionSnapshot?.id ?? null;
+    }
+
     public get currentSnapshottedAction(): number | null {
         return this.currentActionSnapshot?.actionNumber ?? null;
     }
@@ -43,10 +48,6 @@ export class SnapshotFactory {
 
     public get currentSnapshottedRound(): number | null {
         return this.currentActionSnapshot?.roundNumber ?? null;
-    }
-
-    public get currentSnapshotId(): number | null {
-        return this.currentActionSnapshot?.id ?? null;
     }
 
     public get currentSnapshottedTimepoint(): SnapshotTimepoint | null {
@@ -94,6 +95,12 @@ export class SnapshotFactory {
                 (snapshot: IGameSnapshot) => this.updateCurrentActionSnapshot(snapshot),
                 clearNewerSnapshotsBinding
             )
+        );
+    }
+
+    public createMetaSnapshotArray(): MetaSnapshotArray {
+        return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
+            new MetaSnapshotArray(clearNewerSnapshotsBinding)
         );
     }
 
@@ -159,7 +166,7 @@ export class SnapshotFactory {
     }
 
     /** Helper method for correctly building snapshot containers in a way that they can pass back a handle for calling the `clearNewerSnapshots()` method */
-    private createSnapshotContainerWithClearSnapshotsBinding<T extends SnapshotContainerBase>(
+    private createSnapshotContainerWithClearSnapshotsBinding<T>(
         containerCreateHandler: (clearNewerSnapshotsBinding: IClearNewerSnapshotsBinding) => T
     ): T {
         const clearNewerSnapshotsBinding: IClearNewerSnapshotsBinding = { clearNewerSnapshots: null };

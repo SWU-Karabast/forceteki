@@ -92,6 +92,7 @@ export interface ISnapshotProperties {
     roundNumber: number;
     actionNumber: number;
     currentPhase: PhaseName;
+    snapshotId: number;
 }
 
 export enum SnapshotTimepoint {

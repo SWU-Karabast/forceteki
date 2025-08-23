@@ -42,11 +42,26 @@ export abstract class SnapshotContainerBase {
     /** Delete any snapshots newer than the given snapshotId. Used with undo to remove snapshots that are now invalid. */
     protected abstract clearNewerSnapshots(snapshotId: number): void;
 
+    protected abstract getAllSnapshots(): IGameSnapshot[];
+
     /** Get properties of a snapshot without exposing the full snapshot object. */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public abstract getSnapshotProperties(...lookupArgs: any[]): ISnapshotProperties | null;
 
     public abstract clearAllSnapshots(): void;
+
+    public hasSnapshotId(snapshotId: number): boolean {
+        return this.getAllSnapshots().some((snapshot) => snapshot.id === snapshotId);
+    }
+
+    public rollbackById(snapshotId: number): number | null {
+        const snapshot = this.getAllSnapshots().find((s) => s.id === snapshotId);
+        if (snapshot) {
+            this.rollbackToSnapshotInternal(snapshot);
+            return snapshot.id;
+        }
+        return null;
+    }
 
     protected rollbackToSnapshotInternal(snapshot: IGameSnapshot): void {
         this.gameStateManager.rollbackToSnapshot(snapshot);
@@ -61,7 +76,8 @@ export abstract class SnapshotContainerBase {
         return {
             roundNumber: snapshot.roundNumber,
             actionNumber: snapshot.actionNumber,
-            currentPhase: snapshot.phase
+            currentPhase: snapshot.phase,
+            snapshotId: snapshot.id
         };
     }
 }

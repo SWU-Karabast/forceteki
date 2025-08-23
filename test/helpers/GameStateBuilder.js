@@ -5,6 +5,7 @@ const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const fs = require('fs');
 const { UnitTestCardDataGetter } = require('../../server/utils/cardData/UnitTestCardDataGetter');
+const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager');
 
 class GameStateBuilder {
     constructor() {
@@ -42,14 +43,16 @@ class GameStateBuilder {
      * @param {any} router
      * @param {PlayerInfo} player1Info
      * @param {PlayerInfo} player2Info
+     * @param {UndoMode} undoMode
      * @returns {Game}
      */
-    async setUpTestGameAsync(setupTestOptions, cardDataGetter, router, player1Info, player2Info) {
+    async setUpTestGameAsync(setupTestOptions, cardDataGetter, router, player1Info, player2Info, undoMode) {
         const gameFlowWrapper = new GameFlowWrapper(
             cardDataGetter,
             router,
             { id: player1Info.id, username: player1Info.username },
-            { id: player2Info.id, username: player2Info.username }
+            { id: player2Info.id, username: player2Info.username },
+            undoMode
         );
 
         const testContext = {};
