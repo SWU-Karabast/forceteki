@@ -42,7 +42,6 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     private static readonly MaxUndoErrorCount = 3;
     private readonly _bugReportWebhookUrl: string;
     private readonly _serverErrorWebhookUrl: string;
-    private _bugReportErrorCount = 0;
     private _serverErrorCount = 0;
     private _undoErrorCount = 0;
 
@@ -88,7 +87,6 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             return false;
         }
 
-        this._bugReportErrorCount++;
         // Truncate description if it's too long for Discord embeds
         const embedDescription = bugReport.description.length > 1024
             ? bugReport.description.substring(0, 1021) + '...'
