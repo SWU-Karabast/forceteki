@@ -34,7 +34,7 @@ export interface IDiscordDispatcher {
      * @param lobbyId The lobby ID associated with the error
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
-    formatAndSendServerErrorAsync(description: string, error: Error, lobbyId: string, ignoreCount: boolean): Promise<EitherPostResponseOrBoolean>;
+    formatAndSendServerErrorAsync(description: string, error: Error, lobbyId: string, ignoreCount?: boolean): Promise<EitherPostResponseOrBoolean>;
 }
 
 export class DiscordDispatcher implements IDiscordDispatcher {
