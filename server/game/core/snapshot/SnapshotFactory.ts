@@ -8,6 +8,7 @@ import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { PhaseName } from '../Constants';
 import { MetaSnapshotArray } from './container/MetaSnapshotArray';
+import v8 from 'node:v8';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
 export type IUpdateCurrentSnapshotHandler = (snapshot: IGameSnapshot) => void;
@@ -136,7 +137,7 @@ export class SnapshotFactory {
             roundNumber: this.game.roundNumber,
             timepoint,
             phase: this.game.currentPhase,
-            gameState: structuredClone(this.game.state),
+            gameState: v8.serialize(this.game.state),
             states: this.gameStateManager.buildGameStateForSnapshot(),
             rngState: this.game.randomGenerator.rngState
         };

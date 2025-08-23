@@ -1,4 +1,10 @@
-import type { IDeckDataEntity, IDeckStatsEntity, ILocalStorageDeckData, IMatchupStatEntity } from '../../services/DynamoDBInterfaces';
+import type {
+    IDeckDataEntity,
+    IDeckStatsEntity,
+    IFeMatchupStatEntity,
+    ILocalStorageDeckData,
+    IMatchupStatEntity
+} from '../../services/DynamoDBInterfaces';
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import type { User } from '../user/User';
@@ -12,6 +18,20 @@ import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
  */
 export class DeckService {
     private dbServicePromise = getDynamoDbServiceAsync();
+    private readonly baseMapping30 = {
+        aggression: '30hp-aggression-base',
+        command: '30hp-command-base',
+        cunning: '30hp-cunning-base',
+        vigilance: '30hp-vigilance-base'
+    };
+
+    private readonly baseMapping28 = {
+        aggression: '28hp-aggression-force-base',
+        command: '28hp-command-force-base',
+        cunning: '28hp-cunning-force-base',
+        vigilance: '28hp-vigilance-force-base'
+    };
+
 
     /**
      * Get all decks for a user with favorites first
@@ -336,20 +356,69 @@ export class DeckService {
             return Promise.resolve(deck);
         }
 
-        // Process each opponent stat
-        deck.stats.statsByMatchup = await Promise.all(
-            deck.stats.statsByMatchup.map(async (opponentStat) => {
-                // Try to find card IDs for the leader and base internal names
-                const leaderCardId = await cardDataGetter.getCardByNameAsync(opponentStat.leaderId);
-                const baseCardId = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);
+        // Create a map to aggregate stats by leader + base combination
+        const aggregatedStats = new Map<string, IFeMatchupStatEntity>();
+        for (const opponentStat of deck.stats.statsByMatchup) {
+            const leaderCard = await cardDataGetter.getCardByNameAsync(opponentStat.leaderId);
+            const baseCard = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);
 
-                // If conversion was successful, use the card IDs
-                Contract.assertNotNullLike(leaderCardId && baseCardId, `When converting match stats to for FE leaderCardId ${leaderCardId} and baseCardId ${baseCardId} are null`);
-                opponentStat.leaderId = leaderCardId.setId.set + '_' + leaderCardId.setId.number;
-                opponentStat.baseId = baseCardId.setId.set + '_' + baseCardId.setId.number;
-                return opponentStat;
-            })
-        );
+            Contract.assertNotNullLike(leaderCard || baseCard, `When converting match stats to for FE leaderCardId ${leaderCard} and baseCardId ${baseCard} are null`);
+
+            const convertedLeaderId = leaderCard.setId.set + '_' + leaderCard.setId.number;
+            const convertedLeaderMelee = leaderCard.title + `${leaderCard.subtitle ? ` | ${leaderCard.subtitle}` : ''}`;
+
+            const convertedBase = await this.convertBaseIdForStatsAsync(baseCard, cardDataGetter);
+
+            const matchupKey = `${convertedLeaderId}|${convertedBase.setId}`;
+
+            const existingStats = aggregatedStats.get(matchupKey);
+            if (existingStats) {
+                existingStats.wins += opponentStat.wins;
+                existingStats.losses += opponentStat.losses;
+                existingStats.draws += opponentStat.draws;
+            } else {
+                aggregatedStats.set(matchupKey, {
+                    leaderId: convertedLeaderId,
+                    leaderMelee: convertedLeaderMelee,
+                    baseId: convertedBase.setId,
+                    baseMelee: convertedBase.meleeId,
+                    wins: opponentStat.wins,
+                    losses: opponentStat.losses,
+                    draws: opponentStat.draws
+                });
+            }
+        }
+        // Convert the aggregated map back to an array
+        deck.stats.statsByMatchup = Array.from(aggregatedStats.values());
         return deck;
+    }
+
+    private async convertBaseIdForStatsAsync(baseCard: any, cardDataGetter: CardDataGetter): Promise<{ setId: string; meleeId: string }> {
+        const baseCardData = await cardDataGetter.getCardAsync(baseCard.id);
+
+        if (this.isBasicBase(baseCardData)) {
+            return this.createBasicBaseAggregatedId(baseCardData);
+        }
+        return { setId: baseCard.setId.set + '_' + baseCard.setId.number, meleeId: baseCardData.title + `${baseCardData.subtitle ? ` | ${baseCardData.subtitle}` : ''}` };
+    }
+
+    /**
+    * @param baseCardData The card data object of a basic 28hp force base and a 30hp force base
+    * @returns boolean True if this is a basic base
+    */
+    private isBasicBase(baseCardData: any): boolean {
+        const hp = baseCardData.hp;
+        return ((hp === 28 || hp === 30));
+    }
+
+    /**
+    * @param baseCardData The card data object
+    * @returns string The grouped identifier
+    */
+    private createBasicBaseAggregatedId(baseCardData: any): { setId: string; meleeId: string } {
+        const aspects = baseCardData.aspects || [];
+        const hp = baseCardData.hp;
+        const mapping = hp === 30 ? this.baseMapping30 : this.baseMapping28;
+        return { setId: mapping[aspects[0]], meleeId: mapping[aspects[0]] };
     }
 }

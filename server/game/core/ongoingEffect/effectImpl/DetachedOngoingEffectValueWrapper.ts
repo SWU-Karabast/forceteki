@@ -1,34 +1,23 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type Game from '../../Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
+import { registerState, undoMap } from '../../GameObjectUtils';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 
 export interface IDetachedOngoingEffectValueWrapperState extends IGameObjectBaseState {
-    targetStates: Map<string, GameObjectRef>;
+    targetStates: Record<string, GameObjectRef>;
 }
 
+@registerState()
 export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapper<TValue, IDetachedOngoingEffectValueWrapperState> {
     public readonly applyFunc: any;
     public readonly unapplyFunc: any;
 
+    @undoMap()
+    private accessor _targetStates: Map<string, GameObjectBase> = new Map();
+
     public get targetStates(): ReadonlyMap<string, GameObjectBase> {
-        const entries: [string, GameObjectBase][] = [];
-
-        for (const [key, ref] of this.state.targetStates) {
-            entries.push([key, this.game.getFromRef(ref)]);
-        }
-
-        return new Map(entries);
-    }
-
-    public set targetStates(value: Map<string, GameObjectBase>) {
-        const entries: [string, GameObjectRef][] = [];
-
-        for (const [key, gameObject] of value) {
-            entries.push([key, gameObject.getRef()]);
-        }
-
-        this.state.targetStates = new Map(entries);
+        return this._targetStates;
     }
 
     public constructor(
@@ -41,37 +30,25 @@ export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEf
         this.unapplyFunc = unapplyFunc;
     }
 
-    protected override setupDefaultState() {
-        super.setupDefaultState();
-        this.state.targetStates = new Map<string, GameObjectRef>();
-    }
-
     public override apply(target: any) {
-        const targetStates = this.targetStates;
-
-        const currentValue = targetStates.get(target.uuid);
+        const currentValue = this._targetStates.get(target.uuid);
         const newValue = this.applyFunc(target, this.context, currentValue);
-
-        this.targetStates = new Map(targetStates).set(target.uuid, newValue);
+        this._targetStates.set(target.uuid, newValue);
     }
 
     public override unapply(target: any) {
-        const targetStates = this.targetStates;
-
-        const currentValue = targetStates.get(target.uuid);
+        const currentValue = this._targetStates.get(target.uuid);
         const newValue = this.unapplyFunc(target, this.context, currentValue);
         if (newValue === undefined) {
-            const updatedStates = new Map(targetStates);
-            updatedStates.delete(target.uuid);
-            this.targetStates = updatedStates;
+            this._targetStates.delete(target.uuid);
         } else {
-            this.targetStates = new Map(targetStates).set(target.uuid, newValue);
+            this._targetStates.set(target.uuid, newValue);
         }
     }
 
     public override setContext(context: AbilityContext) {
         super.setContext(context);
-        for (const [_uuid, targetState] of this.targetStates) {
+        for (const [_uuid, targetState] of this._targetStates) {
             if (targetState && (targetState as any).context) {
                 (targetState as any).context = context;
             }

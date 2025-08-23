@@ -13,7 +13,7 @@ import type { StateWatcher } from './StateWatcher';
 @registerState()
 export class StateWatcherRegistrar extends GameObjectBase {
     @undoMap()
-    private accessor watchers: ReadonlyMap<string, StateWatcher> = new Map();
+    private accessor watchers: Map<string, StateWatcher> = new Map();
 
     public constructor(game: Game) {
         super(game);
@@ -32,8 +32,7 @@ export class StateWatcherRegistrar extends GameObjectBase {
         let watcher = this.watchers.get(name) as TWatcher;
         if (!watcher) {
             watcher = watcherFactory();
-            const watchers = new Map(this.watchers).set(name, watcher);
-            this.watchers = watchers;
+            this.watchers.set(name, watcher);
         }
         return watcher;
     }
