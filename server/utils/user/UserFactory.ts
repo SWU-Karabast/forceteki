@@ -328,7 +328,8 @@ export class UserFactory {
                 usernameLastUpdatedAt: new Date().toISOString(),
                 showWelcomeMessage: true,
                 preferences: getDefaultPreferences(),
-                needsUsernameChange: false
+                needsUsernameChange: false,
+                swuStatsRefreshToken: null
             };
 
             // Create OAuth link
@@ -385,6 +386,47 @@ export class UserFactory {
             return new AuthenticatedUser(updatedUserData);
         } catch (error) {
             logger.error('Error verifying JWT token:', { error: { message: error.message, stack: error.stack } });
+            throw error;
+        }
+    }
+
+    /**
+     * Add or update the SWUstats refresh token for a user.
+     * - Idempotent: calling again overwrites the old token.
+     * - Does NOT return the token.
+     */
+    public async linkSwuStatsAsync(userId: string, refreshToken: string): Promise<void> {
+        Contract.assertTrue(!!userId, 'userId is required');
+        Contract.assertTrue(!!refreshToken, 'refreshToken is required');
+        try {
+            const dbService = await this.dbServicePromise;
+            await dbService.updateUserProfileAsync(userId, {
+                swuStatsRefreshToken: refreshToken,
+            });
+        } catch (error: any) {
+            // don't log the token—ever
+            logger.error('Error linking SWUstats refresh token:', {
+                error: { message: error.message, stack: error.stack }, userId
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Remove the SWUstats refresh token (unlink account).
+     */
+    public async unlinkSwuStatsAsync(userId: string): Promise<void> {
+        Contract.assertTrue(!!userId, 'userId is required');
+
+        try {
+            const dbService = await this.dbServicePromise;
+            await dbService.updateUserProfileAsync(userId, {
+                swuStatsRefreshToken: null,
+            });
+        } catch (error: any) {
+            logger.error('Error unlinking SWUstats:', {
+                error: { message: error.message, stack: error.stack }, userId
+            });
             throw error;
         }
     }

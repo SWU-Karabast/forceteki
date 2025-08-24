@@ -1,28 +1,27 @@
 import Game from '../game/core/Game';
-import { v4 as uuid } from 'uuid';
+import {v4 as uuid, v4 as uuidv4} from 'uuid';
 import type Socket from '../socket';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
 import path from 'path';
-import { logger } from '../logger';
-import { GameChat } from '../game/core/chat/GameChat';
-import type { User } from '../utils/user/User';
-import type { IUser } from '../Settings';
-import { getUserWithDefaultsSet } from '../Settings';
-import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
-import { Deck } from '../utils/deck/Deck';
-import type { DeckValidator } from '../utils/deck/DeckValidator';
-import type { SwuGameFormat } from '../SwuGameFormat';
-import type { IDecklistInternal, IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
-import { ScoreType } from '../utils/deck/DeckInterfaces';
-import type { GameConfiguration } from '../game/core/GameInterfaces';
-import { GameMode } from '../GameMode';
-import type { GameServer } from './GameServer';
-import { AlertType } from '../game/core/Constants';
-import { v4 as uuidv4 } from 'uuid';
-import { UndoMode } from '../game/core/snapshot/SnapshotManager';
-import type { IDiscordDispatcher } from '../game/core/DiscordDispatcher';
-import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import {logger} from '../logger';
+import {GameChat} from '../game/core/chat/GameChat';
+import type {User} from '../utils/user/User';
+import type {IUser} from '../Settings';
+import {getUserWithDefaultsSet} from '../Settings';
+import type {CardDataGetter} from '../utils/cardData/CardDataGetter';
+import {Deck} from '../utils/deck/Deck';
+import type {DeckValidator} from '../utils/deck/DeckValidator';
+import {SwuGameFormat} from '../SwuGameFormat';
+import type {IDecklistInternal, IDeckValidationFailures} from '../utils/deck/DeckInterfaces';
+import {ScoreType} from '../utils/deck/DeckInterfaces';
+import type {GameConfiguration} from '../game/core/GameInterfaces';
+import {GameMode} from '../GameMode';
+import type {GameServer, ISwuStatsToken} from './GameServer';
+import {AlertType} from '../game/core/Constants';
+import {UndoMode} from '../game/core/snapshot/SnapshotManager';
+import type {IDiscordDispatcher} from '../game/core/DiscordDispatcher';
+import {DiscordDispatcher} from '../game/core/DiscordDispatcher';
 
 interface LobbySpectator {
     id: string;
@@ -47,7 +46,7 @@ export enum DeckSource {
     Unknown = 'unknown'
 }
 
-interface PlayerDetails {
+export interface PlayerDetails {
     user: User;
     deckID: string;
     deckLink: string;
@@ -55,6 +54,8 @@ interface PlayerDetails {
     leaderID: string;
     baseID: string;
     deck: IDecklistInternal;
+    swuStatsRefreshToken: string | null;
+    swuStatsToken: ISwuStatsToken;
 }
 
 export enum MatchType {
@@ -695,13 +696,14 @@ export class Lobby {
                         deckID: user.deck.id,
                         deckLink: user.decklist.deckLink,
                         deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
-                        deck: user.deck.getDecklist()
+                        deck: user.deck.getDecklist(),
+                        swuStatsRefreshToken: user.socket.user.getSwuStatsRefreshToken(),
+                        swuStatsToken: this.server.swuStatsTokenMapping.get(user.id),
                     });
                 }
             });
 
             await game.initialiseAsync();
-
             this.sendGameState(game);
         } catch (error) {
             if (this.gameType === MatchType.Quick) {
@@ -1014,18 +1016,18 @@ export class Lobby {
 
             logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${game.id}`);
 
-            /* const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
+            const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
                 this.playersDetails.find((u) => u.user.getId() === id)?.deckSource === DeckSource.SWUStats
             );
             // Send to SWUstats if handler is available
-            if (eitherFromSWUStats) {
+            if (eitherFromSWUStats && this.format === SwuGameFormat.Premier) {
                 await this.server.SwuStatsHandler.sendGameResultAsync(
                     game,
-                    this.playersDetails.find((u) => u.user.getId() === player1.id).deckLink,
-                    this.playersDetails.find((u) => u.user.getId() === player2.id).deckLink,
+                    player1User,
+                    player2User,
                 );
                 logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
-            }*/
+            }
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck stats:`, error);
         }

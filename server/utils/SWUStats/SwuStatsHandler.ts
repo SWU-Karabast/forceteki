@@ -4,6 +4,8 @@ import type { Player } from '../../game/core/Player';
 import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
+import type { PlayerDetails } from '../../gamenode/Lobby';
+import type { ISwuStatsToken } from '../../gamenode/GameServer';
 
 
 interface TurnResults {
@@ -36,6 +38,8 @@ interface SWUstatsGameResult {
     winnerHealth: number;
     player1: PlayerData;
     player2: PlayerData;
+    p1SWUStatsToken: string;
+    p2SWUStatsToken: string;
     p1DeckLink: string;
     p2DeckLink: string;
     p1id?: string;
@@ -60,17 +64,36 @@ interface PlayerData {
     turnResults?: TurnResults[];
 }
 
+interface OAuthTokenResponse {
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+    token_type?: string;
+    scope?: string;
+}
+
+
 export class SwuStatsHandler {
     private readonly apiUrl: string;
     private readonly apiKey: string;
+    private readonly clientId: string;
+    private readonly clientSecret: string;
+    private readonly tokenUrl: string;
 
     public constructor() {
         // Use environment variable for API URL, defaulting to the known endpoint
         this.apiUrl = 'https://swustats.net/TCGEngine/APIs/SubmitGameResult.php';
+        this.tokenUrl = 'https://swustats.net/TCGEngine/APIs/OAuth/token.php';
         this.apiKey = process.env.SWUSTATS_API_KEY;
+        this.clientId = process.env.SWUSTATS_CLIENT_ID;
+        this.clientSecret = process.env.SWUSTATS_CLIENT_SECRET;
+
         const isDev = process.env.ENVIRONMENT === 'development';
         if (!this.apiKey) {
             logger.warn('SWUStatsHandler: No API key configured. Stats may not be accepted by SWUstats.');
+        }
+        if (!this.clientId || !this.clientSecret) {
+            logger.warn('SWUStatsHandler: No OAuth client credentials configured. Token refresh will not be available.');
         }
         if (!isDev && (!this.apiUrl || !this.apiKey)) {
             throw new Error('SwuStatsHandler: No URL configured or apiKey for SWUStats.');
@@ -80,14 +103,14 @@ export class SwuStatsHandler {
     /**
      * Send game result to SWUstats API
      * @param game The completed game
-     * @param player1DeckId Player 1 deck ID
-     * @param player2DeckId Player 2 deck ID
+     * @param player1Details Details about player1
+     * @param player2Details Details about player2
      * @returns Promise that resolves to true if successful, false otherwise
      */
     public async sendGameResultAsync(
         game: Game,
-        player1DeckId: string,
-        player2DeckId: string,
+        player1Details: PlayerDetails,
+        player2Details: PlayerDetails,
     ): Promise<boolean> {
         try {
             const players = game.getPlayers();
@@ -106,16 +129,16 @@ export class SwuStatsHandler {
             }
 
             // Build the payload
-            const payload = this.buildGameResultPayload(
+            const payload = await this.buildGameResultPayloadAsync(
                 game,
                 player1,
                 player2,
-                player1DeckId,
-                player2DeckId,
+                player1Details,
+                player2Details,
                 winner
             );
             // Log the payload for debugging (excluding API key)
-            const { apiKey, ...payloadForLogging } = payload;
+            const { apiKey, p1SWUStatsToken, p2SWUStatsToken, ...payloadForLogging } = payload;
             logger.info(`Sending game result to SWUstats for game ${game.id}`, {
                 gameId: game.id,
                 payload: payloadForLogging
@@ -218,21 +241,21 @@ export class SwuStatsHandler {
     /**
      * Build the game result payload for SWUstats API
      */
-    private buildGameResultPayload(
+    private async buildGameResultPayloadAsync(
         game: Game,
         player1: Player,
         player2: Player,
-        player1DeckLink: string,
-        player2DeckLink: string,
+        player1Details: PlayerDetails,
+        player2Details: PlayerDetails,
         winner: number
-    ): SWUstatsGameResult {
-        const player1Data = this.buildPlayerData(player1, player2, player1DeckLink, game, winner, 1);
-        const player2Data = this.buildPlayerData(player2, player1, player2DeckLink, game, winner, 2);
+    ): Promise<SWUstatsGameResult> {
+        const player1Data = this.buildPlayerData(player1, player2, player1Details.deckLink, game, winner, 1);
+        const player2Data = this.buildPlayerData(player2, player1, player2Details.deckLink, game, winner, 2);
 
         const firstPlayer = player1Data.firstPlayer === 1 ? 1 : 2;
         const winHero = winner === 1 ? player1Data.leader : player2Data.leader;
         const loseHero = winner === 1 ? player2Data.leader : player1Data.leader;
-
+        const { p1AccessToken, p2AccessToken } = await this.getAccessTokensAsync(player1Details, player2Details);
         // Get winner's remaining health
         const winnerPlayer = winner === 1 ? player1 : player2;
         const winnerHealth = winnerPlayer.base?.remainingHp || 0;
@@ -241,15 +264,118 @@ export class SwuStatsHandler {
             apiKey: this.apiKey,
             winner,
             firstPlayer,
-            p1DeckLink: player1DeckLink,
-            p2DeckLink: player2DeckLink,
+            p1DeckLink: player1Details.deckLink,
+            p2DeckLink: player2Details.deckLink,
             player1: player1Data,
             player2: player2Data,
+            p1SWUStatsToken: p1AccessToken,
+            p2SWUStatsToken: p2AccessToken,
             round: player1Data.turns,
             winnerHealth,
             gameName: String(game.id),
             winHero,
             loseHero,
         };
+    }
+
+    /**
+     * Get access tokens for players who have refresh tokens
+     * @param player1Details Player 1 details
+     * @param player2Details Player 2 details
+     * @returns Promise that resolves to access tokens for each player
+     */
+    private async getAccessTokensAsync(
+        player1Details: PlayerDetails,
+        player2Details: PlayerDetails,
+    ): Promise<{ p1AccessToken: string | null; p2AccessToken: string | null }> {
+        const results = {
+            p1AccessToken: null,
+            p2AccessToken: null
+        };
+        // Handle Player1 swu token
+        if (player1Details.swuStatsToken && this.isTokenValid(player1Details.swuStatsToken)) {
+            results.p1AccessToken = player1Details.swuStatsToken.accessToken;
+            logger.info(`SWUStatsHandler: Using existing valid access token for player 1 (${player1Details.user.getId()})`);
+        } else if (player1Details.swuStatsRefreshToken) {
+            // Token is expired or doesn't exist, refresh it
+            logger.info(`SWUStatsHandler: Access token expired or missing for player 1 (${player1Details.user.getId()}), refreshing...`);
+            results.p1AccessToken = await this.refreshAccessToken(player1Details.swuStatsRefreshToken);
+        }
+
+        // Handle Player2 swu token
+        if (player2Details.swuStatsToken && this.isTokenValid(player2Details.swuStatsToken)) {
+            results.p2AccessToken = player2Details.swuStatsToken.accessToken;
+            logger.info(`SWUStatsHandler: Using existing valid access token for player 2 (${player2Details.user.getId()})`);
+        } else if (player2Details.swuStatsRefreshToken) {
+            logger.info(`SWUStatsHandler: Access token expired or missing for player 2 (${player2Details.user.getId()}), refreshing...`);
+            results.p2AccessToken = await this.refreshAccessToken(player2Details.swuStatsRefreshToken);
+        }
+        return results;
+    }
+
+    /**
+     * Check if an access token is still valid (not expired)
+     * @param token The token to check
+     * @returns True if token is valid, false if expired
+     */
+    public isTokenValid(token: ISwuStatsToken): boolean {
+        const now = new Date();
+        const tokenCreationTime = new Date(token.creationDateTime);
+        const tokenExpirationTime = new Date(tokenCreationTime.getTime() + (token.timeToLive * 1000)); // timeToLive is in seconds
+
+        // Add a small buffer (30 seconds) to avoid using tokens that are about to expire
+        const bufferTime = 30000;
+        const effectiveExpirationTime = new Date(tokenExpirationTime.getTime() - bufferTime);
+
+        const isValid = now < effectiveExpirationTime;
+
+        if (isValid) {
+            const remainingTime = Math.floor((effectiveExpirationTime.getTime() - now.getTime()) / 1000);
+            logger.info(`SWUStatsHandler: Token is valid, expires in ${remainingTime} seconds`);
+        } else {
+            logger.info('SWUStatsHandler: Token is expired or expires within 30 seconds');
+        }
+        return isValid;
+    }
+
+    /**
+     * Refresh an access token using a refresh token
+     * @param refreshToken The refresh token to use
+     * @returns Promise that resolves to the new access token, or null if refresh failed
+     */
+    private async refreshAccessToken(refreshToken: string): Promise<string | null> {
+        try {
+            if (!this.clientId || !this.clientSecret) {
+                logger.warn('SWUStatsHandler: Cannot refresh token - OAuth credentials not configured or missing refreshToken');
+                return null;
+            }
+            const formData = new URLSearchParams();
+            formData.append('grant_type', 'refresh_token');
+            formData.append('client_id', this.clientId);
+            formData.append('client_secret', this.clientSecret);
+            formData.append('refresh_token', refreshToken);
+
+            const response = await fetch(this.tokenUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                logger.error(`SWUStatsHandler: Token refresh failed: ${response.status} - ${errorText}`);
+                return null;
+            }
+            const tokenResponse = await response.json() as OAuthTokenResponse;
+            logger.info('SWUStatsHandler: Successfully refreshed access token');
+            return tokenResponse.access_token;
+        } catch (error) {
+            logger.error('SWUStatsHandler: Failed to refresh access token', {
+                error: { message: error.message, stack: error.stack }
+            });
+            return null;
+        }
     }
 }
