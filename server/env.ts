@@ -17,6 +17,8 @@ const parsedEnv = z
         DISCORD_ERROR_REPORT_WEBHOOK_URL: z.string().optional(),
         ADDITIONAL_CORS_ORIGINS: z.string().optional(),
         SWUSTATS_API_KEY: z.string().optional(),
+        SWUSTATS_CLIENT_ID: z.string().optional(),
+        SWUSTATS_CLIENT_SECRET: z.string().optional(),
     })
     .safeParse(process.env);
 
@@ -84,3 +86,5 @@ export const AWS_ACCESS_KEY_ID = parsedEnv.data.AWS_ACCESS_KEY_ID;
 export const AWS_SECRET_ACCESS_KEY = parsedEnv.data.AWS_SECRET_ACCESS_KEY;
 export const NEXTAUTH_SECRET = parsedEnv.data.NEXTAUTH_SECRET;
 export const SWUSTATS_API_KEY = parsedEnv.data.SWUSTATS_API_KEY;
+export const SWUSTATS_CLIENT_ID = parsedEnv.data.SWUSTATS_CLIENT_ID;
+export const SWUSTATS_CLIENT_SECRET = parsedEnv.data.SWUSTATS_CLIENT_SECRET;

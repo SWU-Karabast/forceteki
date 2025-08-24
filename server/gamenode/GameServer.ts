@@ -54,6 +54,12 @@ interface ILobbyMapping {
     lobbyId: string;
     role: UserRole;
 }
+export interface ISwuStatsToken {
+    accessToken: string;
+    refreshToken: string;
+    creationDateTime: Date;
+    timeToLive: number;
+}
 
 export class GameServer {
     public static async createAsync(): Promise<GameServer> {
@@ -104,6 +110,7 @@ export class GameServer {
     private readonly lobbies = new Map<string, Lobby>();
     private readonly playerMatchmakingDisconnectedTime = new Map<string, Date>();
     private readonly userLobbyMap = new Map<string, ILobbyMapping>();
+    public readonly swuStatsTokenMapping = new Map<string, ISwuStatsToken>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -118,6 +125,7 @@ export class GameServer {
     public readonly deckService: DeckService = new DeckService();
     public readonly bugReportHandler: BugReportHandler;
     public readonly SwuStatsHandler: SwuStatsHandler;
+    private tokenCleanupInterval?: NodeJS.Timeout;
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -173,6 +181,12 @@ export class GameServer {
         // check if NEXTAUTH variable is set
         const secret = process.env.NEXTAUTH_SECRET;
         Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
+
+        // TOKEN CLEANUP
+        this.tokenCleanupInterval = setInterval(() => {
+            this.cleanupInvalidTokens();
+        }, 3600000); // 1 hour
+        logger.info('GameServer: Token cleanup scheduled to run every hour');
 
         // Setup socket server
         this.io = new IOServer(server, {
@@ -335,7 +349,7 @@ export class GameServer {
                 //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
                 //     }
                 // }
-                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange() } });
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange(), hasSwuStatsRefreshToken: user.hasSwuStatsRefreshToken() } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
                 next(err);
@@ -459,6 +473,51 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (save-sound-preferences) Server error:', err);
+                next(err);
+            }
+        });
+
+        // This is called from the FE Node.js server hence why we do not need authentication.
+        app.post('/api/link-swustats', async (req, res, next) => {
+            try {
+                const { userId, swuStatsToken, internalApiKey } = req.body;
+                if (internalApiKey !== process.env.NEXTAUTH_SECRET) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Forbidden'
+                    });
+                }
+                await this.userFactory.linkSwuStatsAsync(userId, swuStatsToken.refreshToken);
+                // add token mapping
+                this.swuStatsTokenMapping.set(userId, swuStatsToken);
+                return res.status(200).json({
+                    success: true,
+                    message: 'Swu stats linked successfully'
+                });
+            } catch (err) {
+                logger.error('GameServer (link-swustats) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/unlink-swustats', authMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (unlink-swustats): Anonymous user ${user.getId()} attempted to change swustats setting in dynamodb`);
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Error attempting to unlink swu-stats'
+                    });
+                }
+                await this.userFactory.unlinkSwuStatsAsync(user.getId());
+                this.swuStatsTokenMapping.delete(user.getId());
+                return res.status(200).json({
+                    success: true,
+                    message: 'Swu stats unlinked successfully'
+                });
+            } catch (err) {
+                logger.error('GameServer (unlink-swustats) Server error:', err);
                 next(err);
             }
         });
@@ -1469,6 +1528,39 @@ export class GameServer {
             jsonOnlyLogger.info(GameServerMetrics.gameAndPlayerCount(gameAndPlayerCounts.totalUserCount, gameAndPlayerCounts.spectatorCount, gameAndPlayerCounts.totalGameCount));
         } catch (error) {
             logger.error(`Error logging player stats: ${error}`);
+        }
+    }
+
+    /**
+     * Clean up invalid/expired tokens from the user token map
+     */
+    private cleanupInvalidTokens(): void {
+        try {
+            const initialSize = this.swuStatsTokenMapping.size;
+            if (initialSize === 0) {
+                return;
+            }
+            let removedCount = 0;
+            // Iterate through all tokens and remove invalid ones
+            for (const [userId, token] of this.swuStatsTokenMapping.entries()) {
+                if (!this.SwuStatsHandler.isTokenValid(token)) {
+                    this.swuStatsTokenMapping.delete(userId);
+                    removedCount++;
+                    logger.info(`GameServer: Removed expired token for user ${userId}`);
+                }
+            }
+
+            const finalSize = this.swuStatsTokenMapping.size;
+
+            if (removedCount > 0) {
+                logger.info(`GameServer: Token cleanup completed - removed ${removedCount} expired tokens (${initialSize} → ${finalSize})`);
+            } else {
+                logger.info(`GameServer: Token cleanup completed - no expired tokens found (${finalSize} tokens remaining)`);
+            }
+        } catch (error) {
+            logger.error('GameServer: Error during token cleanup:', {
+                error: { message: error.message, stack: error.stack }
+            });
         }
     }
 }
