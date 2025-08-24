@@ -873,15 +873,17 @@ export class GameServer {
         let spectatorCount = 0;
         let anonymousPlayerCount = 0;
         let anonymousSpectatorCount = 0;
-
-        const totalGameCount = this.lobbies.size;
+        let totalGameCount = 0;
 
         for (const lobby of this.lobbies.values()) {
-            playerCount += lobby.users.length;
-            spectatorCount += lobby.spectators.length;
+            if (lobby.hasOngoingGame()) {
+                totalGameCount++;
+                playerCount += lobby.users.length;
+                spectatorCount += lobby.spectators.length;
 
-            anonymousPlayerCount += lobby.users.filter((user) => user.socket?.user?.isAnonymousUser() === true).length;
-            anonymousSpectatorCount += lobby.spectators.filter((spectator) => spectator.socket?.user?.isAnonymousUser() === true).length;
+                anonymousPlayerCount += lobby.users.filter((user) => user.socket?.user?.isAnonymousUser() === true).length;
+                anonymousSpectatorCount += lobby.spectators.filter((spectator) => spectator.socket?.user?.isAnonymousUser() === true).length;
+            }
         }
 
         const totalUserCount = playerCount + spectatorCount;
