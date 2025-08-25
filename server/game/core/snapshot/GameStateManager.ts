@@ -39,7 +39,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {
-            this.game.discordDispatcher.formatAndSendServerErrorAsync(errorMessage, error, this.game.lobbyId, true);
+            this.game.discordDispatcher.formatAndSendServerErrorAsync(errorMessage, error, this.game.lobbyId);
 
             throw error;
         }
