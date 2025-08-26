@@ -38,8 +38,12 @@ export interface IDiscordDispatcher {
 }
 
 export class DiscordDispatcher implements IDiscordDispatcher {
+    private static readonly MaxServerErrorCount = 3;
+    private static readonly MaxUndoErrorCount = 3;
     private readonly _bugReportWebhookUrl: string;
     private readonly _serverErrorWebhookUrl: string;
+    private _serverErrorCount = 0;
+    private _undoErrorCount = 0;
 
     public constructor() {
         this._bugReportWebhookUrl = process.env.DISCORD_BUG_REPORT_WEBHOOK_URL || '';
@@ -54,15 +58,35 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         }
     }
 
-    public formatAndSendBugReportAsync(bugReport: ISerializedReportState): Promise<string | boolean> {
+    public async formatAndSendBugReportAsync(bugReport: ISerializedReportState): Promise<EitherPostResponseOrBoolean> {
+        // Always log the bug report
+        const logData = {
+            lobbyId: bugReport.lobbyId,
+            reporterId: bugReport.reporter.id,
+            description: bugReport.description,
+            gameStateJson: JSON.stringify(bugReport.gameState, null, 0)
+        };
+
+        // Only add screen resolution and viewport to log if they exist
+        if (bugReport.screenResolution) {
+            Object.assign(logData, { screenResolution: bugReport.screenResolution });
+        }
+
+        if (bugReport.viewport) {
+            Object.assign(logData, { viewport: bugReport.viewport });
+        }
+
+        logger.info(`Bug report received from user ${bugReport.reporter.username}`, logData);
+
         if (!this._bugReportWebhookUrl) {
             // If no webhook URL is configured, just log it
             if (process.env.NODE_ENV !== 'test') {
                 logger.warn('Bug report could not be sent to Discord: No webhook URL configured for bug reports');
             }
 
-            return Promise.resolve(false);
+            return false;
         }
+
         // Truncate description if it's too long for Discord embeds
         const embedDescription = bugReport.description.length > 1024
             ? bugReport.description.substring(0, 1021) + '...'
@@ -153,10 +177,25 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         });
 
         // Send to Discord webhook with file attachment using our custom function
-        return httpPostFormData(this._bugReportWebhookUrl, formData);
+        try {
+            // Create Discord message content
+            await httpPostFormData(this._bugReportWebhookUrl, formData);
+
+            logger.info(`Bug report successfully sent to Discord from user ${bugReport.reporter.username}`, {
+                lobbyId: bugReport.lobbyId
+            });
+
+            return true;
+        } catch (error) {
+            logger.error('Failed to send bug report to Discord', {
+                error: { message: error.message, stack: error.stack },
+                lobbyId: bugReport.lobbyId
+            });
+            throw error;
+        }
     }
 
-    public formatAndSendUndoFailureReportAsync(undoFailure: ISerializedUndoFailureState): Promise<string | boolean> {
+    public formatAndSendUndoFailureReportAsync(undoFailure: ISerializedUndoFailureState): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
             if (process.env.NODE_ENV !== 'test') {
@@ -164,6 +203,13 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             }
             return Promise.resolve(false);
         }
+        if (this._undoErrorCount >= DiscordDispatcher.MaxUndoErrorCount) {
+            if (process.env.NODE_ENV !== 'test') {
+                logger.warn('Undo failure could not be sent to Discord: Maximum error count reached for undo failures');
+            }
+            return Promise.resolve(false);
+        }
+        this._undoErrorCount++;
 
         const embedDescription = 'Undo failed due to an unexpected error.';
         const fields = [
@@ -234,22 +280,20 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             }
             return Promise.resolve(false);
         }
+        if (this._serverErrorCount >= DiscordDispatcher.MaxServerErrorCount) {
+            if (process.env.NODE_ENV !== 'test') {
+                logger.warn('Server error could not be sent to Discord: Maximum error count reached for server errors');
+            }
+            return Promise.resolve(false);
+        }
+        this._serverErrorCount++;
 
         // Truncate description if it's too long for Discord embeds
         const embedDescription = description.length > 1024
             ? description.substring(0, 1021) + '...'
             : description;
-        // Truncate error stack if it's too long for Discord embeds
-        const embedErrorStack = error.stack?.length > 1024
-            ? error.stack.substring(0, 1021) + '...'
-            : error.stack;
 
         const fields = [
-            {
-                name: 'Server Error Deescription',
-                value: embedDescription,
-                inline: false,
-            },
             {
                 name: 'Lobby ID',
                 value: lobbyId,
@@ -258,11 +302,6 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             {
                 name: 'Error Message',
                 value: error.message,
-                inline: false,
-            },
-            {
-                name: 'Stack Trace',
-                value: embedErrorStack || 'No stack trace available',
                 inline: false,
             },
         ];
@@ -283,6 +322,12 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         const formData = new FormData();
         // Add the message payload
         formData.append('payload_json', JSON.stringify(data));
+
+        const fileName = `server-error-stack-trace-${lobbyId}-${new Date().getTime()}.txt`;
+        formData.append('files[0]', Buffer.from(error.stack || ''), {
+            filename: fileName,
+            contentType: 'text/plain',
+        });
 
         return httpPostFormData(this._serverErrorWebhookUrl, formData);
     }

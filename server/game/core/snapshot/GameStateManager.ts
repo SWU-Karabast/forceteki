@@ -3,7 +3,6 @@ import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../Gam
 import type { IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
-import { DiscordDispatcher } from '../DiscordDispatcher';
 import { to } from '../utils/TypeHelpers';
 import v8 from 'node:v8';
 
@@ -15,7 +14,6 @@ export interface IGameObjectRegistrar {
 export class GameStateManager implements IGameObjectRegistrar {
     private readonly game: Game;
     private readonly gameObjectMapping = new Map<string, GameObjectBase>();
-    private readonly discordDispatcher: DiscordDispatcher = new DiscordDispatcher();
 
     private allGameObjects: GameObjectBase[] = [];
 
@@ -41,7 +39,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {
-            this.discordDispatcher.formatAndSendServerErrorAsync(errorMessage, error, this.game.lobbyId);
+            this.game.discordDispatcher.formatAndSendServerErrorAsync(errorMessage, error, this.game.lobbyId);
 
             throw error;
         }
