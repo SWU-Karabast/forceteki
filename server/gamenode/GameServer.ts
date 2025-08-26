@@ -29,11 +29,9 @@ import * as Helpers from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
-import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
-
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -76,6 +74,8 @@ export class GameServer {
         const deckValidator = await DeckValidator.createAsync(cardDataGetter);
 
         console.log('SETUP: Card data downloaded.');
+        // increase stack trace limit for better error logging
+        Error.stackTraceLimit = 50;
 
         return new GameServer(
             cardDataGetter,
@@ -116,7 +116,6 @@ export class GameServer {
 
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
-    public readonly bugReportHandler: BugReportHandler;
     public readonly SwuStatsHandler: SwuStatsHandler;
 
     private constructor(
@@ -250,7 +249,6 @@ export class GameServer {
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
-        this.bugReportHandler = new BugReportHandler();
         this.SwuStatsHandler = new SwuStatsHandler();
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);

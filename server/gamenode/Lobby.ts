@@ -21,8 +21,7 @@ import type { GameServer } from './GameServer';
 import { AlertType } from '../game/core/Constants';
 import { v4 as uuidv4 } from 'uuid';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
-import type { IDiscordDispatcher } from '../game/core/DiscordDispatcher';
-import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 
 interface LobbySpectator {
     id: string;
@@ -69,6 +68,8 @@ export interface RematchRequest {
 }
 
 export class Lobby {
+    private static readonly MaxGameMessageErrors = 100;
+
     private readonly _id: string;
     private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
@@ -79,7 +80,6 @@ export class Lobby {
     private readonly testGameBuilder?: any;
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
-    private readonly discordDispatcher: IDiscordDispatcher = new DiscordDispatcher();
 
     private game?: Game;
     public users: LobbyUser[] = [];
@@ -895,11 +895,11 @@ export class Lobby {
         let maxErrorCountExceeded = false;
 
         this.gameMessageErrorCount++;
-        if (this.gameMessageErrorCount > 100) {
+        if (this.gameMessageErrorCount > Lobby.MaxGameMessageErrors) {
             logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
             severeGameMessage = true;
             maxErrorCountExceeded = true;
-            this.discordDispatcher.formatAndSendServerErrorAsync(`Maximum error count ${this.gameMessageErrorCount} exceeded, game halted to prevent server crash`, error, this.id)
+            game.discordDispatcher.formatAndSendServerErrorAsync(`Maximum error count ${Lobby.MaxGameMessageErrors} exceeded, game halted to prevent server crash`, error, this.id)
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
         }
 
@@ -1113,7 +1113,7 @@ export class Lobby {
             const gameMessages = this.game.getLogMessages();
             const opponent = this.users.find((u) => u.id !== socket.user.id);
             // Create bug report
-            const bugReport = this.server.bugReportHandler.createBugReport(
+            const bugReport = formatBugReport(
                 parsedDescription,
                 gameState,
                 socket.user,
@@ -1126,9 +1126,9 @@ export class Lobby {
             );
 
             // Send to Discord
-            const success = await this.server.bugReportHandler.sendBugReportToDiscord(bugReport);
+            const success = await this.game.discordDispatcher.formatAndSendBugReportAsync(bugReport);
             if (!success) {
-                throw new Error('Bug report failed to send to discord. No webhook configured');
+                throw new Error('Bug report failed to send to discord. See logs for details.');
             }
 
             // we find the user

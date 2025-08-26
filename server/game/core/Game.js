@@ -226,7 +226,7 @@ class Game extends EventEmitter {
         /** @private @readonly @type {Lobby} */
         this._router = options.router;
 
-        /** @private @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
+        /** @public @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
         this.discordDispatcher = new DiscordDispatcher();
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
