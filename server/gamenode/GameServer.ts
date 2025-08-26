@@ -74,6 +74,8 @@ export class GameServer {
         const deckValidator = await DeckValidator.createAsync(cardDataGetter);
 
         console.log('SETUP: Card data downloaded.');
+        // increase stack trace limit for better error logging
+        Error.stackTraceLimit = 50;
 
         return new GameServer(
             cardDataGetter,

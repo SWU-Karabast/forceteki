@@ -295,11 +295,6 @@ export class DiscordDispatcher implements IDiscordDispatcher {
 
         const fields = [
             {
-                name: 'Server Error Description',
-                value: embedDescription,
-                inline: false,
-            },
-            {
                 name: 'Lobby ID',
                 value: lobbyId,
                 inline: true,
