@@ -876,7 +876,7 @@ export class GameServer {
         let totalGameCount = 0;
 
         for (const lobby of this.lobbies.values()) {
-            if (lobby.hasOngoingGame()) {
+            if (lobby.hasOngoingGame() && lobby.getGamePreview()) {
                 totalGameCount++;
                 playerCount += lobby.users.length;
                 spectatorCount += lobby.spectators.length;

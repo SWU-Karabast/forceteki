@@ -509,6 +509,8 @@ export class Lobby {
         }
     }
 
+    // TODO: right now "this.game === null" has a special meaning that this lobby already had a game and is either rematching or being
+    // cleaned up. we need to refactor so that "null" doesn't have a special meaning separate from "undefined".
     public hasOngoingGame(): boolean {
         return this.game !== undefined;
     }
