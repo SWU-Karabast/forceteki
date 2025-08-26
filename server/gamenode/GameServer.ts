@@ -58,7 +58,7 @@ export interface ISwuStatsToken {
     accessToken: string;
     refreshToken: string;
     creationDateTime: Date;
-    timeToLive: number;
+    timeToLiveSeconds: number;
 }
 
 export class GameServer {
@@ -125,7 +125,7 @@ export class GameServer {
     public readonly deckService: DeckService = new DeckService();
     public readonly bugReportHandler: BugReportHandler;
     public readonly SwuStatsHandler: SwuStatsHandler;
-    private tokenCleanupInterval?: NodeJS.Timeout;
+    private readonly tokenCleanupInterval: NodeJS.Timeout;
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -182,11 +182,13 @@ export class GameServer {
         const secret = process.env.NEXTAUTH_SECRET;
         Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
 
+        const interserverSecret = process.env.INTERSERVER_SECRET;
+        Contract.assertTrue(!!interserverSecret, 'INTERSERVER_SECRET environment variable must be set and not empty for SWUstats OAuth to work');
+
         // TOKEN CLEANUP
         this.tokenCleanupInterval = setInterval(() => {
             this.cleanupInvalidTokens();
         }, 3600000); // 1 hour
-        logger.info('GameServer: Token cleanup scheduled to run every hour');
 
         // Setup socket server
         this.io = new IOServer(server, {
@@ -481,7 +483,7 @@ export class GameServer {
         app.post('/api/link-swustats', async (req, res, next) => {
             try {
                 const { userId, swuStatsToken, internalApiKey } = req.body;
-                if (internalApiKey !== process.env.NEXTAUTH_SECRET) {
+                if (internalApiKey !== process.env.INTERSERVER_SECRET) {
                     return res.status(403).json({
                         success: false,
                         message: 'Forbidden'
@@ -492,7 +494,7 @@ export class GameServer {
                 this.swuStatsTokenMapping.set(userId, swuStatsToken);
                 return res.status(200).json({
                     success: true,
-                    message: 'Swu stats linked successfully'
+                    message: 'SWUStats linked successfully'
                 });
             } catch (err) {
                 logger.error('GameServer (link-swustats) Server error:', err);
@@ -514,7 +516,7 @@ export class GameServer {
                 this.swuStatsTokenMapping.delete(user.getId());
                 return res.status(200).json({
                     success: true,
-                    message: 'Swu stats unlinked successfully'
+                    message: 'SWUStats unlinked successfully'
                 });
             } catch (err) {
                 logger.error('GameServer (unlink-swustats) Server error:', err);
@@ -1537,9 +1539,6 @@ export class GameServer {
     private cleanupInvalidTokens(): void {
         try {
             const initialSize = this.swuStatsTokenMapping.size;
-            if (initialSize === 0) {
-                return;
-            }
             let removedCount = 0;
             // Iterate through all tokens and remove invalid ones
             for (const [userId, token] of this.swuStatsTokenMapping.entries()) {

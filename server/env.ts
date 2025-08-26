@@ -19,6 +19,7 @@ const parsedEnv = z
         SWUSTATS_API_KEY: z.string().optional(),
         SWUSTATS_CLIENT_ID: z.string().optional(),
         SWUSTATS_CLIENT_SECRET: z.string().optional(),
+        INTERSERVER_SECRET: z.string().optional(),
     })
     .safeParse(process.env);
 
@@ -88,3 +89,4 @@ export const NEXTAUTH_SECRET = parsedEnv.data.NEXTAUTH_SECRET;
 export const SWUSTATS_API_KEY = parsedEnv.data.SWUSTATS_API_KEY;
 export const SWUSTATS_CLIENT_ID = parsedEnv.data.SWUSTATS_CLIENT_ID;
 export const SWUSTATS_CLIENT_SECRET = parsedEnv.data.SWUSTATS_CLIENT_SECRET;
+export const INTERSERVER_SECRET = parsedEnv.data.INTERSERVER_SECRET;

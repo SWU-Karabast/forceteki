@@ -92,8 +92,8 @@ export class SwuStatsHandler {
         if (!this.apiKey) {
             logger.warn('SWUStatsHandler: No API key configured. Stats may not be accepted by SWUstats.');
         }
-        if (!this.clientId || !this.clientSecret) {
-            logger.warn('SWUStatsHandler: No OAuth client credentials configured. Token refresh will not be available.');
+        if (!isDev && (!this.clientId || !this.clientSecret)) {
+            throw new Error('SWUStatsHandler: No OAuth client credentials configured.');
         }
         if (!isDev && (!this.apiUrl || !this.apiKey)) {
             throw new Error('SwuStatsHandler: No URL configured or apiKey for SWUStats.');
@@ -255,7 +255,8 @@ export class SwuStatsHandler {
         const firstPlayer = player1Data.firstPlayer === 1 ? 1 : 2;
         const winHero = winner === 1 ? player1Data.leader : player2Data.leader;
         const loseHero = winner === 1 ? player2Data.leader : player1Data.leader;
-        const { p1AccessToken, p2AccessToken } = await this.getAccessTokensAsync(player1Details, player2Details);
+        const p1SWUStatsToken = await this.getAccessTokenAsync(player1Details);
+        const p2SWUStatsToken = await this.getAccessTokenAsync(player2Details);
         // Get winner's remaining health
         const winnerPlayer = winner === 1 ? player1 : player2;
         const winnerHealth = winnerPlayer.base?.remainingHp || 0;
@@ -268,8 +269,8 @@ export class SwuStatsHandler {
             p2DeckLink: player2Details.deckLink,
             player1: player1Data,
             player2: player2Data,
-            p1SWUStatsToken: p1AccessToken,
-            p2SWUStatsToken: p2AccessToken,
+            p1SWUStatsToken,
+            p2SWUStatsToken,
             round: player1Data.turns,
             winnerHealth,
             gameName: String(game.id),
@@ -280,35 +281,21 @@ export class SwuStatsHandler {
 
     /**
      * Get access tokens for players who have refresh tokens
-     * @param player1Details Player 1 details
-     * @param player2Details Player 2 details
      * @returns Promise that resolves to access tokens for each player
+     * @param playerDetails details on the player id, deckId, decklist etc...
      */
-    private async getAccessTokensAsync(
-        player1Details: PlayerDetails,
-        player2Details: PlayerDetails,
-    ): Promise<{ p1AccessToken: string | null; p2AccessToken: string | null }> {
-        const results = {
-            p1AccessToken: null,
-            p2AccessToken: null
-        };
+    private async getAccessTokenAsync(
+        playerDetails: PlayerDetails,
+    ): Promise<string> {
+        let results = null;
         // Handle Player1 swu token
-        if (player1Details.swuStatsToken && this.isTokenValid(player1Details.swuStatsToken)) {
-            results.p1AccessToken = player1Details.swuStatsToken.accessToken;
-            logger.info(`SWUStatsHandler: Using existing valid access token for player 1 (${player1Details.user.getId()})`);
-        } else if (player1Details.swuStatsRefreshToken) {
+        if (playerDetails.swuStatsToken && this.isTokenValid(playerDetails.swuStatsToken)) {
+            results = playerDetails.swuStatsToken.accessToken;
+            logger.info(`SWUStatsHandler: Using existing valid access token for player 1 (${playerDetails.user.getId()})`);
+        } else if (playerDetails.swuStatsRefreshToken) {
             // Token is expired or doesn't exist, refresh it
-            logger.info(`SWUStatsHandler: Access token expired or missing for player 1 (${player1Details.user.getId()}), refreshing...`);
-            results.p1AccessToken = await this.refreshAccessToken(player1Details.swuStatsRefreshToken);
-        }
-
-        // Handle Player2 swu token
-        if (player2Details.swuStatsToken && this.isTokenValid(player2Details.swuStatsToken)) {
-            results.p2AccessToken = player2Details.swuStatsToken.accessToken;
-            logger.info(`SWUStatsHandler: Using existing valid access token for player 2 (${player2Details.user.getId()})`);
-        } else if (player2Details.swuStatsRefreshToken) {
-            logger.info(`SWUStatsHandler: Access token expired or missing for player 2 (${player2Details.user.getId()}), refreshing...`);
-            results.p2AccessToken = await this.refreshAccessToken(player2Details.swuStatsRefreshToken);
+            logger.info(`SWUStatsHandler: Access token expired or missing for player 1 (${playerDetails.user.getId()}), refreshing...`);
+            results = await this.refreshAccessTokenAsync(playerDetails.swuStatsRefreshToken);
         }
         return results;
     }
@@ -321,11 +308,11 @@ export class SwuStatsHandler {
     public isTokenValid(token: ISwuStatsToken): boolean {
         const now = new Date();
         const tokenCreationTime = new Date(token.creationDateTime);
-        const tokenExpirationTime = new Date(tokenCreationTime.getTime() + (token.timeToLive * 1000)); // timeToLive is in seconds
+        const tokenExpirationTime = new Date(tokenCreationTime.getTime() + (token.timeToLiveSeconds * 1000)); // timeToLive is in seconds
 
-        // Add a small buffer (30 seconds) to avoid using tokens that are about to expire
-        const bufferTime = 30000;
-        const effectiveExpirationTime = new Date(tokenExpirationTime.getTime() - bufferTime);
+        // Add a small buffer (5 min) to avoid using tokens that are about to expire
+        const bufferTimeMs = 5 * 60000;
+        const effectiveExpirationTime = new Date(tokenExpirationTime.getTime() - bufferTimeMs);
 
         const isValid = now < effectiveExpirationTime;
 
@@ -343,7 +330,7 @@ export class SwuStatsHandler {
      * @param refreshToken The refresh token to use
      * @returns Promise that resolves to the new access token, or null if refresh failed
      */
-    private async refreshAccessToken(refreshToken: string): Promise<string | null> {
+    private async refreshAccessTokenAsync(refreshToken: string): Promise<string | null> {
         try {
             if (!this.clientId || !this.clientSecret) {
                 logger.warn('SWUStatsHandler: Cannot refresh token - OAuth credentials not configured or missing refreshToken');
