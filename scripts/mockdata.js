@@ -214,6 +214,24 @@ const mockCards = [
         internalName: 'furtive-handmaiden',
     }),
     buildMockCard({
+        title: 'Chopper',
+        subtitle: 'War Hero',
+        power: 4,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'droid', 'spectre'],
+        setId: {
+            set: 'SEC',
+            number: 147
+        },
+        cost: 2,
+        unique: false,
+        arena: 'ground',
+        internalName: 'chopper#war-hero',
+    }),
+    buildMockCard({
         title: 'Anakin Skywalker',
         subtitle: 'Secret Husband',
         power: 3,
