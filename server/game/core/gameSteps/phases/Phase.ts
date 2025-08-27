@@ -72,11 +72,34 @@ export abstract class Phase extends BaseStepWithPipeline {
 
     protected endPhase(skipEventWindow = false): void {
         if (!skipEventWindow) {
-            this.game.createEventAndOpenWindow(EventName.OnPhaseEnded, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => this.game.currentPhase = null);
+            // reset trackers indicating if a player has been prompted
+            this.game.resetPromptedPlayersTracking();
+
+            this.game.createEventAndOpenWindow(
+                EventName.OnPhaseEnded,
+                null,
+                { phase: this.name },
+                TriggerHandlingMode.ResolvesTriggers,
+                () => this.game.currentPhase = null
+            );
+
+            // checks if a player was prompted during the end step and if so, takes a snapshot so they can unwind to the prompt
+            this.game.queueSimpleStep(() => this.takeEndOfPhaseSnapshotsForPromptedPlayers(), 'takeEndOfPhaseSnapshotsForPromptedPlayers');
 
             // for post-phase state cleanup. emit directly, don't need a window.
             this.game.emit(EventName.OnPhaseEndedCleanup, { phase: this.name });
         }
+    }
+
+    private takeEndOfPhaseSnapshotsForPromptedPlayers(): void {
+        // for (const player of this.game.getPlayers()) {
+        //     if (this.game.hasBeenPrompted(player)) {
+        //         this.game.snapshotManager.takeSnapshot({
+        //             type: SnapshotType.Action,
+        //             playerId: player.id
+        //         });
+        //     }
+        // }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

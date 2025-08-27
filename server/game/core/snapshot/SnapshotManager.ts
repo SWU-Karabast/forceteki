@@ -248,12 +248,14 @@ export class SnapshotManager {
         const player = this.game.getPlayerById(playerId);
         const playerPromptType = player.promptState.promptType;
 
+        const currentOpenPrompt = this.game.getCurrentOpenPrompt();
+
         // if we're currently in resource selection and the player has already clicked "done", we'll roll back to start of resource selection
         if (
             this.game.currentPhase === PhaseName.Regroup &&
             playerPromptType === PromptType.Resource &&
-            this.game.currentOpenPrompt.isAllPlayerPrompt() &&
-            this.game.currentOpenPrompt.completionCondition(player)
+            currentOpenPrompt.isAllPlayerPrompt() &&
+            currentOpenPrompt.completionCondition(player)
         ) {
             return QuickRollbackPoint.Current;
         }

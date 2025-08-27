@@ -38,8 +38,8 @@ export abstract class UiPrompt extends BaseStep {
 
     public override continue(): boolean {
         if (this.firstContinue) {
-            this.previousPrompt = this.game.currentOpenPrompt;
-            this.game.currentOpenPrompt = this;
+            this.previousPrompt = this.game.getCurrentOpenPrompt();
+            this.game.setCurrentOpenPrompt(this);
 
             for (const player of this.game.getPlayers()) {
                 this.playerIsNewlyActive.set(player, !player.activeForPreviousPrompt);
@@ -69,7 +69,7 @@ export abstract class UiPrompt extends BaseStep {
 
     public complete(): void {
         this.completed = true;
-        this.game.currentOpenPrompt = this.previousPrompt;
+        this.game.setCurrentOpenPrompt(this.previousPrompt);
     }
 
     public override onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
@@ -114,7 +114,7 @@ export abstract class UiPrompt extends BaseStep {
         }
     }
 
-    protected activeCondition(player: Player): boolean {
+    public activeCondition(player: Player): boolean {
         return true;
     }
 

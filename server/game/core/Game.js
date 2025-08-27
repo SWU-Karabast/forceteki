@@ -54,6 +54,7 @@ const { Randomness } = require('../core/Randomness.js');
 const { RollbackEntryPointType } = require('./snapshot/SnapshotInterfaces.js');
 const { Lobby } = require('../../gamenode/Lobby.js');
 const { DiscordDispatcher } = require('./DiscordDispatcher.js');
+const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -189,14 +190,6 @@ class Game extends EventEmitter {
         this.currentlyResolving.eventWindow = value;
     }
 
-    get currentOpenPrompt() {
-        return this.currentlyResolving.openPrompt;
-    }
-
-    set currentOpenPrompt(value) {
-        this.currentlyResolving.openPrompt = value;
-    }
-
     get lastEventId() {
         return this.state.lastGameEventId;
     }
@@ -245,6 +238,8 @@ class Game extends EventEmitter {
         this.statsUpdated = false;
         this.playStarted = false;
         this.createdAt = new Date();
+
+        this.playerHasBeenPrompted = new Map();
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
@@ -947,6 +942,31 @@ class Game extends EventEmitter {
         if (player) {
             player.shuffleDeck(context);
         }
+    }
+
+    getCurrentOpenPrompt() {
+        return this.currentlyResolving.openPrompt;
+    }
+
+    /** @param {UiPrompt | null} currentPrompt */
+    setCurrentOpenPrompt(currentPrompt) {
+        if (currentPrompt) {
+            for (const player of this.getPlayers()) {
+                if (currentPrompt.activeCondition(player)) {
+                    this.playerHasBeenPrompted.set(player.id, true);
+                }
+            }
+        }
+
+        this.currentlyResolving.openPrompt = currentPrompt;
+    }
+
+    resetPromptedPlayersTracking() {
+        this.playerHasBeenPrompted.clear();
+    }
+
+    hasBeenPrompted(player) {
+        return !!this.playerHasBeenPrompted.get(player.id);
     }
 
     /**
