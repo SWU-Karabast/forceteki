@@ -97,6 +97,7 @@ export interface ISnapshotProperties {
 
 export enum SnapshotTimepoint {
     StartOfPhase = 'startOfPhase',
+    EndOfPhase = 'endOfPhase',
     Action = 'action',
     Mulligan = 'mulligan',
     Resource = 'resource',

@@ -92,14 +92,14 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     private takeEndOfPhaseSnapshotsForPromptedPlayers(): void {
-        // for (const player of this.game.getPlayers()) {
-        //     if (this.game.hasBeenPrompted(player)) {
-        //         this.game.snapshotManager.takeSnapshot({
-        //             type: SnapshotType.Action,
-        //             playerId: player.id
-        //         });
-        //     }
-        // }
+        for (const player of this.game.getPlayers()) {
+            if (this.game.hasBeenPrompted(player)) {
+                this.game.snapshotManager.takeSnapshot({
+                    type: SnapshotType.Action,
+                    playerId: player.id
+                });
+            }
+        }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
