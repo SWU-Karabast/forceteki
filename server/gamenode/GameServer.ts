@@ -181,8 +181,12 @@ export class GameServer {
         const secret = process.env.NEXTAUTH_SECRET;
         Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
 
-        const interserverSecret = process.env.INTERSERVER_SECRET;
-        Contract.assertTrue(!!interserverSecret, 'INTERSERVER_SECRET environment variable must be set and not empty for SWUstats OAuth to work');
+        const interserverSecret = process.env.INTRASERVICE_SECRET;
+        if (process.env.ENVIRONMENT !== 'development') {
+            Contract.assertTrue(!!interserverSecret, 'INTRASERVICE_SECRET environment variable must be set and not empty for SWUstats OAuth to work');
+        } else {
+            logger.warn('INTRASERVICE_SECRET environment variable must be set and not empty for SWUstats OAuth to work');
+        }
 
         // TOKEN CLEANUP
         this.tokenCleanupInterval = setInterval(() => {
@@ -265,7 +269,7 @@ export class GameServer {
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
-        this.SwuStatsHandler = new SwuStatsHandler();
+        this.SwuStatsHandler = new SwuStatsHandler(this.userFactory);
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
@@ -481,13 +485,14 @@ export class GameServer {
         app.post('/api/link-swustats', async (req, res, next) => {
             try {
                 const { userId, swuStatsToken, internalApiKey } = req.body;
-                if (internalApiKey !== process.env.INTERSERVER_SECRET) {
+                if (internalApiKey !== process.env.INTRASERVICE_SECRET) {
                     return res.status(403).json({
                         success: false,
                         message: 'Forbidden'
                     });
                 }
-                await this.userFactory.linkSwuStatsAsync(userId, swuStatsToken.refreshToken);
+                const newRefreshToken = await this.SwuStatsHandler.refreshTokensAsync(swuStatsToken.refreshToken);
+                await this.userFactory.addSwuStatsRefreshTokenAsync(userId, newRefreshToken.refresh_token);
                 // add token mapping
                 this.swuStatsTokenMapping.set(userId, swuStatsToken);
                 return res.status(200).json({

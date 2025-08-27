@@ -395,7 +395,7 @@ export class UserFactory {
      * - Idempotent: calling again overwrites the old token.
      * - Does NOT return the token.
      */
-    public async linkSwuStatsAsync(userId: string, refreshToken: string): Promise<void> {
+    public async addSwuStatsRefreshTokenAsync(userId: string, refreshToken: string): Promise<void> {
         Contract.assertTrue(!!userId, 'userId is required');
         Contract.assertTrue(!!refreshToken, 'refreshToken is required');
         try {
@@ -404,7 +404,6 @@ export class UserFactory {
                 swuStatsRefreshToken: refreshToken,
             });
         } catch (error: any) {
-            // don't log the token—ever
             logger.error('Error linking SWUstats refresh token:', {
                 error: { message: error.message, stack: error.stack }, userId
             });

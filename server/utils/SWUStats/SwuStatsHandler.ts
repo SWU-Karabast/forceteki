@@ -6,6 +6,7 @@ import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
 import type { PlayerDetails } from '../../gamenode/Lobby';
 import type { ISwuStatsToken } from '../../gamenode/GameServer';
+import type { UserFactory } from '../user/UserFactory';
 
 
 interface TurnResults {
@@ -66,7 +67,7 @@ interface PlayerData {
 
 interface OAuthTokenResponse {
     access_token: string;
-    refresh_token?: string;
+    refresh_token: string;
     expires_in?: number;
     token_type?: string;
     scope?: string;
@@ -79,14 +80,16 @@ export class SwuStatsHandler {
     private readonly clientId: string;
     private readonly clientSecret: string;
     private readonly tokenUrl: string;
+    private readonly userFactory: UserFactory;
 
-    public constructor() {
+    public constructor(userFactory) {
         // Use environment variable for API URL, defaulting to the known endpoint
         this.apiUrl = 'https://swustats.net/TCGEngine/APIs/SubmitGameResult.php';
         this.tokenUrl = 'https://swustats.net/TCGEngine/APIs/OAuth/token.php';
         this.apiKey = process.env.SWUSTATS_API_KEY;
         this.clientId = process.env.SWUSTATS_CLIENT_ID;
         this.clientSecret = process.env.SWUSTATS_CLIENT_SECRET;
+        this.userFactory = userFactory;
 
         const isDev = process.env.ENVIRONMENT === 'development';
         if (!this.apiKey) {
@@ -105,17 +108,19 @@ export class SwuStatsHandler {
      * @param game The completed game
      * @param player1Details Details about player1
      * @param player2Details Details about player2
+     * @param lobbyId the lobby id
      * @returns Promise that resolves to true if successful, false otherwise
      */
     public async sendGameResultAsync(
         game: Game,
         player1Details: PlayerDetails,
         player2Details: PlayerDetails,
+        lobbyId: string,
     ): Promise<boolean> {
         try {
             const players = game.getPlayers();
             if (players.length !== 2) {
-                logger.info(`Cannot send SWUstats for game with ${players.length} players`);
+                logger.info(`Cannot send SWUstats for game with ${players.length} players`, { lobbyId });
                 return false;
             }
 
@@ -124,7 +129,7 @@ export class SwuStatsHandler {
             // Determine winner
             const winner = this.determineWinner(game, player1, player2);
             if (winner === 0) {
-                logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUstats`);
+                logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUstats`, { lobbyId });
                 return false;
             }
 
@@ -135,11 +140,13 @@ export class SwuStatsHandler {
                 player2,
                 player1Details,
                 player2Details,
-                winner
+                winner,
+                lobbyId,
             );
             // Log the payload for debugging (excluding API key)
             const { apiKey, p1SWUStatsToken, p2SWUStatsToken, ...payloadForLogging } = payload;
             logger.info(`Sending game result to SWUstats for game ${game.id}`, {
+                lobbyId,
                 gameId: game.id,
                 payload: payloadForLogging
             });
@@ -153,16 +160,16 @@ export class SwuStatsHandler {
             });
             if (!response.ok) {
                 const errorText = await response.text();
-                logger.error(`SWUstats API returned error: ${response.status} - ${errorText}`);
+                logger.error(`SWUstats API returned error: ${response.status} - ${errorText}`, { lobbyId });
                 return false;
             }
-
-            logger.info(`Successfully sent game result to SWUstats for game ${game.id}`);
+            logger.info(`Successfully sent game result to SWUstats for game ${game.id}`, { lobbyId });
             return true;
         } catch (error) {
             logger.error('Failed to send game result to SWUstats', {
                 error: { message: error.message, stack: error.stack },
-                gameId: game?.id
+                gameId: game?.id,
+                lobbyId
             });
             throw new Error('Failed to send game result to SWUstats');
         }
@@ -247,7 +254,8 @@ export class SwuStatsHandler {
         player2: Player,
         player1Details: PlayerDetails,
         player2Details: PlayerDetails,
-        winner: number
+        winner: number,
+        lobbyId: string,
     ): Promise<SWUstatsGameResult> {
         const player1Data = this.buildPlayerData(player1, player2, player1Details.deckLink, game, winner, 1);
         const player2Data = this.buildPlayerData(player2, player1, player2Details.deckLink, game, winner, 2);
@@ -255,8 +263,8 @@ export class SwuStatsHandler {
         const firstPlayer = player1Data.firstPlayer === 1 ? 1 : 2;
         const winHero = winner === 1 ? player1Data.leader : player2Data.leader;
         const loseHero = winner === 1 ? player2Data.leader : player1Data.leader;
-        const p1SWUStatsToken = await this.getAccessTokenAsync(player1Details);
-        const p2SWUStatsToken = await this.getAccessTokenAsync(player2Details);
+        const p1SWUStatsToken = await this.getAccessTokenAsync(player1Details, lobbyId);
+        const p2SWUStatsToken = await this.getAccessTokenAsync(player2Details, lobbyId);
         // Get winner's remaining health
         const winnerPlayer = winner === 1 ? player1 : player2;
         const winnerHealth = winnerPlayer.base?.remainingHp || 0;
@@ -283,19 +291,23 @@ export class SwuStatsHandler {
      * Get access tokens for players who have refresh tokens
      * @returns Promise that resolves to access tokens for each player
      * @param playerDetails details on the player id, deckId, decklist etc...
+     * @param lobbyId
      */
     private async getAccessTokenAsync(
         playerDetails: PlayerDetails,
+        lobbyId: string
     ): Promise<string> {
         let results = null;
-        // Handle Player1 swu token
+        // Handle Player swu token
         if (playerDetails.swuStatsToken && this.isTokenValid(playerDetails.swuStatsToken)) {
             results = playerDetails.swuStatsToken.accessToken;
-            logger.info(`SWUStatsHandler: Using existing valid access token for player 1 (${playerDetails.user.getId()})`);
+            logger.info(`SWUStatsHandler: Using existing valid access token for player (${playerDetails.user.getId()})`, { lobbyId, userId: playerDetails.user.getId() });
         } else if (playerDetails.swuStatsRefreshToken) {
             // Token is expired or doesn't exist, refresh it
-            logger.info(`SWUStatsHandler: Access token expired or missing for player 1 (${playerDetails.user.getId()}), refreshing...`);
-            results = await this.refreshAccessTokenAsync(playerDetails.swuStatsRefreshToken);
+            logger.info(`SWUStatsHandler: Access token expired or missing for player (${playerDetails.user.getId()}), refreshing...`, { lobbyId, userId: playerDetails.user.getId() });
+            const resultTokens = await this.refreshTokensAsync(playerDetails.swuStatsRefreshToken);
+            results = resultTokens.access_token;
+            await this.userFactory.addSwuStatsRefreshTokenAsync(playerDetails.user.getId(), resultTokens.refresh_token);
         }
         return results;
     }
@@ -308,7 +320,7 @@ export class SwuStatsHandler {
     public isTokenValid(token: ISwuStatsToken): boolean {
         const now = new Date();
         const tokenCreationTime = new Date(token.creationDateTime);
-        const tokenExpirationTime = new Date(tokenCreationTime.getTime() + (token.timeToLiveSeconds * 1000)); // timeToLive is in seconds
+        const tokenExpirationTime = new Date(tokenCreationTime.getTime() + (token.timeToLiveSeconds * 1000));
 
         // Add a small buffer (5 min) to avoid using tokens that are about to expire
         const bufferTimeMs = 5 * 60000;
@@ -330,7 +342,7 @@ export class SwuStatsHandler {
      * @param refreshToken The refresh token to use
      * @returns Promise that resolves to the new access token, or null if refresh failed
      */
-    private async refreshAccessTokenAsync(refreshToken: string): Promise<string | null> {
+    public async refreshTokensAsync(refreshToken: string): Promise<OAuthTokenResponse> {
         try {
             if (!this.clientId || !this.clientSecret) {
                 logger.warn('SWUStatsHandler: Cannot refresh token - OAuth credentials not configured or missing refreshToken');
@@ -357,7 +369,7 @@ export class SwuStatsHandler {
             }
             const tokenResponse = await response.json() as OAuthTokenResponse;
             logger.info('SWUStatsHandler: Successfully refreshed access token');
-            return tokenResponse.access_token;
+            return tokenResponse;
         } catch (error) {
             logger.error('SWUStatsHandler: Failed to refresh access token', {
                 error: { message: error.message, stack: error.stack }

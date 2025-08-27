@@ -1027,6 +1027,7 @@ export class Lobby {
                     game,
                     player1User,
                     player2User,
+                    this.id
                 );
                 logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
             }
