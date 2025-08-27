@@ -10,7 +10,7 @@ import { getHeapStatistics } from 'v8';
 import { freemem, cpus } from 'os';
 import { monitorEventLoopDelay, performance, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
 
-import { logger } from '../logger';
+import { logger, jsonOnlyLogger } from '../logger';
 
 import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
@@ -29,10 +29,9 @@ import * as Helpers from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
-import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
-
+import { GameServerMetrics } from '../utils/GameServerMetrics';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -75,6 +74,8 @@ export class GameServer {
         const deckValidator = await DeckValidator.createAsync(cardDataGetter);
 
         console.log('SETUP: Card data downloaded.');
+        // increase stack trace limit for better error logging
+        Error.stackTraceLimit = 50;
 
         return new GameServer(
             cardDataGetter,
@@ -115,7 +116,6 @@ export class GameServer {
 
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
-    public readonly bugReportHandler: BugReportHandler;
     public readonly SwuStatsHandler: SwuStatsHandler;
 
     private constructor(
@@ -249,12 +249,11 @@ export class GameServer {
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
-        this.bugReportHandler = new BugReportHandler();
         this.SwuStatsHandler = new SwuStatsHandler();
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
-        if (process.env.ENVIRONMENT !== 'development') {
+        if (process.env.ENVIRONMENT !== 'development' || process.env.FORCE_ENABLE_STATS_LOGGING === 'true') {
             // initialize cpu usage and event loop stats
             this.lastCpuUsage = process.cpuUsage();
             this.lastCpuUsageTime = process.hrtime.bigint();
@@ -270,6 +269,7 @@ export class GameServer {
                 this.logHeapStats();
                 this.logCpuUsage();
                 this.logEventLoopStats();
+                this.logPlayerStats();
             }, 30000);
         }
     }
@@ -843,20 +843,56 @@ export class GameServer {
 
     private getOngoingGamesData() {
         const ongoingGames = [];
+        let numberOfOngoingGames = 0;
 
         // Loop through all lobbies and check if they have an ongoing game
         for (const lobby of this.lobbies.values()) {
             if (lobby.hasOngoingGame()) {
                 const gameState = lobby.getGamePreview();
                 if (gameState) {
-                    ongoingGames.push(gameState);
+                    numberOfOngoingGames++;
+
+                    // don't show entries for private games
+                    if (lobby.gameType !== MatchType.Private) {
+                        ongoingGames.push(gameState);
+                    }
                 }
             }
         }
 
         return {
-            numberOfOngoingGames: ongoingGames.length,
+            numberOfOngoingGames,
             ongoingGames
+        };
+    }
+
+    private getGameAndPlayerCounts() {
+        let playerCount = 0;
+        let spectatorCount = 0;
+        let anonymousPlayerCount = 0;
+        let anonymousSpectatorCount = 0;
+        let totalGameCount = 0;
+
+        for (const lobby of this.lobbies.values()) {
+            if (lobby.hasOngoingGame() && lobby.getGamePreview()) {
+                totalGameCount++;
+                playerCount += lobby.users.length;
+                spectatorCount += lobby.spectators.length;
+
+                anonymousPlayerCount += lobby.users.filter((user) => user.socket?.user?.isAnonymousUser() === true).length;
+                anonymousSpectatorCount += lobby.spectators.filter((spectator) => spectator.socket?.user?.isAnonymousUser() === true).length;
+            }
+        }
+
+        const totalUserCount = playerCount + spectatorCount;
+
+        return {
+            totalGameCount,
+            totalUserCount,
+            playerCount,
+            spectatorCount,
+            anonymousPlayerCount,
+            anonymousSpectatorCount
         };
     }
 
@@ -1395,17 +1431,42 @@ export class GameServer {
             const currentUtilization = performance.eventLoopUtilization();
             const deltaUtilization = performance.eventLoopUtilization(currentUtilization, this.lastLoopUtilization);
 
-            const eventLoopPercent = (deltaUtilization.utilization * 100).toFixed(1);
-            const loopDelayMinMs = (this.loopDelayHistogram.min / 1e6).toFixed(1);
-            const loopDelayP50Ms = (this.loopDelayHistogram.percentile(50) / 1e6).toFixed(1);
-            const loopDelayP90Ms = (this.loopDelayHistogram.percentile(90) / 1e6).toFixed(1);
-            const loopDelayMaxMs = (this.loopDelayHistogram.max / 1e6).toFixed(1);
-            logger.info(`[EventLoopStats] Event Loop Utilization: ${eventLoopPercent}% | Event Loop Duration (ms): min: ${loopDelayMinMs}, P50: ${loopDelayP50Ms}, P90: ${loopDelayP90Ms}, max: ${loopDelayMaxMs}`);
+            const eventLoopPercent = deltaUtilization.utilization * 100;
+            const loopDelayP50Ms = this.loopDelayHistogram.percentile(50) / 1e6;
+            const loopDelayP90Ms = this.loopDelayHistogram.percentile(90) / 1e6;
+            const loopDelayP99Ms = this.loopDelayHistogram.percentile(99) / 1e6;
+            const loopDelayMaxMs = this.loopDelayHistogram.max / 1e6;
+
+            // Log a standard human readable log
+            logger.info(`[EventLoopStats] Event Loop Utilization: ${eventLoopPercent.toFixed(1)}% | Event Loop Duration (ms): P50: ${loopDelayP50Ms.toFixed(1)}, P90: ${loopDelayP90Ms.toFixed(1)}, P99: ${loopDelayP99Ms.toFixed(1)}, max: ${loopDelayMaxMs.toFixed(1)}`);
+
+            // Log this again in EMF format for CloudWatch metrics capture
+            jsonOnlyLogger.info(GameServerMetrics.eventLoopPerformance(eventLoopPercent, loopDelayP50Ms, loopDelayP90Ms, loopDelayP99Ms, loopDelayMaxMs));
 
             this.lastLoopUtilization = currentUtilization;
             this.loopDelayHistogram.reset();
         } catch (error) {
             logger.error(`Error logging event loop stats: ${error}`);
+        }
+    }
+
+    private logPlayerStats(): void {
+        try {
+            const gameAndPlayerCounts = this.getGameAndPlayerCounts();
+            const anonymousPlayerPercentage = gameAndPlayerCounts.playerCount > 0
+                ? ((gameAndPlayerCounts.anonymousPlayerCount / gameAndPlayerCounts.playerCount) * 100).toFixed(1)
+                : '0.0';
+            const anonymousSpectatorPercentage = gameAndPlayerCounts.spectatorCount > 0
+                ? ((gameAndPlayerCounts.anonymousSpectatorCount / gameAndPlayerCounts.spectatorCount) * 100).toFixed(1)
+                : '0.0';
+
+            // Log a standard human readable log
+            logger.info(`[PlayerStats] ${gameAndPlayerCounts.totalUserCount} total users playing in ${gameAndPlayerCounts.totalGameCount} games | Player Count: ${gameAndPlayerCounts.playerCount} (${anonymousPlayerPercentage}% anon) | Spectator Count: ${gameAndPlayerCounts.spectatorCount} (${anonymousSpectatorPercentage}% anon)`);
+
+            // Log this again in EMF format for CloudWatch custom metrics capture
+            jsonOnlyLogger.info(GameServerMetrics.gameAndPlayerCount(gameAndPlayerCounts.totalUserCount, gameAndPlayerCounts.spectatorCount, gameAndPlayerCounts.totalGameCount));
+        } catch (error) {
+            logger.error(`Error logging player stats: ${error}`);
         }
     }
 }

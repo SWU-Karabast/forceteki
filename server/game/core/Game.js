@@ -226,7 +226,7 @@ class Game extends EventEmitter {
         /** @private @readonly @type {Lobby} */
         this._router = options.router;
 
-        /** @private @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
+        /** @public @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
         this.discordDispatcher = new DiscordDispatcher();
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
@@ -1151,10 +1151,21 @@ class Game extends EventEmitter {
      * @param {RollbackSetupEntryPoint | null} rollbackEntryPoint
      */
     initializePipelineForSetup(rollbackEntryPoint = null) {
-        const setupPhaseInitializeMode =
-            rollbackEntryPoint === RollbackSetupEntryPoint.StartOfSetupPhase
-                ? PhaseInitializeMode.RollbackToStartOfPhase
-                : PhaseInitializeMode.Normal;
+        let setupPhaseInitializeMode;
+
+        switch (rollbackEntryPoint) {
+            case RollbackSetupEntryPoint.StartOfSetupPhase:
+                setupPhaseInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
+                break;
+            case RollbackSetupEntryPoint.WithinSetupPhase:
+                setupPhaseInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
+                break;
+            case null:
+                setupPhaseInitializeMode = PhaseInitializeMode.Normal;
+                break;
+            default:
+                Contract.fail(`Unknown rollback entry point: ${rollbackEntryPoint}`);
+        }
 
         const setupPhaseStep = [
             new SetupPhase(this, this.snapshotManager, setupPhaseInitializeMode)

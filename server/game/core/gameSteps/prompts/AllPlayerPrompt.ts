@@ -8,6 +8,10 @@ export abstract class AllPlayerPrompt extends UiPrompt {
         return !this.completionCondition(player);
     }
 
+    public override isAllPlayerPrompt(): this is AllPlayerPrompt {
+        return true;
+    }
+
     public override isComplete() {
         return this.game.getPlayers().every((player) => this.completionCondition(player));
     }

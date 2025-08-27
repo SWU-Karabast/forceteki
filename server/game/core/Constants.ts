@@ -535,4 +535,5 @@ export enum RollbackRoundEntryPoint {
 
 export enum RollbackSetupEntryPoint {
     StartOfSetupPhase = 'startOfSetupPhase',
+    WithinSetupPhase = 'withinSetupPhase',
 }

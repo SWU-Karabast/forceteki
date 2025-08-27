@@ -37,16 +37,51 @@ describe('Snapshot types', function() {
 
                 const { context } = contextRef;
 
+                context.game.setRandomSeed(123456);
+
                 // Determine the first player
                 context.selectInitiativePlayer(context.player1);
 
                 // Draw starting hands
                 expect(context.player1.handSize).toBe(6);
                 expect(context.player2.handSize).toBe(6);
+                expect(context.player1.hand.map((card) => card.internalName)).toEqual([
+                    'battlefield-marine',
+                    'moment-of-peace',
+                    'collections-starhopper',
+                    'moment-of-peace',
+                    'chewbacca#pykesbane',
+                    'moment-of-peace',
+                ]);
+                expect(context.player2.hand.map((card) => card.internalName)).toEqual([
+                    'atst',
+                    'atst',
+                    'wampa',
+                    'atst',
+                    'atst',
+                    'moisture-farmer',
+                ]);
 
                 // Choose whether to take a mulligan
                 context.player1.clickPrompt('Mulligan');
                 context.player2.clickPrompt('Keep');
+
+                expect(context.player1.hand.map((card) => card.internalName)).toEqual([
+                    'armed-to-the-teeth',
+                    'collections-starhopper',
+                    'battlefield-marine',
+                    'chewbacca#pykesbane',
+                    'moment-of-peace',
+                    'battlefield-marine',
+                ]);
+                expect(context.player2.hand.map((card) => card.internalName)).toEqual([
+                    'atst',
+                    'atst',
+                    'wampa',
+                    'atst',
+                    'atst',
+                    'moisture-farmer',
+                ]);
 
                 // Resource two cards
                 context.player1.clickFirstCardInHand();
@@ -55,6 +90,15 @@ describe('Snapshot types', function() {
                 context.player2.clickFirstCardInHand();
                 context.player2.clickCard(context.player2.hand[1]);
                 context.player2.clickDone();
+
+                expect(context.player1.resources.map((card) => card.internalName)).toEqual([
+                    'armed-to-the-teeth',
+                    'collections-starhopper',
+                ]);
+                expect(context.player2.resources.map((card) => card.internalName)).toEqual([
+                    'atst',
+                    'atst',
+                ]);
 
                 // Start of the action phase
                 expect(context.player1).toBeActivePlayer();
@@ -65,8 +109,51 @@ describe('Snapshot types', function() {
                 expect(context.game.initiativePlayer).toBeNull();
                 expect(context.player1.handSize).toBe(0);
                 expect(context.player2.handSize).toBe(0);
-                expect(context.player1.deckSize).toBe(11);
-                expect(context.player2.deckSize).toBe(11);
+                expect(context.player1.deck.length).toBe(11);
+                expect(context.player2.deck.length).toBe(11);
+            };
+
+            const assertSetupPhaseBeforeMulliganState = (context) => {
+                expect(context.game.initiativePlayer).toBe(context.player1Object);
+                expect(context.player1.hand.map((card) => card.internalName)).toEqual([
+                    'battlefield-marine',
+                    'moment-of-peace',
+                    'collections-starhopper',
+                    'moment-of-peace',
+                    'chewbacca#pykesbane',
+                    'moment-of-peace',
+                ]);
+                expect(context.player2.hand.map((card) => card.internalName)).toEqual([
+                    'atst',
+                    'atst',
+                    'wampa',
+                    'atst',
+                    'atst',
+                    'moisture-farmer',
+                ]);
+                expect(context.player1.deck.length).toBe(5);
+                expect(context.player2.deck.length).toBe(5);
+            };
+
+            const assertSetupPhaseBeforeResourceState = (context) => {
+                expect(context.player1.hand.map((card) => card.internalName)).toEqual([
+                    'armed-to-the-teeth',
+                    'collections-starhopper',
+                    'battlefield-marine',
+                    'chewbacca#pykesbane',
+                    'moment-of-peace',
+                    'battlefield-marine',
+                ]);
+                expect(context.player2.hand.map((card) => card.internalName)).toEqual([
+                    'atst',
+                    'atst',
+                    'wampa',
+                    'atst',
+                    'atst',
+                    'moisture-farmer',
+                ]);
+                expect(context.player1.resources.length).toBe(0);
+                expect(context.player2.resources.length).toBe(0);
             };
 
             describe('phase snapshots', function () {
@@ -89,6 +176,183 @@ describe('Snapshot types', function() {
                     expect(context.player2.handSize).toBe(6);
                 });
             });
+
+            describe('action snapshots', function () {
+                it('player 1 can revert back to before the mulligan', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        actionOffset: -2, // -2 because player 1 has the initiative
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertSetupPhaseBeforeMulliganState(context);
+
+                    const beforeMulliganHand = context.player1.hand;
+                    const beforePlayer2Hand = context.player2.hand;
+                    context.player1.clickPrompt('Mulligan');
+                    context.player2.clickPrompt('Keep');
+
+                    expect(beforeMulliganHand).not.toEqual(context.player1.hand);
+                    expect(beforePlayer2Hand).toEqual(context.player2.hand);
+                });
+
+                it('player 2 can revert back to before the mulligan', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player2.id,
+                        actionOffset: -1, // -1 because player 2 has not the initiative
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertSetupPhaseBeforeMulliganState(context);
+
+                    const beforeMulliganHand = context.player1.hand;
+                    const beforePlayer2Hand = context.player2.hand;
+                    context.player1.clickPrompt('Keep');
+                    context.player2.clickPrompt('Mulligan');
+
+                    expect(beforeMulliganHand).toEqual(context.player1.hand);
+                    expect(beforePlayer2Hand).not.toEqual(context.player2.hand);
+                });
+
+                it('player 1 can revert back to before resourcing', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        actionOffset: -1, // -1 because player 1 has the initiative
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertSetupPhaseBeforeResourceState(context);
+
+                    context.player1.clickFirstCardInHand();
+                    context.player1.clickCard(context.player1.hand[1]);
+                    context.player1.clickDone();
+                    context.player2.clickFirstCardInHand();
+                    context.player2.clickCard(context.player2.hand[1]);
+                    context.player2.clickDone();
+
+                    expect(context.player1.resources.map((card) => card.internalName)).toEqual([
+                        'armed-to-the-teeth',
+                        'collections-starhopper',
+                    ]);
+                    expect(context.player2.resources.map((card) => card.internalName)).toEqual([
+                        'atst',
+                        'atst',
+                    ]);
+                });
+
+                it('player 2 can revert back to before resourcing', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player2.id,
+                        actionOffset: 0, // 0 because player 2 has not the initiative
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertSetupPhaseBeforeResourceState(context);
+
+                    context.player1.clickFirstCardInHand();
+                    context.player1.clickCard(context.player1.hand[1]);
+                    context.player1.clickDone();
+                    context.player2.clickFirstCardInHand();
+                    context.player2.clickCard(context.player2.hand[1]);
+                    context.player2.clickDone();
+
+                    expect(context.player1.resources.map((card) => card.internalName)).toEqual([
+                        'armed-to-the-teeth',
+                        'collections-starhopper',
+                    ]);
+                    expect(context.player2.resources.map((card) => card.internalName)).toEqual([
+                        'atst',
+                        'atst',
+                    ]);
+                });
+            });
+        });
+
+        describe('Within the setup phase,', function() {
+            it('can revert back from resourcing to mulligan', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'setup',
+                    player1: {
+                        deck: ['armed-to-the-teeth',
+                            'collections-starhopper',
+                            'covert-strength',
+                            'chewbacca#pykesbane',
+                            'battlefield-marine',
+                            'battlefield-marine',
+                            'battlefield-marine',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                            'moment-of-peace',
+                        ],
+                    },
+                    player2: {
+                        deck: [
+                            'moisture-farmer',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'wampa',
+                            'atst',
+                            'atst',
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.game.setRandomSeed(123456);
+
+                // Determine the first player
+                context.selectInitiativePlayer(context.player1);
+
+                // Draw starting hands
+                expect(context.player1.handSize).toBe(6);
+                expect(context.player2.handSize).toBe(6);
+                const player1StartingHand = context.player1.hand;
+                const player2StartingHand = context.player2.hand;
+
+                // Choose whether to take a mulligan
+                context.player1.clickPrompt('Mulligan');
+                context.player2.clickPrompt('Keep');
+
+                expect(context.player1.hand).not.toEqual(player1StartingHand);
+                expect(context.player2.hand).toEqual(player2StartingHand);
+
+                // Rollback to the mulligan step
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player2.id,
+                    actionOffset: -1,
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(context.player1.hand).toEqual(player1StartingHand);
+                expect(context.player2.hand).toEqual(player2StartingHand);
+
+                // Choose whether to take a mulligan
+                context.player1.clickPrompt('Keep');
+                context.player2.clickPrompt('Mulligan');
+
+                expect(context.player1.hand).toEqual(player1StartingHand);
+                expect(context.player2.hand).not.toEqual(player2StartingHand);
+            });
         });
 
         describe('During the action phase,', function() {
@@ -96,7 +360,7 @@ describe('Snapshot types', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['death-trooper'],
+                        hand: ['death-trooper', 'daring-raid'],
                         groundArena: ['secretive-sage'],
                         spaceArena: ['cartel-spacer']
                     },
@@ -246,6 +510,8 @@ describe('Snapshot types', function() {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p1Action1SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action1ActionId);
 
+                expect(context.player1).toBeActivePlayer();
+
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('hand');
                 expect(context.wampa.damage).toEqual(0);
@@ -264,6 +530,8 @@ describe('Snapshot types', function() {
             const assertP1Action2State = (context, snapshotId = null, checkManualSnapshots = true) => {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p1Action2SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action2ActionId);
+
+                expect(context.player1).toBeActivePlayer();
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('groundArena');
@@ -285,6 +553,8 @@ describe('Snapshot types', function() {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p1Action3SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action3ActionId);
 
+                expect(context.player1).toBeActivePlayer();
+
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('groundArena');
                 expect(context.deathTrooper.damage).toEqual(2);
@@ -305,6 +575,8 @@ describe('Snapshot types', function() {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p2Action1SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2Action1ActionId);
 
+                expect(context.player2).toBeActivePlayer();
+
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('hand');
                 expect(context.wampa.damage).toEqual(0);
@@ -323,6 +595,8 @@ describe('Snapshot types', function() {
             const assertP2Action2State = (context, snapshotId = null, checkManualSnapshots = true) => {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p2Action2SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2Action2ActionId);
+
+                expect(context.player2).toBeActivePlayer();
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('groundArena');
@@ -343,6 +617,8 @@ describe('Snapshot types', function() {
             const assertP2Action3State = (context, snapshotId = null, checkManualSnapshots = true) => {
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(snapshotId ?? context.p2Action3SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2Action3ActionId);
+
+                expect(context.player2).toBeActivePlayer();
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('groundArena');
@@ -757,6 +1033,250 @@ describe('Snapshot types', function() {
                 });
             });
 
+            describe('quick snapshots', function () {
+                it('are reported as available when there is an action snapshot available', function () {
+                    const { context } = contextRef;
+
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeTrue();
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeTrue();
+                });
+
+                it('can revert back two actions for the active player', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    assertP1Action1State(context);
+                });
+
+                it('will revert back one action for the active player when at the action window prompt', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertP1Action2State(context);
+                });
+
+                it('will revert back to beginning of current action for the active player if a prompt is open', function () {
+                    const { context } = contextRef;
+
+                    // open target prompt for Daring Raid
+                    context.player1.clickCard(context.daringRaid);
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertP1Action3State(context);
+                });
+
+                it('cannot revert back further than the total history for the active player, and will report no quick undo available - but non-active player can still revert one more time', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    assertP1Action1State(context);
+
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeFalse();
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult3).toBeFalse();
+
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeTrue();
+                    const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult4).toBeTrue();
+
+                    assertP2Action1State(context);
+                });
+
+                it('can revert back three actions for the non-active player', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult3).toBeTrue();
+
+                    assertP2Action1State(context);
+                });
+
+                it('can revert back two actions for the non-active player', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    assertP2Action2State(context);
+                });
+
+                it('can revert back one action for the non-active player when the active player is still at the action window prompt', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertP2Action3State(context);
+                });
+
+                it('can revert back one action for the non-active player when the active player has a prompt open', function () {
+                    const { context } = contextRef;
+
+                    // active opens prompt for Daring Raid targeting
+                    context.player1.clickCard(context.daringRaid);
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertP2Action3State(context);
+                });
+
+                it('after reverting back three actions for the non-active player, will report no quick undo available and will fail to quick undo further', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult3).toBeTrue();
+
+                    // confirm that no more quick action snapshots are available
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeFalse();
+                    const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult4).toBeFalse();
+
+                    assertP2Action1State(context);
+                });
+
+                it('can walk back through the action history, alternating player actions', function () {
+                    const { context } = contextRef;
+
+                    // player 1 clicks Daring Raid to open a prompt
+                    context.player1.clickCard(context.daringRaid);
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    assertP1Action3State(context);
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    assertP2Action3State(context);
+
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult3).toBeTrue();
+
+                    assertP1Action2State(context);
+
+                    const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult4).toBeTrue();
+
+                    assertP2Action2State(context);
+
+                    const rollbackResult5 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult5).toBeTrue();
+
+                    assertP1Action1State(context);
+
+                    const rollbackResult6 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult6).toBeTrue();
+
+                    assertP2Action1State(context);
+                });
+            });
+
             describe('phase snapshots', function () {
                 it('can revert back to the beginning of the current action phase', function () {
                     const { context } = contextRef;
@@ -937,8 +1457,14 @@ describe('Snapshot types', function() {
                 // Death Trooper damage: 2
                 // Wampa damage: 2
 
+                context.p2Round2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p2Round2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.p1Base);
+
+                context.p1Round2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.p1Round2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
 
                 context.player1.clickCard(context.secretiveSage);
                 context.player1.clickCard(context.p2Base);
@@ -967,7 +1493,15 @@ describe('Snapshot types', function() {
                 context.player2.clickCard(context.p1Base);
             });
 
-            const assertPhase2State = (context) => {
+            const assertRegroupPhase1State = (context) => {
+                expect(context.game.currentPhase).toEqual('regroup');
+                expect(context.game.roundNumber).toEqual(1);
+
+                expect(context.player1Object.promptState.promptTitle).toEqual('Resource Step');
+                expect(context.player1Object.promptState.selectedCards.length).toEqual(0);
+                expect(context.player2Object.promptState.promptTitle).toEqual('Resource Step');
+                expect(context.player2Object.promptState.selectedCards.length).toEqual(0);
+
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('groundArena');
                 expect(context.deathTrooper.damage).toEqual(2);
@@ -976,7 +1510,15 @@ describe('Snapshot types', function() {
                 expect(context.p2Base.damage).toEqual(2);
             };
 
-            const assertPhase3State = (context) => {
+            const assertRegroupPhase2State = (context) => {
+                expect(context.game.currentPhase).toEqual('regroup');
+                expect(context.game.roundNumber).toEqual(2);
+
+                expect(context.player1Object.promptState.promptTitle).toEqual('Resource Step');
+                expect(context.player1Object.promptState.selectedCards.length).toEqual(0);
+                expect(context.player2Object.promptState.promptTitle).toEqual('Resource Step');
+                expect(context.player2Object.promptState.selectedCards.length).toEqual(0);
+
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.deathTrooper).toBeInZone('groundArena');
                 expect(context.deathTrooper.damage).toEqual(2);
@@ -994,6 +1536,38 @@ describe('Snapshot types', function() {
                 expect(context.p2Base.damage).toEqual(4);
             };
 
+            const assertP2Round2ActionState = (context) => {
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p2Round2SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p2Round2ActionId);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.game.roundNumber).toEqual(2);
+                expect(context.game.currentPhase).toEqual('action');
+
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+                expect(context.deathTrooper).toBeInZone('groundArena');
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
+                expect(context.p1Base.damage).toEqual(2);
+                expect(context.p2Base.damage).toEqual(2);
+            };
+
+            const assertP1Round2ActionState = (context) => {
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Round2SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Round2ActionId);
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.game.roundNumber).toEqual(2);
+                expect(context.game.currentPhase).toEqual('action');
+
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+                expect(context.deathTrooper).toBeInZone('groundArena');
+                expect(context.deathTrooper.damage).toEqual(2);
+                expect(context.wampa.damage).toEqual(2);
+                expect(context.p1Base.damage).toEqual(6);
+                expect(context.p2Base.damage).toEqual(2);
+            };
+
             it('regroup snapshots can revert back to the previous state', function () {
                 const { context } = contextRef;
 
@@ -1004,7 +1578,7 @@ describe('Snapshot types', function() {
                 });
                 expect(rollbackResult).toBeTrue();
 
-                assertPhase3State(context);
+                assertRegroupPhase2State(context);
 
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
@@ -1018,109 +1592,308 @@ describe('Snapshot types', function() {
                 assertFinalState(context);
             });
 
-            it('regroup snapshots can revert back to the previous state as the default', function () {
-                const { context } = contextRef;
+            describe('action snapshots', function() {
+                it('can revert back to a previous round for the non-active player', function () {
+                    const { context } = contextRef;
 
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'phase',
-                    phaseName: 'regroup'
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player2.id,
+                        actionOffset: -2
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertP2Round2ActionState(context);
+
+                    // repeat action to ensure we can continue from this point
+                    context.player2.clickCard(context.wampa);
+                    context.player2.clickCard(context.p1Base);
+                    expect(context.p1Base.damage).toEqual(6);
                 });
-                expect(rollbackResult).toBeTrue();
 
-                assertPhase3State(context);
+                it('can revert back to a previous round for the active player', function () {
+                    const { context } = contextRef;
 
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        actionOffset: -2
+                    });
+                    expect(rollbackResult).toBeTrue();
 
-                context.player2.clickDone();
-                context.player1.clickDone();
+                    assertP1Round2ActionState(context);
 
-                context.player2.clickCard(context.tielnFighter);
-                context.player2.clickCard(context.p1Base);
-
-                assertFinalState(context);
+                    // repeat action to ensure we can continue from this point
+                    context.player1.clickCard(context.secretiveSage);
+                    context.player1.clickCard(context.p2Base);
+                    expect(context.p2Base.damage).toEqual(4);
+                });
             });
 
-            it('regroup snapshots can revert back two regroup phases', function () {
-                const { context } = contextRef;
+            describe('quick snapshots', function() {
+                it('will revert through the regroup phase into the previous action phase and to another regroup phase for the non-active player', function () {
+                    const { context } = contextRef;
 
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'phase',
-                    phaseName: 'regroup',
-                    phaseOffset: -1
+                    // roll back to first action in round 3
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    // roll back to regroup phase in round 2
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    assertRegroupPhase2State(context);
+
+                    // roll back to pass button click for ending action phase
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult3).toBeTrue();
+
+                    // roll back to actual action taken in action phase
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeTrue();
+                    const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult4).toBeTrue();
+
+                    assertP2Round2ActionState(context);
+
+                    // roll back to phase 1 regroup even though there are no more action snapshots
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeTrue();
+                    const rollbackResult5 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult5).toBeTrue();
+
+                    assertRegroupPhase1State(context);
+
+                    // no more quick rollbacks available
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeFalse();
+                    const rollbackResult6 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult6).toBeFalse();
                 });
-                expect(rollbackResult).toBeTrue();
 
-                assertPhase2State(context);
+                it('will revert through the regroup phase into the previous action phase and to another regroup phase for the active player', function () {
+                    const { context } = contextRef;
 
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
+                    // roll back to regroup phase in round 2
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
 
-                context.player2.clickDone();
-                context.player1.clickDone();
+                    assertRegroupPhase2State(context);
 
-                context.player2.clickCard(context.wampa);
-                context.player2.clickCard(context.p1Base);
+                    // roll back to pass button click for ending action phase
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
 
-                context.player1.clickCard(context.secretiveSage);
-                context.player1.clickCard(context.p2Base);
+                    // roll back to actual action take in action phase
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult3).toBeTrue();
 
-                assertPhase3State(context);
+                    assertP1Round2ActionState(context);
+
+                    // roll back to phase 1 regroup even though there are no more action snapshots
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeTrue();
+                    const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult4).toBeTrue();
+
+                    assertRegroupPhase1State(context);
+
+                    // no more quick rollbacks available
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeFalse();
+                    const rollbackResult5 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult5).toBeFalse();
+                });
+
+                it('will work correctly after a rollback to start of regroup phase', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'phase',
+                        phaseName: 'regroup'
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    // roll back to pass button click for ending action phase
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult3).toBeTrue();
+
+                    // roll back to actual action taken in action phase
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player2.id)).toBeTrue();
+                    const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult4).toBeTrue();
+
+                    assertP2Round2ActionState(context);
+                });
+
+                it('will work correctly after a rollback to previous action', function () {
+                    const { context } = contextRef;
+
+                    // roll back to pass button click for ending action phase
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        actionOffset: -1
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    // roll back to actual action taken in action phase
+                    expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeTrue();
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    assertP1Round2ActionState(context);
+                });
             });
 
-            it('manual snapshots for the non-active player can revert back to a regroup phase', function () {
-                const { context } = contextRef;
+            describe('regroup snapshots', function() {
+                it('can revert back to the previous state as the default', function () {
+                    const { context } = contextRef;
 
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'manual',
-                    playerId: context.player1.id,
-                    snapshotId: context.regroupPhase1ManualSnapshotId
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'phase',
+                        phaseName: 'regroup'
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertRegroupPhase2State(context);
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
+
+                    context.player2.clickDone();
+                    context.player1.clickDone();
+
+                    context.player2.clickCard(context.tielnFighter);
+                    context.player2.clickCard(context.p1Base);
+
+                    assertFinalState(context);
                 });
-                expect(rollbackResult).toBeTrue();
 
-                assertPhase2State(context);
+                it('can revert back two regroup phases', function () {
+                    const { context } = contextRef;
 
-                expect(context.game.currentPhase).toEqual('regroup');
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'phase',
+                        phaseName: 'regroup',
+                        phaseOffset: -1
+                    });
+                    expect(rollbackResult).toBeTrue();
 
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
+                    assertRegroupPhase1State(context);
 
-                context.player2.clickDone();
-                context.player1.clickDone();
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
 
-                context.player2.clickCard(context.wampa);
-                context.player2.clickCard(context.p1Base);
+                    context.player2.clickDone();
+                    context.player1.clickDone();
 
-                context.player1.clickCard(context.secretiveSage);
-                context.player1.clickCard(context.p2Base);
+                    context.player2.clickCard(context.wampa);
+                    context.player2.clickCard(context.p1Base);
 
-                assertPhase3State(context);
+                    context.player1.clickCard(context.secretiveSage);
+                    context.player1.clickCard(context.p2Base);
+
+                    context.moveToRegroupPhase();
+
+                    assertRegroupPhase2State(context);
+                });
             });
 
-            it('manual snapshots for the active player can revert back to a regroup phase', function () {
-                const { context } = contextRef;
+            describe('manual snapshots', function() {
+                it('for the non-active player can revert back to a regroup phase', function () {
+                    const { context } = contextRef;
 
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'manual',
-                    playerId: context.player2.id,
-                    snapshotId: context.regroupPhase2ManualSnapshotId
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'manual',
+                        playerId: context.player1.id,
+                        snapshotId: context.regroupPhase1ManualSnapshotId
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertRegroupPhase1State(context);
+
+                    expect(context.game.currentPhase).toEqual('regroup');
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
+
+                    context.player2.clickDone();
+                    context.player1.clickDone();
+
+                    context.player2.clickCard(context.wampa);
+                    context.player2.clickCard(context.p1Base);
+
+                    context.player1.clickCard(context.secretiveSage);
+                    context.player1.clickCard(context.p2Base);
+
+                    context.moveToRegroupPhase();
+
+                    assertRegroupPhase2State(context);
                 });
-                expect(rollbackResult).toBeTrue();
 
-                expect(context.game.currentPhase).toEqual('regroup');
+                it('for the active player can revert back to a regroup phase', function () {
+                    const { context } = contextRef;
 
-                assertPhase3State(context);
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'manual',
+                        playerId: context.player2.id,
+                        snapshotId: context.regroupPhase2ManualSnapshotId
+                    });
+                    expect(rollbackResult).toBeTrue();
 
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
+                    expect(context.game.currentPhase).toEqual('regroup');
 
-                context.player2.clickDone();
-                context.player1.clickDone();
+                    assertRegroupPhase2State(context);
 
-                context.player2.clickCard(context.tielnFighter);
-                context.player2.clickCard(context.p1Base);
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
 
-                assertFinalState(context);
+                    context.player2.clickDone();
+                    context.player1.clickDone();
+
+                    context.player2.clickCard(context.tielnFighter);
+                    context.player2.clickCard(context.p1Base);
+
+                    assertFinalState(context);
+                });
             });
         });
 
@@ -1510,6 +2283,60 @@ describe('Snapshot types', function() {
                 context.player2.clickDone();
                 context.player1.clickCard(context.systemPatrolCraft);
                 context.player1.clickCard(context.p2Base);
+            });
+        });
+
+        describe('After a sequence of short action phases,', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action'
+                });
+
+                const { context } = contextRef;
+
+                context.moveToNextActionPhase();
+                context.moveToNextActionPhase();
+                context.moveToNextActionPhase();
+            });
+
+            it('quick snapshots can go back as far as the last action and and no further if a required regroup phase snapshot is not available', function () {
+                const { context } = contextRef;
+
+                // roll back to regroup phase
+                const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult1).toBeTrue();
+
+                // roll back to pass button click for ending action phase
+                const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult2).toBeTrue();
+
+                // roll back to regroup phase
+                const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult3).toBeTrue();
+
+                // roll back to pass button click for ending action phase
+                const rollbackResult4 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult4).toBeTrue();
+
+                // no more quick rollbacks available, out of regroup phase snapshots
+                expect(contextRef.snapshot.hasAvailableQuickSnapshot(context.player1.id)).toBeFalse();
+                const rollbackResult5 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult5).toBeFalse();
             });
         });
     });

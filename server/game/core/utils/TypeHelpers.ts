@@ -123,7 +123,6 @@ export const to = {
 
         return date;
     },
-
     record<T, TValue = T>(arr: T[], keyFunc: (item: T) => string | number, valueFunc?: (item: T) => TValue): Record<string | number, TValue> {
         const result: Record<string | number, TValue> = {};
 

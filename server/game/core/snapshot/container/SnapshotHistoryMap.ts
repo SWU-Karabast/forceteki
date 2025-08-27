@@ -66,14 +66,14 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
      * Get properties of a snapshot at the given key and offset without exposing the full snapshot object.
      */
     public getSnapshotProperties(key: T, offset = 0): ISnapshotProperties | null {
-        const snapshot = this.getSnapshotInternal(key, offset);
+        const snapshot = this.getSnapshot(key, offset);
         return snapshot ? this.extractSnapshotProperties(snapshot) : null;
     }
 
     /**
      * Internal method to get a snapshot by key and offset.
      */
-    private getSnapshotInternal(key: T, offset: number): IGameSnapshot | null {
+    private getSnapshot(key: T, offset: number): IGameSnapshot | null {
         Contract.assertTrue(offset <= 0 && offset > -this.maxHistoryLength, `Snapshot offset must be less than 1 and greater than than max history length (-${this.maxHistoryLength}), got ${offset}`);
 
         const snapshotHistory = this.snapshots.get(key);
@@ -88,6 +88,14 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
         return snapshotHistory[snapshotHistory.length + offset - 1];
     }
 
+    protected override getAllSnapshots(): IGameSnapshot[] {
+        const allSnapshots: IGameSnapshot[] = [];
+        for (const snapshotHistory of this.snapshots.values()) {
+            allSnapshots.push(...snapshotHistory);
+        }
+        return allSnapshots;
+    }
+
     /**
      * Rolls back to the snapshot at the given key with the specified offset, if it exists.
      *
@@ -97,7 +105,7 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
      * @returns The ID of the snapshot that was rolled back to, or `null` if it does not exist
      */
     public rollbackToSnapshot(key: T, offset: number): number | null {
-        const snapshot = this.getSnapshotInternal(key, offset);
+        const snapshot = this.getSnapshot(key, offset);
         if (!snapshot) {
             return null;
         }

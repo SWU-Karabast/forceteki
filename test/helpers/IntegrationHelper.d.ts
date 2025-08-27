@@ -37,6 +37,7 @@ interface SnapshotUtils {
 
     countAvailableActionSnapshots: (playerId: string) => number;
     countAvailableManualSnapshots: (playerId: string) => number;
+    hasAvailableQuickSnapshot: (playerId: string) => boolean;
     rollbackToSnapshot: (settings: ITestGetSnapshotSettings) => boolean;
     takeManualSnapshot: (playerId: string) => number;
 }
