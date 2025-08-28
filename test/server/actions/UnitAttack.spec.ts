@@ -180,6 +180,31 @@ describe('Basic attack', function() {
             expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
             expect(context.poeDameron.damage).toBe(0);
         });
+
+        it('When evaluating attack targets for a card that grants an attacker effect, should not consider captured cards (and should not throw an exception)', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['breaking-in'],
+                    groundArena: ['battlefield-marine', { card: 'atst', capturedUnits: ['wild-rancor'] }],
+                },
+                player2: {
+                    hand: ['change-of-heart'],
+                    groundArena: ['wampa'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.changeOfHeart);
+            context.player2.clickCard(context.atst);
+
+            context.player1.clickCard(context.breakingIn);
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.p2Base.damage).toBe(5);
+        });
     });
 });
-
