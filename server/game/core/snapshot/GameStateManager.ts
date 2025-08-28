@@ -13,8 +13,10 @@ export interface IGameObjectRegistrar {
     /**
      * Creates a {@link GameObjectBase} object that is not allowed to have references.
      * This is useful for reducing GC overhead if it is known in advance that a GameObject is transient and will not be saved.
+     *
+     * @deprecated This method has potentially game-breaking side effects so **do not use** unless you know what you're doing
      */
-    createWithoutRefs<T extends GameObjectBase>(handler: () => T): T;
+    createWithoutRefsUnsafe<T extends GameObjectBase>(handler: () => T): T;
 }
 
 export class GameStateManager implements IGameObjectRegistrar {
@@ -99,7 +101,7 @@ export class GameStateManager implements IGameObjectRegistrar {
      * Creates a {@link GameObjectBase} object that is not allowed to have references.
      * This is useful for reducing GC overhead if it is known in advance that a GameObject is transient and will not be saved.
      */
-    public createWithoutRefs<T extends GameObjectBase>(handler: () => T): T {
+    public createWithoutRefsUnsafe<T extends GameObjectBase>(handler: () => T): T {
         this._disableRegistration = true;
 
         try {
