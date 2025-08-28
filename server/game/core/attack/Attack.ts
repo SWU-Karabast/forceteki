@@ -29,6 +29,11 @@ export class Attack {
         isAmbush: boolean = false,
         attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number
     ) {
+        Contract.assertTrue(attacker.isInPlay(), `Attempting to construct an Attack but designated attacker ${attacker.internalName} is not in play`);
+
+        const notInPlayTargets = targets.filter((target) => !target.isBase() && !target.isInPlay());
+        Contract.assertTrue(notInPlayTargets.length === 0, `Attempting to construct an Attack but the following targets are not in play: ${notInPlayTargets.map((target) => target.internalName).join(', ')}`);
+
         this.game = game;
         this.attacker = attacker;
         this.attackingPlayer = attacker.controller;
