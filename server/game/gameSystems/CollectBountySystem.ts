@@ -7,6 +7,7 @@ import { BountyAbility } from '../abilities/keyword/BountyAbility';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
+import { GameObjectBase } from '../core/GameObjectBase';
 
 export interface ICollectBountyProperties extends ICardTargetSystemProperties {
     bountyProperties: ITriggeredAbilityBaseProps | ITriggeredAbilityBaseProps[];
@@ -21,14 +22,14 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
 
     public eventHandler(event): void {
         // force optional to false since the player has already chosen to resolve the bounty
-        const bountyAbilities = (event.bountyProperties as ITriggeredAbilityBaseProps[]).map((bountyProperties) => new BountyAbility(
+        const bountyAbilities = (event.bountyProperties as ITriggeredAbilityBaseProps[]).map((bountyProperties) => GameObjectBase.createWithoutRefs(() => new BountyAbility(
             event.context.game,
             event.bountySource,
             {
                 ...bountyProperties,
                 optional: false
             }
-        ));
+        )));
 
         Contract.assertTrue(bountyAbilities.length > 0, `Found empty bounty list for ability on card ${event.context.source.internalName}`);
 

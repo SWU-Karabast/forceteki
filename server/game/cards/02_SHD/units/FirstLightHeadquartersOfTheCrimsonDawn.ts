@@ -5,6 +5,7 @@ import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/Pl
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, PlayType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { GameObjectBase } from '../../../core/GameObjectBase';
 
 export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +17,7 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
 
     protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null) {
         const firstLightSmuggleAction = playType === PlayType.Smuggle
-            ? [new FirstLightSmuggleAction(this.game.abilityHelper, this)]
+            ? [GameObjectBase.createWithoutRefs(() => new FirstLightSmuggleAction(this.game.abilityHelper, this))]
             : [];
 
         return super.buildPlayCardActions(playType, propertyOverrides).concat(firstLightSmuggleAction);

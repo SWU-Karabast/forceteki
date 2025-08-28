@@ -1,10 +1,11 @@
 import { EventName } from '../Constants';
 import type { Player } from '../Player';
 import type { CardAbility } from './CardAbility';
-import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type Game from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
+import * as Contract from '../utils/Contract';
 
 export interface IAbilityLimit {
     get ability(): CardAbility;
@@ -20,17 +21,14 @@ export interface IAbilityLimit {
 }
 
 export interface IAbilityLimitState extends IGameObjectBaseState {
-    ability: GameObjectRef<CardAbility> | undefined;
     isRegistered: boolean;
 }
 
 export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityLimitState> extends GameObjectBase<TState> implements IAbilityLimit {
-    public get ability() {
-        return this.game.getFromRef(this.state.ability);
-    }
+    protected _ability?: CardAbility = null;
 
-    public set ability(value) {
-        this.state.ability = value.getRef();
+    public get ability() {
+        return this._ability;
     }
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -38,6 +36,11 @@ export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityL
         return true;
     }
 
+    public setAbility(value: CardAbility) {
+        Contract.assertIsNullLike(this._ability, () => `Attempting to set ability (name: ${value.title}) on AbilityLimit but it is already set with ${this._ability.title}`);
+
+        this._ability = value;
+    }
 
     protected override setupDefaultState(): void {
         super.setupDefaultState();
@@ -269,6 +272,13 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
 export class EpicActionLimit extends PerPlayerPerGameAbilityLimit {
     public constructor(game: Game) {
         super(game, 1);
+    }
+
+    public override setAbility(value: CardAbility) {
+        // epic action limits can legally be shared between multiple abilities (e.g., deploying normally and pilot deploy)
+        Contract.assertTrue(this._ability == null || this._ability.card === value.card, () => `Attempting to set epic ability limit for card (name: ${value.title}, source card: ${value.card.internalName}) on AbilityLimit but it is already set with (name: ${this._ability.title}, source card: ${this._ability.card.internalName})`);
+
+        this._ability = value;
     }
 
     public override clone() {

@@ -12,6 +12,7 @@ import type { Player } from '../Player.js';
 import type { AbilityContext } from './AbilityContext.js';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
 import type Game from '../Game.js';
+import { GameObjectBase } from '../GameObjectBase.js';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
@@ -223,7 +224,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
     }
 
     private buildSubAbilityStep(subAbilityStepProps) {
-        return new CardAbilityStep(this.game, this.card, subAbilityStepProps, this.type);
+        return GameObjectBase.createWithoutRefs(() => new CardAbilityStep(this.game, this.card, subAbilityStepProps, this.type));
     }
 
     private getCanBeTriggeredBy(subAbilityStep, context: AbilityContext) {

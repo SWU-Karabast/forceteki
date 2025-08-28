@@ -51,11 +51,26 @@ type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
 @registerState()
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
+    /**
+     * Creates a {@link GameObjectBase} object that is not allowed to have references.
+     * This is useful for reducing GC overhead if it is known in advance that a GameObject is transient and will not be saved.
+     */
+    public static createWithoutRefs<T extends GameObjectBase>(handler: () => T): T {
+        const obj = handler();
+        obj.setCannotHaveRefs();
+        return obj;
+    }
+
     public readonly game: Game;
 
     protected state: T;
 
+    private _cannotHaveRefs = false;
     private _hasRef = false;
+
+    public get cannotHaveRefs() {
+        return this._cannotHaveRefs;
+    }
 
     public get hasRef() {
         return this._hasRef || this.alwaysTrackState;
@@ -89,6 +104,12 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     /** A overridable method so a child can set defaults for it's state. Always ensure to call super.setupDefaultState() as the first line if you do override this.  */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected setupDefaultState() { }
+
+    public setCannotHaveRefs() {
+        Contract.assertFalse(this._hasRef, `Attempting to set cannotHaveRefs=true on ${this.getGameObjectName()} (UUID: ${this.state.uuid}) but it already has refs (hasRef: true)`);
+
+        this._cannotHaveRefs = true;
+    }
 
     /** Sets the state.  */
     public setState(state: T) {
@@ -133,6 +154,8 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
+        Contract.assertFalse(this.cannotHaveRefs, `Attempting to create a ref for ${this.getGameObjectName()} (UUID: ${this.state.uuid}) but it cannot have refs (cannotHaveRefs: true)`);
+
         this._hasRef = true;
 
         const ref = { isRef: true, uuid: this.state.uuid };
