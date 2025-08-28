@@ -52,7 +52,7 @@ export class EventCard extends EventCardParent implements IEventCard {
     }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
-        return new PlayEventAction(this.game, this, properties);
+        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayEventAction(this.game, this, properties));
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
