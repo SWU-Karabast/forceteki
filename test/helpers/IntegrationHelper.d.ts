@@ -152,6 +152,12 @@ declare namespace jasmine {
         toHaveExactDisabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
         toBeCloneOf(card: any): boolean;
         toBeVanillaClone(): boolean;
+
+        /** Expect the actual array to contain the elements of the expected array. */
+        toContainArray(array: any[]): boolean;
+
+        /** Expect the actual array to have the exact same elements of the expected array. */
+        toEqualArray(array: any[]): boolean;
     }
 }
 

@@ -101,39 +101,36 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateArrayMetadata] ??= [];
         (metaState[stateArrayMetadata] as string[]).push(context.name);
+        const name = context.name;
 
         // Use the backing fields as the cache, and write refs to the state.
         if (readonly) {
             return {
-                get(this) {
+                get(this: T) {
                     return target.get.call(this);
                 },
-                set(this, newValue) {
-                    // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                    this.state[context.name as string] = newValue?.map((x) => x.getRef());
+                set(this: T, newValue: TValue[]) {
+                    this.state[name] = newValue?.map((x) => x.getRef());
                     target.set.call(this, newValue);
                 },
-                init(value) {
-                    // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                    this.state[context.name as string] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
+                init(this: T, value: TValue[]) {
+                    this.state[name] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
                     return value;
                 }
             };
         }
 
         return {
-            get(this) {
-                return UndoSafeArray(this, target.get.call(this), context.name as string);
+            get(this: T) {
+                return target.get.call(this);
             },
-            set(this, newValue) {
-                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[context.name as string] = newValue?.map((x) => x.getRef());
-                target.set.call(this, newValue);
+            set(this: T, newValue: TValue[]) {
+                this.state[name] = newValue?.map((x) => x.getRef());
+                target.set.call(this, newValue ? new UndoArray(this, name, ...newValue) : newValue);
             },
-            init(value) {
-                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[context.name as string] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
-                return value;
+            init(this: T, value: TValue[]) {
+                this.state[name] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
+                return value ? new UndoArray(this, name) : value;
             }
         };
     };
@@ -403,5 +400,66 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
         // @ts-expect-error Overriding state accessibility
         (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).clear(key);
         super.clear();
+    }
+}
+
+class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
+    private go: GameObjectBase;
+    private prop: string;
+    private init = false;
+    public constructor(go: GameObjectBase, prop: string, ...entries: TValue[]) {
+        super(...entries);
+        Contract.assertNotNullLike(go, 'Game Object cannot be null');
+        this.go = go;
+        this.prop = prop;
+        this.init = true;
+    }
+
+    public override push(...items: TValue[]): number {
+        // @ts-expect-error Overriding state accessibility
+        (this.go.state[this.prop] as GameObjectRef<TValue>[]).push(...items.map((x) => x.getRef()));
+        return super.push(...items);
+    }
+
+    public override unshift(...items: TValue[]): number {
+        // @ts-expect-error Overriding state accessibility
+        (this.go.state[this.prop] as GameObjectRef<TValue>[]).unshift(...items.map((x) => x.getRef()));
+        return super.unshift(...items);
+    }
+
+    public override pop(): TValue {
+        // @ts-expect-error Overriding state accessibility
+        (this.go.state[this.prop] as GameObjectRef<TValue>[]).pop();
+        return super.pop();
+    }
+
+    public override shift(): TValue {
+        // @ts-expect-error Overriding state accessibility
+        (this.go.state[this.prop] as GameObjectRef<TValue>[]).shift();
+        return super.shift();
+    }
+
+    public override reverse(): TValue[] {
+        // @ts-expect-error Overriding state accessibility
+        (this.go.state[this.prop] as GameObjectRef<TValue>[]).reverse();
+        return super.reverse();
+    }
+
+    public override sort(): this {
+        throw new Error('Sort is not supported in UndoArray.');
+    }
+
+    public override splice(start: number, deleteCount?: number): TValue[] {
+        if (arguments.length > 2) {
+            throw new Error('UndoArray.splice only supports up to two arguments.');
+        }
+
+        // @ts-expect-error Overriding state accessibility
+        (this.go.state[this.prop] as GameObjectRef<TValue>[]).splice(start, deleteCount);
+        return super.splice(start, deleteCount);
+    }
+
+    public override fill(value: TValue, start?: number, end?: number): this {
+        throw new Error('Fill is not supported in UndoArray.');
     }
 }

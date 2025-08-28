@@ -44,7 +44,7 @@ describe('R2D2 - Ignoring Protocol', function() {
 
                 // Check board state
                 expect(context.player1.deck.length).toBe(5);
-                expect(context.player1.deck).toEqual(preSwapDeck);
+                expect(context.player1.deck).toEqualArray(preSwapDeck);
                 expect(context.player2).toBeActivePlayer();
             });
         });

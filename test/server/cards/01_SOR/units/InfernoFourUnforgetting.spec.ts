@@ -23,7 +23,7 @@ describe('Inferno Four - Unforgetting', function() {
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.foundling, context.pykeSentinel]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.pykeSentinel.uuid, 'top');
-                expect(context.player1.deck).toEqual(preSwapDeck);
+                expect(context.player1.deck).toEqualArray(preSwapDeck);
                 context.player1.clickDisplayCardPromptButton(context.foundling.uuid, 'bottom');
                 expect(context.getChatLogs(4)).toEqual([
                     'player1 plays Inferno Four',
@@ -51,7 +51,7 @@ describe('Inferno Four - Unforgetting', function() {
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.pykeSentinel, context.atst]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.pykeSentinel.uuid, 'top');
-                expect(context.player1.deck).toEqual(preSwapDeck);
+                expect(context.player1.deck).toEqualArray(preSwapDeck);
                 context.player1.clickDisplayCardPromptButton(context.atst.uuid, 'top');
 
                 // Check board state
