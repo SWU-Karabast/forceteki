@@ -109,6 +109,25 @@ const mockCards = [
         internalName: 'corrupt-politician',
     }),
     buildMockCard({
+        title: 'Major Partagaz',
+        subtitle: 'Healthcare Provider',
+        power: 0,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        keywords: ['overwhelm'],
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 81
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'major-partagaz#healthcare-provider',
+    }),
+    buildMockCard({
         title: 'I Am the Senate',
         hasNonKeywordAbility: true,
         aspects: ['command', 'villainy'],
@@ -263,6 +282,24 @@ const mockCards = [
         cost: 1,
         unique: false,
         internalName: 'when-has-become-now',
+    }),
+    buildMockCard({
+        title: 'Maarva Andor',
+        subtitle: 'We\'ve Been Sleeping',
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        types: ['unit'],
+        traits: ['rebel'],
+        setId: {
+            set: 'SEC',
+            number: 252
+        },
+        cost: 3,
+        unique: true,
+        arena: 'ground',
+        internalName: 'maarva-andor#weve-been-sleeping',
     }),
 ];
 
