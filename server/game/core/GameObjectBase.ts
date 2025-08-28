@@ -51,16 +51,6 @@ type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
 @registerState()
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
-    /**
-     * Creates a {@link GameObjectBase} object that is not allowed to have references.
-     * This is useful for reducing GC overhead if it is known in advance that a GameObject is transient and will not be saved.
-     */
-    public static createWithoutRefs<T extends GameObjectBase>(handler: () => T): T {
-        const obj = handler();
-        obj.setCannotHaveRefs();
-        return obj;
-    }
-
     public readonly game: Game;
 
     protected state: T;

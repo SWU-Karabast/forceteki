@@ -6,7 +6,6 @@ import { PlayEventAction } from '../../../actions/PlayEventAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
 import { CostAdjuster, CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
-import { GameObjectBase } from '../../../core/GameObjectBase';
 
 export default class Bamboozle extends EventCard {
     protected override getImplementationId() {
@@ -19,7 +18,7 @@ export default class Bamboozle extends EventCard {
     protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null) {
         const bamboozleAction = playType === PlayType.Smuggle || playType === PlayType.Piloting
             ? []
-            : [GameObjectBase.createWithoutRefs(() => new PlayBamboozleAction(this, { playType }, this.game.abilityHelper))];
+            : [this.game.gameObjectManager.createWithoutRefs(() => new PlayBamboozleAction(this, { playType }, this.game.abilityHelper))];
 
         return super.buildPlayCardActions(playType, propertyOverrides).concat(bamboozleAction);
     }

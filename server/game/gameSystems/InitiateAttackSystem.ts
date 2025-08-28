@@ -7,7 +7,6 @@ import * as Contract from '../core/utils/Contract';
 import type { IAttackProperties } from './AttackStepsSystem';
 import { MetaEventName } from '../core/Constants';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
-import { GameObjectBase } from '../core/GameObjectBase';
 
 export interface IInitiateAttackProperties<TContext extends AbilityContext = AbilityContext> extends IAttackProperties {
     ignoredRequirements?: string[];
@@ -74,6 +73,6 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
      */
     private generateAttackAbilityNoTarget(card: IUnitCard, properties: IAttackProperties) {
         const { target, ...propertiesNoTarget } = properties;
-        return GameObjectBase.createWithoutRefs(() => new InitiateAttackAction(card.game, card, propertiesNoTarget));
+        return card.game.gameObjectManager.createWithoutRefs(() => new InitiateAttackAction(card.game, card, propertiesNoTarget));
     }
 }

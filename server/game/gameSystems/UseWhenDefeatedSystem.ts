@@ -6,7 +6,6 @@ import TriggeredAbility from '../core/ability/TriggeredAbility';
 import { DefeatCardSystem } from './DefeatCardSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { ITriggeredAbilityProps } from '../Interfaces';
-import { GameObjectBase } from '../core/GameObjectBase';
 
 export interface IUseWhenDefeatedProperties extends ICardTargetSystemProperties {
     triggerAll?: boolean;
@@ -61,7 +60,7 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
 
     private useWhenDefeatedAbility(whenDefeatedAbility: TriggeredAbility, whenDefeatedSource: Card, event, onDefeatEvent = null) {
         const whenDefeatedProps = { ...(whenDefeatedAbility.properties as ITriggeredAbilityProps), optional: false, target: whenDefeatedSource };
-        const ability = GameObjectBase.createWithoutRefs(() => new TriggeredAbility(event.context.game, whenDefeatedSource, whenDefeatedProps));
+        const ability = event.context.game.gameObjectManager.createWithoutRefs(() => new TriggeredAbility(event.context.game, whenDefeatedSource, whenDefeatedProps));
 
         // This is needed for cards that use Last Known Information i.e. Raddus
         const whenDefeatedEvent = onDefeatEvent || new DefeatCardSystem(whenDefeatedProps).generateEvent(event.context, whenDefeatedSource, true);
