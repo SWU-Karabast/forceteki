@@ -285,23 +285,25 @@ export class SnapshotManager {
     }
 
     private getEntryPointAfterRollback(settings: IGetSnapshotSettings): IRollbackSetupEntryPoint | IRollbackRoundEntryPoint {
-        switch (settings.type) {
-            case SnapshotType.Action:
-                switch (this.currentSnapshottedTimepoint) {
-                    case SnapshotTimepoint.Mulligan:
-                    case SnapshotTimepoint.Resource:
-                        return {
-                            type: RollbackEntryPointType.Setup,
-                            entryPoint: RollbackSetupEntryPoint.WithinSetupPhase,
-                        };
-                    default:
-                        return {
-                            type: RollbackEntryPointType.Round,
-                            entryPoint: RollbackRoundEntryPoint.WithinActionPhase,
-                        };
-                }
-            case SnapshotType.Phase:
-                switch (settings.phaseName) {
+        switch (this.currentSnapshottedTimepoint) {
+            case SnapshotTimepoint.Mulligan:
+            case SnapshotTimepoint.SetupResource:
+                return {
+                    type: RollbackEntryPointType.Setup,
+                    entryPoint: RollbackSetupEntryPoint.WithinSetupPhase,
+                };
+            case SnapshotTimepoint.Action:
+                return {
+                    type: RollbackEntryPointType.Round,
+                    entryPoint: RollbackRoundEntryPoint.WithinActionPhase,
+                };
+            case SnapshotTimepoint.RegroupResource:
+                return {
+                    type: RollbackEntryPointType.Round,
+                    entryPoint: RollbackRoundEntryPoint.WithinRegroupPhase,
+                };
+            case SnapshotTimepoint.StartOfPhase:
+                switch (this.currentSnapshottedPhase) {
                     case PhaseName.Setup:
                         return {
                             type: RollbackEntryPointType.Setup,
@@ -310,7 +312,7 @@ export class SnapshotManager {
                     case PhaseName.Action:
                         return {
                             type: RollbackEntryPointType.Round,
-                            entryPoint: RollbackRoundEntryPoint.StartOfRound,
+                            entryPoint: RollbackRoundEntryPoint.StartOfActionPhase,
                         };
                     case PhaseName.Regroup:
                         return {
@@ -318,11 +320,21 @@ export class SnapshotManager {
                             entryPoint: RollbackRoundEntryPoint.StartOfRegroupPhase,
                         };
                 }
-            case SnapshotType.Manual:
-                return {
-                    type: RollbackEntryPointType.Round,
-                    entryPoint: this.snapshotFactory.currentSnapshottedPhase === PhaseName.Action ? RollbackRoundEntryPoint.WithinActionPhase : RollbackRoundEntryPoint.StartOfRegroupPhase
-                };
+            case SnapshotTimepoint.EndOfPhase:
+                switch (this.currentSnapshottedPhase) {
+                    case PhaseName.Setup:
+                        throw new Error('Rolling back to end of setup phase is not supported (no currently implemented card has end-of-setup-phase effects)');
+                    case PhaseName.Action:
+                        return {
+                            type: RollbackEntryPointType.Round,
+                            entryPoint: RollbackRoundEntryPoint.EndOfActionPhase,
+                        };
+                    case PhaseName.Regroup:
+                        return {
+                            type: RollbackEntryPointType.Round,
+                            entryPoint: RollbackRoundEntryPoint.EndOfRegroupPhase,
+                        };
+                }
             default:
                 Contract.fail(`Unimplemented snapshot type: ${JSON.stringify(settings)}`);
         }

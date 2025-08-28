@@ -100,7 +100,8 @@ export enum SnapshotTimepoint {
     EndOfPhase = 'endOfPhase',
     Action = 'action',
     Mulligan = 'mulligan',
-    Resource = 'resource',
+    SetupResource = 'setupResource',
+    RegroupResource = 'regroupResource',
 }
 
 export interface IGameSnapshot {

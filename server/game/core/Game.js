@@ -1217,7 +1217,7 @@ class Game extends EventEmitter {
         const isRollback = rollbackEntryPoint != null;
 
         const roundStartStep = [];
-        if (!isRollback || rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRound) {
+        if (!isRollback || rollbackEntryPoint === RollbackRoundEntryPoint.StartOfActionPhase) {
             roundStartStep.push(new SimpleStep(
                 this, () => this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers), 'beginRound'
             ));
@@ -1228,7 +1228,7 @@ class Game extends EventEmitter {
             let actionInitializeMode;
 
             switch (rollbackEntryPoint) {
-                case RollbackRoundEntryPoint.StartOfRound:
+                case RollbackRoundEntryPoint.StartOfActionPhase:
                     actionInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
                     break;
                 case RollbackRoundEntryPoint.WithinActionPhase:
