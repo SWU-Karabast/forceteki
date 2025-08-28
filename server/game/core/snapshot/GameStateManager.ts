@@ -9,6 +9,14 @@ import v8 from 'node:v8';
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
     get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null;
+
+    /**
+     * Creates a {@link GameObjectBase} object that is not allowed to have references.
+     * This is useful for reducing GC overhead if it is known in advance that a GameObject is transient and will not be saved.
+     *
+     * @deprecated This method has potentially game-breaking side effects so **do not use** unless you know what you're doing
+     */
+    createWithoutRefsUnsafe<T extends GameObjectBase>(handler: () => T): T;
 }
 
 export class GameStateManager implements IGameObjectRegistrar {
@@ -20,6 +28,8 @@ export class GameStateManager implements IGameObjectRegistrar {
     private _lastGameObjectId = -1;
     // unused for now but will be used to detect GO creation during the rollback process later on.
     private _isRollingBack = false;
+
+    private _disableRegistration = false;
 
     public get lastGameObjectId(): number {
         return this._lastGameObjectId;
@@ -57,8 +67,11 @@ export class GameStateManager implements IGameObjectRegistrar {
             const nextId = this._lastGameObjectId + 1;
             go.uuid = go.getGameObjectName() + '_' + nextId;
             this._lastGameObjectId = nextId;
-            this.allGameObjects.push(go);
-            this.gameObjectMapping.set(go.uuid, go);
+
+            if (!this._disableRegistration) {
+                this.allGameObjects.push(go);
+                this.gameObjectMapping.set(go.uuid, go);
+            }
         }
     }
 
@@ -81,6 +94,22 @@ export class GameStateManager implements IGameObjectRegistrar {
 
         for (const removeUuid of removalUuids) {
             this.gameObjectMapping.delete(removeUuid);
+        }
+    }
+
+    /**
+     * Creates a {@link GameObjectBase} object that is not allowed to have references.
+     * This is useful for reducing GC overhead if it is known in advance that a GameObject is transient and will not be saved.
+     */
+    public createWithoutRefsUnsafe<T extends GameObjectBase>(handler: () => T): T {
+        this._disableRegistration = true;
+
+        try {
+            const obj = handler();
+            obj.setCannotHaveRefs();
+            return obj;
+        } finally {
+            this._disableRegistration = false;
         }
     }
 

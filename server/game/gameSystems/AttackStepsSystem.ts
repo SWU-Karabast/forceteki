@@ -118,7 +118,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
     /** This method is checking whether cards are a valid target for an attack. */
     public override canAffectInternal(targetCard: Card, context: TContext, additionalProperties: Partial<IAttackProperties<TContext>> = {}): boolean {
-        if (!targetCard.isUnit() && !targetCard.isBase()) {
+        if (!targetCard.isBase() && (!targetCard.isUnit() || !targetCard.isInPlay())) {
             return false;
         }
 

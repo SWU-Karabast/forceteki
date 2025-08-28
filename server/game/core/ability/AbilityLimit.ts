@@ -1,13 +1,13 @@
 import { EventName } from '../Constants';
 import type { Player } from '../Player';
 import type { CardAbility } from './CardAbility';
-import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type Game from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
 
 export interface IAbilityLimit {
-    get ability(): CardAbility;
+    get ability(): CardAbility | null;
     set ability(value: CardAbility);
     clone(): AbilityLimit;
     isRepeatable(): boolean;
@@ -20,24 +20,16 @@ export interface IAbilityLimit {
 }
 
 export interface IAbilityLimitState extends IGameObjectBaseState {
-    ability: GameObjectRef<CardAbility> | undefined;
     isRegistered: boolean;
 }
 
 export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityLimitState> extends GameObjectBase<TState> implements IAbilityLimit {
-    public get ability() {
-        return this.game.getFromRef(this.state.ability);
-    }
-
-    public set ability(value) {
-        this.state.ability = value.getRef();
-    }
+    public ability: CardAbility | null = null;
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get alwaysTrackState(): boolean {
         return true;
     }
-
 
     protected override setupDefaultState(): void {
         super.setupDefaultState();

@@ -98,12 +98,12 @@ export interface ICanAdjustProperties {
 
 export interface ICostAdjusterState extends IGameObjectBaseState {
     source: GameObjectRef<Card>;
-    limit: GameObjectRef<AbilityLimit> | null;
 }
 
 export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     public readonly costAdjustType: CostAdjustType;
     public readonly ignoredAspect: Aspect;
+    protected readonly limit: AbilityLimit | null;
     private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext, currentAmount?: number) => number);
     private readonly match?: (card: Card, adjusterSource: Card) => boolean;
     private readonly cardTypeFilter?: CardTypeFilter;
@@ -113,10 +113,6 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
 
     protected get source(): Card {
         return this.game.getFromRef(this.state.source);
-    }
-
-    private get limit(): AbilityLimit | null {
-        return this.state.limit ? this.game.getFromRef(this.state.limit) : null;
     }
 
     public constructor(
@@ -146,7 +142,7 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         this.cardTypeFilter = properties.cardTypeFilter ?? WildcardCardType.Any;
         this.attachTargetCondition = properties.attachTargetCondition;
 
-        this.state.limit = properties.limit?.getRef();
+        this.limit = properties.limit;
         if (this.limit) {
             this.limit.registerEvents();
         }

@@ -36,9 +36,9 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
         if (properties.playType === PlayType.Piloting) {
-            return new PlayUpgradeAction(this.game, this, properties);
+            return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUpgradeAction(this.game, this, properties));
         }
-        return new PlayUnitAction(this.game, this, properties);
+        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUnitAction(this.game, this, properties));
     }
 
     public override isPlayable(): this is IPlayableCard {
