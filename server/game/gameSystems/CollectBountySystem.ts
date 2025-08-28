@@ -21,7 +21,7 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
 
     public eventHandler(event): void {
         // force optional to false since the player has already chosen to resolve the bounty
-        const bountyAbilities = (event.bountyProperties as ITriggeredAbilityBaseProps[]).map((bountyProperties) => event.context.game.gameObjectManager.createWithoutRefs(() => new BountyAbility(
+        const bountyAbilities = (event.bountyProperties as ITriggeredAbilityBaseProps[]).map((bountyProperties) => event.context.game.gameObjectManager.createWithoutRefsUnsafe(() => new BountyAbility(
             event.context.game,
             event.bountySource,
             {

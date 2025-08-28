@@ -60,7 +60,7 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
 
     private useWhenPlayedAbility(whenPlayedAbility: TriggeredAbility, whenPlayedSource: Card, event, onCardPlayedEvent = null) {
         const whenPlayedProps = { ...(whenPlayedAbility.properties as ITriggeredAbilityProps), optional: false, target: whenPlayedSource };
-        const ability = event.context.game.gameObjectManager.createWithoutRefs(() => new TriggeredAbility(event.context.game, whenPlayedSource, whenPlayedProps));
+        const ability = event.context.game.gameObjectManager.createWithoutRefsUnsafe(() => new TriggeredAbility(event.context.game, whenPlayedSource, whenPlayedProps));
 
         event.context.game.resolveAbility(ability.createContext(event.context.player, onCardPlayedEvent));
     }
