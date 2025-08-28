@@ -28,7 +28,7 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
 
         this.limit = properties.limit || new UnlimitedAbilityLimit(this.game);
         this.limit.registerEvents();
-        this.limit.setAbility(this);
+        this.limit.ability = this;
 
         this.printedAbility = properties.printedAbility ?? true;
         this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);

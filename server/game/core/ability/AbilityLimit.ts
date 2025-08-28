@@ -5,10 +5,9 @@ import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type Game from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
-import * as Contract from '../utils/Contract';
 
 export interface IAbilityLimit {
-    get ability(): CardAbility;
+    get ability(): CardAbility | null;
     set ability(value: CardAbility);
     clone(): AbilityLimit;
     isRepeatable(): boolean;
@@ -25,21 +24,11 @@ export interface IAbilityLimitState extends IGameObjectBaseState {
 }
 
 export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityLimitState> extends GameObjectBase<TState> implements IAbilityLimit {
-    protected _ability?: CardAbility = null;
-
-    public get ability() {
-        return this._ability;
-    }
+    public ability: CardAbility | null = null;
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get alwaysTrackState(): boolean {
         return true;
-    }
-
-    public setAbility(value: CardAbility) {
-        Contract.assertIsNullLike(this._ability, () => `Attempting to set ability (name: ${value.title}) on AbilityLimit but it is already set with ${this._ability.title}`);
-
-        this._ability = value;
     }
 
     protected override setupDefaultState(): void {
@@ -272,13 +261,6 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
 export class EpicActionLimit extends PerPlayerPerGameAbilityLimit {
     public constructor(game: Game) {
         super(game, 1);
-    }
-
-    public override setAbility(value: CardAbility) {
-        // epic action limits can legally be shared between multiple abilities (e.g., deploying normally and pilot deploy)
-        Contract.assertTrue(this._ability == null || this._ability.card === value.card, () => `Attempting to set epic ability limit for card (name: ${value.title}, source card: ${value.card.internalName}) on AbilityLimit but it is already set with (name: ${this._ability.title}, source card: ${this._ability.card.internalName})`);
-
-        this._ability = value;
     }
 
     public override clone() {
