@@ -161,6 +161,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         // ************************************* FIELDS AND PROPERTIES *************************************
         private readonly _defaultArena: Arena;
+        private readonly defaultAttackAction: InitiateAttackAction;
 
         public get lastPlayerToModifyHp(): Player {
             Contract.assertTrue(this.isInPlay());
@@ -316,6 +317,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase(this.owner.game.stateWatcherRegistrar, this);
             this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase(this.owner.game.stateWatcherRegistrar, this);
+
+            this.defaultAttackAction = new InitiateAttackAction(this.game, this);
         }
 
         protected override setupDefaultState() {
@@ -435,7 +438,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 return this.pilotingActionAbilities as ActionAbility[];
             }
 
-            const actions = super.getActions().concat(new InitiateAttackAction(this.game, this));
+            const actions = super.getActions().concat(this.defaultAttackAction);
 
             // If this unit must attack and an attack action is available, return just that action.
             // This is used by cards such as Give In to Your Anger

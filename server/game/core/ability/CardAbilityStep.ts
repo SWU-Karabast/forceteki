@@ -223,7 +223,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
     }
 
     private buildSubAbilityStep(subAbilityStepProps) {
-        return new CardAbilityStep(this.game, this.card, subAbilityStepProps, this.type);
+        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new CardAbilityStep(this.game, this.card, subAbilityStepProps, this.type));
     }
 
     private getCanBeTriggeredBy(subAbilityStep, context: AbilityContext) {
