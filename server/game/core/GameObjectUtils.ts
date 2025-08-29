@@ -126,11 +126,11 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
             },
             set(this: T, newValue: TValue[]) {
                 this.state[name] = newValue?.map((x) => x.getRef());
-                target.set.call(this, newValue ? new UndoArray(this, name, ...newValue) : newValue);
+                target.set.call(this, newValue ? UndoArrayInternal(new UndoArray(this, name, ...newValue)) : newValue);
             },
             init(this: T, value: TValue[]) {
                 this.state[name] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
-                return value ? new UndoArray(this, name) : value;
+                return value ? UndoArrayInternal(new UndoArray(this, name)) : value;
             }
         };
     };
@@ -306,6 +306,25 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
     return proxiedArray as TValue[];
 }
 
+
+/** A proxy wrapper for UndoArray to prevent directly setting elements via the indexes of an array. */
+export function UndoArrayInternal<T extends GameObjectBase, TValue extends GameObjectBase>(arr: UndoArray<TValue>) {
+    const proxiedArray = new Proxy(arr, {
+        set(target, prop, newValue, receiver): boolean {
+            // @ts-expect-error overriding accessibility.
+            // setting the "accessing" prop needs to be allowed.
+            // target.accessing is only flagged as true when the mutation functions are called.
+            //      If it's not true then that means this is being modified via an index.
+            if (prop !== 'accessing' && !target.accessing) {
+                throw new Error('Set disallowed for mutating UndoArray');
+            }
+            return Reflect.set(target, prop, newValue, receiver);
+        },
+    });
+
+    return proxiedArray as TValue[];
+}
+
 export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
     let baseClass = Object.getPrototypeOf(instance);
     let isFullCopy = false;
@@ -406,43 +425,68 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
 class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     private go: GameObjectBase;
     private prop: string;
-    private init = false;
+    private accessing = false;
     public constructor(go: GameObjectBase, prop: string, ...entries: TValue[]) {
         super(...entries);
         Contract.assertNotNullLike(go, 'Game Object cannot be null');
         this.go = go;
         this.prop = prop;
-        this.init = true;
+        this.accessing = true;
     }
 
     public override push(...items: TValue[]): number {
+        this.accessing = true;
+        try {
         // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as GameObjectRef<TValue>[]).push(...items.map((x) => x.getRef()));
-        return super.push(...items);
+            (this.go.state[this.prop] as GameObjectRef<TValue>[]).push(...items.map((x) => x.getRef()));
+            return super.push(...items);
+        } finally {
+            this.accessing = false;
+        }
     }
 
     public override unshift(...items: TValue[]): number {
+        this.accessing = true;
+        try {
         // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as GameObjectRef<TValue>[]).unshift(...items.map((x) => x.getRef()));
-        return super.unshift(...items);
+            (this.go.state[this.prop] as GameObjectRef<TValue>[]).unshift(...items.map((x) => x.getRef()));
+            return super.unshift(...items);
+        } finally {
+            this.accessing = false;
+        }
     }
 
     public override pop(): TValue {
-        // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as GameObjectRef<TValue>[]).pop();
-        return super.pop();
+        this.accessing = true;
+        try {
+            // @ts-expect-error Overriding state accessibility
+            (this.go.state[this.prop] as GameObjectRef<TValue>[]).pop();
+            return super.pop();
+        } finally {
+            this.accessing = false;
+        }
     }
 
     public override shift(): TValue {
-        // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as GameObjectRef<TValue>[]).shift();
-        return super.shift();
+        this.accessing = true;
+        try {
+            // @ts-expect-error Overriding state accessibility
+            (this.go.state[this.prop] as GameObjectRef<TValue>[]).shift();
+            return super.shift();
+        } finally {
+            this.accessing = false;
+        }
     }
 
     public override reverse(): TValue[] {
-        // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as GameObjectRef<TValue>[]).reverse();
-        return super.reverse();
+        this.accessing = true;
+        try {
+            // @ts-expect-error Overriding state accessibility
+            (this.go.state[this.prop] as GameObjectRef<TValue>[]).reverse();
+            return super.reverse();
+        } finally {
+            this.accessing = false;
+        }
     }
 
     public override sort(): this {
@@ -453,10 +497,14 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         if (arguments.length > 2) {
             throw new Error('UndoArray.splice only supports up to two arguments.');
         }
-
-        // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as GameObjectRef<TValue>[]).splice(start, deleteCount);
-        return super.splice(start, deleteCount);
+        this.accessing = true;
+        try {
+            // @ts-expect-error Overriding state accessibility
+            (this.go.state[this.prop] as GameObjectRef<TValue>[]).splice(start, deleteCount);
+            return super.splice(start, deleteCount);
+        } finally {
+            this.accessing = false;
+        }
     }
 
     public override fill(value: TValue, start?: number, end?: number): this {
