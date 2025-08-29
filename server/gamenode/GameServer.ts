@@ -32,6 +32,7 @@ import { DeckService } from '../utils/deck/DeckService';
 import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
+import { requireEnvVars } from '../env';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -181,12 +182,9 @@ export class GameServer {
         const secret = process.env.NEXTAUTH_SECRET;
         Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
 
-        const interserverSecret = process.env.INTRASERVICE_SECRET;
-        if (process.env.ENVIRONMENT !== 'development') {
-            Contract.assertTrue(!!interserverSecret, 'INTRASERVICE_SECRET environment variable must be set and not empty for SWUstats OAuth to work');
-        } else {
-            logger.warn('INTRASERVICE_SECRET environment variable must be set and not empty for SWUstats OAuth to work');
-        }
+        requireEnvVars([
+            'INTRASERVICE_SECRET'
+        ], 'GameServer');
 
         // TOKEN CLEANUP
         this.tokenCleanupInterval = setInterval(() => {

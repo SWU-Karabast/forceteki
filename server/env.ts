@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
 import { z } from 'zod';
+import { logger } from './logger';
 
 dotenv.config();
 
@@ -92,3 +93,42 @@ export const FORCE_ENABLE_STATS_LOGGING = parsedEnv.data.FORCE_ENABLE_STATS_LOGG
 export const SWUSTATS_CLIENT_ID = parsedEnv.data.SWUSTATS_CLIENT_ID;
 export const SWUSTATS_CLIENT_SECRET = parsedEnv.data.SWUSTATS_CLIENT_SECRET;
 export const INTRASERVICE_SECRET = parsedEnv.data.INTRASERVICE_SECRET;
+
+
+type ParsedEnvData = typeof parsedEnv.data;
+
+/**
+ * Simple function to validate that required environment variables are available
+ * @param requiredVars Array of environment variable names that must be present
+ * @param context Optional context name for error messages
+ * @returns Object containing only the required variables
+ * @throws Error if any required variables are missing or undefined
+ */
+export function requireEnvVars<K extends keyof ParsedEnvData>(
+    requiredVars: K[],
+    context: string = 'Environment validation'
+): Pick<ParsedEnvData, K> {
+    const missing: string[] = [];
+    const result: Partial<Pick<ParsedEnvData, K>> = {};
+
+    for (const varName of requiredVars) {
+        const value = parsedEnv.data[varName];
+
+        if (value === undefined || value === null || value === '') {
+            missing.push(String(varName));
+        } else {
+            result[varName] = value;
+        }
+    }
+
+    if (missing.length > 0) {
+        const message = `${context}: Missing environment variables: ${missing.join(', ')}`;
+        if (environment === 'development') {
+            logger.warn(`${message} (continuing in development mode)`);
+        } else {
+            logger.error(message);
+            throw new Error(message);
+        }
+    }
+    return result as Pick<ParsedEnvData, K>;
+}

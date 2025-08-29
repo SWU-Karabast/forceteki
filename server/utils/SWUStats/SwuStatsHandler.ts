@@ -7,6 +7,7 @@ import { Aspect } from '../../game/core/Constants';
 import type { PlayerDetails } from '../../gamenode/Lobby';
 import type { ISwuStatsToken } from '../../gamenode/GameServer';
 import type { UserFactory } from '../user/UserFactory';
+import { requireEnvVars } from '../../env';
 
 
 interface TurnResults {
@@ -84,23 +85,17 @@ export class SwuStatsHandler {
 
     public constructor(userFactory) {
         // Use environment variable for API URL, defaulting to the known endpoint
+        requireEnvVars([
+            'SWUSTATS_API_KEY',
+            'SWUSTATS_CLIENT_ID',
+            'SWUSTATS_CLIENT_SECRET'
+        ], 'SWUStats Handler');
         this.apiUrl = 'https://swustats.net/TCGEngine/APIs/SubmitGameResult.php';
         this.tokenUrl = 'https://swustats.net/TCGEngine/APIs/OAuth/token.php';
         this.apiKey = process.env.SWUSTATS_API_KEY;
         this.clientId = process.env.SWUSTATS_CLIENT_ID;
         this.clientSecret = process.env.SWUSTATS_CLIENT_SECRET;
         this.userFactory = userFactory;
-
-        const isDev = process.env.ENVIRONMENT === 'development';
-        if (!this.apiKey) {
-            logger.warn('SWUStatsHandler: No API key configured. Stats may not be accepted by SWUstats.');
-        }
-        if (!isDev && (!this.clientId || !this.clientSecret)) {
-            throw new Error('SWUStatsHandler: No OAuth client credentials configured.');
-        }
-        if (!isDev && (!this.apiUrl || !this.apiKey)) {
-            throw new Error('SwuStatsHandler: No URL configured or apiKey for SWUStats.');
-        }
     }
 
     /**
