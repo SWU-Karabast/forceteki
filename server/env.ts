@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
 import { z } from 'zod';
+import { logger } from './logger';
 
 dotenv.config();
 
@@ -18,6 +19,9 @@ const parsedEnv = z
         ADDITIONAL_CORS_ORIGINS: z.string().optional(),
         SWUSTATS_API_KEY: z.string().optional(),
         FORCE_ENABLE_STATS_LOGGING: z.string().optional(),
+        SWUSTATS_CLIENT_ID: z.string().optional(),
+        SWUSTATS_CLIENT_SECRET: z.string().optional(),
+        INTRASERVICE_SECRET: z.string().optional(),
     })
     .safeParse(process.env);
 
@@ -86,3 +90,45 @@ export const AWS_SECRET_ACCESS_KEY = parsedEnv.data.AWS_SECRET_ACCESS_KEY;
 export const NEXTAUTH_SECRET = parsedEnv.data.NEXTAUTH_SECRET;
 export const SWUSTATS_API_KEY = parsedEnv.data.SWUSTATS_API_KEY;
 export const FORCE_ENABLE_STATS_LOGGING = parsedEnv.data.FORCE_ENABLE_STATS_LOGGING;
+export const SWUSTATS_CLIENT_ID = parsedEnv.data.SWUSTATS_CLIENT_ID;
+export const SWUSTATS_CLIENT_SECRET = parsedEnv.data.SWUSTATS_CLIENT_SECRET;
+export const INTRASERVICE_SECRET = parsedEnv.data.INTRASERVICE_SECRET;
+
+
+type ParsedEnvData = typeof parsedEnv.data;
+
+/**
+ * Simple function to validate that required environment variables are available
+ * @param requiredVars Array of environment variable names that must be present
+ * @param context Optional context name for error messages
+ * @returns Object containing only the required variables
+ * @throws Error if any required variables are missing or undefined
+ */
+export function requireEnvVars<K extends keyof ParsedEnvData>(
+    requiredVars: K[],
+    context: string = 'Environment validation'
+): Pick<ParsedEnvData, K> {
+    const missing: string[] = [];
+    const result: Partial<Pick<ParsedEnvData, K>> = {};
+
+    for (const varName of requiredVars) {
+        const value = parsedEnv.data[varName];
+
+        if (value === undefined || value === null || value === '') {
+            missing.push(String(varName));
+        } else {
+            result[varName] = value;
+        }
+    }
+
+    if (missing.length > 0) {
+        const message = `${context}: Missing environment variables: ${missing.join(', ')}`;
+        if (environment === 'development') {
+            logger.warn(`${message} (continuing in development mode)`);
+        } else {
+            logger.error(message);
+            throw new Error(message);
+        }
+    }
+    return result as Pick<ParsedEnvData, K>;
+}
