@@ -10,24 +10,34 @@ const stateArrayMetadata = Symbol();
 const stateMapMetadata = Symbol();
 const stateRecordMetadata = Symbol();
 const stateObjectMetadata = Symbol();
-const fullCopyMetadata = Symbol();
+const bulkCopyMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
 
+export enum CopyModeEnum {
+
+    /** Copies from the state using only the Metadata fields. */
+    UseMetaDataOnly = 0,
+
+    /** Copies from the state using a bulk copy method, and then re-applies any of the map/array/record Metadata fields to recreate the cached values. */
+    UseBulkCopy = 1
+}
+
 /**
- * Decorator to capture the names of any accessors flagged as @undoState, @undoObject, or @undoArray for copyState, and then clear the array for the next derived class to use.
- * @param useFullCopy If true, simply uses the bulk copy method rather than using any meta data. This is going to be slower, but helps if we have state not easily capturable by the undo decorators.
+ * Decorator to capture the names of any accessors flagged as &#64;undoState, &#64;undoObject, or &#64;undoArray for copyState, and then clear the array for the next derived class to use.
+ * @param copyMode If CopyModeEnum.UseFullCopy, makes the class use the bulk copy method as backup to the meta data. This is going to be slower, but helps if we have state not easily capturable by the undo decorators.
  */
-export function registerState<T extends GameObjectBase>(useFullCopy = false) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
+export function registerState<T extends GameObjectBase>(copyMode = CopyModeEnum.UseMetaDataOnly) {
     return function (targetClass: any, context: ClassDecoratorContext) {
         const parentClass = Object.getPrototypeOf(targetClass);
 
         const metaState = context.metadata[stateMetadata] as Record<string | symbol, any>;
-        if (useFullCopy) {
+        if (copyMode === CopyModeEnum.UseBulkCopy) {
             // this *should* work for derived classes: the context.metadata uses a prototype inheritance of it's own for each derived class, so when a class branches, so should the metadata object.
             // That means that we're ok with marking the meta data object at *this* prototype as true; other branches off of GameObjectBase won't share it.
             // NEEDS VERIFICATION.
-            context.metadata[fullCopyMetadata] = true;
+            context.metadata[bulkCopyMetadata] = true;
         }
         if (metaState) {
             // Move metadata from the stateMedata symbol to the name of the class, so that we can look it up later in copyStruct.
@@ -39,7 +49,7 @@ export function registerState<T extends GameObjectBase>(useFullCopy = false) {
 
         // Add name to list as a safety check.
         stateClassesStr[targetClass.name] = parentClass.name;
-        // Do check to see if parent is missing @registerState. This will happen in order of lowest class to highest class, so we can rely on it checking if it's parent class was registered.
+        // Check to see if parent is missing @registerState. This will happen in order of lowest class to highest class, so we can rely on it checking if it's parent class was registered.
         if (parentClass.name && parentClass !== Object && stateClassesStr[parentClass.name] == null) {
             throw new Error(`class "${parentClass.name}" is missing @registerState`);
         }
@@ -175,6 +185,7 @@ export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>
     };
 }
 
+/** A simpler alternative to Map. Unless there is a specific reason, prefer undoMap over this. */
 export function undoRecord<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, Record<string, TValue>>,
@@ -209,7 +220,6 @@ export function undoRecord<T extends GameObjectBase, TValue extends GameObjectBa
         };
     };
 }
-
 
 export function undoObject<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
@@ -328,7 +338,7 @@ export function UndoArrayInternal<T extends GameObjectBase, TValue extends GameO
 export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
     let baseClass = Object.getPrototypeOf(instance);
     let isFullCopy = false;
-    if (baseClass.constructor[Symbol.metadata][fullCopyMetadata]) {
+    if (baseClass.constructor[Symbol.metadata][bulkCopyMetadata]) {
         isFullCopy = true;
     }
     while (baseClass) {

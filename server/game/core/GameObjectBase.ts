@@ -1,5 +1,5 @@
 import type Game from './Game';
-import { copyState, registerState } from './GameObjectUtils';
+import { CopyModeEnum, copyState, registerState } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';
 
@@ -50,7 +50,7 @@ type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
 
 // NOTE: We are *temporarily* marking registerState as useFullCopy = true, but in the future this should be removed and moved into the deriving classes as need.
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
-@registerState(true)
+@registerState(CopyModeEnum.UseBulkCopy)
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
     public readonly game: Game;
 

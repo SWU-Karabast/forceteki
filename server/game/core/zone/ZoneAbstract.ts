@@ -6,7 +6,7 @@ import type Game from '../Game';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState } from '../GameObjectUtils';
+import { CopyModeEnum, registerState } from '../GameObjectUtils';
 
 /**
  * Collection of filters for searching cards in a zone.
@@ -34,7 +34,7 @@ export interface IAddRemoveZone {
 /**
  * Base class for all Zone types. Defines some common properties and methods.
  */
-@registerState(true)
+@registerState(CopyModeEnum.UseBulkCopy)
 export abstract class ZoneAbstract<TCard extends Card = Card, TState extends IGameObjectBaseState = IGameObjectBaseState> extends GameObjectBase<TState> {
     public readonly owner: Player | Game;
 
