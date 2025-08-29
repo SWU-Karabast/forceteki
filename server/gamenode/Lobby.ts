@@ -1032,7 +1032,16 @@ export class Lobby {
                 logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
             }
         } catch (error) {
-            logger.error(`Lobby ${this.id}: Error updating deck stats:`, error);
+            logger.error(`Lobby ${this.id}: Error updating deck stats:`, error, { lobbyId: this.id });
+            // Send error message to client
+            this.playersDetails.forEach((playerDetail) => {
+                const lobbyUser = this.users.find((u) => u.id === playerDetail.user.getId());
+                lobbyUser.socket.send('statsSubmitError', {
+                    id: uuid(),
+                    success: false,
+                    message: 'An error occurred while adding stats.'
+                });
+            });
         }
     }
 
