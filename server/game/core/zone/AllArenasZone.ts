@@ -2,6 +2,7 @@ import type { IInPlayCard } from '../card/baseClasses/InPlayCard';
 import type { ZoneName } from '../Constants';
 import { WildcardZoneName } from '../Constants';
 import type Game from '../Game';
+import { registerState } from '../GameObjectUtils';
 import type { ConcreteArenaZone } from './ConcreteArenaZone';
 import type { IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
 import { ConcreteOrMetaArenaZone } from './ConcreteOrMetaArenaZone';
@@ -21,6 +22,7 @@ export type IAllArenasForPlayerSpecificTypeCardFilterProperties = Omit<IAllArena
  * This is a meta-zone that allows doing operations across both the ground arena and space arena as one.
  * Can't add or remove cards but all accessor operations are supported.
  */
+@registerState()
 export class AllArenasZone extends ConcreteOrMetaArenaZone {
     public declare readonly hiddenForPlayers: null;
     public override readonly name: WildcardZoneName.AnyArena;

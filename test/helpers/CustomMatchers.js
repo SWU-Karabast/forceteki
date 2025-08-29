@@ -1109,6 +1109,62 @@ var customMatchers = {
             }
         };
     },
+
+    /**
+     * Checks if the actual array contains at least the elements of the expected array. Required for the new UndoArray class.
+     * @param {jasmine.MatchersUtil} matchersUtil
+     */
+    toContainArray: function (matchersUtil) {
+        return {
+            compare: function (actualArray, expectedArray) {
+                if (!Array.isArray(actualArray)) {
+                    throw new TestSetupError(`Parameter 'actualArray' is not an array: ${actualArray}`);
+                }
+                if (!Array.isArray(expectedArray)) {
+                    throw new TestSetupError(`Parameter 'expectedArray' is not an array: ${expectedArray}`);
+                }
+
+                const result = {};
+                result.pass = matchersUtil.equals(actualArray, jasmine.arrayContaining(expectedArray));
+
+                if (result.pass) {
+                    result.message = 'Expected the array not to contain the elements but it does';
+                } else {
+                    result.message = 'Expected the array to contain the elements but it does not';
+                }
+
+                return result;
+            }
+        };
+    },
+
+    /**
+     * Checks if the actual and expected arrays contain the exact same elements. Required for the new UndoArray class.
+     * @param {jasmine.MatchersUtil} matchersUtil
+     */
+    toEqualArray: function (matchersUtil) {
+        return {
+            compare: function (actualArray, expectedArray) {
+                if (!Array.isArray(actualArray)) {
+                    throw new TestSetupError(`Parameter 'actualArray' is not an array: ${actualArray}`);
+                }
+                if (!Array.isArray(expectedArray)) {
+                    throw new TestSetupError(`Parameter 'expectedArray' is not an array: ${expectedArray}`);
+                }
+
+                const result = {};
+                result.pass = matchersUtil.equals(actualArray, jasmine.arrayWithExactContents(expectedArray));
+
+                if (result.pass) {
+                    result.message = 'Expected arrays not to have the exact same contents but they do';
+                } else {
+                    result.message = 'Expected arrays to have the exact same contents but they do not';
+                }
+
+                return result;
+            }
+        };
+    }
 };
 
 function generatePromptHelpMessage(testContext) {

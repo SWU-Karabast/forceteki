@@ -16,14 +16,14 @@ describe('Inferno Four - Unforgetting', function() {
 
             it('while playing/defeating lets you look at the top 2 cards of the deck and decide whether to put either them on the bottom or top of deck in any order.', function () {
                 const { context } = contextRef;
-                let preSwapDeck = context.player1.deck;
+                let preSwapDeck = context.player1.deck.concat();
 
                 // Case 1 on play move the first top card to top and second card to bottom.
                 context.player1.clickCard(context.infernoFour);
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.foundling, context.pykeSentinel]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.pykeSentinel.uuid, 'top');
-                expect(context.player1.deck).toEqual(preSwapDeck);
+                expect(context.player1.deck).toEqualArray(preSwapDeck);
                 context.player1.clickDisplayCardPromptButton(context.foundling.uuid, 'bottom');
                 expect(context.getChatLogs(4)).toEqual([
                     'player1 plays Inferno Four',
@@ -37,13 +37,13 @@ describe('Inferno Four - Unforgetting', function() {
 
                 // preswap deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'wampa']
                 // expected after deck: ['atst', 'cartel-spacer', 'wampa', 'pyke-sentinel', 'foundling']
-                expect(context.player1.deck[0]).toEqual(preSwapDeck[1]);
-                expect(context.player1.deck[1]).toEqual(preSwapDeck[2]);
-                expect(context.player1.deck[4]).toEqual(preSwapDeck[0]);
+                expect(context.player1.deck[0]).toBe(preSwapDeck[1]);
+                expect(context.player1.deck[1]).toBe(preSwapDeck[2]);
+                expect(context.player1.deck[4]).toBe(preSwapDeck[0]);
                 expect(context.player2).toBeActivePlayer();
 
                 // record new state.
-                preSwapDeck = context.player1.deck;
+                preSwapDeck = context.player1.deck.concat();
 
                 // Case 2 on defeat move both cards to the top of the deck
                 context.player2.clickCard(context.tieAdvanced);
@@ -51,15 +51,15 @@ describe('Inferno Four - Unforgetting', function() {
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.pykeSentinel, context.atst]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.pykeSentinel.uuid, 'top');
-                expect(context.player1.deck).toEqual(preSwapDeck);
+                expect(context.player1.deck).toEqualArray(preSwapDeck);
                 context.player1.clickDisplayCardPromptButton(context.atst.uuid, 'top');
 
                 // Check board state
                 // preswap deck deck: ['pyke-sentinel', 'atst', 'cartel-spacer', 'wampa', 'foundling']
                 // expected after deck: ['atst', 'pyke-sentinel', 'cartel-spacer', 'wampa', 'foundling']
                 expect(context.player1.deck.length).toBe(5);
-                expect(context.player1.deck[0]).toEqual(preSwapDeck[1]);
-                expect(context.player1.deck[1]).toEqual(preSwapDeck[0]);
+                expect(context.player1.deck[0]).toBe(preSwapDeck[1]);
+                expect(context.player1.deck[1]).toBe(preSwapDeck[0]);
                 expect(context.player1).toBeActivePlayer();
             });
         });
