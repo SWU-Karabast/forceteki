@@ -2284,6 +2284,32 @@ describe('Snapshot types', function() {
                 context.player1.clickCard(context.systemPatrolCraft);
                 context.player1.clickCard(context.p2Base);
             });
+
+            it('should create a quick rollback point for the prompted player, available immediately', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+
+                assertRegroupPhaseStartState(context);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                assertRegroupPhaseRaiderDefeatedState(context);
+
+                // move to action phase to confirm that everything still works
+                context.player1.clickDone();
+                context.player2.clickDone();
+                context.player1.clickCard(context.systemPatrolCraft);
+                context.player1.clickCard(context.p2Base);
+            });
         });
 
         describe('After a sequence of short action phases,', function() {

@@ -19,7 +19,7 @@ export class RegroupPhase extends Phase {
         this.initialise(
             [
                 new SimpleStep(game, () => this.drawTwo(), 'drawTwo'),
-                new VariableResourcePrompt(game, 0, 1),
+                new SimpleStep(game, () => this.resourcePrompt(), 'resourcePrompt'),
                 new SimpleStep(game, () => this.readyAllCards(), 'readyAllCards'),
                 new SimpleStep(game, () => this.endPhase(), 'endPhase')
             ],
@@ -36,6 +36,10 @@ export class RegroupPhase extends Phase {
                 TriggerHandlingMode.ResolvesTriggers
             );
         }
+    }
+
+    private resourcePrompt() {
+        this.game.queueStep(new VariableResourcePrompt(this.game, 0, 1));
     }
 
     private readyAllCards() {

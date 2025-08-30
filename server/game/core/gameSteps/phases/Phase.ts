@@ -14,6 +14,7 @@ export enum PhaseInitializeMode {
     Normal = 'normal',
     RollbackToStartOfPhase = 'rollbackToStartOfPhase',
     RollbackToWithinPhase = 'rollbackToWithinPhase',
+    RollbackToEndOfPhase = 'rollbackToEndOfPhase',
 }
 
 export abstract class Phase extends BaseStepWithPipeline {
@@ -45,12 +46,18 @@ export abstract class Phase extends BaseStepWithPipeline {
             startStep.push(new SimpleStep(this.game, () => this.startPhase(), 'startPhase'));
         }
 
-        const endStep = new SimpleStep(this.game, () => this.endPhase(), 'endPhase');
+        const endStep = [];
+
+        if (initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase) {
+            endStep.push(new SimpleStep(this.game, () => this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.EndOfPhase), 'setEndOfPhaseTimepoint'));
+        }
+
+        endStep.push(new SimpleStep(this.game, () => this.endPhase(), 'endPhase'));
 
         this.pipeline.initialise([
             ...startStep,
             ...steps,
-            endStep
+            ...endStep
         ]);
     }
 
@@ -63,11 +70,17 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     protected startPhase(): void {
+        // reset trackers indicating if a player has been prompted
+        this.game.resetPromptedPlayersTracking();
+
         this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => {
             if (this.name !== PhaseName.Setup) {
                 this.game.addAlert(AlertType.Notification, 'Turn: {0} - {1} Phase', this.game.roundNumber, Helpers.upperCaseFirstLetter(this.name));
             }
         });
+
+        // checks if a player was prompted during the start step and if so, takes a snapshot so they can unwind to the prompt
+        this.game.queueSimpleStep(() => this.takeSnapshotsForPromptedPlayers(), 'takeSnapshotsForPromptedPlayers');
     }
 
     protected endPhase(skipEventWindow = false): void {
@@ -84,14 +97,14 @@ export abstract class Phase extends BaseStepWithPipeline {
             );
 
             // checks if a player was prompted during the end step and if so, takes a snapshot so they can unwind to the prompt
-            this.game.queueSimpleStep(() => this.takeEndOfPhaseSnapshotsForPromptedPlayers(), 'takeEndOfPhaseSnapshotsForPromptedPlayers');
+            this.game.queueSimpleStep(() => this.takeSnapshotsForPromptedPlayers(), 'takeSnapshotsForPromptedPlayers');
 
             // for post-phase state cleanup. emit directly, don't need a window.
             this.game.emit(EventName.OnPhaseEndedCleanup, { phase: this.name });
         }
     }
 
-    private takeEndOfPhaseSnapshotsForPromptedPlayers(): void {
+    private takeSnapshotsForPromptedPlayers(): void {
         for (const player of this.game.getPlayers()) {
             if (this.game.hasBeenPrompted(player)) {
                 this.game.snapshotManager.takeSnapshot({
