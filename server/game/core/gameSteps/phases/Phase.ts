@@ -78,9 +78,6 @@ export abstract class Phase extends BaseStepWithPipeline {
                 this.game.addAlert(AlertType.Notification, 'Turn: {0} - {1} Phase', this.game.roundNumber, Helpers.upperCaseFirstLetter(this.name));
             }
         });
-
-        // checks if a player was prompted during the start step and if so, takes a snapshot so they can unwind to the prompt
-        this.game.queueSimpleStep(() => this.takeSnapshotsForPromptedPlayers(), 'takeSnapshotsForPromptedPlayers');
     }
 
     protected endPhase(skipEventWindow = false): void {
@@ -104,7 +101,7 @@ export abstract class Phase extends BaseStepWithPipeline {
         }
     }
 
-    private takeSnapshotsForPromptedPlayers(): void {
+    protected takeSnapshotsForPromptedPlayers(): void {
         for (const player of this.game.getPlayers()) {
             if (this.game.hasBeenPrompted(player)) {
                 this.game.snapshotManager.takeSnapshot({

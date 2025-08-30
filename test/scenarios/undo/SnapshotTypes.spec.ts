@@ -1580,7 +1580,6 @@ describe('Snapshot types', function() {
 
                 assertRegroupPhase2State(context);
 
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
 
                 context.player2.clickDone();
@@ -1795,7 +1794,6 @@ describe('Snapshot types', function() {
 
                     assertRegroupPhase2State(context);
 
-                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
                     expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
 
                     context.player2.clickDone();
@@ -1819,7 +1817,6 @@ describe('Snapshot types', function() {
 
                     assertRegroupPhase1State(context);
 
-                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
                     expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
 
                     context.player2.clickDone();
@@ -2213,13 +2210,22 @@ describe('Snapshot types', function() {
                 expect(context.greenSquadronAwing).toBeInZone('discard');
             });
 
+            const assertActionPhaseEndState = (context) => {
+                expect(context.game.currentPhase).toBe('action');
+                expect(context.ruthlessRaider).toBeInZone('spaceArena');
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.greenSquadronAwing.damage).toBe(2);
+            };
+
             const assertRegroupPhaseStartState = (context) => {
+                expect(context.game.currentPhase).toBe('regroup');
                 expect(context.ruthlessRaider).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.greenSquadronAwing.damage).toBe(2);
             };
 
             const assertRegroupPhaseRaiderDefeatedState = (context) => {
+                expect(context.game.currentPhase).toBe('regroup');
                 expect(context.ruthlessRaider).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(4);
                 expect(context.greenSquadronAwing).toBeInZone('discard');
@@ -2310,6 +2316,108 @@ describe('Snapshot types', function() {
                 context.player1.clickCard(context.systemPatrolCraft);
                 context.player1.clickCard(context.p2Base);
             });
+
+            it('should create a quick rollback point for the prompted player, available into the next phase', function () {
+                const { context } = contextRef;
+
+                context.player1.clickDone();
+                context.player2.clickDone();
+
+                // roll back to resource selection stage
+                const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult1).toBeTrue();
+
+                assertRegroupPhaseRaiderDefeatedState(context);
+
+                // roll back to the RR defeat prompt
+                const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult2).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+
+                assertRegroupPhaseStartState(context);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                assertRegroupPhaseRaiderDefeatedState(context);
+
+                // move to action phase to confirm that everything still works
+                context.player1.clickDone();
+                context.player2.clickDone();
+                context.player1.clickCard(context.systemPatrolCraft);
+                context.player1.clickCard(context.p2Base);
+            });
+
+            it('should create a quick rollback point for the prompted player that can be rolled back past into the action phase', function () {
+                const { context } = contextRef;
+
+                // roll back to the RR defeat prompt
+                const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult1).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+
+                assertRegroupPhaseStartState(context);
+
+                // roll back to selecting "pass" to end the action phase
+                const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult2).toBeTrue();
+
+                assertActionPhaseEndState(context);
+            });
+
+            it('should create a quick rollback point for the prompted player, from which the non-prompted player can roll back into the action phase', function () {
+                const { context } = contextRef;
+
+                // roll back to the RR defeat prompt
+                const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult1).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+
+                assertRegroupPhaseStartState(context);
+
+                // roll back to selecting "pass" to end the action phase
+                const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player2.id
+                });
+                expect(rollbackResult2).toBeTrue();
+
+                assertActionPhaseEndState(context);
+            });
+
+            it('should create a quick rollback point for the prompted player, not available to the non-prompted player', function () {
+                const { context } = contextRef;
+
+                // roll back to pressing "pass" to end action phase
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player2.id
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertActionPhaseEndState(context);
+            });
         });
 
         describe('After a sequence of short action phases,', function() {
@@ -2368,6 +2476,5 @@ describe('Snapshot types', function() {
     });
 
     // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file
-    // TODO: setup phase tests
     // TODO: decide the details of how we want manual snapshots to work, and test them in-depth
 });

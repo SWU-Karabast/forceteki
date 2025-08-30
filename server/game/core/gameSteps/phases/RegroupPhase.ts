@@ -10,6 +10,7 @@ import { TriggerHandlingMode } from '../../event/EventWindow';
 import type { ICardWithExhaustProperty } from '../../card/baseClasses/PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
+import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 
 export class RegroupPhase extends Phase {
     public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
@@ -39,6 +40,10 @@ export class RegroupPhase extends Phase {
     }
 
     private resourcePrompt() {
+        // WIP: add in support for distinct timepoints within regroup
+        this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.RegroupResource);
+        this.takeSnapshotsForPromptedPlayers();
+
         this.game.queueStep(new VariableResourcePrompt(this.game, 0, 1));
     }
 
