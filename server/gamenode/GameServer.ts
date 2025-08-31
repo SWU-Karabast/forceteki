@@ -8,7 +8,7 @@ import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
 import { getHeapStatistics } from 'v8';
 import { freemem, cpus } from 'os';
-import { monitorEventLoopDelay, performance, PerformanceObserver, constants, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
+import { monitorEventLoopDelay, performance, PerformanceObserver, constants as NodePerfConstants, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
 
 import { logger, jsonOnlyLogger } from '../logger';
 
@@ -1502,11 +1502,11 @@ export class GameServer {
                 for (const entry of list.getEntries()) {
                     this.gcStats.totalDuration += entry.duration;
 
-                    if ((entry as unknown as GCPerformanceEntry).detail.kind === constants.NODE_PERFORMANCE_GC_MINOR) { // Scavenge (minor GC)
+                    if ((entry as unknown as GCPerformanceEntry).detail.kind === NodePerfConstants.NODE_PERFORMANCE_GC_MINOR) { // Scavenge (minor GC)
                         this.gcStats.scavengeCount++;
                         this.gcStats.scavengeDuration += entry.duration;
                         this.gcStats.maxScavengeDuration = Math.max(this.gcStats.maxScavengeDuration, entry.duration);
-                    } else if ((entry as unknown as GCPerformanceEntry).detail.kind === constants.NODE_PERFORMANCE_GC_MAJOR) { // Mark-Sweep (major GC)
+                    } else if ((entry as unknown as GCPerformanceEntry).detail.kind === NodePerfConstants.NODE_PERFORMANCE_GC_MAJOR) { // Mark-Sweep (major GC)
                         this.gcStats.markSweepCount++;
                         this.gcStats.markSweepDuration += entry.duration;
                         this.gcStats.maxMarkSweepDuration = Math.max(this.gcStats.maxMarkSweepDuration, entry.duration);
