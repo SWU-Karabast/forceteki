@@ -14,7 +14,7 @@ const bulkCopyMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
 
-export enum CopyModeEnum {
+export enum CopyMode {
 
     /** Copies from the state using only the Metadata fields. */
     UseMetaDataOnly = 0,
@@ -28,12 +28,12 @@ export enum CopyModeEnum {
  * @param copyMode If CopyModeEnum.UseFullCopy, makes the class use the bulk copy method as backup to the meta data. This is going to be slower, but helps if we have state not easily capturable by the undo decorators.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
-export function registerState<T extends GameObjectBase>(copyMode = CopyModeEnum.UseMetaDataOnly) {
+export function registerState<T extends GameObjectBase>(copyMode = CopyMode.UseMetaDataOnly) {
     return function (targetClass: any, context: ClassDecoratorContext) {
         const parentClass = Object.getPrototypeOf(targetClass);
 
         const metaState = context.metadata[stateMetadata] as Record<string | symbol, any>;
-        if (copyMode === CopyModeEnum.UseBulkCopy) {
+        if (copyMode === CopyMode.UseBulkCopy) {
             // this *should* work for derived classes: the context.metadata uses a prototype inheritance of it's own for each derived class, so when a class branches, so should the metadata object.
             // That means that we're ok with marking the meta data object at *this* prototype as true; other branches off of GameObjectBase won't share it.
             // NEEDS VERIFICATION.
