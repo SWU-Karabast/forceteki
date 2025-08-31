@@ -16,7 +16,6 @@ import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCost
 import type Game from '../Game';
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
-import { GameCardMetric } from '../../../gameStatistics/GameStatisticsTracker';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -217,7 +216,6 @@ export abstract class PlayCardAction extends PlayerAction {
 
     protected generateOnPlayEvent(context: PlayCardContext, additionalProps: any = {}) {
         const handler = () => {
-            this.trackPlayCardMetric(context);
             if (additionalProps.handler) {
                 additionalProps.handler();
             }
@@ -241,13 +239,5 @@ export abstract class PlayCardAction extends PlayerAction {
     /** This is used for overriding a card's type when it hits the board, such as Pilots played as upgrades */
     public getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
         return card.type;
-    }
-
-    private trackPlayCardMetric(context: AbilityContext): void {
-        context.game.statsTracker.trackCardMetric(
-            GameCardMetric.Played,
-            context.source,
-            context.player
-        );
     }
 }

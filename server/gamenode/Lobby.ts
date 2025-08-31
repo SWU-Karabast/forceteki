@@ -22,7 +22,6 @@ import { AlertType } from '../game/core/Constants';
 import { v4 as uuidv4 } from 'uuid';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
-import { GameStatisticsLogger } from '../gameStatistics/GameStatisticsTracker';
 
 interface LobbySpectator {
     id: string;
@@ -751,7 +750,6 @@ export class Lobby {
             players,
             undoMode: process.env.ENVIRONMENT === 'development' ? UndoMode.Full : UndoMode.CurrentSnapshotOnly,
             cardDataGetter: this.cardDataGetter,
-            statsTracker: new GameStatisticsLogger(),
             useActionTimer,
             pushUpdate: () => this.sendGameState(this.game),
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>

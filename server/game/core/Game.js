@@ -54,6 +54,7 @@ const { Randomness } = require('../core/Randomness.js');
 const { RollbackEntryPointType } = require('./snapshot/SnapshotInterfaces.js');
 const { Lobby } = require('../../gamenode/Lobby.js');
 const { DiscordDispatcher } = require('./DiscordDispatcher.js');
+const { GameStatisticsLogger } = require('../../gameStatistics/GameStatisticsTracker.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -282,7 +283,7 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
         this.cardDataGetter = details.cardDataGetter;
-        this._statsTracker = details.statsTracker;
+        this._statsTracker = new GameStatisticsLogger(this);
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
 
         this.initialiseTokens(this.cardDataGetter.tokenData);

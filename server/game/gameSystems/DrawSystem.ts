@@ -5,7 +5,6 @@ import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { DamageSystem } from './DamageSystem';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
-import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -21,7 +20,6 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
 
     public eventHandler(event): void {
         event.player.drawCardsToHand(event.amount);
-        this.trackDrawMetric(event);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -74,15 +72,5 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
             }
             return contingentEvents;
         });
-    }
-
-    private trackDrawMetric(event): void {
-        for (const card of event.cards) {
-            card.controller.game.statsTracker.trackCardMetric(
-                GameCardMetric.Drawn,
-                card,
-                event.player
-            );
-        }
     }
 }
