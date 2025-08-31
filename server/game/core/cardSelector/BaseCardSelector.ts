@@ -174,7 +174,7 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
     }
 
     public getCardsForPlayerZones(zone: ZoneFilter, player: Player, game: Game) {
-        let cards: Card[] = [];
+        let cards: readonly Card[] = [];
         switch (zone) {
             case WildcardZoneName.Any:
                 // TODO: is this ever a case we should have? this would allow targeting deck, discard, etc.

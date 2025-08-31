@@ -1,5 +1,5 @@
 import type Game from './Game';
-import { copyState, registerState } from './GameObjectUtils';
+import { CopyMode, copyState, registerState } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';
 
@@ -48,12 +48,14 @@ type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
     (T extends (infer R)[] ? (R extends GameObjectRef<infer U> ? U[] : R[]) :
         T);
 
+// NOTE: We are *temporarily* marking registerState as useFullCopy = true, but in the future this should be removed and moved into the deriving classes as need.
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
-@registerState()
+@registerState(CopyMode.UseBulkCopy)
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
     public readonly game: Game;
 
-    protected state: T;
+    // the cast "as unknown as T" is a work-around to let us instantiate it as an empty object initially.
+    protected state: T = {} as unknown as T;
 
     private _cannotHaveRefs = false;
     private _hasRef = false;
@@ -84,8 +86,6 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     public constructor(game: Game) {
         this.game = game;
-        // @ts-expect-error state is a generic object that is defined by the deriving classes, it's essentially w/e the children want it to be.
-        this.state = {};
         // All state defaults *must* happen before registration, so we can't rely on the derived constructor to set the defaults as register will already be called.
         this.setupDefaultState();
         this.game.gameObjectManager.register(this);
