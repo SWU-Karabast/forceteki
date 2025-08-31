@@ -112,7 +112,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
 
                 expect(context.endlessLegions).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
-                expect(context.player1.deck).toEqual([
+                expect(context.player1.deck).toEqualArray([
                     context.cartelSpacer,
                     context.theDarksaber,
                     context.evacuate,
@@ -127,7 +127,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                 expect(context.wampa).toBeInZone('discard');
                 expect(context.cartelSpacer).toBeInZone('discard');
                 expect(context.theDarksaber).toBeInZone('hand');
-                expect(context.player1.deck).toEqual([
+                expect(context.player1.deck).toEqualArray([
                     context.evacuate,
                 ]);
             });
@@ -187,7 +187,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
 
                 expect(context.endlessLegions).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
-                expect(context.player1.deck).toEqual([
+                expect(context.player1.deck).toEqualArray([
                     context.cartelSpacer,
                     context.theDarksaber,
                     context.evacuate,
@@ -202,7 +202,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                 expect(context.wampa).toBeInZone('discard');
                 expect(context.cartelSpacer).toBeInZone('hand');
                 expect(context.theDarksaber).toBeInZone('discard');
-                expect(context.player1.deck).toEqual([
+                expect(context.player1.deck).toEqualArray([
                     context.evacuate,
                 ]);
             });
@@ -236,7 +236,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                 expect(context.endlessLegions).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
                 expect(context.cartelSpacer).toBeInZone('hand');
-                expect(context.player1.deck).toEqual([]);
+                expect(context.player1.deck).toHaveSize(0);
             });
 
             it('works when the deck has 2 cards and the player does not draw anything', async function () {
@@ -260,7 +260,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
 
                 expect(context.cartelSpacer).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
-                expect(context.player1.deck).toEqual([]);
+                expect(context.player1.deck).toHaveSize(0);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -283,7 +283,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                 context.player1.clickDone();
 
                 expect(context.wampa).toBeInZone('discard');
-                expect(context.player1.deck).toEqual([]);
+                expect(context.player1.deck).toHaveSize(0);
                 expect(context.player2).toBeActivePlayer();
             });
 

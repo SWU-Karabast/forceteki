@@ -331,7 +331,7 @@ export class Player extends GameObject<IPlayerState> {
      * @param {ZoneName} zoneName
      * @returns {Card[]}
      */
-    public getCardsInZone(zoneName: ZoneName): Card[] {
+    public getCardsInZone(zoneName: ZoneName): readonly Card[] {
         switch (zoneName) {
             case ZoneName.Hand:
                 return this.handZone.cards;
@@ -1054,7 +1054,7 @@ export class Player extends GameObject<IPlayerState> {
         return this.resourceZone.cards;
     }
 
-    public get drawDeck() {
+    public get drawDeck(): readonly IPlayableCard[] {
         return this.deckZone?.deck;
     }
 
@@ -1104,7 +1104,7 @@ export class Player extends GameObject<IPlayerState> {
      * @param {number} count
      * @returns {number}
      */
-    public exhaustResourcesInList(resources: ICardWithExhaustProperty[], count: number): number {
+    public exhaustResourcesInList(resources: readonly ICardWithExhaustProperty[], count: number): number {
         if (count < resources.length) {
             resources.slice(0, count).forEach((resource) => resource.exhaust());
             return count;
