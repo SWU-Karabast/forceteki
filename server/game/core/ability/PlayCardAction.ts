@@ -216,6 +216,7 @@ export abstract class PlayCardAction extends PlayerAction {
 
     protected generateOnPlayEvent(context: PlayCardContext, additionalProps: any = {}) {
         const handler = () => {
+            this.logPlayCardEvent(context);
             if (additionalProps.handler) {
                 additionalProps.handler();
             }
@@ -239,5 +240,11 @@ export abstract class PlayCardAction extends PlayerAction {
     /** This is used for overriding a card's type when it hits the board, such as Pilots played as upgrades */
     public getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
         return card.type;
+    }
+
+    private logPlayCardEvent(context: any): void {
+        if (context.playType === PlayType.PlayFromHand) {
+            context.game.clientUIProperties.lastPlayedCard = context.source.cardData.setId;
+        }
     }
 }
