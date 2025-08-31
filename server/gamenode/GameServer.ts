@@ -8,7 +8,7 @@ import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
 import { getHeapStatistics } from 'v8';
 import { freemem, cpus } from 'os';
-import { monitorEventLoopDelay, performance, PerformanceObserver, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
+import { monitorEventLoopDelay, performance, PerformanceObserver, constants, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
 
 import { logger, jsonOnlyLogger } from '../logger';
 
@@ -1498,18 +1498,23 @@ export class GameServer {
     private setupGCMonitoring(): void {
         this.gcStats.intervalStartTime = Date.now();
         const gcObserver = new PerformanceObserver((list) => {
-            for (const entry of list.getEntries()) {
-                this.gcStats.totalDuration += entry.duration;
+            try {
+                for (const entry of list.getEntries()) {
+                    this.gcStats.totalDuration += entry.duration;
 
-                if ((entry as unknown as GCPerformanceEntry).detail.kind === 1) { // Scavenge (minor GC)
-                    this.gcStats.scavengeCount++;
-                    this.gcStats.scavengeDuration += entry.duration;
-                    this.gcStats.maxScavengeDuration = Math.max(this.gcStats.maxScavengeDuration, entry.duration);
-                } else { // Mark-Sweep (major GC)
-                    this.gcStats.markSweepCount++;
-                    this.gcStats.markSweepDuration += entry.duration;
-                    this.gcStats.maxMarkSweepDuration = Math.max(this.gcStats.maxMarkSweepDuration, entry.duration);
+                    if ((entry as unknown as GCPerformanceEntry).detail.kind === constants.NODE_PERFORMANCE_GC_MINOR) { // Scavenge (minor GC)
+                        this.gcStats.scavengeCount++;
+                        this.gcStats.scavengeDuration += entry.duration;
+                        this.gcStats.maxScavengeDuration = Math.max(this.gcStats.maxScavengeDuration, entry.duration);
+                    } else if ((entry as unknown as GCPerformanceEntry).detail.kind === constants.NODE_PERFORMANCE_GC_MAJOR) { // Mark-Sweep (major GC)
+                        this.gcStats.markSweepCount++;
+                        this.gcStats.markSweepDuration += entry.duration;
+                        this.gcStats.maxMarkSweepDuration = Math.max(this.gcStats.maxMarkSweepDuration, entry.duration);
+                    }
+                    // Skip incremental and weak callback GC types as they're rare and brief
                 }
+            } catch (error) {
+                logger.error(`Error capturing GC stats from PerformanceObserver: ${error}`);
             }
         });
         gcObserver.observe({ entryTypes: ['gc'] });
