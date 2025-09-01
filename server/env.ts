@@ -122,8 +122,10 @@ export function requireEnvVars<K extends keyof ParsedEnvData>(
             result[varName] = value;
         }
     }
-    for (const varName of requiredVars) {
-        Contract.assertNotNullLike(parsedEnv.data[varName], `${context} environment variable ${varName} was not found but needs to be present`);
+    if (requiredVars) {
+        for (const varName of requiredVars) {
+            Contract.assertNotNullLike(parsedEnv.data[varName], `${context} environment variable ${varName} was not found but needs to be present`);
+        }
     }
 
     if (missing.length > 0) {
