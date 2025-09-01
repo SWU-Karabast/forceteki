@@ -14,13 +14,18 @@ import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 
 export class RegroupPhase extends Phase {
     public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
-        Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToWithinPhase, 'RegroupPhase does not support rolling back to the middle of the phase');
+        Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToEndOfPhase, 'RegroupPhase does not support rolling back to the end of the phase');
+
+        const resourceSteps = [];
+        if (initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase) {
+            resourceSteps.push(new SimpleStep(game, () => this.drawTwo(), 'drawTwo'));
+            resourceSteps.push(new SimpleStep(game, () => this.resourcePrompt(), 'resourcePrompt'));
+        }
 
         super(game, PhaseName.Regroup, snapshotManager);
         this.initialise(
             [
-                new SimpleStep(game, () => this.drawTwo(), 'drawTwo'),
-                new SimpleStep(game, () => this.resourcePrompt(), 'resourcePrompt'),
+                ...resourceSteps,
                 new SimpleStep(game, () => this.readyAllCards(), 'readyAllCards'),
                 new SimpleStep(game, () => this.endPhase(), 'endPhase')
             ],
@@ -40,7 +45,6 @@ export class RegroupPhase extends Phase {
     }
 
     private resourcePrompt() {
-        // WIP: add in support for distinct timepoints within regroup
         this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.RegroupResource);
         this.takeSnapshotsForPromptedPlayers();
 

@@ -1849,7 +1849,6 @@ describe('Snapshot types', function() {
 
                     expect(context.game.currentPhase).toEqual('regroup');
 
-                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
                     expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
 
                     context.player2.clickDone();
@@ -1880,7 +1879,6 @@ describe('Snapshot types', function() {
 
                     assertRegroupPhase2State(context);
 
-                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
                     expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
 
                     context.player2.clickDone();

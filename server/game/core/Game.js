@@ -1223,26 +1223,7 @@ class Game extends EventEmitter {
             ));
         }
 
-        const actionPhaseStep = [];
-        if (rollbackEntryPoint !== RollbackRoundEntryPoint.StartOfRegroupPhase) {
-            let actionInitializeMode;
-
-            switch (rollbackEntryPoint) {
-                case RollbackRoundEntryPoint.StartOfActionPhase:
-                    actionInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
-                    break;
-                case RollbackRoundEntryPoint.WithinActionPhase:
-                    actionInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
-                    break;
-                case null:
-                    actionInitializeMode = PhaseInitializeMode.Normal;
-                    break;
-                default:
-                    Contract.fail(`Unknown rollback entry point: ${rollbackEntryPoint}`);
-            }
-
-            actionPhaseStep.push(new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode));
-        }
+        const actionPhaseStep = this.buildActionPhaseStep(rollbackEntryPoint);
 
         const regroupInitializeMode =
             rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase
@@ -1260,6 +1241,66 @@ class Game extends EventEmitter {
             new SimpleStep(this, () => this.roundEnded(), 'roundEnded'),
             new SimpleStep(this, () => this.beginRound(), 'beginRound')
         ]);
+    }
+
+    /**
+     * Initializes the action phase step in the pipeline.
+     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     */
+    buildActionPhaseStep(rollbackEntryPoint = null) {
+        if (
+            rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase ||
+            rollbackEntryPoint === RollbackRoundEntryPoint.WithinRegroupPhase ||
+            rollbackEntryPoint === RollbackRoundEntryPoint.EndOfRegroupPhase
+        ) {
+            return [];
+        }
+
+        let actionInitializeMode;
+        switch (rollbackEntryPoint) {
+            case RollbackRoundEntryPoint.StartOfActionPhase:
+                actionInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
+                break;
+            case RollbackRoundEntryPoint.WithinActionPhase:
+                actionInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
+                break;
+            case null:
+                actionInitializeMode = PhaseInitializeMode.Normal;
+                break;
+            default:
+                Contract.fail(`Unknown rollback entry point for action phase: ${rollbackEntryPoint}`);
+        }
+
+        return [new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode)];
+    }
+
+    /**
+     * Initializes the regroup phase step in the pipeline.
+     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     */
+    buildRegroupPhaseStep(rollbackEntryPoint = null) {
+        let regroupInitializeMode;
+        switch (rollbackEntryPoint) {
+            case RollbackRoundEntryPoint.StartOfRegroupPhase:
+                regroupInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
+                break;
+            case RollbackRoundEntryPoint.WithinRegroupPhase:
+                regroupInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
+                break;
+            case RollbackRoundEntryPoint.EndOfRegroupPhase:
+                regroupInitializeMode = PhaseInitializeMode.RollbackToEndOfPhase;
+                break;
+            case RollbackRoundEntryPoint.StartOfActionPhase:
+            case RollbackRoundEntryPoint.WithinActionPhase:
+            case RollbackRoundEntryPoint.EndOfActionPhase:
+            case null:
+                regroupInitializeMode = PhaseInitializeMode.Normal;
+                break;
+            default:
+                Contract.fail(`Unknown rollback entry point for regroup phase: ${rollbackEntryPoint}`);
+        }
+
+        return [new RegroupPhase(this, this._snapshotManager, regroupInitializeMode)];
     }
 
     roundEnded() {
