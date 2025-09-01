@@ -26,8 +26,7 @@ export class RegroupPhase extends Phase {
         this.initialise(
             [
                 ...resourceSteps,
-                new SimpleStep(game, () => this.readyAllCards(), 'readyAllCards'),
-                new SimpleStep(game, () => this.endPhase(), 'endPhase')
+                new SimpleStep(game, () => this.readyAllCards(), 'readyAllCards')
             ],
             initializeMode
         );
