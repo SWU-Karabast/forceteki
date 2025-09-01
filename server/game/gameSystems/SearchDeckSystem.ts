@@ -135,7 +135,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         return typeof shuffle === 'function' ? shuffle(context) : shuffle;
     }
 
-    private getDeck(player: Player): Card[] {
+    private getDeck(player: Player): readonly Card[] {
         return player.drawDeck;
     }
 

@@ -1,15 +1,16 @@
 import type { Card } from '../card/Card';
 import type { ZoneName } from '../Constants';
 import type { Player } from '../Player';
-import type { IZoneState } from './SimpleZone';
 import { SimpleZone } from './SimpleZone';
 import type { IAddRemoveZone } from './ZoneAbstract';
 import * as Contract from '../utils/Contract';
+import { registerState } from '../GameObjectUtils';
 
 /**
  * Base class for zones that are player specific.
  */
-export abstract class PlayerZone<TCard extends Card, TState extends IZoneState<TCard> = IZoneState<TCard>> extends SimpleZone<TCard, TState> implements IAddRemoveZone {
+@registerState()
+export abstract class PlayerZone<TCard extends Card> extends SimpleZone<TCard> implements IAddRemoveZone {
     public abstract override readonly name: ZoneName;
     public declare readonly owner: Player;
 

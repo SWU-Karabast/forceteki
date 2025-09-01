@@ -14,7 +14,7 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
         return this.exhaustedResources.length;
     }
 
-    public get exhaustedResources() {
+    public get exhaustedResources(): readonly IPlayableCard[] {
         return this.cards.filter((card) => card.exhausted);
     }
 
@@ -22,7 +22,7 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
         return this.readyResources.length;
     }
 
-    public get readyResources() {
+    public get readyResources(): readonly IPlayableCard[] {
         return this.cards.filter((card) => !card.exhausted);
     }
 
@@ -36,12 +36,11 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
     public rearrangeResourceExhaustState(context: AbilityContext, prioritizeSmuggle: boolean = false): void {
         const exhaustCount = this.exhaustedResourceCount;
         // Cards is an accessor and a copy of the array.
-        let cards = this.cards;
-        this.cards.forEach((card) => card.exhausted = false);
-        Helpers.shuffleArray(this.state.cards, context.game.randomGenerator);
+        const cards = this._cards.concat();
+        cards.forEach((card) => card.exhausted = false);
+        Helpers.shuffleArray(cards, context.game.randomGenerator);
 
-        // Reacquire cards array in new, shuffled order.
-        cards = this.cards;
+        this._cards = cards;
 
         let exhausted = 0;
 
