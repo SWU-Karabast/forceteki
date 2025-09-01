@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { z } from 'zod';
 import { logger } from './logger';
-import * as Contract from "./game/core/utils/Contract";
+import * as Contract from './game/core/utils/Contract';
 
 dotenv.config();
 
