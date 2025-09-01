@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { z } from 'zod';
 import { logger } from './logger';
+import * as Contract from "./game/core/utils/Contract";
 
 dotenv.config();
 
@@ -99,26 +100,30 @@ type ParsedEnvData = typeof parsedEnv.data;
 
 /**
  * Simple function to validate that required environment variables are available
- * @param requiredVars Array of environment variable names that must be present
+ * @param generalVars that need to be present
+ * @param requiredVars Array of environment variable names that can be present
  * @param context Optional context name for error messages
  * @returns Object containing only the required variables
  * @throws Error if any required variables are missing or undefined
  */
 export function requireEnvVars<K extends keyof ParsedEnvData>(
-    requiredVars: K[],
-    context: string = 'Environment validation'
+    generalVars: K[],
+    context: string = 'Environment validation',
+    requiredVars?: K[]
 ): Pick<ParsedEnvData, K> {
     const missing: string[] = [];
     const result: Partial<Pick<ParsedEnvData, K>> = {};
 
-    for (const varName of requiredVars) {
+    for (const varName of generalVars) {
         const value = parsedEnv.data[varName];
-
-        if (value === undefined || value === null || value === '') {
+        if (!!value) {
             missing.push(String(varName));
         } else {
             result[varName] = value;
         }
+    }
+    for (const varName of requiredVars) {
+        Contract.assertNotNullLike(parsedEnv.data[varName], `${context} environment variable ${varName} was not found but needs to be present`);
     }
 
     if (missing.length > 0) {

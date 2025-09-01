@@ -74,7 +74,6 @@ interface OAuthTokenResponse {
     scope?: string;
 }
 
-
 export class SwuStatsHandler {
     private readonly apiUrl: string;
     private readonly apiKey: string;
@@ -292,19 +291,19 @@ export class SwuStatsHandler {
         playerDetails: PlayerDetails,
         lobbyId: string
     ): Promise<string> {
-        let results = null;
+        let playerAccessToken: string = null;
         // Handle Player swu token
         if (playerDetails.swuStatsToken && this.isTokenValid(playerDetails.swuStatsToken)) {
-            results = playerDetails.swuStatsToken.accessToken;
+            playerAccessToken = playerDetails.swuStatsToken.accessToken;
             logger.info(`SWUStatsHandler: Using existing valid access token for player (${playerDetails.user.getId()})`, { lobbyId, userId: playerDetails.user.getId() });
         } else if (playerDetails.swuStatsRefreshToken) {
             // Token is expired or doesn't exist, refresh it
             logger.info(`SWUStatsHandler: Access token expired or missing for player (${playerDetails.user.getId()}), refreshing...`, { lobbyId, userId: playerDetails.user.getId() });
             const resultTokens = await this.refreshTokensAsync(playerDetails.swuStatsRefreshToken);
-            results = resultTokens.access_token;
-            await this.userFactory.addSwuStatsRefreshTokenAsync(playerDetails.user.getId(), resultTokens.refresh_token);
+            playerAccessToken = resultTokens.accessToken;
+            await this.userFactory.addSwuStatsRefreshTokenAsync(playerDetails.user.getId(), resultTokens.refreshToken);
         }
-        return results;
+        return playerAccessToken;
     }
 
     /**
@@ -321,15 +320,7 @@ export class SwuStatsHandler {
         const bufferTimeMs = 5 * 60000;
         const effectiveExpirationTime = new Date(tokenExpirationTime.getTime() - bufferTimeMs);
 
-        const isValid = now < effectiveExpirationTime;
-
-        if (isValid) {
-            const remainingTime = Math.floor((effectiveExpirationTime.getTime() - now.getTime()) / 1000);
-            logger.info(`SWUStatsHandler: Token is valid, expires in ${remainingTime} seconds`);
-        } else {
-            logger.info('SWUStatsHandler: Token is expired or expires within 30 seconds');
-        }
-        return isValid;
+        return now < effectiveExpirationTime;
     }
 
     /**
@@ -337,7 +328,7 @@ export class SwuStatsHandler {
      * @param refreshToken The refresh token to use
      * @returns Promise that resolves to the new access token, or null if refresh failed
      */
-    public async refreshTokensAsync(refreshToken: string): Promise<OAuthTokenResponse> {
+    public async refreshTokensAsync(refreshToken: string): Promise<ISwuStatsToken> {
         try {
             if (!this.clientId || !this.clientSecret) {
                 logger.warn('SWUStatsHandler: Cannot refresh token - OAuth credentials not configured or missing refreshToken');
@@ -364,7 +355,12 @@ export class SwuStatsHandler {
             }
             const tokenResponse = await response.json() as OAuthTokenResponse;
             logger.info('SWUStatsHandler: Successfully refreshed access token');
-            return tokenResponse;
+            return {
+                creationDateTime: new Date(),
+                timeToLiveSeconds: tokenResponse.expires_in,
+                accessToken: tokenResponse.access_token,
+                refreshToken: tokenResponse.refresh_token,
+            };
         } catch (error) {
             logger.error('SWUStatsHandler: Failed to refresh access token', {
                 error: { message: error.message, stack: error.stack }

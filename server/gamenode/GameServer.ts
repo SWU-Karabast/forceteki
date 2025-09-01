@@ -124,7 +124,7 @@ export class GameServer {
 
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
-    public readonly SwuStatsHandler: SwuStatsHandler;
+    public readonly swuStatsHandler: SwuStatsHandler;
     private readonly tokenCleanupInterval: NodeJS.Timeout;
 
     private constructor(
@@ -182,9 +182,10 @@ export class GameServer {
         const secret = process.env.NEXTAUTH_SECRET;
         Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
 
-        requireEnvVars([
-            'INTRASERVICE_SECRET'
-        ], 'GameServer');
+        requireEnvVars(
+            ['INTRASERVICE_SECRET'],
+            'GameServer'
+        );
 
         // TOKEN CLEANUP
         this.tokenCleanupInterval = setInterval(() => {
@@ -267,7 +268,7 @@ export class GameServer {
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
-        this.SwuStatsHandler = new SwuStatsHandler(this.userFactory);
+        this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
@@ -483,16 +484,19 @@ export class GameServer {
         app.post('/api/link-swustats', async (req, res, next) => {
             try {
                 const { userId, swuStatsToken, internalApiKey } = req.body;
+                if (process.env.ENVIRONMENT === 'development' && !!process.env.INTRASERVICE_SECRET) {
+                    throw new Error('Environment variables INTRASERVICE_SECRET not set');
+                }
                 if (internalApiKey !== process.env.INTRASERVICE_SECRET) {
                     return res.status(403).json({
                         success: false,
                         message: 'Forbidden'
                     });
                 }
-                const newRefreshToken = await this.SwuStatsHandler.refreshTokensAsync(swuStatsToken.refreshToken);
-                await this.userFactory.addSwuStatsRefreshTokenAsync(userId, newRefreshToken.refresh_token);
+                const newRefreshToken = await this.swuStatsHandler.refreshTokensAsync(swuStatsToken.refreshToken);
+                await this.userFactory.addSwuStatsRefreshTokenAsync(userId, newRefreshToken.refreshToken);
                 // add token mapping
-                this.swuStatsTokenMapping.set(userId, swuStatsToken);
+                this.swuStatsTokenMapping.set(userId, newRefreshToken);
                 return res.status(200).json({
                     success: true,
                     message: 'SWUStats linked successfully'
@@ -1543,7 +1547,7 @@ export class GameServer {
             let removedCount = 0;
             // Iterate through all tokens and remove invalid ones
             for (const [userId, token] of this.swuStatsTokenMapping.entries()) {
-                if (!this.SwuStatsHandler.isTokenValid(token)) {
+                if (!this.swuStatsHandler.isTokenValid(token)) {
                     this.swuStatsTokenMapping.delete(userId);
                     removedCount++;
                     logger.info(`GameServer: Removed expired token for user ${userId}`);

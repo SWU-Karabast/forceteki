@@ -392,11 +392,11 @@ export class UserFactory {
 
     /**
      * Add or update the SWUstats refresh token for a user.
-     * - Idempotent: calling again overwrites the old token.
+     * - Calling again overwrites the old token.
      * - Does NOT return the token.
      */
     public async addSwuStatsRefreshTokenAsync(userId: string, refreshToken: string): Promise<void> {
-        Contract.assertTrue(!!userId, 'userId is required');
+        Contract.assertNotNullLike(userId, 'userId is required');
         Contract.assertTrue(!!refreshToken, 'refreshToken is required');
         try {
             const dbService = await this.dbServicePromise;
