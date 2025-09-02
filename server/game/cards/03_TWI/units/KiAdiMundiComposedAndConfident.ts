@@ -27,7 +27,8 @@ export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 2 }),
             when: {
                 onCardPlayed: (event, context) => this.isSecondCardPlayedByOpponentThisPhase(event, context)
-            }
+            },
+            limit: AbilityHelper.limit.perPhase(1)
         });
     }
 
