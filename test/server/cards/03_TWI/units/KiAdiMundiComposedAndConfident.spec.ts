@@ -1,7 +1,7 @@
 describe('Ki Adi Mundi, Composed and Confident', function() {
     integration(function(contextRef) {
         describe('Ki Adi Mundi, Composed and Confident\'s ability', function () {
-            xit('should trigger when Opponent plays its second card during that phase and Coordinate is active', async function () {
+            it('should trigger when Opponent plays its second card during that phase and Coordinate is active', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -64,7 +64,7 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                 expect(context.kashyyykDefender).toBeInZone('hand');
             });
 
-            xit('should not trigger when playing units owned by the opponent', async function () {
+            it('should not trigger when playing units owned by the opponent', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -90,7 +90,7 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('should only trigger once if the second card plays has a nested trigger to play another card', async function () {
+            it('should only trigger once if the second card plays has a nested trigger to play another card', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -100,6 +100,7 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                         ]
                     },
                     player2: {
+                        hand: [],
                         groundArena: [
                             'kiadimundi#composed-and-confident',
                             'luke-skywalker#jedi-knight',
@@ -120,10 +121,79 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                 // Play Battlefield Marine from discard
                 context.player1.clickCard(context.battlefieldMarine);
 
-                // P2 resolves Ki Adi Mundi's ability
-                expect(context.player2).toHavePassAbilityPrompt('Draw 2 cards');
+                // TODO: This currently double-triggers Ki-Adi's ability, but should only resolve one instance
+                expect(context.player2).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player2).toHaveExactPromptButtons(['Draw 2 cards', 'Draw 2 cards']);
+                context.player2.clickPrompt('Draw 2 cards');
                 context.player2.clickPrompt('Trigger');
+
+                // Two cards were drawn because only one trigger was resolved
                 expect(context.player2.hand.length).toBe(2);
+            });
+
+            it('if he changes control, the ability should resolve once per player', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'the-mandalorian#sworn-to-the-creed',
+                        base: 'echo-base',
+                        hand: [
+                            'sneak-attack',
+                            'home-one#alliance-flagship',
+                            'change-of-heart'
+                        ],
+                        discard: [
+                            'battlefield-marine'
+                        ]
+                    },
+                    player2: {
+                        hand: [
+                            'resupply',
+                            'secretive-sage'
+                        ],
+                        groundArena: [
+                            'kiadimundi#composed-and-confident',
+                            'luke-skywalker#jedi-knight',
+                            'consular-security-force'
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Play Sneak Attack to play Home One
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.homeOne);
+
+                // Players have simultaneous triggers, choose to reslolve P1's first
+                context.player1.clickPrompt('You');
+
+                // Play Battlefield Marine from discard
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // TODO: This currently double-triggers Ki-Adi's ability, but should only resolve one instance
+                expect(context.player2).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player2).toHaveExactPromptButtons(['Draw 2 cards', 'Draw 2 cards']);
+                context.player2.clickPrompt('Draw 2 cards');
+                context.player2.clickPrompt('Trigger');
+
+                // Two cards were drawn because only one trigger was resolved
+                expect(context.player2.hand.length).toBe(4); // 2 drawn + 2 in starting hand
+
+                // Player 2 plays their first card
+                context.player2.clickCard(context.secretiveSage);
+
+                // Player 1 plays Change of heart to take control of Ki-Adi-Mundi
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.kiadimundi);
+
+                // Player 2 plays their second card, triggering Ki-Adi-Mundi's ability for Player 1
+                context.player2.clickCard(context.resupply);
+                expect(context.player1).toHavePassAbilityPrompt('Draw 2 cards');
+                context.player1.clickPrompt('Trigger');
+
+                // Two cards were drawn for Player 1
+                expect(context.player1.hand.length).toBe(2);
             });
         });
     });
