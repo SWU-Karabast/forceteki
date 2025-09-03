@@ -473,13 +473,6 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     public go: GameObjectBase;
     public prop: string;
     private accessing = false;
-    // public constructor(go: GameObjectBase, prop: string, ...entries: TValue[]) {
-    //     super(...entries);
-    //     Contract.assertNotNullLike(go, 'Game Object cannot be null');
-    //     this.go = go;
-    //     this.prop = prop;
-    //     this.accessing = true;
-    // }
 
     public override push(...items: TValue[]): number {
         this.accessing = true;
