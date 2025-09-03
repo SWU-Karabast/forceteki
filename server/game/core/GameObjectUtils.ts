@@ -474,6 +474,10 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     public prop: string;
     private accessing = false;
 
+    public static override get [Symbol.species]() {
+        return Array; // Return the native Array constructor
+    }
+
     public override push(...items: TValue[]): number {
         this.accessing = true;
         try {
@@ -527,17 +531,6 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         } finally {
             this.accessing = false;
         }
-    }
-
-    // Shadow Array.prototype methods so that they return a normal array instead of a UndoArray.
-    public override filter(...args): TValue[] {
-        return [...super.filter.apply(this, args)];
-    }
-
-    public override map<U>(callbackfn: (value: TValue, index: number, array: TValue[]) => U, thisArg?: any): U[] {
-        // @ts-expect-error We need the argument definitions so we can infer the generic return value, but need to pass all of the arguments down to the apply.
-        // eslint-disable-next-line prefer-rest-params
-        return [...super.map.apply(this, arguments)] as U[];
     }
 
     public override sort(): this {
