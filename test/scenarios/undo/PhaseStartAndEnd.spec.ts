@@ -1,6 +1,6 @@
 describe('Start / end of phase snapshots', function() {
     undoIntegration(function(contextRef) {
-        describe('Effects at the start of the regroup phase', function () {
+        describe('Effects at the start of the regroup phase for one player', function () {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -249,6 +249,129 @@ describe('Start / end of phase snapshots', function() {
                 expect(rollbackResult).toBeTrue();
 
                 assertActionPhaseEndState(context);
+            });
+        });
+
+        describe('Effects at the start of the regroup phase for both players', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['inferno-four#unforgetting', 'system-patrol-craft'],
+                        hand: ['sneak-attack', 'ruthless-raider']
+                    },
+                    player2: {
+                        spaceArena: ['green-squadron-awing'],
+                        groundArena: ['wampa'],
+                        hand: ['sneak-attack', 'ruthless-raider']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.p1SneakAttack = context.player1.findCardByName('sneak-attack');
+                context.p2SneakAttack = context.player2.findCardByName('sneak-attack');
+                context.p1RuthlessRaider = context.player1.findCardByName('ruthless-raider');
+                context.p2RuthlessRaider = context.player2.findCardByName('ruthless-raider');
+
+                // Play Ruthless Raider from hand (P1)
+                context.player1.clickCard(context.p1SneakAttack);
+                context.player1.clickCard(context.p1RuthlessRaider);
+                context.player1.clickCard(context.greenSquadronAwing);
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.greenSquadronAwing.damage).toBe(2);
+
+                // Play Ruthless Raider from hand (P2)
+                context.player2.clickCard(context.p2SneakAttack);
+                context.player2.clickCard(context.p2RuthlessRaider);
+                context.player2.clickCard(context.systemPatrolCraft);
+                expect(context.p1Base.damage).toBe(2);
+                expect(context.systemPatrolCraft.damage).toBe(2);
+
+                context.endOfActionPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.endOfActionPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                context.moveToRegroupPhase();
+
+                context.startOfRegroupPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.startOfRegroupPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+            });
+
+            const completeRuthlessRaiderActions = (context) => {
+                expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+                context.player1.clickPrompt('You');
+                context.player1.clickCard(context.greenSquadronAwing);
+                context.player2.clickCard(context.systemPatrolCraft);
+            };
+
+            const assertActionPhaseEndState = (context) => {
+                expect(context.game.currentPhase).toBe('action');
+                expect(context.p1RuthlessRaider).toBeInZone('spaceArena');
+                expect(context.p2RuthlessRaider).toBeInZone('spaceArena');
+
+                expect(context.p1Base.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.greenSquadronAwing.damage).toBe(2);
+            };
+
+            const assertRegroupPhaseStartState = (context) => {
+                expect(context.game.currentPhase).toBe('regroup');
+                expect(context.p1RuthlessRaider).toBeInZone('discard');
+                expect(context.p2RuthlessRaider).toBeInZone('discard');
+
+                expect(context.p1Base.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.greenSquadronAwing.damage).toBe(2);
+                expect(context.systemPatrolCraft.damage).toBe(2);
+            };
+
+            const assertRegroupPhaseRaiderDefeatedState = (context) => {
+                expect(context.game.currentPhase).toBe('regroup');
+                expect(context.p1RuthlessRaider).toBeInZone('discard');
+                expect(context.p2RuthlessRaider).toBeInZone('discard');
+
+                expect(context.p1Base.damage).toBe(4);
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.greenSquadronAwing).toBeInZone('discard');
+                expect(context.systemPatrolCraft).toBeInZone('discard');
+            };
+
+            it('should create a quick rollback point for the first prompted player, available immediately, which repeats the actions for both players', function () {
+                const { context } = contextRef;
+
+                completeRuthlessRaiderActions(context);
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfRegroupPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfRegroupPhaseActionId);
+
+                assertRegroupPhaseStartState(context);
+                completeRuthlessRaiderActions(context);
+                assertRegroupPhaseRaiderDefeatedState(context);
+            });
+
+            it('should create a quick rollback point for the second prompted player, available immediately, which repeats the actions for both players', function () {
+                const { context } = contextRef;
+
+                completeRuthlessRaiderActions(context);
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player2.id
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfRegroupPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfRegroupPhaseActionId);
+
+                assertRegroupPhaseStartState(context);
+                completeRuthlessRaiderActions(context);
+                assertRegroupPhaseRaiderDefeatedState(context);
             });
         });
     });
