@@ -787,13 +787,14 @@ export class Lobby {
             const durationMs = Number(end - start) / 1e6;
 
             if (durationMs > 100) {
-                logger.info(`[LobbyCommand] ${JSON.stringify({
+                const durationMsLogValue = Number(durationMs.toFixed(2));
+                logger.info(`[LobbyCommand > 100ms] ${JSON.stringify({
                     command,
                     userId: socket.user.getId(),
                     lobbyId: this.id,
-                    durationMs: Number(durationMs.toFixed(2)),
+                    durationMs: durationMsLogValue,
                     timestamp: new Date().toISOString()
-                })}`);
+                })}`, { durationMs: durationMsLogValue });
             }
         } catch (error) {
             logger.error('Lobby: error processing lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
