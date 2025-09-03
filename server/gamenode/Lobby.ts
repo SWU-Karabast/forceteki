@@ -794,7 +794,6 @@ export class Lobby {
                     lobbyId: this.id,
                     durationMs: durationMsLogValue,
                     timestamp: new Date().toISOString(),
-                    promptType: this.game.getPlayerById(socket.user.getId())?.promptState.promptType ?? 'null',
                 })}`, { durationMs: durationMsLogValue });
             }
         } catch (error) {
@@ -842,7 +841,8 @@ export class Lobby {
                     userId: socket.user.getId(),
                     lobbyId: this.id,
                     durationMs: Number(durationMs.toFixed(2)),
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    promptType: this.game.getPlayerById(socket.user.getId())?.promptState.promptType ?? 'null',
                 })}`);
             }
         } catch (error) {
