@@ -807,12 +807,12 @@ export class GameServer {
     }
 
     private async getAllLeaders() {
-        const allLeaders: { name: string; id: string }[] = [];
+        const allLeaders: { name: string; subtitle?: string; id: string }[] = [];
         const promises = this.cardDataGetter.cardIds.map(async (cardId) => {
             const card = await this.cardDataGetter.getCardAsync(cardId);
             if (card.types.includes('leader')) {
                 const leaderIdString = `${card.setId.set}_${card.setId.number.toString().padStart(3, '0')}`;
-                allLeaders.push({ name: card.title, id: leaderIdString });
+                allLeaders.push({ name: card.title, subtitle: card.subtitle, id: leaderIdString });
             }
         });
         await Promise.all(promises);
