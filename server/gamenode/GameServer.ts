@@ -893,7 +893,8 @@ export class GameServer {
         let numberOfOngoingGames = 0;
 
         // Loop through all lobbies and check if they have an ongoing game
-        for (const lobby of this.lobbies.values()) {
+        // reverse the order of lobbies so newest games are first
+        for (const lobby of Array.from(this.lobbies.values()).reverse()) {
             if (lobby.hasOngoingGame()) {
                 const gameState = lobby.getGamePreview();
                 if (gameState) {
