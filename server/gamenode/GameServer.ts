@@ -132,6 +132,12 @@ export class GameServer {
         markSweepCount: 0,
         markSweepDuration: 0,
         maxMarkSweepDuration: 0,
+        incrementalCount: 0,
+        incrementalDuration: 0,
+        maxIncrementalDuration: 0,
+        weakCallbackCount: 0,
+        weakCallbackDuration: 0,
+        maxWeakCallbackDuration: 0,
         intervalStartTime: 0
     };
 
@@ -1511,8 +1517,15 @@ export class GameServer {
                         this.gcStats.markSweepCount++;
                         this.gcStats.markSweepDuration += entry.duration;
                         this.gcStats.maxMarkSweepDuration = Math.max(this.gcStats.maxMarkSweepDuration, entry.duration);
+                    } else if ((entry as unknown as GCPerformanceEntry).detail.kind === NodePerfConstants.NODE_PERFORMANCE_GC_INCREMENTAL) { // Incremental GC
+                        this.gcStats.incrementalCount++;
+                        this.gcStats.incrementalDuration += entry.duration;
+                        this.gcStats.maxIncrementalDuration = Math.max(this.gcStats.maxIncrementalDuration, entry.duration);
+                    } else if ((entry as unknown as GCPerformanceEntry).detail.kind === NodePerfConstants.NODE_PERFORMANCE_GC_WEAKCB) { // Weak callback GC
+                        this.gcStats.weakCallbackCount++;
+                        this.gcStats.weakCallbackDuration += entry.duration;
+                        this.gcStats.maxWeakCallbackDuration = Math.max(this.gcStats.maxWeakCallbackDuration, entry.duration);
                     }
-                    // Skip incremental and weak callback GC types as they're rare and brief
                 }
             } catch (error) {
                 logger.error(`Error capturing GC stats from PerformanceObserver: ${error}`);
@@ -1526,8 +1539,16 @@ export class GameServer {
             const intervalDuration = Date.now() - this.gcStats.intervalStartTime;
             const scavengeAvg = this.gcStats.scavengeCount > 0 ? this.gcStats.scavengeDuration / this.gcStats.scavengeCount : 0;
             const markSweepAvg = this.gcStats.markSweepCount > 0 ? this.gcStats.markSweepDuration / this.gcStats.markSweepCount : 0;
+            const incrementalAvg = this.gcStats.incrementalCount > 0 ? this.gcStats.incrementalDuration / this.gcStats.incrementalCount : 0;
+            const weakCallbackAvg = this.gcStats.weakCallbackCount > 0 ? this.gcStats.weakCallbackDuration / this.gcStats.weakCallbackCount : 0;
 
-            logger.info(`[GCStats] Duration: ${(intervalDuration / 1000).toFixed(1)}s | Total GC time: ${this.gcStats.totalDuration.toFixed(1)}ms | Minor: ${this.gcStats.scavengeCount} (total ${this.gcStats.scavengeDuration.toFixed(1)}ms, avg: ${scavengeAvg.toFixed(1)}ms, max: ${this.gcStats.maxScavengeDuration.toFixed(1)}ms) | Major: ${this.gcStats.markSweepCount} (total ${this.gcStats.markSweepDuration.toFixed(1)}ms, avg: ${markSweepAvg.toFixed(1)}ms, max: ${this.gcStats.maxMarkSweepDuration.toFixed(1)}ms)`);
+            logger.info(
+                `[GCStats] Duration: ${(intervalDuration / 1000).toFixed(1)}s | Total GC time: ${this.gcStats.totalDuration.toFixed(1)}ms | ` +
+                `Minor: ${this.gcStats.scavengeCount} (total ${this.gcStats.scavengeDuration.toFixed(1)}ms, avg: ${scavengeAvg.toFixed(1)}ms, max: ${this.gcStats.maxScavengeDuration.toFixed(1)}ms) | ` +
+                `Major: ${this.gcStats.markSweepCount} (total ${this.gcStats.markSweepDuration.toFixed(1)}ms, avg: ${markSweepAvg.toFixed(1)}ms, max: ${this.gcStats.maxMarkSweepDuration.toFixed(1)}ms) | ` +
+                `Incremental: ${this.gcStats.incrementalCount} (total ${this.gcStats.incrementalDuration.toFixed(1)}ms, avg: ${incrementalAvg.toFixed(1)}ms, max: ${this.gcStats.maxIncrementalDuration.toFixed(1)}ms) | ` +
+                `WeakCB: ${this.gcStats.weakCallbackCount} (total ${this.gcStats.weakCallbackDuration.toFixed(1)}ms, avg: ${weakCallbackAvg.toFixed(1)}ms, max: ${this.gcStats.maxWeakCallbackDuration.toFixed(1)}ms)`
+            );
 
             // Reset stats for next interval
             this.gcStats = {
@@ -1538,6 +1559,12 @@ export class GameServer {
                 markSweepCount: 0,
                 markSweepDuration: 0,
                 maxMarkSweepDuration: 0,
+                incrementalCount: 0,
+                incrementalDuration: 0,
+                maxIncrementalDuration: 0,
+                weakCallbackCount: 0,
+                weakCallbackDuration: 0,
+                maxWeakCallbackDuration: 0,
                 intervalStartTime: Date.now()
             };
         } catch (error) {
