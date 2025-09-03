@@ -796,27 +796,14 @@ export class GameServer {
             }
         });
 
-        app.get('/api/all-leaders', async (_, res, next) => {
+        app.get('/api/all-leaders', (_, res, next) => {
             try {
-                return res.json(await this.getAllLeaders());
+                return res.json(this.cardDataGetter.getLeaderCards());
             } catch (err) {
                 logger.error('GameServer (all-leaders) Server error: ', err);
                 next(err);
             }
         });
-    }
-
-    private async getAllLeaders() {
-        const allLeaders: { name: string; subtitle?: string; id: string }[] = [];
-        const promises = this.cardDataGetter.cardIds.map(async (cardId) => {
-            const card = await this.cardDataGetter.getCardAsync(cardId);
-            if (card.types.includes('leader')) {
-                const leaderIdString = `${card.setId.set}_${card.setId.number.toString().padStart(3, '0')}`;
-                allLeaders.push({ name: card.title, subtitle: card.subtitle, id: leaderIdString });
-            }
-        });
-        await Promise.all(promises);
-        return allLeaders;
     }
 
     private canUserJoinNewLobby(userId: string) {

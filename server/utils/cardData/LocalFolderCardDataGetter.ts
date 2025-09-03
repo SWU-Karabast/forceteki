@@ -64,9 +64,10 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,
         playableCardTitles: string[],
-        setCodeMap: Record<string, string>
+        setCodeMap: Record<string, string>,
+        leaderNames: { name: string; id: string; subtitle?: string }[],
     ) {
-        super(cardMapJson, tokenData, playableCardTitles, setCodeMap);
+        super(cardMapJson, tokenData, playableCardTitles, setCodeMap, leaderNames);
 
         this.folderRoot = folderRoot;
     }
