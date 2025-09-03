@@ -27,7 +27,9 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         const setCodeMap = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.setCodeMapFileName)
             .then((data) => data as Record<string, string>);
 
-        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, playableCardTitles, setCodeMap);
+        const leaderNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.leaderNamesFileName)
+            .then((data) => data as { name: string; id: string; subtitle?: string }[]);
+        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, playableCardTitles, setCodeMap, leaderNames);
     }
 
     protected static validateFolderContents(directory: string, isDevelopment: boolean) {
