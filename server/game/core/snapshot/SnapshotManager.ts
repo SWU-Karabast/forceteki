@@ -126,7 +126,7 @@ export class SnapshotManager {
 
                 // TODO: extend this to setup phase start as well
                 if (this.game.currentPhase === PhaseName.Regroup) {
-                    this.addQuickRegroupSnapshots();
+                    this.addQuickStartOfRegroupSnapshots();
                 }
 
                 return phaseSnapshotNumber;
@@ -151,10 +151,10 @@ export class SnapshotManager {
         quickSnapshots.addSnapshotFromMap(this.actionSnapshots, playerId);
     }
 
-    private addQuickRegroupSnapshots() {
+    private addQuickStartOfRegroupSnapshots() {
         // sanity check
         const regroupSnapshotId = this.phaseSnapshots.getSnapshotProperties(PhaseName.Regroup)?.snapshotId;
-        Contract.assertTrue(regroupSnapshotId === this.currentSnapshotId, `Attempting to make a quick snapshot from a regroup snapshot, but the latest regroup snapshot (${regroupSnapshotId}) does not match the active snapshot id (${this.currentSnapshotId}). Make sure that a regroup snapshot is taken before creating a quick snapshot from it.`);
+        Contract.assertTrue(regroupSnapshotId === this.currentSnapshotId, `Attempting to make a quick snapshot from a regroup snapshot, but the latest regroup phase start snapshot (${regroupSnapshotId}) does not match the active snapshot id (${this.currentSnapshotId}). Make sure that a regroup phase start snapshot is taken before creating a quick snapshot from it.`);
 
         for (const player of this.game.getPlayers()) {
             let quickSnapshots = this.quickSnapshots.get(player.id);
@@ -165,6 +165,22 @@ export class SnapshotManager {
 
             quickSnapshots.addSnapshotFromMap(this.phaseSnapshots, PhaseName.Regroup);
         }
+    }
+
+    public addQuickStartOfActionSnapshot(playerId: string) {
+        Contract.assertNotNullLike(playerId);
+
+        // sanity check
+        const actionSnapshotId = this.phaseSnapshots.getSnapshotProperties(PhaseName.Action)?.snapshotId;
+        Contract.assertTrue(actionSnapshotId === this.currentSnapshotId, `Attempting to make a quick snapshot from an action snapshot, but the latest action phase start snapshot (${actionSnapshotId}) does not match the active snapshot id (${this.currentSnapshotId}). Make sure that an action phase start snapshot is taken before creating a quick snapshot from it.`);
+
+        let quickSnapshots = this.quickSnapshots.get(playerId);
+        if (!quickSnapshots) {
+            quickSnapshots = this.snapshotFactory.createMetaSnapshotArray();
+            this.quickSnapshots.set(playerId, quickSnapshots);
+        }
+
+        quickSnapshots.addSnapshotFromMap(this.phaseSnapshots, PhaseName.Action);
     }
 
     private takeManualSnapshot(settings: IManualSnapshotSettings): number {
@@ -186,12 +202,6 @@ export class SnapshotManager {
             return { success: false };
         }
 
-        // Handle Quick snapshots with specialized logic
-        if (settings.type === SnapshotType.Quick) {
-            return this.quickRollback(settings.playerId);
-        }
-
-        // Handle all other snapshot types
         let rolledBackSnapshotIdx: number = null;
         switch (settings.type) {
             case SnapshotType.Action:
@@ -202,6 +212,9 @@ export class SnapshotManager {
                 break;
             case SnapshotType.Phase:
                 rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName, this.checkGetOffset(settings.phaseOffset));
+                break;
+            case SnapshotType.Quick:
+                rolledBackSnapshotIdx = this.quickRollback(settings.playerId);
                 break;
             default:
                 throw new Error(`Unimplemented snapshot type in rollbackTo: ${JSON.stringify(settings)}`);
@@ -216,29 +229,16 @@ export class SnapshotManager {
         return { success: false };
     }
 
-    private quickRollback(playerId: string): IRollbackResult {
+    private quickRollback(playerId: string): number | null {
         const rollbackPoint = this.getQuickRollbackPoint(playerId);
 
         const snapshotId = this.quickSnapshots.get(playerId).rollbackToSnapshot(rollbackPoint);
 
         if (snapshotId == null) {
-            return { success: false };
+            return null;
         }
 
-        let entryPoint: IRollbackRoundEntryPoint;
-        switch (this.game.currentPhase) {
-            case PhaseName.Regroup:
-                entryPoint = { type: RollbackEntryPointType.Round, entryPoint: RollbackRoundEntryPoint.StartOfRegroupPhase };
-                break;
-            case PhaseName.Action:
-                entryPoint = { type: RollbackEntryPointType.Round, entryPoint: RollbackRoundEntryPoint.WithinActionPhase };
-                break;
-            default:
-                Contract.fail(`Unrecognized phase: ${this.game.currentPhase}`);
-        }
-
-        this.snapshotFactory.clearNewerSnapshots(snapshotId);
-        return { success: true, entryPoint };
+        return snapshotId;
     }
 
     /**

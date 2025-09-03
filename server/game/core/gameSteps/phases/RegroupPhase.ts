@@ -19,7 +19,7 @@ export class RegroupPhase extends Phase {
         const resourceSteps = [];
         if (initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase) {
             resourceSteps.push(new SimpleStep(game, () => this.drawTwo(), 'drawTwo'));
-            resourceSteps.push(new SimpleStep(game, () => this.resourcePrompt(), 'resourcePrompt'));
+            resourceSteps.push(new SimpleStep(game, () => this.resourcePrompt(initializeMode), 'resourcePrompt'));
         }
 
         super(game, PhaseName.Regroup, snapshotManager);
@@ -43,9 +43,12 @@ export class RegroupPhase extends Phase {
         }
     }
 
-    private resourcePrompt() {
+    private resourcePrompt(initializeMode: PhaseInitializeMode) {
         this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.RegroupResource);
-        this.takeSnapshotsForPromptedPlayers();
+
+        if (initializeMode === PhaseInitializeMode.Normal || initializeMode === PhaseInitializeMode.RollbackToStartOfPhase) {
+            this.takeActionSnapshotsForPromptedPlayers();
+        }
 
         this.game.queueStep(new VariableResourcePrompt(this.game, 0, 1));
     }

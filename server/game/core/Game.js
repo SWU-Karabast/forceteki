@@ -1224,15 +1224,7 @@ class Game extends EventEmitter {
         }
 
         const actionPhaseStep = this.buildActionPhaseStep(rollbackEntryPoint);
-
-        const regroupInitializeMode =
-            rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase
-                ? PhaseInitializeMode.RollbackToStartOfPhase
-                : PhaseInitializeMode.Normal;
-
-        const regroupPhaseStep = [
-            new RegroupPhase(this, this._snapshotManager, regroupInitializeMode)
-        ];
+        const regroupPhaseStep = this.buildRegroupPhaseStep(rollbackEntryPoint);
 
         this.pipeline.initialise([
             ...roundStartStep,

@@ -94,14 +94,14 @@ export abstract class Phase extends BaseStepWithPipeline {
             );
 
             // checks if a player was prompted during the end step and if so, takes a snapshot so they can unwind to the prompt
-            this.game.queueSimpleStep(() => this.takeSnapshotsForPromptedPlayers(), 'takeSnapshotsForPromptedPlayers');
+            this.game.queueSimpleStep(() => this.takeActionSnapshotsForPromptedPlayers(), 'takeActionSnapshotsForPromptedPlayers');
 
             // for post-phase state cleanup. emit directly, don't need a window.
             this.game.emit(EventName.OnPhaseEndedCleanup, { phase: this.name });
         }
     }
 
-    protected takeSnapshotsForPromptedPlayers(): void {
+    protected takeActionSnapshotsForPromptedPlayers(): void {
         for (const player of this.game.getPlayers()) {
             if (this.game.hasBeenPrompted(player)) {
                 this.game.snapshotManager.takeSnapshot({

@@ -28,8 +28,8 @@ export class ActionPhase extends Phase {
         this.getNextActionNumber = getNextActionNumber;
 
         const setupStep: IStep[] = [];
-        if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase) {
-            setupStep.push(new SimpleStep(this.game, () => this.setupActionPhase(), 'setupActionPhase'));
+        if (initializeMode === PhaseInitializeMode.Normal || initializeMode === PhaseInitializeMode.RollbackToStartOfPhase) {
+            setupStep.push(new SimpleStep(this.game, () => this.setupActionPhase(initializeMode), 'setupActionPhase'));
         }
 
         this.initialise(
@@ -42,7 +42,15 @@ export class ActionPhase extends Phase {
         );
     }
 
-    private setupActionPhase() {
+    private setupActionPhase(initializeMode: PhaseInitializeMode) {
+        if (initializeMode === PhaseInitializeMode.Normal) {
+            for (const player of this.game.getPlayers()) {
+                if (this.game.hasBeenPrompted(player)) {
+                    this.game.snapshotManager.addQuickStartOfActionSnapshot(player.id);
+                }
+            }
+        }
+
         for (const player of this.game.getPlayers()) {
             player.resetForActionPhase();
         }
