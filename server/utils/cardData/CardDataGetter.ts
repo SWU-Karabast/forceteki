@@ -14,10 +14,12 @@ export abstract class CardDataGetter {
     private readonly _playableCardTitles: string[];
     private readonly _setCodeMap: Map<string, string>;
     private readonly _tokenData: ITokenCardsData;
+    private readonly _leaders: { name: string; id: string; subtitle?: string }[];
 
     protected static readonly setCodeMapFileName = '_setCodeMap.json';
     protected static readonly cardMapFileName = '_cardMap.json';
     protected static readonly playableCardTitlesFileName = '_playableCardTitles.json';
+    protected static readonly leaderNamesFileName = '_leaderNames.json';
 
     public get cardIds(): string[] {
         return Array.from(this.cardMap.keys());
@@ -35,11 +37,16 @@ export abstract class CardDataGetter {
         return this._tokenData;
     }
 
+    public getLeaderCards() {
+        return this._leaders;
+    }
+
     public constructor(
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
+        leaderNames: { name: string; id: string; subtitle?: string }[],
     ) {
         this.cardMap = new Map<string, ICardMapEntry>();
         this.knownCardInternalNames = new Set<string>();
@@ -52,6 +59,7 @@ export abstract class CardDataGetter {
         this._playableCardTitles = playableCardTitles;
         this._setCodeMap = new Map(Object.entries(setCodeMap));
         this._tokenData = tokenData;
+        this._leaders = leaderNames;
     }
 
     protected abstract getCardInternalAsync(relativePath: string): Promise<ICardDataJson>;

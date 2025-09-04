@@ -261,6 +261,7 @@ function buildCardLists(cards) {
     const setCodeMap = {};
     const playableCardTitlesSet = new Set();
     const seenNames = [];
+    const leaderNames = [];
     var duplicatesWithSetCode = {};
     const uniqueCardsMap = new Map();
     const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3], ['JTL', 4], ['LOF', 5], ['IBH', 6], ['SEC', 6]]);
@@ -309,13 +310,18 @@ function buildCardLists(cards) {
         }
 
         uniqueCardsMap.set(card.internalName, card);
+
+        if (card.types.includes('leader')) {
+            const cardId = `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
+            leaderNames.push({ name: card.title, id: cardId, subtitle: card.subtitle });
+        }
     }
 
     const playableCardTitles = Array.from(playableCardTitlesSet);
     playableCardTitles.sort();
 
     const uniqueCards = [...uniqueCardsMap].map(([internalName, card]) => card);
-    return { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap };
+    return { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames };
 }
 
 async function main() {
@@ -342,7 +348,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap } = buildCardLists(cards);
+    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames } = buildCardLists(cards);
 
     cards.map((card) => delete card.debugObject);
 
@@ -366,6 +372,7 @@ async function main() {
     fs.writeFile(path.join(pathToJSON, '_playableCardTitles.json'), JSON.stringify(playableCardTitles, null, 2));
     fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_mockCardNames.json'), JSON.stringify(mockCardNames, null, 2));
+    fs.writeFile(path.join(pathToJSON, '_leaderNames.json'), JSON.stringify(leaderNames, null, 2));
     fs.copyFile(path.join(__dirname, '../card-data-version.txt'), path.join(pathToJSON, 'card-data-version.txt'));
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
