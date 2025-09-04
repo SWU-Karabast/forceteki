@@ -18,7 +18,6 @@ describe('Hunter, Extraordinary Tracker', function () {
 
                 // trigger prompt (saboteur is also shown)
                 context.player1.clickPrompt('If the defender is exhausted, it gets –4/–0 for this attack');
-                context.player1.clickPrompt('Trigger');
 
                 expect(context.hunterExtraordinaryTracker.damage).toBe(1);
 
