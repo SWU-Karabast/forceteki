@@ -186,6 +186,51 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 context.player1.clickCard(context.bokatanKryze);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('No damage is dealt if no targets are chosen for the second prompt', function () {
+                const { context } = contextRef;
+
+                // Attack with a Mandalorian to enable both damage prompts
+                context.player1.clickCard(context.mandalorianWarrior);
+                context.player1.clickCard(context.p2Base);
+                context.player2.passAction();
+
+                // Activate Bo-Katan's ability but choose no targets
+                context.player1.clickCard(context.bokatanKryze);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
+                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.mandalorianWarrior,
+                    context.battlefieldMarine,
+                    context.bokatanKryze,
+                    context.protectorOfTheThrone,
+                    context.allianceXwing,
+                    context.jedhaAgitator
+                ]);
+                context.player1.clickCard(context.jedhaAgitator);
+                expect(context.jedhaAgitator).toBeInZone('discard');
+
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
+                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.mandalorianWarrior,
+                    context.battlefieldMarine,
+                    context.bokatanKryze,
+                    context.protectorOfTheThrone,
+                    context.allianceXwing
+                ]);
+                context.player1.clickPrompt('Choose nothing');
+
+                // Confirm no more damage was dealt
+                expect(context.mandalorianWarrior.damage).toBe(0);
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.bokatanKryze.damage).toBe(0);
+                expect(context.protectorOfTheThrone.damage).toBe(0);
+                expect(context.allianceXwing.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
