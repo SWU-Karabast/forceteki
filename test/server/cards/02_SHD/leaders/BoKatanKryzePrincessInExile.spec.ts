@@ -187,7 +187,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('No damage is dealt if no targets are chosen for the second prompt', function () {
+            it('No damage it dealt for the second prompt if the player chooses nothing for that prompt', function () {
                 const { context } = contextRef;
 
                 // Attack with a Mandalorian to enable both damage prompts
