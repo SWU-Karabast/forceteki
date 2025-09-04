@@ -167,17 +167,14 @@ export class GameServer {
             res.on('finish', () => {
                 const end = process.hrtime.bigint();
                 const durationMs = Number(end - start) / 1e6;
-                const durationMsLogValue = Number(durationMs.toFixed(2));
 
-                const log = {
+                logger.info('[GameServer] API request completed', {
                     method: req.method,
                     path: req.originalUrl.split('?')[0],
                     status: res.statusCode,
-                    durationMs: durationMsLogValue,
+                    durationMs: Number(durationMs.toFixed(2)),
                     timestamp: new Date().toISOString()
-                };
-
-                logger.info(`[ApiRequest] ${JSON.stringify(log)}`, { durationMs: durationMsLogValue });
+                });
             });
 
             next();
