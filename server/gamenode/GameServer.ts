@@ -212,7 +212,7 @@ export class GameServer {
 
         requireEnvVars(
             ['INTRASERVICE_SECRET'],
-            'GameServer'
+            'GameServer',
         );
 
         // TOKEN CLEANUP

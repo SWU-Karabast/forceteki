@@ -4,10 +4,12 @@ import type { Player } from '../../game/core/Player';
 import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
-import type { PlayerDetails } from '../../gamenode/Lobby';
+import type { PlayerDetails, LobbyUser } from '../../gamenode/Lobby';
+import { MessageTypes } from '../../gamenode/Lobby';
 import type { GameServer, ISwuStatsToken } from '../../gamenode/GameServer';
 import type { UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
+import { v4 as uuid } from 'uuid';
 
 
 interface TurnResults {
@@ -103,7 +105,9 @@ export class SwuStatsHandler {
      * @param player1Details Details about player1
      * @param player2Details Details about player2
      * @param lobbyId the lobby id
-     * @param serverObject
+     * @param serverObject the server object from where we gain access to the user x accessToken
+     * @param player1LobbyUser player1 lobby object for sending info via socket
+     * @param player2LobbyUser player2 lobby object for sending info via socket
      * @returns Promise that resolves to true if successful, false otherwise
      */
     public async sendGameResultAsync(
@@ -111,7 +115,9 @@ export class SwuStatsHandler {
         player1Details: PlayerDetails,
         player2Details: PlayerDetails,
         lobbyId: string,
-        serverObject: GameServer
+        serverObject: GameServer,
+        player1LobbyUser: LobbyUser,
+        player2LobbyUser: LobbyUser
     ): Promise<boolean> {
         try {
             const players = game.getPlayers();
@@ -125,6 +131,20 @@ export class SwuStatsHandler {
             // Determine winner
             const winner = this.determineWinner(game, player1, player2);
             if (winner === 0) {
+                player1LobbyUser.socket?.send('statsSubmitNotification', {
+                    id: uuid(),
+                    success: false,
+                    type: MessageTypes.Warning,
+                    source: 'SWUStats',
+                    message: 'Draws are currently not supported by SWUStats.'
+                });
+                player2LobbyUser.socket?.send('statsSubmitNotification', {
+                    id: uuid(),
+                    success: false,
+                    type: MessageTypes.Warning,
+                    source: 'SWUStats',
+                    message: 'Draws are currently not supported by SWUStats.'
+                });
                 logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUstats`, { lobbyId });
                 return false;
             }

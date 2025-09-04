@@ -113,10 +113,9 @@ export function requireEnvVars<K extends keyof ParsedEnvData>(
 ): Pick<ParsedEnvData, K> {
     const missing: string[] = [];
     const result: Partial<Pick<ParsedEnvData, K>> = {};
-
     for (const varName of generalVars) {
         const value = parsedEnv.data[varName];
-        if (!!value) {
+        if (!value) {
             missing.push(String(varName));
         } else {
             result[varName] = value;
