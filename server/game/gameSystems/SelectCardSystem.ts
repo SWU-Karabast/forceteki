@@ -5,7 +5,7 @@ import { GameStateChangeRequired } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
-import type * as Helpers from '../core/utils/Helpers';
+import * as Helpers from '../core/utils/Helpers';
 import type { Player } from '../core/Player';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type { ICardTargetResolver } from '../TargetInterfaces';
@@ -86,7 +86,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
 
         context.game.queueSimpleStep(() => {
             if (!targetResults.cancelled) {
-                if (!properties.isCost) {
+                if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
                     this.addOnSelectEffectMessage(context, properties);
                 }
 
