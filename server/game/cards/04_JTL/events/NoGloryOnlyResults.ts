@@ -16,16 +16,13 @@ export default class NoGloryOnlyResults extends EventCard {
             title: 'Take control of a non-leader unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
-                    newController: context.player,
-                }))
-            },
-            then: (thenContext) => ({
-                title: `Defeat ${thenContext.target?.title}`,
-                immediateEffect: AbilityHelper.immediateEffects.defeat({
-                    target: thenContext.target,
-                })
-            }),
+                immediateEffect: AbilityHelper.immediateEffects.sequential([
+                    AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
+                        newController: context.player,
+                    })),
+                    AbilityHelper.immediateEffects.defeat()
+                ])
+            }
         });
     }
 }
