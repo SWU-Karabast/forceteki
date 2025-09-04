@@ -5,7 +5,7 @@ import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
 import type { PlayerDetails } from '../../gamenode/Lobby';
-import type { ISwuStatsToken } from '../../gamenode/GameServer';
+import type { GameServer, ISwuStatsToken } from '../../gamenode/GameServer';
 import type { UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
 
@@ -103,6 +103,7 @@ export class SwuStatsHandler {
      * @param player1Details Details about player1
      * @param player2Details Details about player2
      * @param lobbyId the lobby id
+     * @param serverObject
      * @returns Promise that resolves to true if successful, false otherwise
      */
     public async sendGameResultAsync(
@@ -110,6 +111,7 @@ export class SwuStatsHandler {
         player1Details: PlayerDetails,
         player2Details: PlayerDetails,
         lobbyId: string,
+        serverObject: GameServer
     ): Promise<boolean> {
         try {
             const players = game.getPlayers();
@@ -136,6 +138,7 @@ export class SwuStatsHandler {
                 player2Details,
                 winner,
                 lobbyId,
+                serverObject
             );
             // Log the payload for debugging (excluding API key)
             const { apiKey, p1SWUStatsToken, p2SWUStatsToken, ...payloadForLogging } = payload;
@@ -250,6 +253,7 @@ export class SwuStatsHandler {
         player2Details: PlayerDetails,
         winner: number,
         lobbyId: string,
+        serverObject: GameServer
     ): Promise<SWUstatsGameResult> {
         const player1Data = this.buildPlayerData(player1, player2, player1Details.deckLink, game, winner, 1);
         const player2Data = this.buildPlayerData(player2, player1, player2Details.deckLink, game, winner, 2);
@@ -257,8 +261,8 @@ export class SwuStatsHandler {
         const firstPlayer = player1Data.firstPlayer === 1 ? 1 : 2;
         const winHero = winner === 1 ? player1Data.leader : player2Data.leader;
         const loseHero = winner === 1 ? player2Data.leader : player1Data.leader;
-        const p1SWUStatsToken = await this.getAccessTokenAsync(player1Details, lobbyId);
-        const p2SWUStatsToken = await this.getAccessTokenAsync(player2Details, lobbyId);
+        const p1SWUStatsToken = await this.getAccessTokenAsync(player1Details, lobbyId, serverObject);
+        const p2SWUStatsToken = await this.getAccessTokenAsync(player2Details, lobbyId, serverObject);
         // Get winner's remaining health
         const winnerPlayer = winner === 1 ? player1 : player2;
         const winnerHealth = winnerPlayer.base?.remainingHp || 0;
@@ -286,10 +290,12 @@ export class SwuStatsHandler {
      * @returns Promise that resolves to access tokens for each player
      * @param playerDetails details on the player id, deckId, decklist etc...
      * @param lobbyId
+     * @param serverObject
      */
     private async getAccessTokenAsync(
         playerDetails: PlayerDetails,
-        lobbyId: string
+        lobbyId: string,
+        serverObject: GameServer
     ): Promise<string> {
         let playerAccessToken: string = null;
         // Handle Player swu token
@@ -300,6 +306,7 @@ export class SwuStatsHandler {
             // Token is expired or doesn't exist, refresh it
             logger.info(`SWUStatsHandler: Access token expired or missing for player (${playerDetails.user.getId()}), refreshing...`, { lobbyId, userId: playerDetails.user.getId() });
             const resultTokens = await this.refreshTokensAsync(playerDetails.swuStatsRefreshToken);
+            serverObject.swuStatsTokenMapping.set(playerDetails.user.getId(), resultTokens);
             playerAccessToken = resultTokens.accessToken;
             await this.userFactory.addSwuStatsRefreshTokenAsync(playerDetails.user.getId(), resultTokens.refreshToken);
         }

@@ -1039,7 +1039,6 @@ export class Lobby {
                 });
             }
 
-
             const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
                 this.playersDetails.find((u) => u.user.getId() === id)?.deckSource === DeckSource.SWUStats
             );
@@ -1050,7 +1049,8 @@ export class Lobby {
                         game,
                         player1User,
                         player2User,
-                        this.id
+                        this.id,
+                        this.server
                     );
                     logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
                 } catch (error) {
