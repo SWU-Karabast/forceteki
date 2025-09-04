@@ -5,7 +5,8 @@ describe('Dismantle the Conspiracy', function() {
                 phase: 'action',
                 player1: {
                     hand: ['dismantle-the-conspiracy'],
-                    groundArena: [{ card: 'battlefield-marine', damage: 2 }, 'isb-agent']
+                    groundArena: [{ card: 'battlefield-marine', damage: 2 }, 'isb-agent'],
+                    leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
                 },
                 player2: {
                     hand: ['change-of-heart'],
@@ -20,7 +21,7 @@ describe('Dismantle the Conspiracy', function() {
             context.player1.clickCard(context.dismantleTheConspiracy);
 
             expect(context.player1).toHavePrompt('A friendly unit captures any number of enemy non leader units with 7 or less HP');
-            expect(context.player1).toBeAbleToSelectExactly([context.isbAgent, context.battlefieldMarine]);
+            expect(context.player1).toBeAbleToSelectExactly([context.isbAgent, context.battlefieldMarine, context.lukeSkywalkerFaithfulFriend]);
 
             context.player1.clickCard(context.isbAgent);
 
