@@ -141,7 +141,7 @@ export class Deck {
 
         // leader
         const leaderCard = (await this.buildCardsFromSetCodeAsync(this.leader.id, player, cardDataGetter, 1))[0];
-        Contract.assertTrue(leaderCard.isLeader());
+        Contract.assertTrue(leaderCard.isLeader(), `${leaderCard.internalName} is not a leader`);
         result.leader = leaderCard.getRef();
 
         result.allCards.push(...result.deckCards);
