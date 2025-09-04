@@ -23,7 +23,7 @@ describe('No Glory, Only Results', function() {
             // Choose Superlaser Technician and defeat it
             context.player1.clickCard(context.superlaserTechnician);
             expect(context.getChatLogs(1)).toEqual([
-                'player1 plays No Glory, Only Results to take control of Superlaser Technician',
+                'player1 plays No Glory, Only Results to take control of Superlaser Technician and then to defeat Superlaser Technician',
             ]);
             context.player1.clickPrompt('Trigger');
             expect(context.superlaserTechnician).toBeInZone('resource', context.player1);
@@ -115,6 +115,33 @@ describe('No Glory, Only Results', function() {
 
             expect(context.noGloryOnlyResults).toBeInZone('discard');
             expect(context.player2).toBeActivePlayer();
+        });
+
+        it('does not whiff if there are no enemy units in play', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['first-order-stormtrooper'],
+                    spaceArena: ['landing-shuttle']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.noGloryOnlyResults);
+
+            // Action can be cancelled
+            expect(context.player1).toHaveEnabledPromptButton('Cancel');
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.firstOrderStormtrooper,
+                context.landingShuttle
+            ]);
+
+            context.player1.clickPrompt('Cancel');
+
+            expect(context.player1).toBeActivePlayer();
+            expect(context.noGloryOnlyResults).toBeInZone('hand');
         });
     });
 });
