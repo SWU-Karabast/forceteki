@@ -168,13 +168,15 @@ export class GameServer {
                 const end = process.hrtime.bigint();
                 const durationMs = Number(end - start) / 1e6;
 
-                logger.info('[GameServer] API request completed', {
-                    method: req.method,
-                    path: req.originalUrl.split('?')[0],
-                    status: res.statusCode,
-                    durationMs: Number(durationMs.toFixed(2)),
-                    timestamp: new Date().toISOString()
-                });
+                if (durationMs > 100) {
+                    logger.info('[GameServer] API request took more than 100ms', {
+                        method: req.method,
+                        path: req.originalUrl.split('?')[0],
+                        status: res.statusCode,
+                        durationMs: Number(durationMs.toFixed(2)),
+                        timestamp: new Date().toISOString()
+                    });
+                }
             });
 
             next();
