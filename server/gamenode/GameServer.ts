@@ -801,6 +801,15 @@ export class GameServer {
                 next(err);
             }
         });
+
+        app.get('/api/all-leaders', (_, res, next) => {
+            try {
+                return res.json(this.cardDataGetter.getLeaderCards());
+            } catch (err) {
+                logger.error('GameServer (all-leaders) Server error: ', err);
+                next(err);
+            }
+        });
     }
 
     private canUserJoinNewLobby(userId: string) {
@@ -877,7 +886,8 @@ export class GameServer {
         let numberOfOngoingGames = 0;
 
         // Loop through all lobbies and check if they have an ongoing game
-        for (const lobby of this.lobbies.values()) {
+        // reverse the order of lobbies so newest games are first
+        for (const lobby of Array.from(this.lobbies.values()).reverse()) {
             if (lobby.hasOngoingGame()) {
                 const gameState = lobby.getGamePreview();
                 if (gameState) {
