@@ -13,14 +13,13 @@ export default class HunterExtraordinaryTracker extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'If the defender is exhausted, it gets –4/–0 for this attack',
-            optional: true,
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => {
                     return context.event.attack.targets.some((x) => x.isUnit() && x.exhausted);
                 },
                 onTrue: abilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({
                     target: context.event.attack.targets.filter((x) => x.isUnit() && x.exhausted),
-                    effect: abilityHelper.ongoingEffects.modifyStats({ power: -4, hp: -0 })
+                    effect: abilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 })
                 }))
             }),
         });
