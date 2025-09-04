@@ -516,7 +516,7 @@ export class GameServer {
         app.post('/api/link-swustats', async (req, res, next) => {
             try {
                 const { userId, swuStatsToken, internalApiKey } = req.body;
-                if (process.env.ENVIRONMENT === 'development' && !!process.env.INTRASERVICE_SECRET) {
+                if (process.env.ENVIRONMENT === 'development' && !process.env.INTRASERVICE_SECRET) {
                     throw new Error('Environment variables INTRASERVICE_SECRET not set');
                 }
                 if (internalApiKey !== process.env.INTRASERVICE_SECRET) {

@@ -131,14 +131,14 @@ export class SwuStatsHandler {
             // Determine winner
             const winner = this.determineWinner(game, player1, player2);
             if (winner === 0) {
-                player1LobbyUser.socket?.send('statsSubmitNotification', {
+                player1LobbyUser?.socket.send('statsSubmitNotification', {
                     id: uuid(),
                     success: false,
                     type: MessageTypes.Warning,
                     source: 'SWUStats',
                     message: 'Draws are currently not supported by SWUStats.'
                 });
-                player2LobbyUser.socket?.send('statsSubmitNotification', {
+                player2LobbyUser?.socket.send('statsSubmitNotification', {
                     id: uuid(),
                     success: false,
                     type: MessageTypes.Warning,

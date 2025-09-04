@@ -968,7 +968,7 @@ export class Lobby {
                 opponentPlayerBaseId.internalName,
             );
             if (!resultResponse) {
-                lobbyUser.socket?.send('statsSubmitNotification', {
+                lobbyUser?.socket.send('statsSubmitNotification', {
                     id: uuid(),
                     success: false,
                     type: MessageTypes.Warning,
@@ -976,7 +976,7 @@ export class Lobby {
                     message: 'Deck isn\'t saved, so stats are not tracked.'
                 });
             } else {
-                lobbyUser.socket?.send('statsSubmitNotification', {
+                lobbyUser?.socket.send('statsSubmitNotification', {
                     id: uuid(),
                     success: true,
                     type: MessageTypes.Success,
@@ -987,7 +987,7 @@ export class Lobby {
             logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${this.id}`, { lobbyId: this.id, userId: playerUser.user.getId() });
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck stats for a player:`, error, { lobbyId: this.id, userId: playerUser.user.getId() });
-            lobbyUser.socket?.send('statsSubmitNotification', {
+            lobbyUser?.socket.send('statsSubmitNotification', {
                 id: uuid(),
                 success: false,
                 type: MessageTypes.Error,
@@ -1077,7 +1077,7 @@ export class Lobby {
                         if (playerDetail.deckSource === DeckSource.SWUStats) {
                             logger.error(`Lobby ${this.id}: Error updating deck stats to SWUStats:`, error, { lobbyId: this.id, userId: playerDetail.user.getId() });
                             const lobbyUser = this.users.find((u) => u.id === playerDetail.user.getId());
-                            lobbyUser.socket?.send('statsSubmitNotification', {
+                            lobbyUser?.socket.send('statsSubmitNotification', {
                                 id: uuid(),
                                 success: false,
                                 type: MessageTypes.Error,
@@ -1093,7 +1093,7 @@ export class Lobby {
             // Send error message to client
             this.playersDetails.forEach((playerDetail) => {
                 const lobbyUser = this.users.find((u) => u.id === playerDetail.user.getId());
-                lobbyUser.socket?.send('statsSubmitNotification', {
+                lobbyUser?.socket.send('statsSubmitNotification', {
                     id: uuid(),
                     success: false,
                     type: MessageTypes.Error,
