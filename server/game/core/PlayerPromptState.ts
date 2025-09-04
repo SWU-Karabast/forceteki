@@ -36,7 +36,7 @@ export class PlayerPromptState {
     public menuTitle = '';
     public promptTitle = '';
     public promptUuid = '';
-    public promptType = '';
+    public promptType: PromptType | '' | null = '';
     public buttons = [];
     public dropdownListOptions: string[] = [];
     public displayCards: IDisplayCard[] = [];

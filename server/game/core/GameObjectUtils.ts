@@ -136,11 +136,11 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
             },
             set(this: T, newValue: TValue[]) {
                 this.state[name] = newValue?.map((x) => x.getRef());
-                target.set.call(this, newValue ? UndoArrayInternal(new UndoArray(this, name, ...newValue)) : newValue);
+                target.set.call(this, newValue ? CreateUndoArrayInternal(this, name, newValue) : newValue);
             },
             init(this: T, value: TValue[]) {
                 this.state[name] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
-                return value ? UndoArrayInternal(new UndoArray(this, name)) : value;
+                return value ? CreateUndoArrayInternal(this, name) : value;
             }
         };
     };
@@ -306,6 +306,16 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
 
                     return result;
                 };
+            } else if (prop === 'reverse') {
+                return function(...args) {
+                    const result = Reflect.apply(target[prop], target, args);
+                    // @ts-expect-error Override accessibility and call the same method on the internal state.
+                    Reflect.apply(go.state[name][prop], go.state[name], args);
+
+                    return result;
+                };
+            } else if (prop === 'sort' || prop === 'fill') {
+                throw new Error('function ' + prop + ' is not supported.');
             }
 
             // For other properties, return the original property
@@ -320,6 +330,33 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
 /** A proxy wrapper for UndoArray to prevent directly setting elements via the indexes of an array. */
 export function UndoArrayInternal<T extends GameObjectBase, TValue extends GameObjectBase>(arr: UndoArray<TValue>) {
     const proxiedArray = new Proxy(arr, {
+        set(target, prop, newValue, receiver): boolean {
+            // @ts-expect-error overriding accessibility.
+            // setting the "accessing" prop needs to be allowed.
+            // target.accessing is only flagged as true when the mutation functions are called.
+            //      If it's not true then that means this is being modified via an index.
+            if (prop !== 'accessing' && !target.accessing) {
+                throw new Error('Set disallowed for mutating UndoArray');
+            }
+            return Reflect.set(target, prop, newValue, receiver);
+        },
+    });
+
+    return proxiedArray as TValue[];
+}
+
+/** A proxy wrapper for UndoArray to prevent directly setting elements via the indexes of an array. */
+function CreateUndoArrayInternal<T extends GameObjectBase, TValue extends GameObjectBase>(go: GameObjectBase, prop: string, arr?: TValue[]) {
+    let undoArr: UndoArray<TValue>;
+    if (arr) {
+        undoArr = new UndoArray(...arr);
+    } else {
+        undoArr = new UndoArray();
+    }
+    undoArr.go = go;
+    undoArr.prop = prop;
+
+    const proxiedArray = new Proxy(undoArr, {
         set(target, prop, newValue, receiver): boolean {
             // @ts-expect-error overriding accessibility.
             // setting the "accessing" prop needs to be allowed.
@@ -433,15 +470,12 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
 }
 
 class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
-    private go: GameObjectBase;
-    private prop: string;
+    public go: GameObjectBase;
+    public prop: string;
     private accessing = false;
-    public constructor(go: GameObjectBase, prop: string, ...entries: TValue[]) {
-        super(...entries);
-        Contract.assertNotNullLike(go, 'Game Object cannot be null');
-        this.go = go;
-        this.prop = prop;
-        this.accessing = true;
+
+    public static override get [Symbol.species]() {
+        return Array; // Return the native Array constructor
     }
 
     public override push(...items: TValue[]): number {
