@@ -7,7 +7,8 @@ describe('Budget Scheming', function () {
                     player1: {
                         hand: ['budget-scheming'],
                         groundArena: ['regional-governor', 'colonel-yularen#isb-director', 'admiral-ozzel#overconfident'],
-                        spaceArena: ['strikeship']
+                        spaceArena: ['strikeship'],
+                        leader: 'emperor-palpatine#galactic-ruler'
                     },
                     player2: {
                         groundArena: ['leia-organa#defiant-princess'],

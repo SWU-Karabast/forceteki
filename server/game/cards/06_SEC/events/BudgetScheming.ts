@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { TargetMode, Trait } from '../../../core/Constants';
+import { CardType, TargetMode, Trait } from '../../../core/Constants';
 
 export default class BudgetScheming extends EventCard {
     protected override getImplementationId() {
@@ -17,6 +17,7 @@ export default class BudgetScheming extends EventCard {
             targetResolver: {
                 mode: TargetMode.UpTo,
                 numCards: 3,
+                cardTypeFilter: CardType.BasicUnit || CardType.LeaderUnit,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Official),
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             }

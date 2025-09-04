@@ -22,6 +22,7 @@ export default class DismantleTheConspiracy extends EventCard {
                     cardTypeFilter: WildcardCardType.Unit
                 },
                 captureUnit: {
+                    dependsOn: 'friendlyUnit',
                     canChooseNoCards: true,
                     controller: RelativePlayer.Opponent,
                     zoneFilter: WildcardZoneName.AnyArena,
