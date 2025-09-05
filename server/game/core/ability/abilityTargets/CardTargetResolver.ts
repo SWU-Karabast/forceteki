@@ -234,7 +234,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         if (targetMode === TargetMode.Single) {
             return SelectCardMode.Single;
         } else if (targetMode === TargetMode.BetweenVariable && this.selector) {
-            if (this.selector.automaticFireOnSelect(context)) {
+            if (this.selector.automaticFireOnSelect(context, [])) {
                 return SelectCardMode.Single;
             }
         }
