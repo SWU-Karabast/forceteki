@@ -1765,12 +1765,12 @@ describe('Undo', function() {
                     phase: 'action', // 'regroup',
                     player1: {
                         hand: ['ardent-sympathizer', 'death-star-stormtrooper'],
-                        resources: 2,
+                        resources: 6,
                         deck: [],
                     },
                     player2: {
                         hand: ['crafty-smuggler'],
-                        resources: 2,
+                        resources: 6,
                         deck: []
                     }
                 });
@@ -1802,8 +1802,8 @@ describe('Undo', function() {
                 expect(context.game.roundNumber).toBe(2);
                 expect(player2).toBeActivePlayer();
                 expect(player1.hand.length).toBe(0);
-                expect(player1.resources.length).toBe(3);
-                expect(player2.resources.length).toBe(3);
+                expect(player1.resources.length).toBe(7);
+                expect(player2.resources.length).toBe(7);
                 expect(player1.groundArenaUnits.length).toBe(1);
                 expect(player1.base.damage).toBe(6);
                 expect(player2.base.damage).toBe(6);
@@ -1834,8 +1834,8 @@ describe('Undo', function() {
                 expect(context.game.roundNumber).toBe(2);
                 expect(player1).toBeActivePlayer();
                 expect(player1.hand.length).toBe(2);
-                expect(player1.resources.length).toBe(2);
-                expect(player2.resources.length).toBe(3);
+                expect(player1.resources.length).toBe(6);
+                expect(player2.resources.length).toBe(7);
                 expect(player1.base.damage).toBe(6);
                 expect(player2.base.damage).toBe(6);
             });

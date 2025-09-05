@@ -49,6 +49,7 @@ import { getPrintedAttributesOverride } from '../ongoingEffect/effectImpl/Printe
 import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPlayAbilityRegistration';
 import type { ICardWithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -83,7 +84,7 @@ export enum InitializeCardStateOption {
  * or {@link Card.canBeExhausted} to confirm that the card has the expected properties and then cast
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
-export class Card<T extends ICardState = ICardState> extends OngoingEffectSource<T> {
+export class Card<T extends ICardState = ICardState> extends OngoingEffectSource<T> implements IGameStatisticsTrackable {
     public static checkHasNonKeywordAbilityText(cardData: ICardDataJson) {
         if (cardData.types.includes('leader')) {
             return true;
@@ -271,6 +272,14 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     public get setId(): ISetId {
         return this.cardData.setId;
+    }
+
+    public get trackingId(): string {
+        if (process.env.ENVIRONMENT === 'development') {
+            return this.internalName;
+        }
+
+        return this.id;
     }
 
     public get traits(): Set<Trait> {
