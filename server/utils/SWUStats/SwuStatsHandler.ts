@@ -178,7 +178,7 @@ export class SwuStatsHandler {
             if (!response.ok) {
                 const errorText = await response.text();
                 logger.error(`SWUstats API returned error: ${response.status} - ${errorText}`, { lobbyId });
-                return false;
+                throw new Error(errorText);
             }
             logger.info(`Successfully sent game result to SWUstats for game ${game.id}`, { lobbyId });
             return true;
