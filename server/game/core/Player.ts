@@ -131,11 +131,11 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     }
 
     public get allCards() {
-        return this.state.decklist.allCards.map(this.game.getFromRef);
+        return this.state.decklist.allCards.map((x) => this.game.getFromRef(x));
     }
 
     public get tokens() {
-        return this.state.decklist.tokens.map(this.game.getFromRef);
+        return this.state.decklist.tokens.map((x) => this.game.getFromRef(x));
     }
 
     public get autoSingleTarget() {
