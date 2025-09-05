@@ -1071,6 +1071,18 @@ export class Lobby {
                         lobbyUser1,
                         lobbyUser2
                     );
+                    this.playersDetails.forEach((playerDetail) => {
+                        if (playerDetail.deckSource === DeckSource.SWUStats) {
+                            const lobbyUser = this.users.find((u) => u.id === playerDetail.user.getId());
+                            lobbyUser?.socket.send('statsSubmitNotification', {
+                                id: uuid(),
+                                success: false,
+                                type: MessageTypes.Success,
+                                source: 'SWUStats',
+                                message: 'Deck stats successfully updated.'
+                            });
+                        }
+                    });
                     logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
                 } catch (error) {
                     this.playersDetails.forEach((playerDetail) => {

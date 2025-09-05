@@ -384,7 +384,7 @@ export class GameServer {
                 //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
                 //     }
                 // }
-                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange(), hasSwuStatsRefreshToken: user.hasSwuStatsRefreshToken() } });
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange(), swuStatsRefreshToken: user.getSwuStatsRefreshToken() } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
                 next(err);
