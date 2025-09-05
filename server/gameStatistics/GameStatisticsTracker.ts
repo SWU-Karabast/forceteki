@@ -5,6 +5,7 @@ import type { GameEvent } from '../game/core/event/GameEvent';
 import type Game from '../game/core/Game';
 import { GameObjectBase } from '../game/core/GameObjectBase';
 import { registerState, undoArray } from '../game/core/GameObjectUtils';
+import * as Helpers from '../game/core/utils/Helpers';
 
 export enum GameCardMetric {
     Played,
@@ -78,30 +79,26 @@ export class GameStatisticsLogger extends GameObjectBase implements IGameStatist
         this.cardMetrics = [...this.cardMetrics, new TrackedGameCardMetric(this.game, metric, card, player)];
     }
 
+    /**
+     * Called by the event registration in the constructor when cards are drawn.
+     */
     private onCardsDrawn(event) {
         if (!(event as GameEvent).isResolved) {
             return;
         }
 
-        if (event.cards) {
-            event.cards.forEach((card: Card) => {
-                this.trackCardMetric(
-                    GameCardMetric.Drawn,
-                    card,
-                    event.player
-                );
-            });
-        }
-
-        if (event.card) {
+        Helpers.asArray(event.card ?? event.cards).forEach((card: Card) => {
             this.trackCardMetric(
                 GameCardMetric.Drawn,
-                event.card,
+                card,
                 event.player
             );
-        }
+        });
     }
 
+    /**
+     * Called by the event registration in the constructor when cards are discarded.
+     */
     private onCardDiscarded(event) {
         if (!(event as GameEvent).isResolved) {
             return;
@@ -114,6 +111,9 @@ export class GameStatisticsLogger extends GameObjectBase implements IGameStatist
         );
     }
 
+    /**
+     * Called by the event registration in the constructor when cards are played.
+     */
     private onCardPlayed(event) {
         if (!(event as GameEvent).isResolved) {
             return;
