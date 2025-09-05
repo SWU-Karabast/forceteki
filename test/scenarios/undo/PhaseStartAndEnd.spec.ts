@@ -399,7 +399,7 @@ describe('Start / end of phase snapshots', function() {
             });
         });
 
-        describe('Effects at the start of the action phase', function () {
+        describe('Effects at the start of the action phase,', function () {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -422,33 +422,17 @@ describe('Start / end of phase snapshots', function() {
 
                 const { context } = contextRef;
 
-                context.moveToNextActionPhase();
+                context.moveToRegroupPhase();
+
+                context.regroupPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.regroupPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                // move to action phase, Thrawn1 prompt triggers
+                context.player1.clickDone();
+                context.player2.clickDone();
 
                 context.startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
                 context.startOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                // thrawn ability reveal top deck of each player (happens at beginning of action phase)
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([
-                    { card: context.rivalsFall, displayText: 'Yourself' },
-                    { card: context.specforceSoldier, displayText: 'Opponent' }
-                ]);
-
-                context.player1.clickDone();
-
-                context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickCard(context.p2Base);
-
-                context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                context.player2.clickCard(context.wampa);
-                context.player2.clickCard(context.p1Base);
-
-                context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
             });
 
             const assertActionPhaseStartState = (context) => {
@@ -461,18 +445,22 @@ describe('Start / end of phase snapshots', function() {
                 expect(context.p2Base.damage).toEqual(0);
             };
 
-            it('should be repeated when rolling back to the start-of-action-phase snapshot', function () {
+            it('during the prompt, should roll back to the regroup phase snapshot on undo', function () {
                 const { context } = contextRef;
 
+                // quick rollback for player1
                 const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'phase',
-                    phaseName: 'action',
-                    phaseOffset: 0
+                    type: 'quick',
+                    playerId: context.player1.id
                 });
                 expect(rollbackResult).toBeTrue();
 
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+                expect(context.game.currentPhase).toBe('regroup');
+
+                // proceed back to action phase and Thrawn1 prompt
+                context.player1.clickDone();
+                context.player2.clickDone();
+
                 assertActionPhaseStartState(context);
 
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([
@@ -485,59 +473,110 @@ describe('Start / end of phase snapshots', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('should not be repeated when rolling back to the first action snapshot of the phase', function () {
-                const { context } = contextRef;
+            describe('after the effect prompt has finished,', function () {
+                beforeEach(function () {
+                    const { context } = contextRef;
 
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'action',
-                    playerId: context.player1.id,
-                    actionOffset: -1
+                    // thrawn ability reveal top deck of each player (happens at beginning of action phase)
+                    expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                        { card: context.rivalsFall, displayText: 'Yourself' },
+                        { card: context.specforceSoldier, displayText: 'Opponent' }
+                    ]);
+
+                    context.player1.clickDone();
+
+                    context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    context.player1.clickCard(context.battlefieldMarine);
+                    context.player1.clickCard(context.p2Base);
+
+                    context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    context.player2.clickCard(context.wampa);
+                    context.player2.clickCard(context.p1Base);
+
+                    context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
                 });
-                expect(rollbackResult).toBeTrue();
 
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Action1SnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action1ActionId);
-                assertActionPhaseStartState(context);
+                it('should be repeated when rolling back to the start-of-action-phase snapshot', function () {
+                    const { context } = contextRef;
 
-                expect(context.player1).not.toHaveExactViewableDisplayPromptCards([
-                    { card: context.rivalsFall, displayText: 'Yourself' },
-                    { card: context.specforceSoldier, displayText: 'Opponent' }
-                ]);
-                expect(context.player1).toBeActivePlayer();
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'phase',
+                        phaseName: 'action',
+                        phaseOffset: 0
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+                    assertActionPhaseStartState(context);
+
+                    expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                        { card: context.rivalsFall, displayText: 'Yourself' },
+                        { card: context.specforceSoldier, displayText: 'Opponent' }
+                    ]);
+
+                    context.player1.clickDone();
+
+                    expect(context.player1).toBeActivePlayer();
+                });
+
+                it('should not be repeated when rolling back to the first action snapshot of the phase', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        actionOffset: -1
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Action1SnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action1ActionId);
+                    assertActionPhaseStartState(context);
+
+                    expect(context.player1).not.toHaveExactViewableDisplayPromptCards([
+                        { card: context.rivalsFall, displayText: 'Yourself' },
+                        { card: context.specforceSoldier, displayText: 'Opponent' }
+                    ]);
+                    expect(context.player1).toBeActivePlayer();
+                });
+
+                it('should create a quick snapshot for the prompted player', function () {
+                    const { context } = contextRef;
+
+                    // roll back to first action of phase
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    // roll back to thrawn1 prompt
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
+                    assertActionPhaseStartState(context);
+
+                    expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                        { card: context.rivalsFall, displayText: 'Yourself' },
+                        { card: context.specforceSoldier, displayText: 'Opponent' }
+                    ]);
+
+                    context.player1.clickDone();
+
+                    expect(context.player1).toBeActivePlayer();
+                });
             });
-
-            it('should create a quick snapshot for the prompted player', function () {
-                const { context } = contextRef;
-
-                // roll back to first action of phase
-                const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'quick',
-                    playerId: context.player1.id
-                });
-                expect(rollbackResult1).toBeTrue();
-
-                // roll back to thrawn1 prompt
-                const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'quick',
-                    playerId: context.player1.id
-                });
-                expect(rollbackResult2).toBeTrue();
-
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
-                assertActionPhaseStartState(context);
-
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([
-                    { card: context.rivalsFall, displayText: 'Yourself' },
-                    { card: context.specforceSoldier, displayText: 'Opponent' }
-                ]);
-
-                context.player1.clickDone();
-
-                expect(context.player1).toBeActivePlayer();
-            });
-
-            // ------------------- TODO THIS PR: test undo _during_ the Thrawn1 prompt -----------------
         });
     });
 });

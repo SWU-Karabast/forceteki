@@ -250,6 +250,13 @@ export class SnapshotManager {
 
         const currentOpenPrompt = this.game.getCurrentOpenPrompt();
 
+        if (this.currentSnapshottedTimepoint === SnapshotTimepoint.StartOfPhase && this.currentSnapshottedPhase === PhaseName.Action) {
+            // we're in a prompt at the start of the action phase, new quick snapshot hasn't been taken yet so rolling back to 'current'
+            // will actually be rolling back a step.
+            // TODO: this definitely could be improved, see comments in PhaseStartAndEnd.spec.ts
+            return QuickRollbackPoint.Current;
+        }
+
         // if we're currently in resource selection and the player has already clicked "done", we'll roll back to start of resource selection
         if (
             this.game.currentPhase === PhaseName.Regroup &&
