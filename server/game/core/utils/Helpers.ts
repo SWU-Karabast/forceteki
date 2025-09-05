@@ -15,7 +15,14 @@ export function shuffleArray<T>(array: T[], randomGenerator: IRandomness): void 
     }
 }
 
-export function randomItem<T>(array: T[], randomGenerator: IRandomness): undefined | T {
+/* Randomize array copy using Durstenfeld shuffle algorithm */
+export function shuffle<T>(array: readonly T[], randomGenerator: IRandomness): T[] {
+    const arrayCopy = [...array];
+    shuffleArray<T>(arrayCopy, randomGenerator);
+    return arrayCopy;
+}
+
+export function randomItem<T>(array: readonly T[], randomGenerator: IRandomness): undefined | T {
     const j = Math.floor(randomGenerator.next() * array.length);
     return array[j];
 }
@@ -33,17 +40,6 @@ export function countUniqueAspects(cards: Card | Card[]): number {
         card.aspects.forEach((aspect) => aspects.add(aspect));
     });
     return aspects.size;
-}
-
-// TODO: remove this
-/** @deprecated Use `shuffleArray` instead */
-export function shuffle<T>(array: T[], randomGenerator: IRandomness): T[] {
-    const shuffleArray = [...array];
-    for (let i = shuffleArray.length - 1; i > 0; i--) {
-        const j = Math.floor(randomGenerator.next() * (i + 1));
-        [shuffleArray[i], shuffleArray[j]] = [shuffleArray[j], shuffleArray[i]];
-    }
-    return shuffleArray;
 }
 
 export function defaultLegalZonesForCardTypeFilter(cardTypeFilter: CardTypeFilter) {

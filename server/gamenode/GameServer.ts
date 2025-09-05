@@ -8,7 +8,7 @@ import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
 import { getHeapStatistics } from 'v8';
 import { freemem, cpus } from 'os';
-import { monitorEventLoopDelay, performance, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
+import { monitorEventLoopDelay, performance, PerformanceObserver, constants as NodePerfConstants, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
 
 import { logger, jsonOnlyLogger } from '../logger';
 
@@ -51,6 +51,17 @@ enum UserRole {
 interface ILobbyMapping {
     lobbyId: string;
     role: UserRole;
+}
+
+// Interface for GC performance entries using the modern 'detail' property
+interface GCPerformanceEntry {
+    name: string;
+    entryType: string;
+    startTime: number;
+    duration: number;
+    detail: {
+        kind: number; // 1 = Scavenge (minor GC), other values = Mark-Sweep (major GC)
+    };
 }
 
 export class GameServer {
@@ -113,6 +124,22 @@ export class GameServer {
     private lastCpuUsageTime: bigint;
     private loopDelayHistogram: IntervalHistogram;
     private lastLoopUtilization: EventLoopUtilization;
+    private gcStats = {
+        totalDuration: 0,
+        scavengeCount: 0,
+        scavengeDuration: 0,
+        maxScavengeDuration: 0,
+        markSweepCount: 0,
+        markSweepDuration: 0,
+        maxMarkSweepDuration: 0,
+        incrementalCount: 0,
+        incrementalDuration: 0,
+        maxIncrementalDuration: 0,
+        weakCallbackCount: 0,
+        weakCallbackDuration: 0,
+        maxWeakCallbackDuration: 0,
+        intervalStartTime: 0
+    };
 
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
@@ -140,16 +167,17 @@ export class GameServer {
             res.on('finish', () => {
                 const end = process.hrtime.bigint();
                 const durationMs = Number(end - start) / 1e6;
+                const durationMsLogValue = Number(durationMs.toFixed(2));
 
                 const log = {
                     method: req.method,
                     path: req.originalUrl.split('?')[0],
                     status: res.statusCode,
-                    durationMs: Number(durationMs.toFixed(2)),
+                    durationMs: durationMsLogValue,
                     timestamp: new Date().toISOString()
                 };
 
-                logger.info(`[ApiRequest] ${JSON.stringify(log)}`);
+                logger.info(`[ApiRequest] ${JSON.stringify(log)}`, { durationMs: durationMsLogValue });
             });
 
             next();
@@ -261,6 +289,9 @@ export class GameServer {
             this.loopDelayHistogram.enable();
             this.lastLoopUtilization = performance.eventLoopUtilization();
 
+            // initialize GC monitoring
+            this.setupGCMonitoring();
+
             // log initial memory state on startup
             this.logHeapStats();
 
@@ -270,6 +301,7 @@ export class GameServer {
                 this.logCpuUsage();
                 this.logEventLoopStats();
                 this.logPlayerStats();
+                this.logGCStats();
             }, 30000);
         }
     }
@@ -1467,6 +1499,76 @@ export class GameServer {
             jsonOnlyLogger.info(GameServerMetrics.gameAndPlayerCount(gameAndPlayerCounts.totalUserCount, gameAndPlayerCounts.spectatorCount, gameAndPlayerCounts.totalGameCount));
         } catch (error) {
             logger.error(`Error logging player stats: ${error}`);
+        }
+    }
+
+    private setupGCMonitoring(): void {
+        this.gcStats.intervalStartTime = Date.now();
+        const gcObserver = new PerformanceObserver((list) => {
+            try {
+                for (const entry of list.getEntries()) {
+                    this.gcStats.totalDuration += entry.duration;
+
+                    if ((entry as unknown as GCPerformanceEntry).detail.kind === NodePerfConstants.NODE_PERFORMANCE_GC_MINOR) { // Scavenge (minor GC)
+                        this.gcStats.scavengeCount++;
+                        this.gcStats.scavengeDuration += entry.duration;
+                        this.gcStats.maxScavengeDuration = Math.max(this.gcStats.maxScavengeDuration, entry.duration);
+                    } else if ((entry as unknown as GCPerformanceEntry).detail.kind === NodePerfConstants.NODE_PERFORMANCE_GC_MAJOR) { // Mark-Sweep (major GC)
+                        this.gcStats.markSweepCount++;
+                        this.gcStats.markSweepDuration += entry.duration;
+                        this.gcStats.maxMarkSweepDuration = Math.max(this.gcStats.maxMarkSweepDuration, entry.duration);
+                    } else if ((entry as unknown as GCPerformanceEntry).detail.kind === NodePerfConstants.NODE_PERFORMANCE_GC_INCREMENTAL) { // Incremental GC
+                        this.gcStats.incrementalCount++;
+                        this.gcStats.incrementalDuration += entry.duration;
+                        this.gcStats.maxIncrementalDuration = Math.max(this.gcStats.maxIncrementalDuration, entry.duration);
+                    } else if ((entry as unknown as GCPerformanceEntry).detail.kind === NodePerfConstants.NODE_PERFORMANCE_GC_WEAKCB) { // Weak callback GC
+                        this.gcStats.weakCallbackCount++;
+                        this.gcStats.weakCallbackDuration += entry.duration;
+                        this.gcStats.maxWeakCallbackDuration = Math.max(this.gcStats.maxWeakCallbackDuration, entry.duration);
+                    }
+                }
+            } catch (error) {
+                logger.error(`Error capturing GC stats from PerformanceObserver: ${error}`);
+            }
+        });
+        gcObserver.observe({ entryTypes: ['gc'] });
+    }
+
+    private logGCStats(): void {
+        try {
+            const intervalDuration = Date.now() - this.gcStats.intervalStartTime;
+            const scavengeAvg = this.gcStats.scavengeCount > 0 ? this.gcStats.scavengeDuration / this.gcStats.scavengeCount : 0;
+            const markSweepAvg = this.gcStats.markSweepCount > 0 ? this.gcStats.markSweepDuration / this.gcStats.markSweepCount : 0;
+            const incrementalAvg = this.gcStats.incrementalCount > 0 ? this.gcStats.incrementalDuration / this.gcStats.incrementalCount : 0;
+            const weakCallbackAvg = this.gcStats.weakCallbackCount > 0 ? this.gcStats.weakCallbackDuration / this.gcStats.weakCallbackCount : 0;
+
+            logger.info(
+                `[GCStats] Duration: ${(intervalDuration / 1000).toFixed(1)}s | Total GC time: ${this.gcStats.totalDuration.toFixed(1)}ms | ` +
+                `Minor: ${this.gcStats.scavengeCount} (total ${this.gcStats.scavengeDuration.toFixed(1)}ms, avg: ${scavengeAvg.toFixed(1)}ms, max: ${this.gcStats.maxScavengeDuration.toFixed(1)}ms) | ` +
+                `Major: ${this.gcStats.markSweepCount} (total ${this.gcStats.markSweepDuration.toFixed(1)}ms, avg: ${markSweepAvg.toFixed(1)}ms, max: ${this.gcStats.maxMarkSweepDuration.toFixed(1)}ms) | ` +
+                `Incremental: ${this.gcStats.incrementalCount} (total ${this.gcStats.incrementalDuration.toFixed(1)}ms, avg: ${incrementalAvg.toFixed(1)}ms, max: ${this.gcStats.maxIncrementalDuration.toFixed(1)}ms) | ` +
+                `WeakCB: ${this.gcStats.weakCallbackCount} (total ${this.gcStats.weakCallbackDuration.toFixed(1)}ms, avg: ${weakCallbackAvg.toFixed(1)}ms, max: ${this.gcStats.maxWeakCallbackDuration.toFixed(1)}ms)`
+            );
+
+            // Reset stats for next interval
+            this.gcStats = {
+                totalDuration: 0,
+                scavengeCount: 0,
+                scavengeDuration: 0,
+                maxScavengeDuration: 0,
+                markSweepCount: 0,
+                markSweepDuration: 0,
+                maxMarkSweepDuration: 0,
+                incrementalCount: 0,
+                incrementalDuration: 0,
+                maxIncrementalDuration: 0,
+                weakCallbackCount: 0,
+                weakCallbackDuration: 0,
+                maxWeakCallbackDuration: 0,
+                intervalStartTime: Date.now()
+            };
+        } catch (error) {
+            logger.error(`Error logging GC stats: ${error}`);
         }
     }
 }
