@@ -42,6 +42,14 @@ export function countUniqueAspects(cards: Card | Card[]): number {
     return aspects.size;
 }
 
+export function countOccurrences<T>(array: T[]): Map<T, number> {
+    const occurrences = new Map<T, number>();
+    array.forEach((item) => {
+        occurrences.set(item, (occurrences.get(item) || 0) + 1);
+    });
+    return occurrences;
+}
+
 export function defaultLegalZonesForCardTypeFilter(cardTypeFilter: CardTypeFilter) {
     const cardTypes = EnumHelpers.getCardTypesForFilter(cardTypeFilter);
 
