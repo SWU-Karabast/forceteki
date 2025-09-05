@@ -1,3 +1,4 @@
+import type { Card } from '../game/core/card/Card';
 import { EventName } from '../game/core/Constants';
 import { EventRegistrar } from '../game/core/event/EventRegistrar';
 import type { GameEvent } from '../game/core/event/GameEvent';
@@ -82,10 +83,20 @@ export class GameStatisticsLogger extends GameObjectBase implements IGameStatist
             return;
         }
 
-        for (const card of event.cards) {
+        if (event.cards) {
+            event.cards.forEach((card: Card) => {
+                this.trackCardMetric(
+                    GameCardMetric.Drawn,
+                    card,
+                    event.player
+                );
+            });
+        }
+
+        if (event.card) {
             this.trackCardMetric(
                 GameCardMetric.Drawn,
-                card,
+                event.card,
                 event.player
             );
         }
