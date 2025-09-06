@@ -44,9 +44,8 @@ export class RegroupPhase extends Phase {
     }
 
     private resourcePrompt(initializeMode: PhaseInitializeMode) {
-        this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.RegroupResource);
-
         if (initializeMode === PhaseInitializeMode.Normal || initializeMode === PhaseInitializeMode.RollbackToStartOfPhase) {
+            this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.RegroupResource);
             this.takeActionSnapshotsForPromptedPlayers();
         }
 

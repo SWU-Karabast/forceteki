@@ -46,18 +46,10 @@ export abstract class Phase extends BaseStepWithPipeline {
             startStep.push(new SimpleStep(this.game, () => this.startPhase(), 'startPhase'));
         }
 
-        const endStep = [];
-
-        if (initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase) {
-            endStep.push(new SimpleStep(this.game, () => this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.EndOfPhase), 'setEndOfPhaseTimepoint'));
-        }
-
-        endStep.push(new SimpleStep(this.game, () => this.endPhase(), 'endPhase'));
-
         this.pipeline.initialise([
             ...startStep,
             ...steps,
-            ...endStep
+            new SimpleStep(this.game, () => this.endPhase(initializeMode), 'endPhase')
         ]);
     }
 
@@ -80,25 +72,31 @@ export abstract class Phase extends BaseStepWithPipeline {
         });
     }
 
-    protected endPhase(skipEventWindow = false): void {
-        if (!skipEventWindow) {
-            // reset trackers indicating if a player has been prompted
-            this.game.resetPromptedPlayersTracking();
+    protected endPhase(initializeMode: PhaseInitializeMode): void {
+        const checkTakeSnapshot = initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase;
 
-            this.game.createEventAndOpenWindow(
-                EventName.OnPhaseEnded,
-                null,
-                { phase: this.name },
-                TriggerHandlingMode.ResolvesTriggers,
-                () => this.game.currentPhase = null
-            );
+        // reset trackers indicating if a player has been prompted
+        this.game.resetPromptedPlayersTracking();
 
+        if (checkTakeSnapshot) {
+            this.game.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.EndOfPhase);
+        }
+
+        this.game.createEventAndOpenWindow(
+            EventName.OnPhaseEnded,
+            null,
+            { phase: this.name },
+            TriggerHandlingMode.ResolvesTriggers,
+            () => this.game.currentPhase = null
+        );
+
+        if (checkTakeSnapshot) {
             // checks if a player was prompted during the end step and if so, takes a snapshot so they can unwind to the prompt
             this.game.queueSimpleStep(() => this.takeActionSnapshotsForPromptedPlayers(), 'takeActionSnapshotsForPromptedPlayers');
-
-            // for post-phase state cleanup. emit directly, don't need a window.
-            this.game.emit(EventName.OnPhaseEndedCleanup, { phase: this.name });
         }
+
+        // for post-phase state cleanup. emit directly, don't need a window.
+        this.game.emit(EventName.OnPhaseEndedCleanup, { phase: this.name });
     }
 
     protected takeActionSnapshotsForPromptedPlayers(): void {
