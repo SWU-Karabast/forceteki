@@ -254,9 +254,9 @@ export class DeckService {
             const dbService = await this.dbServicePromise;
             // Get the deck using our new flexible lookup method
             const deck = await this.getDeckByIdAsync(userId, deckId);
-
-            // If not found after all lookup methods.
-            Contract.assertNotNullLike(deck, `Deck with ID ${deckId} not found for user ${userId}`);
+            if (!deck) {
+                return null;
+            }
 
             // Initialize stats if they don't exist
             const stats: IDeckStatsEntity = deck.stats || {

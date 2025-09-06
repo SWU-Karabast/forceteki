@@ -1,5 +1,5 @@
 import Game from '../game/core/Game';
-import { v4 as uuid } from 'uuid';
+import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
@@ -12,14 +12,13 @@ import { getUserWithDefaultsSet } from '../Settings';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
-import type { SwuGameFormat } from '../SwuGameFormat';
+import { SwuGameFormat } from '../SwuGameFormat';
 import type { IDecklistInternal, IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
-import type { GameServer } from './GameServer';
+import type { GameServer, ISwuStatsToken } from './GameServer';
 import { AlertType } from '../game/core/Constants';
-import { v4 as uuidv4 } from 'uuid';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 
@@ -30,7 +29,7 @@ interface LobbySpectator {
     socket?: Socket;
 }
 
-interface LobbyUser extends LobbySpectator {
+export interface LobbyUser extends LobbySpectator {
     state: 'connected' | 'disconnected';
     ready: boolean;
     deck?: Deck;
@@ -46,7 +45,7 @@ export enum DeckSource {
     Unknown = 'unknown'
 }
 
-interface PlayerDetails {
+export interface PlayerDetails {
     user: User;
     deckID: string;
     deckLink: string;
@@ -54,12 +53,20 @@ interface PlayerDetails {
     leaderID: string;
     baseID: string;
     deck: IDecklistInternal;
+    swuStatsRefreshToken: string | null;
+    swuStatsToken: ISwuStatsToken;
 }
 
 export enum MatchType {
     Custom = 'Custom',
     Private = 'Private',
     Quick = 'Quick',
+}
+
+export enum MessageTypes {
+    Warning = 'Warning',
+    Error = 'Error',
+    Success = 'Success'
 }
 
 export interface RematchRequest {
@@ -697,13 +704,14 @@ export class Lobby {
                         deckID: user.deck.id,
                         deckLink: user.decklist.deckLink,
                         deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
-                        deck: user.deck.getDecklist()
+                        deck: user.deck.getDecklist(),
+                        swuStatsRefreshToken: user.socket.user.getSwuStatsRefreshToken(),
+                        swuStatsToken: this.server.swuStatsTokenMapping.get(user.id),
                     });
                 }
             });
 
             await game.initialiseAsync();
-
             this.sendGameState(game);
         } catch (error) {
             if (this.gameType === MatchType.Quick) {
@@ -944,20 +952,49 @@ export class Lobby {
     /**
      * Private method to update a players stats
      */
-    private async updatePlayerStatsAsync(playerUser: PlayerDetails, opponentPlayerUser: PlayerDetails, score: ScoreType) {
+    private async updatePlayerStatsAsync(playerUser: PlayerDetails, opponentPlayerUser: PlayerDetails, score: ScoreType, lobbyUser: LobbyUser) {
         if (!playerUser.user.isAuthenticatedUser()) {
             return;
         }
         // Get the deck service
         const opponentPlayerLeaderId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.leaderID);
         const opponentPlayerBaseId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.baseID);
-        await this.server.deckService.updateDeckStatsAsync(
-            playerUser.user.getId(),
-            playerUser.deckID,
-            score,
-            opponentPlayerLeaderId.internalName,
-            opponentPlayerBaseId.internalName,
-        );
+        try {
+            const resultResponse = await this.server.deckService.updateDeckStatsAsync(
+                playerUser.user.getId(),
+                playerUser.deckID,
+                score,
+                opponentPlayerLeaderId.internalName,
+                opponentPlayerBaseId.internalName,
+            );
+            if (!resultResponse) {
+                lobbyUser?.socket.send('statsSubmitNotification', {
+                    id: uuid(),
+                    success: false,
+                    type: MessageTypes.Warning,
+                    source: 'Karabast',
+                    message: 'Deck isn\'t saved, so stats are not tracked.'
+                });
+            } else {
+                lobbyUser?.socket.send('statsSubmitNotification', {
+                    id: uuid(),
+                    success: true,
+                    type: MessageTypes.Success,
+                    source: 'Karabast',
+                    message: 'Deck stats successfully updated.'
+                });
+            }
+            logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${this.id}`, { lobbyId: this.id, userId: playerUser.user.getId() });
+        } catch (error) {
+            logger.error(`Lobby ${this.id}: Error updating deck stats for a player:`, error, { lobbyId: this.id, userId: playerUser.user.getId() });
+            lobbyUser?.socket.send('statsSubmitNotification', {
+                id: uuid(),
+                success: false,
+                type: MessageTypes.Error,
+                source: 'Karabast',
+                message: 'An error occurred while updating stats on karabast.'
+            });
+        }
     }
 
 
@@ -1005,33 +1042,77 @@ export class Lobby {
             const player2User = this.playersDetails.find((u) => u.user.getId() === player2.id);
 
             if (!player1User) {
-                logger.error(`Lobby ${this.id}: Missing deck information (${player1User.deckID}) for player1 ${player1.id}`);
-                return;
+                logger.error(`Lobby ${this.id}: Missing information (${player1User}) for player1 ${player1.id}`, { lobbyId: this.id, userId: player1.id });
+                throw new Error(`Missing information (${player1User}) for player1 ${player1.id}`);
             }
             if (!player2User) {
-                logger.error(`Lobby ${this.id}: Missing information (${player2User.deckID}) for player2 ${player2.id}`);
-                return;
+                logger.error(`Lobby ${this.id}: Missing information (${player2User}) for player2 ${player2.id}`, { lobbyId: this.id, userId: player2.id });
+                throw new Error(`Missing information (${player1User}) for player1 ${player1.id}`);
             }
 
-            await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
-            await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
+            const lobbyUser1 = this.users.find((u) => u.id === player1User.user.getId());
+            const lobbyUser2 = this.users.find((u) => u.id === player2User.user.getId());
+            await this.updatePlayerStatsAsync(player1User, player2User, player1Score, lobbyUser1);
+            await this.updatePlayerStatsAsync(player2User, player1User, player2Score, lobbyUser2);
 
-            logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${game.id}`);
 
-            /* const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
+            const eitherFromSWUStats = [player1.id, player2.id].some((id) =>
                 this.playersDetails.find((u) => u.user.getId() === id)?.deckSource === DeckSource.SWUStats
             );
             // Send to SWUstats if handler is available
-            if (eitherFromSWUStats) {
-                await this.server.SwuStatsHandler.sendGameResultAsync(
-                    game,
-                    this.playersDetails.find((u) => u.user.getId() === player1.id).deckLink,
-                    this.playersDetails.find((u) => u.user.getId() === player2.id).deckLink,
-                );
-                logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
-            }*/
+            if (eitherFromSWUStats && this.format === SwuGameFormat.Premier) {
+                try {
+                    await this.server.swuStatsHandler.sendGameResultAsync(
+                        game,
+                        player1User,
+                        player2User,
+                        this.id,
+                        this.server,
+                        lobbyUser1,
+                        lobbyUser2
+                    );
+                    this.playersDetails.forEach((playerDetail) => {
+                        if (playerDetail.deckSource === DeckSource.SWUStats) {
+                            const lobbyUser = this.users.find((u) => u.id === playerDetail.user.getId());
+                            lobbyUser?.socket.send('statsSubmitNotification', {
+                                id: uuid(),
+                                success: false,
+                                type: MessageTypes.Success,
+                                source: 'SWUStats',
+                                message: 'Deck stats successfully updated.'
+                            });
+                        }
+                    });
+                    logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
+                } catch (error) {
+                    this.playersDetails.forEach((playerDetail) => {
+                        if (playerDetail.deckSource === DeckSource.SWUStats) {
+                            logger.error(`Lobby ${this.id}: Error updating deck stats to SWUStats:`, error, { lobbyId: this.id, userId: playerDetail.user.getId() });
+                            const lobbyUser = this.users.find((u) => u.id === playerDetail.user.getId());
+                            lobbyUser?.socket.send('statsSubmitNotification', {
+                                id: uuid(),
+                                success: false,
+                                type: MessageTypes.Error,
+                                source: 'SWUStats',
+                                message: 'An error occurred while adding stats to SWUStats.'
+                            });
+                        }
+                    });
+                }
+            }
         } catch (error) {
-            logger.error(`Lobby ${this.id}: Error updating deck stats:`, error);
+            logger.error(`Lobby ${this.id}: Error updating deck stats:`, error, { lobbyId: this.id });
+            // Send error message to client
+            this.playersDetails.forEach((playerDetail) => {
+                const lobbyUser = this.users.find((u) => u.id === playerDetail.user.getId());
+                lobbyUser?.socket.send('statsSubmitNotification', {
+                    id: uuid(),
+                    success: false,
+                    type: MessageTypes.Error,
+                    source: 'Karabast',
+                    message: 'An error occurred while adding stats.'
+                });
+            });
         }
     }
 
