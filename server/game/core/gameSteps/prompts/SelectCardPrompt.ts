@@ -6,7 +6,7 @@ import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
-import type { ISelectCardPromptProperties } from '../PromptInterfaces';
+import type { IButton, ISelectCardPromptProperties } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 /**
@@ -157,12 +157,14 @@ export class SelectCardPrompt extends UiPrompt {
 
     public override activePromptInternal(): IPlayerPromptStateProperties {
         let buttons = this.properties.buttons;
-        if (!this.selector.automaticFireOnSelect(this.context) || this.selector.optional) {
+        if (!this.selector.automaticFireOnSelect(this.context, this.selectedCards) || this.selector.optional) {
             if (buttons.every((button) => button.arg !== 'done')) {
                 if (this.selector.optional && this.selectedCards.length === 0) {
                     buttons = [{ text: 'Choose nothing', arg: 'done' }].concat(buttons);
-                } else if (this.selector.optional || this.selector.hasEnoughSelected(this.selectedCards, this.context)) {
-                    buttons = [{ text: 'Done', arg: 'done' }].concat(buttons);
+                } else {
+                    const hasEnoughSelected = this.selector.hasEnoughSelected(this.selectedCards, this.context);
+                    const doneButton: IButton = { text: 'Done', arg: 'done', disabled: !hasEnoughSelected };
+                    buttons = [doneButton].concat(buttons);
                 }
             }
         }
@@ -196,7 +198,7 @@ export class SelectCardPrompt extends UiPrompt {
             return false;
         }
 
-        if (this.selector.automaticFireOnSelect(this.context) && this.selector.hasReachedLimit(this.selectedCards, this.context)) {
+        if (this.selector.automaticFireOnSelect(this.context, this.selectedCards) && this.selector.hasReachedLimit(this.selectedCards, this.context)) {
             return this.fireOnSelect();
         }
 
