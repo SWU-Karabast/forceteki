@@ -225,7 +225,6 @@ export class Lobby {
             existingUser.deck = deck;
             return;
         }
-        console.log(decklist);
         this.users.push(({
             id: user.getId(),
             username: user.getUsername(),
@@ -343,7 +342,13 @@ export class Lobby {
             if (!socket.eventContainsListener('requeue')) {
                 socket.registerEvent(
                     'requeue',
-                    () => this.server.requeueUser(socket, this.format, user, { ...existingUser?.deck?.getDecklist(), deckID: existingUser?.deck?.id })
+                    () => this.server.requeueUser(socket, this.format, user, {
+                        ...existingUser?.deck?.getDecklist(),
+                        deckID: existingUser?.deck?.id,
+                        deckLink: existingUser?.decklist.deckLink,
+                        deckSource: existingUser?.decklist.deckSource,
+                        isPresentInDB: existingUser?.decklist.isPresentInDB,
+                    })
                 );
             }
 
@@ -459,7 +464,6 @@ export class Lobby {
 
         // if the deck doesn't have any errors set it as active.
         if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
-            console.log(args[0]);
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
             activeUser.decklist = args[0];
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(activeUser.deck.getDecklist(),
@@ -886,7 +890,13 @@ export class Lobby {
         this.buildSafeTimeout(() => {
             for (const user of this.users) {
                 logger.error(`Lobby: requeueing user ${user.id} after matched user disconnected`);
-                this.server.requeueUser(user.socket, this.format, user.socket.user, { ...user.deck?.getDecklist(), deckID: user.deck?.id });
+                this.server.requeueUser(user.socket, this.format, user.socket.user, {
+                    ...user.deck?.getDecklist(),
+                    deckID: user.deck?.id,
+                    deckLink: user?.decklist.deckLink,
+                    deckSource: user?.decklist.deckSource,
+                    isPresentInDB: user?.decklist.isPresentInDB,
+                });
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
 
@@ -961,12 +971,10 @@ export class Lobby {
      */
     public sendStatsMessageToUser(userId: string, messageParameters: IStatsMessageFormat) {
         // if the user doesn't exist in the lobby skip
-        if (this.getUser(userId)) {
+        if (this.hasPlayer(userId)) {
             // we try/catch in the offchance the user disconnects after the if statement
             try {
-                this.getUser(userId).socket.send('statsSubmitNotification', {
-                    messageParameters
-                });
+                this.getUser(userId).socket.send('statsSubmitNotification', messageParameters);
             } catch (error) {
                 logger.error('(sendStatsMessageToUser): Error sending statsSubmitNotification', { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId });
                 return;
@@ -981,7 +989,6 @@ export class Lobby {
         if (!playerUser.user.isAuthenticatedUser()) {
             return;
         }
-        console.log(playerUser.isDeckPresentInDB);
         if (!playerUser.isDeckPresentInDB) {
             this.sendStatsMessageToUser(
                 playerUser.user.getId(), { type: SwuStatsSubmitStatus.Warning,
