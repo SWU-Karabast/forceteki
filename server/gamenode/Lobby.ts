@@ -807,14 +807,14 @@ export class Lobby {
             const durationMs = Number(end - start) / 1e6;
 
             if (durationMs > 100) {
-                const durationMsLogValue = Number(durationMs.toFixed(2));
-                logger.info(`[LobbyCommand > 100ms] ${JSON.stringify({
+                logger.info('[Lobby] LobbyCommand took longer than 100ms to process', {
                     command,
                     userId: socket.user.getId(),
                     lobbyId: this.id,
-                    durationMs: durationMsLogValue,
+                    durationMs: Number(durationMs.toFixed(2)),
                     timestamp: new Date().toISOString(),
-                })}`, { durationMs: durationMsLogValue, lobbyId: this.id });
+                    promptType: this.game.getPlayerById(socket.user.getId())?.promptState.promptType ?? 'null',
+                });
             }
         } catch (error) {
             logger.error('Lobby: error processing lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
@@ -856,14 +856,14 @@ export class Lobby {
             const durationMs = Number(end - start) / 1e6;
 
             if (durationMs > 100) {
-                logger.info(`[GameCommand] ${JSON.stringify({
+                logger.info('[Lobby] GameCommand took longer than 100ms to process', {
                     command,
                     userId: socket.user.getId(),
                     lobbyId: this.id,
                     durationMs: Number(durationMs.toFixed(2)),
                     timestamp: new Date().toISOString(),
                     promptType: this.game.getPlayerById(socket.user.getId())?.promptState.promptType ?? 'null',
-                })}`, { lobbyId: this.id });
+                });
             }
         } catch (error) {
             logger.error('Game: error processing game message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
