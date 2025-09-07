@@ -985,7 +985,7 @@ export class Lobby {
         if (!playerUser.isDeckPresentInDB) {
             this.sendStatsMessageToUser(
                 playerUser.user.getId(), { type: SwuStatsSubmitStatus.Warning,
-                    source: 'Karabast',
+                    source: 'karabast',
                     message: 'Deck isn\'t saved, so stats are not tracked.' }
             );
             return;
@@ -1004,7 +1004,7 @@ export class Lobby {
             );
             this.sendStatsMessageToUser(
                 playerUser.user.getId(), { type: SwuStatsSubmitStatus.Success,
-                    source: 'Karabast',
+                    source: 'karabast',
                     message: 'Deck stats successfully updated.' }
             );
             logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${this.id}`, { lobbyId: this.id, userId: playerUser.user.getId() });
@@ -1012,7 +1012,7 @@ export class Lobby {
             logger.error(`Lobby ${this.id}: Error updating deck stats for a player:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: playerUser.user.getId() });
             this.sendStatsMessageToUser(
                 playerUser.user.getId(), { type: SwuStatsSubmitStatus.Error,
-                    source: 'Karabast',
+                    source: 'karabast',
                     message: 'An error occurred while updating stats on karabast.' }
             );
         }
@@ -1037,7 +1037,7 @@ export class Lobby {
                 if (playerDetail.deckSource === DeckSource.SWUStats) {
                     this.sendStatsMessageToUser(playerDetail.user.getId(), {
                         type: SwuStatsSubmitStatus.Success,
-                        source: 'SWUStats',
+                        source: 'swustats',
                         message: 'Deck stats successfully updated.'
                     });
                 }
@@ -1050,7 +1050,7 @@ export class Lobby {
                     logger.error(`Lobby ${this.id}: Error updating deck stats to SWUStats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: playerDetail.user.getId() });
                     this.sendStatsMessageToUser(playerDetail.user.getId(), {
                         type: SwuStatsSubmitStatus.Error,
-                        source: 'SWUStats',
+                        source: 'swustats',
                         message: 'An error occurred while adding stats to SWUStats.'
                     });
                 }
@@ -1126,7 +1126,7 @@ export class Lobby {
             for (const playerDetail of this.playersDetails) {
                 this.sendStatsMessageToUser(playerDetail.user.getId(), {
                     type: SwuStatsSubmitStatus.Error,
-                    source: 'Karabast',
+                    source: 'karabast',
                     message: 'An error occurred while adding stats.'
                 });
             }

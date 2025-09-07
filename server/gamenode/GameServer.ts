@@ -207,12 +207,13 @@ export class GameServer {
         logger.info(`GameServer: Detected ${cpus().length} logical CPU cores.`);
 
         // check if NEXTAUTH variable is set
-        const secret = process.env.NEXTAUTH_SECRET;
-        Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
+        // const secret = process.env.NEXTAUTH_SECRET;
+        // Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
 
         requireEnvVars(
             ['INTRASERVICE_SECRET'],
             'GameServer',
+            ['NEXTAUTH_SECRET']
         );
 
         // TOKEN CLEANUP

@@ -130,12 +130,12 @@ export class SwuStatsHandler {
             if (winner === 0) {
                 sendStatsMessageToUser(player1Details.user.getId(), {
                     type: SwuStatsSubmitStatus.Warning,
-                    source: 'SWUStats',
+                    source: 'swustats',
                     message: 'Draws are currently not supported by SWUStats.'
                 });
                 sendStatsMessageToUser(player2Details.user.getId(), {
                     type: SwuStatsSubmitStatus.Warning,
-                    source: 'SWUStats',
+                    source: 'swustats',
                     message: 'Draws are currently not supported by SWUStats.'
                 });
                 logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUstats`, { lobbyId });
