@@ -4,12 +4,11 @@ import type { Player } from '../../game/core/Player';
 import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
-import type { PlayerDetails, LobbyUser } from '../../gamenode/Lobby';
-import { MessageTypes } from '../../gamenode/Lobby';
+import type { PlayerDetails, IStatsMessageFormat } from '../../gamenode/Lobby';
+import { SwuStatsSubmitStatus } from '../../gamenode/Lobby';
 import type { GameServer, ISwuStatsToken } from '../../gamenode/GameServer';
 import type { UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
-import { v4 as uuid } from 'uuid';
 
 
 interface TurnResults {
@@ -106,18 +105,16 @@ export class SwuStatsHandler {
      * @param player2Details Details about player2
      * @param lobbyId the lobby id
      * @param serverObject the server object from where we gain access to the user x accessToken
-     * @param player1LobbyUser player1 lobby object for sending info via socket
-     * @param player2LobbyUser player2 lobby object for sending info via socket
+     * @param sendStatsMessageToUser function from lobby to send a user a stats message
      * @returns Promise that resolves to true if successful, false otherwise
      */
-    public async sendGameResultAsync(
+    public async sendSWUStatsGameResultAsync(
         game: Game,
         player1Details: PlayerDetails,
         player2Details: PlayerDetails,
         lobbyId: string,
         serverObject: GameServer,
-        player1LobbyUser: LobbyUser,
-        player2LobbyUser: LobbyUser
+        sendStatsMessageToUser: (userId: string, messageParameters: IStatsMessageFormat) => void,
     ): Promise<boolean> {
         try {
             const players = game.getPlayers();
@@ -131,17 +128,13 @@ export class SwuStatsHandler {
             // Determine winner
             const winner = this.determineWinner(game, player1, player2);
             if (winner === 0) {
-                player1LobbyUser?.socket.send('statsSubmitNotification', {
-                    id: uuid(),
-                    success: false,
-                    type: MessageTypes.Warning,
+                sendStatsMessageToUser(player1Details.user.getId(), {
+                    type: SwuStatsSubmitStatus.Warning,
                     source: 'SWUStats',
                     message: 'Draws are currently not supported by SWUStats.'
                 });
-                player2LobbyUser?.socket.send('statsSubmitNotification', {
-                    id: uuid(),
-                    success: false,
-                    type: MessageTypes.Warning,
+                sendStatsMessageToUser(player2Details.user.getId(), {
+                    type: SwuStatsSubmitStatus.Warning,
                     source: 'SWUStats',
                     message: 'Draws are currently not supported by SWUStats.'
                 });
@@ -150,7 +143,7 @@ export class SwuStatsHandler {
             }
 
             // Build the payload
-            const payload = await this.buildGameResultPayloadAsync(
+            const payload = await this.buildSWUStatsGameResultPayloadAsync(
                 game,
                 player1,
                 player2,
@@ -177,15 +170,14 @@ export class SwuStatsHandler {
             });
             if (!response.ok) {
                 const errorText = await response.text();
-                logger.error(`SWUstats API returned error: ${response.status} - ${errorText}`, { lobbyId });
-                throw new Error(errorText);
+                throw new Error(`SWUstats API returned error: ${response.status} - ${errorText}`);
             }
             logger.info(`Successfully sent game result to SWUstats for game ${game.id}`, { lobbyId });
             return true;
         } catch (error) {
             logger.error('Failed to send game result to SWUstats', {
                 error: { message: error.message, stack: error.stack },
-                gameId: game?.id,
+                gameId: game.id,
                 lobbyId
             });
             throw new Error('Failed to send game result to SWUstats');
@@ -265,7 +257,7 @@ export class SwuStatsHandler {
     /**
      * Build the game result payload for SWUstats API
      */
-    private async buildGameResultPayloadAsync(
+    private async buildSWUStatsGameResultPayloadAsync(
         game: Game,
         player1: Player,
         player2: Player,
@@ -307,16 +299,16 @@ export class SwuStatsHandler {
 
     /**
      * Get access tokens for players who have refresh tokens
-     * @returns Promise that resolves to access tokens for each player
      * @param playerDetails details on the player id, deckId, decklist etc...
      * @param lobbyId
      * @param serverObject
+     * @returns Promise that resolves to an access token for the player or null if no token and no refresh token is present.
      */
     private async getAccessTokenAsync(
         playerDetails: PlayerDetails,
         lobbyId: string,
         serverObject: GameServer
-    ): Promise<string> {
+    ): Promise<string | null> {
         let playerAccessToken: string = null;
         // Handle Player swu token
         if (playerDetails.swuStatsToken && this.isTokenValid(playerDetails.swuStatsToken)) {
@@ -390,7 +382,7 @@ export class SwuStatsHandler {
             };
         } catch (error) {
             logger.error('SWUStatsHandler: Failed to refresh access token', {
-                error: { message: error.message, stack: error.stack }
+                error: { message: error.message, stack: error.stack },
             });
             return null;
         }

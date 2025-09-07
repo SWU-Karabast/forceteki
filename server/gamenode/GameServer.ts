@@ -122,7 +122,7 @@ export class GameServer {
     private readonly lobbies = new Map<string, Lobby>();
     private readonly playerMatchmakingDisconnectedTime = new Map<string, Date>();
     private readonly userLobbyMap = new Map<string, ILobbyMapping>();
-    public readonly swuStatsTokenMapping = new Map<string, ISwuStatsToken>();
+    public swuStatsTokenMapping = new Map<string, ISwuStatsToken>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -384,7 +384,14 @@ export class GameServer {
                 //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
                 //     }
                 // }
-                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange(), swuStatsRefreshToken: user.getSwuStatsRefreshToken() } });
+                return res.status(200).json({ success: true, user: {
+                    id: user.getId(),
+                    username: user.getUsername(),
+                    showWelcomeMessage: user.getShowWelcomeMessage(),
+                    preferences: user.getPreferences(),
+                    needsUsernameChange: user.needsUsernameChange(),
+                    swuStatsRefreshToken: user.getSwuStatsRefreshToken()
+                } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
                 next(err);
@@ -512,12 +519,12 @@ export class GameServer {
             }
         });
 
-        // This is called from the FE Node.js server hence why we do not need authentication.
+        // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
         app.post('/api/link-swustats', async (req, res, next) => {
             try {
                 const { userId, swuStatsToken, internalApiKey } = req.body;
                 if (process.env.ENVIRONMENT === 'development' && !process.env.INTRASERVICE_SECRET) {
-                    throw new Error('Environment variables INTRASERVICE_SECRET not set');
+                    throw new Error('Environment variable INTRASERVICE_SECRET not set');
                 }
                 if (internalApiKey !== process.env.INTRASERVICE_SECRET) {
                     return res.status(403).json({
@@ -525,6 +532,7 @@ export class GameServer {
                         message: 'Forbidden'
                     });
                 }
+                // We test the refresh token if it correctly returns a new access token.
                 const newRefreshToken = await this.swuStatsHandler.refreshTokensAsync(swuStatsToken.refreshToken);
                 await this.userFactory.addSwuStatsRefreshTokenAsync(userId, newRefreshToken.refreshToken);
                 // add token mapping
@@ -1575,24 +1583,15 @@ export class GameServer {
      */
     private cleanupInvalidTokens(): void {
         try {
-            const initialSize = this.swuStatsTokenMapping.size;
-            let removedCount = 0;
-            // Iterate through all tokens and remove invalid ones
+            const newTokenMapping = new Map<string, ISwuStatsToken>();
+            // Create new map with only valid tokens
             for (const [userId, token] of this.swuStatsTokenMapping.entries()) {
-                if (!this.swuStatsHandler.isTokenValid(token)) {
-                    this.swuStatsTokenMapping.delete(userId);
-                    removedCount++;
-                    logger.info(`GameServer: Removed expired token for user ${userId}`);
+                if (this.swuStatsHandler.isTokenValid(token)) {
+                    newTokenMapping.set(userId, token);
                 }
             }
-
-            const finalSize = this.swuStatsTokenMapping.size;
-
-            if (removedCount > 0) {
-                logger.info(`GameServer: Token cleanup completed - removed ${removedCount} expired tokens (${initialSize} → ${finalSize})`);
-            } else {
-                logger.info(`GameServer: Token cleanup completed - no expired tokens found (${finalSize} tokens remaining)`);
-            }
+            // Replace the old map with the new one
+            this.swuStatsTokenMapping = newTokenMapping;
         } catch (error) {
             logger.error('GameServer: Error during token cleanup:', {
                 error: { message: error.message, stack: error.stack }

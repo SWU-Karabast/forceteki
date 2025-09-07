@@ -1,7 +1,6 @@
 import * as dotenv from 'dotenv';
 import { z } from 'zod';
 import { logger } from './logger';
-import * as Contract from './game/core/utils/Contract';
 
 dotenv.config();
 
@@ -100,41 +99,49 @@ type ParsedEnvData = typeof parsedEnv.data;
 
 /**
  * Simple function to validate that required environment variables are available
- * @param generalVars that need to be present
- * @param requiredVars Array of environment variable names that can be present
+ * @param requiredInProd that need to be present
+ * @param alwaysRequired Array of environment variable names that can be present
  * @param context Optional context name for error messages
  * @returns Object containing only the required variables
  * @throws Error if any required variables are missing or undefined
  */
 export function requireEnvVars<K extends keyof ParsedEnvData>(
-    generalVars: K[],
+    requiredInProd: K[],
     context: string = 'Environment validation',
-    requiredVars?: K[]
-): Pick<ParsedEnvData, K> {
-    const missing: string[] = [];
-    const result: Partial<Pick<ParsedEnvData, K>> = {};
-    for (const varName of generalVars) {
+    alwaysRequired?: K[]
+) {
+    const missingRequiredInProd: string[] = [];
+    const missingAlwaysRequired: string[] = [];
+    let throwError = false;
+    for (const varName of requiredInProd) {
         const value = parsedEnv.data[varName];
         if (!value) {
-            missing.push(String(varName));
-        } else {
-            result[varName] = value;
-        }
-    }
-    if (requiredVars) {
-        for (const varName of requiredVars) {
-            Contract.assertNotNullLike(parsedEnv.data[varName], `${context} environment variable ${varName} was not found but needs to be present`);
+            missingRequiredInProd.push(String(varName));
+            if (environment === 'production') {
+                throwError = true;
+            }
         }
     }
 
-    if (missing.length > 0) {
-        const message = `${context}: Missing environment variables: ${missing.join(', ')}`;
-        if (environment === 'development') {
-            logger.warn(`${message} (continuing in development mode)`);
-        } else {
-            logger.error(message);
-            throw new Error(message);
+    if (alwaysRequired) {
+        for (const varName of alwaysRequired) {
+            const value = parsedEnv.data[varName];
+            if (!value) {
+                throwError = true;
+                missingAlwaysRequired.push(String(varName));
+            }
         }
     }
-    return result as Pick<ParsedEnvData, K>;
+
+    if (missingAlwaysRequired.length > 0 || missingRequiredInProd.length > 0) {
+        const message = `(${context}): ${missingAlwaysRequired.length > 0 ??
+          `Missing always required variables: ${missingAlwaysRequired.join(', ')}`}
+        ${missingRequiredInProd.length > 0 ?? `Missing environmental variables ${missingRequiredInProd.join(', ')} some services might not work as intended.`}`;
+        if (throwError) {
+            logger.error(message);
+            throw new Error(message);
+        } else {
+            logger.warn(message);
+        }
+    }
 }
