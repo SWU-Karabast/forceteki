@@ -1879,16 +1879,18 @@ class Game extends EventEmitter {
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
      * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshot(_playerId, settings) {
-        return this.rollbackToSnapshotInternal(settings);
+    rollbackToSnapshot(playerId, settings) {
+        const result = this.rollbackToSnapshotInternal(settings);
+
+        if (result) {
+            this.addAlert(AlertType.Notification, '{0} has rolled back to a previous action', this.getPlayerById(playerId));
+        }
     }
 
     rollbackToSnapshotInternal(settings) {
         if (!this.isUndoEnabled) {
             return false;
         }
-
-        const player = this.getPlayerById(settings.playerId);
 
         const preUndoState = this.captureGameState('any');
 
@@ -1900,8 +1902,6 @@ class Game extends EventEmitter {
             }
 
             this.postRollbackOperations(rollbackResult.entryPoint, preUndoState);
-
-            this.addAlert(AlertType.Notification, '{0} has rolled back to a previous action', player);
 
             return true;
         } catch (error) {
