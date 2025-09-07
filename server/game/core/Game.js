@@ -1888,6 +1888,8 @@ class Game extends EventEmitter {
             return false;
         }
 
+        const player = this.getPlayerById(settings.playerId);
+
         const preUndoState = this.captureGameState('any');
 
         try {
@@ -1898,6 +1900,8 @@ class Game extends EventEmitter {
             }
 
             this.postRollbackOperations(rollbackResult.entryPoint, preUndoState);
+
+            this.addAlert(AlertType.Notification, '{0} has rolled back to a previous action', player);
 
             return true;
         } catch (error) {
