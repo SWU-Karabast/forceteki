@@ -153,7 +153,8 @@ export class Lobby {
             gameType: this.gameType,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
-            matchingCountdownText: this.matchingCountdownText
+            matchingCountdownText: this.matchingCountdownText,
+            undoEnabled: this.undoMode === UndoMode.Full,
         };
     }
 
