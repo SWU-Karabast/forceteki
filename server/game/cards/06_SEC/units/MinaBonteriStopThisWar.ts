@@ -17,7 +17,7 @@ export default class MinaBonteriStopThisWar extends NonLeaderUnitCard {
         const aspects: Aspect[] = [Aspect.Command, Aspect.Command, Aspect.Heroism];
         registrar.addWhenDefeatedAbility({
             title: `Disclose ${this.aspectString(aspects)}`,
-            targetResolver: {
+            immediateEffect: AbilityHelper.immediateEffects.selectCard({
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
                 mode: TargetMode.ExactlyVariable,
@@ -31,7 +31,7 @@ export default class MinaBonteriStopThisWar extends NonLeaderUnitCard {
                     promptedPlayer: RelativePlayer.Opponent,
                     useDisplayPrompt: true
                 })
-            },
+            }),
             ifYouDo: {
                 title: 'Draw a card',
                 immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 1 })
