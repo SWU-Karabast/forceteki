@@ -54,6 +54,7 @@ const { Randomness } = require('../core/Randomness.js');
 const { RollbackEntryPointType } = require('./snapshot/SnapshotInterfaces.js');
 const { Lobby } = require('../../gamenode/Lobby.js');
 const { DiscordDispatcher } = require('./DiscordDispatcher.js');
+const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -189,14 +190,6 @@ class Game extends EventEmitter {
         this.currentlyResolving.eventWindow = value;
     }
 
-    get currentOpenPrompt() {
-        return this.currentlyResolving.openPrompt;
-    }
-
-    set currentOpenPrompt(value) {
-        this.currentlyResolving.openPrompt = value;
-    }
-
     get lastEventId() {
         return this.state.lastGameEventId;
     }
@@ -245,6 +238,9 @@ class Game extends EventEmitter {
         this.statsUpdated = false;
         this.playStarted = false;
         this.createdAt = new Date();
+        this.preUndoStateForError = null;
+
+        this.playerHasBeenPrompted = new Map();
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
@@ -313,7 +309,7 @@ class Game extends EventEmitter {
 
 
     /**
-     * Reports errors from the game engine back to the router
+     * Reports errors from the game engine back to the router, optionally halting the game if the error is severe.
      * @param {Error} e
      */
     reportError(e, severeGameMessage = false) {
@@ -949,6 +945,31 @@ class Game extends EventEmitter {
         }
     }
 
+    getCurrentOpenPrompt() {
+        return this.currentlyResolving.openPrompt;
+    }
+
+    /** @param {UiPrompt | null} currentPrompt */
+    setCurrentOpenPrompt(currentPrompt) {
+        if (currentPrompt) {
+            for (const player of this.getPlayers()) {
+                if (currentPrompt.activeCondition(player)) {
+                    this.playerHasBeenPrompted.set(player.id, true);
+                }
+            }
+        }
+
+        this.currentlyResolving.openPrompt = currentPrompt;
+    }
+
+    resetPromptedPlayersTracking() {
+        this.playerHasBeenPrompted.clear();
+    }
+
+    hasBeenPrompted(player) {
+        return !!this.playerHasBeenPrompted.get(player.id);
+    }
+
     /**
      * Prompts a player with a multiple choice menu
      * @param {Player} player
@@ -1197,41 +1218,14 @@ class Game extends EventEmitter {
         const isRollback = rollbackEntryPoint != null;
 
         const roundStartStep = [];
-        if (!isRollback || rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRound) {
+        if (!isRollback || rollbackEntryPoint === RollbackRoundEntryPoint.StartOfActionPhase) {
             roundStartStep.push(new SimpleStep(
                 this, () => this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers), 'beginRound'
             ));
         }
 
-        const actionPhaseStep = [];
-        if (rollbackEntryPoint !== RollbackRoundEntryPoint.StartOfRegroupPhase) {
-            let actionInitializeMode;
-
-            switch (rollbackEntryPoint) {
-                case RollbackRoundEntryPoint.StartOfRound:
-                    actionInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
-                    break;
-                case RollbackRoundEntryPoint.WithinActionPhase:
-                    actionInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
-                    break;
-                case null:
-                    actionInitializeMode = PhaseInitializeMode.Normal;
-                    break;
-                default:
-                    Contract.fail(`Unknown rollback entry point: ${rollbackEntryPoint}`);
-            }
-
-            actionPhaseStep.push(new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode));
-        }
-
-        const regroupInitializeMode =
-            rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase
-                ? PhaseInitializeMode.RollbackToStartOfPhase
-                : PhaseInitializeMode.Normal;
-
-        const regroupPhaseStep = [
-            new RegroupPhase(this, this._snapshotManager, regroupInitializeMode)
-        ];
+        const actionPhaseStep = this.buildActionPhaseStep(rollbackEntryPoint);
+        const regroupPhaseStep = this.buildRegroupPhaseStep(rollbackEntryPoint);
 
         this.pipeline.initialise([
             ...roundStartStep,
@@ -1240,6 +1234,66 @@ class Game extends EventEmitter {
             new SimpleStep(this, () => this.roundEnded(), 'roundEnded'),
             new SimpleStep(this, () => this.beginRound(), 'beginRound')
         ]);
+    }
+
+    /**
+     * Initializes the action phase step in the pipeline.
+     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     */
+    buildActionPhaseStep(rollbackEntryPoint = null) {
+        if (
+            rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase ||
+            rollbackEntryPoint === RollbackRoundEntryPoint.WithinRegroupPhase ||
+            rollbackEntryPoint === RollbackRoundEntryPoint.EndOfRegroupPhase
+        ) {
+            return [];
+        }
+
+        let actionInitializeMode;
+        switch (rollbackEntryPoint) {
+            case RollbackRoundEntryPoint.StartOfActionPhase:
+                actionInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
+                break;
+            case RollbackRoundEntryPoint.WithinActionPhase:
+                actionInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
+                break;
+            case null:
+                actionInitializeMode = PhaseInitializeMode.Normal;
+                break;
+            default:
+                Contract.fail(`Unknown rollback entry point for action phase: ${rollbackEntryPoint}`);
+        }
+
+        return [new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode)];
+    }
+
+    /**
+     * Initializes the regroup phase step in the pipeline.
+     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     */
+    buildRegroupPhaseStep(rollbackEntryPoint = null) {
+        let regroupInitializeMode;
+        switch (rollbackEntryPoint) {
+            case RollbackRoundEntryPoint.StartOfRegroupPhase:
+                regroupInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
+                break;
+            case RollbackRoundEntryPoint.WithinRegroupPhase:
+                regroupInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
+                break;
+            case RollbackRoundEntryPoint.EndOfRegroupPhase:
+                regroupInitializeMode = PhaseInitializeMode.RollbackToEndOfPhase;
+                break;
+            case RollbackRoundEntryPoint.StartOfActionPhase:
+            case RollbackRoundEntryPoint.WithinActionPhase:
+            case RollbackRoundEntryPoint.EndOfActionPhase:
+            case null:
+                regroupInitializeMode = PhaseInitializeMode.Normal;
+                break;
+            default:
+                Contract.fail(`Unknown rollback entry point for regroup phase: ${rollbackEntryPoint}`);
+        }
+
+        return [new RegroupPhase(this, this._snapshotManager, regroupInitializeMode)];
     }
 
     roundEnded() {
@@ -1823,7 +1877,8 @@ class Game extends EventEmitter {
                 }),
                 started: this.started,
                 gameMode: this.gameMode,
-                winners: this.winnerNames
+                winners: this.winnerNames,
+                undoEnabled: this.isUndoEnabled,
             };
 
             // clean out any properies that are null or undefined to reduce the message size
@@ -1878,8 +1933,12 @@ class Game extends EventEmitter {
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
      * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshot(_playerId, settings) {
-        return this.rollbackToSnapshotInternal(settings);
+    rollbackToSnapshot(playerId, settings) {
+        const result = this.rollbackToSnapshotInternal(settings);
+
+        if (result) {
+            this.addAlert(AlertType.Notification, '{0} has rolled back to a previous action', this.getPlayerById(playerId));
+        }
     }
 
     rollbackToSnapshotInternal(settings) {
@@ -1887,49 +1946,53 @@ class Game extends EventEmitter {
             return false;
         }
 
-        const preUndoState = this.captureGameState('any');
+        this.preUndoStateForError = { gameState: this.captureGameState('any'), settings };
 
+        let rollbackResult;
         try {
-            const rollbackResult = this._snapshotManager.rollbackTo(settings);
+            rollbackResult = this._snapshotManager.rollbackTo(settings);
 
             if (!rollbackResult.success) {
                 return false;
             }
 
-            this.postRollbackOperations(rollbackResult.entryPoint, preUndoState);
-
-            return true;
+            this.postRollbackOperations(rollbackResult.entryPoint);
         } catch (error) {
             if (process.env.NODE_ENV !== 'test') {
-                logger.error('Rollback failed', {
-                    lobbyId: this._router.id,
-                    gameId: this.id,
-                    settings,
-                    preUndoState,
-                    error: error.message,
-                    stack: error.stack,
-                });
-
-                this.discordDispatcher.formatAndSendUndoFailureReportAsync({
-                    gameId: this.id,
-                    lobbyId: this._router.id,
-                    settings,
-                    preUndoState,
-                });
+                this.reportSevereRollbackFailure(error, 'Severe error during rollback operation');
             }
 
             throw error;
+        } finally {
+            this.preUndoStateForError = null;
         }
+
+        return true;
+    }
+
+    reportSevereRollbackFailure(error, description) {
+        if (process.env.NODE_ENV === 'test') {
+            throw error;
+        }
+
+        logger.error('Rollback failed', {
+            lobbyId: this.lobbyId,
+            gameId: this.id,
+            settings: this.preUndoStateForError.settings,
+            preUndoState: this.preUndoStateForError.gameState,
+            error: { message: error.message, stack: error.stack }
+        });
+        this.discordDispatcher.formatAndSendServerErrorAsync(description, error, this.lobbyId);
+        this.reportError(error, true);
     }
 
     /**
      * @param {import('./snapshot/SnapshotInterfaces.js').IRollbackSetupEntryPoint | import('./snapshot/SnapshotInterfaces.js').IRollbackRoundEntryPoint} entryPoint
-     * @param {import ('../Interfaces.js').ISerializedGameState} preUndoState
      */
-    postRollbackOperations(entryPoint, preUndoState) {
+    postRollbackOperations(entryPoint) {
         const postUndoState = this.captureGameState('any');
         const gameStates = {
-            preUndoState,
+            preUndoState: this.preUndoStateForError,
             postUndoState,
         };
         if (process.env.NODE_ENV !== 'test') {

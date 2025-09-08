@@ -10,24 +10,35 @@ import { TriggerHandlingMode } from '../../event/EventWindow';
 import type { ICardWithExhaustProperty } from '../../card/baseClasses/PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
+import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 
 export class RegroupPhase extends Phase {
     public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
-        Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToWithinPhase, 'RegroupPhase does not support rolling back to the middle of the phase');
+        Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToEndOfPhase, 'RegroupPhase does not support rolling back to the end of the phase');
+
+        const resourceSteps = [];
+        if (initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase) {
+            resourceSteps.push(new SimpleStep(game, () => this.drawTwo(initializeMode), 'drawTwo'));
+            resourceSteps.push(new SimpleStep(game, () => this.resourcePrompt(), 'resourcePrompt'));
+        }
 
         super(game, PhaseName.Regroup, snapshotManager);
         this.initialise(
             [
-                new SimpleStep(game, () => this.drawTwo(), 'drawTwo'),
-                new VariableResourcePrompt(game, 0, 1),
-                new SimpleStep(game, () => this.readyAllCards(), 'readyAllCards'),
-                new SimpleStep(game, () => this.endPhase(), 'endPhase')
+                ...resourceSteps,
+                new SimpleStep(game, () => this.readyAllCards(), 'readyAllCards')
             ],
             initializeMode
         );
     }
 
-    private drawTwo() {
+    private drawTwo(initializeMode: PhaseInitializeMode) {
+        this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.RegroupResource);
+
+        if (initializeMode === PhaseInitializeMode.Normal || initializeMode === PhaseInitializeMode.RollbackToStartOfPhase) {
+            this.takeActionSnapshotsForPromptedPlayers();
+        }
+
         for (const player of this.game.getPlayers()) {
             // create a single event for drawing cards step
             new DrawSystem({ amount: 2 }).resolve(
@@ -36,6 +47,10 @@ export class RegroupPhase extends Phase {
                 TriggerHandlingMode.ResolvesTriggers
             );
         }
+    }
+
+    private resourcePrompt() {
+        this.game.queueStep(new VariableResourcePrompt(this.game, 0, 1));
     }
 
     private readyAllCards() {

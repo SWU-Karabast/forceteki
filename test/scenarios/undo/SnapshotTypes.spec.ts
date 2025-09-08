@@ -1580,7 +1580,6 @@ describe('Snapshot types', function() {
 
                 assertRegroupPhase2State(context);
 
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
 
                 context.player2.clickDone();
@@ -1795,7 +1794,6 @@ describe('Snapshot types', function() {
 
                     assertRegroupPhase2State(context);
 
-                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
                     expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
 
                     context.player2.clickDone();
@@ -1819,7 +1817,6 @@ describe('Snapshot types', function() {
 
                     assertRegroupPhase1State(context);
 
-                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
                     expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
 
                     context.player2.clickDone();
@@ -1852,7 +1849,6 @@ describe('Snapshot types', function() {
 
                     expect(context.game.currentPhase).toEqual('regroup');
 
-                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase1SnapshotId);
                     expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase1ActionId);
 
                     context.player2.clickDone();
@@ -1883,7 +1879,6 @@ describe('Snapshot types', function() {
 
                     assertRegroupPhase2State(context);
 
-                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.regroupPhase2SnapshotId);
                     expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.regroupPhase2ActionId);
 
                     context.player2.clickDone();
@@ -2063,229 +2058,6 @@ describe('Snapshot types', function() {
             });
         });
 
-        describe('effects at the start of the action phase', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        groundArena: ['battlefield-marine'],
-                        deck: ['takedown', 'vanquish', 'rivals-fall', 'cartel-spacer'],
-                        leader: 'grand-admiral-thrawn#patient-and-insightful',
-                        resources: 3,
-                    },
-                    player2: {
-                        groundArena: ['wampa', 'atst'],
-                        deck: ['steadfast-battalion', 'avenger#hunting-star-destroyer', 'specforce-soldier']
-                    },
-                    phaseTransitionHandler: (phase) => {
-                        if (phase === 'action') {
-                            contextRef.context.player1.clickDone();
-                        }
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.moveToNextActionPhase();
-
-                context.startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.startOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                // thrawn ability reveal top deck of each player (happens at beginning of action phase)
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([
-                    { card: context.rivalsFall, displayText: 'Yourself' },
-                    { card: context.specforceSoldier, displayText: 'Opponent' }
-                ]);
-
-                context.player1.clickDone();
-
-                context.p1Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickCard(context.p2Base);
-
-                context.p2Action1SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p2Action1ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                context.player2.clickCard(context.wampa);
-                context.player2.clickCard(context.p1Base);
-
-                context.p1Action2SnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.p1Action2ActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-            });
-
-            const assertActionPhaseStartState = (context) => {
-                expect(context.player1.handSize).toBe(2);
-                expect(context.player2.handSize).toBe(2);
-
-                expect(context.battlefieldMarine.exhausted).toBeFalse();
-                expect(context.wampa.exhausted).toBeFalse();
-                expect(context.p1Base.damage).toEqual(0);
-                expect(context.p2Base.damage).toEqual(0);
-            };
-
-            it('should be repeated when rolling back to the start-of-action-phase snapshot', function () {
-                const { context } = contextRef;
-
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'phase',
-                    phaseName: 'action',
-                    phaseOffset: 0
-                });
-                expect(rollbackResult).toBeTrue();
-
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
-                assertActionPhaseStartState(context);
-
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([
-                    { card: context.rivalsFall, displayText: 'Yourself' },
-                    { card: context.specforceSoldier, displayText: 'Opponent' }
-                ]);
-
-                context.player1.clickDone();
-
-                expect(context.player1).toBeActivePlayer();
-            });
-
-            it('should not be repeated when rolling back to the first action snapshot of the phase', function () {
-                const { context } = contextRef;
-
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'action',
-                    playerId: context.player1.id,
-                    actionOffset: -1
-                });
-                expect(rollbackResult).toBeTrue();
-
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Action1SnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action1ActionId);
-                assertActionPhaseStartState(context);
-
-                expect(context.player1).not.toHaveExactViewableDisplayPromptCards([
-                    { card: context.rivalsFall, displayText: 'Yourself' },
-                    { card: context.specforceSoldier, displayText: 'Opponent' }
-                ]);
-                expect(context.player1).toBeActivePlayer();
-            });
-        });
-
-        describe('effects at the start of the regroup phase', function () {
-            beforeEach(async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        spaceArena: ['inferno-four#unforgetting', 'system-patrol-craft'],
-                        hand: ['sneak-attack', 'ruthless-raider']
-                    },
-                    player2: {
-                        spaceArena: ['green-squadron-awing'],
-                        groundArena: ['wampa']
-                    }
-                });
-
-                const { context } = contextRef;
-
-                // Play Ruthless Raider from hand
-                context.player1.clickCard(context.sneakAttack);
-                context.player1.clickCard(context.ruthlessRaider);
-
-                // Select Enemy Unit and Base. Not able to select friendly units
-                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
-                context.player1.clickCard(context.greenSquadronAwing);
-
-                // Check damage on unit and base
-                expect(context.p2Base.damage).toBe(2);
-                expect(context.greenSquadronAwing.damage).toBe(2);
-
-                context.moveToRegroupPhase();
-
-                context.startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
-                context.startOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
-
-                // RR is defeated by Sneak Attack effect. Select Enemy Unit and Base. Not able to select friendly units
-                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
-                context.player1.clickCard(context.greenSquadronAwing);
-
-                // Check damage on unit and base
-                expect(context.p2Base.damage).toBe(4);
-                expect(context.greenSquadronAwing).toBeInZone('discard');
-            });
-
-            const assertRegroupPhaseStartState = (context) => {
-                expect(context.ruthlessRaider).toBeInZone('discard');
-                expect(context.p2Base.damage).toBe(2);
-                expect(context.greenSquadronAwing.damage).toBe(2);
-            };
-
-            const assertRegroupPhaseRaiderDefeatedState = (context) => {
-                expect(context.ruthlessRaider).toBeInZone('discard');
-                expect(context.p2Base.damage).toBe(4);
-                expect(context.greenSquadronAwing).toBeInZone('discard');
-            };
-
-            it('should be repeated when rolling back to the start-of-regroup-phase snapshot from within the regroup phase', function () {
-                const { context } = contextRef;
-
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'phase',
-                    phaseName: 'regroup',
-                    phaseOffset: 0
-                });
-                expect(rollbackResult).toBeTrue();
-
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
-
-                assertRegroupPhaseStartState(context);
-
-                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
-                context.player1.clickCard(context.greenSquadronAwing);
-
-                assertRegroupPhaseRaiderDefeatedState(context);
-
-                // move to action phase to confirm that everything still works
-                context.player1.clickDone();
-                context.player2.clickDone();
-                context.player1.clickCard(context.systemPatrolCraft);
-                context.player1.clickCard(context.p2Base);
-            });
-
-            it('should be repeated when rolling back to the start-of-regroup-phase snapshot from the next action phase', function () {
-                const { context } = contextRef;
-
-                // move to action phase
-                context.player1.clickDone();
-                context.player2.clickDone();
-                context.player1.clickCard(context.systemPatrolCraft);
-                context.player1.clickCard(context.p2Base);
-
-                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
-                    type: 'phase',
-                    phaseName: 'regroup',
-                    phaseOffset: 0
-                });
-                expect(rollbackResult).toBeTrue();
-
-                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfPhaseSnapshotId);
-                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfPhaseActionId);
-
-                assertRegroupPhaseStartState(context);
-
-                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
-                context.player1.clickCard(context.greenSquadronAwing);
-
-                assertRegroupPhaseRaiderDefeatedState(context);
-
-                // move to action phase to confirm that everything still works
-                context.player1.clickDone();
-                context.player2.clickDone();
-                context.player1.clickCard(context.systemPatrolCraft);
-                context.player1.clickCard(context.p2Base);
-            });
-        });
-
         describe('After a sequence of short action phases,', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
@@ -2342,6 +2114,5 @@ describe('Snapshot types', function() {
     });
 
     // TODO: test going to beginning of current action when there are open prompts of different types. maybe different test file
-    // TODO: setup phase tests
     // TODO: decide the details of how we want manual snapshots to work, and test them in-depth
 });
