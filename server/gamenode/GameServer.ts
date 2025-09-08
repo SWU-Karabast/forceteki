@@ -167,17 +167,16 @@ export class GameServer {
             res.on('finish', () => {
                 const end = process.hrtime.bigint();
                 const durationMs = Number(end - start) / 1e6;
-                const durationMsLogValue = Number(durationMs.toFixed(2));
 
-                const log = {
-                    method: req.method,
-                    path: req.originalUrl.split('?')[0],
-                    status: res.statusCode,
-                    durationMs: durationMsLogValue,
-                    timestamp: new Date().toISOString()
-                };
-
-                logger.info(`[ApiRequest] ${JSON.stringify(log)}`, { durationMs: durationMsLogValue });
+                if (durationMs > 100) {
+                    logger.info('[GameServer] API request took more than 100ms', {
+                        method: req.method,
+                        path: req.originalUrl.split('?')[0],
+                        status: res.statusCode,
+                        durationMs: Number(durationMs.toFixed(2)),
+                        timestamp: new Date().toISOString()
+                    });
+                }
             });
 
             next();
@@ -802,6 +801,15 @@ export class GameServer {
                 next(err);
             }
         });
+
+        app.get('/api/all-leaders', (_, res, next) => {
+            try {
+                return res.json(this.cardDataGetter.getLeaderCards());
+            } catch (err) {
+                logger.error('GameServer (all-leaders) Server error: ', err);
+                next(err);
+            }
+        });
     }
 
     private canUserJoinNewLobby(userId: string) {
@@ -878,7 +886,8 @@ export class GameServer {
         let numberOfOngoingGames = 0;
 
         // Loop through all lobbies and check if they have an ongoing game
-        for (const lobby of this.lobbies.values()) {
+        // reverse the order of lobbies so newest games are first
+        for (const lobby of Array.from(this.lobbies.values()).reverse()) {
             if (lobby.hasOngoingGame()) {
                 const gameState = lobby.getGamePreview();
                 if (gameState) {

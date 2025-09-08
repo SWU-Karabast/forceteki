@@ -20,7 +20,8 @@ export class RemoteCardDataGetter extends CardDataGetter {
         const setCodeMap = await RemoteCardDataGetter.fetchFileAsync(remoteDataUrl, CardDataGetter.setCodeMapFileName)
             .then((response) => response.json() as Promise<Record<string, string>>);
 
-        return new RemoteCardDataGetter(remoteDataUrl, cardMap, tokenData, playableCardTitles, setCodeMap);
+        const leaderNames = await (await RemoteCardDataGetter.fetchFileAsync(remoteDataUrl, CardDataGetter.leaderNamesFileName)).json() as { name: string; id: string; subtitle?: string }[];
+        return new RemoteCardDataGetter(remoteDataUrl, cardMap, tokenData, playableCardTitles, setCodeMap, leaderNames);
     }
 
     protected static getRelativePathFromInternalName(internalName: string) {
@@ -49,9 +50,10 @@ export class RemoteCardDataGetter extends CardDataGetter {
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,
         playableCardTitles: string[],
-        setCodeMap: Record<string, string>
+        setCodeMap: Record<string, string>,
+        leaderNames: { name: string; id: string; subtitle?: string }[],
     ) {
-        super(cardMapJson, tokenData, playableCardTitles, setCodeMap);
+        super(cardMapJson, tokenData, playableCardTitles, setCodeMap, leaderNames);
 
         this.remoteDataUrl = remoteDataUrl;
     }
