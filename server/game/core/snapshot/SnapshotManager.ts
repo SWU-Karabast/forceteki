@@ -126,7 +126,7 @@ export class SnapshotManager {
 
                 // TODO: extend this to setup phase start as well
                 if (this.game.currentPhase === PhaseName.Regroup) {
-                    this.addQuickRegroupSnapshots();
+                    this.addQuickStartOfRegroupSnapshots();
                 }
 
                 return phaseSnapshotNumber;
@@ -151,10 +151,10 @@ export class SnapshotManager {
         quickSnapshots.addSnapshotFromMap(this.actionSnapshots, playerId);
     }
 
-    private addQuickRegroupSnapshots() {
+    private addQuickStartOfRegroupSnapshots() {
         // sanity check
         const regroupSnapshotId = this.phaseSnapshots.getSnapshotProperties(PhaseName.Regroup)?.snapshotId;
-        Contract.assertTrue(regroupSnapshotId === this.currentSnapshotId, `Attempting to make a quick snapshot from a regroup snapshot, but the latest regroup snapshot (${regroupSnapshotId}) does not match the active snapshot id (${this.currentSnapshotId}). Make sure that a regroup snapshot is taken before creating a quick snapshot from it.`);
+        Contract.assertTrue(regroupSnapshotId === this.currentSnapshotId, `Attempting to make a quick snapshot from a regroup snapshot, but the latest regroup phase start snapshot (${regroupSnapshotId}) does not match the active snapshot id (${this.currentSnapshotId}). Make sure that a regroup phase start snapshot is taken before creating a quick snapshot from it.`);
 
         for (const player of this.game.getPlayers()) {
             let quickSnapshots = this.quickSnapshots.get(player.id);
@@ -165,6 +165,26 @@ export class SnapshotManager {
 
             quickSnapshots.addSnapshotFromMap(this.phaseSnapshots, PhaseName.Regroup);
         }
+    }
+
+    public addQuickStartOfActionSnapshot(playerId: string) {
+        if (this.undoMode === UndoMode.Disabled) {
+            return;
+        }
+
+        Contract.assertNotNullLike(playerId);
+
+        // sanity check
+        const actionSnapshotId = this.phaseSnapshots.getSnapshotProperties(PhaseName.Action)?.snapshotId;
+        Contract.assertTrue(actionSnapshotId === this.currentSnapshotId, `Attempting to make a quick snapshot from an action snapshot, but the latest action phase start snapshot (${actionSnapshotId}) does not match the active snapshot id (${this.currentSnapshotId}). Make sure that an action phase start snapshot is taken before creating a quick snapshot from it.`);
+
+        let quickSnapshots = this.quickSnapshots.get(playerId);
+        if (!quickSnapshots) {
+            quickSnapshots = this.snapshotFactory.createMetaSnapshotArray();
+            this.quickSnapshots.set(playerId, quickSnapshots);
+        }
+
+        quickSnapshots.addSnapshotFromMap(this.phaseSnapshots, PhaseName.Action);
     }
 
     private takeManualSnapshot(settings: IManualSnapshotSettings): number {
@@ -186,12 +206,6 @@ export class SnapshotManager {
             return { success: false };
         }
 
-        // Handle Quick snapshots with specialized logic
-        if (settings.type === SnapshotType.Quick) {
-            return this.quickRollback(settings.playerId);
-        }
-
-        // Handle all other snapshot types
         let rolledBackSnapshotIdx: number = null;
         switch (settings.type) {
             case SnapshotType.Action:
@@ -202,6 +216,9 @@ export class SnapshotManager {
                 break;
             case SnapshotType.Phase:
                 rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName, this.checkGetOffset(settings.phaseOffset));
+                break;
+            case SnapshotType.Quick:
+                rolledBackSnapshotIdx = this.quickRollback(settings.playerId);
                 break;
             default:
                 throw new Error(`Unimplemented snapshot type in rollbackTo: ${JSON.stringify(settings)}`);
@@ -216,29 +233,16 @@ export class SnapshotManager {
         return { success: false };
     }
 
-    private quickRollback(playerId: string): IRollbackResult {
+    private quickRollback(playerId: string): number | null {
         const rollbackPoint = this.getQuickRollbackPoint(playerId);
 
         const snapshotId = this.quickSnapshots.get(playerId).rollbackToSnapshot(rollbackPoint);
 
         if (snapshotId == null) {
-            return { success: false };
+            return null;
         }
 
-        let entryPoint: IRollbackRoundEntryPoint;
-        switch (this.game.currentPhase) {
-            case PhaseName.Regroup:
-                entryPoint = { type: RollbackEntryPointType.Round, entryPoint: RollbackRoundEntryPoint.StartOfRegroupPhase };
-                break;
-            case PhaseName.Action:
-                entryPoint = { type: RollbackEntryPointType.Round, entryPoint: RollbackRoundEntryPoint.WithinActionPhase };
-                break;
-            default:
-                Contract.fail(`Unrecognized phase: ${this.game.currentPhase}`);
-        }
-
-        this.snapshotFactory.clearNewerSnapshots(snapshotId);
-        return { success: true, entryPoint };
+        return snapshotId;
     }
 
     /**
@@ -248,17 +252,26 @@ export class SnapshotManager {
         const player = this.game.getPlayerById(playerId);
         const playerPromptType = player.promptState.promptType;
 
+        const currentOpenPrompt = this.game.getCurrentOpenPrompt();
+
+        if (this.currentSnapshottedTimepoint === SnapshotTimepoint.StartOfPhase && this.currentSnapshottedPhase === PhaseName.Action) {
+            // we're in a prompt at the start of the action phase, new quick snapshot hasn't been taken yet so rolling back to 'current'
+            // will actually be rolling back a step.
+            // TODO: this definitely could be improved, see comments in PhaseStartAndEnd.spec.ts
+            return QuickRollbackPoint.Current;
+        }
+
         // if we're currently in resource selection and the player has already clicked "done", we'll roll back to start of resource selection
         if (
             this.game.currentPhase === PhaseName.Regroup &&
             playerPromptType === PromptType.Resource &&
-            this.game.currentOpenPrompt.isAllPlayerPrompt() &&
-            this.game.currentOpenPrompt.completionCondition(player)
+            currentOpenPrompt.isAllPlayerPrompt() &&
+            currentOpenPrompt.completionCondition(player)
         ) {
             return QuickRollbackPoint.Current;
         }
 
-        // TODO: update the chunk below to account for phase boundary prompts (e.g Sneak Attack or Thrawn1 trigger)
+        // TODO THIS PR: update the chunk below to account for phase boundary prompts (e.g Sneak Attack or Thrawn1 trigger)
 
         // if we're in the middle of an action, revert to start of action
         if (this.currentSnapshottedTimepoint === SnapshotTimepoint.Action && playerPromptType !== PromptType.ActionWindow) {
@@ -283,23 +296,25 @@ export class SnapshotManager {
     }
 
     private getEntryPointAfterRollback(settings: IGetSnapshotSettings): IRollbackSetupEntryPoint | IRollbackRoundEntryPoint {
-        switch (settings.type) {
-            case SnapshotType.Action:
-                switch (this.currentSnapshottedTimepoint) {
-                    case SnapshotTimepoint.Mulligan:
-                    case SnapshotTimepoint.Resource:
-                        return {
-                            type: RollbackEntryPointType.Setup,
-                            entryPoint: RollbackSetupEntryPoint.WithinSetupPhase,
-                        };
-                    default:
-                        return {
-                            type: RollbackEntryPointType.Round,
-                            entryPoint: RollbackRoundEntryPoint.WithinActionPhase,
-                        };
-                }
-            case SnapshotType.Phase:
-                switch (settings.phaseName) {
+        switch (this.currentSnapshottedTimepoint) {
+            case SnapshotTimepoint.Mulligan:
+            case SnapshotTimepoint.SetupResource:
+                return {
+                    type: RollbackEntryPointType.Setup,
+                    entryPoint: RollbackSetupEntryPoint.WithinSetupPhase,
+                };
+            case SnapshotTimepoint.Action:
+                return {
+                    type: RollbackEntryPointType.Round,
+                    entryPoint: RollbackRoundEntryPoint.WithinActionPhase,
+                };
+            case SnapshotTimepoint.RegroupResource:
+                return {
+                    type: RollbackEntryPointType.Round,
+                    entryPoint: RollbackRoundEntryPoint.WithinRegroupPhase,
+                };
+            case SnapshotTimepoint.StartOfPhase:
+                switch (this.currentSnapshottedPhase) {
                     case PhaseName.Setup:
                         return {
                             type: RollbackEntryPointType.Setup,
@@ -308,7 +323,7 @@ export class SnapshotManager {
                     case PhaseName.Action:
                         return {
                             type: RollbackEntryPointType.Round,
-                            entryPoint: RollbackRoundEntryPoint.StartOfRound,
+                            entryPoint: RollbackRoundEntryPoint.StartOfActionPhase,
                         };
                     case PhaseName.Regroup:
                         return {
@@ -316,11 +331,21 @@ export class SnapshotManager {
                             entryPoint: RollbackRoundEntryPoint.StartOfRegroupPhase,
                         };
                 }
-            case SnapshotType.Manual:
-                return {
-                    type: RollbackEntryPointType.Round,
-                    entryPoint: this.snapshotFactory.currentSnapshottedPhase === PhaseName.Action ? RollbackRoundEntryPoint.WithinActionPhase : RollbackRoundEntryPoint.StartOfRegroupPhase
-                };
+            case SnapshotTimepoint.EndOfPhase:
+                switch (this.currentSnapshottedPhase) {
+                    case PhaseName.Setup:
+                        throw new Error('Rolling back to end of setup phase is not supported (no currently implemented card has end-of-setup-phase effects)');
+                    case PhaseName.Action:
+                        return {
+                            type: RollbackEntryPointType.Round,
+                            entryPoint: RollbackRoundEntryPoint.EndOfActionPhase,
+                        };
+                    case PhaseName.Regroup:
+                        return {
+                            type: RollbackEntryPointType.Round,
+                            entryPoint: RollbackRoundEntryPoint.EndOfRegroupPhase,
+                        };
+                }
             default:
                 Contract.fail(`Unimplemented snapshot type: ${JSON.stringify(settings)}`);
         }

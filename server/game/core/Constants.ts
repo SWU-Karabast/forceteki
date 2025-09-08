@@ -528,9 +528,12 @@ export enum AlertType {
 
 /** During a rollback, indicates what point in the round the snapshot is from */
 export enum RollbackRoundEntryPoint {
-    StartOfRound = 'startOfRound',
+    StartOfActionPhase = 'startOfActionPhase',
     WithinActionPhase = 'withinActionPhase',
+    EndOfActionPhase = 'endOfActionPhase',
     StartOfRegroupPhase = 'startOfRegroupPhase',
+    WithinRegroupPhase = 'withinRegroupPhase',
+    EndOfRegroupPhase = 'endOfRegroupPhase',
 }
 
 export enum RollbackSetupEntryPoint {

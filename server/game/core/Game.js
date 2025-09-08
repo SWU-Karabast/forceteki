@@ -54,6 +54,7 @@ const { Randomness } = require('../core/Randomness.js');
 const { RollbackEntryPointType } = require('./snapshot/SnapshotInterfaces.js');
 const { Lobby } = require('../../gamenode/Lobby.js');
 const { DiscordDispatcher } = require('./DiscordDispatcher.js');
+const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -189,14 +190,6 @@ class Game extends EventEmitter {
         this.currentlyResolving.eventWindow = value;
     }
 
-    get currentOpenPrompt() {
-        return this.currentlyResolving.openPrompt;
-    }
-
-    set currentOpenPrompt(value) {
-        this.currentlyResolving.openPrompt = value;
-    }
-
     get lastEventId() {
         return this.state.lastGameEventId;
     }
@@ -246,6 +239,8 @@ class Game extends EventEmitter {
         this.playStarted = false;
         this.createdAt = new Date();
         this.preUndoStateForError = null;
+
+        this.playerHasBeenPrompted = new Map();
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
@@ -950,6 +945,31 @@ class Game extends EventEmitter {
         }
     }
 
+    getCurrentOpenPrompt() {
+        return this.currentlyResolving.openPrompt;
+    }
+
+    /** @param {UiPrompt | null} currentPrompt */
+    setCurrentOpenPrompt(currentPrompt) {
+        if (currentPrompt) {
+            for (const player of this.getPlayers()) {
+                if (currentPrompt.activeCondition(player)) {
+                    this.playerHasBeenPrompted.set(player.id, true);
+                }
+            }
+        }
+
+        this.currentlyResolving.openPrompt = currentPrompt;
+    }
+
+    resetPromptedPlayersTracking() {
+        this.playerHasBeenPrompted.clear();
+    }
+
+    hasBeenPrompted(player) {
+        return !!this.playerHasBeenPrompted.get(player.id);
+    }
+
     /**
      * Prompts a player with a multiple choice menu
      * @param {Player} player
@@ -1198,41 +1218,14 @@ class Game extends EventEmitter {
         const isRollback = rollbackEntryPoint != null;
 
         const roundStartStep = [];
-        if (!isRollback || rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRound) {
+        if (!isRollback || rollbackEntryPoint === RollbackRoundEntryPoint.StartOfActionPhase) {
             roundStartStep.push(new SimpleStep(
                 this, () => this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers), 'beginRound'
             ));
         }
 
-        const actionPhaseStep = [];
-        if (rollbackEntryPoint !== RollbackRoundEntryPoint.StartOfRegroupPhase) {
-            let actionInitializeMode;
-
-            switch (rollbackEntryPoint) {
-                case RollbackRoundEntryPoint.StartOfRound:
-                    actionInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
-                    break;
-                case RollbackRoundEntryPoint.WithinActionPhase:
-                    actionInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
-                    break;
-                case null:
-                    actionInitializeMode = PhaseInitializeMode.Normal;
-                    break;
-                default:
-                    Contract.fail(`Unknown rollback entry point: ${rollbackEntryPoint}`);
-            }
-
-            actionPhaseStep.push(new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode));
-        }
-
-        const regroupInitializeMode =
-            rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase
-                ? PhaseInitializeMode.RollbackToStartOfPhase
-                : PhaseInitializeMode.Normal;
-
-        const regroupPhaseStep = [
-            new RegroupPhase(this, this._snapshotManager, regroupInitializeMode)
-        ];
+        const actionPhaseStep = this.buildActionPhaseStep(rollbackEntryPoint);
+        const regroupPhaseStep = this.buildRegroupPhaseStep(rollbackEntryPoint);
 
         this.pipeline.initialise([
             ...roundStartStep,
@@ -1241,6 +1234,66 @@ class Game extends EventEmitter {
             new SimpleStep(this, () => this.roundEnded(), 'roundEnded'),
             new SimpleStep(this, () => this.beginRound(), 'beginRound')
         ]);
+    }
+
+    /**
+     * Initializes the action phase step in the pipeline.
+     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     */
+    buildActionPhaseStep(rollbackEntryPoint = null) {
+        if (
+            rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase ||
+            rollbackEntryPoint === RollbackRoundEntryPoint.WithinRegroupPhase ||
+            rollbackEntryPoint === RollbackRoundEntryPoint.EndOfRegroupPhase
+        ) {
+            return [];
+        }
+
+        let actionInitializeMode;
+        switch (rollbackEntryPoint) {
+            case RollbackRoundEntryPoint.StartOfActionPhase:
+                actionInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
+                break;
+            case RollbackRoundEntryPoint.WithinActionPhase:
+                actionInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
+                break;
+            case null:
+                actionInitializeMode = PhaseInitializeMode.Normal;
+                break;
+            default:
+                Contract.fail(`Unknown rollback entry point for action phase: ${rollbackEntryPoint}`);
+        }
+
+        return [new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode)];
+    }
+
+    /**
+     * Initializes the regroup phase step in the pipeline.
+     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     */
+    buildRegroupPhaseStep(rollbackEntryPoint = null) {
+        let regroupInitializeMode;
+        switch (rollbackEntryPoint) {
+            case RollbackRoundEntryPoint.StartOfRegroupPhase:
+                regroupInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
+                break;
+            case RollbackRoundEntryPoint.WithinRegroupPhase:
+                regroupInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
+                break;
+            case RollbackRoundEntryPoint.EndOfRegroupPhase:
+                regroupInitializeMode = PhaseInitializeMode.RollbackToEndOfPhase;
+                break;
+            case RollbackRoundEntryPoint.StartOfActionPhase:
+            case RollbackRoundEntryPoint.WithinActionPhase:
+            case RollbackRoundEntryPoint.EndOfActionPhase:
+            case null:
+                regroupInitializeMode = PhaseInitializeMode.Normal;
+                break;
+            default:
+                Contract.fail(`Unknown rollback entry point for regroup phase: ${rollbackEntryPoint}`);
+        }
+
+        return [new RegroupPhase(this, this._snapshotManager, regroupInitializeMode)];
     }
 
     roundEnded() {

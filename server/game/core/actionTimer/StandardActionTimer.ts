@@ -77,7 +77,7 @@ export class StandardActionTimer implements IActionTimer {
         this.stop();
         this.initializeTimersForTimeRemaining(this.getTimeLimitMs());
 
-        this.activeUiPromptId = this.game.currentOpenPrompt?.uuid;
+        this.activeUiPromptId = this.game.getCurrentOpenPrompt()?.uuid;
 
         // just log an error to avoid breaking the game
         if (!this.activeUiPromptId) {

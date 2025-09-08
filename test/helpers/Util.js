@@ -141,9 +141,11 @@ function isTokenUpgrade(cardName) {
 function refreshGameState(game) {
     game.resolveGameState(true);
 
+    const currentOpenPrompt = game.getCurrentOpenPrompt();
+
     // if there is currently a prompt open, update the list of selectable cards in case it was changed
-    if (game.currentOpenPrompt) {
-        game.currentOpenPrompt.highlightSelectableCards();
+    if (currentOpenPrompt) {
+        currentOpenPrompt.highlightSelectableCards();
     }
 }
 

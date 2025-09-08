@@ -5,6 +5,7 @@ import { SimpleStep } from '../SimpleStep';
 import { ActionWindow } from '../ActionWindow';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import type { IStep } from '../IStep';
+import * as Contract from '../../utils/Contract';
 
 export class ActionPhase extends Phase {
     private readonly getNextActionNumber: () => number;
@@ -20,27 +21,36 @@ export class ActionPhase extends Phase {
         snapshotManager: SnapshotManager,
         initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal
     ) {
+        Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToEndOfPhase, 'ActionPhase does not support rolling back to the end of the phase');
+
         super(game, PhaseName.Action, snapshotManager);
 
         this.getNextActionNumber = getNextActionNumber;
 
         const setupStep: IStep[] = [];
-        if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase) {
-            setupStep.push(new SimpleStep(this.game, () => this.setupActionPhase(), 'setupActionPhase'));
+        if (initializeMode === PhaseInitializeMode.Normal || initializeMode === PhaseInitializeMode.RollbackToStartOfPhase) {
+            setupStep.push(new SimpleStep(this.game, () => this.setupActionPhase(initializeMode), 'setupActionPhase'));
         }
 
         this.initialise(
             [
                 ...setupStep,
                 new SimpleStep(this.game, () => this.queueNextAction(game.actionNumber), 'queueNextAction'),
-                new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase'),
-                new SimpleStep(this.game, () => this.endPhase(), 'endPhase'),
+                new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase')
             ],
             initializeMode
         );
     }
 
-    private setupActionPhase() {
+    private setupActionPhase(initializeMode: PhaseInitializeMode) {
+        if (initializeMode === PhaseInitializeMode.Normal) {
+            for (const player of this.game.getPlayers()) {
+                if (this.game.hasBeenPrompted(player)) {
+                    this.game.snapshotManager.addQuickStartOfActionSnapshot(player.id);
+                }
+            }
+        }
+
         for (const player of this.game.getPlayers()) {
             player.resetForActionPhase();
         }

@@ -241,7 +241,7 @@ export class Player extends GameObject<IPlayerState> {
     }
 
     private checkPlayerTimeoutConditions(promptUuid: string, playerActionId: number) {
-        return this.game.currentOpenPrompt.uuid === promptUuid &&
+        return this.game.getCurrentOpenPrompt().uuid === promptUuid &&
           playerActionId === this._lastActionId &&
           this.game.winnerNames.length === 0;
     }
