@@ -5,6 +5,8 @@ import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
 import { to } from '../utils/TypeHelpers';
 import v8 from 'node:v8';
+import { logger } from '../../../logger';
+import { AlertType } from '../Constants';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
@@ -120,38 +122,65 @@ export class GameStateManager implements IGameObjectRegistrar {
         return v8.serialize(to.record(this.allGameObjects, (item) => item.uuid, (item) => item.getStateUnsafe()));
     }
 
-    public rollbackToSnapshot(snapshot: IGameSnapshot) {
+    public rollbackToSnapshot(snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean {
         Contract.assertNotNullLike(snapshot, 'Empty snapshot provided for rollback');
         this._isRollingBack = true;
         try {
-            this.game.state = v8.deserialize(snapshot.gameState);
-
             const removals: { index: number; go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
             const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
 
-            const snapshotStatesByUuid = v8.deserialize(snapshot.states) as Record<string, IGameObjectBaseState>;
+            let rollbackError: Error | null = null;
+            try {
+                this.game.state = v8.deserialize(snapshot.gameState);
 
-            // Indexes in last to first for the purpose of removal.
-            for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
-                const go = this.allGameObjects[i];
+                const snapshotStatesByUuid = v8.deserialize(snapshot.states) as Record<string, IGameObjectBaseState>;
 
-                const updatedState = snapshotStatesByUuid[go.uuid];
-                if (!updatedState) {
-                    removals.push({ index: i, go, oldState: go.getState() });
-                    continue;
+                // Indexes in last to first for the purpose of removal.
+                for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
+                    const go = this.allGameObjects[i];
+
+                    const updatedState = snapshotStatesByUuid[go.uuid];
+                    if (!updatedState) {
+                        removals.push({ index: i, go, oldState: go.getState() });
+                        continue;
+                    }
+
+                    updates.push({ go, oldState: go.getState() });
+                    go.setState(updatedState);
                 }
 
-                updates.push({ go, oldState: go.getState() });
-                go.setState(updatedState);
+                for (const removed of removals) {
+                    removed.go.cleanupOnRemove(removed.oldState);
+                }
+
+                if (beforeRollbackSnapshot) {
+                    throw new Error('test');
+                }
+            } catch (error) {
+                if (!beforeRollbackSnapshot) {
+                    this.game.reportSevereRollbackFailure(error, 'Error during rollback to snapshot and no beforeRollbackSnapshot provided. Game has reached an unrecoverable state.');
+                }
+
+                rollbackError = error;
+                logger.error('Error during rollback to snapshot. Attempting to restore existing state before rollback.', { error: { message: error.message, stack: error.stack }, lobbyId: this.game.lobbyId });
             }
 
-            for (const removed of removals) {
-                removed.go.cleanupOnRemove(removed.oldState);
+            // if we hit an error during rollback, attempt to restore the original state
+            if (rollbackError) {
+                try {
+                    this.rollbackToSnapshot(beforeRollbackSnapshot);
+                    this.game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.');
+                    return false;
+                } catch (error) {
+                    this.game.reportSevereRollbackFailure(error, 'The attempt to restore game state from prior to rollback has failed. Game has reached an unrecoverable state.');
+                }
             }
 
             // Remove GOs that hadn't yet been created by this point.
             // Because the for loop to determine removals is done from end to beginning, we don't have to worry about deleted indexes causing a problem when the array shifts.
             for (const removed of removals) {
+                // TODO THIS PR: stop using repeated splice
+
                 this.allGameObjects.splice(removed.index, 1);
                 this.gameObjectMapping.delete(removed.go.uuid);
             }
@@ -160,6 +189,8 @@ export class GameStateManager implements IGameObjectRegistrar {
             for (const update of updates) {
                 update.go.afterSetAllState(update.oldState);
             }
+
+            return true;
         } finally {
             this._isRollingBack = false;
         }
