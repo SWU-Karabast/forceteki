@@ -80,6 +80,7 @@ export class Lobby {
     private readonly testGameBuilder?: any;
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
+    private readonly undoMode: UndoMode = UndoMode.Disabled;
 
     private game?: Game;
     public users: LobbyUser[] = [];
@@ -103,6 +104,7 @@ export class Lobby {
         deckValidator: DeckValidator,
         gameServer: GameServer,
         testGameBuilder?: any,
+        enableUndo = false
     ) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
@@ -119,6 +121,7 @@ export class Lobby {
         this.deckValidator = deckValidator;
         this.gameFormat = lobbyGameFormat;
         this.server = gameServer;
+        this.undoMode = enableUndo ? UndoMode.Full : UndoMode.CurrentSnapshotOnly;
     }
 
     public get id(): string {
@@ -748,7 +751,7 @@ export class Lobby {
             owner: 'Order66',
             gameMode: GameMode.Premier,
             players,
-            undoMode: process.env.ENVIRONMENT === 'development' ? UndoMode.Full : UndoMode.CurrentSnapshotOnly,
+            undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
             useActionTimer,
             pushUpdate: () => this.sendGameState(this.game),
