@@ -1,6 +1,5 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { Aspect } from '../core/Constants';
 import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer, DamageType } from '../core/Constants';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import type { IAttachUpgradeProperties } from './AttachUpgradeSystem';
@@ -154,6 +153,7 @@ import type { ISearchEntireDeckProperties } from './SearchEntireDeckSystem';
 import { SearchEntireDeckSystem } from './SearchEntireDeckSystem';
 import type { ICreateSpyProperties } from './CreateSpySystem';
 import { CreateSpySystem } from './CreateSpySystem';
+import type { IDiscloseAspectsProperties } from './DiscloseAspectsSystem';
 import { DiscloseAspectsSystem } from './DiscloseAspectsSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
@@ -449,8 +449,8 @@ export function returnToHand<TContext extends AbilityContext = AbilityContext>(p
 }
 
 
-export function disclose<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Aspect[], TContext>) {
-    return selectCard(DiscloseAspectsSystem.buildSelectCardProps(propertyFactory));
+export function disclose<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscloseAspectsProperties, TContext>) {
+    return new DiscloseAspectsSystem<TContext>(propertyFactory);
 }
 
 export function reveal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IRevealProperties, 'interactMode'>, TContext> = {}) {
