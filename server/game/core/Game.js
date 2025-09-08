@@ -245,6 +245,7 @@ class Game extends EventEmitter {
         this.statsUpdated = false;
         this.playStarted = false;
         this.createdAt = new Date();
+        this.preUndoStateForError = null;
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
@@ -313,7 +314,7 @@ class Game extends EventEmitter {
 
 
     /**
-     * Reports errors from the game engine back to the router
+     * Reports errors from the game engine back to the router, optionally halting the game if the error is severe.
      * @param {Error} e
      */
     reportError(e, severeGameMessage = false) {
@@ -1823,7 +1824,8 @@ class Game extends EventEmitter {
                 }),
                 started: this.started,
                 gameMode: this.gameMode,
-                winners: this.winnerNames
+                winners: this.winnerNames,
+                undoEnabled: this.isUndoEnabled,
             };
 
             // clean out any properies that are null or undefined to reduce the message size
@@ -1878,8 +1880,12 @@ class Game extends EventEmitter {
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
      * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshot(_playerId, settings) {
-        return this.rollbackToSnapshotInternal(settings);
+    rollbackToSnapshot(playerId, settings) {
+        const result = this.rollbackToSnapshotInternal(settings);
+
+        if (result) {
+            this.addAlert(AlertType.Notification, '{0} has rolled back to a previous action', this.getPlayerById(playerId));
+        }
     }
 
     rollbackToSnapshotInternal(settings) {
@@ -1887,49 +1893,53 @@ class Game extends EventEmitter {
             return false;
         }
 
-        const preUndoState = this.captureGameState('any');
+        this.preUndoStateForError = { gameState: this.captureGameState('any'), settings };
 
+        let rollbackResult;
         try {
-            const rollbackResult = this._snapshotManager.rollbackTo(settings);
+            rollbackResult = this._snapshotManager.rollbackTo(settings);
 
             if (!rollbackResult.success) {
                 return false;
             }
 
-            this.postRollbackOperations(rollbackResult.entryPoint, preUndoState);
-
-            return true;
+            this.postRollbackOperations(rollbackResult.entryPoint);
         } catch (error) {
             if (process.env.NODE_ENV !== 'test') {
-                logger.error('Rollback failed', {
-                    lobbyId: this._router.id,
-                    gameId: this.id,
-                    settings,
-                    preUndoState,
-                    error: error.message,
-                    stack: error.stack,
-                });
-
-                this.discordDispatcher.formatAndSendUndoFailureReportAsync({
-                    gameId: this.id,
-                    lobbyId: this._router.id,
-                    settings,
-                    preUndoState,
-                });
+                this.reportSevereRollbackFailure(error, 'Severe error during rollback operation');
             }
 
             throw error;
+        } finally {
+            this.preUndoStateForError = null;
         }
+
+        return true;
+    }
+
+    reportSevereRollbackFailure(error, description) {
+        if (process.env.NODE_ENV === 'test') {
+            throw error;
+        }
+
+        logger.error('Rollback failed', {
+            lobbyId: this.lobbyId,
+            gameId: this.id,
+            settings: this.preUndoStateForError.settings,
+            preUndoState: this.preUndoStateForError.gameState,
+            error: { message: error.message, stack: error.stack }
+        });
+        this.discordDispatcher.formatAndSendServerErrorAsync(description, error, this.lobbyId);
+        this.reportError(error, true);
     }
 
     /**
      * @param {import('./snapshot/SnapshotInterfaces.js').IRollbackSetupEntryPoint | import('./snapshot/SnapshotInterfaces.js').IRollbackRoundEntryPoint} entryPoint
-     * @param {import ('../Interfaces.js').ISerializedGameState} preUndoState
      */
-    postRollbackOperations(entryPoint, preUndoState) {
+    postRollbackOperations(entryPoint) {
         const postUndoState = this.captureGameState('any');
         const gameStates = {
-            preUndoState,
+            preUndoState: this.preUndoStateForError,
             postUndoState,
         };
         if (process.env.NODE_ENV !== 'test') {

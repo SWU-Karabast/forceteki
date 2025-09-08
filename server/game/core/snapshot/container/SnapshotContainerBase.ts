@@ -57,16 +57,21 @@ export abstract class SnapshotContainerBase {
     public rollbackById(snapshotId: number): number | null {
         const snapshot = this.getAllSnapshots().find((s) => s.id === snapshotId);
         if (snapshot) {
-            this.rollbackToSnapshotInternal(snapshot);
-            return snapshot.id;
+            const success = this.rollbackToSnapshotInternal(snapshot);
+            return success ? snapshot.id : null;
         }
         return null;
     }
 
-    protected rollbackToSnapshotInternal(snapshot: IGameSnapshot): void {
-        this.gameStateManager.rollbackToSnapshot(snapshot);
+    protected rollbackToSnapshotInternal(snapshot: IGameSnapshot): boolean {
+        const success = this.gameStateManager.rollbackToSnapshot(snapshot, this.getCurrentSnapshotFn());
+        if (!success) {
+            return false;
+        }
+
         this.updateCurrentSnapshotFn(snapshot);
         this.game.randomGenerator.restore(snapshot.rngState);
+        return true;
     }
 
     /**
