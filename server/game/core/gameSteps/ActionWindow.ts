@@ -42,7 +42,7 @@ export class ActionWindow extends UiPrompt {
         Contract.assertNotNullLike(this.activePlayer);
     }
 
-    protected override activeCondition(player: Player) {
+    public override activeCondition(player: Player) {
         return player === this.activePlayer;
     }
 

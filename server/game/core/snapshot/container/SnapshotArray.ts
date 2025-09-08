@@ -84,8 +84,8 @@ export class SnapshotArray extends SnapshotContainerBase {
             return null;
         }
 
-        super.rollbackToSnapshotInternal(snapshot);
-        return snapshot.id;
+        const success = super.rollbackToSnapshotInternal(snapshot);
+        return success ? snapshot.id : null;
     }
 
     public override clearNewerSnapshots(snapshotId: number): void {
