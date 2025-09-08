@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { Aspect, RelativePlayer, TargetMode, ZoneName } from '../core/Constants';
+import type { Aspect } from '../core/Constants';
+import { RelativePlayer, TargetMode, ZoneName } from '../core/Constants';
 import { RevealSystem } from './RevealSystem';
 import type { ISelectCardProperties } from './SelectCardSystem';
 import { ViewCardInteractMode } from './ViewCardSystem';
@@ -13,7 +14,6 @@ export namespace DiscloseAspectsSystem {
         propertyFactory: PropsFactory<Aspect[], TContext>
     ): PropsFactory<ISelectCardProperties<TContext>, TContext> {
         const makeProps = (aspects: Aspect[]) => ({
-            activePromptTitle: `Disclose ${aspectString(aspects)}`,
             zoneFilter: ZoneName.Hand,
             controller: RelativePlayer.Self,
             mode: TargetMode.ExactlyVariable as (TargetMode.ExactlyVariable | TargetMode.UpToVariable),
@@ -23,7 +23,7 @@ export namespace DiscloseAspectsSystem {
                 handCanSatisfyAspects(context.player.hand, aspects) &&
                 cardContainsMissingAspects(card, selectedCards, aspects),
             immediateEffect: new RevealSystem<TContext>({
-                activePromptTitle: `Opponent discloses ${aspectString(aspects)}`,
+                activePromptTitle: `Opponent discloses ${Helpers.aspectString(aspects)}`,
                 promptedPlayer: RelativePlayer.Opponent,
                 useDisplayPrompt: true,
                 interactMode: ViewCardInteractMode.ViewOnly
@@ -62,28 +62,5 @@ export namespace DiscloseAspectsSystem {
         return Array.from(requiredCounts.entries())
             .filter(([aspect, requiredCount]) => (representedCounts.get(aspect) || 0) < requiredCount)
             .map(([aspect]) => aspect);
-    }
-
-    function aspectString(aspects: Aspect[]): string {
-        return aspects
-            .map((aspect) => {
-                switch (aspect) {
-                    case Aspect.Aggression:
-                        return 'Aggression';
-                    case Aspect.Command:
-                        return 'Command';
-                    case Aspect.Cunning:
-                        return 'Cunning';
-                    case Aspect.Heroism:
-                        return 'Heroism';
-                    case Aspect.Vigilance:
-                        return 'Vigilance';
-                    case Aspect.Villainy:
-                        return 'Villainy';
-                    default:
-                        return 'Unknown';
-                }
-            })
-            .join(', ');
     }
 }

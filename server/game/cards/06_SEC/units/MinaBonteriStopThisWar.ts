@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
+import * as Helpers from '../../../core/utils/Helpers';
 
 export default class MinaBonteriStopThisWar extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -12,10 +13,11 @@ export default class MinaBonteriStopThisWar extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        const aspects = [Aspect.Command, Aspect.Command, Aspect.Heroism];
         registrar.addWhenDefeatedAbility({
-            title: 'Disclose Command, Command, and Heroism to draw a card',
+            title: `Disclose ${Helpers.aspectString(aspects)}`,
             immediateEffect: AbilityHelper.immediateEffects.disclose(
-                [Aspect.Command, Aspect.Command, Aspect.Heroism]
+                aspects
             ),
             ifYouDo: {
                 title: 'Draw a card',
