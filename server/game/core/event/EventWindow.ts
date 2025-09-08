@@ -78,8 +78,8 @@ export class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.checkUniqueRule(), 'checkUniqueRule'),
             new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
             new SimpleStep(this.game, () => this.postResolutionTriggers(), 'postResolutionTriggers'),
-            new SimpleStep(this.game, () => this.resolveSubwindowEvents(), 'checkSubwindowEvents'),
-            new SimpleStep(this.game, () => this.resolveSubAbilityStep(), 'checkThenAbilitySteps'),
+            new SimpleStep(this.game, () => this.resolveSubwindowEvents(), 'resolveSubwindowEvents'),
+            new SimpleStep(this.game, () => this.resolveSubAbilityStep(), 'resolveSubAbilityStep'),
             new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
             new SimpleStep(this.game, () => this.cleanup(), 'cleanup')
         ]);
@@ -256,7 +256,7 @@ export class EventWindow extends BaseStepWithPipeline {
         }
     }
 
-    private resolveTriggersIfNecessary() {
+    protected resolveTriggersIfNecessary() {
         if (this.triggerHandlingMode === TriggerHandlingMode.ResolvesTriggers) {
             this.queueStep(this._triggeredAbilityWindow);
         }

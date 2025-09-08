@@ -27,7 +27,7 @@ export class SetupPhase extends Phase {
         if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase || snapshotManager.currentSnapshottedTimepoint === SnapshotTimepoint.Mulligan) {
             mulliganStep.push(
                 new MulliganPrompt(game),
-                new SimpleStep(game, () => this.takeSnapshot(SnapshotTimepoint.Resource), 'takeSnapshotBeforeResource'),
+                new SimpleStep(game, () => this.takeSnapshot(SnapshotTimepoint.SetupResource), 'takeSnapshotBeforeResource'),
             );
         }
 
@@ -44,7 +44,7 @@ export class SetupPhase extends Phase {
         );
     }
 
-    private takeSnapshot(timepoint: SnapshotTimepoint.Mulligan | SnapshotTimepoint.Resource) {
+    private takeSnapshot(timepoint: SnapshotTimepoint.Mulligan | SnapshotTimepoint.SetupResource) {
         this.snapshotManager.moveToNextTimepoint(timepoint);
         this.game.getPlayers().forEach((player) => {
             this.snapshotManager.takeSnapshot({
