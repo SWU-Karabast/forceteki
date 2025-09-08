@@ -121,7 +121,7 @@ export class Lobby {
         this.deckValidator = deckValidator;
         this.gameFormat = lobbyGameFormat;
         this.server = gameServer;
-        this.undoMode = process.env.ENVIRONMENT === 'development' || enableUndo ? UndoMode.Full : UndoMode.CurrentSnapshotOnly;
+        this.undoMode = enableUndo ? UndoMode.Full : UndoMode.CurrentSnapshotOnly;
     }
 
     public get id(): string {

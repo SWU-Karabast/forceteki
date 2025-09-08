@@ -152,10 +152,6 @@ export class GameStateManager implements IGameObjectRegistrar {
                 for (const removed of removals) {
                     removed.go.cleanupOnRemove(removed.oldState);
                 }
-
-                if (beforeRollbackSnapshot) {
-                    throw new Error('test');
-                }
             } catch (error) {
                 if (!beforeRollbackSnapshot) {
                     this.game.reportSevereRollbackFailure(error, 'Error during rollback to snapshot and no beforeRollbackSnapshot provided. Game has reached an unrecoverable state.');
@@ -177,11 +173,11 @@ export class GameStateManager implements IGameObjectRegistrar {
             }
 
             // Remove GOs that hadn't yet been created by this point.
-            // Because the for loop to determine removals is done from end to beginning, we don't have to worry about deleted indexes causing a problem when the array shifts.
-            for (const removed of removals) {
-                // TODO THIS PR: stop using repeated splice
+            // Use filter for efficient removal instead of multiple splice operations
+            const removalIndexSet = new Set(removals.map((r) => r.index));
+            this.allGameObjects = this.allGameObjects.filter((_, index) => !removalIndexSet.has(index));
 
-                this.allGameObjects.splice(removed.index, 1);
+            for (const removed of removals) {
                 this.gameObjectMapping.delete(removed.go.uuid);
             }
 

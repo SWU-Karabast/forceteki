@@ -1918,6 +1918,10 @@ class Game extends EventEmitter {
     }
 
     reportSevereRollbackFailure(error, description) {
+        if (process.env.NODE_ENV === 'test') {
+            throw error;
+        }
+
         logger.error('Rollback failed', {
             lobbyId: this.lobbyId,
             gameId: this.id,
