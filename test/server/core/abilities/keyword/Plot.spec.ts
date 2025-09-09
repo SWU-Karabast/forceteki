@@ -15,7 +15,7 @@ describe('Plot keyword', function() {
 
                 context.player1.clickCard(context.calKestis);
                 context.player1.clickPrompt('Deploy Cal Kestis');
-                expect(context.player1).toHavePassAbilityPrompt('Plot');
+                expect(context.player1).toHavePassAbilityPrompt('Play Sneaking Suspicion using Plot');
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.calKestis]);
                 context.player1.clickCard(context.calKestis);

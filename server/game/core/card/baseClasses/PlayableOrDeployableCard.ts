@@ -88,7 +88,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
         // Register Plot keyword
         if (this.hasSomeKeyword(KeywordName.Plot)) {
-            const plotProps = Object.assign(this.buildGeneralAbilityProps('keyword_plot'), PlotAbility.buildPlotAbilityProperties());
+            const plotProps = Object.assign(this.buildGeneralAbilityProps('keyword_plot'), PlotAbility.buildPlotAbilityProperties(this.title));
             const plotAbility = this.createTriggeredAbility(plotProps);
             plotAbility.registerEvents();
             this.state.triggeredAbilities.push(plotAbility.getRef());
