@@ -44,6 +44,14 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         return this.selectCardSystem.canAffectInternal(card, context, null, mustChangeGameState);
     }
 
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IDiscloseAspectsProperties>): void {
+        super.addPropertiesToEvent(event, card, context, additionalProperties);
+
+        const { aspects } = this.generatePropertiesFromContext(context, additionalProperties);
+
+        event.aspectsDisclosed = aspects;
+    }
+
     // Private helpers
 
     private static buildSelectCardProps<TContext extends AbilityContext = AbilityContext>(
