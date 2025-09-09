@@ -284,7 +284,7 @@ const mockCards = [
         },
         cost: 8,
         unique: true,
-        arena: 'ground',
+        arena: 'space',
         internalName: 'fulminatrix#fleet-killer',
     }),
     buildMockCard({
@@ -371,7 +371,7 @@ const mockCards = [
         internalName: 'anakin-skywalker#secret-husband',
     }),
     buildMockCard({
-        title: 'Tala Durith, ',
+        title: 'Tala Durith',
         subtitle: 'I Can Get You Inside',
         power: 3,
         hp: 3,
