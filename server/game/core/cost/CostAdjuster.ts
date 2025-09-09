@@ -12,6 +12,7 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import type { ResourceCost } from '../../costs/ResourceCost';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
+import { registerState, undoObject } from '../GameObjectUtils';
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -100,6 +101,7 @@ export interface ICostAdjusterState extends IGameObjectBaseState {
     source: GameObjectRef<Card>;
 }
 
+@registerState()
 export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     public readonly costAdjustType: CostAdjustType;
     public readonly ignoredAspect: Aspect;
@@ -111,9 +113,8 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     private readonly costStage: CostStage;
     private readonly matchAbilityCosts: boolean;
 
-    protected get source(): Card {
-        return this.game.getFromRef(this.state.source);
-    }
+    @undoObject()
+    protected accessor source: Card;
 
     public constructor(
         game: Game,
@@ -122,7 +123,7 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     ) {
         super(game);
 
-        this.state.source = source.getRef();
+        this.source = source;
 
         this.costAdjustType = properties.costAdjustType;
         if (properties.costAdjustType === CostAdjustType.Increase ||

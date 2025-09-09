@@ -18,8 +18,8 @@ export class RegroupPhase extends Phase {
 
         const resourceSteps = [];
         if (initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase) {
-            resourceSteps.push(new SimpleStep(game, () => this.drawTwo(), 'drawTwo'));
-            resourceSteps.push(new SimpleStep(game, () => this.resourcePrompt(initializeMode), 'resourcePrompt'));
+            resourceSteps.push(new SimpleStep(game, () => this.drawTwo(initializeMode), 'drawTwo'));
+            resourceSteps.push(new SimpleStep(game, () => this.resourcePrompt(), 'resourcePrompt'));
         }
 
         super(game, PhaseName.Regroup, snapshotManager);
@@ -32,7 +32,13 @@ export class RegroupPhase extends Phase {
         );
     }
 
-    private drawTwo() {
+    private drawTwo(initializeMode: PhaseInitializeMode) {
+        this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.RegroupResource);
+
+        if (initializeMode === PhaseInitializeMode.Normal || initializeMode === PhaseInitializeMode.RollbackToStartOfPhase) {
+            this.takeActionSnapshotsForPromptedPlayers();
+        }
+
         for (const player of this.game.getPlayers()) {
             // create a single event for drawing cards step
             new DrawSystem({ amount: 2 }).resolve(
@@ -43,13 +49,7 @@ export class RegroupPhase extends Phase {
         }
     }
 
-    private resourcePrompt(initializeMode: PhaseInitializeMode) {
-        this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.RegroupResource);
-
-        if (initializeMode === PhaseInitializeMode.Normal || initializeMode === PhaseInitializeMode.RollbackToStartOfPhase) {
-            this.takeActionSnapshotsForPromptedPlayers();
-        }
-
+    private resourcePrompt() {
         this.game.queueStep(new VariableResourcePrompt(this.game, 0, 1));
     }
 

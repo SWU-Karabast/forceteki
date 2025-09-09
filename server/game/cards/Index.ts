@@ -30,6 +30,10 @@ for (const filepath of allJsFiles(__dirname)) {
 
     const card = 'default' in fileImported ? fileImported.default : fileImported;
 
+    if (!card.prototype) {
+        throw Error(`Failed to import card implementation from ${filepath}`);
+    }
+
     const cardId = card.prototype.getImplementationId();
 
     if (!cardId.id) {

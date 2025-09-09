@@ -168,6 +168,10 @@ export class SnapshotManager {
     }
 
     public addQuickStartOfActionSnapshot(playerId: string) {
+        if (this.undoMode === UndoMode.Disabled) {
+            return;
+        }
+
         Contract.assertNotNullLike(playerId);
 
         // sanity check

@@ -80,6 +80,7 @@ export class Lobby {
     private readonly testGameBuilder?: any;
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
+    private readonly undoMode: UndoMode = UndoMode.Disabled;
 
     private game?: Game;
     public users: LobbyUser[] = [];
@@ -103,6 +104,7 @@ export class Lobby {
         deckValidator: DeckValidator,
         gameServer: GameServer,
         testGameBuilder?: any,
+        enableUndo = false
     ) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
@@ -119,6 +121,7 @@ export class Lobby {
         this.deckValidator = deckValidator;
         this.gameFormat = lobbyGameFormat;
         this.server = gameServer;
+        this.undoMode = process.env.ENVIRONMENT === 'development' || enableUndo ? UndoMode.Full : UndoMode.CurrentSnapshotOnly;
     }
 
     public get id(): string {
@@ -150,7 +153,8 @@ export class Lobby {
             gameType: this.gameType,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
-            matchingCountdownText: this.matchingCountdownText
+            matchingCountdownText: this.matchingCountdownText,
+            undoEnabled: this.undoMode === UndoMode.Full,
         };
     }
 
@@ -748,7 +752,7 @@ export class Lobby {
             owner: 'Order66',
             gameMode: GameMode.Premier,
             players,
-            undoMode: process.env.ENVIRONMENT === 'development' ? UndoMode.Full : UndoMode.CurrentSnapshotOnly,
+            undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
             useActionTimer,
             pushUpdate: () => this.sendGameState(this.game),
@@ -787,14 +791,14 @@ export class Lobby {
             const durationMs = Number(end - start) / 1e6;
 
             if (durationMs > 100) {
-                const durationMsLogValue = Number(durationMs.toFixed(2));
-                logger.info(`[LobbyCommand > 100ms] ${JSON.stringify({
+                logger.info('[Lobby] LobbyCommand took longer than 100ms to process', {
                     command,
                     userId: socket.user.getId(),
                     lobbyId: this.id,
-                    durationMs: durationMsLogValue,
+                    durationMs: Number(durationMs.toFixed(2)),
                     timestamp: new Date().toISOString(),
-                })}`, { durationMs: durationMsLogValue });
+                    promptType: this.game.getPlayerById(socket.user.getId())?.promptState.promptType ?? 'null',
+                });
             }
         } catch (error) {
             logger.error('Lobby: error processing lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
@@ -836,14 +840,14 @@ export class Lobby {
             const durationMs = Number(end - start) / 1e6;
 
             if (durationMs > 100) {
-                logger.info(`[GameCommand] ${JSON.stringify({
+                logger.info('[Lobby] GameCommand took longer than 100ms to process', {
                     command,
                     userId: socket.user.getId(),
                     lobbyId: this.id,
                     durationMs: Number(durationMs.toFixed(2)),
                     timestamp: new Date().toISOString(),
                     promptType: this.game.getPlayerById(socket.user.getId())?.promptState.promptType ?? 'null',
-                })}`);
+                });
             }
         } catch (error) {
             logger.error('Game: error processing game message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
