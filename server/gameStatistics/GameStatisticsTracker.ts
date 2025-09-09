@@ -35,7 +35,7 @@ export interface IGameStatisticsTracker {
     ): void;
 }
 
-class TrackedGameCardMetric extends GameObjectBase {
+export class TrackedGameCardMetric extends GameObjectBase {
     public readonly metric: GameCardMetric;
     public readonly card: string;
     public readonly player: string;
@@ -46,6 +46,10 @@ class TrackedGameCardMetric extends GameObjectBase {
         this.metric = metric;
         this.card = card.trackingId;
         this.player = player.trackingId;
+    }
+
+    public override getGameObjectName(): string {
+        return 'TrackedGameCardMetric';
     }
 }
 
@@ -59,6 +63,11 @@ export class GameStatisticsLogger extends GameObjectBase implements IGameStatist
 
     @undoArray()
     public accessor cardMetrics: readonly TrackedGameCardMetric[] = [];
+
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public override get alwaysTrackState(): boolean {
+        return true;
+    }
 
     public constructor(game: Game) {
         super(game);

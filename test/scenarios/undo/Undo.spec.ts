@@ -1880,5 +1880,35 @@ describe('Undo', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(6);
             });
         });
+
+        describe('Card stats', function() {
+            undoIt('should log card stats', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['bazine-netal#spy-for-the-first-order'],
+                    },
+                    player2: {
+                        hand: ['atst', 'waylay'],
+                        deck: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.game.statsTracker.cardMetrics.length).toBe(16);
+                const cardMetrics = context.game.statsTracker.cardMetrics;
+
+                context.player1.clickCard(context.bazineNetal);
+                context.player1.clickCardInDisplayCardPrompt(context.waylay);
+
+                expect(context.game.statsTracker.cardMetrics).toEqualArray([
+                    ...cardMetrics,
+                    context.player1.played(context.bazineNetal),
+                    context.player2.discarded(context.waylay),
+                    context.player2.drew(context.wampa),
+                ]);
+            });
+        });
     });
 });
