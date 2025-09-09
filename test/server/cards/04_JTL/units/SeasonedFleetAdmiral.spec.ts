@@ -9,8 +9,9 @@ describe('Seasoned Fleet Admiral', function () {
                         groundArena: ['seasoned-fleet-admiral', 'battlefield-marine'],
                     },
                     player2: {
-                        hand: ['strategic-analysis', 'mission-briefing'],
-                        groundArena: ['wampa']
+                        hand: ['strategic-analysis', 'this-is-the-way'],
+                        groundArena: ['wampa'],
+                        deck: ['sabine-wren#explosives-artist', 'supercommando-squad']
                     }
                 });
             });
@@ -42,8 +43,10 @@ describe('Seasoned Fleet Admiral', function () {
                 const { context } = contextRef;
 
                 context.player1.passAction();
-                context.player2.clickCard(context.missionBriefing);
-                context.player2.clickPrompt('You');
+                context.player2.clickCard(context.thisIsTheWay);
+                context.player2.clickCardInDisplayCardPrompt(context.sabineWren);
+                context.player2.clickCardInDisplayCardPrompt(context.supercommandoSquad);
+                context.player2.clickDone();
 
                 expect(context.player1).toHavePrompt('Give an Experience token to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.seasonedFleetAdmiral, context.battlefieldMarine, context.wampa]);
