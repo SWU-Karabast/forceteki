@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class C3POAnythingIMightDo extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'c3po#anything-i-might-do-id',
+            id: '7588883291',
             internalName: 'c3po#anything-i-might-do',
         };
     }

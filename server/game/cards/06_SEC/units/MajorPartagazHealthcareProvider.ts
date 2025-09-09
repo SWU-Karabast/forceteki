@@ -6,7 +6,7 @@ import { EventName, Trait } from '../../../core/Constants';
 export default class MajorPartagazHealthcareProvider extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'major-partagaz#healthcare-provider-id',
+            id: '2183727633',
             internalName: 'major-partagaz#healthcare-provider',
         };
     }

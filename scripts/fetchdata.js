@@ -133,6 +133,29 @@ function populateMissingData(attributes, id) {
             };
             break;
     }
+
+    // Plot cards from Secrets of Power
+    switch (id) {
+        case '6015383018': // Sneaking Suspicion
+        case '7069246970': // Sly Moore
+        case '8365930807': // Cad Bane
+        case '3796991604': // Dogmatic Shock Squad
+        case '0024944513': // Armor of Fortune
+        case '7936097828': // Chancellor Palpatine
+        case '7365023470': // Mas Amedda
+        case '2919204327': // Naboo Royal Starship
+        case '9985741271': // Jar Jar Binks
+        case '2877797132': // Unveiled Might
+        case '0602708575': // Kaydel Connix
+            attributes.keywords = {
+                data: [{
+                    attributes: {
+                        name: 'Plot'
+                    }
+                }]
+            };
+            break;
+    }
 }
 
 function getAttributeNames(attributeList) {
