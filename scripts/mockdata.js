@@ -36,6 +36,24 @@ const mockCards = [
         internalName: 'chancellor-palpatine#how-liberty-dies',
     }),
     buildMockCard({
+        title: 'Dedra Meero',
+        subtitle: 'Not Wasting Time',
+        power: 2,
+        hp: 5,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['leader'],
+        traits: ['imperial', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 10
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'dedra-meero#not-wasting-time',
+    }),
+    buildMockCard({
         title: 'Padmé Amidala',
         subtitle: 'What Do You Have To Hide?',
         power: 3,
@@ -71,6 +89,24 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'cad-bane#impressed-now',
+    }),
+    buildMockCard({
+        title: 'Bo-Katan Kryze',
+        subtitle: 'Alone',
+        power: 8,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['mandalorian'],
+        setId: {
+            set: 'SEC',
+            number: 51
+        },
+        cost: 9,
+        unique: true,
+        arena: 'ground',
+        internalName: 'bokatan-kryze#alone',
     }),
     buildMockCard({
         title: 'Armor of Fortune',
@@ -126,6 +162,24 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'major-partagaz#healthcare-provider',
+    }),
+    buildMockCard({
+        title: 'PreMor Personnel Carrier',
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        keywords: ['overwhelm'],
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        traits: ['vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 89
+        },
+        cost: 8,
+        unique: false,
+        arena: 'space',
+        internalName: 'premor-personnel-carrier',
     }),
     buildMockCard({
         title: 'I Am the Senate',
@@ -216,6 +270,53 @@ const mockCards = [
         internalName: 'syril-karn#where-is-he',
     }),
     buildMockCard({
+        title: 'Fulminatrix',
+        subtitle: 'Fleet Killer',
+        power: 9,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['first order', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'SEC',
+            number: 142
+        },
+        cost: 8,
+        unique: true,
+        arena: 'ground',
+        internalName: 'fulminatrix#fleet-killer',
+    }),
+    buildMockCard({
+        title: 'It\'s Not Over Yet',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['event'],
+        traits: ['innate'],
+        setId: {
+            set: 'SEC',
+            number: 177
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'its-not-over-yet',
+    }),
+    buildMockCard({
+        title: 'Topple the Summit',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        keywords: ['plot'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'SEC',
+            number: 183
+        },
+        cost: 5,
+        unique: false,
+        internalName: 'topple-the-summit',
+    }),
+    buildMockCard({
         title: 'Furtive Handmaiden',
         power: 2,
         hp: 2,
@@ -268,6 +369,44 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'anakin-skywalker#secret-husband',
+    }),
+    buildMockCard({
+        title: 'Tala Durith, ',
+        subtitle: 'I Can Get You Inside',
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        keywords: ['plot'],
+        aspects: ['cunning', 'heroism'],
+        types: ['unit'],
+        traits: ['imperial', 'rebel'],
+        setId: {
+            set: 'SEC',
+            number: 203
+        },
+        cost: 3,
+        unique: true,
+        arena: 'ground',
+        internalName: 'tala-durith#i-can-get-you-inside',
+    }),
+    buildMockCard({
+        title: 'The Mandalorian',
+        subtitle: 'Cleaning Up Nevarro',
+        power: 6,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        keywords: ['ambush'],
+        aspects: ['cunning', 'heroism'],
+        types: ['unit'],
+        traits: ['mandalorian', 'bounty hunter'],
+        setId: {
+            set: 'SEC',
+            number: 209
+        },
+        cost: 8,
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-mandalorian#cleaning-up-nevarro',
     }),
     buildMockCard({
         title: 'When Has Become Now',
