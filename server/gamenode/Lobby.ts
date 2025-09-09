@@ -54,7 +54,7 @@ export interface PlayerDetails {
     baseID: string;
     deck: IDecklistInternal;
     swuStatsRefreshToken: string | null;
-    isDeckPresentInDB: boolean;
+    isDeckPresentInDb: boolean;
     swuStatsToken: ISwuStatsToken;
 }
 
@@ -64,14 +64,19 @@ export enum MatchType {
     Quick = 'Quick',
 }
 
-export enum SwuStatsSubmitStatus {
+export enum statsSource {
+    Karabast = 'Karabast',
+    SwuStats = 'SWUStats'
+}
+
+export enum StatsSaveStatus {
     Warning = 'Warning',
     Error = 'Error',
     Success = 'Success'
 }
 export interface IStatsMessageFormat {
-    type: SwuStatsSubmitStatus;
-    source: string;
+    type: StatsSaveStatus;
+    source: statsSource;
     message: string;
 }
 
@@ -347,7 +352,7 @@ export class Lobby {
                         deckID: existingUser?.deck?.id,
                         deckLink: existingUser?.decklist.deckLink,
                         deckSource: existingUser?.decklist.deckSource,
-                        isPresentInDB: existingUser?.decklist.isPresentInDB,
+                        isPresentInDb: existingUser?.decklist.isPresentInDb,
                     })
                 );
             }
@@ -716,7 +721,7 @@ export class Lobby {
                         deckLink: user.decklist.deckLink,
                         deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
                         deck: user.deck.getDecklist(),
-                        isDeckPresentInDB: user.decklist.isPresentInDB,
+                        isDeckPresentInDb: user.decklist.isPresentInDb,
                         swuStatsRefreshToken: user.socket.user.getSwuStatsRefreshToken(),
                         swuStatsToken: this.server.swuStatsTokenMapping.get(user.id),
                     });
@@ -893,9 +898,9 @@ export class Lobby {
                 this.server.requeueUser(user.socket, this.format, user.socket.user, {
                     ...user.deck?.getDecklist(),
                     deckID: user.deck?.id,
-                    deckLink: user?.decklist.deckLink,
-                    deckSource: user?.decklist.deckSource,
-                    isPresentInDB: user?.decklist.isPresentInDB,
+                    deckLink: user.decklist.deckLink,
+                    deckSource: user.decklist.deckSource,
+                    isPresentInDb: user.decklist.isPresentInDb,
                 });
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
@@ -987,13 +992,18 @@ export class Lobby {
      */
     private async updateKarabastPlayerStatsAsync(playerUser: PlayerDetails, opponentPlayerUser: PlayerDetails, score: ScoreType) {
         if (!playerUser.user.isAuthenticatedUser()) {
+            this.sendStatsMessageToUser(
+                playerUser.user.getId(), { type: StatsSaveStatus.Warning,
+                    source: statsSource.Karabast,
+                    message: 'Deck stats can only be saved for logged-in users' }
+            );
             return;
         }
-        if (!playerUser.isDeckPresentInDB) {
+        if (!playerUser.isDeckPresentInDb) {
             this.sendStatsMessageToUser(
-                playerUser.user.getId(), { type: SwuStatsSubmitStatus.Warning,
-                    source: 'karabast',
-                    message: 'Deck isn\'t saved, so stats are not tracked.' }
+                playerUser.user.getId(), { type: StatsSaveStatus.Warning,
+                    source: statsSource.Karabast,
+                    message: 'Stats can only be updated for saved decks' }
             );
             return;
         }
@@ -1010,17 +1020,17 @@ export class Lobby {
                 opponentPlayerBaseId.internalName,
             );
             this.sendStatsMessageToUser(
-                playerUser.user.getId(), { type: SwuStatsSubmitStatus.Success,
-                    source: 'karabast',
-                    message: 'Deck stats successfully updated.' }
+                playerUser.user.getId(), { type: StatsSaveStatus.Success,
+                    source: statsSource.Karabast,
+                    message: 'Deck stats successfully updated' }
             );
             logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${this.id}`, { lobbyId: this.id, userId: playerUser.user.getId() });
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck stats for a player:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: playerUser.user.getId() });
             this.sendStatsMessageToUser(
-                playerUser.user.getId(), { type: SwuStatsSubmitStatus.Error,
-                    source: 'karabast',
-                    message: 'An error occurred while updating stats on karabast.' }
+                playerUser.user.getId(), { type: StatsSaveStatus.Error,
+                    source: statsSource.Karabast,
+                    message: 'An error occurred while updating stats' }
             );
         }
     }
@@ -1040,25 +1050,25 @@ export class Lobby {
                 this.sendStatsMessageToUser
             );
             // Success send to the players with swustats decks
-            for (const playerDetail of this.playersDetails) {
+            for (const playerDetail of [player1User, player2User]) {
                 if (playerDetail.deckSource === DeckSource.SWUStats) {
                     this.sendStatsMessageToUser(playerDetail.user.getId(), {
-                        type: SwuStatsSubmitStatus.Success,
-                        source: 'swustats',
-                        message: 'Deck stats successfully updated.'
+                        type: StatsSaveStatus.Success,
+                        source: statsSource.SwuStats,
+                        message: 'Deck stats successfully updated'
                     });
                 }
             }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`, { lobbyId: this.id });
         } catch (error) {
             // Error send to the players with swustats decks
-            for (const playerDetail of this.playersDetails) {
+            for (const playerDetail of [player1User, player2User]) {
                 if (playerDetail.deckSource === DeckSource.SWUStats) {
                     logger.error(`Lobby ${this.id}: Error updating deck stats to SWUStats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: playerDetail.user.getId() });
                     this.sendStatsMessageToUser(playerDetail.user.getId(), {
-                        type: SwuStatsSubmitStatus.Error,
-                        source: 'swustats',
-                        message: 'An error occurred while adding stats to SWUStats.'
+                        type: StatsSaveStatus.Error,
+                        source: statsSource.SwuStats,
+                        message: 'An error occurred while adding stats'
                     });
                 }
             }
@@ -1072,7 +1082,14 @@ export class Lobby {
     private async endGameUpdateStatsAsync(game: Game): Promise<void> {
         try {
             // Only update stats if the game has a winner and made it into the second round at least
-            if (game.winnerNames.length === 0 || !game.finishedAt || this.game.roundNumber <= 1) {
+            if (game.winnerNames.length === 0 || !game.finishedAt || this.game.roundNumber <= 2) {
+                for (const playerDetail of this.playersDetails) {
+                    this.sendStatsMessageToUser(playerDetail.user.getId(), {
+                        type: StatsSaveStatus.Warning,
+                        source: statsSource.Karabast,
+                        message: 'stats not updated due to game ending before round 3'
+                    });
+                }
                 return;
             }
 
@@ -1132,9 +1149,9 @@ export class Lobby {
             // Send error message to client
             for (const playerDetail of this.playersDetails) {
                 this.sendStatsMessageToUser(playerDetail.user.getId(), {
-                    type: SwuStatsSubmitStatus.Error,
-                    source: 'karabast',
-                    message: 'An error occurred while adding stats.'
+                    type: StatsSaveStatus.Error,
+                    source: statsSource.Karabast,
+                    message: 'An error occurred while adding stats'
                 });
             }
         }

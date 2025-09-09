@@ -135,8 +135,10 @@ export function requireEnvVars<K extends keyof ParsedEnvData>(
 
     if (missingAlwaysRequired.length > 0 || missingRequiredInProd.length > 0) {
         const message = `(${context}): ${missingAlwaysRequired.length > 0
-            ? `Missing always required variables: ${missingAlwaysRequired.join(', ')}` : ''}
-        ${missingRequiredInProd.length > 0 ? `Missing environmental variables ${missingRequiredInProd.join(', ')} some services might not work as intended.` : ''}`;
+            ? `Missing required environment variables: ${missingAlwaysRequired.join(', ')}` : ''}
+        ${(missingRequiredInProd.length <= 0 ? '' : `Missing environment variables ${missingRequiredInProd.join(', ')} ${environment === 'development'
+            ? 'some services might not work as intended.'
+            : ''}`)}`;
         if (throwError) {
             throw new Error(message);
         } else {

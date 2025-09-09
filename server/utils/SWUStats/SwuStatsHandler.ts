@@ -5,7 +5,8 @@ import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
 import type { PlayerDetails, IStatsMessageFormat } from '../../gamenode/Lobby';
-import { SwuStatsSubmitStatus } from '../../gamenode/Lobby';
+import { statsSource } from '../../gamenode/Lobby';
+import { StatsSaveStatus } from '../../gamenode/Lobby';
 import type { GameServer, ISwuStatsToken } from '../../gamenode/GameServer';
 import type { UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
@@ -129,13 +130,13 @@ export class SwuStatsHandler {
             const winner = this.determineWinner(game, player1, player2);
             if (winner === 0) {
                 sendStatsMessageToUser(player1Details.user.getId(), {
-                    type: SwuStatsSubmitStatus.Warning,
-                    source: 'swustats',
+                    type: StatsSaveStatus.Warning,
+                    source: statsSource.SwuStats,
                     message: 'Draws are currently not supported by SWUStats.'
                 });
                 sendStatsMessageToUser(player2Details.user.getId(), {
-                    type: SwuStatsSubmitStatus.Warning,
-                    source: 'swustats',
+                    type: StatsSaveStatus.Warning,
+                    source: statsSource.SwuStats,
                     message: 'Draws are currently not supported by SWUStats.'
                 });
                 logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUstats`, { lobbyId });
@@ -180,7 +181,7 @@ export class SwuStatsHandler {
                 gameId: game.id,
                 lobbyId
             });
-            throw new Error('Failed to send game result to SWUstats');
+            throw new Error(error);
         }
     }
 
