@@ -1086,12 +1086,12 @@ export class Lobby {
     private async endGameUpdateStatsAsync(game: Game): Promise<void> {
         try {
             // Only update stats if the game has a winner and made it into the second round at least
-            if (game.winnerNames.length === 0 || !game.finishedAt || this.game.roundNumber <= 2) {
+            if (game.winnerNames.length === 0 || !game.finishedAt || this.game.roundNumber < 2) {
                 for (const playerDetail of this.playersDetails) {
                     this.sendStatsMessageToUser(playerDetail.user.getId(), {
                         type: StatsSaveStatus.Warning,
                         source: statsSource.Karabast,
-                        message: 'stats not updated due to game ending before round 3'
+                        message: 'stats not updated due to game ending before round 2'
                     });
                 }
                 return;
