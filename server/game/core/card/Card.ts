@@ -275,10 +275,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public get trackingId(): string {
-        if (process.env.ENVIRONMENT === 'development') {
-            return this.internalName;
-        }
-
         return this.id;
     }
 

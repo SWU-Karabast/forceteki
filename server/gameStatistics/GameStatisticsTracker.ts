@@ -5,6 +5,7 @@ import type { GameEvent } from '../game/core/event/GameEvent';
 import type Game from '../game/core/Game';
 import { GameObjectBase } from '../game/core/GameObjectBase';
 import { registerState, undoArray } from '../game/core/GameObjectUtils';
+import type { Player } from '../game/core/Player';
 import * as Helpers from '../game/core/utils/Helpers';
 
 export enum GameCardMetric {
@@ -38,13 +39,15 @@ export interface IGameStatisticsTracker {
 export class TrackedGameCardMetric extends GameObjectBase {
     public readonly metric: GameCardMetric;
     public readonly card: string;
+    public readonly cardInternalName: string;
     public readonly player: string;
 
-    public constructor(game: Game, metric: GameCardMetric, card: IGameStatisticsTrackable, player: IGameStatisticsTrackable) {
+    public constructor(game: Game, metric: GameCardMetric, card: Card, player: Player) {
         super(game);
 
         this.metric = metric;
         this.card = card.trackingId;
+        this.cardInternalName = card.internalName;
         this.player = player.trackingId;
     }
 
@@ -82,8 +85,8 @@ export class GameStatisticsLogger extends GameObjectBase implements IGameStatist
 
     public trackCardMetric(
         metric: GameCardMetric,
-        card: IGameStatisticsTrackable,
-        player: IGameStatisticsTrackable
+        card: Card,
+        player: Player
     ): void {
         this.cardMetrics = [...this.cardMetrics, new TrackedGameCardMetric(this.game, metric, card, player)];
     }
