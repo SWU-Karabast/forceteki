@@ -30,7 +30,7 @@ export interface IPlayCardActionPropertiesBase {
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
-    playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay;
+    playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay | PlayType.Plot;
 }
 
 export interface IAlternatePlayActionProperties extends IPlayCardActionPropertiesBase {
@@ -125,6 +125,9 @@ export abstract class PlayCardAction extends PlayerAction {
         switch (playType) {
             case PlayType.Piloting:
                 updatedTitle += appendToTitle ? ' with Piloting' : '';
+                break;
+            case PlayType.Plot:
+                updatedTitle += appendToTitle ? ' with Plot' : '';
                 break;
             case PlayType.Smuggle:
                 updatedTitle += appendToTitle ? ' with Smuggle' : '';

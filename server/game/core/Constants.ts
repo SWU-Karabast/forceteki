@@ -57,6 +57,7 @@ export enum PlayType {
     Piloting = 'piloting',
     PlayFromHand = 'playFromHand',
     PlayFromOutOfPlay = 'playFromOutOfPlay',
+    Plot = 'plot',
     Smuggle = 'smuggle',
 }
 
@@ -160,6 +161,7 @@ export enum StandardTriggeredAbilityType {
     OnAttack = 'onAttack',
     WhenDefeated = 'whenDefeated',
     WhenPlayed = 'whenPlayed',
+    WhenPlayedUsingPlot = 'whenPlayedUsingPlot', // TODO: this might not be needed but my intuitiion says it will
     WhenPlayedUsingSmuggle = 'whenPlayedUsingSmuggle',
 }
 
