@@ -13,13 +13,13 @@
 // Reminder: the first 10 custom metrics are free on AWS
 export const GAMESERVER_METRICS = {
     EventLoopUtilization: 'Percent',     // Event loop utilization percentage
-    EventLoopDelayP50: 'Milliseconds',   // 50th percentile delay
-    EventLoopDelayP90: 'Milliseconds',   // 90th percentile delay
     EventLoopDelayP99: 'Milliseconds',   // 99th percentile delay
     EventLoopDelayMax: 'Milliseconds',   // Maximum delay
-    TotalUserCount: 'Count',             // Total number of users
     SpectatorCount: 'Count',             // Spectator count
-    TotalGameCount: 'Count'              // Total number of games (lobbies)
+    TotalGameCount: 'Count',             // Total number of games (lobbies)
+    GCTotalDuration: 'Milliseconds',     // GC total duration
+    GCTotalCount: 'Count',               // Total number of GCs
+    GCMaxDuration: 'Milliseconds'        // Maximum GC duration
 } as const;
 
 export type GameServerMetricName = keyof typeof GAMESERVER_METRICS;
@@ -87,28 +87,31 @@ export namespace GameServerMetrics {
     /**
      * Helper function for creating an EMF document for event loop performance metrics
      * @param utilization - Event loop utilization percentage (0-100)
-     * @param delayP50 - 50th percentile event loop delay in milliseconds
-     * @param delayP90 - 90th percentile event loop delay in milliseconds
      * @param delayP99 - 99th percentile event loop delay in milliseconds
      * @param delayMax - Maximum event loop delay in milliseconds
      * @returns EMF document ready for jsonOnlyLogger
      */
-    export function eventLoopPerformance(utilization: number, delayP50: number, delayP90: number, delayP99: number, delayMax: number): EmfDocument {
+    export function eventLoopPerformance(utilization: number, delayP99: number, delayMax: number): EmfDocument {
         return create({
             // We just want 1 decimal place - so do the rounding here
             EventLoopUtilization: Math.round(utilization * 10) / 10,
-            EventLoopDelayP50: Math.round(delayP50 * 10) / 10,
-            EventLoopDelayP90: Math.round(delayP90 * 10) / 10,
             EventLoopDelayP99: Math.round(delayP99 * 10) / 10,
             EventLoopDelayMax: Math.round(delayMax * 10) / 10
         });
     }
 
-    export function gameAndPlayerCount(totalUserCount: number, spectatorCount: number, totalGameCount: number): EmfDocument {
+    export function gameAndPlayerCount(spectatorCount: number, totalGameCount: number): EmfDocument {
         return create({
-            TotalUserCount: totalUserCount,
             SpectatorCount: spectatorCount,
             TotalGameCount: totalGameCount
+        });
+    }
+
+    export function gcPerformance(totalGcDuration: number, totalGcCount: number, maxGcDuration: number): EmfDocument {
+        return create({
+            GCTotalDuration: totalGcDuration,
+            GCTotalCount: totalGcCount,
+            GCMaxDuration: maxGcDuration
         });
     }
 }
