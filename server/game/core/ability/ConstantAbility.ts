@@ -8,6 +8,7 @@ import type { OngoingEffect } from '../ongoingEffect/OngoingEffect.js';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase.js';
 import { GameObjectBase } from '../GameObjectBase.js';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility.js';
+import { registerState, undoArray } from '../GameObjectUtils';
 
 export interface IConstantAbilityState extends IGameObjectBaseState {
     registeredEffects?: GameObjectRef<OngoingEffect>[];
@@ -35,6 +36,7 @@ export interface IConstantAbilityState extends IGameObjectBaseState {
  * clickToActivate - boolean that indicates the action should be activated when
  *                   the card is clicked.
  */
+@registerState()
 export class ConstantAbility extends GameObjectBase<IConstantAbilityState> implements IConstantAbility {
     public readonly title: string;
     public readonly abilityIdentifier?: string;
@@ -51,13 +53,9 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
     public readonly cardName?: string;
     public readonly ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
 
-    public get registeredEffects(): (OngoingEffect[]) | undefined {
-        return this.state.registeredEffects?.map((x) => this.game.getFromRef(x));
-    }
+    @undoArray(false)
+    public accessor registeredEffects: OngoingEffect[] = [];
 
-    public set registeredEffects(value: OngoingEffect[] | undefined) {
-        this.state.registeredEffects = value?.map((x) => x.getRef());
-    }
 
     public constructor(game: Game, card: Card, properties: IConstantAbilityProps) {
         super(game);

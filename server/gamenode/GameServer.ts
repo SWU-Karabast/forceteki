@@ -745,19 +745,20 @@ export class GameServer {
 
         app.post('/api/create-lobby', authMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, lobbyName } = req.body;
+                const { deck, format, isPrivate, lobbyName, enableUndo } = req.body;
                 const user = req.user;
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     // TODO shouldn't return 403
                     logger.error(`GameServer (create-lobby): Error in create-lobby User ${user.getId()} attempted to create a different lobby while already being in a lobby`);
+                    logger.info(`enableUndo value: '${enableUndo}'`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'
                     });
                 }
                 await this.processDeckValidation(deck, format, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, isPrivate);
+                    this.createLobby(lobbyName, user, deck, format, isPrivate, enableUndo);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -1032,7 +1033,7 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean) {
+    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean, enableUndo = false) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -1048,7 +1049,8 @@ export class GameServer {
             this.cardDataGetter,
             this.deckValidator,
             this,
-            this.testGameBuilder
+            this.testGameBuilder,
+            enableUndo
         );
         this.lobbies.set(lobby.id, lobby);
         lobby.createLobbyUser(user, deck);
@@ -1064,7 +1066,8 @@ export class GameServer {
             this.cardDataGetter,
             this.deckValidator,
             this,
-            this.testGameBuilder
+            this.testGameBuilder,
+            true
         );
         this.lobbies.set(lobby.id, lobby);
         const order66 = this.userFactory.createAnonymousUser('exe66', 'Order66');
