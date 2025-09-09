@@ -23,7 +23,6 @@ export class PlotAbility extends TriggeredAbility {
                 gameSystems: [
                     new PlayCardSystem({
                         canPlayFromAnyZone: true,
-                        nested: true,
                         playType: PlayType.Plot,
                         playAsType: WildcardCardType.Any,
                         target: context.source

@@ -166,6 +166,9 @@ export abstract class PlayCardAction extends PlayerAction {
         if (PlayType.Piloting === this.playType && !context.source.hasSomeKeyword(KeywordName.Piloting)) {
             return 'pilotingKeyword';
         }
+        if (PlayType.Plot === this.playType && !context.source.hasSomeKeyword(KeywordName.Plot)) {
+            return 'plotKeyword';
+        }
         if (PlayType.Smuggle === this.playType && !context.source.hasSomeKeyword(KeywordName.Smuggle)) {
             return 'smuggleKeyword';
         }
