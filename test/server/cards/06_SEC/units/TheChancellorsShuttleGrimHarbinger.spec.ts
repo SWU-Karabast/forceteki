@@ -21,7 +21,7 @@ describe('The Chancellor\'s Shuttle, Grim Harbinger', function() {
             context.player2.clickCard(context.vanquish);
             context.player2.clickCard(context.theChancellorsShuttleGrimHarbinger);
 
-            expect(context.player1).toHavePassAbilityPrompt('If you control Chancellor Palpatine, you may give an Experience token to a unit.');
+            expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to a unit.');
             context.player1.clickPrompt('Trigger');
 
             // Expect ability to select any unit (friendly, enemy, or leader unit)
@@ -83,7 +83,7 @@ describe('The Chancellor\'s Shuttle, Grim Harbinger', function() {
             context.player2.clickCard(context.noGloryOnlyResults);
             context.player2.clickCard(context.theChancellorsShuttleGrimHarbinger);
 
-            expect(context.player2).toHavePassAbilityPrompt('If you control Chancellor Palpatine, you may give an Experience token to a unit.');
+            expect(context.player2).toHavePassAbilityPrompt('Give an Experience token to a unit.');
             context.player2.clickPrompt('Trigger');
 
             expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.chancellorPalpatine, context.wampa]);

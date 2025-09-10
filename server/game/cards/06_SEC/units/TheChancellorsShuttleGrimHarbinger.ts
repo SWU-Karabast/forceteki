@@ -13,7 +13,7 @@ export default class TheChancellorsShuttleGrimHarbinger extends NonLeaderUnitCar
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
-            title: 'If you control Chancellor Palpatine, you may give an Experience token to a unit.',
+            title: 'Give an Experience token to a unit.',
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Chancellor Palpatine'),
