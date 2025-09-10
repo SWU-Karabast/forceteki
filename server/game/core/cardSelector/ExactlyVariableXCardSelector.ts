@@ -52,7 +52,7 @@ export class ExactlyVariableXCardSelector<TContext extends AbilityContext = Abil
         return selectedCards.length >= this.numCardsFunc(context, selectedCards);
     }
 
-    public override automaticFireOnSelect(context: TContext, selectedCards: Card[]) {
+    public override automaticFireOnSelect(context: TContext, selectedCards: Card[] = []) {
         return this.numCardsFunc(context, selectedCards) === 1;
     }
 }

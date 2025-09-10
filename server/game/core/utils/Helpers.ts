@@ -1,6 +1,6 @@
 import type { Card } from '../card/Card';
 import type { CardTypeFilter } from '../Constants';
-import { Aspect } from '../Constants';
+import type { Aspect } from '../Constants';
 import type { IRandomness } from '../Randomness';
 import { CardType, ZoneName } from '../Constants';
 import * as Contract from './Contract';
@@ -45,24 +45,7 @@ export function countUniqueAspects(cards: Card | Card[]): number {
 
 export function aspectString(aspects: Aspect[]): string {
     return aspects
-        .map((aspect) => {
-            switch (aspect) {
-                case Aspect.Aggression:
-                    return 'Aggression';
-                case Aspect.Command:
-                    return 'Command';
-                case Aspect.Cunning:
-                    return 'Cunning';
-                case Aspect.Heroism:
-                    return 'Heroism';
-                case Aspect.Vigilance:
-                    return 'Vigilance';
-                case Aspect.Villainy:
-                    return 'Villainy';
-                default:
-                    return 'Unknown';
-            }
-        })
+        .map((aspect) => capitalize(aspect))
         .join(', ');
 }
 

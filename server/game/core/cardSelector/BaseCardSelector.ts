@@ -255,7 +255,7 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
         return 'Choose cards';
     }
 
-    public automaticFireOnSelect(context: TContext, selectedCards: Card[]) {
+    public automaticFireOnSelect(context: TContext, selectedCards: Card[] = []) {
         return false;
     }
 
