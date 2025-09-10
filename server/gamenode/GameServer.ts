@@ -1559,7 +1559,7 @@ export class GameServer {
             logger.info(`[EventLoopStats] Event Loop Utilization: ${eventLoopPercent.toFixed(1)}% | Event Loop Duration (ms): P50: ${loopDelayP50Ms.toFixed(1)}, P90: ${loopDelayP90Ms.toFixed(1)}, P99: ${loopDelayP99Ms.toFixed(1)}, max: ${loopDelayMaxMs.toFixed(1)}`);
 
             // Log this again in EMF format for CloudWatch metrics capture
-            jsonOnlyLogger.info(GameServerMetrics.eventLoopPerformance(eventLoopPercent, loopDelayP50Ms, loopDelayP90Ms, loopDelayP99Ms, loopDelayMaxMs));
+            jsonOnlyLogger.info(GameServerMetrics.eventLoopPerformance(eventLoopPercent, loopDelayP99Ms, loopDelayMaxMs));
 
             this.lastLoopUtilization = currentUtilization;
             this.loopDelayHistogram.reset();
@@ -1582,7 +1582,7 @@ export class GameServer {
             logger.info(`[PlayerStats] ${gameAndPlayerCounts.totalUserCount} total users playing in ${gameAndPlayerCounts.totalGameCount} games | Player Count: ${gameAndPlayerCounts.playerCount} (${anonymousPlayerPercentage}% anon) | Spectator Count: ${gameAndPlayerCounts.spectatorCount} (${anonymousSpectatorPercentage}% anon)`);
 
             // Log this again in EMF format for CloudWatch custom metrics capture
-            jsonOnlyLogger.info(GameServerMetrics.gameAndPlayerCount(gameAndPlayerCounts.totalUserCount, gameAndPlayerCounts.spectatorCount, gameAndPlayerCounts.totalGameCount));
+            jsonOnlyLogger.info(GameServerMetrics.gameAndPlayerCount(gameAndPlayerCounts.spectatorCount, gameAndPlayerCounts.totalGameCount));
         } catch (error) {
             logger.error(`Error logging player stats: ${error}`);
         }
@@ -1656,6 +1656,11 @@ export class GameServer {
                 `Incremental: ${this.gcStats.incrementalCount} (total ${this.gcStats.incrementalDuration.toFixed(1)}ms, avg: ${incrementalAvg.toFixed(1)}ms, max: ${this.gcStats.maxIncrementalDuration.toFixed(1)}ms) | ` +
                 `WeakCB: ${this.gcStats.weakCallbackCount} (total ${this.gcStats.weakCallbackDuration.toFixed(1)}ms, avg: ${weakCallbackAvg.toFixed(1)}ms, max: ${this.gcStats.maxWeakCallbackDuration.toFixed(1)}ms)`
             );
+
+            // Log this again in EMF format for CloudWatch custom metrics capture
+            const totalCount = this.gcStats.scavengeCount + this.gcStats.markSweepCount + this.gcStats.incrementalCount + this.gcStats.weakCallbackCount;
+            const maxDuration = Math.max(this.gcStats.maxScavengeDuration, this.gcStats.maxMarkSweepDuration, this.gcStats.maxIncrementalDuration, this.gcStats.maxWeakCallbackDuration);
+            jsonOnlyLogger.info(GameServerMetrics.gcPerformance(this.gcStats.totalDuration, totalCount, maxDuration));
 
             // Reset stats for next interval
             this.gcStats = {
