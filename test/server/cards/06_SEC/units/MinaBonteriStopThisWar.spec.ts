@@ -7,11 +7,13 @@ describe('Mina Bonteri, Stop This War', function() {
                     player1: {
                         hasInitiative: true,
                         hand: [
-                            'salvage',
-                            'battlefield-marine',
-                            'cartel-spacer',
-                            'command',
-                            'c3po#protocol-droid'
+                            'salvage',              // Command
+                            'battlefield-marine',   // Command | Heroism
+                            'cartel-spacer',        // Cunning | Villainy
+                            'command',              // Command | Command
+                            'c3po#protocol-droid',  // Heroism
+                            'restock',              // Neutral
+                            'karabast',             // Aggression | Heroism
                         ],
                         groundArena: [
                             'mina-bonteri#stop-this-war'
@@ -37,6 +39,7 @@ describe('Mina Bonteri, Stop This War', function() {
 
             it('allows the player to draw a card if they disclose cards with all required aspects', function() {
                 const { context } = contextRef;
+                const startingHandSize = context.player1.hand.length;
 
                 // Attack Reinforcement Walker with Mina Bonteri to defeat her
                 context.player1.clickCard(context.minaBonteri);
@@ -48,7 +51,8 @@ describe('Mina Bonteri, Stop This War', function() {
                     context.salvage,
                     context.battlefieldMarine,
                     context.command,
-                    context.c3poProtocolDroid
+                    context.c3poProtocolDroid,
+                    context.karabast
                 ]);
 
                 // Player can choose not to disclose anything
@@ -70,11 +74,49 @@ describe('Mina Bonteri, Stop This War', function() {
                 context.player2.clickDone();
 
                 // Player 1 draws a card
-                expect(context.player1.hand.length).toBe(6);
+                expect(context.player1.hand.length).toBe(startingHandSize + 1);
+            });
+
+            it('the player may disclose extra aspects as long as all required aspects are represented', function() {
+                const { context } = contextRef;
+                const startingHandSize = context.player1.hand.length;
+
+
+                // Attack Reinforcement Walker with Mina Bonteri to defeat her
+                context.player1.clickCard(context.minaBonteri);
+                context.player1.clickCard(context.reinforcementWalker);
+
+                // Prompt to disclose required aspects
+                expect(context.player1).toHavePrompt('Disclose Command, Command, Heroism to draw a card');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.salvage,
+                    context.battlefieldMarine,
+                    context.command,
+                    context.c3poProtocolDroid,
+                    context.karabast
+                ]);
+
+                // Choose which cards to disclose
+                context.player1.clickCard(context.karabast); // Unnecessary Aggression aspect
+                context.player1.clickCard(context.command);
+                expect(context.player1).toHaveEnabledPromptButton('Done'); // All required aspects represented
+                context.player1.clickPrompt('Done');
+
+                // Cards are revealed to the opponent
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([
+                    context.karabast,
+                    context.command
+                ]);
+                expect(context.player2).toHaveEnabledPromptButton('Done');
+                context.player2.clickDone();
+
+                // Player 1 draws a card
+                expect(context.player1.hand.length).toBe(startingHandSize + 1);
             });
 
             it('skips the ability prompt if the cards in hand cannot satisfy the required aspects', function() {
                 const { context } = contextRef;
+                const startingHandSize = context.player1.hand.length;
 
                 context.player1.passAction();
                 context.player2.clickCard(context.pillage);
@@ -91,11 +133,12 @@ describe('Mina Bonteri, Stop This War', function() {
 
                 // No ability prompt because cards in hand cannot satisfy required aspects
                 expect(context.player2).toBeActivePlayer();
-                expect(context.player1.hand.length).toBe(3); // 2 cards discarded, no cards drawn
+                expect(context.player1.hand.length).toBe(startingHandSize - 2); // 2 cards discarded, no cards drawn
             });
 
             it('can be used by the opponent if they play No Glory, Only Results', function() {
                 const { context } = contextRef;
+                const startingHandSize = context.player2.hand.length;
 
                 context.player1.passAction();
 
@@ -126,11 +169,12 @@ describe('Mina Bonteri, Stop This War', function() {
                 context.player1.clickDone();
 
                 // Player 2 draws a card
-                expect(context.player2.hand.length).toBe(4); // 1 card played, 1 card drawn
+                expect(context.player2.hand.length).toBe(startingHandSize); // 1 card played, 1 card drawn
             });
 
             it('allows the player to choose not to disclose anything', function() {
                 const { context } = contextRef;
+                const startingHandSize = context.player1.hand.length;
 
                 // Attack Reinforcement Walker with Mina Bonteri to defeat her
                 context.player1.clickCard(context.minaBonteri);
@@ -140,7 +184,7 @@ describe('Mina Bonteri, Stop This War', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
 
                 context.player1.clickPrompt('Choose nothing');
-                expect(context.player1.hand.length).toBe(5); // No cards drawn
+                expect(context.player1.hand.length).toBe(startingHandSize); // No cards drawn
                 expect(context.player2).toBeActivePlayer();
             });
         });
