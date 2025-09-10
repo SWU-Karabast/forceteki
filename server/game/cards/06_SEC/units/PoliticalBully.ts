@@ -13,7 +13,7 @@ export default class PoliticalBully extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'If you control another Official unit, you may deal 2 damage to a ground unit',
+            title: 'Deal 2 damage to a ground unit',
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasSomeArenaUnit({ trait: Trait.Official, otherThan: context.source }),

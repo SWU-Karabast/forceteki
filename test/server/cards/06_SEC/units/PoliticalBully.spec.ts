@@ -18,7 +18,7 @@ describe('Political Bully', function() {
             // Play Political Bully from hand
             context.player1.clickCard(context.politicalBully);
 
-            expect(context.player1).toHavePassAbilityPrompt('If you control another Official unit, you may deal 2 damage to a ground unit');
+            expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to a ground unit');
             context.player1.clickPrompt('Trigger');
 
             // Should be able to select an enemy ground unit
