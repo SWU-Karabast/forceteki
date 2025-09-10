@@ -49,6 +49,12 @@ export function aspectString(aspects: Aspect[]): string {
         .join(', ');
 }
 
+/**
+ * Counts the occurrences of each item in an array.
+ *
+ * @param array Array of items to count occurrences of items within
+ * @returns A map where the keys are the items from the array and the values are the counts of those items
+ */
 export function countOccurrences<T>(array: T[]): Map<T, number> {
     const occurrences = new Map<T, number>();
     array.forEach((item) => {

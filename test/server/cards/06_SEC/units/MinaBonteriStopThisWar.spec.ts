@@ -77,6 +77,16 @@ describe('Mina Bonteri, Stop This War', function() {
                 expect(context.player1.hand.length).toBe(startingHandSize + 1);
             });
 
+            // TODO: It is currently possible to reveal more cards than necessary to satisfy the aspects
+            //       For example, if we need [Command, Command, Heroism], we could select C-3PO (Heroism)
+            //       first, then Battlefield Marine (Command, Heroism) to add a Command aspect, and then
+            //       Salvage (Command) to satisfy the final aspect requirement. However, now C-3PO is
+            //       redundant since the Heroism aspect is already satisfied by Battlefield Marine.
+            //
+            //       We don't currently have the comprehensive rules for the Disclose mechanic, so we may
+            //       need to revisit this later if this sequence turns out to be illegal. A fix would probably
+            //       involve adding some deselection logic to the card selector.
+
             it('the player may disclose extra aspects as long as all required aspects are represented', function() {
                 const { context } = contextRef;
                 const startingHandSize = context.player1.hand.length;
