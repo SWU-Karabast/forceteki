@@ -30,14 +30,21 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
             .queueGenerateEventGameSteps(events, context);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties?: Partial<IDiscloseAspectsProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
-        return this.generateSelectCardSystem(context, additionalProperties)
-            .hasLegalTarget(context, null, mustChangeGameState);
-    }
+    // public override hasLegalTarget(context: TContext, additionalProperties?: Partial<IDiscloseAspectsProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
+    //     return this.generateSelectCardSystem(context, additionalProperties)
+    //         .hasLegalTarget(context, null, mustChangeGameState);
+    // }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties?: Partial<IDiscloseAspectsProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
-        const selectCardSystem = this.generateSelectCardSystem(context, additionalProperties);
-        return player.hand.some((card) => selectCardSystem.canAffectInternal(card, context));
+    public override canAffectInternal(
+        player: Player,
+        context: TContext,
+        additionalProperties?: Partial<IDiscloseAspectsProperties>,
+        mustChangeGameState?: GameStateChangeRequired
+    ): boolean {
+        const newContext = context.copy({ player }) as TContext;
+        const selectCardSystem = this.generateSelectCardSystem(newContext, additionalProperties);
+
+        return selectCardSystem.hasLegalTarget(newContext, null, mustChangeGameState);
     }
 
     protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<IDiscloseAspectsProperties>): void {
