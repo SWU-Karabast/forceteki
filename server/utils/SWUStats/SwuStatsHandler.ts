@@ -5,7 +5,7 @@ import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
 import type { PlayerDetails, IStatsMessageFormat } from '../../gamenode/Lobby';
-import { statsSource } from '../../gamenode/Lobby';
+import { StatsSource } from '../../gamenode/Lobby';
 import { StatsSaveStatus } from '../../gamenode/Lobby';
 import type { GameServer, ISwuStatsToken } from '../../gamenode/GameServer';
 import type { UserFactory } from '../user/UserFactory';
@@ -106,7 +106,6 @@ export class SwuStatsHandler {
      * @param player2Details Details about player2
      * @param lobbyId the lobby id
      * @param serverObject the server object from where we gain access to the user x accessToken
-     * @param sendStatsMessageToUser function from lobby to send a user a stats message
      * @returns Promise that resolves to true if successful, false otherwise
      */
     public async sendSWUStatsGameResultAsync(
@@ -115,32 +114,18 @@ export class SwuStatsHandler {
         player2Details: PlayerDetails,
         lobbyId: string,
         serverObject: GameServer,
-        sendStatsMessageToUser: (userId: string, messageParameters: IStatsMessageFormat) => void,
-    ): Promise<boolean> {
+    ): Promise<IStatsMessageFormat> {
         try {
             const players = game.getPlayers();
-            if (players.length !== 2) {
-                logger.info(`Cannot send SWUstats for game with ${players.length} players`, { lobbyId });
-                return false;
-            }
-
             const [player1, player2] = players;
 
             // Determine winner
             const winner = this.determineWinner(game, player1, player2);
             if (winner === 0) {
-                sendStatsMessageToUser(player1Details.user.getId(), {
-                    type: StatsSaveStatus.Warning,
-                    source: statsSource.SwuStats,
-                    message: 'Draws are currently not supported by SWUStats.'
-                });
-                sendStatsMessageToUser(player2Details.user.getId(), {
-                    type: StatsSaveStatus.Warning,
-                    source: statsSource.SwuStats,
-                    message: 'Draws are currently not supported by SWUStats.'
-                });
-                logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUstats`, { lobbyId });
-                return false;
+                logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUStats`, { lobbyId });
+                return { type: StatsSaveStatus.Warning,
+                    source: StatsSource.SwuStats,
+                    message: 'Draws are currently not supported by SWUStats.' };
             }
 
             // Build the payload
@@ -156,7 +141,7 @@ export class SwuStatsHandler {
             );
             // Log the payload for debugging (excluding API key)
             const { apiKey, p1SWUStatsToken, p2SWUStatsToken, ...payloadForLogging } = payload;
-            logger.info(`Sending game result to SWUstats for game ${game.id}`, {
+            logger.info(`Sending game result to SWUStats for game ${game.id}`, {
                 lobbyId,
                 gameId: game.id,
                 payload: payloadForLogging
@@ -171,12 +156,14 @@ export class SwuStatsHandler {
             });
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`SWUstats API returned error: ${response.status} - ${errorText}`);
+                throw new Error(`SWUStats API returned error: ${response.status} - ${errorText}`);
             }
-            logger.info(`Successfully sent game result to SWUstats for game ${game.id}`, { lobbyId });
-            return true;
+            logger.info(`Successfully sent game result to SWUStats for game ${game.id}`, { lobbyId });
+            return { type: StatsSaveStatus.Success,
+                source: StatsSource.SwuStats,
+                message: 'Successfully sent game result to SWUStats' };
         } catch (error) {
-            logger.error('Failed to send game result to SWUstats', {
+            logger.error('Failed to send game result to SWUStats', {
                 error: { message: error.message, stack: error.stack },
                 gameId: game.id,
                 lobbyId
