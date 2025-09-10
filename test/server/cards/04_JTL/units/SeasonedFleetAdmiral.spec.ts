@@ -9,8 +9,9 @@ describe('Seasoned Fleet Admiral', function () {
                         groundArena: ['seasoned-fleet-admiral', 'battlefield-marine'],
                     },
                     player2: {
-                        hand: ['strategic-analysis'],
-                        groundArena: ['wampa']
+                        hand: ['strategic-analysis', 'this-is-the-way'],
+                        groundArena: ['wampa'],
+                        deck: ['sabine-wren#explosives-artist', 'supercommando-squad']
                     }
                 });
             });
@@ -36,6 +37,27 @@ describe('Seasoned Fleet Admiral', function () {
 
                 expect(context.player1).toBeActivePlayer();
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
+            });
+
+            it('should only give 1 experience token if opponent draws multiple cards at once during action phase', function () {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.thisIsTheWay);
+                context.player2.clickCardInDisplayCardPrompt(context.sabineWren);
+                context.player2.clickCardInDisplayCardPrompt(context.supercommandoSquad);
+                context.player2.clickDone();
+
+                expect(context.player1).toHavePrompt('Give an Experience token to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.seasonedFleetAdmiral, context.battlefieldMarine, context.wampa]);
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.seasonedFleetAdmiral);
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.seasonedFleetAdmiral).toHaveExactUpgradeNames(['experience']);
+                expect(context.battlefieldMarine.upgrades.length).toBe(0);
+                expect(context.wampa.upgrades.length).toBe(0);
             });
 
             it('should not give experience token if opponent draw cards during regroup phase', function () {
