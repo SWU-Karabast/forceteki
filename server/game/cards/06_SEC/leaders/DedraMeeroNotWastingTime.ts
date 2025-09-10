@@ -32,7 +32,7 @@ export default class DedraMeeroNotWastingTime extends LeaderUnitCard {
                             target: context.targets.targetUnit,
                             amount: 2
                         }),
-                        ['Opponent draws 1 card']: abilityHelper.immediateEffects.draw({ amount: 1 })
+                        ['Opponent draws a card']: abilityHelper.immediateEffects.draw({ amount: 1 })
                     })
                 }
             }

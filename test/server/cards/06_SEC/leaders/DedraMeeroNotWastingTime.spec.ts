@@ -29,7 +29,7 @@ describe('Dedra Meero, Not Wasting Time', function () {
                 // Opponent should now have a choice between damaging that unit or letting P1 draw
                 expect(context.player2).toHaveExactPromptButtons([
                     `${context.battlefieldMarine.title} takes 2 damage`,
-                    'Opponent draws 1 card'
+                    'Opponent draws a card'
                 ]);
                 context.player2.clickPrompt(`${context.battlefieldMarine.title} takes 2 damage`);
 
@@ -62,7 +62,7 @@ describe('Dedra Meero, Not Wasting Time', function () {
                 context.player1.clickCard(context.firstLegionSnowtrooper);
 
                 // Opponent lets P1 draw
-                context.player2.clickPrompt('Opponent draws 1 card');
+                context.player2.clickPrompt('Opponent draws a card');
 
                 expect(context.player1.handSize).toBe(startingHand + 1);
                 expect(context.firstLegionSnowtrooper.damage).toBe(0);
