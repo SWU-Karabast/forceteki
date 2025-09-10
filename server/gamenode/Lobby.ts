@@ -1144,7 +1144,8 @@ export class Lobby {
             player2KarabastStatus = await this.updateKarabastPlayerStatsAsync(player2User, player1User, player2Score);
 
             // Send to SWUstats if handler is available
-            if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier) {
+            // TODO remove process.env.ENVIRONMENT === 'development' when finished
+            if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier && process.env.ENVIRONMENT === 'development') {
                 ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1User, player2User));
             }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for ${game.id}`, { lobbyId: this.id });
@@ -1154,10 +1155,11 @@ export class Lobby {
         } finally {
             this.sendStatsMessageToUser(player1User.user.getId(), player1KarabastStatus);
             this.sendStatsMessageToUser(player2User.user.getId(), player2KarabastStatus);
-            if (player1SwuStatsStatus) {
+            // TODO remove process.env.ENVIRONMENT === 'development' when finished
+            if (player1SwuStatsStatus && process.env.ENVIRONMENT === 'development') {
                 this.sendStatsMessageToUser(player1User.user.getId(), player1SwuStatsStatus);
             }
-            if (player2SwuStatsStatus) {
+            if (player2SwuStatsStatus && process.env.ENVIRONMENT === 'development') {
                 this.sendStatsMessageToUser(player2User.user.getId(), player1SwuStatsStatus);
             }
         }
