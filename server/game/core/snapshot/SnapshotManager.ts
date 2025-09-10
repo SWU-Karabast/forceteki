@@ -309,6 +309,7 @@ export class SnapshotManager {
                     entryPoint: RollbackRoundEntryPoint.WithinActionPhase,
                 };
             case SnapshotTimepoint.RegroupResource:
+            case SnapshotTimepoint.RegroupReadyCards:
                 return {
                     type: RollbackEntryPointType.Round,
                     entryPoint: RollbackRoundEntryPoint.WithinRegroupPhase,
