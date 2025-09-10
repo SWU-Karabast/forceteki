@@ -125,7 +125,7 @@ export class SwuStatsHandler {
                 logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUStats`, { lobbyId });
                 return { type: StatsSaveStatus.Warning,
                     source: StatsSource.SwuStats,
-                    message: 'Draws are currently not supported by SWUStats.' };
+                    message: 'Draws are currently not supported by SWUStats' };
             }
 
             // Build the payload
@@ -168,7 +168,7 @@ export class SwuStatsHandler {
                 gameId: game.id,
                 lobbyId
             });
-            throw new Error(error);
+            throw Error(error);
         }
     }
 

@@ -99,6 +99,7 @@ export class Lobby {
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
     private readonly undoMode: UndoMode = UndoMode.Disabled;
+    private readonly swuStatsEnabled: boolean = false;
 
     private game?: Game;
     public users: LobbyUser[] = [];
@@ -140,6 +141,8 @@ export class Lobby {
         this.gameFormat = lobbyGameFormat;
         this.server = gameServer;
         this.undoMode = process.env.ENVIRONMENT === 'development' || enableUndo ? UndoMode.Full : UndoMode.CurrentSnapshotOnly;
+        // TODO correct when we deploy to prod
+        this.swuStatsEnabled = process.env.ENVIRONMENT === 'development';
     }
 
     public get id(): string {
@@ -1022,7 +1025,7 @@ export class Lobby {
                 source: StatsSource.Karabast,
                 message: 'Deck stats successfully updated' };
         } catch (error) {
-            logger.error(`Lobby ${this.id}: Error updating deck stats for a player:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: playerUser.user.getId() });
+            logger.error(`Lobby ${this.id}: Error updating deck Karabast stats for a player:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: playerUser.user.getId() });
             return { type: StatsSaveStatus.Error,
                 source: StatsSource.Karabast,
                 message: 'An error occurred while updating stats' };
@@ -1043,21 +1046,21 @@ export class Lobby {
                 this.server,
             );
             // Success return message
-            logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`, { lobbyId: this.id });
+            logger.info(`Lobby ${this.id}: Successfully updated deck SWUStats stats for game ${game.id}`, { lobbyId: this.id });
             return {
-                player1SwuStatsStatus: player1User.deckSource === DeckSource.SWUStats ? swuStatsMessage : null,
-                player2SwuStatsStatus: player2User.deckSource === DeckSource.SWUStats ? swuStatsMessage : null
+                player1SwuStatsStatus: this.swuStatsSourceCheck(player1User) ? swuStatsMessage : null,
+                player2SwuStatsStatus: this.swuStatsSourceCheck(player2User) ? swuStatsMessage : null
             };
         } catch (error) {
             // return error stat message for SWUStats
             logger.error(`Lobby ${this.id}: An error occurred while sending stats to SWUStats in ${game.id}`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
             return {
-                player1SwuStatsStatus: player1User.deckSource === DeckSource.SWUStats ? {
+                player1SwuStatsStatus: this.swuStatsSourceCheck(player1User) ? {
                     type: StatsSaveStatus.Error,
                     source: StatsSource.SwuStats,
                     message: 'An error occurred while sending stats'
                 } : null,
-                player2SwuStatsStatus: player2User.deckSource === DeckSource.SWUStats ? {
+                player2SwuStatsStatus: this.swuStatsSourceCheck(player2User) ? {
                     type: StatsSaveStatus.Error,
                     source: StatsSource.SwuStats,
                     message: 'An error occurred while sending stats'
@@ -1067,15 +1070,29 @@ export class Lobby {
     }
 
     /**
+     * Private method to check if players deck source is SWUStats
+     */
+    private swuStatsSourceCheck(playerDetails: PlayerDetails): boolean {
+        return playerDetails.deckSource === DeckSource.SWUStats;
+    }
+
+    /**
      * Updates deck statistics when a game ends
      * @param game The game that has ended
      */
     private async endGameUpdateStatsAsync(game: Game): Promise<void> {
-        // Get the players from the game @Veld what do we do with this we need this check here
+        logger.info(`Lobby ${this.id}: Updating deck stats for game ${game.id}`, { lobbyId: this.id });
+        // pre-populate the status messages with an error that we will send by default in case something fails
+        let player1KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'An error occurred while updating stats' };
+        let player2KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'An error occurred while updating stats' };
+
+        // Get the players from the game
         const players = game.getPlayers();
         if (players.length !== 2) {
-            logger.error(`Lobby ${this.id}: Cannot update stats for game with ${players.length} players`, { lobbyId: this.id });
-            return;
+            for (const player of players) {
+                this.sendStatsMessageToUser(player.id, player1KarabastStatus);
+            }
+            throw Error(`Lobby ${this.id}: Cannot update stats for game with ${players.length} players`);
         }
         const [player1, player2] = players;
 
@@ -1083,15 +1100,11 @@ export class Lobby {
         const player1User = this.playersDetails.find((u) => u.user.getId() === player1.id);
         const player2User = this.playersDetails.find((u) => u.user.getId() === player2.id);
 
-        // pre-populate the status messages with an error that we will send by default in case something fails
-        let player1KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'An error occurred while updating stats' };
-        let player2KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'An error occurred while updating stats' };
-
         // SWUStats
-        let player1SwuStatsStatus = this.playersDetails.find((u) => u.user.getId() === player1User.user.getId())?.deckSource === DeckSource.SWUStats
+        let player1SwuStatsStatus = this.swuStatsSourceCheck(player1User)
             ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'An error occurred while updating stats' }
             : null;
-        let player2SwuStatsStatus = this.playersDetails.find((u) => u.user.getId() === player2User.user.getId())?.deckSource === DeckSource.SWUStats
+        let player2SwuStatsStatus = this.swuStatsSourceCheck(player2User)
             ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'An error occurred while updating stats' }
             : null;
 
@@ -1115,28 +1128,28 @@ export class Lobby {
 
             // Only update stats if the game has a winner and made it into the second round at least
             if (game.winnerNames.length === 0 || !game.finishedAt) {
-                logger.error(`Lobby ${this.id}: CCannot update stats for game with winnerNames length ${game.winnerNames.length} or no finishedAt time`, { lobbyId: this.id });
-                throw new Error(`Lobby ${this.id}: Cannot update stats for game with winnerNames length ${game.winnerNames.length} or no finishedAt time`);
+                throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${game.winnerNames.length === 0
+                    ? `winnerNames length being ${game.winnerNames.length}` : ''} 
+                    ${!game.finishedAt ? 'game finishedAt missing' : ''} `);
             }
 
-            if (this.game.roundNumber < 2) {
+            if (this.game.roundNumber <= 1) {
                 player1KarabastStatus.message = 'stats not updated due to game ending before round 2';
                 player1KarabastStatus.type = StatsSaveStatus.Warning;
                 player2KarabastStatus.message = 'stats not updated due to game ending before round 2';
                 player2KarabastStatus.type = StatsSaveStatus.Warning;
                 // so we throw here?
-                throw new Error('Stats not updated due to game ending before round 2');
+                return;
             }
 
-            logger.info(`Lobby ${this.id}: Updating deck stats for game ${game.id}`, { lobbyId: this.id });
 
             if (!player1User) {
-                logger.error(`Lobby ${this.id}: Missing information (${player1User}) for player1 ${player1.id}`, { lobbyId: this.id, userId: player1.id });
-                throw new Error(`Missing information (${player1User}) for player1 ${player1.id}`);
+                logger.error(`Lobby ${this.id}: Missing information for player1 ${player1.id}`, { lobbyId: this.id, userId: player1.id });
+                throw new Error(`Missing information for player1 ${player1.id}`);
             }
             if (!player2User) {
-                logger.error(`Lobby ${this.id}: Missing information (${player2User}) for player2 ${player2.id}`, { lobbyId: this.id, userId: player2.id });
-                throw new Error(`Missing information (${player2User}) for player1 ${player2.id}`);
+                logger.error(`Lobby ${this.id}: Missing information for player2 ${player2.id}`, { lobbyId: this.id, userId: player2.id });
+                throw new Error(`Missing information for player1 ${player2.id}`);
             }
 
             // Update Karabast stats
@@ -1144,23 +1157,18 @@ export class Lobby {
             player2KarabastStatus = await this.updateKarabastPlayerStatsAsync(player2User, player1User, player2Score);
 
             // Send to SWUstats if handler is available
-            // TODO remove process.env.ENVIRONMENT === 'development' when finished
-            if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier && process.env.ENVIRONMENT === 'development') {
+            if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier && this.swuStatsEnabled) {
                 ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1User, player2User));
             }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for ${game.id}`, { lobbyId: this.id });
-        } catch (error) {
-            logger.error(`Lobby ${this.id}: Error updating deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-            throw new Error(error);
         } finally {
             this.sendStatsMessageToUser(player1User.user.getId(), player1KarabastStatus);
             this.sendStatsMessageToUser(player2User.user.getId(), player2KarabastStatus);
-            // TODO remove process.env.ENVIRONMENT === 'development' when finished
-            if (player1SwuStatsStatus && process.env.ENVIRONMENT === 'development') {
+            if (player1SwuStatsStatus && this.swuStatsEnabled) {
                 this.sendStatsMessageToUser(player1User.user.getId(), player1SwuStatsStatus);
             }
-            if (player2SwuStatsStatus && process.env.ENVIRONMENT === 'development') {
-                this.sendStatsMessageToUser(player2User.user.getId(), player1SwuStatsStatus);
+            if (player2SwuStatsStatus && this.swuStatsEnabled) {
+                this.sendStatsMessageToUser(player2User.user.getId(), player2SwuStatsStatus);
             }
         }
     }
