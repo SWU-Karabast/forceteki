@@ -440,6 +440,94 @@ const mockCards = [
         arena: 'ground',
         internalName: 'maarva-andor#weve-been-sleeping',
     }),
+    buildMockCard({
+        title: 'Satine Kryze',
+        subtitle: 'Standing On Principles',
+        power: 0,
+        hp: 8,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        keywords: ['restore 4'],
+        aspects: ['vigilance', 'heroism'],
+        types: ['leader'],
+        traits: ['mandalorian', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 5
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'satine-kryze#standing-on-principles',
+    }),
+    buildMockCard({
+        title: 'Chandrilan Sponsor',
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        keywords: ['restore 2'],
+        traits: ['official'],
+        setId: {
+            set: 'SEC',
+            number: 43
+        },
+        cost: 2,
+        unique: false,
+        arena: 'ground',
+        internalName: 'chandrilan-sponsor',
+    }),
+    buildMockCard({
+        title: 'Coronet',
+        subtitle: 'Stately Vessel',
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        keywords: ['restore 1'],
+        traits: ['mandalorian', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 47
+        },
+        cost: 5,
+        unique: true,
+        arena: 'space',
+        internalName: 'coronet#stately-vessel',
+    }),
+    buildMockCard({
+        title: 'Arihnda Pryce',
+        subtitle: 'On The Road To Power',
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial'],
+        setId: {
+            set: 'SEC',
+            number: 136
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'arihnda-pryce#on-the-road-to-power',
+    }),
+    buildMockCard({
+        title: 'Grassroots Resistance',
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'SEC',
+            number: 258
+        },
+        cost: 4,
+        unique: false,
+        internalName: 'grassroots-resistance',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */

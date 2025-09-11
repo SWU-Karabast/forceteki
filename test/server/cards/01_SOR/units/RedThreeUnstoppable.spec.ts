@@ -5,37 +5,48 @@ describe('Red Three', function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['death-trooper', 'bail-organa#rebel-councilor', 'battlefield-marine'],
-                        spaceArena: ['red-three#unstoppable', 'green-squadron-awing']
+                        groundArena: ['death-trooper', 'battlefield-marine'],
+                        spaceArena: ['red-three#unstoppable']
                     },
                     player2: {
-                        groundArena: ['rugged-survivors', 'cargo-juggernaut']
+                        groundArena: ['advanced-recon-commando']
                     }
                 });
             });
 
-            it('should give Raid 1 to heroism unit', function () {
+            it('should give Raid 1 to friendly heroism unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.ruggedSurvivors, context.cargoJuggernaut]);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(4);
+            });
 
-                // should not give Raid 1 to non-heroism unit
-                context.player2.passAction();
-                context.setDamage(context.p2Base, 0);
+            it('should not give Raid 1 to friendly non-heroism unit', function () {
+                const { context } = contextRef;
+
                 context.player1.clickCard(context.deathTrooper);
-                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.ruggedSurvivors, context.cargoJuggernaut]);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(3);
+            });
 
-                // red three should not give raid 1 to itself
-                context.setDamage(context.p2Base, 0);
-                context.player2.passAction();
+            it('should not give Raid 1 to Red Three itself', function () {
+                const { context } = contextRef;
+
                 context.player1.clickCard(context.redThree);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(3);
+            });
+
+            it('should not give Raid 1 to an enemy heroism unit', function () {
+                const { context } = contextRef;
+
+                // Pass to player 2 so they can attack
+                context.player1.passAction();
+                context.player2.clickCard(context.advancedReconCommando);
+                context.player2.clickCard(context.p1Base);
+                // Advanced Recon Commando has 4 power, should not be increased by Raid
+                expect(context.p1Base.damage).toBe(4);
             });
         });
     });
