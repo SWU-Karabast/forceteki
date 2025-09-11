@@ -69,7 +69,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
             zoneFilter: ZoneName.Hand,
             controller: RelativePlayer.Self,
             mode: TargetMode.ExactlyVariable,
-            numCardsFunc: (_context, selectedCards) => this.numberOfCardsToSelect(selectedCards, properties.aspects),
+            numCardsFunc: (_context, selectedCards) => this.numberOfCardsToSelect(properties.aspects, selectedCards),
             cardCondition: (card) => properties.aspects.some((aspect) => card.aspects.includes(aspect)),
             multiSelectCardCondition: (card, selectedCards, context) =>
                 this.handCanSatisfyAspects(context.player.hand, properties.aspects) &&
@@ -89,8 +89,8 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         return this.aspectsMissing(requiredAspects, hand).length === 0;
     }
 
-    private numberOfCardsToSelect(selectedCards: Card[], requiredAspects: Aspect[]): number {
-        if (selectedCards.length === 0) {
+    private numberOfCardsToSelect(requiredAspects: Aspect[], selectedCards?: Card[]): number {
+        if (!selectedCards || selectedCards.length === 0) {
             // Start with arbitrary non-zero number to enable selection
             return 1;
         } else if (this.aspectsMissing(requiredAspects, selectedCards).length === 0) {

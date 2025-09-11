@@ -6,11 +6,11 @@ import { BaseCardSelector } from './BaseCardSelector.js';
 
 export interface IUpToVariableXCardSelectorProperties<TContext> extends IBaseCardSelectorProperties<TContext> {
     mode: TargetMode.UpToVariable;
-    numCardsFunc: (context: TContext, selectedCards: Card[]) => number;
+    numCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
 }
 
 export class UpToVariableXCardSelector<TContext extends AbilityContext = AbilityContext> extends BaseCardSelector<TContext> {
-    public numCardsFunc: (context: TContext, selectedCards: Card[]) => number;
+    public numCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
 
     public constructor(properties: IUpToVariableXCardSelectorProperties<TContext>) {
         super(properties);
@@ -19,7 +19,7 @@ export class UpToVariableXCardSelector<TContext extends AbilityContext = Ability
     }
 
     public override defaultPromptString(context: TContext) {
-        const numCards = this.numCardsFunc(context, []);
+        const numCards = this.numCardsFunc(context);
         const verb = numCards === 1 ? 'Choose' : 'Select';
         const { description, article } = BaseCardSelector.cardTypeFilterDescription(this.cardTypeFilter, numCards > 1);
 
@@ -35,6 +35,6 @@ export class UpToVariableXCardSelector<TContext extends AbilityContext = Ability
     }
 
     public override hasEnoughTargets(context: TContext) {
-        return this.numCardsFunc(context, []) > 0 && super.hasEnoughTargets(context);
+        return this.numCardsFunc(context) > 0 && super.hasEnoughTargets(context);
     }
 }

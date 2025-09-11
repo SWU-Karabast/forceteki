@@ -107,7 +107,7 @@ interface ICardExactlyUpToTargetResolver<TContext extends AbilityContext> extend
 
 interface ICardExactlyUpToVariableTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode: TargetMode.ExactlyVariable | TargetMode.UpToVariable;
-    numCardsFunc: (context: TContext, selectedCards: Card[]) => number;
+    numCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
     canChooseNoCards?: boolean;
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }

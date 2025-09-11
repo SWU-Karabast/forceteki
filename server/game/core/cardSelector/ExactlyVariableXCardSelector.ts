@@ -6,11 +6,11 @@ import { BaseCardSelector } from './BaseCardSelector.js';
 
 export interface IExactlyVariableXCardSelectorProperties<TContext> extends IBaseCardSelectorProperties<TContext> {
     mode: TargetMode.ExactlyVariable;
-    numCardsFunc: (context: TContext, selectedCards: Card[]) => number;
+    numCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
 }
 
 export class ExactlyVariableXCardSelector<TContext extends AbilityContext = AbilityContext> extends BaseCardSelector<TContext> {
-    public numCardsFunc: (context: TContext, selectedCards: Card[]) => number;
+    public numCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
 
     public constructor(properties: IExactlyVariableXCardSelectorProperties<TContext>) {
         super(properties);
@@ -23,7 +23,7 @@ export class ExactlyVariableXCardSelector<TContext extends AbilityContext = Abil
     }
 
     public override defaultPromptString(context: TContext) {
-        const numCards = this.numCardsFunc(context, []);
+        const numCards = this.numCardsFunc(context);
         const verb = numCards === 1 ? 'Choose' : 'Select';
         const { description, article } = BaseCardSelector.cardTypeFilterDescription(this.cardTypeFilter, numCards > 1);
 
@@ -45,7 +45,7 @@ export class ExactlyVariableXCardSelector<TContext extends AbilityContext = Abil
             return total;
         }, 0);
 
-        return numMatchingCards >= this.numCardsFunc(context, []);
+        return numMatchingCards >= this.numCardsFunc(context);
     }
 
     public override hasReachedLimit(selectedCards: Card[], context: TContext) {
