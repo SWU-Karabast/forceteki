@@ -51,7 +51,7 @@ export class DeckService {
                 .map((deckData) => ({
                     // Extract just the inner deck object which matches ILocalStorageDeckData
                     ...deckData.deck,
-                    deckID: deckData.id
+                    deckID: deckData.id,
                 }));
         } catch (error) {
             logger.error(`Error retrieving decks for user ${userId}:`, { error: { message: error.message, stack: error.stack } });
@@ -254,8 +254,6 @@ export class DeckService {
             const dbService = await this.dbServicePromise;
             // Get the deck using our new flexible lookup method
             const deck = await this.getDeckByIdAsync(userId, deckId);
-
-            // If not found after all lookup methods.
             Contract.assertNotNullLike(deck, `Deck with ID ${deckId} not found for user ${userId}`);
 
             // Initialize stats if they don't exist

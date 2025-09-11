@@ -32,6 +32,7 @@ import { DeckService } from '../utils/deck/DeckService';
 import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
+import { requireEnvVars } from '../env';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -51,6 +52,12 @@ enum UserRole {
 interface ILobbyMapping {
     lobbyId: string;
     role: UserRole;
+}
+export interface ISwuStatsToken {
+    accessToken: string;
+    refreshToken: string;
+    creationDateTime: Date;
+    timeToLiveSeconds: number;
 }
 
 // Interface for GC performance entries using the modern 'detail' property
@@ -115,6 +122,7 @@ export class GameServer {
     private readonly lobbies = new Map<string, Lobby>();
     private readonly playerMatchmakingDisconnectedTime = new Map<string, Date>();
     private readonly userLobbyMap = new Map<string, ILobbyMapping>();
+    public swuStatsTokenMapping = new Map<string, ISwuStatsToken>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -143,7 +151,8 @@ export class GameServer {
 
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
-    public readonly SwuStatsHandler: SwuStatsHandler;
+    public readonly swuStatsHandler: SwuStatsHandler;
+    private readonly tokenCleanupInterval: NodeJS.Timeout;
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -197,8 +206,16 @@ export class GameServer {
         logger.info(`GameServer: Detected ${cpus().length} logical CPU cores.`);
 
         // check if NEXTAUTH variable is set
-        const secret = process.env.NEXTAUTH_SECRET;
-        Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
+        requireEnvVars(
+            ['INTRASERVICE_SECRET'],
+            'GameServer',
+            ['NEXTAUTH_SECRET']
+        );
+
+        // TOKEN CLEANUP
+        this.tokenCleanupInterval = setInterval(() => {
+            this.cleanupInvalidTokens();
+        }, 3600000); // 1 hour
 
         // Setup socket server
         this.io = new IOServer(server, {
@@ -276,7 +293,7 @@ export class GameServer {
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
-        this.SwuStatsHandler = new SwuStatsHandler();
+        this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
@@ -364,7 +381,14 @@ export class GameServer {
                 //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
                 //     }
                 // }
-                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences(), needsUsernameChange: user.needsUsernameChange() } });
+                return res.status(200).json({ success: true, user: {
+                    id: user.getId(),
+                    username: user.getUsername(),
+                    showWelcomeMessage: user.getShowWelcomeMessage(),
+                    preferences: user.getPreferences(),
+                    needsUsernameChange: user.needsUsernameChange(),
+                    swuStatsRefreshToken: user.getSwuStatsRefreshToken()
+                } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
                 next(err);
@@ -488,6 +512,56 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (save-sound-preferences) Server error:', err);
+                next(err);
+            }
+        });
+
+        // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
+        app.post('/api/link-swustats', async (req, res, next) => {
+            try {
+                const { userId, swuStatsToken, internalApiKey } = req.body;
+                if (process.env.ENVIRONMENT === 'development' && !process.env.INTRASERVICE_SECRET) {
+                    throw new Error('Environment variable INTRASERVICE_SECRET not set');
+                }
+                if (internalApiKey !== process.env.INTRASERVICE_SECRET) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Forbidden'
+                    });
+                }
+                // We test the refresh token if it correctly returns a new access token.
+                const newRefreshToken = await this.swuStatsHandler.refreshTokensAsync(swuStatsToken.refreshToken);
+                await this.userFactory.addSwuStatsRefreshTokenAsync(userId, newRefreshToken.refreshToken);
+                // add token mapping
+                this.swuStatsTokenMapping.set(userId, newRefreshToken);
+                return res.status(200).json({
+                    success: true,
+                    message: 'SWUStats linked successfully'
+                });
+            } catch (err) {
+                logger.error('GameServer (link-swustats) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/unlink-swustats', authMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (unlink-swustats): Anonymous user ${user.getId()} attempted to change swustats setting in dynamodb`);
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Error attempting to unlink swu-stats'
+                    });
+                }
+                await this.userFactory.unlinkSwuStatsAsync(user.getId());
+                this.swuStatsTokenMapping.delete(user.getId());
+                return res.status(200).json({
+                    success: true,
+                    message: 'SWUStats unlinked successfully'
+                });
+            } catch (err) {
+                logger.error('GameServer (unlink-swustats) Server error:', err);
                 next(err);
             }
         });
@@ -1511,6 +1585,27 @@ export class GameServer {
             jsonOnlyLogger.info(GameServerMetrics.gameAndPlayerCount(gameAndPlayerCounts.spectatorCount, gameAndPlayerCounts.totalGameCount));
         } catch (error) {
             logger.error(`Error logging player stats: ${error}`);
+        }
+    }
+
+    /**
+     * Clean up invalid/expired tokens from the user token map
+     */
+    private cleanupInvalidTokens(): void {
+        try {
+            const newTokenMapping = new Map<string, ISwuStatsToken>();
+            // Create new map with only valid tokens
+            for (const [userId, token] of this.swuStatsTokenMapping.entries()) {
+                if (this.swuStatsHandler.isTokenValid(token)) {
+                    newTokenMapping.set(userId, token);
+                }
+            }
+            // Replace the old map with the new one
+            this.swuStatsTokenMapping = newTokenMapping;
+        } catch (error) {
+            logger.error('GameServer: Error during token cleanup:', {
+                error: { message: error.message, stack: error.stack }
+            });
         }
     }
 
