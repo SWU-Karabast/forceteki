@@ -50,7 +50,7 @@ export function aspectString(aspects: Aspect[]): string {
 }
 
 /**
- * Counts the occurrences of each item in an array.
+ * Counts the occurrences of each distinct item in an array.
  *
  * @param array Array of items to count occurrences of items within
  * @returns A map where the keys are the items from the array and the values are the counts of those items

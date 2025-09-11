@@ -41,11 +41,6 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         return [context.player];
     }
 
-    // public override hasLegalTarget(context: TContext, additionalProperties?: Partial<IDiscloseAspectsProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
-    //     return this.generateSelectCardSystem(context, additionalProperties)
-    //         .hasLegalTarget(context, null, mustChangeGameState);
-    // }
-
     public override canAffectInternal(
         player: Player,
         context: TContext,
@@ -54,7 +49,6 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
     ): boolean {
         const newContext = context.copy({ player }) as TContext;
         const selectCardSystem = this.generateSelectCardSystem(newContext, additionalProperties);
-
         return selectCardSystem.hasLegalTarget(newContext, null, mustChangeGameState);
     }
 
