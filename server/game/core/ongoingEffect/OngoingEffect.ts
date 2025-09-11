@@ -9,6 +9,7 @@ import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
+import { registerState, undoArray } from '../GameObjectUtils';
 
 export interface IOngoingEffectState<TTarget extends GameObject> extends IGameObjectBaseState {
     targets: GameObjectRef<TTarget>[];
@@ -41,6 +42,7 @@ export interface IOngoingEffectState<TTarget extends GameObject> extends IGameOb
  * impl                 - object with details of effect to be applied. Includes duration
  *                        and the numerical value of the effect, if any.
  */
+@registerState()
 export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TState extends IOngoingEffectState<TTarget> = IOngoingEffectState<TTarget>> extends GameObjectBase<TState> {
     public source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
@@ -53,13 +55,13 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
     public readonly ongoingEffect: IOngoingEffectProps<TTarget>;
     public context: AbilityContext;
 
+    @undoArray()
+    public accessor targets: readonly TTarget[] = [];
+
     public get type() {
         return this.impl.type;
     }
 
-    public get targets() {
-        return this.state.targets.map((x) => this.game.getFromRef(x));
-    }
 
     public constructor(game: Game, source: Card, properties: IOngoingEffectProps<TTarget>, effectImpl: OngoingEffectImpl<any>) {
         Contract.assertFalse(
@@ -83,10 +85,6 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
 
         // bit of a hack to keep the impl object added to the game state
         this.impl.getRef();
-    }
-
-    protected override setupDefaultState() {
-        this.state.targets = [];
     }
 
     public getValue(card: GameObject) {
@@ -114,8 +112,8 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
         return [];
     }
 
-    public addTarget(target: GameObjectBase) {
-        this.state.targets.push(target.getRef());
+    public addTarget(target: TTarget) {
+        this.targets = [...this.targets, target];
         // eslint-disable-next-line prefer-spread
         this.impl.apply(this, target);
     }
@@ -126,7 +124,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
 
     public removeTargets(targets: TTarget[]) {
         targets.forEach((target) => this.impl.unapply(this, target));
-        this.state.targets = this.targets.filter((target) => !targets.includes(target)).map((x) => x.getRef());
+        this.targets = this.targets.filter((target) => !targets.includes(target));
     }
 
     public hasTarget(target: TTarget) {
@@ -135,7 +133,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
 
     public cancel() {
         this.targets.forEach((target) => this.impl.unapply(this, target));
-        this.state.targets = [];
+        this.targets = [];
     }
 
     public isEffectActive() {

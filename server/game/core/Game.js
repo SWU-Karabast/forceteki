@@ -1950,6 +1950,8 @@ class Game extends EventEmitter {
             return false;
         }
 
+        const start = process.hrtime.bigint();
+
         this.preUndoStateForError = { gameState: this.captureGameState('any'), settings };
 
         let rollbackResult;
@@ -1961,6 +1963,24 @@ class Game extends EventEmitter {
             }
 
             this.postRollbackOperations(rollbackResult.entryPoint);
+
+            const postUndoState = this.captureGameState('any');
+
+            const end = process.hrtime.bigint();
+            const durationMs = Number(end - start) / 1_000_000;
+            const gameStates = {
+                preUndoState: this.preUndoStateForError,
+                postUndoState,
+            };
+            if (process.env.NODE_ENV !== 'test') {
+                logger.info('Rollback operation completed', {
+                    lobbyId: this.lobbyId,
+                    gameId: this.id,
+                    rollbackSettings: settings,
+                    durationMs,
+                    gameStates
+                });
+            }
         } catch (error) {
             if (process.env.NODE_ENV !== 'test') {
                 this.reportSevereRollbackFailure(error, 'Severe error during rollback operation');
@@ -1982,7 +2002,7 @@ class Game extends EventEmitter {
         logger.error('Rollback failed', {
             lobbyId: this.lobbyId,
             gameId: this.id,
-            settings: this.preUndoStateForError.settings,
+            rollbackSettings: this.preUndoStateForError.settings,
             preUndoState: this.preUndoStateForError.gameState,
             error: { message: error.message, stack: error.stack }
         });
@@ -1994,18 +2014,6 @@ class Game extends EventEmitter {
      * @param {import('./snapshot/SnapshotInterfaces.js').IRollbackSetupEntryPoint | import('./snapshot/SnapshotInterfaces.js').IRollbackRoundEntryPoint} entryPoint
      */
     postRollbackOperations(entryPoint) {
-        const postUndoState = this.captureGameState('any');
-        const gameStates = {
-            preUndoState: this.preUndoStateForError,
-            postUndoState,
-        };
-        if (process.env.NODE_ENV !== 'test') {
-            logger.info('Rollback completed', {
-                lobbyId: this._router.id,
-                gameId: this.id,
-                gameStates,
-            });
-        }
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
         if (entryPoint.type === RollbackEntryPointType.Setup) {
