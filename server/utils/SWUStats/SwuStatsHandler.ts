@@ -168,7 +168,7 @@ export class SwuStatsHandler {
                 gameId: game.id,
                 lobbyId
             });
-            throw Error(error);
+            throw error;
         }
     }
 
