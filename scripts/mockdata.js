@@ -131,7 +131,7 @@ const mockCards = [
         title: 'Coronet',
         subtitle: 'Stately Vessel',
         power: 4,
-        hp: 5,
+        hp: 6,
         hasNonKeywordAbility: true,
         aspects: ['vigilance', 'heroism'],
         types: ['unit'],
