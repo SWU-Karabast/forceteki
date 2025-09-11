@@ -6,6 +6,7 @@ const { detectBinary } = require('../../server/Util.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const TestSetupError = require('./TestSetupError.js');
 const Util = require('./Util.js');
+const { TrackedGameCardMetric, GameCardMetric } = require('../../server/gameStatistics/GameStatisticsTracker.js');
 
 class PlayerInteractionWrapper {
     /**
@@ -972,6 +973,52 @@ class PlayerInteractionWrapper {
         for (let i = this.deck.length - 1; i >= number; i--) {
             this.moveCard(this.deck[i], 'discard');
         }
+    }
+
+    /**
+     * Return a tracked card metric for a card that was played.
+     * @param {Card} card - The card that was played
+     * @returns {TrackedGameCardMetric}
+     */
+    played(card) {
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Played, card, this.player);
+    }
+
+    /**
+     * Return a tracked card metric for a card that was drawn.
+     * @param {Card} card - The card that was drawn
+     * @returns {TrackedGameCardMetric}
+     */
+    drew(card) {
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Drawn, card, this.player);
+    }
+
+    /**
+     * Return a tracked card metric for a card that was discarded.
+     * @param {Card} card - The card that was discarded
+     * @returns {TrackedGameCardMetric}
+     */
+    discarded(card) {
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Discarded, card, this.player);
+    }
+
+    /**
+     * Return a tracked card metric for a card that was resourced.
+     * @param {Card} card - The card that was resourced
+     * @returns {TrackedGameCardMetric}
+     */
+    resourced(card) {
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Resourced, card, this.player);
+    }
+
+
+    /**
+     * Return a tracked card metric for a card that was activated.
+     * @param {Card} card - The card that was activated
+     * @returns {TrackedGameCardMetric}
+     */
+    activated(card) {
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Activated, card, this.player);
     }
 }
 

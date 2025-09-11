@@ -4,6 +4,7 @@ import type { Player } from '../../game/core/Player';
 import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
+import { GameCardMetric, type IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
 import type { PlayerDetails, IStatsMessageFormat } from '../../gamenode/Lobby';
 import { StatsSource } from '../../gamenode/Lobby';
 import { StatsSaveStatus } from '../../gamenode/Lobby';
@@ -212,6 +213,52 @@ export class SwuStatsHandler {
         return 'colorless';
     }
 
+    private getCardResultsByPlayer(player: Player, statsTracker: IGameStatisticsTracker): CardResults[] {
+        const cardResultsByTrackingId = new Map<string, CardResults>();
+        for (const card of player.allCards) {
+            if (cardResultsByTrackingId.has(card.trackingId)) {
+                continue;
+            }
+
+            cardResultsByTrackingId.set(card.trackingId, {
+                cardId: card.trackingId,
+                played: 0,
+                resourced: 0,
+                activated: 0,
+                drawn: 0,
+                discarded: 0,
+            });
+        }
+
+        for (const cardMetric of statsTracker.cardMetrics) {
+            if (cardMetric.player === player.trackingId && cardResultsByTrackingId.has(cardMetric.card)) {
+                const cardResult = cardResultsByTrackingId.get(cardMetric.card);
+                switch (cardMetric.metric) {
+                    case GameCardMetric.Activated:
+                        cardResult.activated += 1;
+                        break;
+                    case GameCardMetric.Discarded:
+                        cardResult.discarded += 1;
+                        break;
+                    case GameCardMetric.Drawn:
+                        cardResult.drawn += 1;
+                        break;
+                    case GameCardMetric.Played:
+                        cardResult.played += 1;
+                        break;
+                    case GameCardMetric.Resourced:
+                        cardResult.resourced += 1;
+                        break;
+                    default:
+                        throw new Error(`(SWUStats handler): Unsupported game card metric ${cardMetric.metric}`);
+                }
+                cardResultsByTrackingId.set(cardMetric.card, cardResult);
+            }
+        }
+
+        return Array.from(cardResultsByTrackingId.values());
+    }
+
     /**
      * Build player data for a single player
      */
@@ -227,6 +274,7 @@ export class SwuStatsHandler {
         const baseStr = player.base?.id;
         const opponentLeaderStr = opponentPlayer.leader?.id;
         const opponentBaseColor = this.getBaseColor(opponentPlayer.base);
+        const cardResults = this.getCardResultsByPlayer(player, game.statsTracker);
         return {
             deckId: deckLink ? deckLink.split('https://swustats.net/TCGEngine/')[1] : '',
             leader: leaderStr,
@@ -236,7 +284,7 @@ export class SwuStatsHandler {
             firstPlayer: game.initialFirstPlayer?.id === player.id ? 1 : 0,
             opposingHero: opponentLeaderStr,
             opposingBaseColor: opponentBaseColor,
-            cardResults: [],
+            cardResults: cardResults,
             turnResults: []
         };
     }

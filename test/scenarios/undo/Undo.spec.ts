@@ -1765,12 +1765,12 @@ describe('Undo', function() {
                     phase: 'action', // 'regroup',
                     player1: {
                         hand: ['ardent-sympathizer', 'death-star-stormtrooper'],
-                        resources: 2,
+                        resources: 6,
                         deck: [],
                     },
                     player2: {
                         hand: ['crafty-smuggler'],
-                        resources: 2,
+                        resources: 6,
                         deck: []
                     }
                 });
@@ -1802,8 +1802,8 @@ describe('Undo', function() {
                 expect(context.game.roundNumber).toBe(2);
                 expect(player2).toBeActivePlayer();
                 expect(player1.hand.length).toBe(0);
-                expect(player1.resources.length).toBe(3);
-                expect(player2.resources.length).toBe(3);
+                expect(player1.resources.length).toBe(7);
+                expect(player2.resources.length).toBe(7);
                 expect(player1.groundArenaUnits.length).toBe(1);
                 expect(player1.base.damage).toBe(6);
                 expect(player2.base.damage).toBe(6);
@@ -1834,8 +1834,8 @@ describe('Undo', function() {
                 expect(context.game.roundNumber).toBe(2);
                 expect(player1).toBeActivePlayer();
                 expect(player1.hand.length).toBe(2);
-                expect(player1.resources.length).toBe(2);
-                expect(player2.resources.length).toBe(3);
+                expect(player1.resources.length).toBe(6);
+                expect(player2.resources.length).toBe(7);
                 expect(player1.base.damage).toBe(6);
                 expect(player2.base.damage).toBe(6);
             });
@@ -1878,6 +1878,36 @@ describe('Undo', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.republicAttackPod);
                 expect(context.player1.exhaustedResourceCount).toBe(6);
+            });
+        });
+
+        describe('Card stats', function() {
+            undoIt('should log card stats', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['bazine-netal#spy-for-the-first-order'],
+                    },
+                    player2: {
+                        hand: ['atst', 'waylay'],
+                        deck: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.game.statsTracker.cardMetrics.length).toBe(16);
+                const cardMetrics = context.game.statsTracker.cardMetrics;
+
+                context.player1.clickCard(context.bazineNetal);
+                context.player1.clickCardInDisplayCardPrompt(context.waylay);
+
+                expect(context.game.statsTracker.cardMetrics).toEqualArray([
+                    ...cardMetrics,
+                    context.player1.played(context.bazineNetal),
+                    context.player2.discarded(context.waylay),
+                    context.player2.drew(context.wampa),
+                ]);
             });
         });
     });

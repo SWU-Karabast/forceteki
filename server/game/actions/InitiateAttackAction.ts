@@ -10,6 +10,7 @@ import { GameSystemCost } from '../core/cost/GameSystemCost.js';
 import { ExhaustSystem } from '../gameSystems/ExhaustSystem.js';
 import type Game from '../core/Game.js';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties.js';
+import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker.js';
 
 interface IInitiateAttackProperties extends IAttackProperties {
     allowExhaustedAttacker?: boolean;
@@ -66,10 +67,19 @@ export class InitiateAttackAction extends PlayerAction {
             attacker: context.source
         });
 
+        this.trackActivationMetric(context);
         new AttackStepsSystem(attackSystemProperties).resolve(context.target, context);
     }
 
     public override isAttackAction(): this is InitiateAttackAction {
         return true;
+    }
+
+    private trackActivationMetric(context: AbilityContext) {
+        this.game.statsTracker.trackCardMetric(
+            GameCardMetric.Activated,
+            context.source,
+            context.player
+        );
     }
 }

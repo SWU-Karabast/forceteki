@@ -76,7 +76,7 @@ describe('Chopper, Metal Menace', function() {
                     },
                     player2: {
                         deck: [],
-                        resources: 5
+                        resources: 6
                     },
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
@@ -88,6 +88,7 @@ describe('Chopper, Metal Menace', function() {
                 const { context } = contextRef;
 
                 expect(context.player2.base.damage).toBe(0);
+                expect(context.player2.deck.length).toBe(0);
 
                 context.player1.clickCard(context.chopper);
 
