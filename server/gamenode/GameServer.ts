@@ -33,6 +33,7 @@ import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFil
 import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { requireEnvVars } from '../env';
+import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -747,6 +748,7 @@ export class GameServer {
             try {
                 const { deck, format, isPrivate, lobbyName, enableUndo } = req.body;
                 const user = req.user;
+
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     // TODO shouldn't return 403
@@ -757,6 +759,12 @@ export class GameServer {
                         message: 'User is already in a lobby'
                     });
                 }
+
+                if (!EnumHelpers.isEnumValue(format, SwuGameFormat)) {
+                    logger.error(`GameServer (create-lobby): Invalid game format parameter ${format}`);
+                    return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
+                }
+
                 await this.processDeckValidation(deck, format, res, () => {
                     this.createLobby(lobbyName, user, deck, format, isPrivate, enableUndo);
                     res.status(200).json({ success: true });
@@ -854,6 +862,12 @@ export class GameServer {
                         message: 'User is already in a lobby'
                     });
                 }
+
+                if (!EnumHelpers.isEnumValue(format, SwuGameFormat)) {
+                    logger.error(`GameServer (enter-queue): Invalid game format parameter ${format}`);
+                    return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
+                }
+
                 await this.processDeckValidation(deck, format, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
