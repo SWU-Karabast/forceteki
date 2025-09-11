@@ -36,6 +36,25 @@ const mockCards = [
         internalName: 'chancellor-palpatine#how-liberty-dies',
     }),
     buildMockCard({
+        title: 'Satine Kryze',
+        subtitle: 'Standing On Principles',
+        power: 0,
+        hp: 8,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        keywords: ['restore 4'],
+        aspects: ['vigilance', 'heroism'],
+        types: ['leader'],
+        traits: ['mandalorian', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 5
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'satine-kryze#standing-on-principles',
+    }),
+    buildMockCard({
         title: 'Dedra Meero',
         subtitle: 'Not Wasting Time',
         power: 2,
@@ -89,6 +108,43 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'cad-bane#impressed-now',
+    }),
+    buildMockCard({
+        title: 'Chandrilan Sponsor',
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        keywords: ['restore 2'],
+        traits: ['official'],
+        setId: {
+            set: 'SEC',
+            number: 43
+        },
+        cost: 2,
+        unique: false,
+        arena: 'ground',
+        internalName: 'chandrilan-sponsor',
+    }),
+    buildMockCard({
+        title: 'Coronet',
+        subtitle: 'Stately Vessel',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        keywords: ['restore 1'],
+        traits: ['mandalorian', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 47
+        },
+        cost: 5,
+        unique: true,
+        arena: 'space',
+        internalName: 'coronet#stately-vessel',
     }),
     buildMockCard({
         title: 'Bo-Katan Kryze',
@@ -270,6 +326,24 @@ const mockCards = [
         internalName: 'syril-karn#where-is-he',
     }),
     buildMockCard({
+        title: 'Arihnda Pryce',
+        subtitle: 'On The Road To Power',
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial'],
+        setId: {
+            set: 'SEC',
+            number: 136
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'arihnda-pryce#on-the-road-to-power',
+    }),
+    buildMockCard({
         title: 'Fulminatrix',
         subtitle: 'Fleet Killer',
         power: 9,
@@ -439,6 +513,20 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'maarva-andor#weve-been-sleeping',
+    }),
+    buildMockCard({
+        title: 'Grassroots Resistance',
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'SEC',
+            number: 258
+        },
+        cost: 4,
+        unique: false,
+        internalName: 'grassroots-resistance',
     }),
 ];
 
