@@ -24,10 +24,21 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
     public eventHandler(): void {}
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IDiscloseAspectsProperties> = {}): void {
-        super.queueGenerateEventGameSteps(events, context, additionalProperties);
+        const generatedEvents = [];
+        for (const target of this.targets(context, additionalProperties)) {
+            if (this.canAffect(target, context, additionalProperties)) {
+                const event = this.generateRetargetedEvent(target, context, additionalProperties);
+                generatedEvents.push(event);
+                events.push(event);
+            }
+        }
 
-        this.generateSelectCardSystem(context, additionalProperties)
+        this.generateSelectCardSystem(context, additionalProperties, generatedEvents)
             .queueGenerateEventGameSteps(events, context);
+    }
+
+    public override defaultTargets(context: TContext): Player[] {
+        return [context.player];
     }
 
     // public override hasLegalTarget(context: TContext, additionalProperties?: Partial<IDiscloseAspectsProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
@@ -57,7 +68,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
 
     // Private helpers
 
-    private generateSelectCardSystem(context: TContext, additionalProperties: Partial<IDiscloseAspectsProperties> = {}) {
+    private generateSelectCardSystem(context: TContext, additionalProperties: Partial<IDiscloseAspectsProperties> = {}, cancelEvents = []) {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         return new SelectCardSystem<TContext>({
@@ -74,7 +85,9 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                 promptedPlayer: RelativePlayer.Opponent,
                 useDisplayPrompt: true,
                 interactMode: ViewCardInteractMode.ViewOnly
-            })
+            }),
+            cancelHandler: cancelEvents ? () => cancelEvents.forEach((event) => event.cancel()) : null,
+            cancelIfNoTargets: true,
         });
     }
 
