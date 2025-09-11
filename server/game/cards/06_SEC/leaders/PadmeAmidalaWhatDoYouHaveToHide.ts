@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import type { WhenTypeOrStandard } from '../../../Interfaces';
 
 export default class PadmeAmidalaWhatDoYouHaveToHide extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -16,12 +17,7 @@ export default class PadmeAmidalaWhatDoYouHaveToHide extends LeaderUnitCard {
             title: 'Exhaust Padmé Amidala to deal 1 damage to a unit',
             optional: true,
             collectiveTrigger: true,
-            when: {
-                onCardDiscarded: (event, context) =>
-                    event.card.owner === context.player &&
-                    event.discardedFromZone === ZoneName.Hand,
-                onCardRevealed: (event, context) => event.player === context.player,
-            },
+            when: this.triggerCondition(),
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: {
                 title: 'Deal 1 damage to a unit',
@@ -39,12 +35,7 @@ export default class PadmeAmidalaWhatDoYouHaveToHide extends LeaderUnitCard {
             title: 'Deal 1 damage to a unit',
             optional: true,
             collectiveTrigger: true,
-            when: {
-                onCardDiscarded: (event, context) =>
-                    event.card.owner === context.player &&
-                    event.discardedFromZone === ZoneName.Hand,
-                onCardRevealed: (event, context) => event.player === context.player,
-            },
+            when: this.triggerCondition(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: WildcardZoneName.AnyArena,
@@ -53,19 +44,14 @@ export default class PadmeAmidalaWhatDoYouHaveToHide extends LeaderUnitCard {
         });
     }
 
-    // private shouldTriggerAbility(event, context: AbilityContext): boolean {
-    //     const window = event.window;
-    //     const discardEvents = window.events
-    //         .filter((e) =>
-    //             e.name === EventName.OnCardDiscarded &&
-    //             e.card.owner === context.player &&
-    //             e.discardedFromZone === ZoneName.Hand
-    //         );
-
-    //     if (discardEvents.length === 0) {
-    //         return false;
-    //     }
-
-    //     return discardEvents[discardEvents.length - 1] === event;
-    // }
+    private triggerCondition(): WhenTypeOrStandard<LeaderUnitCard> {
+        return {
+            onCardDiscarded: (event, context) =>
+                event.card.owner === context.player &&
+                event.discardedFromZone === ZoneName.Hand,
+            onCardRevealed: (event, context) =>
+                event.cards.some((card) => card.owner === context.player) &&
+                event.revealedFromZone === ZoneName.Hand
+        };
+    }
 }
