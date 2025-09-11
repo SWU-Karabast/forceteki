@@ -1048,19 +1048,19 @@ export class Lobby {
             // Success return message
             logger.info(`Lobby ${this.id}: Successfully updated deck SWUStats stats for game ${game.id}`, { lobbyId: this.id });
             return {
-                player1SwuStatsStatus: this.hasSwuStatsSourceCheck(player1User) ? swuStatsMessage : null,
-                player2SwuStatsStatus: this.hasSwuStatsSourceCheck(player2User) ? swuStatsMessage : null
+                player1SwuStatsStatus: this.hasSwuStatsSource(player1User) ? swuStatsMessage : null,
+                player2SwuStatsStatus: this.hasSwuStatsSource(player2User) ? swuStatsMessage : null
             };
         } catch (error) {
             // return error stat message for SWUStats
             logger.error(`Lobby ${this.id}: An error occurred while sending stats to SWUStats in ${game.id}`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
             return {
-                player1SwuStatsStatus: this.hasSwuStatsSourceCheck(player1User) ? {
+                player1SwuStatsStatus: this.hasSwuStatsSource(player1User) ? {
                     type: StatsSaveStatus.Error,
                     source: StatsSource.SwuStats,
                     message: 'An error occurred while sending stats'
                 } : null,
-                player2SwuStatsStatus: this.hasSwuStatsSourceCheck(player2User) ? {
+                player2SwuStatsStatus: this.hasSwuStatsSource(player2User) ? {
                     type: StatsSaveStatus.Error,
                     source: StatsSource.SwuStats,
                     message: 'An error occurred while sending stats'
@@ -1072,7 +1072,7 @@ export class Lobby {
     /**
      * Private method to check if players deck source is SWUStats
      */
-    private hasSwuStatsSourceCheck(playerDetails: PlayerDetails): boolean {
+    private hasSwuStatsSource(playerDetails: PlayerDetails): boolean {
         return playerDetails.deckSource === DeckSource.SWUStats;
     }
 
@@ -1101,10 +1101,10 @@ export class Lobby {
         const player2User = this.playersDetails.find((u) => u.user.getId() === player2.id);
 
         // SWUStats
-        let player1SwuStatsStatus = this.hasSwuStatsSourceCheck(player1User)
+        let player1SwuStatsStatus = this.hasSwuStatsSource(player1User)
             ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'An error occurred while updating stats' }
             : null;
-        let player2SwuStatsStatus = this.hasSwuStatsSourceCheck(player2User)
+        let player2SwuStatsStatus = this.hasSwuStatsSource(player2User)
             ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'An error occurred while updating stats' }
             : null;
 
