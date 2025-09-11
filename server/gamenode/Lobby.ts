@@ -99,7 +99,7 @@ export class Lobby {
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
     private readonly undoMode: UndoMode = UndoMode.Disabled;
-    private readonly swuStatsEnabled: boolean = false;
+    private readonly swuStatsEnabled: boolean = true;
 
     private game?: Game;
     public users: LobbyUser[] = [];
@@ -141,8 +141,6 @@ export class Lobby {
         this.gameFormat = lobbyGameFormat;
         this.server = gameServer;
         this.undoMode = process.env.ENVIRONMENT === 'development' || enableUndo ? UndoMode.Full : UndoMode.CurrentSnapshotOnly;
-        // TODO correct when we deploy to prod
-        this.swuStatsEnabled = process.env.ENVIRONMENT === 'development';
     }
 
     public get id(): string {
