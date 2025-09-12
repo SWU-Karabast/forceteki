@@ -651,13 +651,13 @@ describe('Uniqueness rule', function() {
                 context.player1.clickCard(context.cadBane);
 
                 expect(context.player1).toHavePrompt('Choose which copies of Obi-Wan Kenobi, Following Fate to defeat');
-                expect(context.player1).not.toHaveExactPromptButtons(['Done']);
+                expect(context.player1).toHaveDisabledPromptButton('Done');
                 expect(context.player1).toBeAbleToSelectExactly([obi1, obi2, obi3]);
 
                 context.player1.clickCard(obi1);
 
                 expect(context.player1).toHavePrompt('Choose which copies of Obi-Wan Kenobi, Following Fate to defeat');
-                expect(context.player1).not.toHaveExactPromptButtons(['Done']);
+                expect(context.player1).toHaveDisabledPromptButton('Done');
 
                 context.player1.clickCard(obi2);
 
@@ -723,13 +723,13 @@ describe('Uniqueness rule', function() {
                 context.player1.clickCard(context.cadBane);
 
                 expect(context.player1).toHavePrompt('Choose which copies of Obi-Wan Kenobi, Following Fate to defeat');
-                expect(context.player1).not.toHaveExactPromptButtons(['Done']);
+                expect(context.player1).toHaveDisabledPromptButton('Done');
                 expect(context.player1).toBeAbleToSelectExactly([obi1, obi2, obi3]);
 
                 context.player1.clickCard(obi2);
 
                 expect(context.player1).toHavePrompt('Choose which copies of Obi-Wan Kenobi, Following Fate to defeat');
-                expect(context.player1).not.toHaveExactPromptButtons(['Done']);
+                expect(context.player1).toHaveDisabledPromptButton('Done');
 
                 context.player1.clickCard(obi3);
 

@@ -45,6 +45,16 @@ export abstract class User {
     public abstract setPreferences(preferences: UserPreferences): void;
 
     /**
+     * Gets the user's swuStatsRefreshtoken if it exists
+     */
+    public abstract getSwuStatsRefreshToken(): string | null;
+
+    /**
+     * Gets the user's swuStatsRefreshtoken if it exists
+     */
+    public abstract hasSwuStatsRefreshToken(): boolean;
+
+    /**
      * Gets the object representation of the user for sending to the client
      */
     public abstract toJSON(): Record<string, any>;
@@ -98,6 +108,14 @@ export class AuthenticatedUser extends User {
     public needsUsernameChange(): boolean {
         // undefined = false
         return !!this.userData.needsUsernameChange;
+    }
+
+    public getSwuStatsRefreshToken(): string | null {
+        return this.userData.swuStatsRefreshToken ?? null;
+    }
+
+    public hasSwuStatsRefreshToken(): boolean {
+        return !!this.userData.swuStatsRefreshToken;
     }
 
     public toJSON(): Record<string, any> {
@@ -160,6 +178,14 @@ export class AnonymousUser extends User {
     }
 
     public override getShowWelcomeMessage(): boolean {
+        return false;
+    }
+
+    public override getSwuStatsRefreshToken(): string | null {
+        return null;
+    }
+
+    public hasSwuStatsRefreshToken(): boolean {
         return false;
     }
 

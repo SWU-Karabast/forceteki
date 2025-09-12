@@ -251,6 +251,7 @@ export enum EventName {
     OnAbilityResolverInitiated = 'onAbilityResolverInitiated',
     OnActionTaken = 'onActionTaken',
     OnAddTokenToCard = 'onAddTokenToCard',
+    OnAspectsDisclosed = 'onAspectsDisclosed',
     OnAttackCompleted = 'onAttackCompleted',
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',

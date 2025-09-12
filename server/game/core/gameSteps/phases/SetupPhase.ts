@@ -9,6 +9,8 @@ import { PromptType } from '../PromptInterfaces';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 import type { IStep } from '../IStep';
+import { TriggerHandlingMode } from '../../event/EventWindow';
+import { DrawSystem } from '../../../gameSystems/DrawSystem';
 
 export class SetupPhase extends Phase {
     public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
@@ -77,7 +79,13 @@ export class SetupPhase extends Phase {
         // TODO: convert these to use systems
         for (const player of this.game.getPlayers()) {
             player.shuffleDeck();
-            player.drawCardsToHand(player.getStartingHandSize());
+
+            new DrawSystem({ amount: player.getStartingHandSize() })
+                .resolve(
+                    player,
+                    this.game.getFrameworkContext(),
+                    TriggerHandlingMode.ResolvesTriggers
+                );
         }
     }
 }

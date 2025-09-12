@@ -6,6 +6,7 @@ const { stringArraysEqual } = require('../../server/Util.js');
 const TestSetupError = require('./TestSetupError.js');
 const Util = require('./Util.js');
 const { Card } = require('../../server/game/core/card/Card.js');
+const { TrackedGameCardMetric } = require('../../server/gameStatistics/GameStatisticsTracker.js');
 
 var customMatchers = {
     toHavePrompt: function () {
@@ -1326,4 +1327,9 @@ function processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject
 
 beforeEach(function () {
     jasmine.addMatchers(customMatchers);
+    jasmine.addCustomEqualityTester((a, b) => {
+        if (a instanceof TrackedGameCardMetric && b instanceof TrackedGameCardMetric) {
+            return a.player === b.player && a.card === b.card && a.metric === b.metric;
+        }
+    });
 });
