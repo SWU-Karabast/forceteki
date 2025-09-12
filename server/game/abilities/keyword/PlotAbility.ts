@@ -16,7 +16,7 @@ export class PlotAbility extends TriggeredAbility {
             title: `Play ${cardTitle} using Plot`,
             optional: true,
             when: {
-                onLeaderDeployed: (event, context) => event.card.owner === context.source.controller && context.source.zoneName === ZoneName.Resource
+                onLeaderDeployed: (event, context) => event.card.owner === context.source.controller && context.source.zoneName === ZoneName.Resource // TODO See if we can remove this zone check once we update Plot registration
             },
             zoneFilter: ZoneName.Resource,
             immediateEffect: new SequentialSystem((context) => ({
@@ -28,7 +28,7 @@ export class PlotAbility extends TriggeredAbility {
                         target: context.source
                     }),
                     new ResourceCardSystem({
-                        target: context.source.owner.getTopCardOfDeck()
+                        target: context.source.controller.getTopCardOfDeck()
                     })
                 ]
             }))

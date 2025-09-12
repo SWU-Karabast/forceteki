@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { KeywordName, PlayType, WildcardCardType } from '../../../core/Constants';
+import { KeywordName, PlayType } from '../../../core/Constants';
 
 export default class ChancellorPalpatineHowLibertyDies extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -31,7 +31,6 @@ export default class ChancellorPalpatineHowLibertyDies extends LeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
-                    cardTypeFilter: WildcardCardType.Playable,
                     playType: PlayType.Plot,
                     limit: AbilityHelper.limit.perPlayerPerGame(1),
                     amount: 3

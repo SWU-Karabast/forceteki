@@ -220,6 +220,8 @@ describe('Plot keyword', function() {
 
                 expect(context.player2).toBeActivePlayer();
             });
+
+            // TODO Add a test with a Plot card in friendly resources that is owned by the opponent
         });
     });
 });
