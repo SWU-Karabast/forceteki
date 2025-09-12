@@ -21,6 +21,7 @@ export default class ChargedWithMurder extends EventCard {
                 title: 'Defeat a damaged non-leader unit',
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
+                    cardCondition: (card) => card.isNonLeaderUnit() && card.damage > 0,
                     immediateEffect: abilityHelper.immediateEffects.defeat()
                 }
             }

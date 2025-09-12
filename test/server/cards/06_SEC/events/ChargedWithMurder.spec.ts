@@ -6,10 +6,10 @@ describe('Charged With Murder', function () {
                     phase: 'action',
                     player1: {
                         hand: ['charged-with-murder', 'vigilance'],
-                        spaceArena: ['green-squadron-awing']
+                        spaceArena: [{ card: 'green-squadron-awing', damage: 2 }]
                     },
                     player2: {
-                        groundArena: ['atst'],
+                        groundArena: [{ card: 'atst', damage: 5 }, 'wampa'],
                         leader: { card: 'boba-fett#collecting-the-bounty', deployed: true }
                     }
                 });
