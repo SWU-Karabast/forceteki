@@ -116,11 +116,11 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         }
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Plot)) {
-            playCardActions = this.buildPlayCardActions(PlayType.Plot, propertyOverrides);
+            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Plot, propertyOverrides));
         }
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            playCardActions = this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
+            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides));
         }
 
         if (this.zoneName === ZoneName.Discard) {
