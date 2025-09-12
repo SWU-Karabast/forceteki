@@ -73,4 +73,20 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         const properties = this.generatePropertiesFromContext(context);
         return ['reveal {0}', [ChatHelpers.pluralize(Helpers.asArray(properties.target).length, 'a card', 'cards')]];
     }
+
+    public override addPropertiesToEvent(event, cards, context: TContext, additionalProperties: Record<string, any> = {}): void {
+        super.addPropertiesToEvent(event, cards, context, additionalProperties);
+
+        const eventCards: Card[] = event.cards;
+        const zones = eventCards.map((card) => card.zoneName);
+
+        if (eventCards.length === 0) {
+            return;
+        }
+
+        // If all cards are from the same zone, set revealedFromZone to that zone
+        if (zones.every((zone) => zone === zones[0])) {
+            event.revealedFromZone = zones[0];
+        }
+    }
 }

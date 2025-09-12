@@ -54,24 +54,6 @@ const mockCards = [
         internalName: 'dedra-meero#not-wasting-time',
     }),
     buildMockCard({
-        title: 'Padmé Amidala',
-        subtitle: 'What Do You Have To Hide?',
-        power: 3,
-        hp: 8,
-        cost: 6,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'heroism'],
-        types: ['leader'],
-        traits: ['naboo', 'republic', 'official'],
-        setId: {
-            set: 'SEC',
-            number: 16
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'padme-amidala#what-do-you-have-to-hide',
-    }),
-    buildMockCard({
         title: 'Cad Bane',
         subtitle: 'Impressed Now?',
         power: 4,
