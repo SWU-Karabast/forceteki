@@ -18,6 +18,7 @@ export default class ArihndaPryceOnTheRoadToPower extends NonLeaderUnitCard {
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
+                cardCondition: (card, context) => card !== context.source,
                 immediateEffect: abilityHelper.immediateEffects.defeat(),
             },
             ifYouDo: {
