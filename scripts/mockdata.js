@@ -228,6 +228,73 @@ const mockCards = [
         unique: false,
         internalName: 'grassroots-resistance',
     }),
+    buildMockCard({
+        title: 'Trade Federation Delegates',
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['republic', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 191
+        },
+        cost: 5,
+        unique: false,
+        arena: 'ground',
+        internalName: 'trade-federation-delegates',
+    }),
+    buildMockCard({
+        title: 'No One Ever Knew',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'SEC',
+            number: 196
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'no-one-ever-knew',
+    }),
+    buildMockCard({
+        title: 'Synara San',
+        subtitle: 'Harboring a Secret',
+        power: 7,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 225
+        },
+        cost: 7,
+        unique: true,
+        arena: 'ground',
+        internalName: 'synara-san#harboring-a-secret',
+    }),
+    buildMockCard({
+        title: 'Sly Moore',
+        subtitle: 'Cipher In The Dark',
+        power: 3,
+        hp: 6,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['leader'],
+        traits: ['force', 'imperial', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 14
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sly-moore#cipher-in-the-dark',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
