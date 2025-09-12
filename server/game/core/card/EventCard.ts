@@ -18,15 +18,17 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IBasicAbilityRegistrar, IEventAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { GameObjectRef } from '../GameObjectBase';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
+import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 
 // STATE TODO: This needs the eventAbility to be converted to state.
-const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard<IEventCardState>));
+const EventCardParent = WithCost(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard<IEventCardState>)));
 
 export interface IEventCardState extends IPlayableOrDeployableCardState {
     eventAbility: GameObjectRef<EventAbility>;
 }
 
-export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeControllers, ICardWithCostProperty {
+export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeControllers, ICardWithCostProperty, ICardWithTriggeredAbilities<EventCard> {
     getEventAbility(): EventAbility;
 }
 

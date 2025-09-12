@@ -30,7 +30,7 @@ export interface IPlayCardActionPropertiesBase {
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
-    playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay;
+    playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay | PlayType.Plot;
 }
 
 export interface IAlternatePlayActionProperties extends IPlayCardActionPropertiesBase {
@@ -126,6 +126,9 @@ export abstract class PlayCardAction extends PlayerAction {
             case PlayType.Piloting:
                 updatedTitle += appendToTitle ? ' with Piloting' : '';
                 break;
+            case PlayType.Plot:
+                updatedTitle += appendToTitle ? ' with Plot' : '';
+                break;
             case PlayType.Smuggle:
                 updatedTitle += appendToTitle ? ' with Smuggle' : '';
                 break;
@@ -162,6 +165,9 @@ export abstract class PlayCardAction extends PlayerAction {
         }
         if (PlayType.Piloting === this.playType && !context.source.hasSomeKeyword(KeywordName.Piloting)) {
             return 'pilotingKeyword';
+        }
+        if (PlayType.Plot === this.playType && !context.source.hasSomeKeyword(KeywordName.Plot)) {
+            return 'plotKeyword';
         }
         if (PlayType.Smuggle === this.playType && !context.source.hasSomeKeyword(KeywordName.Smuggle)) {
             return 'smuggleKeyword';
