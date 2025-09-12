@@ -127,9 +127,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         const availableCardPlayActions = properties.playType === PlayType.PlayFromOutOfPlay
             ? card.getPlayCardFromOutOfPlayActions(overrideProperties)
-            : properties.playType === PlayType.Plot
-                ? card.getPlayCardWithPlotActions(overrideProperties)
-                : card.getPlayCardActions(overrideProperties);
+            : card.getPlayCardActions(overrideProperties);
 
         // filter out actions that don't match the expected playType or aren't legal in the current play context (e.g. can't be paid for)
         return availableCardPlayActions.filter((action) => {
@@ -142,7 +140,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     private checkActionPlayType(playType: PlayType, actionPlayType: PlayType): boolean {
         if (playType === actionPlayType) {
             return true;
-        } else if (playType !== PlayType.Smuggle && actionPlayType === PlayType.Piloting) {
+        } else if (playType !== PlayType.Smuggle && playType !== PlayType.Plot && actionPlayType === PlayType.Piloting) {
             return true;
         }
         return false;

@@ -53,7 +53,6 @@ export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty, ICa
 export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
     getPlayCardActions(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction[];
     getPlayCardFromOutOfPlayActions(propertyOverrides?: IPlayCardActionOverrides);
-    getPlayCardWithPlotActions(propertyOverrides?: IPlayCardActionOverrides);
     buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
 }
 
@@ -116,6 +115,10 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
             }
         }
 
+        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Plot)) {
+            playCardActions = this.buildPlayCardActions(PlayType.Plot, propertyOverrides);
+        }
+
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             playCardActions = this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
         }
@@ -149,23 +152,6 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         if (this.hasSomeKeyword(KeywordName.Piloting)) {
             playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
         }
-
-        return playCardActions;
-    }
-
-    /**
-     * Get the available "play card" actions for this Plot card in the resource zone.
-     * This will generate an action to play the card from resources even if it would normally not have one available.
-     *
-     * If `propertyOverrides` is provided, will generate the actions using the included overrides.
-     */
-    public getPlayCardWithPlotActions(propertyOverrides: IPlayCardActionOverrides = null) {
-        Contract.assertFalse(
-            this.zoneName !== ZoneName.Resource,
-            `Attempting to get "play Plot from resource" actions for card ${this.internalName} in invalid zone: ${this.zoneName}`
-        );
-
-        const playCardActions = this.buildPlayCardActions(PlayType.Plot, propertyOverrides);
 
         return playCardActions;
     }
