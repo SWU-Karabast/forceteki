@@ -247,6 +247,64 @@ describe('Padmé Amidala, What Do You Have To Hide?', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('does not trigger if an opppoent reveals a card from hand from their own effect', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'padme-amidala#what-do-you-have-to-hide',
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['salvage', 'isb-agent']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 2 ISB Agent to reveal an event from hand
+                context.player2.clickCard(context.isbAgent);
+                context.player2.clickCard(context.salvage);
+
+                // Card is revealed to opponent
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.salvage]);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickDone();
+
+                // Deal 1 damage to a unit from ISB Agent's ability
+                expect(context.player2).toHavePrompt('Deal 1 damage to a unit');
+                context.player2.clickCard(context.isbAgent);
+                expect(context.isbAgent.damage).toBe(1);
+
+                // Padmé's ability does not trigger, it is now Player 1's turn
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('does not trigger if an opponent reveals a card from hand from an enemy effect', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'padme-amidala#what-do-you-have-to-hide', deployed: true },
+                        spaceArena: ['chimaera#flagship-of-the-seventh-fleet']
+                    },
+                    player2: {
+                        hand: ['death-star-stormtrooper']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 1 attacks with Chimaera to reveal Player 2's hand
+                context.player1.clickCard(context.chimaera);
+                context.player1.clickCard(context.p2Base);
+                context.player1.chooseListOption('Favorable Delegate'); // Not a card in hand
+
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.deathStarStormtrooper]);
+                context.player1.clickDone();
+
+                // Padmé's ability does not trigger, it is now Player 2's turn
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('works if cards are revealed from Disclose abilities', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

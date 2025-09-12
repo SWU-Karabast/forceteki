@@ -17,7 +17,7 @@ export default class PadmeAmidalaWhatDoYouHaveToHide extends LeaderUnitCard {
             title: 'Exhaust Padmé Amidala to deal 1 damage to a unit',
             optional: true,
             collectiveTrigger: true,
-            when: this.triggerCondition(),
+            when: this.buildTriggerCondition(),
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: {
                 title: 'Deal 1 damage to a unit',
@@ -35,7 +35,7 @@ export default class PadmeAmidalaWhatDoYouHaveToHide extends LeaderUnitCard {
             title: 'Deal 1 damage to a unit',
             optional: true,
             collectiveTrigger: true,
-            when: this.triggerCondition(),
+            when: this.buildTriggerCondition(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: WildcardZoneName.AnyArena,
@@ -44,7 +44,7 @@ export default class PadmeAmidalaWhatDoYouHaveToHide extends LeaderUnitCard {
         });
     }
 
-    private triggerCondition(): WhenTypeOrStandard<LeaderUnitCard> {
+    private buildTriggerCondition(): WhenTypeOrStandard<LeaderUnitCard> {
         return {
             onCardDiscarded: (event, context) =>
                 event.card.owner === context.player &&
