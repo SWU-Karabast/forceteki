@@ -161,7 +161,6 @@ export enum StandardTriggeredAbilityType {
     OnAttack = 'onAttack',
     WhenDefeated = 'whenDefeated',
     WhenPlayed = 'whenPlayed',
-    WhenPlayedUsingPlot = 'whenPlayedUsingPlot', // TODO: this might not be needed but my intuitiion says it will
     WhenPlayedUsingSmuggle = 'whenPlayedUsingSmuggle',
 }
 
