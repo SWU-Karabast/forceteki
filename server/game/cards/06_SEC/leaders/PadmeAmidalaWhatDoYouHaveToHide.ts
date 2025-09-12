@@ -7,7 +7,7 @@ import type { WhenTypeOrStandard } from '../../../Interfaces';
 export default class PadmeAmidalaWhatDoYouHaveToHide extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'padme-amidala#what-do-you-have-to-hide-id',
+            id: '3399415368',
             internalName: 'padme-amidala#what-do-you-have-to-hide',
         };
     }
