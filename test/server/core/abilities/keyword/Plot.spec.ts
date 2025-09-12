@@ -72,6 +72,29 @@ describe('Plot keyword', function() {
 
             // TODO: add an event test
 
+            it('Plot should work even if there is no card to replace it with from the deck', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cal-kestis#i-cant-keep-hiding',
+                        resources: ['sneaking-suspicion', 'wampa', 'wampa', 'wampa'],
+                        deck: []
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.calKestis);
+                context.player1.clickPrompt('Deploy Cal Kestis');
+                expect(context.player1).toHavePassAbilityPrompt('Play Sneaking Suspicion using Plot');
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.calKestis]);
+                context.player1.clickCard(context.calKestis);
+                expect(context.sneakingSuspicion).toBeAttachedTo(context.calKestis);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should resolve triggers from each card as they are played', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
