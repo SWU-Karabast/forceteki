@@ -25,7 +25,7 @@ export default class MonMothmaClingingToHope extends NonLeaderUnitCard {
         return {
             optional: true,
             targetResolver: {
-                activePromptTitle: 'Attack with a unit even if it is exhausted. It can\'t attack bases for these attacks',
+                activePromptTitle: 'Attack with a unit even if it is exhausted. It can\'t attack bases for this attack',
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => card !== context.source && !chosenCards.includes(card),
@@ -35,7 +35,7 @@ export default class MonMothmaClingingToHope extends NonLeaderUnitCard {
                 })
             },
             then: (context) => ({
-                title: 'Attack with a unit even if it is exhausted. It can\'t attack bases for these attacks',
+                title: 'Attack with a unit even if it is exhausted. It can\'t attack bases for this attack',
                 ...this.attackWithUnitAbility([...chosenCards, context.target], AbilityHelper),
             }),
         };

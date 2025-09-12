@@ -61,7 +61,7 @@ describe('Mon Mothma, Clinging to Hope', function () {
 
                 context.player1.clickCard(context.monMothma);
 
-                expect(context.player1).toHavePrompt('Attack with a unit even if it is exhausted. It can\'t attack bases for these attacks');
+                expect(context.player1).toHavePrompt('Attack with a unit even if it is exhausted. It can\'t attack bases for this attack');
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.theMandalorian, context.wampa]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Pass');
