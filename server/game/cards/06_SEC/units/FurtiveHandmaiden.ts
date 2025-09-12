@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class FurtiveHandmaiden extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'furtive-handmaiden-id',
+            id: '7125768467',
             internalName: 'furtive-handmaiden',
         };
     }

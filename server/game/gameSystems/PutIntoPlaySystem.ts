@@ -54,7 +54,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             return false;
         } else if (
             card.zoneName === ZoneName.Resource &&
-            !(context.playType === PlayType.Smuggle || context.playType === PlayType.PlayFromOutOfPlay)
+            !(context.playType === PlayType.Smuggle || context.playType === PlayType.PlayFromOutOfPlay || context.playType === PlayType.Plot)
         ) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {

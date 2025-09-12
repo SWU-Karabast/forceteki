@@ -140,7 +140,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     private checkActionPlayType(playType: PlayType, actionPlayType: PlayType): boolean {
         if (playType === actionPlayType) {
             return true;
-        } else if (playType !== PlayType.Smuggle && actionPlayType === PlayType.Piloting) {
+        } else if (playType !== PlayType.Smuggle && playType !== PlayType.Plot && actionPlayType === PlayType.Piloting) {
             return true;
         }
         return false;

@@ -1,4 +1,5 @@
 import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
+import { PlotAbility } from '../../../abilities/keyword/PlotAbility';
 import type { IAbilityPropsWithSystems, IConstantAbilityProps, IOngoingEffectGenerator, NumericKeywordName } from '../../../Interfaces';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
@@ -83,6 +84,14 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
         // this class is for all card types other than Base
         Contract.assertFalse(this.printedType === CardType.Base);
+
+        // Register Plot keyword
+        if (this.hasSomeKeyword(KeywordName.Plot)) {
+            const plotProps = Object.assign(this.buildGeneralAbilityProps('keyword_plot'), PlotAbility.buildPlotAbilityProperties(this.title));
+            const plotAbility = this.createTriggeredAbility(plotProps);
+            plotAbility.registerEvents();
+            this.state.triggeredAbilities.push(plotAbility.getRef());
+        }
     }
 
     public override getActions(): PlayerOrCardAbility[] {
@@ -106,8 +115,12 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
             }
         }
 
+        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Plot)) {
+            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Plot, propertyOverrides));
+        }
+
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            playCardActions = this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
+            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides));
         }
 
         if (this.zoneName === ZoneName.Discard) {

@@ -214,6 +214,7 @@ export type IKeywordProperties =
   | IHiddenKeywordProperties
   | IOverwhelmKeywordProperties
   | IPilotingKeywordProperties
+  | IPlotKeywordProperties
   | IRaidKeywordProperties
   | IRestoreKeywordProperties
   | ISaboteurKeywordProperties
@@ -437,6 +438,10 @@ interface IOverwhelmKeywordProperties extends IKeywordPropertiesBase {
 
 interface IPilotingKeywordProperties extends IKeywordWithCostProperties {
     keyword: KeywordName.Piloting;
+}
+
+interface IPlotKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Plot;
 }
 
 interface IRaidKeywordProperties extends INumericKeywordProperties {
