@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class MaarvaAndorWeveBeenSleeping extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'maarva-andor#weve-been-sleeping-id',
+            id: '0390492118',
             internalName: 'maarva-andor#weve-been-sleeping',
         };
     }

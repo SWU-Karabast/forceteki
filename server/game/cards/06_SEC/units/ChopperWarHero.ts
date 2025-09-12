@@ -6,7 +6,7 @@ import { DamageType } from '../../../core/Constants';
 export default class ChopperWarHero extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'chopper#war-hero-id',
+            id: '4136536221',
             internalName: 'chopper#war-hero',
         };
     }

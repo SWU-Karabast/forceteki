@@ -57,6 +57,7 @@ export enum PlayType {
     Piloting = 'piloting',
     PlayFromHand = 'playFromHand',
     PlayFromOutOfPlay = 'playFromOutOfPlay',
+    Plot = 'plot',
     Smuggle = 'smuggle',
 }
 

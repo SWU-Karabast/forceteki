@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName } from '../core/Constants';
+import { EventName, PlayType } from '../core/Constants';
 import type { ICost, ICostResult } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
@@ -72,7 +72,11 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
             context.costs.resources = amount;
 
             event.context.player.markUsedAdjusters(context.playType, event.context.source, context, event.context.target);
-            event.context.player.exhaustResources(amount);
+            let priorityExhaustList = [];
+            if (context.playType === PlayType.Plot) {
+                priorityExhaustList = priorityExhaustList.concat(event.context.source);
+            }
+            event.context.player.exhaustResources(amount, priorityExhaustList);
 
             if (this.afterPayHook) {
                 this.afterPayHook(event);

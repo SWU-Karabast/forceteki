@@ -72,6 +72,7 @@ export function keywordFromProperties(properties: IKeywordProperties, card: Card
         case KeywordName.Grit:
         case KeywordName.Hidden:
         case KeywordName.Overwhelm:
+        case KeywordName.Plot:
         case KeywordName.Saboteur:
         case KeywordName.Sentinel:
         case KeywordName.Shielded:
