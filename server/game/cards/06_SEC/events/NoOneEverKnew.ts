@@ -17,7 +17,7 @@ export default class NoOneEverKnew extends EventCard {
             targetResolver: {
                 mode: TargetMode.ExactlyVariable,
                 cardTypeFilter: WildcardCardType.Unit,
-                numCardsFunc: (context) => context.player.getArenaUnits({ trait: Trait.Official }).length,
+                numCardsFunc: (context) => Math.min(context.player.getArenaUnits({ trait: Trait.Official }).length, context.player.opponent.getArenaUnits().length),
                 controller: RelativePlayer.Opponent,
                 immediateEffect: abilityHelper.immediateEffects.exhaust()
             },
