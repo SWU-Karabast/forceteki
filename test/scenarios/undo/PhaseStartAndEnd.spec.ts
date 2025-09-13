@@ -355,6 +355,30 @@ describe('Start / end of phase snapshots', function() {
                 assertRegroupPhaseRaiderDefeatedState(context);
             });
 
+            it('should create a quick rollback point for the first prompted player, available at the next timepoint, which can be rolled back through', function () {
+                const { context } = contextRef;
+
+                completeRuthlessRaiderActions(context);
+
+                const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult1).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfRegroupPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfRegroupPhaseActionId);
+
+                const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult2).toBeTrue();
+
+                // should be at last step in the action phase now
+                expect(context.game.currentPhase).toBe('action');
+            });
+
             it('should create a quick rollback point for the second prompted player, available at the next timepoint, which repeats the actions for both players', function () {
                 const { context } = contextRef;
 
@@ -577,6 +601,38 @@ describe('Start / end of phase snapshots', function() {
                     expect(context.player1).toBeActivePlayer();
                 });
 
+                it('should create a quick snapshot for the prompted player which can be rolled back through', function () {
+                    const { context } = contextRef;
+
+                    // roll back to first action of phase
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    // roll back to thrawn1 prompt
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    // roll back to resourcing
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult3).toBeTrue();
+
+                    expect(context.game.currentPhase).toBe('regroup');
+                    context.player1.clickDone();
+                    context.player2.clickDone();
+
+                    // done for Thrawn1 prompt
+                    context.player1.clickDone();
+                });
+
                 it('should not create a quick snapshot for the non-prompted player', function () {
                     const { context } = contextRef;
 
@@ -629,24 +685,24 @@ describe('Start / end of phase snapshots', function() {
                 context.player2.clickDone();
             });
 
-            // it('during the prompt, should roll back to the resource snapshot on undo', function () {
-            //     const { context } = contextRef;
+            it('during the prompt, should roll back to the resource snapshot on undo', function () {
+                const { context } = contextRef;
 
-            //     // quick rollback for player1
-            //     const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
-            //         type: 'quick',
-            //         playerId: context.player1.id
-            //     });
-            //     expect(rollbackResult).toBeTrue();
+                // quick rollback for player1
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult).toBeTrue();
 
-            //     expect(context.game.currentPhase).toBe('regroup');
+                expect(context.game.currentPhase).toBe('regroup');
 
-            //     // proceed back to action phase and Thrawn1 prompt
-            //     context.player1.clickDone();
-            //     context.player2.clickDone();
+                // proceed back to action phase and Thrawn1 prompt
+                context.player1.clickDone();
+                context.player2.clickDone();
 
-            //     expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
-            // });
+                expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
+            });
 
             describe('after the effect prompt has finished,', function () {
                 beforeEach(function () {
@@ -680,6 +736,38 @@ describe('Start / end of phase snapshots', function() {
                     expect(context.millenniumFalcon).toBeInZone('spaceArena');
                     expect(context.player1.exhaustedResourceCount).toBe(1);
                     expect(context.player1).toBeActivePlayer();
+                });
+
+                it('should create a quick snapshot for the prompted player that can be rolled back again', function () {
+                    const { context } = contextRef;
+
+                    // roll back to Falcon prompt
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.endOfPhaseSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.endOfPhaseActionId);
+                    expect(context.game.currentPhase).toBe('regroup');
+
+                    expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
+
+                    // roll back to Falcon prompt
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    expect(context.game.currentPhase).toBe('regroup');
+
+                    // proceed back to action phase and Thrawn1 prompt
+                    context.player1.clickDone();
+                    context.player2.clickDone();
+
+                    expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
                 });
 
                 it('should not create a quick snapshot for the non-prompted player', function () {

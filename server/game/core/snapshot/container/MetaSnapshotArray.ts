@@ -24,6 +24,14 @@ export class MetaSnapshotArray {
         clearNewerSnapshotsBinding.clearNewerSnapshots = (snapshotId: number) => this.clearNewerSnapshots(snapshotId);
     }
 
+    public getMostRecentSnapshotId(): number | null {
+        if (this.entries.length === 0) {
+            return null;
+        }
+
+        return this.entries[this.entries.length - 1].snapshotId;
+    }
+
     public rollbackToSnapshot(rollbackPoint: QuickRollbackPoint): number | null {
         Contract.assertNonEmpty(this.entries, 'Attempting to quick rollback with no snapshots available');
 

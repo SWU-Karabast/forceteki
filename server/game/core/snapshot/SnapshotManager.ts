@@ -254,13 +254,6 @@ export class SnapshotManager {
 
         const currentOpenPrompt = this.game.getCurrentOpenPrompt();
 
-        if (this.currentSnapshottedTimepoint === SnapshotTimepoint.StartOfPhase && this.currentSnapshottedPhase === PhaseName.Action) {
-            // we're in a prompt at the start of the action phase, new quick snapshot hasn't been taken yet so rolling back to 'current'
-            // will actually be rolling back a step.
-            // TODO: this definitely could be improved, see comments in PhaseStartAndEnd.spec.ts
-            return QuickRollbackPoint.Current;
-        }
-
         // if we're currently in resource selection and the player has already clicked "done", we'll roll back to start of resource selection
         if (
             this.game.currentPhase === PhaseName.Regroup &&
@@ -275,6 +268,15 @@ export class SnapshotManager {
 
         // if we're in the middle of an action, revert to start of action
         if (this.currentSnapshottedTimepoint === SnapshotTimepoint.Action && playerPromptType !== PromptType.ActionWindow) {
+            return QuickRollbackPoint.Current;
+        }
+
+        // if we're at a step that doesn't normally have a snapshot and we haven't already taken a snapshot for this timepoint, the previous one will still be "Current"
+        // TODO: this issue makes bookkeeping confusing, is there a better way we could handle the Current / Previous distinction
+        if (
+            [SnapshotTimepoint.RegroupReadyCards, SnapshotTimepoint.StartOfPhase, SnapshotTimepoint.EndOfPhase].includes(this.currentSnapshottedTimepoint) &&
+            this.quickSnapshots.get(playerId)?.getMostRecentSnapshotId() < this.currentSnapshotId
+        ) {
             return QuickRollbackPoint.Current;
         }
 
