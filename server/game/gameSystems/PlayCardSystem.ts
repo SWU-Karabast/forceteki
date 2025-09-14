@@ -125,9 +125,23 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         const overrideProperties = this.buildPlayActionProperties(card, properties, context);
 
-        const availableCardPlayActions = properties.playType === PlayType.PlayFromOutOfPlay
-            ? card.getPlayCardFromOutOfPlayActions(overrideProperties)
-            : card.getPlayCardActions(overrideProperties);
+        let availableCardPlayActions: PlayCardAction[] = [];
+
+        switch (properties.playType) {
+            case PlayType.PlayFromOutOfPlay:
+                availableCardPlayActions = card.getPlayCardFromOutOfPlayActions(overrideProperties);
+                break;
+            case PlayType.Plot:
+                availableCardPlayActions = [card.getPlayCardWithPlotAction(overrideProperties)];
+                break;
+            case PlayType.Piloting:
+            case PlayType.PlayFromHand:
+            case PlayType.Smuggle:
+                availableCardPlayActions = card.getPlayCardActions(overrideProperties);
+                break;
+            default:
+                Contract.fail(`Unknown play type ${properties.playType}`);
+        }
 
         // filter out actions that don't match the expected playType or aren't legal in the current play context (e.g. can't be paid for)
         return availableCardPlayActions.filter((action) => {
