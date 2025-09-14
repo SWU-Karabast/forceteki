@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { Aspect, TargetMode, WildcardCardType } from '../../../core/Constants';
 import * as Helpers from '../../../core/utils/Helpers';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
