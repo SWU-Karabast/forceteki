@@ -1118,7 +1118,14 @@ export class Lobby {
                 player1KarabastStatus.type = StatsSaveStatus.Warning;
                 player2KarabastStatus.message = 'stats not updated due to game ending before round 2';
                 player2KarabastStatus.type = StatsSaveStatus.Warning;
-                // so we throw here?
+                if (player1SwuStatsStatus) {
+                    player1SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
+                    player1SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
+                if (player2SwuStatsStatus) {
+                    player2SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
+                    player2SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
                 logger.info('stats not updated due to game ending before round 2', { lobbyId: this.id });
                 return;
             }
