@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class IAmTheSenate extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'i-am-the-senate-id',
+            id: '6814804824',
             internalName: 'i-am-the-senate',
         };
     }

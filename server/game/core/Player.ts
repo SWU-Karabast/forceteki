@@ -51,6 +51,7 @@ import { logger } from '../../logger';
 import { StandardActionTimer } from './actionTimer/StandardActionTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
 import { PlayerTimeRemainingStatus, type IActionTimer } from './actionTimer/IActionTimer';
+import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -67,7 +68,7 @@ export interface IPlayerState extends IGameObjectState {
     costAdjusters: GameObjectRef<CostAdjuster>[];
 }
 
-export class Player extends GameObject<IPlayerState> {
+export class Player extends GameObject<IPlayerState> implements IGameStatisticsTrackable {
     public user: IUser;
     public printedType: string;
     // TODO: INCOMPLETE
@@ -130,11 +131,11 @@ export class Player extends GameObject<IPlayerState> {
     }
 
     public get allCards() {
-        return this.state.decklist.allCards.map(this.game.getFromRef);
+        return this.state.decklist.allCards.map((x) => this.game.getFromRef(x));
     }
 
     public get tokens() {
-        return this.state.decklist.tokens.map(this.game.getFromRef);
+        return this.state.decklist.tokens.map((x) => this.game.getFromRef(x));
     }
 
     public get autoSingleTarget() {
@@ -147,6 +148,10 @@ export class Player extends GameObject<IPlayerState> {
 
     public get promptState() {
         return this._promptState;
+    }
+
+    public get trackingId(): string {
+        return this.id;
     }
 
     private canTakeActionsThisPhase: null;
@@ -712,6 +717,7 @@ export class Player extends GameObject<IPlayerState> {
             new PlayableZone(PlayType.PlayFromHand, this.handZone),
             new PlayableZone(PlayType.Piloting, this.handZone),
             new PlayableZone(PlayType.Smuggle, this.resourceZone),
+            new PlayableZone(PlayType.Plot, this.resourceZone),
             new PlayableZone(PlayType.Piloting, this.deckZone), // TODO: interaction with Ezra
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
             new PlayableZone(PlayType.Piloting, this.discardZone), // TODO: interactions with Fine Addition

@@ -12,6 +12,7 @@ import type { Player } from '../Player.js';
 import type { AbilityContext } from './AbilityContext.js';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
 import type Game from '../Game.js';
+import { GameCardMetric } from '../../../gameStatistics/GameStatisticsTracker.js';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
@@ -36,6 +37,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
     }
 
     public override executeHandler(context: AbilityContext) {
+        this.trackActivationMetric(context);
         this.handler(context);
         this.game.queueSimpleStep(() => this.game.resolveGameState(), 'resolveState');
     }
@@ -237,5 +239,15 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
 
     public override isCardAbilityStep(): this is CardAbilityStep {
         return true;
+    }
+
+    private trackActivationMetric(context: AbilityContext) {
+        if (this.isActionAbility()) {
+            this.game.statsTracker.trackCardMetric(
+                GameCardMetric.Activated,
+                this.card,
+                context.player
+            );
+        }
     }
 }

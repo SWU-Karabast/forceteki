@@ -3,6 +3,8 @@ import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import type Game from '../../Game';
 import * as Contract from '../../utils/Contract';
 import { DeckZoneDestination, EffectName } from '../../Constants';
+import { TriggerHandlingMode } from '../../event/EventWindow';
+import { DrawSystem } from '../../../gameSystems/DrawSystem';
 
 export class MulliganPrompt extends AllPlayerPrompt {
     protected playersDone = new Map<string, boolean>();
@@ -68,8 +70,15 @@ export class MulliganPrompt extends AllPlayerPrompt {
                 for (const card of player.hand) {
                     card.moveTo(DeckZoneDestination.DeckBottom);
                 }
+
                 player.shuffleDeck();
-                player.drawCardsToHand(player.getStartingHandSize());
+
+                new DrawSystem({ amount: player.getStartingHandSize() })
+                    .resolve(
+                        player,
+                        this.game.getFrameworkContext(),
+                        TriggerHandlingMode.ResolvesTriggers
+                    );
             }
         }
         return super.complete();

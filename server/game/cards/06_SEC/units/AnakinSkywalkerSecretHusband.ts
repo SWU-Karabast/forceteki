@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class AnakinSkywalkerSecretHusband extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'anakin-skywalker#secret-husband-id',
+            id: '3103445211',
             internalName: 'anakin-skywalker#secret-husband',
         };
     }

@@ -1,5 +1,6 @@
 import type { Card } from '../card/Card';
-import type { Aspect, CardTypeFilter } from '../Constants';
+import type { CardTypeFilter } from '../Constants';
+import type { Aspect } from '../Constants';
 import type { IRandomness } from '../Randomness';
 import { CardType, ZoneName } from '../Constants';
 import * as Contract from './Contract';
@@ -40,6 +41,26 @@ export function countUniqueAspects(cards: Card | Card[]): number {
         card.aspects.forEach((aspect) => aspects.add(aspect));
     });
     return aspects.size;
+}
+
+export function aspectString(aspects: Aspect[]): string {
+    return aspects
+        .map((aspect) => capitalize(aspect))
+        .join(', ');
+}
+
+/**
+ * Counts the occurrences of each distinct item in an array.
+ *
+ * @param array Array of items to count occurrences of items within
+ * @returns A map where the keys are the items from the array and the values are the counts of those items
+ */
+export function countOccurrences<T>(array: T[]): Map<T, number> {
+    const occurrences = new Map<T, number>();
+    array.forEach((item) => {
+        occurrences.set(item, (occurrences.get(item) || 0) + 1);
+    });
+    return occurrences;
 }
 
 export function defaultLegalZonesForCardTypeFilter(cardTypeFilter: CardTypeFilter) {

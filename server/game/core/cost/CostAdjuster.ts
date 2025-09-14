@@ -50,6 +50,9 @@ export interface ICostAdjusterPropertiesBase {
     /** Whether the cost adjuster should adjust activation costs for abilities. Defaults to false. */
     matchAbilityCosts?: boolean;
 
+    /** If the cost adjustment is related to a specific PlayType, this will ensure it only applies to that playType */
+    playType?: PlayType;
+
     /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
     attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext) => boolean;
 }
@@ -109,6 +112,7 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext, currentAmount?: number) => number);
     private readonly match?: (card: Card, adjusterSource: Card) => boolean;
     private readonly cardTypeFilter?: CardTypeFilter;
+    private readonly playType?: PlayType;
     private readonly attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
     private readonly costStage: CostStage;
     private readonly matchAbilityCosts: boolean;
@@ -141,6 +145,7 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
 
         this.match = properties.match;
         this.cardTypeFilter = properties.cardTypeFilter ?? WildcardCardType.Any;
+        this.playType = properties.playType ?? null;
         this.attachTargetCondition = properties.attachTargetCondition;
 
         this.limit = properties.limit;
@@ -163,6 +168,10 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         }
 
         if (adjustParams?.isAbilityCost && !this.matchAbilityCosts) {
+            return false;
+        }
+
+        if (this.playType && this.playType !== context.playType) {
             return false;
         }
 

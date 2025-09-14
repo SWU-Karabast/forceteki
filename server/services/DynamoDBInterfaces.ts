@@ -2,6 +2,7 @@ export interface IUserDataEntity {
     id: string;
     username: string;
     preferences?: UserPreferences;
+    swuStatsRefreshToken?: string;
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
 }

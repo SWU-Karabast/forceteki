@@ -21,6 +21,7 @@ export type ISelectCardProperties<TContext extends AbilityContext = AbilityConte
       name?: string;
       effect?: string;
       effectArgs?: (context) => string[];
+      cancelIfNoTargets?: boolean;
   };
 
 /**
@@ -85,14 +86,14 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         targetResolver.resolve(context, targetResults);
 
         context.game.queueSimpleStep(() => {
-            if (!targetResults.cancelled) {
+            if (targetResults.cancelled || (properties.cancelIfNoTargets && Helpers.asArray(context.target).length === 0)) {
+                properties.cancelHandler?.();
+            } else {
                 if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
                     this.addOnSelectEffectMessage(context, properties);
                 }
 
                 properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
-            } else {
-                properties.cancelHandler?.();
             }
         }, `Execute immediate effect for select card system "${properties.name}"`);
     }

@@ -57,6 +57,7 @@ export enum PlayType {
     Piloting = 'piloting',
     PlayFromHand = 'playFromHand',
     PlayFromOutOfPlay = 'playFromOutOfPlay',
+    Plot = 'plot',
     Smuggle = 'smuggle',
 }
 
@@ -249,6 +250,7 @@ export enum EventName {
     OnAbilityResolverInitiated = 'onAbilityResolverInitiated',
     OnActionTaken = 'onActionTaken',
     OnAddTokenToCard = 'onAddTokenToCard',
+    OnAspectsDisclosed = 'onAspectsDisclosed',
     OnAttackCompleted = 'onAttackCompleted',
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',

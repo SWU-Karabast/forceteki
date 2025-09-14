@@ -91,7 +91,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
             mustChangeGameState !== GameStateChangeRequired.None &&
             card.controller === resourceControllingPlayer &&
             card.zoneName === ZoneName.Resource &&
-            context.playType !== PlayType.Smuggle
+            context.playType !== PlayType.Smuggle && context.playType !== PlayType.Plot
         ) {
             return false;
         }

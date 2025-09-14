@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class CorruptPolitician extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'corrupt-politician-id',
+            id: '8854921497',
             internalName: 'corrupt-politician',
         };
     }
