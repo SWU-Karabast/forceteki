@@ -17,7 +17,10 @@ export class RegroupPhase extends Phase {
         Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToEndOfPhase, 'RegroupPhase does not support rolling back to the end of the phase');
 
         const resourceSteps = [];
-        if (initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase) {
+        if (
+            initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase &&
+            snapshotManager.currentSnapshottedTimepoint !== SnapshotTimepoint.RegroupReadyCards
+        ) {
             resourceSteps.push(new SimpleStep(game, () => this.drawTwo(initializeMode), 'drawTwo'));
             resourceSteps.push(new SimpleStep(game, () => this.resourcePrompt(), 'resourcePrompt'));
         }
@@ -26,7 +29,7 @@ export class RegroupPhase extends Phase {
         this.initialise(
             [
                 ...resourceSteps,
-                new SimpleStep(game, () => this.readyAllCards(), 'readyAllCards')
+                new SimpleStep(game, () => this.readyAllCards(initializeMode), 'readyAllCards')
             ],
             initializeMode
         );
@@ -53,7 +56,14 @@ export class RegroupPhase extends Phase {
         this.game.queueStep(new VariableResourcePrompt(this.game, 0, 1));
     }
 
-    private readyAllCards() {
+    private readyAllCards(initializeMode: PhaseInitializeMode) {
+        const checkTakeSnapshot = initializeMode === PhaseInitializeMode.Normal || this.snapshotManager.currentSnapshottedTimepoint !== SnapshotTimepoint.RegroupReadyCards;
+        if (checkTakeSnapshot) {
+            // reset trackers indicating if a player has been prompted
+            this.game.resetPromptedPlayersTracking();
+            this.game.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.RegroupReadyCards);
+        }
+
         const cardsToReady: ICardWithExhaustProperty[] = [];
 
         for (const player of this.game.getPlayers()) {
@@ -71,5 +81,10 @@ export class RegroupPhase extends Phase {
             .queueGenerateEventGameSteps(events, this.game.getFrameworkContext());
 
         this.game.queueSimpleStep(() => this.game.openEventWindow(events, TriggerHandlingMode.ResolvesTriggers), 'open event window for card readying effects');
+
+        if (checkTakeSnapshot) {
+            // checks if a player was prompted during the end step and if so, takes a snapshot so they can unwind to the prompt
+            this.game.queueSimpleStep(() => this.takeActionSnapshotsForPromptedPlayers(), 'takeActionSnapshotsForPromptedPlayers');
+        }
     }
 }
