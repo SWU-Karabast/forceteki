@@ -223,5 +223,28 @@ describe('Plot keyword', function() {
 
             // TODO Add a test with a Plot card in friendly resources that is owned by the opponent
         });
+
+        it('Plot cards should not be playable directly from the resource row', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'cal-kestis#i-cant-keep-hiding',
+                    resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'tala-durith#i-can-get-you-inside'],
+                },
+                player2: {
+                    leader: 'iden-versio#inferno-squad-commander',
+                    resources: 10
+                },
+            });
+
+            const { context } = contextRef;
+
+            expect(context.player1).toBeAbleToSelectExactly([context.calKestis]);
+            expect(context.talaDurith).not.toHaveAvailableActionWhenClickedBy(context.player1);
+            context.player1.passAction();
+
+            expect(context.player2).toBeAbleToSelectExactly([context.idenVersio]);
+            expect(context.talaDurith).not.toHaveAvailableActionWhenClickedBy(context.player2);
+        });
     });
 });
