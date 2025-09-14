@@ -947,7 +947,7 @@ export class Lobby {
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
 
             game.addMessage(
-                `A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue. The error has been logged. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
+                `A server error has occurred, apologies.  Your game may now be in an inconsistent state, or you may be able to continue. The error has been reported to the dev team. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
             );
 
             // send game state so that the message can be seen
