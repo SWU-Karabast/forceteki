@@ -793,7 +793,6 @@ describe('Start / end of phase snapshots', function() {
         // TODO THIS PR
         // - Any action phase +hp buff for end of action phase
         // - Actual end of regroup phase, any ideas?
-        // - Setup phase (maybe next PR?)
         // - If you are prompted for an opponent effect and want to undo the choice, need a good timepoint for that
     });
 });
