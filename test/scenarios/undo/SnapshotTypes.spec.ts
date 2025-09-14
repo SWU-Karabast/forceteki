@@ -278,6 +278,178 @@ describe('Snapshot types', function() {
                     ]);
                 });
             });
+
+            describe('quick snapshots', function () {
+                it('player 1 can revert back to before the mulligan', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    assertSetupPhaseBeforeMulliganState(context);
+
+                    const beforeMulliganHand = context.player1.hand;
+                    const beforePlayer2Hand = context.player2.hand;
+                    context.player1.clickPrompt('Mulligan');
+                    context.player2.clickPrompt('Keep');
+
+                    expect(beforeMulliganHand).not.toEqual(context.player1.hand);
+                    expect(beforePlayer2Hand).toEqual(context.player2.hand);
+                });
+
+                it('player 2 can revert back to before the mulligan', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    assertSetupPhaseBeforeMulliganState(context);
+
+                    const beforeMulliganHand = context.player1.hand;
+                    const beforePlayer2Hand = context.player2.hand;
+                    context.player1.clickPrompt('Keep');
+                    context.player2.clickPrompt('Mulligan');
+
+                    expect(beforeMulliganHand).toEqual(context.player1.hand);
+                    expect(beforePlayer2Hand).not.toEqual(context.player2.hand);
+                });
+
+                it('player 1 can revert back to before resourcing', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    assertSetupPhaseBeforeResourceState(context);
+
+                    context.player1.clickFirstCardInHand();
+                    context.player1.clickCard(context.player1.hand[1]);
+                    context.player1.clickDone();
+                    context.player2.clickFirstCardInHand();
+                    context.player2.clickCard(context.player2.hand[1]);
+                    context.player2.clickDone();
+
+                    expect(context.player1.resources.map((card) => card.internalName)).toEqual([
+                        'armed-to-the-teeth',
+                        'collections-starhopper',
+                    ]);
+                    expect(context.player2.resources.map((card) => card.internalName)).toEqual([
+                        'atst',
+                        'atst',
+                    ]);
+                });
+
+                it('player 2 can revert back to before resourcing', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    assertSetupPhaseBeforeResourceState(context);
+
+                    context.player1.clickFirstCardInHand();
+                    context.player1.clickCard(context.player1.hand[1]);
+                    context.player1.clickDone();
+                    context.player2.clickFirstCardInHand();
+                    context.player2.clickCard(context.player2.hand[1]);
+                    context.player2.clickDone();
+
+                    expect(context.player1.resources.map((card) => card.internalName)).toEqual([
+                        'armed-to-the-teeth',
+                        'collections-starhopper',
+                    ]);
+                    expect(context.player2.resources.map((card) => card.internalName)).toEqual([
+                        'atst',
+                        'atst',
+                    ]);
+                });
+
+                it('player 1 can revert back to choosing initiative player', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult3).toBeTrue();
+
+                    assertSetupPhaseStartState(context);
+
+                    // Determine the first player
+                    context.selectInitiativePlayer(context.player1);
+
+                    // Draw starting hands
+                    expect(context.player1.handSize).toBe(6);
+                    expect(context.player2.handSize).toBe(6);
+                });
+
+                it('player 2 can revert back to choosing initiative player', function () {
+                    const { context } = contextRef;
+
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    const rollbackResult3 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult3).toBeTrue();
+
+                    assertSetupPhaseStartState(context);
+
+                    // Determine the first player
+                    context.selectInitiativePlayer(context.player1);
+
+                    // Draw starting hands
+                    expect(context.player1.handSize).toBe(6);
+                    expect(context.player2.handSize).toBe(6);
+                });
+            });
         });
 
         describe('Within the setup phase,', function() {

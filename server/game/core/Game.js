@@ -243,6 +243,8 @@ class Game extends EventEmitter {
 
         this.playerHasBeenPrompted = new Map();
 
+        this.playerHasBeenPrompted = new Map();
+
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
 
@@ -1265,7 +1267,7 @@ class Game extends EventEmitter {
                 actionInitializeMode = PhaseInitializeMode.Normal;
                 break;
             default:
-                Contract.fail(`Unknown rollback entry point for action phase: ${rollbackEntryPoint}`);
+                Contract.fail(`Unknown or invalid rollback entry point for action phase: ${rollbackEntryPoint}`);
         }
 
         return [new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode)];

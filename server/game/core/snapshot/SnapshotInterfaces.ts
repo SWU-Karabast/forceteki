@@ -102,6 +102,7 @@ export enum SnapshotTimepoint {
     Mulligan = 'mulligan',
     SetupResource = 'setupResource',
     RegroupResource = 'regroupResource',
+    RegroupReadyCards = 'regroupReadyCards',
 }
 
 export interface IGameSnapshot {
