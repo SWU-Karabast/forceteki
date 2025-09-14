@@ -790,9 +790,9 @@ describe('Start / end of phase snapshots', function() {
             });
         });
 
-        // TODO THIS PR
+        // TODO
         // - Any action phase +hp buff for end of action phase
-        // - Actual end of regroup phase, any ideas?
+        // - Actual end of regroup phase (some double BHQ in the regroup phase shenanigans)
         // - If you are prompted for an opponent effect and want to undo the choice, need a good timepoint for that
     });
 });
