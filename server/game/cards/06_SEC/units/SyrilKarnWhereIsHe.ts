@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 import * as Helpers from '../../../core/utils/Helpers';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -26,7 +27,7 @@ export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
                     controllerChoice: {
                         mode: TargetMode.Select,
                         dependsOn: 'targetUnit',
-                        choosingPlayer: (context) => (context.targets.targetUnit.controller === context.player ? RelativePlayer.Self : RelativePlayer.Opponent),
+                        choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
                         choices: (context) => ({
                             [`${context.targets.targetUnit.title} takes 2 damage`]: abilityHelper.immediateEffects.damage({
                                 target: context.targets.targetUnit,

@@ -21,7 +21,7 @@ export default class BogDownInProcedure extends EventCard {
                 immediateEffect: abilityHelper.immediateEffects.exhaust()
             },
             then: (thenContext) => ({
-                title: `You may disclose ${Helpers.aspectString(aspects)}. If you do, exhaust another unit`,
+                title: `Disclose ${Helpers.aspectString(aspects)} to exhaust another unit`,
                 immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
                 ifYouDo: {
                     title: 'Exhaust another unit',

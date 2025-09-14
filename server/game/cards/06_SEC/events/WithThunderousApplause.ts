@@ -23,7 +23,7 @@ export default class WithThunderousApplause extends EventCard {
                 })
             },
             then: (thenContext) => ({
-                title: `You may disclose ${Helpers.aspectString(aspects)}. If you do, give another unit +2/+2 for this phase`,
+                title: `Disclose ${Helpers.aspectString(aspects)} to give another unit +2/+2 for this phase`,
                 immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
                 ifYouDo: {
                     title: 'Give another unit +2/+2 for this phase',
