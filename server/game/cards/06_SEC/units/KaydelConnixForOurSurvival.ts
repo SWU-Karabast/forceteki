@@ -14,7 +14,7 @@ export default class KaydelConnixForOurSurvival extends NonLeaderUnitCard {
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'You may defeat all non-unique upgrades on a unit',
+            title: 'Defeat all non-unique upgrades on a unit',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

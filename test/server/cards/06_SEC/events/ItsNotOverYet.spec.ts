@@ -1,6 +1,6 @@
 describe('It\'s Not Over Yet', function () {
     integration(function (contextRef) {
-        it('ready a unit that didn\'t attack or enter this phase, then create a Spy token', async function () {
+        it('It\'s Not Over Yet\'s ability ready a unit that didn\'t attack or enter this phase and create a Spy token', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -52,7 +52,7 @@ describe('It\'s Not Over Yet', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('may pass the optional ability; no unit is readied and no Spy is created', async function () {
+        it('It\'s Not Over Yet\'s ability may pass the ready ability but create a Spy token', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
