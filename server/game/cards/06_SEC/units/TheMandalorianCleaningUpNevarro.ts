@@ -15,13 +15,14 @@ export default class TheMandalorianCleaningUpNevarro extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Capture an enemy non-leader unit',
+            optional: true,
             when: {
                 onCardDefeated: (event, context) =>
                     event.isDefeatedByAttacker && DefeatCardSystem.defeatSourceCard(event) === context.source
             },
             targetResolver: {
                 activePromptTitle: 'Choose a non-Leader unit',
-                mode: TargetMode.UpTo,
+                mode: TargetMode.Exactly,
                 canChooseNoCards: true,
                 numCards: 1,
                 controller: RelativePlayer.Opponent,

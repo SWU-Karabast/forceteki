@@ -26,7 +26,6 @@ describe('The Mandalorian, Cleaning Up Nevarro', function() {
                 expect(context.theMandalorianCleaningUpNevarro.damage).toBe(4);
                 expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.atst, context.atatSuppressor]);
                 context.player1.clickCard(context.mandalorianWarrior);
-                context.player1.clickPrompt('Done');
                 expect(context.mandalorianWarrior).toBeCapturedBy(context.theMandalorianCleaningUpNevarro);
             });
 
@@ -128,7 +127,6 @@ describe('The Mandalorian, Cleaning Up Nevarro', function() {
                 expect(context.theMandalorianCleaningUpNevarro.damage).toBe(0);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickPrompt('Done');
                 expect(context.battlefieldMarine).toBeCapturedBy(context.theMandalorianCleaningUpNevarro);
             });
         });
