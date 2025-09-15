@@ -1910,5 +1910,50 @@ describe('Undo', function() {
                 ]);
             });
         });
+
+        describe('Rollback confirmation', function() {
+            undoIt('should not require confirmation to rollback if no randomness or new information was revealed', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['jar-jar-binks#foolish-gungan'],
+                        spaceArena: ['republic-arc170']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'atst'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.republicArc170);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
+            });
+
+            undoIt('should require confirmation to rollback after random selection', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['jar-jar-binks#foolish-gungan'],
+                        spaceArena: ['republic-arc170']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'atst'],
+                        spaceArena: ['restored-arc170']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.game.setRandomSeed('khgfk');
+
+                context.player1.clickCard(context.jarJarBinks);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+            });
+        });
     });
 });

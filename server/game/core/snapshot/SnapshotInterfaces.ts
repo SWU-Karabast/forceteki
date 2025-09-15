@@ -93,6 +93,7 @@ export interface ISnapshotProperties {
     actionNumber: number;
     currentPhase: PhaseName;
     snapshotId: number;
+    requiresConfirmationToRollback: boolean;
 }
 
 export enum SnapshotTimepoint {
@@ -116,6 +117,8 @@ export interface IGameSnapshot {
     gameState: Buffer;
     states: Buffer;
     rngState: IRandomness['rngState'];
+
+    requiresConfirmationToRollback: boolean;
 }
 
 export interface IGameState {
