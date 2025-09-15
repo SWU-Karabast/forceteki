@@ -336,6 +336,7 @@ export class SnapshotManager {
             case SnapshotTimepoint.EndOfPhase:
                 switch (this.currentSnapshottedPhase) {
                     case PhaseName.Setup:
+                        // TODO: add this error to the point when we would _take_ the snapshot so it will come up in testing
                         throw new Error('Rolling back to end of setup phase is not supported (no currently implemented card has end-of-setup-phase effects)');
                     case PhaseName.Action:
                         return {

@@ -1263,6 +1263,9 @@ class Game extends EventEmitter {
             case RollbackRoundEntryPoint.WithinActionPhase:
                 actionInitializeMode = PhaseInitializeMode.RollbackToWithinPhase;
                 break;
+            case RollbackRoundEntryPoint.EndOfActionPhase:
+                actionInitializeMode = PhaseInitializeMode.RollbackToEndOfPhase;
+                break;
             case null:
                 actionInitializeMode = PhaseInitializeMode.Normal;
                 break;

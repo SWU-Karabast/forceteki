@@ -664,7 +664,7 @@ describe('Start / end of phase snapshots', function() {
             });
         });
 
-        describe('Effects at the end of the regroup phase,', function () {
+        describe('Effects at the \'ready cards\' step of the regroup phase,', function () {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -786,6 +786,89 @@ describe('Start / end of phase snapshots', function() {
 
                     context.player1.clickDone();
                     context.player2.clickDone();
+                });
+            });
+        });
+
+        describe('Effects at the end of the action phase', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['tactical-advantage'],
+                        spaceArena: ['onyx-squadron-brute'],
+                        base: { card: 'chopper-base', damage: 5 }
+                    },
+                    player2: {
+                        hand: ['open-fire']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Buff Brute with Tactical Advantage
+                context.player1.clickCard(context.tacticalAdvantage);
+                context.player1.clickCard(context.onyxSquadronBrute);
+
+                context.player2.clickCard(context.openFire);
+                context.player2.clickCard(context.onyxSquadronBrute);
+
+                // end the phase, Brute trigger happens when it's defeated
+                context.player1.passAction();
+                context.player2.passAction();
+            });
+
+            const assertActionPhaseEndState = (context) => {
+                // right now the phase is technically 'null' during the end-of-phase step
+                expect(context.game.currentPhase).toBeNull();
+                expect(context.onyxSquadronBrute).toBeInZone('discard');
+                expect(context.p1Base.damage).toBe(5);
+            };
+
+            // const assertRegroupPhaseStartState = (context) => {
+            //     expect(context.game.currentPhase).toBe('regroup');
+            //     expect(context.ruthlessRaider).toBeInZone('discard');
+            //     expect(context.p2Base.damage).toBe(2);
+            //     expect(context.greenSquadronAwing.damage).toBe(2);
+            // };
+
+            // const assertRegroupPhaseRaiderDefeatedState = (context) => {
+            //     expect(context.game.currentPhase).toBe('regroup');
+            //     expect(context.ruthlessRaider).toBeInZone('discard');
+            //     expect(context.p2Base.damage).toBe(4);
+            //     expect(context.greenSquadronAwing).toBeInZone('discard');
+            // };
+
+            describe('after the effect prompt has finished,', function () {
+                beforeEach(function () {
+                    const { context } = contextRef;
+
+                    context.endOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.endOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    // choose p1 base for healing
+                    context.player1.clickCard(context.p1Base);
+                });
+
+                it('should create a quick snapshot for the prompted player', function () {
+                    const { context } = contextRef;
+
+                    // roll back Brute prompt
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.endOfPhaseSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.endOfPhaseActionId);
+                    assertActionPhaseEndState(context);
+
+                    // choose p1 base for healing
+                    context.player1.clickCard(context.p1Base);
+                    expect(context.p1Base.damage).toBe(3);
+
+                    expect(context.player1).toBeActivePlayer();
                 });
             });
         });
