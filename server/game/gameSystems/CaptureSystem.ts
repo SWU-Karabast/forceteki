@@ -33,6 +33,10 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
             return false;
         }
 
+        if (!properties.captor.isInPlay() || !properties.captor.isUnit()) {
+            return false;
+        }
+
         return super.canAffectInternal(card, context);
     }
 
