@@ -73,7 +73,9 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     protected endPhase(initializeMode: PhaseInitializeMode): void {
-        const checkTakeSnapshot = initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase;
+        // TODO: we haven't implemented end of setup or regroup phases yet
+        const checkTakeSnapshot = initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase && this.name === PhaseName.Action;
+
         if (checkTakeSnapshot) {
             // reset trackers indicating if a player has been prompted
             this.game.resetPromptedPlayersTracking();
