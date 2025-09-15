@@ -1,4 +1,3 @@
-
 describe('Punishing One, Takes No Prisoners', function() {
     integration(function(contextRef) {
         it('Punishing One\'s when played ability should optionally deal 1 damage to a unit', async function () {
@@ -69,6 +68,43 @@ describe('Punishing One, Takes No Prisoners', function() {
             context.player1.clickCard(context.wampa);
 
             expect(context.p2Base.damage).toBe(5); // 3 + raid 2
+        });
+
+        it('Punishing One\'s should gain Raid 1 for each damaged enemy unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['battlefield-marine'],
+                    spaceArena: [{ card: 'punishing-one#takes-no-prisoners', damage: 1 }]
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    spaceArena: [{ card: 'green-squadron-awing', damage: 1 }]
+                }
+            });
+            const { context } = contextRef;
+
+            // attack with punishing one, 1 enemy unit are damaged, should have raid 1
+            context.player1.clickCard(context.punishingOne);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Pass');
+
+            expect(context.p2Base.damage).toBe(4);
+
+            // reset
+            context.readyCard(context.punishingOne);
+            context.setDamage(context.p2Base, 0);
+
+            // attack with wampa, it will be damaged
+            context.player2.clickCard(context.wampa);
+            context.player2.clickCard(context.battlefieldMarine);
+
+            // attack again with punishing one, 2 enemy units are damaged now, should have raid 2
+            context.player1.clickCard(context.punishingOne);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Pass');
+
+            expect(context.p2Base.damage).toBe(5);
         });
 
         it('Punishing One\'s should gain Raid 1 for each damaged enemy unit (with Marchion Ro)', async function () {
