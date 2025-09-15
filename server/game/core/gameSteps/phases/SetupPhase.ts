@@ -37,10 +37,7 @@ export class SetupPhase extends Phase {
             [
                 ...setupStep,
                 ...mulliganStep,
-                new ResourcePrompt(game, 2),
-
-                // there aren't clear game rules yet for resolving events that trigger during the setup step, so we skip the event window here
-                new SimpleStep(game, () => this.endPhase(true), 'endPhase')
+                new ResourcePrompt(game, 2)
             ],
             initializeMode
         );

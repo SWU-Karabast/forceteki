@@ -926,7 +926,6 @@ export class Lobby {
         return timeout;
     }
 
-    // TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, error: Error, severeGameMessage = false) {
         logger.error('Game: handleError', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
 
@@ -937,42 +936,25 @@ export class Lobby {
             logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
             severeGameMessage = true;
             maxErrorCountExceeded = true;
-            game.discordDispatcher.formatAndSendServerErrorAsync(`Maximum error count ${Lobby.MaxGameMessageErrors} exceeded, game halted to prevent server crash`, error, this.id)
-                .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
         }
-
-        // const gameState = game.getState();
-        // const debugData: any = {};
-
-        // if (e.message.includes('Maximum call stack')) {
-        //     // debugData.badSerializaton = detectBinary(gameState);
-        // } else {
-        //     debugData.game = gameState;
-        //     debugData.game.players = undefined;
-
-        //     debugData.messages = game.messages;
-        //     debugData.game.messages = undefined;
-
-        //     debugData.pipeline = game.pipeline.getDebugInfo();
-        //     // debugData.effectEngine = game.effectEngine.getDebugInfo();
-
-        //     for (const player of game.getPlayers()) {
-        //         debugData[player.name] = player.getState(player);
-        //     }
-        // }
 
         if (game && severeGameMessage) {
-            game.addMessage(
-                `A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue. The error has been logged. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
-            );
-        }
+            const discordMessage = maxErrorCountExceeded
+                ? `Maximum error count ${Lobby.MaxGameMessageErrors} exceeded, game halted to prevent server crash`
+                : 'Severe game error reported, game is in an unrecoverable state';
 
-        if (maxErrorCountExceeded) {
+            game.discordDispatcher.formatAndSendServerErrorAsync(discordMessage, error, this.id)
+                .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
+
+            game.addMessage(
+                `A server error has occurred, apologies.  Your game may now be in an inconsistent state, or you may be able to continue. The error has been reported to the dev team. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
+            );
+
             // send game state so that the message can be seen
             this.sendGameState(this.game);
 
             // this is ugly since we're probably within an exception handler currently, but if we get here it's already crisis
-            throw new Error('Maximum error count exceeded');
+            throw error;
         }
     }
 
@@ -1136,7 +1118,14 @@ export class Lobby {
                 player1KarabastStatus.type = StatsSaveStatus.Warning;
                 player2KarabastStatus.message = 'stats not updated due to game ending before round 2';
                 player2KarabastStatus.type = StatsSaveStatus.Warning;
-                // so we throw here?
+                if (player1SwuStatsStatus) {
+                    player1SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
+                    player1SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
+                if (player2SwuStatsStatus) {
+                    player2SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
+                    player2SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
                 logger.info('stats not updated due to game ending before round 2', { lobbyId: this.id });
                 return;
             }

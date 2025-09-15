@@ -285,6 +285,7 @@ const mockCards = [
         cost: 5,
         hasNonKeywordAbility: true,
         aspects: ['cunning', 'villainy'],
+        aspects: ['cunning', 'villainy'],
         types: ['leader'],
         traits: ['force', 'imperial', 'official'],
         setId: {
@@ -368,6 +369,71 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'tala-durith#i-can-get-you-inside',
+    }),
+    buildMockCard({
+        title: 'Charged with Espionage',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['law'],
+        setId: {
+            set: 'SEC',
+            number: 230
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'charged-with-espionage',
+    }),
+    buildMockCard({
+        title: 'Charged with Treason',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['event'],
+        traits: ['law'],
+        setId: {
+            set: 'SEC',
+            number: 182
+        },
+        cost: 4,
+        unique: false,
+        internalName: 'charged-with-treason',
+    }),
+    buildMockCard({
+        title: 'Elia Kane',
+        subtitle: 'False Convert',
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        keywords: ['raid 1'],
+        aspects: ['villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'new republic'],
+        setId: {
+            set: 'SEC',
+            number: 242
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'elia-kane#false-convert',
+    }),
+    buildMockCard({
+        title: 'Kylo Ren\'s Command Shuttle',
+        subtitle: 'Icon of Authority',
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['first order', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 32
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'kylo-rens-command-shuttle#icon-of-authority',
     }),
     buildMockCard({
         title: 'Charged with Espionage',
