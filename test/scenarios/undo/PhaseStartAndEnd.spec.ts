@@ -969,6 +969,6 @@ describe('Start / end of phase snapshots', function() {
 
         // TODO
         // - Actual end of regroup phase (some double BHQ in the regroup phase shenanigans)
-        // - If you are prompted for an opponent effect and want to undo the choice, need a good timepoint for that
+        // - If you are prompted for an opponent effect and want to undo the choice, should it undo back to start of opponent's turn?
     });
 });
