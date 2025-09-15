@@ -15,7 +15,7 @@ export default class TalaDurithICanGetYouInside extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each other friendly unit gains hidden.',
+            title: 'Each other friendly unit gains Hidden.',
             matchTarget: (card, context) => card !== context.source && card.isUnit(),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Hidden })
         });
