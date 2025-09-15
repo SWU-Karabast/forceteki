@@ -92,8 +92,6 @@ describe('The Mandalorian, Cleaning Up Nevarro', function() {
                 context.player1.clickCard(context.atatSuppressor);
                 expect(context.theMandalorianCleaningUpNevarro).toBeInZone('discard');
                 expect(context.atatSuppressor).toBeInZone('discard');
-                context.player1.clickCard(context.wampa);
-                context.player1.clickPrompt('Done');
                 expect(context.wampa).toBeInZone('groundArena', context.player2);
                 expect(context.mandalorianWarrior).toBeInZone('groundArena', context.player2);
                 expect(context.atst).toBeInZone('groundArena', context.player2);
