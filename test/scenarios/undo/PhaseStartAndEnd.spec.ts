@@ -836,7 +836,7 @@ describe('Start / end of phase snapshots', function() {
                 expect(context.p1Base.damage).toBe(5);
             };
 
-            it('during the prompt, should roll back to the last action phase snapshot on undo', function () {
+            it('during the prompt, should roll back to the last action phase snapshot on undo for the prompted player', function () {
                 const { context } = contextRef;
 
                 // roll back to passing action phase
@@ -848,6 +848,21 @@ describe('Start / end of phase snapshots', function() {
 
                 expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.player1LastActionSnapshotId);
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.player1LastActionId);
+                assertActionPhaseState(context);
+            });
+
+            it('during the prompt, should roll back to the last action phase snapshot on undo for the non-prompted player', function () {
+                const { context } = contextRef;
+
+                // roll back to passing action phase
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player2.id
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.player2LastActionSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.player2LastActionId);
                 assertActionPhaseState(context);
             });
 
@@ -883,7 +898,7 @@ describe('Start / end of phase snapshots', function() {
                     expect(context.player1).toBeActivePlayer();
                 });
 
-                it('should create a quick snapshot for the prompted player that can be rolled back again', function () {
+                it('should create a quick snapshot for the prompted player that can be rolled back again by the prompted player', function () {
                     const { context } = contextRef;
 
                     // roll back Brute prompt
@@ -909,6 +924,32 @@ describe('Start / end of phase snapshots', function() {
                     assertActionPhaseState(context);
                 });
 
+                it('should create a quick snapshot for the prompted player that can be rolled back again by the non-prompted player', function () {
+                    const { context } = contextRef;
+
+                    // roll back Brute prompt
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.endOfPhaseSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.endOfPhaseActionId);
+                    assertActionPhaseEndState(context);
+
+                    // roll back to passing action phase
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.player2LastActionSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.player2LastActionId);
+                    assertActionPhaseState(context);
+                });
+
                 it('should not create a quick snapshot for the non-prompted player', function () {
                     const { context } = contextRef;
 
@@ -927,7 +968,6 @@ describe('Start / end of phase snapshots', function() {
         });
 
         // TODO
-        // - Test with the non-prompted player for undo during a special timepoint prompt
         // - Actual end of regroup phase (some double BHQ in the regroup phase shenanigans)
         // - If you are prompted for an opponent effect and want to undo the choice, need a good timepoint for that
     });
