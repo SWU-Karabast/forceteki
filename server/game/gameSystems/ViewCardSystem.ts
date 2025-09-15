@@ -162,6 +162,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
                 maxCards: properties.maxCards ?? 1,
                 canChooseFewer: properties.canChooseFewer ?? true,
                 selectedCardsHandler,
+                displayTextByCardUuid: properties.displayTextByCardUuid,
                 validCardCondition: (card: Card) =>
                     cardCondition(card, context) &&
                     (!properties.immediateEffect || properties.immediateEffect.canAffect(card, context))
