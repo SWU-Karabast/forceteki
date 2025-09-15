@@ -23,7 +23,7 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
             },
             then: (thenContext) => ({
                 title: 'Deal 1 damage to it',
-                thenCondition: (context) => context.target.isUnit() && context.target.isInPlay() && context.target.damage >= 5,
+                thenCondition: (context) => context.target && context.target.isUnit() && context.target.isInPlay() && context.target.damage >= 5,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1, target: thenContext.target }),
             })
         });
