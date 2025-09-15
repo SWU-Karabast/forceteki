@@ -329,7 +329,7 @@ const mockCards = [
         },
         cost: 4,
         unique: true,
-        arena: 'ground',
+        arena: 'space',
         internalName: 'kylo-rens-command-shuttle#icon-of-authority',
     }),
     buildMockCard({
