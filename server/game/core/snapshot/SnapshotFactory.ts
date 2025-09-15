@@ -54,6 +54,10 @@ export class SnapshotFactory {
         return this.currentActionSnapshot?.timepoint ?? null;
     }
 
+    public get currentSnapshotRequiresConfirmationToRollback(): boolean | null {
+        return this.currentActionSnapshot?.requiresConfirmationToRollback ?? null;
+    }
+
     public constructor(game: Game, gameStateManager: GameStateManager) {
         this.game = game;
         this.gameStateManager = gameStateManager;
@@ -139,12 +143,22 @@ export class SnapshotFactory {
             phase: this.game.currentPhase,
             gameState: v8.serialize(this.game.state),
             states: this.gameStateManager.buildGameStateForSnapshot(),
-            rngState: this.game.randomGenerator.rngState
+            rngState: this.game.randomGenerator.rngState,
+            requiresConfirmationToRollback: false,
         };
 
         this.lastAssignedSnapshotId = nextSnapshotId;
 
         this.currentActionSnapshot = snapshot;
+    }
+
+    /**
+     * Sets the requiresConfirmationToRollback flag on the current snapshot.
+     */
+    public setRequiresConfirmationToRollbackCurrentSnapshot() {
+        if (this.currentActionSnapshot) {
+            this.currentActionSnapshot.requiresConfirmationToRollback = true;
+        }
     }
 
     /**
@@ -162,7 +176,10 @@ export class SnapshotFactory {
     private updateCurrentActionSnapshot(snapshot: IGameSnapshot): void {
         Contract.assertNotNullLike(this.currentActionSnapshot, 'Attempting to read action snapshot before any is set, meaning the game is likely not initialized');
 
-        this.currentActionSnapshot = snapshot;
+        this.currentActionSnapshot = {
+            ...snapshot,
+            requiresConfirmationToRollback: false,
+        };
     }
 
     /** Helper method for correctly building snapshot containers in a way that they can pass back a handle for calling the `clearNewerSnapshots()` method */
