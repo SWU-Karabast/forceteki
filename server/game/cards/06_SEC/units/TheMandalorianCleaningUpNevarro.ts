@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
 export default class TheMandalorianCleaningUpNevarro extends NonLeaderUnitCard {
@@ -22,9 +22,7 @@ export default class TheMandalorianCleaningUpNevarro extends NonLeaderUnitCard {
             },
             targetResolver: {
                 activePromptTitle: 'Choose a non-Leader unit',
-                mode: TargetMode.Exactly,
                 canChooseNoCards: true,
-                numCards: 1,
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.capture()
