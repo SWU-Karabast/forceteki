@@ -56,7 +56,7 @@ describe('Punishing One, Takes No Prisoners', function() {
                     spaceArena: [{ card: 'system-patrol-craft', damage: 1 }, { card: 'punishing-one#takes-no-prisoners', damage: 1 }]
                 },
                 player2: {
-                    groundArena: [{ card: 'wampa', damage: 1 }],
+                    groundArena: ['wampa'],
                     spaceArena: [{ card: 'green-squadron-awing', damage: 1 }]
                 }
             });
