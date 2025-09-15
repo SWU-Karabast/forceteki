@@ -19,11 +19,11 @@ describe('Time of Crisis', function() {
 
                 context.player1.clickCard(context.timeOfCrisis);
 
-                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.avenger, context.bobaFettDaimyo]);
-                context.player2.clickCard(context.avenger);
-
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.awakenedSpecters, context.devastator]);
                 context.player1.clickCard(context.atst);
+
+                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.avenger, context.bobaFettDaimyo]);
+                context.player2.clickCard(context.avenger);
 
                 expect(context.atst.damage).toBe(0);
                 expect(context.awakenedSpecters.damage).toBe(3);
@@ -76,6 +76,64 @@ describe('Time of Crisis', function() {
                 expect(context.atst.damage).toBe(0);
                 expect(context.awakenedSpecters.damage).toBe(3);
                 expect(context.devastator.damage).toBe(3);
+            });
+
+            it('should auto-select the player\'s only unit to not be damaged', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['time-of-crisis'],
+                        groundArena: ['atst']
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        spaceArena: ['avenger#hunting-star-destroyer'],
+                        leader: { card: 'boba-fett#daimyo', deployed: true }
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.timeOfCrisis);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+                context.player1.clickCard(context.atst);
+
+                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.avenger, context.bobaFettDaimyo]);
+                context.player2.clickCard(context.avenger);
+
+                expect(context.atst.damage).toBe(0);
+                expect(context.wampa.damage).toBe(3);
+                expect(context.avenger.damage).toBe(0);
+                expect(context.bobaFettDaimyo.damage).toBe(3);
+            });
+
+            it('should auto-select the opponent\'s only unit to not be damaged', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['time-of-crisis'],
+                        groundArena: ['wampa'],
+                        spaceArena: ['avenger#hunting-star-destroyer'],
+                        leader: { card: 'boba-fett#daimyo', deployed: true }
+                    },
+                    player2: {
+                        groundArena: ['atst']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.timeOfCrisis);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.avenger, context.bobaFettDaimyo]);
+                context.player1.clickCard(context.avenger);
+
+                expect(context.player2).toBeAbleToSelectExactly([context.atst]);
+                context.player2.clickCard(context.atst);
+
+                expect(context.atst.damage).toBe(0);
+                expect(context.wampa.damage).toBe(3);
+                expect(context.avenger.damage).toBe(0);
+                expect(context.bobaFettDaimyo.damage).toBe(3);
             });
 
             it('does nothing if the board is empty', async function () {
