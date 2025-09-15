@@ -11,14 +11,12 @@ export default class VelSarthaOnePathOneChoice extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'Each exhausted enemy unit gets -2/-0 while defending',
             targetController: RelativePlayer.Opponent,
-            matchTarget: (card, context) => {
-                return card.isUnit() && card.isInPlay() && card.exhausted && card.isDefending() && card.activeAttack.attacker.controller === context.player;
-            },
-            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: 0 })
+            matchTarget: (card) => card.isUnit() && card.isInPlay() && card.exhausted && card.isDefending(),
+            ongoingEffect: abilityHelper.ongoingEffects.modifyStats({ power: -2, hp: 0 })
         });
     }
 }
