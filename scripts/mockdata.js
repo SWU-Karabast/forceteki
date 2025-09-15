@@ -431,6 +431,44 @@ const mockCards = [
         arena: 'ground',
         internalName: 'ando-commission',
     }),
+    buildMockCard({
+        title: 'Punishing One',
+        subtitle: 'Takes No Prisoners',
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 171,
+            internalName: 'punishing-one#takes-no-prisoners',
+        },
+        cost: 5,
+        unique: true,
+        arena: 'space',
+        internalName: 'punishing-one#takes-no-prisoners',
+    }),
+    buildMockCard({
+        title: 'Lobot',
+        subtitle: 'Cloud City Coordinator',
+        power: 0,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance'],
+        types: ['unit'],
+        keywords: ['sentinel', 'grit'],
+        traits: ['fringe'],
+        setId: {
+            set: 'SEC',
+            number: 57
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'lobot#cloud-city-coordinator',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
