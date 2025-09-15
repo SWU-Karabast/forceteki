@@ -215,7 +215,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
             return this.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
         } catch (err) {
             // if there's an error in the canAffect method, we want to report it but not throw an exception so as to try and preserve the game state
-            context.game?.reportError(err, false);
+            context.game?.reportError(err);
             return false;
         }
     }
