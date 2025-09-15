@@ -360,6 +360,77 @@ const mockCards = [
         unique: false,
         internalName: 'charged-with-treason',
     }),
+    buildMockCard({
+        title: 'Luthen\'s Haulcraft',
+        subtitle: 'Countermeasures Armed',
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 153
+        },
+        cost: 5,
+        unique: true,
+        arena: 'space',
+        internalName: 'luthens-haulcraft#countermeasures-armed',
+    }),
+    buildMockCard({
+        title: 'Vel Sartha',
+        subtitle: 'One Path, One Choice',
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        keywords: ['raid 2'],
+        types: ['unit'],
+        traits: ['rebel'],
+        setId: {
+            set: 'SEC',
+            number: 224
+        },
+        cost: 5,
+        unique: true,
+        arena: 'ground',
+        internalName: 'vel-sartha#one-path-one-choice',
+    }),
+    buildMockCard({
+        title: 'High Command Councilor',
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 249
+        },
+        cost: 2,
+        unique: false,
+        arena: 'ground',
+        internalName: 'high-command-councilor',
+    }),
+    buildMockCard({
+        title: 'High Command Councilor',
+        power: 4,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        keywords: ['sentinel'],
+        types: ['unit'],
+        traits: ['separatist', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 262
+        },
+        cost: 4,
+        unique: false,
+        arena: 'ground',
+        internalName: 'ando-commission',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
