@@ -814,9 +814,20 @@ describe('Start / end of phase snapshots', function() {
                 context.player2.clickCard(context.onyxSquadronBrute);
 
                 // end the phase, Brute trigger happens when it's defeated
+                context.player1LastActionSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.player1LastActionId = contextRef.snapshot.getCurrentSnapshottedAction();
                 context.player1.passAction();
+
+                context.player2LastActionSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.player2LastActionId = contextRef.snapshot.getCurrentSnapshottedAction();
                 context.player2.passAction();
             });
+
+            const assertActionPhaseState = (context) => {
+                expect(context.game.currentPhase).toBe('action');
+                expect(context.onyxSquadronBrute).toBeInZone('spaceArena');
+                expect(context.p1Base.damage).toBe(5);
+            };
 
             const assertActionPhaseEndState = (context) => {
                 // right now the phase is technically 'null' during the end-of-phase step
@@ -825,19 +836,20 @@ describe('Start / end of phase snapshots', function() {
                 expect(context.p1Base.damage).toBe(5);
             };
 
-            // const assertRegroupPhaseStartState = (context) => {
-            //     expect(context.game.currentPhase).toBe('regroup');
-            //     expect(context.ruthlessRaider).toBeInZone('discard');
-            //     expect(context.p2Base.damage).toBe(2);
-            //     expect(context.greenSquadronAwing.damage).toBe(2);
-            // };
+            it('during the prompt, should roll back to the last action phase snapshot on undo', function () {
+                const { context } = contextRef;
 
-            // const assertRegroupPhaseRaiderDefeatedState = (context) => {
-            //     expect(context.game.currentPhase).toBe('regroup');
-            //     expect(context.ruthlessRaider).toBeInZone('discard');
-            //     expect(context.p2Base.damage).toBe(4);
-            //     expect(context.greenSquadronAwing).toBeInZone('discard');
-            // };
+                // roll back to passing action phase
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.player1LastActionSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.player1LastActionId);
+                assertActionPhaseState(context);
+            });
 
             describe('after the effect prompt has finished,', function () {
                 beforeEach(function () {
@@ -870,11 +882,52 @@ describe('Start / end of phase snapshots', function() {
 
                     expect(context.player1).toBeActivePlayer();
                 });
+
+                it('should create a quick snapshot for the prompted player that can be rolled back again', function () {
+                    const { context } = contextRef;
+
+                    // roll back Brute prompt
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.endOfPhaseSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.endOfPhaseActionId);
+                    assertActionPhaseEndState(context);
+
+                    // roll back to passing action phase
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.player1LastActionSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.player1LastActionId);
+                    assertActionPhaseState(context);
+                });
+
+                it('should not create a quick snapshot for the non-prompted player', function () {
+                    const { context } = contextRef;
+
+                    // roll back to passing action phase
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.player2LastActionSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.player2LastActionId);
+                    assertActionPhaseState(context);
+                });
             });
         });
 
         // TODO
-        // - Any action phase +hp buff for end of action phase
+        // - Test with the non-prompted player for undo during a special timepoint prompt
         // - Actual end of regroup phase (some double BHQ in the regroup phase shenanigans)
         // - If you are prompted for an opponent effect and want to undo the choice, need a good timepoint for that
     });
