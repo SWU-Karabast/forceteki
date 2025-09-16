@@ -3,6 +3,7 @@ import type { Card } from '../../core/card/Card';
 import { KeywordName, PlayType, WildcardCardType, ZoneName } from '../../core/Constants';
 import type Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
+import { ConditionalSystem } from '../../gameSystems/ConditionalSystem';
 import { PlayCardSystem } from '../../gameSystems/PlayCardSystem';
 import { ResourceCardSystem } from '../../gameSystems/ResourceCardSystem';
 import { SequentialSystem } from '../../gameSystems/SequentialSystem';
@@ -27,9 +28,12 @@ export class PlotAbility extends TriggeredAbility {
                         playAsType: WildcardCardType.Any,
                         target: context.source
                     }),
-                    new ResourceCardSystem({
-                        target: context.source.controller.getTopCardOfDeck()
-                    })
+                    new ConditionalSystem((conditionalContext) => ({
+                        condition: () => context.source.zoneName !== ZoneName.Resource,
+                        onTrue: new ResourceCardSystem({
+                            target: context.player.getTopCardOfDeck()
+                        })
+                    }))
                 ]
             }))
         };
