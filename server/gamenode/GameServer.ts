@@ -388,7 +388,9 @@ export class GameServer {
                     showWelcomeMessage: user.getShowWelcomeMessage(),
                     preferences: user.getPreferences(),
                     needsUsernameChange: user.needsUsernameChange(),
-                    swuStatsRefreshToken: user.getSwuStatsRefreshToken()
+                    swuStatsRefreshToken: user.getSwuStatsRefreshToken(),
+                    isMuted: user.isMuted(),
+                    mutedUntil: user.getMutedUntil()
                 } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);

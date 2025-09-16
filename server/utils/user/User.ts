@@ -60,6 +60,10 @@ export abstract class User {
     public abstract toJSON(): Record<string, any>;
 
     public abstract needsUsernameChange(): boolean;
+
+    public abstract isMuted(): boolean;
+
+    public abstract getMutedUntil(): Date;
 }
 
 /**
@@ -108,6 +112,14 @@ export class AuthenticatedUser extends User {
     public needsUsernameChange(): boolean {
         // undefined = false
         return !!this.userData.needsUsernameChange;
+    }
+
+    public isMuted(): boolean {
+        return this.userData.mutedUntil ? new Date(this.userData.mutedUntil).getTime() > Date.now() : false;
+    }
+
+    public getMutedUntil(): Date | null {
+        return this.userData.mutedUntil || null;
     }
 
     public getSwuStatsRefreshToken(): string | null {
@@ -163,6 +175,14 @@ export class AnonymousUser extends User {
 
     public needsUsernameChange(): boolean {
         return false;
+    }
+
+    public isMuted(): boolean {
+        return false;
+    }
+
+    public getMutedUntil(): Date | null {
+        return null;
     }
 
     public getUsername(): string {

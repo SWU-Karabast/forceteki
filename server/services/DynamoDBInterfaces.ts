@@ -5,6 +5,7 @@ export interface IUserDataEntity {
     swuStatsRefreshToken?: string;
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
+    mutedUntil?: Date;
 }
 
 export interface IFeMatchupStatEntity extends IMatchupStatEntity {

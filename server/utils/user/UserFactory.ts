@@ -329,7 +329,8 @@ export class UserFactory {
                 showWelcomeMessage: true,
                 preferences: getDefaultPreferences(),
                 needsUsernameChange: false,
-                swuStatsRefreshToken: null
+                swuStatsRefreshToken: null,
+                mutedUntil: null
             };
 
             // Create OAuth link
