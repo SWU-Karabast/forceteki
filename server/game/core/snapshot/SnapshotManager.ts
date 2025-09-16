@@ -343,10 +343,7 @@ export class SnapshotManager {
                             entryPoint: RollbackRoundEntryPoint.EndOfActionPhase,
                         };
                     case PhaseName.Regroup:
-                        return {
-                            type: RollbackEntryPointType.Round,
-                            entryPoint: RollbackRoundEntryPoint.EndOfRegroupPhase,
-                        };
+                        throw new Error('Rolling back to end of regroup phase is not supported');
                 }
             default:
                 Contract.fail(`Unimplemented snapshot type: ${JSON.stringify(settings)}`);

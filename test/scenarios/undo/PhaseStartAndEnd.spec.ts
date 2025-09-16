@@ -664,7 +664,7 @@ describe('Start / end of phase snapshots', function() {
             });
         });
 
-        describe('Effects at the end of the regroup phase,', function () {
+        describe('Effects at the \'ready cards\' step of the regroup phase,', function () {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -790,9 +790,185 @@ describe('Start / end of phase snapshots', function() {
             });
         });
 
+        describe('Effects at the end of the action phase', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['tactical-advantage'],
+                        spaceArena: ['onyx-squadron-brute'],
+                        base: { card: 'chopper-base', damage: 5 }
+                    },
+                    player2: {
+                        hand: ['open-fire']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Buff Brute with Tactical Advantage
+                context.player1.clickCard(context.tacticalAdvantage);
+                context.player1.clickCard(context.onyxSquadronBrute);
+
+                context.player2.clickCard(context.openFire);
+                context.player2.clickCard(context.onyxSquadronBrute);
+
+                // end the phase, Brute trigger happens when it's defeated
+                context.player1LastActionSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.player1LastActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                context.player1.passAction();
+
+                context.player2LastActionSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.player2LastActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+                context.player2.passAction();
+            });
+
+            const assertActionPhaseState = (context) => {
+                expect(context.game.currentPhase).toBe('action');
+                expect(context.onyxSquadronBrute).toBeInZone('spaceArena');
+                expect(context.p1Base.damage).toBe(5);
+            };
+
+            const assertActionPhaseEndState = (context) => {
+                // right now the phase is technically 'null' during the end-of-phase step
+                expect(context.game.currentPhase).toBeNull();
+                expect(context.onyxSquadronBrute).toBeInZone('discard');
+                expect(context.p1Base.damage).toBe(5);
+            };
+
+            it('during the prompt, should roll back to the last action phase snapshot on undo for the prompted player', function () {
+                const { context } = contextRef;
+
+                // roll back to passing action phase
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.player1LastActionSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.player1LastActionId);
+                assertActionPhaseState(context);
+            });
+
+            it('during the prompt, should roll back to the last action phase snapshot on undo for the non-prompted player', function () {
+                const { context } = contextRef;
+
+                // roll back to passing action phase
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player2.id
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.player2LastActionSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.player2LastActionId);
+                assertActionPhaseState(context);
+            });
+
+            describe('after the effect prompt has finished,', function () {
+                beforeEach(function () {
+                    const { context } = contextRef;
+
+                    context.endOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                    context.endOfPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+
+                    // choose p1 base for healing
+                    context.player1.clickCard(context.p1Base);
+                });
+
+                it('should create a quick snapshot for the prompted player', function () {
+                    const { context } = contextRef;
+
+                    // roll back Brute prompt
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.endOfPhaseSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.endOfPhaseActionId);
+                    assertActionPhaseEndState(context);
+
+                    // choose p1 base for healing
+                    context.player1.clickCard(context.p1Base);
+                    expect(context.p1Base.damage).toBe(3);
+
+                    expect(context.player1).toBeActivePlayer();
+                });
+
+                it('should create a quick snapshot for the prompted player that can be rolled back again by the prompted player', function () {
+                    const { context } = contextRef;
+
+                    // roll back Brute prompt
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.endOfPhaseSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.endOfPhaseActionId);
+                    assertActionPhaseEndState(context);
+
+                    // roll back to passing action phase
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.player1LastActionSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.player1LastActionId);
+                    assertActionPhaseState(context);
+                });
+
+                it('should create a quick snapshot for the prompted player that can be rolled back again by the non-prompted player', function () {
+                    const { context } = contextRef;
+
+                    // roll back Brute prompt
+                    const rollbackResult1 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player1.id
+                    });
+                    expect(rollbackResult1).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.endOfPhaseSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.endOfPhaseActionId);
+                    assertActionPhaseEndState(context);
+
+                    // roll back to passing action phase
+                    const rollbackResult2 = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult2).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.player2LastActionSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.player2LastActionId);
+                    assertActionPhaseState(context);
+                });
+
+                it('should not create a quick snapshot for the non-prompted player', function () {
+                    const { context } = contextRef;
+
+                    // roll back to passing action phase
+                    const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'quick',
+                        playerId: context.player2.id
+                    });
+                    expect(rollbackResult).toBeTrue();
+
+                    expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.player2LastActionSnapshotId);
+                    expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.player2LastActionId);
+                    assertActionPhaseState(context);
+                });
+            });
+        });
+
         // TODO
-        // - Any action phase +hp buff for end of action phase
         // - Actual end of regroup phase (some double BHQ in the regroup phase shenanigans)
-        // - If you are prompted for an opponent effect and want to undo the choice, need a good timepoint for that
+        // - If you are prompted for an opponent effect and want to undo the choice, should it undo back to start of opponent's turn?
     });
 });
