@@ -150,7 +150,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 context.player1.clickCard(context.cassianAndor);
                 context.player1.clickPrompt(prompt);
 
-                expect(context.player1).toHavePrompt(`The ability "${prompt}" will have no effect. Are you sure you want to use it?`);
+                expect(context.player1).toHaveNoEffectAbilityPrompt(prompt);
                 context.player1.clickPrompt('Use it anyway');
 
                 expect(context.cassianAndor.exhausted).toBeTrue();
