@@ -70,7 +70,38 @@ describe('Plot keyword', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            // TODO: add an event test
+            it('a Plot event may be played from resources', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'kestro-city',
+                        resources: ['topple-the-summit', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                        groundArena: ['atst'],
+                        spaceArena: [{ card: 'cartel-spacer', damage: 1 }],
+                        leader: 'boba-fett#daimyo'
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'alliance-xwing', damage: 1 }],
+                        leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickPrompt('Deploy Boba Fett');
+                expect(context.player1).toHavePassAbilityPrompt('Play Topple The Summit using Plot');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.exhaustedResourceCount).toBe(5);
+
+                expect(context.atst.damage).toBe(0);
+                expect(context.cartelSpacer).toBeInZone('discard');
+                expect(context.bobaFett.damage).toBe(0);
+                expect(context.allianceXwing).toBeInZone('discard');
+                expect(context.lukeSkywalker.damage).toBe(0);
+            });
 
             it('Plot should work even if there is no card to replace it with from the deck', async function () {
                 await contextRef.setupTestAsync({
