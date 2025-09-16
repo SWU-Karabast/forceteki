@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName } from '../core/Constants';
+import { EventName, ZoneName } from '../core/Constants';
 import type { Player } from '../core/Player';
 import type { IViewCardProperties } from './ViewCardSystem';
 import { ViewCardInteractMode, ViewCardSystem } from './ViewCardSystem';
@@ -21,8 +21,16 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         let effectArg = 'a card';
+
         if (Helpers.equalArrays(Helpers.asArray(properties.target), context.player.opponent.hand)) {
             effectArg = 'the opponent’s hand';
+        } else if (Helpers.asArray(properties.target)
+            .every((card) => card.zone.owner === context.player.opponent && card.zoneName === ZoneName.Resource)
+        ) {
+            const targetCount = Helpers.asArray(properties.target).length;
+            effectArg = targetCount === 1
+                ? 'an enemy resource'
+                : `${targetCount} enemy resources`;
         }
 
         return ['look at {0}', [effectArg]];
@@ -42,6 +50,13 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         if (useDisplayPrompt) {
             if (Helpers.equalArrays(Helpers.asArray(properties.target), context.player.opponent.hand)) {
                 return '{0} looks at the opponent’s hand';
+            } else if (Helpers.asArray(properties.target)
+                .every((card) => card.zone.owner === context.player.opponent && card.zoneName === ZoneName.Resource)
+            ) {
+                const targetCount = Helpers.asArray(properties.target).length;
+                return targetCount === 1
+                    ? '{0} looks at an enemy resource'
+                    : `{0} looks at ${targetCount} enemy resources`;
             }
             return '{0} looks at a card';
         }
