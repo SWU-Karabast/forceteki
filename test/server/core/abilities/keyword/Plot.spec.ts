@@ -252,7 +252,82 @@ describe('Plot keyword', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            // TODO Add a test with a Plot card in friendly resources that is owned by the opponent
+            it('and is deploying as a Pilot, Plot should work', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'luke-skywalker#hero-of-yavin',
+                        base: 'chopper-base',
+                        spaceArena: ['cartel-spacer'],
+                        resources: ['sneaking-suspicion', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                        deck: ['pyke-sentinel']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.lukeSkywalker).toBeAttachedTo(context.cartelSpacer);
+                expect(context.player1).toHavePassAbilityPrompt('Play Sneaking Suspicion using Plot');
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.sneakingSuspicion).toBeAttachedTo(context.cartelSpacer);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+                expect(context.pykeSentinel).toBeInZone('resource');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('friendly resources that are owned by the opponent should be playable using Plot', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cal-kestis#i-cant-keep-hiding',
+                        base: 'chopper-base',
+                        resources: [
+                            'dj#blatant-thief',
+                            'wampa',
+                            'moment-of-peace',
+                            'battlefield-marine',
+                            'collections-starhopper',
+                            'resilient',
+                            'mercenary-company',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                        ],
+                        deck: ['moisture-farmer', 'pyke-sentinel']
+                    },
+                    player2: {
+                        resources: ['topple-the-summit'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.dj);
+                expect(context.toppleTheSummit).toBeInZone('resource', context.player1);
+                expect(context.moistureFarmer).toBeInZone('resource');
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.calKestis);
+                context.player1.clickPrompt('Deploy Cal Kestis');
+                expect(context.player1).toHavePassAbilityPrompt('Play Topple The Summit using Plot');
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1.exhaustedResourceCount).toBe(14); // 5 + penalty
+                expect(context.pykeSentinel).toBeInZone('resource');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
 
         it('Plot cards should not be playable directly from the resource row', async function () {
@@ -276,6 +351,127 @@ describe('Plot keyword', function() {
 
             expect(context.player2).toBeAbleToSelectExactly([context.idenVersio]);
             expect(context.talaDurith).not.toHaveAvailableActionWhenClickedBy(context.player2);
+        });
+
+        it('Plot should work with Trench multi-deploy', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'admiral-trench#chkchkchkchk',
+                    base: 'kestro-city',
+                    resources: ['dogmatic-shock-squad', 'cad-bane#impressed-now', 'topple-the-summit', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                    deck: []
+                },
+                player2: {
+                    groundArena: [{ card: 'battlefield-marine', damage: 1 }],
+                    hand: ['rivals-fall', 'takedown']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.admiralTrench);
+            context.player1.clickPrompt('Deploy Admiral Trench');
+            expect(context.player1.exhaustedResourceCount).toBe(3);
+            expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot', 'Play Topple the Summit using Plot',
+                '(No effect) Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other']);
+
+            // Resolve Topple the Summit
+            context.player1.clickPrompt('Play Topple the Summit using Plot');
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1.exhaustedResourceCount).toBe(7); // This is one less than normal because the Topple the Summit was not replaced due to the empty deck
+            expect(context.battlefieldMarine).toBeInZone('discard');
+
+            // Resolve Cad Bane
+            context.player1.clickPrompt('Play Cad Bane using Plot');
+            context.player1.clickPrompt('Pass');
+            expect(context.cadBane).toBeInZone('resource');
+
+            // Resolve Dogmatic Shock Squad
+            context.player1.clickPrompt('Play Dogmatic Shock Squad using Plot');
+            context.player1.clickPrompt('Pass');
+
+            expect(context.player2).toBeActivePlayer();
+            context.player2.clickCard(context.rivalsFall);
+            context.player2.clickCard(context.admiralTrench);
+
+            context.moveToNextActionPhase();
+
+            // Deploy Trench again to verify unplayed Plots work
+            context.player1.clickCard(context.admiralTrench);
+            context.player1.clickPrompt('Deploy Admiral Trench');
+            expect(context.player1.exhaustedResourceCount).toBe(3);
+            expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot',
+                '(No effect) Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other']);
+
+            // Resolve Cad Bane
+            context.player1.clickPrompt('Play Cad Bane using Plot');
+            context.player1.clickPrompt('Pass');
+            expect(context.cadBane).toBeInZone('resource');
+
+            // Resolve Dogmatic Shock Squad
+            context.player1.clickPrompt('Play Dogmatic Shock Squad using Plot');
+            context.player1.clickPrompt('Trigger');
+            expect(context.dogmaticShockSquad).toBeInZone('groundArena');
+            expect(context.player1.exhaustedResourceCount).toBe(10); // This is one less than normal because the Dogmatic Shock Squad was not replaced due to the empty deck
+
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('Plot should not be triggered by a leader that flips but does not Deploy', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'chancellor-palpatine#playing-both-sides',
+                    groundArena: ['battlefield-marine'],
+                    resources: ['sneaking-suspicion', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                },
+                player2: {
+                    hand: ['takedown']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.passAction();
+            context.player2.clickCard(context.takedown);
+            context.player2.clickCard(context.battlefieldMarine);
+
+            // Check that Palpatine healed, drew, and flipped
+            context.player1.clickCard(context.chancellorPalpatine);
+            expect(context.chancellorPalpatine.exhausted).toBe(true);
+            expect(context.chancellorPalpatine.onStartingSide).toBe(false);
+
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('Plot should not be triggered by a leader that attaches but does not Deploy', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'poe-dameron#i-can-fly-anything',
+                    spaceArena: [{ card: 'cartel-spacer', upgrades: ['r2d2#artooooooooo'] }, 'tie-bomber'],
+                    groundArena: ['reinforcement-walker'],
+                    resources: ['sneaking-suspicion', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                },
+                player2: {
+                    groundArena: ['atst'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.poeDameron);
+            context.player1.clickPrompt('Flip Poe Dameron and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it');
+
+            expect(context.player1).not.toHaveChooseNothingButton();
+            expect(context.player1).toBeAbleToSelectExactly([context.reinforcementWalker, context.tieBomber]);
+
+            context.player1.clickCard(context.reinforcementWalker);
+
+            expect(context.reinforcementWalker).toHaveExactUpgradeNames(['poe-dameron#i-can-fly-anything']);
+
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });
