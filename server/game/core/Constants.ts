@@ -542,3 +542,22 @@ export enum RollbackSetupEntryPoint {
     StartOfSetupPhase = 'startOfSetupPhase',
     WithinSetupPhase = 'withinSetupPhase',
 }
+
+export enum GameErrorSeverity {
+    Normal = 'normal',
+
+    /**
+     * Indicates that we should inform the player that something has gone wrong and send a discord update, but do not throw and interrupt
+     * game flow.
+     *
+     * Used for cases when something unexpected happens but we can potentially recover without losing game state.
+     */
+    SevereGameMessageOnly = 'severeGameMessageOnly',
+
+    /**
+     * Indicates that we should inform the player that something has gone wrong and send a discord update, then throw to interrupt game flow.
+     *
+     * Used for cases when something unexpected happens and we cannot recover.
+     */
+    SevereHaltGame = 'severeHaltGame',
+}

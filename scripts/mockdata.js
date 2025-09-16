@@ -469,6 +469,41 @@ const mockCards = [
         arena: 'ground',
         internalName: 'lobot#cloud-city-coordinator',
     }),
+    buildMockCard({
+        title: 'Rebel Functionary',
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        keywords: ['hidden'],
+        traits: ['rebel', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 146
+        },
+        cost: 1,
+        unique: false,
+        arena: 'ground',
+        internalName: 'rebel-functionary',
+    }),
+    buildMockCard({
+        title: 'Rebel Propagandist',
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 202
+        },
+        cost: 3,
+        unique: false,
+        arena: 'ground',
+        internalName: 'rebel-propagandist',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */

@@ -145,7 +145,7 @@ declare namespace jasmine {
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
         toHaveExactDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedPromptState: ICardDisplaySelectionState): boolean;
-        toHaveExactSelectableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: Card[]): boolean;
+        toHaveExactSelectableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: (Card | { card: Card; displayText: string })[]): boolean;
         toHaveExactViewableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: (Card | { card: Card; displayText: string })[]): boolean;
         toHaveExactDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
         toHaveExactEnabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;

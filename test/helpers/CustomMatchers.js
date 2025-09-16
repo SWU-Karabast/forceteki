@@ -1213,7 +1213,7 @@ function processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject
         for (const card of cards) {
             let concreteCard = card;
 
-            if (selectionState === 'viewOnly') {
+            if (selectionState === 'viewOnly' || selectionState === 'selectable') {
                 if (!(card instanceof Card)) {
                     concreteCard = card.card;
                     expectedDisplayTextByUuid.set(concreteCard.uuid, card.displayText);
