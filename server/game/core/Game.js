@@ -21,7 +21,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint, GameErrorSeverity } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -317,9 +317,10 @@ class Game extends EventEmitter {
     /**
      * Reports errors from the game engine back to the router, optionally halting the game if the error is severe.
      * @param {Error} e
+     * @param {GameErrorSeverity} severity
      */
-    reportError(e, severeGameMessage = false) {
-        this._router.handleError(this, e, severeGameMessage);
+    reportError(e, severity = GameErrorSeverity.Normal) {
+        this._router.handleError(this, e, severity);
     }
 
     /**
@@ -2009,7 +2010,7 @@ class Game extends EventEmitter {
             error: { message: error.message, stack: error.stack }
         });
         this.discordDispatcher.formatAndSendServerErrorAsync(description, error, this.lobbyId);
-        this.reportError(error, true);
+        this.reportError(error, GameErrorSeverity.SevereHaltGame);
     }
 
     /**
