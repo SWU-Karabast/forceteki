@@ -1921,15 +1921,20 @@ describe('Undo', function() {
                     },
                     player2: {
                         groundArena: ['wampa', 'atst'],
+                        hasInitiative: true,
                     }
                 });
 
                 const { context } = contextRef;
 
+                // Generate a quick snapshot
+                context.player2.passAction();
+
                 context.player1.clickCard(context.republicArc170);
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
             });
 
             undoIt('should require confirmation to rollback after random selection', async function() {
@@ -1941,18 +1946,48 @@ describe('Undo', function() {
                     },
                     player2: {
                         groundArena: ['wampa', 'atst'],
-                        spaceArena: ['restored-arc170']
+                        spaceArena: ['restored-arc170'],
+                        hasInitiative: true,
                     }
                 });
 
                 const { context } = contextRef;
-
                 context.game.setRandomSeed('khgfk');
+
+                // Generate a quick snapshot
+                context.player2.passAction();
 
                 context.player1.clickCard(context.jarJarBinks);
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeFalse();
+            });
+
+            undoIt('should require confirmation to rollback after game end', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['republic-arc170']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'atst'],
+                        base: { card: 'energy-conversion-lab', damage: 24 },
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+                context.ignoreUnresolvedActionPhasePrompts = true;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.republicArc170);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeFalse();
             });
         });
     });

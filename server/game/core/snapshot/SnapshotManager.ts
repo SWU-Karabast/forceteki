@@ -378,6 +378,10 @@ export class SnapshotManager {
         return !quickSnapshotProperties.requiresConfirmationToRollback;
     }
 
+    public setRequiresConfirmationToRollbackCurrentSnapshot(playerId: string) {
+        this.actionSnapshots.setRequiresConfirmationToRollbackCurrentSnapshot(playerId);
+    }
+
     public clearAllSnapshots(): void {
         this.actionSnapshots.clearAllSnapshots();
         this.phaseSnapshots.clearAllSnapshots();
@@ -386,9 +390,5 @@ export class SnapshotManager {
         for (const playerSnapshots of this.manualSnapshots.values()) {
             playerSnapshots.clearAllSnapshots();
         }
-    }
-
-    public setRequiresConfirmationToRollbackCurrentSnapshot() {
-        this.snapshotFactory.setRequiresConfirmationToRollbackCurrentSnapshot();
     }
 }
