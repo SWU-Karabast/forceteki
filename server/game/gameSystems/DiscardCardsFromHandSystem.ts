@@ -88,6 +88,10 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 continue;
             }
 
+            if (player !== context.player) {
+                context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
+            }
+
             if (amount >= availableHand.length && choosingPlayer.autoSingleTarget) {
                 this.generateEventsForCards(availableHand, context, events, additionalProperties);
                 continue;
