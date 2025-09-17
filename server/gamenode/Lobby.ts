@@ -1150,6 +1150,17 @@ export class Lobby {
             if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier && this.swuStatsEnabled) {
                 ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1User, player2User));
             }
+            // Send warning that swustats are not updated when in non-premier format.
+            if (this.format !== SwuGameFormat.Premier && this.swuStatsEnabled) {
+                if (player1SwuStatsStatus) {
+                    player1SwuStatsStatus.message = 'stats update not supported for non-Premier formats';
+                    player1SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
+                if (player2SwuStatsStatus) {
+                    player2SwuStatsStatus.message = 'stats update not supported for non-Premier formats';
+                    player2SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
+            }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for ${game.id}`, { lobbyId: this.id });
         } finally {
             this.sendStatsMessageToUser(player1User.user.getId(), player1KarabastStatus);
