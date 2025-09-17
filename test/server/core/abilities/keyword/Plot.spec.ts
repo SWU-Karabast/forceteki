@@ -126,6 +126,110 @@ describe('Plot keyword', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('a triggered Plot that cannot be paid should not resource a card', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cal-kestis#i-cant-keep-hiding',
+                        resources: [{ card: 'sneaking-suspicion', exhausted: true }, { card: 'wampa', exhausted: true }, { card: 'wampa', exhausted: true }, { card: 'wampa', exhausted: true }],
+                        deck: ['pyke-sentinel']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.calKestis);
+                context.player1.clickPrompt('Deploy Cal Kestis');
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+                expect(context.pykeSentinel).toBeInZone('deck');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('a triggered Plot that cannot be played due to a Regional Governor should not be playable', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cal-kestis#i-cant-keep-hiding',
+                        resources: ['sneaking-suspicion', 'wampa', 'wampa', 'wampa'],
+                        deck: ['pyke-sentinel']
+                    },
+                    player2: {
+                        hand: ['regional-governor']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.regionalGovernor);
+                context.player2.chooseListOption('Sneaking Suspicion');
+
+                context.player1.clickCard(context.calKestis);
+                context.player1.clickPrompt('Deploy Cal Kestis');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.sneakingSuspicion).toBeInZone('resource');
+                expect(context.pykeSentinel).toBeInZone('deck');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('a card named by Qira is affected by the cost increase when it cannot be played', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cal-kestis#i-cant-keep-hiding',
+                        resources: ['sneaking-suspicion', 'wampa', 'wampa', 'wampa'],
+                        deck: ['pyke-sentinel']
+                    },
+                    player2: {
+                        hand: ['qira#playing-her-part']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.qira);
+                context.player2.chooseListOption('Sneaking Suspicion');
+
+                context.player1.clickCard(context.calKestis);
+                context.player1.clickPrompt('Deploy Cal Kestis');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.sneakingSuspicion).toBeInZone('resource');
+                expect(context.pykeSentinel).toBeInZone('deck');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('a card named by Qira is affected by the cost increase when it can be played', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cal-kestis#i-cant-keep-hiding',
+                        resources: ['sneaking-suspicion', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                        deck: ['pyke-sentinel']
+                    },
+                    player2: {
+                        hand: ['qira#playing-her-part']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.qira);
+                context.player2.chooseListOption('Sneaking Suspicion');
+
+                context.player1.clickCard(context.calKestis);
+                context.player1.clickPrompt('Deploy Cal Kestis');
+                expect(context.player1).toHavePassAbilityPrompt('Play Sneaking Suspicion using Plot');
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.calKestis, context.qira]);
+                context.player1.clickCard(context.calKestis);
+                expect(context.sneakingSuspicion).toBeAttachedTo(context.calKestis);
+                expect(context.player1.exhaustedResourceCount).toBe(5);
+                expect(context.pykeSentinel).toBeInZone('resource');
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should resolve triggers from each card as they are played', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
