@@ -134,6 +134,7 @@ declare namespace jasmine {
         toBeActivePlayer<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHaveInitiative<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHavePassAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
+        toHaveNoEffectAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
         toHavePassSingleTargetPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any, target: any): boolean;
         toBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toAllBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
