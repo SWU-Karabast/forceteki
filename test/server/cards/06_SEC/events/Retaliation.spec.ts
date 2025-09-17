@@ -131,10 +131,10 @@ describe('Retaliation', function() {
             context.player2.clickPrompt('Pass');
 
             context.player1.clickCard(context.retaliation);
-            expect(context.player1).toHaveExactPromptButtons(['Use it anyway', '']);
+            expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
 
-            context.player1.clickPrompt('Use it anyway');
-            expect(context.sabineWren.deployed).toBeTrue();
+            context.player1.clickPrompt('Play anyway');
+            expect(context.captainPhasma.deployed).toBeTrue();
             expect(context.player2).toBeActivePlayer();
         });
     });

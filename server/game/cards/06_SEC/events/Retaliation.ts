@@ -25,7 +25,7 @@ export default class Retaliation extends EventCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => {
-                    return this.damageDealtWatcher.cardHasDealtDamage(card, (filter) => filter.targets.some((c) => c.isBase()));
+                    return this.damageDealtWatcher.unitHasDealtDamage(card, (filter) => filter.targets.some((c) => c.isBase()));
                 },
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             }

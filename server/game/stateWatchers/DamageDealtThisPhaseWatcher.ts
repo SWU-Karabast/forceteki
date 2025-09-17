@@ -7,10 +7,12 @@ import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import type { Card } from '../core/card/Card';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface DamageDealtEntry {
     damageType: DamageType;
     damageSourceCard: GameObjectRef<IPlayableCard>;
+    damageSourceCardType: CardType;
     damageSourcePlayer: GameObjectRef<Player>;
     damageSourceEventId: number;
     targets: GameObjectRef<Card>[];
@@ -55,6 +57,13 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
             }).length > 0;
     }
 
+    public unitHasDealtDamage (card: Card, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
+        return this.getCurrentValue().filter((entry) => EnumHelpers.isUnit(entry.damageSourceCardType))
+            .filter((entry) => {
+                return entry.damageSourceCard === card && filter(entry);
+            }).length > 0;
+    }
+
     protected override setupWatcher () {
         this.addUpdater({
             when: {
@@ -62,22 +71,27 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
             },
             update: (currentState: IDamageDealtThisPhase, event: any) => {
                 let damageSourceCard: GameObjectRef<IPlayableCard> = undefined;
+                let damageSourceCardType: CardType = undefined;
                 let targets: GameObjectRef<Card>[] = [];
 
                 if (event.type === 'combat') {
                     damageSourceCard = event.damageSource.attack?.attacker.getRef();
+                    damageSourceCardType = event.damageSource.attack?.attacker.type;
                     targets = event.damageSource.attack?.getAllTargets().map((x) => x.getRef());
                 } else if (event.type === 'overwhelm') {
                     damageSourceCard = event.damageSource.attack?.attacker.getRef();
+                    damageSourceCardType = event.damageSource.attack?.attacker.type;
                     targets = [event.card.getRef()];
                 } else if (event.type === 'ability') {
                     damageSourceCard = event.damageSource.card.getRef();
+                    damageSourceCardType = event.damageSource.card.type;
                     targets = [event.card.getRef()];
                 }
 
                 return currentState.concat({
                     damageType: event.type,
                     damageSourceCard: damageSourceCard,
+                    damageSourceCardType: damageSourceCardType,
                     targets: targets,
                     damageSourcePlayer: event.damageSource.player?.getRef(),
                     damageSourceEventId: event.damageSource.eventId,
