@@ -74,7 +74,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
               (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, {}, this.properties.mustChangeGameState));
         } catch (err) {
             // if an error happens while evaluating a card's condition, report it silently and return false so we have a chance to recover
-            context.game.reportError(err, false);
+            context.game.reportError(err);
             return false;
         }
     }

@@ -1,11 +1,15 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
+import { GameStateChangeRequired, MetaEventName, RelativePlayer } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
-import * as Helpers from '../core/utils/Helpers';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as Helpers from '../core/utils/Helpers.js';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
+import type { MsgArg } from '../core/chat/GameChat';
+
 
 export interface IRandomSelectionSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
 
@@ -48,11 +52,17 @@ export class RandomSelectionSystem<TContext extends AbilityContext = AbilityCont
     public override getEffectMessage(context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const options = properties.target;
-        const target = context.targets.randomTarget;
+        const targets = Helpers.asArray(context.targets.randomTarget);
 
         const [innerEffectMessage, innerEffectArgs] = properties.innerSystem.getEffectMessage(context, additionalProperties);
+        let targetMessage: MsgArg | MsgArg[] = this.getTargetMessage(targets, context);
 
-        return ['randomly select {0} from {1}, and to {2}', [this.getTargetMessage(target, context), this.getTargetMessage(options, context), { format: innerEffectMessage, args: innerEffectArgs }]];
+        if (targets.some((target) => EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self))) {
+            targetMessage = ChatHelpers.pluralize(targets.length, 'a card', 'cards');
+            return ['randomly select {0}, and to {1}', [targetMessage, { format: innerEffectMessage, args: innerEffectArgs }]];
+        }
+
+        return ['randomly select {0} from {1}, and to {2}', [targetMessage, this.getTargetMessage(options, context), { format: innerEffectMessage, args: innerEffectArgs }]];
     }
 
     public override canAffectInternal(target: Player | Card, context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

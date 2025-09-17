@@ -6,7 +6,7 @@ import * as Helpers from '../utils/Helpers.js';
 import { to } from '../utils/TypeHelpers';
 import v8 from 'node:v8';
 import { logger } from '../../../logger';
-import { AlertType } from '../Constants';
+import { AlertType, GameErrorSeverity } from '../Constants';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
@@ -51,7 +51,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {
-            this.game.reportError(error, true);
+            this.game.reportError(error, GameErrorSeverity.SevereHaltGame);
 
             throw error;
         }

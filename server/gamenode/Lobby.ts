@@ -18,7 +18,7 @@ import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer, ISwuStatsToken } from './GameServer';
-import { AlertType } from '../game/core/Constants';
+import { AlertType, GameErrorSeverity } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 
@@ -926,7 +926,7 @@ export class Lobby {
         return timeout;
     }
 
-    public handleError(game: Game, error: Error, severeGameMessage = false) {
+    public handleError(game: Game, error: Error, severity = GameErrorSeverity.Normal) {
         logger.error('Game: handleError', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
 
         let maxErrorCountExceeded = false;
@@ -934,11 +934,11 @@ export class Lobby {
         this.gameMessageErrorCount++;
         if (this.gameMessageErrorCount > Lobby.MaxGameMessageErrors) {
             logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
-            severeGameMessage = true;
+            severity = GameErrorSeverity.SevereHaltGame;
             maxErrorCountExceeded = true;
         }
 
-        if (game && severeGameMessage) {
+        if (game && (severity === GameErrorSeverity.SevereGameMessageOnly || severity === GameErrorSeverity.SevereHaltGame)) {
             const discordMessage = maxErrorCountExceeded
                 ? `Maximum error count ${Lobby.MaxGameMessageErrors} exceeded, game halted to prevent server crash`
                 : 'Severe game error reported, game is in an unrecoverable state';
@@ -947,14 +947,16 @@ export class Lobby {
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
 
             game.addMessage(
-                `A server error has occurred, apologies.  Your game may now be in an inconsistent state, or you may be able to continue. The error has been reported to the dev team. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
+                `A server error has occurred, apologies. Your game may now be in an inconsistent state, or you may be able to continue. The error has been reported to the dev team. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
             );
 
             // send game state so that the message can be seen
             this.sendGameState(this.game);
 
-            // this is ugly since we're probably within an exception handler currently, but if we get here it's already crisis
-            throw error;
+            if (severity === GameErrorSeverity.SevereHaltGame) {
+                // this is ugly since we're probably within an exception handler currently, but if we get here it's already crisis
+                throw error;
+            }
         }
     }
 
@@ -1118,7 +1120,14 @@ export class Lobby {
                 player1KarabastStatus.type = StatsSaveStatus.Warning;
                 player2KarabastStatus.message = 'stats not updated due to game ending before round 2';
                 player2KarabastStatus.type = StatsSaveStatus.Warning;
-                // so we throw here?
+                if (player1SwuStatsStatus) {
+                    player1SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
+                    player1SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
+                if (player2SwuStatsStatus) {
+                    player2SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
+                    player2SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
                 logger.info('stats not updated due to game ending before round 2', { lobbyId: this.id });
                 return;
             }
@@ -1140,6 +1149,17 @@ export class Lobby {
             // Send to SWUstats if handler is available
             if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier && this.swuStatsEnabled) {
                 ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1User, player2User));
+            }
+            // Send warning that swustats are not updated when in non-premier format.
+            if (this.format !== SwuGameFormat.Premier && this.swuStatsEnabled) {
+                if (player1SwuStatsStatus) {
+                    player1SwuStatsStatus.message = 'stats update not supported for non-Premier formats';
+                    player1SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
+                if (player2SwuStatsStatus) {
+                    player2SwuStatsStatus.message = 'stats update not supported for non-Premier formats';
+                    player2SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
             }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for ${game.id}`, { lobbyId: this.id });
         } finally {

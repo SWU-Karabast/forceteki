@@ -67,6 +67,23 @@ describe('Mace Windu, Vaapad Form Master', function () {
             });
         });
 
+        it('Mace Windu\'s leader undeployed ability should not cause an error if there are no enemy units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'mace-windu#vaapad-form-master',
+                    resources: 3
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.maceWindu);
+            context.player1.clickPrompt('Use it anyway');
+            expect(context.player2).toBeActivePlayer();
+            expect(context.player1.exhaustedResourceCount).toBe(1);
+        });
+
         describe('Mace Windu\'s leader deployed ability', function () {
             it('should deal 2 damage to each damaged enemy unit', async function () {
                 await contextRef.setupTestAsync({

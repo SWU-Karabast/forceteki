@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { CardType, EventName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 
 export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
@@ -17,18 +17,17 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
         registrar.addActionAbility({
             title: 'Discard a card from your hand. If you discard an Upgrade this way, draw a card',
             cost: AbilityHelper.costs.exhaustSelf(),
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
-                    target: context.player,
-                    amount: 1
-                })),
-                AbilityHelper.immediateEffects.conditional((context) => ({
-                    condition: context.events.some(
-                        (event) => event.name === EventName.OnCardDiscarded && event.card.isUpgrade()
-                    ),
-                    onTrue: AbilityHelper.immediateEffects.draw(),
-                }))
-            ])
+            targetResolver: {
+                zoneFilter: ZoneName.Hand,
+                controller: RelativePlayer.Self,
+                canChooseNoCards: false,
+                immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard(),
+            },
+            ifYouDo: {
+                title: 'If you discarded an Upgrade this way, draw a card',
+                ifYouDoCondition: (context) => context.events[0].card.isUpgrade(),
+                immediateEffect: AbilityHelper.immediateEffects.draw()
+            }
         });
     }
 

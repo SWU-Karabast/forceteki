@@ -138,7 +138,7 @@ describe('Babu Frik, Heyyy!', function () {
                 context.player1.clickPrompt(prompt);
 
                 // Player is warned that the ability has no effect
-                expect(context.player1).toHavePrompt(`The ability "${prompt}" will have no effect. Are you sure you want to use it?`);
+                expect(context.player1).toHaveNoEffectAbilityPrompt(prompt);
                 context.player1.clickPrompt('Use it anyway');
                 context.player1.clickPrompt('Trigger');
 
