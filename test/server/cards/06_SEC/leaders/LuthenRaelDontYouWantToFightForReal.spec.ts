@@ -15,7 +15,7 @@ describe('Luthen Rael, Don\'t You Want To Fight For Real?', function () {
 
                 const { context } = contextRef;
 
-                // Defeat an enemy unit to trigger Luthen
+                // Defeat a friendly unit to trigger Luthen
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.wampa);
 
@@ -32,7 +32,7 @@ describe('Luthen Rael, Don\'t You Want To Fight For Real?', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should exhaust himself to deal 1 damage to a unit or a base when a friendly unit is defeated while attacking', async function () {
+            it('should exhaust himself to deal 1 damage to a unit or a base when a friendly unit is defeated while attacking (heroic sacrifice)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -44,7 +44,7 @@ describe('Luthen Rael, Don\'t You Want To Fight For Real?', function () {
 
                 const { context } = contextRef;
 
-                // Defeat an enemy unit to trigger Luthen
+                // Defeat a friendly unit with event to trigger Luthen
                 context.player1.clickCard(context.heroicSacrifice);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
@@ -57,6 +57,40 @@ describe('Luthen Rael, Don\'t You Want To Fight For Real?', function () {
 
                 // Effect applied and Luthen exhausted due to immediateEffect.exhaust()
                 expect(context.p2Base.damage).toBe(6); // 3+2+1
+                expect(context.luthenRaelDontYouWantToFightForReal.exhausted).toBeTrue();
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should exhaust himself to deal 1 damage to a unit or a base when a friendly unit is defeated while attacking (trench run)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'luthen-rael#dont-you-want-to-fight-for-real',
+                        hand: ['trench-run'],
+                        spaceArena: ['green-squadron-awing']
+                    },
+                    player2: {
+                        deck: ['awing', 'atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.trenchRun);
+                context.player1.clickCard(context.greenSquadronAwing);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to a unit or base');
+                context.player1.clickPrompt('Trigger');
+
+                // Choose opponent base
+                context.player1.clickCard(context.p2Base);
+
+                // Effect applied and Luthen exhausted due to immediateEffect.exhaust()
+                expect(context.p2Base.damage).toBe(1); // only luthen rael ability
+                expect(context.greenSquadronAwing).toBeInZone('discard', context.player1);
+                expect(context.awing).toBeInZone('discard', context.player2);
+                expect(context.atst).toBeInZone('discard', context.player2);
                 expect(context.luthenRaelDontYouWantToFightForReal.exhausted).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
             });
@@ -174,7 +208,7 @@ describe('Luthen Rael, Don\'t You Want To Fight For Real?', function () {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.p2Base.damage).toBe(2);
-                // Deployed side does not exhaust per implementation
+                // Deployed side does not exhaust
                 expect(context.luthenRaelDontYouWantToFightForReal.exhausted).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });

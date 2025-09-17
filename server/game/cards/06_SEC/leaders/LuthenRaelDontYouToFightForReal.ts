@@ -4,7 +4,6 @@ import type {
     ILeaderUnitLeaderSideAbilityRegistrar
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { CardType, WildcardCardType } from '../../../core/Constants';
 
 export default class LuthenRaelDontYouToFightForReal extends LeaderUnitCard {
     protected override getImplementationId () {
@@ -29,7 +28,6 @@ export default class LuthenRaelDontYouToFightForReal extends LeaderUnitCard {
             ifYouDo: {
                 title: 'Deal 1 damage to a unit or base',
                 targetResolver: {
-                    cardTypeFilter: [WildcardCardType.Unit, CardType.Base],
                     immediateEffect: abilityHelper.immediateEffects.damage({ amount: 1 })
                 }
             }
@@ -48,7 +46,6 @@ export default class LuthenRaelDontYouToFightForReal extends LeaderUnitCard {
             },
             optional: true,
             targetResolver: {
-                cardTypeFilter: [WildcardCardType.Unit, CardType.Base],
                 immediateEffect: abilityHelper.immediateEffects.damage({ amount: 2 })
             }
         });
