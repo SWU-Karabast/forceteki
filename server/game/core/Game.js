@@ -827,6 +827,8 @@ class Game extends EventEmitter {
 
         for (const player of this.getPlayers()) {
             player.actionTimer.stop();
+
+            this.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(player.id);
         }
 
         /**

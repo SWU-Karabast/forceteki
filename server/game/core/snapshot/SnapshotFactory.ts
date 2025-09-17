@@ -153,15 +153,6 @@ export class SnapshotFactory {
     }
 
     /**
-     * Sets the requiresConfirmationToRollback flag on the current snapshot.
-     */
-    public setRequiresConfirmationToRollbackCurrentSnapshot() {
-        if (this.currentActionSnapshot) {
-            this.currentActionSnapshot.requiresConfirmationToRollback = true;
-        }
-    }
-
-    /**
      * Helper method to facilitate snapshot containers accessing the current snapshot for storage
      */
     private getCurrentActionSnapshot(): IGameSnapshot {
