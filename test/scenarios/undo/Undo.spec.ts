@@ -2016,6 +2016,206 @@ describe('Undo', function() {
                 expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
                 expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
             });
+
+            undoIt('should require confirmation to rollback after revealing cards from deck', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['for-a-cause-i-believe-in'],
+                        deck: [
+                            'atst',
+                            'waylay',
+                            'wampa',
+                            'frontier-atrt'
+                        ]
+                    },
+                    player2: {
+                        groundArena: ['isb-agent'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.forACauseIBelieveIn);
+                context.player1.clickDisplayCardPromptButton(context.atst.uuid, 'top');
+                context.player1.clickDisplayCardPromptButton(context.waylay.uuid, 'top');
+                context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'top');
+                context.player1.clickDisplayCardPromptButton(context.frontierAtrt.uuid, 'top');
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            });
+
+            undoIt('should not require confirmation to rollback after revealing cards from own hand', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['confiscate', 'waylay', 'isb-agent'],
+                        groundArena: ['atst'],
+                        spaceArena: ['cartel-spacer']
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.isbAgent);
+                context.player1.clickCard(context.confiscate);
+                context.player2.clickDone();
+                context.player1.clickCard(context.wampa);
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            });
+
+            undoIt('should require confirmation to rollback after revealing cards from opponent', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['viper-probe-droid'],
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        hand: ['atst'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.viperProbeDroid);
+                context.player1.clickDone();
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            });
+
+            undoIt('should require confirmation to rollback after making the opponent discard a card from hand', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['force-throw'],
+                        groundArena: ['wampa', 'ezra-bridger#resourceful-troublemaker']
+                    },
+                    player2: {
+                        hand: ['karabast', 'battlefield-marine'],
+                        groundArena: ['specforce-soldier', 'atst'],
+                        spaceArena: ['tieln-fighter'],
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.forceThrow);
+                context.player1.clickPrompt('Opponent discards');
+                context.player2.clickCard(context.karabast);
+                context.player1.clickCard(context.atst);
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            });
+
+            undoIt('should require confirmation to rollback after making the opponent discard a card from deck', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: { card: 'chopper-base', damage: 5 },
+                        groundArena: ['kanan-jarrus#revealed-jedi'],
+                        leader: 'hera-syndulla#spectre-two',
+                    },
+                    player2: {
+                        deck: ['battlefield-marine', 'pyke-sentinel', 'underworld-thug', 'the-chaos-of-war', 'volunteer-soldier'],
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.kananJarrus);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            });
+
+            undoIt('should require confirmation to rollback after taking control of an opponent resource', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'chopper-base',
+                        leader: 'han-solo#audacious-smuggler',
+                        hand: ['strafing-gunship'],
+                        // 10 resources total
+                        resources: [
+                            'dj#blatant-thief', 'atst', 'atst', 'atst', 'atst',
+                            'atst', 'atst', 'atst', 'atst', 'atst'
+                        ]
+                    },
+                    player2: {
+                        groundArena: ['atat-suppressor'],
+                        resources: 10,
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.djBlatantThief);
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            });
+
+            undoIt('should require confirmation to rollback after looking at own deck', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['inferno-four#unforgetting'],
+                        deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay'],
+                    },
+                    player2: {
+                        groundArena: ['atat-suppressor'],
+                        resources: 10,
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.infernoFour);
+                context.player1.clickDisplayCardPromptButton(context.sabineWren.uuid, 'top');
+                context.player1.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'bottom');
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            });
         });
     });
 });
