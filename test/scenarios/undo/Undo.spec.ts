@@ -1989,6 +1989,33 @@ describe('Undo', function() {
                 expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
                 expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeFalse();
             });
+
+            undoIt('should require confirmation to rollback after a deck search', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['prepare-for-takeoff'],
+                        deck: ['green-squadron-awing', 'battlefield-marine', 'restored-arc170', 'pyke-sentinel', 'inferno-four#unforgetting', 'escort-skiff', 'consular-security-force', 'echo-base-defender', 'swoop-racer'],
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'atst'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.prepareForTakeoff);
+                context.player1.clickCardInDisplayCardPrompt(context.greenSquadronAwing);
+                context.player1.clickCardInDisplayCardPrompt(context.restoredArc170);
+                context.player1.clickDone();
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            });
         });
     });
 });
