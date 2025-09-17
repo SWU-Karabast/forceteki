@@ -504,6 +504,77 @@ const mockCards = [
         arena: 'ground',
         internalName: 'rebel-propagandist',
     }),
+    buildMockCard({
+        title: 'Luthen Rael',
+        subtitle: 'Don\'t You Want To Fight For Real?',
+        power: 2,
+        hp: 7,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['leader'],
+        traits: ['rebel'],
+        setId: {
+            set: 'SEC',
+            number: 13
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'luthen-rael#dont-you-want-to-fight-for-real',
+    }),
+    buildMockCard({
+        title: 'Jade Squadron Patrol',
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['sentinel'],
+        types: ['unit'],
+        traits: ['resistance', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 49
+        },
+        cost: 6,
+        unique: false,
+        arena: 'space',
+        internalName: 'jade-squadron-patrol',
+    }),
+    buildMockCard({
+        title: 'A-Wing',
+        power: 1,
+        hp: 2,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning'],
+        keywords: ['raid 1'],
+        types: ['unit'],
+        traits: ['vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 213
+        },
+        cost: 1,
+        unique: false,
+        arena: 'space',
+        internalName: 'awing',
+    }),
+    buildMockCard({
+        title: 'Bardottan Ornithopter',
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['fringe', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 62
+        },
+        cost: 4,
+        unique: false,
+        arena: 'space',
+        internalName: 'bardottan-ornithopter',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
