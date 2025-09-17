@@ -347,6 +347,65 @@ describe('Chimaera, Reinforcing the Center', function() {
                 expect(context.player2).not.toHavePrompt('Deal 3 damage to a unit');
             });
 
+            it('should still resolve if it is immediately defeated due to the uniqueness rule', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: {
+                            card: 'jabbas-palace',
+                            damage: 10
+                        },
+                        hand: ['chimaera#reinforcing-the-center'],
+                        spaceArena: [
+                            'chimaera#reinforcing-the-center',
+                            'the-legacy-run#doomed-debris'
+                        ]
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force']
+                    }
+                });
+
+                const { context } = contextRef;
+                const p1Chimaeras = context.player1.findCardsByName('chimaera#reinforcing-the-center');
+                context.chimaeraInHand = p1Chimaeras.find((chimaera) => chimaera.zoneName === 'hand');
+                context.chimaeraInPlay = p1Chimaeras.find((chimaera) => chimaera.zoneName === 'spaceArena');
+
+                context.player1.clickCard(context.chimaeraInHand);
+
+                // Prompt for defeat due to uniqueness rule
+                expect(context.player1).toHavePrompt('Choose which copy of Chimaera, Reinforcing the Center to defeat');
+                expect(context.player1).toBeAbleToSelectExactly([context.chimaeraInHand, context.chimaeraInPlay]);
+                expect(context.chimaeraInPlay).toBeInZone('spaceArena');
+                expect(context.chimaeraInHand).toBeInZone('spaceArena');
+
+                // Defeat the newly played one
+                context.player1.clickCard(context.chimaeraInHand);
+                expect(context.chimaeraInPlay).toBeInZone('spaceArena');
+                expect(context.chimaeraInHand).toBeInZone('discard');
+
+                // Choose which ability to resolve first
+                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Use a When Defeated ability on another unit',  // When Played
+                    'Create 2 TIE Fighters'                         // When Defeated
+                ]);
+
+                // Resolve the When Played ability first
+                context.player1.clickPrompt('Use a When Defeated ability on another unit');
+                expect(context.player1).toHavePrompt('Use a When Defeated ability on another unit');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.chimaeraInPlay,
+                    context.theLegacyRun
+                ]);
+
+                context.player1.clickCard(context.theLegacyRun);
+
+                // The Legacy Run's ability was used to deal 6 damage to Consular Security Force
+                expect(context.consularSecurityForce.damage).toBe(6);
+                expect(context.theLegacyRun).toBeInZone('spaceArena');
+            });
+
             // TODO: This isn't currently working, also waiting on an answer from Judges
             // it('should interact correctly with Second Chance', async function () {
             //     await contextRef.setupTestAsync({

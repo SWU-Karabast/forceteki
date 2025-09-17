@@ -87,7 +87,7 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
 
             if (mustChangeGameState !== GameStateChangeRequired.None) {
                 return card.getTriggeredAbilities().some((ability) => {
-                    const whenDefeatedEvent = new DefeatCardSystem(ability.properties).generateEvent(context, card, true);
+                    const whenDefeatedEvent = new DefeatCardSystem({ target: card }).generateEvent(context, {}, true);
                     const abilityContext = ability.createContext(context.player, whenDefeatedEvent);
                     abilityContext.stage = Stage.PreTarget;
                     return ability.meetsRequirements(abilityContext) === '';
