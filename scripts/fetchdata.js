@@ -136,10 +136,21 @@ function populateMissingData(attributes, id) {
 
     // Plot cards from Secrets of Power
     switch (id) {
+        case '3796991604': // Dogmatic Shock Squad
+            attributes.keywords = {
+                data: [
+                    {
+                        attributes: { name: 'Plot' }
+                    },
+                    {
+                        attributes: { name: 'Sentinel' }
+                    },
+                ]
+            };
+            break;
         case '6015383018': // Sneaking Suspicion
         case '7069246970': // Sly Moore
         case '8365930807': // Cad Bane
-        case '3796991604': // Dogmatic Shock Squad
         case '0024944513': // Armor of Fortune
         case '7936097828': // Chancellor Palpatine
         case '7365023470': // Mas Amedda
@@ -147,6 +158,8 @@ function populateMissingData(attributes, id) {
         case '9985741271': // Jar Jar Binks
         case '2877797132': // Unveiled Might
         case '0602708575': // Kaydel Connix
+        case '8401985446': // Topple the Summit
+        case '1369084772': // Tala Durith
             attributes.keywords = {
                 data: [{
                     attributes: {
