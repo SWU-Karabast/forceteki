@@ -18,7 +18,7 @@ describe('Spark Of Rebellion', function () {
 
                 // First check that the lookAt sends ALL the opponents cards in hand to chat
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine, context.waylay, context.protector, context.infernoFour]);
-                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                expect(context.player1).not.toHaveEnabledPromptButton('Take nothing');
                 expect(context.getChatLogs(1)[0]).not.toContain(context.battlefieldMarine.title);
                 expect(context.getChatLogs(1)[0]).not.toContain(context.waylay.title);
                 expect(context.getChatLogs(1)[0]).not.toContain(context.protector.title);
