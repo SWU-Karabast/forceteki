@@ -17,12 +17,11 @@ export default class ColonelYularenThisIsWhyWePlan extends LeaderUnitCard {
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.attack()
             },
-            then: (thenContext) => ({
+            ifYouDo: (ifYouDoContext) => ({
                 title: 'Attack with a unit that costs less',
                 optional: true,
-                thenCondition: (thenContext) => thenContext.target,
                 initiateAttack: {
-                    attackerCondition: (card) => card.isUnit() && card.cost < thenContext.target.cost,
+                    attackerCondition: (card) => card.isUnit() && card.cost < ifYouDoContext.target.cost,
                 }
             })
         });
