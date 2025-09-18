@@ -138,38 +138,37 @@ describe('Retaliation', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        // TODO
-        // it('Retaliation\'s ability should not be able to defeat a unit revived by Salvage (or similar abilities)', async function () {
-        //     await contextRef.setupTestAsync({
-        //         phase: 'action',
-        //         player1: {
-        //             hand: ['retaliation'],
-        //             spaceArena: ['green-squadron-awing']
-        //         },
-        //         player2: {
-        //             hand: ['salvage'],
-        //             spaceArena: ['awing'],
-        //             leader: 'captain-phasma#chrome-dome',
-        //             hasInitiative: true,
-        //         }
-        //     });
-        //     const { context } = contextRef;
-        //
-        //     context.player2.clickCard(context.awing);
-        //     context.player2.clickCard(context.p1Base);
-        //
-        //     context.player1.clickCard(context.greenSquadronAwing);
-        //     context.player1.clickCard(context.awing);
-        //
-        //     context.player2.clickCard(context.salvage);
-        //     context.player2.clickCard(context.awing);
-        //
-        //     context.player1.clickCard(context.retaliation);
-        //     expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
-        //
-        //     context.player1.clickPrompt('Play anyway');
-        //     expect(context.awing).toBeInZone('spaceArena', context.player2);
-        //     expect(context.player2).toBeActivePlayer();
-        // });
+        it('Retaliation\'s ability should not be able to defeat a unit revived by Salvage (or similar abilities)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['retaliation'],
+                    spaceArena: ['green-squadron-awing']
+                },
+                player2: {
+                    hand: ['salvage'],
+                    spaceArena: ['awing'],
+                    leader: 'captain-phasma#chrome-dome',
+                    hasInitiative: true,
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.awing);
+            context.player2.clickCard(context.p1Base);
+
+            context.player1.clickCard(context.greenSquadronAwing);
+            context.player1.clickCard(context.awing);
+
+            context.player2.clickCard(context.salvage);
+            context.player2.clickCard(context.awing);
+
+            context.player1.clickCard(context.retaliation);
+            expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
+
+            context.player1.clickPrompt('Play anyway');
+            expect(context.awing).toBeInZone('spaceArena', context.player2);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
