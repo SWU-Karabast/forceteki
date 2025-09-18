@@ -13,7 +13,7 @@ export default class CrosshairFilledWithDoubt extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'You may deal 1 damage to another friendly unit. If you do, deal 2 damage to the defending player\'s base',
+            title: 'Deal 1 damage to another friendly unit. If you do, deal 2 damage to the defending player\'s base',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

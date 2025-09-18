@@ -36,7 +36,7 @@ export default class ColonelYularenThisIsWhyWePlan extends LeaderUnitCard {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source
             },
             initiateAttack: {
-                attackerCondition: (card) => card.isUnit() && card.cost < 5,
+                attackerCondition: (card) => card.isUnit() && card.cost <= 4,
             }
         });
     }

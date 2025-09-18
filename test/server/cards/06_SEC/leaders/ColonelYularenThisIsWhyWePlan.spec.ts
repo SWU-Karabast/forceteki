@@ -1,5 +1,6 @@
 describe('Colonel Yularen, This Is Why We Plan', function() {
     integration(function(contextRef) {
+        const disclosePrompt = 'Disclose Command, Heroism to attack with another unit';
         describe('Colonel Yularen\'s undeployed ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
@@ -139,12 +140,13 @@ describe('Colonel Yularen, This Is Why We Plan', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['atst', 'sabine-wren#explosives-artist', 'death-trooper', { card: 'seasoned-shoretrooper', exhausted: true }],
+                        hand: ['battlefield-marine'],
+                        groundArena: ['atst', 'sabine-wren#explosives-artist', 'death-trooper', { card: 'seasoned-shoretrooper', exhausted: true }, 'ahsoka-tano#i-learned-it-from-you'],
                         spaceArena: ['tieln-fighter', 'seventh-fleet-defender'],
                         leader: { card: 'colonel-yularen#this-is-why-we-plan', deployed: true }
                     },
                     player2: {
-                        groundArena: ['sundari-peacekeeper'],
+                        groundArena: ['sundari-peacekeeper', 'reinforcement-walker'],
                         spaceArena: ['tie-advanced']
                     },
                 });
@@ -160,7 +162,7 @@ describe('Colonel Yularen, This Is Why We Plan', function() {
                 expect(context.colonelYularenThisIsWhyWePlan.damage).toBe(1);
                 expect(context.sundariPeacekeeper.damage).toBe(4);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.sabineWrenExplosivesArtist, context.deathTrooper, context.tielnFighter, context.seventhFleetDefender]);
+                expect(context.player1).toBeAbleToSelectExactly([context.sabineWrenExplosivesArtist, context.deathTrooper, context.tielnFighter, context.seventhFleetDefender, context.ahsokaTanoILearnedItFromYou]);
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.deathTrooper);
@@ -169,31 +171,66 @@ describe('Colonel Yularen, This Is Why We Plan', function() {
                 expect(context.deathTrooper.exhausted).toBe(true);
                 expect(context.p2Base.damage).toBe(3);
                 expect(context.deathTrooper.damage).toBe(0);
+            });
 
-                context.player2.passAction();
+            it('should allow passing the second attack', function () {
+                const { context } = contextRef;
 
-                // second Yularen attack to confirm that passing the ability works
-                context.readyCard(context.colonelYularenThisIsWhyWePlan);
                 context.player1.clickCard(context.colonelYularenThisIsWhyWePlan);
                 context.player1.clickCard(context.p2Base);
                 expect(context.colonelYularenThisIsWhyWePlan.exhausted).toBe(true);
-                expect(context.p2Base.damage).toBe(7);
 
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
                 context.player1.clickPrompt('Pass');
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.player2).toBeActivePlayer();
+            });
 
-                context.player2.passAction();
+            it('should not trigger if there is no legal target', function () {
+                const { context } = contextRef;
 
-                // third Leia attack to confirm that the ability isn't triggered if there is no legal attacker
                 context.exhaustCard(context.sabineWrenExplosivesArtist);
                 context.exhaustCard(context.tielnFighter);
                 context.exhaustCard(context.seventhFleetDefender);
-                context.readyCard(context.colonelYularenThisIsWhyWePlan);
+                context.exhaustCard(context.deathTrooper);
+                context.exhaustCard(context.ahsokaTanoILearnedItFromYou);
                 context.player1.clickCard(context.colonelYularenThisIsWhyWePlan);
                 context.player1.clickCard(context.p2Base);
                 expect(context.colonelYularenThisIsWhyWePlan.exhausted).toBe(true);
-                expect(context.p2Base.damage).toBe(11);
+                expect(context.p2Base.damage).toBe(4);
 
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not trigger if Yularen dies during the attack', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.colonelYularenThisIsWhyWePlan);
+                context.player1.clickCard(context.reinforcementWalker);
+                expect(context.colonelYularenThisIsWhyWePlan).toBeInZone('base');
+                expect(context.reinforcementWalker.damage).toBe(4);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should stack with Ahsoka Tano', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.ahsokaTanoILearnedItFromYou);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toHavePrompt(disclosePrompt);
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.battlefieldMarine,
+                ]);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player2.clickPrompt('Done');
+
+                context.player1.clickCard(context.colonelYularenThisIsWhyWePlan);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickCard(context.deathTrooper);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(9);
                 expect(context.player2).toBeActivePlayer();
             });
         });
