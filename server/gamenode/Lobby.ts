@@ -42,6 +42,8 @@ export enum DeckSource {
     SWUStats = 'swuStats',
     SWUDB = 'swuDb',
     SWUnlimitedDB = 'swUnlimitedDb',
+    SWUBase = 'swuBase',
+    SWUCardHub = 'swuCardHub',
     Unknown = 'unknown'
 }
 
@@ -694,8 +696,13 @@ export class Lobby {
                 return DeckSource.SWUDB;
             } else if (deckLink.includes('swunlimiteddb.com')) {
                 return DeckSource.SWUnlimitedDB;
+            } else if (deckLink.includes('swubase.com')) {
+                return DeckSource.SWUBase;
+            } else if (deckLink.includes('swucardhub.fr')) {
+                return DeckSource.SWUCardHub;
             }
         }
+
         // Default fallback
         return DeckSource.Unknown;
     }
