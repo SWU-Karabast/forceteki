@@ -15,6 +15,7 @@ export default class SparkOfRebellion extends EventCard {
             title: 'Look at an opponent\'s hand and discard a card from it',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
                 target: context.player.opponent.hand,
+                canChooseFewer: false,
                 immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard()
             }))
         });
