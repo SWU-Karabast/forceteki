@@ -1,3 +1,9 @@
+export interface IModeration {
+    days: number;
+    startDays?: Date;
+    hasSeen?: boolean;
+}
+
 export interface IUserDataEntity {
     id: string;
     username: string;
@@ -5,7 +11,7 @@ export interface IUserDataEntity {
     swuStatsRefreshToken?: string;
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
-    mutedUntil?: Date;
+    moderation?: IModeration;
 }
 
 export interface IFeMatchupStatEntity extends IMatchupStatEntity {

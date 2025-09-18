@@ -1,4 +1,4 @@
-import type { IUserDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
+import type { IModeration, IUserDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class
@@ -61,9 +61,10 @@ export abstract class User {
 
     public abstract needsUsernameChange(): boolean;
 
-    public abstract isMuted(): boolean;
-
-    public abstract getMutedUntil(): Date;
+    /**
+     * Gets the user's moderation status
+     */
+    public abstract getModeration(): IModeration | null;
 }
 
 /**
@@ -114,20 +115,16 @@ export class AuthenticatedUser extends User {
         return !!this.userData.needsUsernameChange;
     }
 
-    public isMuted(): boolean {
-        return this.userData.mutedUntil ? new Date(this.userData.mutedUntil).getTime() > Date.now() : false;
-    }
-
-    public getMutedUntil(): Date | null {
-        return this.userData.mutedUntil || null;
-    }
-
     public getSwuStatsRefreshToken(): string | null {
         return this.userData.swuStatsRefreshToken ?? null;
     }
 
     public hasSwuStatsRefreshToken(): boolean {
         return !!this.userData.swuStatsRefreshToken;
+    }
+
+    public getModeration(): IModeration | null {
+        return this.userData.moderation ?? null;
     }
 
     public toJSON(): Record<string, any> {
@@ -177,14 +174,6 @@ export class AnonymousUser extends User {
         return false;
     }
 
-    public isMuted(): boolean {
-        return false;
-    }
-
-    public getMutedUntil(): Date | null {
-        return null;
-    }
-
     public getUsername(): string {
         return this.username;
     }
@@ -207,6 +196,10 @@ export class AnonymousUser extends User {
 
     public hasSwuStatsRefreshToken(): boolean {
         return false;
+    }
+
+    public getModeration(): IModeration | null {
+        return null;
     }
 
     public toJSON(): Record<string, any> {

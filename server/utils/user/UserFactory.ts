@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
-import type { IUserDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
+import type { IUserDataEntity, IUserProfileDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
 
 
 const getDefaultSoundPreferences = () => ({
@@ -41,8 +41,10 @@ export class UserFactory {
             const basicUser = await this.authenticateWithTokenAsync(token);
             Contract.assertNotNullLike(basicUser, 'Token authentication failed, User not found from token');
 
-            const userData = await dbService.getUserProfileAsync(basicUser.id);
+            let userData = await dbService.getUserProfileAsync(basicUser.id);
             Contract.assertNotNullLike(userData, `User profile not found for authenticated user ${basicUser.id}`);
+
+            userData = await this.processModerationAsync(userData);
 
             return new AuthenticatedUser(userData);
         } catch (error) {
@@ -330,7 +332,8 @@ export class UserFactory {
                 preferences: getDefaultPreferences(),
                 needsUsernameChange: false,
                 swuStatsRefreshToken: null,
-                mutedUntil: null
+                mutedUntil: null,
+                moderation: null
             };
 
             // Create OAuth link
@@ -426,6 +429,90 @@ export class UserFactory {
         } catch (error: any) {
             logger.error('Error unlinking SWUstats:', {
                 error: { message: error.message, stack: error.stack }, userId
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Processes moderation logic for a user
+     * @param userData User data from database
+     * @returns Updated user data with moderation processed
+     */
+    private async processModerationAsync(userData: IUserProfileDataEntity): Promise<IUserProfileDataEntity> {
+        try {
+            const dbService = await this.dbServicePromise;
+
+            // Check if user has moderation field and it's not null
+            if (userData.moderation && userData.moderation.days) {
+                if (!userData.moderation.startDays) {
+                    userData.moderation.startDays = new Date();
+                    userData.moderation.hasSeen = false;
+
+                    // Update the user in the database with the new moderation data
+                    await dbService.updateUserProfileAsync(userData.id, {
+                        moderation: userData.moderation
+                    });
+
+                    logger.info(`UserFactory: Initialized moderation start date for user ${userData.id}`, {
+                        userId: userData.id
+                    });
+                } else {
+                    // Check if moderation has expired
+                    const startDate = new Date(userData.moderation.startDays);
+                    const endDate = new Date(startDate);
+                    endDate.setDate(startDate.getDate() + userData.moderation.days);
+                    const now = new Date();
+
+                    if (now > endDate) {
+                        userData.moderation = null;
+                        // Update the user in the database to remove moderation data
+                        await dbService.updateUserProfileAsync(userData.id, {
+                            moderation: null
+                        });
+
+                        logger.info(`UserFactory: Cleared expired moderation for user ${userData.id}`, {
+                            userId: userData.id,
+                        });
+                    }
+                }
+            }
+            return userData;
+        } catch (error) {
+            logger.error('Error processing moderation for user:', {
+                error: { message: error.message, stack: error.stack },
+                userId: userData.id
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Updates moderation seen status for a user
+     * @param userId The user ID
+     * @returns True if update was successful
+     */
+    public async setModerationSeenAsync(userId: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+
+            if (userProfile.moderation) {
+                userProfile.moderation.hasSeen = true;
+                await dbService.updateUserProfileAsync(userId, {
+                    moderation: userProfile.moderation
+                });
+
+                logger.info(`UserFactory: Set moderation as seen for user ${userId}`);
+                return true;
+            }
+
+            return false;
+        } catch (error) {
+            logger.error('Error setting moderation seen status:', {
+                error: { message: error.message, stack: error.stack },
+                userId
             });
             throw error;
         }
