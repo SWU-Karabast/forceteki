@@ -629,6 +629,76 @@ const mockCards = [
         arena: 'space',
         internalName: 'bardottan-ornithopter',
     }),
+    buildMockCard({
+        title: 'Daro Commando',
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        keywords: ['overwhelm'],
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['imperial', 'clone', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 113
+        },
+        cost: 3,
+        unique: false,
+        arena: 'ground',
+        internalName: 'daro-commando',
+    }),
+    buildMockCard({
+        title: 'FN Trooper Corps',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        keywords: ['plot'],
+        aspects: ['villainy'],
+        types: ['unit'],
+        traits: ['first order', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 243
+        },
+        cost: 5,
+        unique: false,
+        arena: 'ground',
+        internalName: 'fn-trooper-corps',
+    }),
+    buildMockCard({
+        title: 'Supreme Council Aide',
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: false,
+        aspects: ['villainy'],
+        types: ['unit'],
+        traits: ['first order', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 237
+        },
+        cost: 1,
+        unique: false,
+        arena: 'ground',
+        internalName: 'supreme-council-aide',
+    }),
+    buildMockCard({
+        title: 'Imperial Occupier',
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 132
+        },
+        cost: 2,
+        unique: false,
+        arena: 'ground',
+        internalName: 'imperial-occupier',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
