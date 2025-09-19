@@ -27,13 +27,13 @@ export interface DamageDealtEntry {
 export type IDamageDealtThisPhase = DamageDealtEntry[];
 
 export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> {
-    public constructor (
+    public constructor(
         game: Game,
         registrar: StateWatcherRegistrar) {
         super(game, StateWatcherName.DamageDealtThisPhase, registrar);
     }
 
-    protected override mapCurrentValue (stateValue: DamageDealtEntry[]): UnwrapRef<DamageDealtEntry[]> {
+    protected override mapCurrentValue(stateValue: DamageDealtEntry[]): UnwrapRef<DamageDealtEntry[]> {
         return stateValue.map((x) => ({
             ...x,
             damageSourceCard: this.game.getFromRef(x.damageSourceCard),
@@ -43,23 +43,23 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
         }));
     }
 
-    public getDamageDealtByPlayer (player: Player, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): UnwrapRef<IDamageDealtThisPhase> {
+    public getDamageDealtByPlayer(player: Player, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): UnwrapRef<IDamageDealtThisPhase> {
         return this.getCurrentValue()
             .filter((entry) => entry.damageSourcePlayer === player && filter(entry));
     }
 
-    public playerHasDealtDamage (player: Player, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
+    public playerHasDealtDamage(player: Player, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
         return this.getDamageDealtByPlayer(player, filter).length > 0;
     }
 
-    public cardHasDealtDamage (card: Card, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
+    public cardHasDealtDamage(card: Card, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
         return this.getCurrentValue()
             .filter((entry) => {
                 return entry.damageSourceCard === card && filter(entry);
             }).length > 0;
     }
 
-    public unitHasDealtDamage (card: Card, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
+    public unitHasDealtDamage(card: Card, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
         return this.getCurrentValue().filter((entry) => EnumHelpers.isUnit(entry.damageSourceCardType))
             .filter((entry) => {
                 return entry.damageSourceCard === card &&
@@ -69,7 +69,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
             }).length > 0;
     }
 
-    protected override setupWatcher () {
+    protected override setupWatcher() {
         this.addUpdater({
             when: {
                 onDamageDealt: () => true,
@@ -118,7 +118,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
         return (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId);
     }
 
-    protected override getResetValue (): IDamageDealtThisPhase {
+    protected override getResetValue(): IDamageDealtThisPhase {
         return [];
     }
 }
