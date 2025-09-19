@@ -368,6 +368,20 @@ export class SnapshotManager {
         return this.quickSnapshots.get(playerId)?.hasQuickSnapshot(rollbackPoint) ?? false;
     }
 
+    public canQuickRollbackWithoutConfirmation(playerId: string): boolean {
+        const rollbackPoint = this.getQuickRollbackPoint(playerId);
+        const quickSnapshotProperties = this.quickSnapshots.get(playerId)?.getSnapshotProperties(rollbackPoint);
+        if (!quickSnapshotProperties) {
+            return false;
+        }
+
+        return !quickSnapshotProperties.requiresConfirmationToRollback;
+    }
+
+    public setRequiresConfirmationToRollbackCurrentSnapshot(playerId: string) {
+        this.actionSnapshots.setRequiresConfirmationToRollbackCurrentSnapshot(playerId);
+    }
+
     public clearAllSnapshots(): void {
         this.actionSnapshots.clearAllSnapshots();
         this.phaseSnapshots.clearAllSnapshots();
