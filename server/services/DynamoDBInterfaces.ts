@@ -1,7 +1,13 @@
-export interface IModeration {
-    days: number;
-    startDays?: Date;
+export enum ModerationType {
+    Mute = 'Mute',
+    Ban = 'Ban',
+}
+
+export interface IModerationAction {
+    daysRemaining: number;
+    endDate?: Date;
     hasSeen?: boolean;
+    moderationType?: ModerationType;
 }
 
 export interface IUserDataEntity {
@@ -11,7 +17,7 @@ export interface IUserDataEntity {
     swuStatsRefreshToken?: string;
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
-    moderation?: IModeration;
+    moderation?: IModerationAction;
 }
 
 export interface IFeMatchupStatEntity extends IMatchupStatEntity {

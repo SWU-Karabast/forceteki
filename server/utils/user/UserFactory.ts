@@ -1,12 +1,19 @@
 import type { User } from './User';
-import { AuthenticatedUser, AnonymousUser } from './User';
+import { AnonymousUser, AuthenticatedUser } from './User';
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
-import type { IUserDataEntity, IUserProfileDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
+import type {
+    IUserDataEntity,
+    IUserProfileDataEntity,
+    UserPreferences
+} from '../../services/DynamoDBInterfaces';
+import {
+    ModerationType
+} from '../../services/DynamoDBInterfaces';
 
 
 const getDefaultSoundPreferences = () => ({
@@ -332,7 +339,6 @@ export class UserFactory {
                 preferences: getDefaultPreferences(),
                 needsUsernameChange: false,
                 swuStatsRefreshToken: null,
-                mutedUntil: null,
                 moderation: null
             };
 
@@ -442,12 +448,14 @@ export class UserFactory {
     private async processModerationAsync(userData: IUserProfileDataEntity): Promise<IUserProfileDataEntity> {
         try {
             const dbService = await this.dbServicePromise;
-
+            Contract.assertNonNegative(userData.moderation.daysRemaining);
             // Check if user has moderation field and it's not null
-            if (userData.moderation && userData.moderation.days) {
-                if (!userData.moderation.startDays) {
-                    userData.moderation.startDays = new Date();
+            if (userData.moderation && userData.moderation.daysRemaining) {
+                if (!userData.moderation.endDate) {
+                    const MS_PER_DAY = 24 * 60 * 60 * 1000;
+                    userData.moderation.endDate = new Date(Date.now() + userData.moderation.daysRemaining * MS_PER_DAY);
                     userData.moderation.hasSeen = false;
+                    userData.moderation.moderationType = ModerationType.Mute;
 
                     // Update the user in the database with the new moderation data
                     await dbService.updateUserProfileAsync(userData.id, {
@@ -457,24 +465,21 @@ export class UserFactory {
                     logger.info(`UserFactory: Initialized moderation start date for user ${userData.id}`, {
                         userId: userData.id
                     });
-                } else {
-                    // Check if moderation has expired
-                    const startDate = new Date(userData.moderation.startDays);
-                    const endDate = new Date(startDate);
-                    endDate.setDate(startDate.getDate() + userData.moderation.days);
-                    const now = new Date();
+                    return userData;
+                }
+                // Check if moderation has expired
+                const endDate = new Date(userData.moderation.endDate);
+                const now = new Date();
+                if (now > endDate) {
+                    userData.moderation = null;
+                    // Update the user in the database to remove moderation data
+                    await dbService.updateUserProfileAsync(userData.id, {
+                        moderation: null
+                    });
 
-                    if (now > endDate) {
-                        userData.moderation = null;
-                        // Update the user in the database to remove moderation data
-                        await dbService.updateUserProfileAsync(userData.id, {
-                            moderation: null
-                        });
-
-                        logger.info(`UserFactory: Cleared expired moderation for user ${userData.id}`, {
-                            userId: userData.id,
-                        });
-                    }
+                    logger.info(`UserFactory: Cleared expired moderation for user ${userData.id}`, {
+                        userId: userData.id,
+                    });
                 }
             }
             return userData;
