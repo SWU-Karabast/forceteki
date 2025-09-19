@@ -16,7 +16,7 @@ export default class C3POHumanCyborgRelations extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Attack with a unit',
+            title: 'Exhaust a unit',
             cost: [abilityHelper.costs.abilityActivationResourceCost(1), abilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -30,7 +30,7 @@ export default class C3POHumanCyborgRelations extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Attack with another unit that costs 4 or less',
+            title: 'Exhaust a unit',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

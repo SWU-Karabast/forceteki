@@ -85,7 +85,7 @@ describe('C-3PO, Human-Cyborg Relations', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('after C-3PO attacks, may exhaust another friendly unit if you already control an exhausted unit', async function() {
+            it('cannot exhaust unit if you do not control another exhausted unit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -110,7 +110,7 @@ describe('C-3PO, Human-Cyborg Relations', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('after C-3PO attacks, may exhaust another friendly unit if you already control an exhausted unit', async function() {
+            it('should exhaust another unit if we trigger C3PO attacks from a unit\'s ability', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
