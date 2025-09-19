@@ -66,7 +66,9 @@ export abstract class DistributeAmongTargetsSystem<
                 .flatMap((event) => event.resolvedEvents.filter((resolvedEvent) => resolvedEvent.name === event.name))
                 .reduce((total, individualEvent) => total + this.getDistributedAmountFromEvent(individualEvent), 0);
 
-        context.game.addMessage(this.getChatMessage(), ...this.getChatMessageArgs(event, context, event.additionalProperties));
+        if (event.totalDistributed !== 0) {
+            context.game.addMessage(this.getChatMessage(), ...this.getChatMessageArgs(event, context, event.additionalProperties));
+        }
     }
 
     protected getChatMessage(): string {
