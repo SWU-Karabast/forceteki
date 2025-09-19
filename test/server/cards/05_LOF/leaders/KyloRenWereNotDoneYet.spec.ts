@@ -60,6 +60,25 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                 expect(context.fifthBrother).toBeInZone('deck');
                 expect(context.kyloRen.exhausted).toBeTrue();
             });
+
+            it('can be cancelled before a card is discarded', function () {
+                const { context } = contextRef;
+
+                // Use Kylo Ren's ability
+                context.player1.clickCard(context.kyloRen);
+                context.player1.clickPrompt('Discard a card from your hand. If you discard an Upgrade this way, draw a card');
+
+                // Verify the player can cancel
+                expect(context.player1).not.toHaveEnabledPromptButton('Choose nothing');
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
+                context.player1.clickPrompt('Cancel');
+
+                // Ability was not used, it is still Player 1's action
+                expect(context.kyloRen.exhausted).toBeFalse();
+                expect(context.player1.hand.length).toBe(5);
+                expect(context.player1.discard.length).toBe(0);
+                expect(context.player1).toBeActivePlayer();
+            });
         });
 
         describe('Kylo Ren\'s leader side edge cases', function() {
@@ -78,8 +97,11 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                 // Use Kylo Ren's ability
                 context.player1.clickCard(context.kyloRen);
                 context.player1.clickPrompt('Discard a card from your hand. If you discard an Upgrade this way, draw a card');
+                expect(context.player1).toHaveNoEffectAbilityPrompt('Discard a card from your hand. If you discard an Upgrade this way, draw a card');
+                context.player1.clickPrompt('Use it anyway');
 
-                // No cards should be discarded or drawn
+                // No cards should be discarded or drawn, it is now Player 2's action
+                expect(context.player2).toBeActivePlayer();
                 expect(context.kyloRen.exhausted).toBeTrue();
                 expect(context.fifthBrother).toBeInZone('deck');
                 expect(context.player1.discard.length).toBe(0);

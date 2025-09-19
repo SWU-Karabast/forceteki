@@ -60,7 +60,7 @@ describe('Morgan Elsbeth, Following the Call', function() {
                 context.player1.clickPrompt(prompt);
 
                 // It cannot fully resolve, so the user is prompted to confirm using it anyway
-                expect(context.player1).toHavePrompt(`The ability "${prompt}" will have no effect. Are you sure you want to use it?`);
+                expect(context.player1).toHaveNoEffectAbilityPrompt(prompt);
                 context.player1.clickPrompt('Use it anyway');
 
                 // Resolution ends because there are no valid units to play
@@ -114,7 +114,7 @@ describe('Morgan Elsbeth, Following the Call', function() {
                 context.player1.clickPrompt(prompt);
 
                 // It cannot fully resolve because there are no units with Smuggle in hand (only an event)
-                expect(context.player1).toHavePrompt(`The ability "${prompt}" will have no effect. Are you sure you want to use it?`);
+                expect(context.player1).toHaveNoEffectAbilityPrompt(prompt);
                 context.player1.clickPrompt('Use it anyway');
 
                 expect(context.morganElsbeth.exhausted).toBeTrue();

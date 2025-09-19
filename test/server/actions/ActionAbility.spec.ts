@@ -15,7 +15,7 @@ describe('An action ability', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.grandInquisitor);
-            expect(context.player1).toHavePrompt('The ability "Deal 2 damage to a friendly unit with 3 or less power and ready it" will have no effect. Are you sure you want to use it?');
+            expect(context.player1).toHaveNoEffectAbilityPrompt('Deal 2 damage to a friendly unit with 3 or less power and ready it');
             expect(context.player1).toHaveExactPromptButtons(['Use it anyway', 'Cancel']);
 
             context.player1.clickPrompt('Cancel');
@@ -24,7 +24,7 @@ describe('An action ability', function() {
             expect(context.getChatLogs(1)).not.toContain('player1 attempted to use Grand Inquisitor, but there are insufficient legal targets');
 
             context.player1.clickCard(context.grandInquisitor);
-            expect(context.player1).toHavePrompt('The ability "Deal 2 damage to a friendly unit with 3 or less power and ready it" will have no effect. Are you sure you want to use it?');
+            expect(context.player1).toHaveNoEffectAbilityPrompt('Deal 2 damage to a friendly unit with 3 or less power and ready it');
             expect(context.player1).toHaveExactPromptButtons(['Use it anyway', 'Cancel']);
 
             context.player1.clickPrompt('Use it anyway');

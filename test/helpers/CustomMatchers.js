@@ -533,6 +533,28 @@ var customMatchers = {
             }
         };
     },
+    toHaveNoEffectAbilityPrompt: function () {
+        return {
+            compare: function (player, abilityText) {
+                var result = {};
+
+                if (abilityText == null) {
+                    throw new TestSetupError('toHaveNoEffectAbilityPrompt requires an abilityText parameter');
+                }
+
+                const noEffectPromptText = `The ability "${abilityText}" will have no effect. Are you sure you want to use it?`;
+                result.pass = player.hasPrompt(noEffectPromptText);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have no effect prompt '${noEffectPromptText}' but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have no effect prompt '${noEffectPromptText}' but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                }
+
+                return result;
+            }
+        };
+    },
     toHavePassSingleTargetPrompt: function () {
         return {
             compare: function (player, abilityText, target) {
