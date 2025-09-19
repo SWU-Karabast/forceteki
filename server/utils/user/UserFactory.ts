@@ -36,6 +36,7 @@ const getDefaultPreferences = (): UserPreferences => ({
  */
 export class UserFactory {
     private dbServicePromise = getDynamoDbServiceAsync();
+    private MS_PER_DAY = 24 * 60 * 60 * 1000;
 
     /**
      * Creates a user instance from a JWT token
@@ -446,42 +447,45 @@ export class UserFactory {
      * @returns Updated user data with moderation processed
      */
     private async processModerationAsync(userData: IUserProfileDataEntity): Promise<IUserProfileDataEntity> {
+        if (!userData.moderation || !userData.moderation.daysRemaining) {
+            return userData;
+        }
         try {
             const dbService = await this.dbServicePromise;
             Contract.assertNonNegative(userData.moderation.daysRemaining);
             // Check if user has moderation field and it's not null
-            if (userData.moderation && userData.moderation.daysRemaining) {
-                if (!userData.moderation.endDate) {
-                    const MS_PER_DAY = 24 * 60 * 60 * 1000;
-                    userData.moderation.endDate = new Date(Date.now() + userData.moderation.daysRemaining * MS_PER_DAY);
-                    userData.moderation.hasSeen = false;
-                    userData.moderation.moderationType = ModerationType.Mute;
+            if (!userData.moderation.endDate) {
+                userData.moderation.endDate = new Date(Date.now() + userData.moderation.daysRemaining * this.MS_PER_DAY);
+                userData.moderation.hasSeen = false;
+                userData.moderation.moderationType = ModerationType.Mute;
 
-                    // Update the user in the database with the new moderation data
-                    await dbService.updateUserProfileAsync(userData.id, {
-                        moderation: userData.moderation
-                    });
+                // Update the user in the database with the new moderation data
+                await dbService.updateUserProfileAsync(userData.id, {
+                    moderation: userData.moderation
+                });
 
-                    logger.info(`UserFactory: Initialized moderation start date for user ${userData.id}`, {
-                        userId: userData.id
-                    });
-                    return userData;
-                }
-                // Check if moderation has expired
-                const endDate = new Date(userData.moderation.endDate);
-                const now = new Date();
-                if (now > endDate) {
-                    userData.moderation = null;
-                    // Update the user in the database to remove moderation data
-                    await dbService.updateUserProfileAsync(userData.id, {
-                        moderation: null
-                    });
-
-                    logger.info(`UserFactory: Cleared expired moderation for user ${userData.id}`, {
-                        userId: userData.id,
-                    });
-                }
+                logger.info(`UserFactory: Initialized moderation end date ${userData.moderation.endDate} with days remaining ${userData.moderation.daysRemaining} for user ${userData.id}`, {
+                    userId: userData.id
+                });
+                return userData;
             }
+
+            // Check if moderation has expired
+            const endDate = new Date(userData.moderation.endDate);
+            const now = new Date();
+
+            if (now > endDate) {
+                userData.moderation = null;
+                // Update the user in the database to remove moderation data
+                await dbService.updateUserProfileAsync(userData.id, {
+                    moderation: null
+                });
+
+                logger.info(`UserFactory: Cleared expired moderation for user ${userData.id}`, {
+                    userId: userData.id,
+                });
+            }
+
             return userData;
         } catch (error) {
             logger.error('Error processing moderation for user:', {
@@ -509,7 +513,7 @@ export class UserFactory {
                     moderation: userProfile.moderation
                 });
 
-                logger.info(`UserFactory: Set moderation as seen for user ${userId}`);
+                logger.info(`UserFactory: Set moderation as seen for user ${userId}`, { userId: userId });
                 return true;
             }
 
