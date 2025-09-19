@@ -2216,6 +2216,51 @@ describe('Undo', function() {
                 expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
                 expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
             });
+
+            undoIt('should require confirmation to rollback after drawing a card', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['patrolling-vwing'],
+                    },
+                    player2: {
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.patrollingVwing);
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            });
+
+            undoIt('should not require confirmation to rollback after taking damage for drawing from an empty deck', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['patrolling-vwing'],
+                        deck: [],
+                    },
+                    player2: {
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.patrollingVwing);
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            });
         });
     });
 });
