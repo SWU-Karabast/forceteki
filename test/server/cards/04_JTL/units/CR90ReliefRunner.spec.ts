@@ -71,8 +71,8 @@ describe('CR90 Relief Runner', function () {
 
                 expect(context.p1Base.damage).toBe(0);
                 expect(context.getChatLogs(2)).toEqual([
-                    'player1 plays Rival\'s Fall to defeat CR90 Relief Runner',
                     'player2 uses CR90 Relief Runner to distribute up to 3 healing to a unit or base',
+                    'player2 uses CR90 Relief Runner to distribute no effective healing',
                 ]);
             });
         });
