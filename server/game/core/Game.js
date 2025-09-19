@@ -1958,10 +1958,10 @@ class Game extends EventEmitter {
 
         const start = process.hrtime.bigint();
 
-        this.preUndoStateForError = { gameState: this.captureGameState('any'), settings };
-
         let rollbackResult;
         try {
+            this.preUndoStateForError = { gameState: this.captureGameState('any'), settings };
+
             rollbackResult = this._snapshotManager.rollbackTo(settings);
 
             if (!rollbackResult.success) {
