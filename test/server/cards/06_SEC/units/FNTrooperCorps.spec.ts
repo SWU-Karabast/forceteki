@@ -30,7 +30,7 @@ describe('FN Trooper Corps', function() {
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
         });
 
-        it('should, when played, give an Experience token to another friendly unit (not itself)', async function () {
+        it('should, when played with Plot, give an Experience token to another friendly unit (not itself)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
