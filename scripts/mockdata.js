@@ -699,6 +699,109 @@ const mockCards = [
         arena: 'ground',
         internalName: 'imperial-occupier',
     }),
+    buildMockCard({
+        title: 'C-3PO',
+        subtitle: 'Human-Cyborg Relations',
+        power: 1,
+        hp: 6,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['leader'],
+        traits: ['rebel', 'droid'],
+        setId: {
+            set: 'SEC',
+            number: 15
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'c3po#humancyborg-relations',
+    }),
+    buildMockCard({
+        title: 'Unruly Astromech',
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        keywords: ['hidden'],
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['droid'],
+        setId: {
+            set: 'SEC',
+            number: 221
+        },
+        cost: 3,
+        unique: false,
+        arena: 'ground',
+        internalName: 'unruly-astromech',
+    }),
+    buildMockCard({
+        title: 'Populist Advisor',
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['new republic', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 41
+        },
+        cost: 1,
+        unique: false,
+        arena: 'ground',
+        internalName: 'populist-advisor',
+    }),
+    buildMockCard({
+        title: 'Reckless Rebel',
+        power: 2,
+        hp: 1,
+        hasNonKeywordAbility: false,
+        keywords: ['saboteur'],
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['rebel', 'twi\'lek'],
+        setId: {
+            set: 'SEC',
+            number: 180
+        },
+        cost: 1,
+        unique: false,
+        arena: 'ground',
+        internalName: 'reckless-rebel',
+    }),
+    buildMockCard({
+        title: 'Knowledge and Defense',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'SEC',
+            number: 75
+        },
+        cost: 3,
+        unique: false,
+        internalName: 'knowledge-and-defense',
+    }),
+    buildMockCard({
+        title: 'Figure of Unity',
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['upgrade'],
+        traits: ['innate'],
+        setId: {
+            set: 'SEC',
+            number: 104
+        },
+        cost: 3,
+        upgradeHp: 2,
+        upgradePower: 2,
+        hp: 2,
+        power: 2,
+        unique: true,
+        internalName: 'figure-of-unity',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
