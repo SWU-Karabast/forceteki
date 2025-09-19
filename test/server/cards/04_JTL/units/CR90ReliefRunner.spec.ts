@@ -52,6 +52,29 @@ describe('CR90 Relief Runner', function () {
 
                 expect(context.consularSecurityForce.damage).toBe(3);
             });
+
+            it('can choose a target with no damage', function () {
+                const { context } = contextRef;
+
+                // kill cr90 relief runner
+                context.player1.clickCard(context.rivalsFall);
+                context.player1.clickCard(context.cr90ReliefRunner);
+
+                // can choose a unit or a base
+                expect(context.player2).toBeAbleToSelectExactly([context.consularSecurityForce, context.greenSquadronAwing, context.p1Base, context.p2Base]);
+                expect(context.p1Base.damage).toBe(0);
+
+                // can heal less than 3 damage
+                context.player2.setDistributeHealingPromptState(new Map([
+                    [context.p1Base, 3],
+                ]));
+
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Rival\'s Fall to defeat CR90 Relief Runner',
+                    'player2 uses CR90 Relief Runner to distribute up to 3 healing to a unit or base',
+                ]);
+            });
         });
     });
 });
