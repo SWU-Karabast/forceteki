@@ -8,6 +8,10 @@ describe('GNK Power Droid', function () {
                         groundArena: ['gnk-power-droid'],
                         hand: ['battlefield-marine', 'phoenix-squadron-awing'],
                         leader: 'leia-organa#alliance-general'
+                    },
+                    player2: {
+                        hand: ['wampa'],
+                        base: 'tarkintown'
                     }
                 });
             });
@@ -19,8 +23,10 @@ describe('GNK Power Droid', function () {
                 context.player1.clickCard(context.gnkPowerDroid);
                 context.player1.clickCard(context.p2Base);
 
+                context.player2.clickCard(context.wampa);
+                expect(context.player2.exhaustedResourceCount).toBe(4);
+
                 // Now, the next unit P1 plays this phase costs 1 less
-                context.player2.passAction();
                 const lastExhaustedResources = context.player1.exhaustedResourceCount;
 
                 // Battlefield Marine costs 2, should cost 1 after discount

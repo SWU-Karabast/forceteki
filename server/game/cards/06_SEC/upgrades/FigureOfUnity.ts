@@ -21,11 +21,11 @@ export default class FigureOfUnity extends UpgradeCard {
             title: 'While this unit is ready, each other friendly unit gains Overwhelm, Raid 1, and Restore 1',
             condition: (context) => !context.source.exhausted,
             matchTarget: (card, context) => card !== context.source && card.controller === context.player,
-            ongoingEffect: abilityHelper.ongoingEffects.gainKeywords(() => [
-                KeywordName.Overwhelm,
-                { keyword: KeywordName.Raid, amount: 1 },
-                { keyword: KeywordName.Restore, amount: 1 }
-            ])
+            ongoingEffect: [
+                abilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm),
+                abilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 }),
+                abilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Restore, amount: 1 }),
+            ]
         });
     }
 }

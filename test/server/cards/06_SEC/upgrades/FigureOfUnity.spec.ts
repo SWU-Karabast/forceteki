@@ -33,6 +33,7 @@ describe('Figure of Unity', function () {
             expect(context.p1Base.damage).toBe(11); // 9 + 2
             expect(context.p2Base.damage).toBe(3);
         });
+
         it('while the attached unit is ready, each other friendly unit gains Overwhelm, Raid 1, and Restore 1 (test with Oppo Rancisis)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -69,6 +70,34 @@ describe('Figure of Unity', function () {
             expect(context.player2).toBeActivePlayer();
             expect(context.p1Base.damage).toBe(7);
             expect(context.p2Base.damage).toBe(5);
+        });
+
+        it('while the attached unit is ready, each other friendly unit gains Overwhelm, Raid 1, and Restore 1 (test with JTL The Ghost)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['ezra-bridger#attuned-with-life', { card: 'echo#valiant-arc-trooper', upgrades: ['figure-of-unity'] }],
+                    spaceArena: ['the-ghost#heart-of-the-family'],
+                    base: { card: 'echo-base', damage: 10 }
+                },
+                player2: {
+                    groundArena: ['death-star-stormtrooper']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Attach Figure of Unity to the unique unit (Echo)
+            context.player1.clickCard(context.ezraBridger);
+            context.player1.clickCard(context.deathStarStormtrooper);
+
+            context.player1.clickPrompt('Restore 2');
+            // give an experience to a spectre or a creature unit
+            context.player1.clickCard(context.theGhost);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p1Base.damage).toBe(8);
+            expect(context.p2Base.damage).toBe(4);
         });
 
         it('turns off when the attached unit is exhausted (no bonuses for other friendly units)', async function () {
