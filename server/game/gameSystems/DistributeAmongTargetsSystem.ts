@@ -86,6 +86,13 @@ export abstract class DistributeAmongTargetsSystem<
             }
         }
 
+        if (targets.length === 0) {
+            targets.push({
+                format: 'no effective {0}',
+                args: [this.getDistributionType(0)],
+            });
+        }
+
         return [
             context.player,
             context.source,
