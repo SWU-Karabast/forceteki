@@ -455,10 +455,12 @@ export class UserFactory {
             Contract.assertNonNegative(userData.moderation.daysRemaining);
             // Check if user has moderation field and it's not null
             if (!userData.moderation.endDate) {
-                userData.moderation.endDate = new Date(Date.now() + userData.moderation.daysRemaining * this.MS_PER_DAY);
-                userData.moderation.hasSeen = false;
-                userData.moderation.moderationType = ModerationType.Mute;
-
+                userData.moderation = {
+                    ...userData.moderation,
+                    endDate: new Date(Date.now() + userData.moderation.daysRemaining * this.MS_PER_DAY).toISOString(),
+                    hasSeen: false,
+                    moderationType: ModerationType.Mute
+                };
                 // Update the user in the database with the new moderation data
                 await dbService.updateUserProfileAsync(userData.id, {
                     moderation: userData.moderation

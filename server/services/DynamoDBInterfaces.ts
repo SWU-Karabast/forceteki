@@ -5,7 +5,7 @@ export enum ModerationType {
 
 export interface IModerationAction {
     daysRemaining: number;
-    endDate?: Date;
+    endDate?: string;
     hasSeen?: boolean;
     moderationType?: ModerationType;
 }
