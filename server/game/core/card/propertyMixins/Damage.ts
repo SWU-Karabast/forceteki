@@ -33,7 +33,7 @@ export function WithDamage<TBaseClass extends CardConstructor<TState>, TState ex
     const HpClass = WithPrintedHp(BaseClass);
 
     return class WithDamage extends (HpClass as typeof HpClass & CardConstructor<TState & IWithDamageState>) implements ICardWithDamageProperty {
-        // STATE TODO: How do we handle full objects? This would need to be saved as a activeAttackRef (likely it's UUID)
+        // This is transitive state and needs to be cleared during any rollback.
         private _activeAttack?: Attack = null;
 
         protected override setupDefaultState() {
@@ -149,6 +149,11 @@ export function WithDamage<TBaseClass extends CardConstructor<TState>, TState ex
             }
 
             this.state.attackEnabled = enabledStatus;
+        }
+
+        protected override afterSetState(oldState: any) {
+            // Active Attack is transitive and should always be null during the start of a turn.
+            this._activeAttack = null;
         }
     };
 }
