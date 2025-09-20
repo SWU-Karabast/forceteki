@@ -1,5 +1,5 @@
 
-describe('Intra Action', function() {
+describe('Intra Action Rollback', function() {
     undoIntegration(function(contextRef) {
         it('should be able to rollback while an Attack is ongoing', async function () {
             await contextRef.setupTestAsync({
