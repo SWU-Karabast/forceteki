@@ -802,6 +802,114 @@ const mockCards = [
         unique: true,
         internalName: 'figure-of-unity',
     }),
+    buildMockCard({
+        title: 'Miraj Scintel',
+        subtitle: 'The Weak Deserve to Kneel',
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['separatist', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 139
+        },
+        cost: 5,
+        unique: true,
+        arena: 'ground',
+        internalName: 'miraj-scintel#the-weak-deserve-to-kneel',
+    }),
+    buildMockCard({
+        title: 'Let\'s Call It War',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'SEC',
+            number: 180
+        },
+        cost: 3,
+        unique: false,
+        internalName: 'lets-call-it-war',
+    }),
+    buildMockCard({
+        title: 'Let\'s Call It War',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'SEC',
+            number: 180
+        },
+        cost: 3,
+        unique: false,
+        internalName: 'lets-call-it-war',
+    }),
+    buildMockCard({
+        title: 'Convene the Senate',
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['law'],
+        setId: {
+            set: 'SEC',
+            number: 128
+        },
+        cost: 3,
+        unique: false,
+        internalName: 'convene-the-senate',
+    }),
+    buildMockCard({
+        title: 'Emergency Powers',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['event'],
+        traits: ['law'],
+        setId: {
+            set: 'SEC',
+            number: 40
+        },
+        cost: 1,
+        unique: false,
+        internalName: 'emergency-powers',
+    }),
+    buildMockCard({
+        title: 'AAT Incinerator',
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['imperial', 'vehicle', 'tank'],
+        setId: {
+            set: 'SEC',
+            number: 169
+        },
+        cost: 5,
+        unique: false,
+        arena: 'ground',
+        internalName: 'aat-incinerator',
+    }),
+    buildMockCard({
+        title: 'GNK Power Droid',
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['droid'],
+        setId: {
+            set: 'SEC',
+            number: 110
+        },
+        cost: 2,
+        unique: false,
+        arena: 'ground',
+        internalName: 'gnk-power-droid',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
