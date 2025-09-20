@@ -763,7 +763,7 @@ const mockCards = [
         traits: ['rebel', 'twi\'lek'],
         setId: {
             set: 'SEC',
-            number: 180
+            number: 160
         },
         cost: 1,
         unique: false,
