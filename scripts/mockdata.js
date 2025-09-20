@@ -74,6 +74,51 @@ const mockCards = [
         internalName: 'crosshair#filled-with-doubt',
     }),
     buildMockCard({
+        title: 'AAT Incinerator',
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['imperial', 'vehicle', 'tank'],
+        setId: {
+            set: 'SEC',
+            number: 169
+        },
+        cost: 5,
+        unique: true,
+        arena: 'ground',
+        internalName: 'aat-incinerator',
+    }),
+    buildMockCard({
+        title: 'Emergency Powers',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['event'],
+        traits: ['law'],
+        setId: {
+            set: 'SEC',
+            number: 40
+        },
+        cost: 1,
+        unique: false,
+        internalName: 'emergency-powers',
+    }),
+    buildMockCard({
+        title: 'Let\'s Call It War',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'SEC',
+            number: 180
+        },
+        cost: 3,
+        unique: false,
+        internalName: 'lets-call-it-war',
+    }),
+    buildMockCard({
         title: 'Bo-Katan Kryze',
         subtitle: 'Alone',
         power: 8,
