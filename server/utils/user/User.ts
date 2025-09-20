@@ -1,4 +1,4 @@
-import type { IUserDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
+import type { IModerationAction, IUserDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class
@@ -60,6 +60,11 @@ export abstract class User {
     public abstract toJSON(): Record<string, any>;
 
     public abstract needsUsernameChange(): boolean;
+
+    /**
+     * Gets the user's moderation status
+     */
+    public abstract getModeration(): IModerationAction | null;
 }
 
 /**
@@ -116,6 +121,10 @@ export class AuthenticatedUser extends User {
 
     public hasSwuStatsRefreshToken(): boolean {
         return !!this.userData.swuStatsRefreshToken;
+    }
+
+    public getModeration(): IModerationAction | null {
+        return this.userData.moderation ?? null;
     }
 
     public toJSON(): Record<string, any> {
@@ -187,6 +196,10 @@ export class AnonymousUser extends User {
 
     public hasSwuStatsRefreshToken(): boolean {
         return false;
+    }
+
+    public getModeration(): IModerationAction | null {
+        return null;
     }
 
     public toJSON(): Record<string, any> {
