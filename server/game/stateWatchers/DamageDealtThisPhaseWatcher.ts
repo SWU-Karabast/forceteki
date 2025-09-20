@@ -52,13 +52,6 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
         return this.getDamageDealtByPlayer(player, filter).length > 0;
     }
 
-    public cardHasDealtDamage(card: Card, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
-        return this.getCurrentValue()
-            .filter((entry) => {
-                return entry.damageSourceCard === card && filter(entry);
-            }).length > 0;
-    }
-
     public unitHasDealtDamage(card: Card, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
         return this.getCurrentValue().filter((entry) => EnumHelpers.isUnit(entry.damageSourceCardType))
             .filter((entry) => {
@@ -93,7 +86,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                 } else if (event.type === 'ability') {
                     damageSourceCard = event.damageSource.card.getRef();
                     damageSourceCardType = event.damageSource.card.type;
-                    damageSourceInPlayId = event.damageSource.card.canBeInPlay() ? this.getCardId(event.damageSource.card) : null;
+                    damageSourceInPlayId = 'canBeInPlay' in event.damageSource.card && event.damageSource.card.canBeInPlay() ? this.getCardId(event.damageSource.card) : null;
                     targets = [event.card.getRef()];
                 }
 
