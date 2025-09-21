@@ -24,7 +24,8 @@ const bannedCards = new Map([
     ['4626028465', 'boba-fett#collecting-the-bounty'],
     ['4002861992', 'dj#blatant-thief'],
     ['5696041568', 'triple-dark-raid'],
-    ['9155536481', 'jango-fett#concealing-the-conspiracy']
+    ['9155536481', 'jango-fett#concealing-the-conspiracy'],
+    ['1705806419', 'force-throw']
 ]);
 
 const maxCopiesOfCards = new Map([
