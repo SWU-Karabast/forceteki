@@ -31,7 +31,3 @@ export default class AATIncinerator extends NonLeaderUnitCard {
         });
     }
 }
-
-/* title: 'If no friendly units were damaged, deal 2 damage to your base',
-                thenCondition: (context) => !thenContext.events.[0 - 3].lastKnownInformation.card.controller((card: Card) => card.controller === context.source.controller),
-                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2, target: thenContext.player.base }), */
