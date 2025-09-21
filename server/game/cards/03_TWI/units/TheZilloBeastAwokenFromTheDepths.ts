@@ -11,12 +11,12 @@ export default class TheZilloBeastAwokenFromTheDepths extends NonLeaderUnitCard 
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Give each enemy ground unit -5/-0 for this phase',
-            immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
+            immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 target: context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena }),
-                effect: AbilityHelper.ongoingEffects.modifyStats({ power: -5, hp: 0 })
+                effect: abilityHelper.ongoingEffects.modifyStats({ power: -5, hp: 0 })
             })),
         });
 
@@ -25,7 +25,7 @@ export default class TheZilloBeastAwokenFromTheDepths extends NonLeaderUnitCard 
             when: {
                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup
             },
-            immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 5 })
+            immediateEffect: abilityHelper.immediateEffects.heal({ amount: 5 })
         });
     }
 }
