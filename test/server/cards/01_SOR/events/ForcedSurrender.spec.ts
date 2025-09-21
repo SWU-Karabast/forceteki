@@ -152,6 +152,7 @@ describe('Forced Surrender', function() {
                 context.player1.clickPrompt('You');
                 context.player1.clickPrompt('Opponent');
                 context.player1.clickDone();
+                // TODO FIX EMPTY DECK DAMAGE EVENT
                 expect(context.p1Base.damage).toBe(p1BaseDamageBeforeDraw + 3);
                 expect(context.p2Base.damage).toBe(p2BaseDamageBeforeDraw + 3);
 
