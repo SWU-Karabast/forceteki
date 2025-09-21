@@ -87,7 +87,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                     damageSourceCard = event.damageSource.card.getRef();
                     damageSourceCardType = event.damageSource.card.type;
                     // TODO FIX EMPTY DECK DAMAGE EVENT
-                    damageSourceInPlayId = /*'canBeInPlay' in event.damageSource.card &&*/ event.damageSource.card.canBeInPlay() ? this.getCardId(event.damageSource.card) : null;
+                    damageSourceInPlayId = 'canBeInPlay' in event.damageSource.card && event.damageSource.card.canBeInPlay() ? this.getCardId(event.damageSource.card) : null;
                     targets = [event.card.getRef()];
                 }
 
