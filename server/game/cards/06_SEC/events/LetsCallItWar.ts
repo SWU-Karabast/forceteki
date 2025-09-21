@@ -13,7 +13,7 @@ export default class LetsCallItWar extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Deal 2 damage to a unit. You may deal 1 damage to another unit in the same arena.',
+            title: 'Deal 3 damage to a unit. If you have the initiative, you may deal 2 damage to another unit in the same arena.',
             targetResolvers: {
                 firstUnit: {
                     cardTypeFilter: WildcardCardType.Unit,

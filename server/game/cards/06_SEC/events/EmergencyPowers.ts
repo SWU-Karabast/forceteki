@@ -13,12 +13,12 @@ export default class EmergencyPowers extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Choose a unit.',
+            title: 'Choose a unit and pay any number of resources. Give an Experience token to that unit for each resource paid.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
             },
             then: (thenContext) => ({
-                title: 'Pay any number of resources. Give an experience token to that unit for each resource paid.',
+                title: 'Pay any number of resources. Give an Experience token to that unit for each resource paid.',
                 thenCondition: (context) =>
                     context.player.readyResourceCount > 0,
                 targetResolver: {

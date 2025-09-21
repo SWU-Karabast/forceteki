@@ -121,5 +121,41 @@ describe('AAT Incinerator', function() {
             expect(context.player1.base.damage).toBe(2);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('AAT Incinerator\'s ability should deal damage to base if the unit chosen had changed control', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['aat-incinerator'],
+                    groundArena: ['battlefield-marine', 'rebel-pathfinder', 'death-star-stormtrooper'],
+                },
+                player2: {
+                    hasInitiative: true,
+                    hand: ['traitorous'],
+                    groundArena: ['wampa'],
+                    spaceArena: ['adelphi-patrol-wing']
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.traitorous);
+            context.player2.clickCard(context.deathStarStormtrooper);
+
+            context.player1.clickCard(context.aatIncinerator);
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.rebelPathfinder, context.deathStarStormtrooper]);
+            context.player1.clickCard(context.deathStarStormtrooper);
+            context.player1.clickDone();
+
+            expect(context.deathStarStormtrooper).toBeInZone('discard');
+
+            expect(context.wampa.damage).toBe(0);
+            expect(context.aatIncinerator.damage).toBe(0);
+            expect(context.adelphiPatrolWing.damage).toBe(0);
+            expect(context.battlefieldMarine.damage).toBe(0);
+            expect(context.rebelPathfinder.damage).toBe(0);
+            expect(context.player1.base.damage).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

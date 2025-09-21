@@ -174,5 +174,36 @@ describe('Let\'s Call It War', function() {
             expect(context.gladiatorStarDestroyer.damage).toBe(2);
             expect(context.strafingGunship.damage).toBe(3);
         });
+
+        it('Let\'s Call It War\'s ability should deal 3 damage to an enemy space unit, and allow passing the 2 damage to another unit when played with initiative', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['lets-call-it-war'],
+                    hasInitiative: true,
+                    groundArena: ['wampa', 'atst'],
+                    spaceArena: ['gladiator-star-destroyer']
+                },
+                player2: {
+                    spaceArena: ['strafing-gunship']
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.letsCallItWar);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.gladiatorStarDestroyer, context.strafingGunship]);
+            expect(context.player1).not.toHaveChooseNothingButton();
+            context.player1.clickCard(context.strafingGunship);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.gladiatorStarDestroyer]);
+            expect(context.player1).toHaveChooseNothingButton();
+            context.player1.clickPrompt('Choose Nothing');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.gladiatorStarDestroyer.damage).toBe(0);
+            expect(context.strafingGunship.damage).toBe(3);
+        });
     });
 });
