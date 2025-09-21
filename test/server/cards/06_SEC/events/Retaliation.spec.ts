@@ -150,6 +150,31 @@ describe('Retaliation', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('Retaliation\'s ability should be able to defeat an enemy unit which deal ability damage to its own base', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['retaliation'],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    hand: ['savage-opress#imbued-with-hate'],
+                    hasInitiative: true,
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.savageOpress);
+            expect(context.p2Base.damage).toBe(9);
+
+            context.player1.clickCard(context.retaliation);
+            expect(context.player1).toBeAbleToSelectExactly([context.savageOpress]);
+
+            context.player1.clickCard(context.savageOpress);
+            expect(context.savageOpress).toBeInZone('discard');
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('Retaliation\'s ability should be able to defeat an enemy unit which deal ability damage to a base this phase', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
