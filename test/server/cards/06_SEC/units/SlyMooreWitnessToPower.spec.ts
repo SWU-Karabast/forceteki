@@ -1,6 +1,6 @@
 describe('Sly Moore, Witness to Power', function() {
     integration(function(contextRef) {
-        it('for this phase, each enemy unit gets -2/-0 while it\'s attacking a base', async function () {
+        it('should apply: for this phase, each enemy unit gets -2/-0 while it\'s attacking a base', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -53,6 +53,7 @@ describe('Sly Moore, Witness to Power', function() {
 
             expect(context.p1Base.damage).toBe(4);
         });
+
         it('should debuff enemy units even if Sly Moore is defeated', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
