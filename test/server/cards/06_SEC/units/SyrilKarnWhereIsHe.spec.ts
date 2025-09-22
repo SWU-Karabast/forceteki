@@ -123,5 +123,39 @@ describe('Syril Karn, Where Is He?', function () {
             expect(context.vanguardInfantry.damage).toBe(0);
             expect(context.player1.discard.length).toBe(0);
         });
+
+        it('automatically does the damage if opponent has no cards to discard', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['syril-karn#where-is-he'],
+                    hand: ['ruthless-raider', 'wampa']
+                },
+                player2: {
+                    groundArena: ['consular-security-force'],
+                    hand: [] // No cards to discard
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.syrilKarnWhereIsHe);
+            context.player1.clickCard(context.p2Base);
+
+            // Disclose required aspects
+            expect(context.player1).toBeAbleToSelectExactly([context.ruthlessRaider, context.wampa]);
+            context.player1.clickCard(context.ruthlessRaider);
+            context.player1.clickCard(context.wampa);
+            context.player1.clickDone();
+            context.player2.clickDone();
+
+            // Choose target unit (can be any unit). Choose enemy Consular Security Force.
+            expect(context.player1).toBeAbleToSelectExactly([context.syrilKarn, context.consularSecurityForce]);
+            context.player1.clickCard(context.consularSecurityForce);
+
+            // Since opponent has no cards to discard, Consular Security Force should take 2 damage automatically
+            expect(context.consularSecurityForce.damage).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
