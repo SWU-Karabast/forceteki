@@ -1,10 +1,12 @@
 import { EventName, ZoneName } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Helpers from '../core/utils/Helpers.js';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { Player } from '../core/Player';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IDiscardEntireHandSystemProperties extends IPlayerTargetSystemProperties {}
@@ -18,10 +20,27 @@ export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityCo
     public override name = 'discardEntireHand';
     public override readonly eventName = EventName.OnEntireHandDiscarded;
     public override readonly costDescription: string = 'discard hand';
-    public override readonly effectDescription: string = 'discard hand';
 
     public override eventHandler(): void {
         // Do nothing
+    }
+
+    public override getEffectMessage(context: TContext): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context);
+        const players = Helpers.asArray(properties.target);
+
+        const effectMessage = (player: Player): FormatMessage => {
+            const targetIsSelf = player === context.player;
+            const targetMessage: string | FormatMessage = targetIsSelf ? 'their' : { format: '{0}\'s', args: [player] };
+            const cardList: string | FormatMessage = player.hand.length === 0 ? 'no cards' : { format: ChatHelpers.formatWithLength(player.hand.length), args: player.hand };
+
+            return {
+                format: 'discard {0} entire hand ({1})',
+                args: [targetMessage, cardList],
+            };
+        };
+
+        return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
     public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Record<string, any> = {}): void {
