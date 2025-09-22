@@ -1,8 +1,8 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { AbilityRestriction } from '../../../core/Constants';
-import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
+import { AbilityType } from '../../../core/Constants';
+import { DamageSourceType, DefeatSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class LurkingTIEPhantom extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -26,12 +26,14 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
             }
         });
 
-        // TODO: Update damage prevention using replacement effects
         registrar.addConstantAbility({
             title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
-            ongoingEffect: AbilityHelper.ongoingEffects.cardCannot({
-                cannot: AbilityRestriction.ReceiveDamage,
-                restrictedActionCondition: (context, source) => !context.ability.isAttackAction() && context.ability.controller !== source.controller,
+            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({
+                title: 'Prevent all damage that would be dealt to it by enemy card abilities',
+                type: AbilityType.ReplacementEffect,
+                when: { onDamageDealt: (event, context) =>
+                    event.card === context.source &&
+                    !event.isIndirect && event.damageSource.type !== DamageSourceType.Attack && event.damageSource.player !== context.source.controller }
             })
         });
     }
