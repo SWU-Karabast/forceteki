@@ -955,6 +955,60 @@ const mockCards = [
         arena: 'ground',
         internalName: 'gnk-power-droid',
     }),
+    buildMockCard({
+        title: 'Vuutun Palaa',
+        subtitle: 'Droid Control Ship',
+        power: 7,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['separatist', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'SEC',
+            number: 122
+        },
+        cost: 9,
+        unique: true,
+        arena: 'space',
+        internalName: 'vuutun-palaa#droid-control-ship',
+    }),
+    buildMockCard({
+        title: 'Senator Chuchi',
+        subtitle: 'Voice for the Voiceless',
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        traits: ['republic', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 45
+        },
+        cost: 3,
+        unique: true,
+        arena: 'ground',
+        internalName: 'senator-chuchi#voice-for-the-voiceless',
+    }),
+    buildMockCard({
+        title: 'Congress of Malastare',
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['republic', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 64
+        },
+        cost: 5,
+        unique: false,
+        arena: 'ground',
+        internalName: 'congress-of-malastare',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
