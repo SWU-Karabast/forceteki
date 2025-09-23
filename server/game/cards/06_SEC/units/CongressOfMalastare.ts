@@ -1,10 +1,11 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, RelativePlayer, WildcardZoneName } from '../../../core/Constants';
-import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { Card } from '../../../core/card/Card';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
 export default class CongressOfMalastare extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -26,7 +27,7 @@ export default class CongressOfMalastare extends NonLeaderUnitCard {
             targetController: RelativePlayer.Self,
             targetZoneFilter: WildcardZoneName.AnyArena,
             ongoingEffect: abilityHelper.ongoingEffects.decreaseCost({
-                cardTypeFilter: [CardType.BasicUpgrade, CardType.NonLeaderUnitUpgrade],
+                cardTypeFilter: WildcardCardType.Upgrade,
                 match: (card) => this.isFirstUpgradePlayedByControllerThisPhase(card),
                 amount: 1,
                 limit: abilityHelper.limit.perRound(1)
@@ -37,7 +38,7 @@ export default class CongressOfMalastare extends NonLeaderUnitCard {
     private isFirstUpgradePlayedByControllerThisPhase (card: Card) {
         return !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
             playedCardEntry.playedBy === card.controller &&
-            (playedCardEntry.playedAsType === CardType.BasicUpgrade || playedCardEntry.playedAsType === CardType.NonLeaderUnitUpgrade) &&
+            EnumHelpers.cardTypeMatches(playedCardEntry.card.type, WildcardCardType.Upgrade) &&
             playedCardEntry.card !== card);
     }
 }
