@@ -1038,7 +1038,7 @@ const mockCards = [
         traits: ['republic', 'official'],
         setId: {
             set: 'SEC',
-            number: 68
+            number: 66
         },
         cost: 6,
         unique: false,
