@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import type { MsgArg } from '../core/chat/GameChat';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -143,6 +144,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
             if (gameSystem && selectedCards.length > 0) {
                 const events = [];
                 gameSystem.setDefaultTargetFn(() => selectedCards);
+                this.addOnSelectEffectMessage(context, gameSystem);
                 gameSystem.queueGenerateEventGameSteps(events, context);
 
                 context.game.queueSimpleStep(() => {
@@ -191,6 +193,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
             Contract.assertNotNullLike(gameSystem, `No entry found for prompt arg ${arg}`);
 
             gameSystem.setDefaultTargetFn(() => [card]);
+            this.addOnSelectEffectMessage(context, gameSystem);
             gameSystem.queueGenerateEventGameSteps(events, context);
         };
 
@@ -220,4 +223,18 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
     }
 
     public abstract getMessageArgs(event: any, context: TContext, additionalProperties);
+
+    private addOnSelectEffectMessage(
+        context: TContext,
+        system: GameSystem
+    ) {
+        const [effectMessage, effectArgs] = system.getEffectMessage(context);
+
+        if (!effectMessage) {
+            return;
+        }
+
+        const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
+        context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
+    }
 }

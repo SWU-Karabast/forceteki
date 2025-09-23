@@ -115,8 +115,7 @@ describe('Han Solo, Never Tell Me the Odds', function() {
 
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickPrompt('Reveal the top card of your deck');
-                expect(context.getChatLogs(1)[0]).toContain('player1 uses Han Solo');
-                expect(context.getChatLogs(1)[0]).not.toContain('reveal');
+                expect(context.getChatLogs(1)[0]).toEqual('player1 uses Han Solo, exhausting Han Solo');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender]);
                 expect(context.hanSolo.exhausted).toBeTrue();

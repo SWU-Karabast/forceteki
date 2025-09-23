@@ -46,7 +46,7 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
         const abilitySource = context.ability.gainAbilitySource != null ? context.ability.gainAbilitySource : context.source;
 
         if (this.properties.logSelection ?? true) {
-            context.game.addMessage('{0} names {1} using {2}', context.player, choice, abilitySource.title);
+            context.game.addMessage('{0} names {1} using {2}', context.player, choice, abilitySource);
         }
     }
 

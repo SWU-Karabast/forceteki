@@ -26,7 +26,7 @@ describe('Shatterpoint', function() {
                     'Use the Force. If you do, defeat a non-leader unit',
                 ]);
                 context.player1.clickPrompt('Use the Force. If you do, defeat a non-leader unit');
-                expect(context.getChatLogs(1)).toContain('player1 chooses "Use the Force. If you do, defeat a non-leader unit"');
+                expect(context.getChatLogs(2)).toContain('player1 chooses "Use the Force. If you do, defeat a non-leader unit"');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.greenSquadronAwing]);
                 context.player1.clickCard(context.atst);
@@ -62,7 +62,7 @@ describe('Shatterpoint', function() {
                     'Use the Force. If you do, defeat a non-leader unit',
                 ]);
                 context.player1.clickPrompt('Defeat a non-leader unit with 3 or less remaining HP');
-                expect(context.getChatLogs(1)).toContain('player1 chooses "Defeat a non-leader unit with 3 or less remaining HP"');
+                expect(context.getChatLogs(2)).toContain('player1 chooses "Defeat a non-leader unit with 3 or less remaining HP"');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.greenSquadronAwing]);
                 context.player1.clickCard(context.greenSquadronAwing);
