@@ -5,6 +5,7 @@ import { MetaEventName } from '../core/Constants';
 import type { IChoicesInterface } from '../TargetInterfaces';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
+import type { MsgArg } from '../core/chat/GameChat';
 
 export interface IPlayModalCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     amountOfChoices: number;
@@ -65,8 +66,9 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
         // Add generate event to perform the gameSystem selected
         context.game.queueSimpleStep(() => {
             const eventsForThisAction = [];
-            selectedSystem.queueGenerateEventGameSteps(eventsForThisAction, context);
             context.game.addMessage('{0} chooses "{1}"', context.source.owner, selectedPrompt);
+            this.addOnSelectEffectMessage(context, selectedSystem);
+            selectedSystem.queueGenerateEventGameSteps(eventsForThisAction, context);
             context.game.queueSimpleStep(() => {
                 for (const event of eventsForThisAction) {
                     events.push(event);
@@ -81,5 +83,15 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
         // remove the selected choice from the list
         const { [selectedPrompt]: removedKey, ...reducedListOfAvailableEffects } = listOfAvailableEffects;
         choiceHandler(context.player, reducedListOfAvailableEffects, (amountOfRemainingChoices - 1));
+    }
+
+    private addOnSelectEffectMessage(
+        context: TContext,
+        system: GameSystem
+    ) {
+        const [effectMessage, effectArgs] = system.getEffectMessage(context);
+        const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
+
+        context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }
 }
