@@ -77,5 +77,42 @@ describe('Hondo Ohnaka, Superfluous Swindler', function() {
             expect(context.cartelSpacer).toHaveExactUpgradeNames(['traitorous']);
             expect(context.cartelSpacer).toBeInZone('spaceArena', context.player2);
         });
+
+        it('can be used to take control of an upgrade with a friendly unit attach condition', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['hondo-ohnaka#superfluous-swindler']
+                },
+                player2: {
+                    groundArena: [
+                        'secretive-sage',
+                        {
+                            card: 'crafty-smuggler',
+                            upgrades: [
+                                'craving-power',
+                                'entrenched'
+                            ]
+                        }
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.hondoOhnaka);
+            context.player1.clickCard(context.p2Base);
+
+            // Both upgrades are selectable
+            expect(context.player1).toBeAbleToSelectExactly([context.cravingPower, context.entrenched]);
+            context.player1.clickCard(context.cravingPower);
+
+            // Can only attach Craving Power to a friendly unit (Hondo)
+            expect(context.player1).toBeAbleToSelectExactly([context.hondoOhnaka]);
+            context.player1.clickCard(context.hondoOhnaka);
+
+            expect(context.hondoOhnaka).toHaveExactUpgradeNames(['craving-power']);
+            expect(context.craftySmuggler).toHaveExactUpgradeNames(['entrenched']);
+        });
     });
 });
