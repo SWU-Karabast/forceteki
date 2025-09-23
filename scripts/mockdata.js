@@ -1027,6 +1027,41 @@ const mockCards = [
         arena: 'ground',
         internalName: 'mon-mothma#forming-a-coalition',
     }),
+    buildMockCard({
+        title: 'Alderaanian Envoys',
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: false,
+        keywords: ['restore 3'],
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['republic', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 68
+        },
+        cost: 6,
+        unique: false,
+        arena: 'ground',
+        internalName: 'alderaanian-envoys',
+    }),
+    buildMockCard({
+        title: 'Populist Champion',
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['new republic', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 44
+        },
+        cost: 5,
+        unique: false,
+        arena: 'ground',
+        internalName: 'populist-champion',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
