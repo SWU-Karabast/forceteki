@@ -17,6 +17,7 @@ export interface IDrawSpecificCardProperties extends ICardTargetSystemProperties
 export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDrawSpecificCardProperties> {
     public override readonly name = 'drawSpecific';
     public override readonly eventName = EventName.OnCardsDrawn;
+    public override readonly effectDescription = 'draw a card';
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
     protected override defaultProperties: IDrawSpecificCardProperties = {
@@ -47,13 +48,6 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         if (properties.shuffle && (Array.isArray(target) && (target.length === 0 || card === target[target.length - 1]))) {
             new ShuffleDeckSystem({}).generateEvent(context);
         }
-    }
-
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        return [
-            '{0} draws a card',
-            [context.player]
-        ];
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IDrawSpecificCardProperties> = {}): boolean {

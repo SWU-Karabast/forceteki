@@ -19,7 +19,10 @@ export class SimultaneousSystem<TContext extends AbilityContext = AbilityContext
         const message = ChatHelpers.formatWithLength(legalSystems.length, 'to ');
         return [message, legalSystems.map((system) => {
             const [format, args] = system.getEffectMessage(context);
-            return [format, ...args];
+            return {
+                format: format,
+                args: args
+            };
         })];
     }
 

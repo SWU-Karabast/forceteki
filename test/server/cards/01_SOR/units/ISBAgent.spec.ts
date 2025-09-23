@@ -30,7 +30,7 @@ describe('ISB Agent', function() {
 
                     expect(context.getChatLogs(3)).toEqual([
                         'player1 plays ISB Agent',
-                        'player1 uses ISB Agent to reveal a card',
+                        'player1 uses ISB Agent to reveal Confiscate',
                         'player1 reveals Confiscate due to ISB Agent',
                     ]);
 
@@ -57,10 +57,7 @@ describe('ISB Agent', function() {
                     expect(context.player1).not.toHavePassAbilityButton();
                     context.player1.clickPrompt('Choose nothing');
 
-                    expect(context.getChatLogs(2)).toEqual([
-                        'player1 plays ISB Agent',
-                        'player1 uses ISB Agent',
-                    ]);
+                    expect(context.getChatLog()).toEqual('player1 plays ISB Agent');
 
                     expect(context.isbAgent).toBeInZone('groundArena');
                     expect(context.isbAgent.damage).toBe(0);

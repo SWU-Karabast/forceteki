@@ -191,7 +191,8 @@ export class Lobby {
             username: user.username,
             state: user.state,
             ready: user.ready,
-            authenticated: user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser()
+            authenticated: user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser(),
+            chatDisabled: !!user.socket?.user.getModeration(),
         };
 
         const extendedData = fullData ? {
