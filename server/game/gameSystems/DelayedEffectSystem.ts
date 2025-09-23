@@ -30,7 +30,7 @@ export interface IDelayedEffectProperties extends IGameSystemProperties {
 export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IDelayedEffectProperties> {
     public override readonly name: string = 'applyDelayedEffect';
     public override readonly eventName: EventName = EventName.OnEffectApplied;
-    public override readonly effectDescription: string = 'apply a delayed effect';
+    public override readonly effectDescription: string = 'apply a delayed effect to {0}';
 
     protected override defaultProperties: IDelayedEffectProperties = {
         title: null,
