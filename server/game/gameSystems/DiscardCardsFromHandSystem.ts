@@ -96,6 +96,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
 
             if (amount >= availableHand.length && choosingPlayer.autoSingleTarget) {
                 this.generateEventsForCards(availableHand, context, events, additionalProperties);
+                this.sendDiscardMessage(availableHand, choosingPlayer, context, properties.random);
                 continue;
             }
 
@@ -151,7 +152,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
             cardList,
             cards.length > 0 ? ' from their hand' : '',
             context.source,
-            cards.length === 0 ? ' because they had no cards in hand' : ''
+            (cards.length === 0 && player.hand.length === 0) ? ' because they had no cards in hand' : ''
         );
     }
 
