@@ -1989,7 +1989,7 @@ class Game extends EventEmitter {
             }
         } catch (error) {
             if (process.env.NODE_ENV !== 'test') {
-                this.reportSevereRollbackFailure(error, 'Severe error during rollback operation');
+                this.reportSevereRollbackFailure(error);
             }
 
             throw error;
@@ -2000,7 +2000,7 @@ class Game extends EventEmitter {
         return true;
     }
 
-    reportSevereRollbackFailure(error, description) {
+    reportSevereRollbackFailure(error) {
         if (process.env.NODE_ENV === 'test') {
             throw error;
         }
@@ -2012,7 +2012,6 @@ class Game extends EventEmitter {
             preUndoState: this.preUndoStateForError.gameState,
             error: { message: error.message, stack: error.stack }
         });
-        this.discordDispatcher.formatAndSendServerErrorAsync(description, error, this.lobbyId);
         this.reportError(error, GameErrorSeverity.SevereHaltGame);
     }
 
