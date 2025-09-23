@@ -185,8 +185,8 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
             messageArgs.push(' to ');
             // discard Stoic Gunso
             messageArgs.push({ format: effectMessage, args: effectArgs });
-        } else if (messageVerb === 'uses') {
-            // If verb is "uses" and there's no effect message, don't log anything
+        } else if (messageVerb === 'uses' && costMessages.length === 0) {
+            // If verb is "uses" and there's no effect or cost message, don't log anything
             return;
         }
 
