@@ -90,8 +90,12 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
         system: GameSystem
     ) {
         const [effectMessage, effectArgs] = system.getEffectMessage(context);
-        const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
 
+        if (!effectMessage) {
+            return;
+        }
+
+        const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
         context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }
 }

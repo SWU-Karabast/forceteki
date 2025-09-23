@@ -5,8 +5,6 @@ import { EventName, ZoneName } from '../core/Constants';
 import type { Player } from '../core/Player';
 import type { IViewCardProperties } from './ViewCardSystem';
 import { ViewCardInteractMode, ViewCardSystem } from './ViewCardSystem';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
-import * as Helpers from '../core/utils/Helpers';
 
 export type IRevealProperties = IViewCardProperties & {
     promptedPlayer?: RelativePlayer;
@@ -16,6 +14,7 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
     public override readonly name = 'reveal';
     public override readonly eventName = EventName.OnCardRevealed;
     public override readonly costDescription = 'revealing {0}';
+    public override readonly effectDescription = 'reveal {0}';
 
     protected override readonly defaultProperties: IRevealProperties = {
         interactMode: ViewCardInteractMode.ViewOnly,
@@ -67,11 +66,6 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
             default:
                 throw new Error(`Unknown promptedPlayer value: ${properties.promptedPlayer}`);
         }
-    }
-
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
-        return ['reveal {0}', [ChatHelpers.pluralize(Helpers.asArray(properties.target).length, 'a card', 'cards')]];
     }
 
     public override addPropertiesToEvent(event, cards, context: TContext, additionalProperties: Record<string, any> = {}): void {

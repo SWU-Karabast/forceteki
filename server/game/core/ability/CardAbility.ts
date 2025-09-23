@@ -185,7 +185,11 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
             messageArgs.push(' to ');
             // discard Stoic Gunso
             messageArgs.push({ format: effectMessage, args: effectArgs });
+        } else if (messageVerb === 'uses') {
+            // If verb is "uses" and there's no effect message, don't log anything
+            return;
         }
+
         this.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }
 

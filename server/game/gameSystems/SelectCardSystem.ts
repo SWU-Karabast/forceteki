@@ -103,8 +103,12 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         properties: ISelectCardProperties<TContext>
     ) {
         const [effectMessage, effectArgs] = properties.immediateEffect.getEffectMessage(context);
-        const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
 
+        if (!effectMessage) {
+            return;
+        }
+
+        const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
         context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }
 
