@@ -181,7 +181,9 @@ export class Lobby {
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
-            undoEnabled: this.undoMode === UndoMode.Full,
+            settings: {
+                undoEnabled: this.undoMode === UndoMode.Full,
+            },
         };
     }
 
@@ -1253,7 +1255,7 @@ export class Lobby {
             case LobbySettingKeys.UndoEnabled:
                 this.assertSettingType(settingName, settingValue, 'boolean');
                 this.undoMode = settingValue ? UndoMode.Full : UndoMode.Disabled;
-                this.gameChat.addAlert(AlertType.Warning, `${user.id} has ${settingValue ? 'enabled' : 'disabled'} undo`);
+                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo`);
                 break;
             default:
                 Contract.fail(`Unknown setting name: ${settingName}`);
