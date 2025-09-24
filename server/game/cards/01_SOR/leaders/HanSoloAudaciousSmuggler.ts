@@ -22,6 +22,7 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
+                    effect: 'put a card from their hand into play as a ready resource',
                     immediateEffect: AbilityHelper.immediateEffects.resourceCard({
                         readyResource: true
                     })
