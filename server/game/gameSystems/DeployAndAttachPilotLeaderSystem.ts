@@ -13,7 +13,6 @@ export interface IDeployAndAttachLeaderPilotProperties extends ICardTargetSystem
 export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDeployAndAttachLeaderPilotProperties> {
     public override readonly name = 'deploy and attach pilot leader';
     public override readonly eventName = EventName.OnLeaderDeployed;
-    public override readonly effectDescription = 'deploy {0} and attach it to {1}';
 
     protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit];
 
@@ -32,7 +31,7 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
 
     public override getEffectMessage(context: TContext, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['deploy {0} and attach it to {1}', [properties.leaderPilotCard, this.getTargetMessage(properties.target, context)]];
+        return ['deploy {0} as a pilot upgrade on {1}', [properties.leaderPilotCard, this.getTargetMessage(properties.target, context)]];
     }
 
     public override canAffectInternal(card: Card, context: TContext): boolean {
