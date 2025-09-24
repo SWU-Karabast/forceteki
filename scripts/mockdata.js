@@ -693,24 +693,6 @@ const mockCards = [
         internalName: 'daro-commando',
     }),
     buildMockCard({
-        title: 'FN Trooper Corps',
-        power: 4,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['villainy'],
-        types: ['unit'],
-        traits: ['first order', 'trooper'],
-        setId: {
-            set: 'SEC',
-            number: 243
-        },
-        cost: 5,
-        unique: false,
-        arena: 'ground',
-        internalName: 'fn-trooper-corps',
-    }),
-    buildMockCard({
         title: 'Supreme Council Aide',
         power: 2,
         hp: 2,
