@@ -938,24 +938,6 @@ const mockCards = [
         internalName: 'gnk-power-droid',
     }),
     buildMockCard({
-        title: 'Vuutun Palaa',
-        subtitle: 'Droid Control Ship',
-        power: 7,
-        hp: 7,
-        hasNonKeywordAbility: true,
-        aspects: ['command'],
-        types: ['unit'],
-        traits: ['separatist', 'vehicle', 'capital ship'],
-        setId: {
-            set: 'SEC',
-            number: 122
-        },
-        cost: 9,
-        unique: true,
-        arena: 'space',
-        internalName: 'vuutun-palaa#droid-control-ship',
-    }),
-    buildMockCard({
         title: 'Senator Chuchi',
         subtitle: 'Voice for the Voiceless',
         power: 2,

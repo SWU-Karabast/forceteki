@@ -7,9 +7,9 @@ import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import { RelativePlayer, TargetMode, WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type { IModifyPayStageCostAdjusterProperties } from './CostAdjuster';
-import { CostAdjuster } from './CostAdjuster';
+import { CostAdjuster, CostAdjustType } from './CostAdjuster';
 
-export interface IExhaustUnitsCostAdjusterProperties<TContext extends AbilityContext> extends IModifyPayStageCostAdjusterProperties {
+export interface IExhaustUnitsCostAdjusterProperties<TContext extends AbilityContext> extends Omit<IModifyPayStageCostAdjusterProperties, 'costAdjustType'> {
     cardCondition: (card: IUnitCard, context: TContext) => boolean;
 }
 
@@ -27,6 +27,7 @@ export class ExhaustUnitCostAdjuster extends CostAdjuster {
         super(game, source,
             {
                 ...properties,
+                costAdjustType: CostAdjustType.ModifyPayStage,
                 amount: (_card, _player, context) => this.getMaxExhaustableCount(context)
             }
         );
