@@ -119,6 +119,56 @@ const mockCards = [
         internalName: 'lets-call-it-war',
     }),
     buildMockCard({
+        title: 'Ambition\'s Reward',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['upgrade'],
+        traits: ['law'],
+        setId: {
+            set: 'SEC',
+            number: 175
+        },
+        upgradeHp: 1,
+        upgradePower: 1,
+        power: 1,
+        hp: 1,
+        cost: 2,
+        unique: false,
+        internalName: 'ambitions-reward',
+    }),
+    buildMockCard({
+        title: 'Unauthorized Investigation',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'SEC',
+            number: 181
+        },
+        cost: 3,
+        unique: false,
+        internalName: 'unauthorized-investigation',
+    }),
+    buildMockCard({
+        title: 'Grand Admiral Thrawn',
+        subtitle: 'Grand Schemer',
+        power: 8,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 193
+        },
+        cost: 7,
+        unique: true,
+        arena: 'ground',
+        internalName: 'grand-admiral-thrawn#grand-schemer',
+    }),
+    buildMockCard({
         title: 'Bo-Katan Kryze',
         subtitle: 'Alone',
         power: 8,
