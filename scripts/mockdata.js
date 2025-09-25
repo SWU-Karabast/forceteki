@@ -693,24 +693,6 @@ const mockCards = [
         internalName: 'daro-commando',
     }),
     buildMockCard({
-        title: 'FN Trooper Corps',
-        power: 4,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['villainy'],
-        types: ['unit'],
-        traits: ['first order', 'trooper'],
-        setId: {
-            set: 'SEC',
-            number: 243
-        },
-        cost: 5,
-        unique: false,
-        arena: 'ground',
-        internalName: 'fn-trooper-corps',
-    }),
-    buildMockCard({
         title: 'Supreme Council Aide',
         power: 2,
         hp: 2,
@@ -1061,6 +1043,55 @@ const mockCards = [
         unique: false,
         arena: 'ground',
         internalName: 'populist-champion',
+    }),
+    buildMockCard({
+        title: 'Rotunda Senate Guards',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['republic', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 63
+        },
+        cost: 4,
+        unique: false,
+        arena: 'ground',
+        internalName: 'rotunda-senate-guards',
+    }),
+    buildMockCard({
+        title: 'Leia Organa',
+        subtitle: 'Of a Secret Bloodline',
+        power: 4,
+        hp: 7,
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['leader'],
+        traits: ['new republic', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 4
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'leia-organa#of-a-secret-bloodline',
+    }),
+    buildMockCard({
+        title: 'Hyperspace Disaster',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['event'],
+        traits: ['disaster'],
+        setId: {
+            set: 'SEC',
+            number: 78
+        },
+        cost: 7,
+        unique: false,
+        internalName: 'hyperspace-disaster',
     }),
 ];
 
