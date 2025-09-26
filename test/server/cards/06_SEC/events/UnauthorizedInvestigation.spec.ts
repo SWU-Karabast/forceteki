@@ -47,6 +47,23 @@ describe('Unauthorized Investigation', function () {
                 expect(spy[0]).toBeInZone('groundArena');
                 expect(spy[0].exhausted).toBeTrue();
             });
+
+            it('doesn\'t prompt for disclose if hand is empty, only creates one Spy', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.daringRaid);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.clickPrompt('Pass');
+
+                context.player1.clickCard(context.unauthorizedInvestigation);
+                expect(context.player2).toBeActivePlayer();
+
+                const spy = context.player1.findCardsByName('spy');
+                expect(spy.length).toBe(1);
+                expect(spy[0]).toBeInZone('groundArena');
+                expect(spy[0].exhausted).toBeTrue();
+            });
         });
     });
 });

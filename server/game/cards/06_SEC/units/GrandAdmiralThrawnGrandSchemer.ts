@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class GrandAdmiralThrawnGrandSchemer extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,19 +14,20 @@ export default class GrandAdmiralThrawnGrandSchemer extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'An opponent may choose a non-leader unit they control. If they do, this unit captures that unit. If they don\'t, ready this unit.',
-            optional: true,
-            playerChoosingOptional: RelativePlayer.Opponent,
-            optionalButtonTextOverride: 'Opponent readies Grand Admiral Thrawn',
-            targetResolver: {
+            targetResolver: ({
                 choosingPlayer: RelativePlayer.Opponent,
-                controller: RelativePlayer.Opponent,
-                cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                immediateEffect: abilityHelper.immediateEffects.capture()
-            },
-            ifYouDoNot: {
-                title: 'Ready Grand Admiral Thrawn',
-                immediateEffect: abilityHelper.immediateEffects.ready()
-            }
+                mode: TargetMode.Select,
+                choices: () => ({
+
+                    ['Choose a non-leader unit to be captured']: abilityHelper.immediateEffects.selectCard({
+                        choosingPlayer: RelativePlayer.Opponent,
+                        controller: RelativePlayer.Opponent,
+                        cardTypeFilter: WildcardCardType.NonLeaderUnit,
+                        immediateEffect: abilityHelper.immediateEffects.capture(),
+                    }),
+                    ['Opponent readies Grand Admiral Thrawn']: abilityHelper.immediateEffects.ready(),
+                })
+            })
         });
 
         registrar.addWhenDefeatedAbility({
@@ -47,10 +48,3 @@ export default class GrandAdmiralThrawnGrandSchemer extends NonLeaderUnitCard {
         });
     }
 }
-
-/*           ifYouDo: {
-                title: 'Capture the chosen unit',
-                immediateEffect: abilityHelper.immediateEffects.capture((context) => ({
-                    captor: context.source
-                }))
-            }, */

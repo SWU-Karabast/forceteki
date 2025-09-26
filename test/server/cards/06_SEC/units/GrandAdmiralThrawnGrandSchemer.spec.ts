@@ -5,7 +5,7 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['grand-admiral-thrawn#grand-schemer'],
+                        hand: ['grand-admiral-thrawn#grand-schemer', 'superlaser-blast'],
                         groundArena: ['battlefield-marine'],
                         spaceArena: ['imperial-interceptor']
                     },
@@ -13,6 +13,7 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                         groundArena: ['atst'],
                         spaceArena: ['gladiator-star-destroyer'],
                         hand: ['power-of-the-dark-side', 'no-glory-only-results'],
+                        leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
                     }
                 });
             });
@@ -21,7 +22,7 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralThrawnGrandSchemer);
-                context.player2.clickPrompt('Trigger');
+                context.player2.clickPrompt('Choose a non-leader unit to be captured');
                 expect(context.player2).toBeAbleToSelectExactly([context.gladiatorStarDestroyer, context.atst]);
                 context.player2.clickCard(context.gladiatorStarDestroyer);
 
@@ -34,7 +35,7 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralThrawnGrandSchemer);
-                context.player2.clickPrompt('Trigger');
+                context.player2.clickPrompt('Choose a non-leader unit to be captured');
                 expect(context.player2).toBeAbleToSelectExactly([context.gladiatorStarDestroyer, context.atst]);
                 context.player2.clickCard(context.atst);
 
@@ -58,7 +59,7 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralThrawnGrandSchemer);
-                context.player2.clickPrompt('Trigger');
+                context.player2.clickPrompt('Choose a non-leader unit to be captured');
                 expect(context.player2).toBeAbleToSelectExactly([context.gladiatorStarDestroyer, context.atst]);
                 context.player2.clickCard(context.atst);
 
@@ -87,7 +88,7 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralThrawnGrandSchemer);
-                context.player2.clickPrompt('Trigger');
+                context.player2.clickPrompt('Choose a non-leader unit to be captured');
                 expect(context.player2).toBeAbleToSelectExactly([context.gladiatorStarDestroyer, context.atst]);
                 context.player2.clickCard(context.atst);
 
@@ -116,7 +117,7 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralThrawnGrandSchemer);
-                context.player2.clickPrompt('Trigger');
+                context.player2.clickPrompt('Choose a non-leader unit to be captured');
                 expect(context.player2).toBeAbleToSelectExactly([context.gladiatorStarDestroyer, context.atst]);
                 context.player2.clickCard(context.atst);
 
@@ -130,7 +131,7 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 expect(context.grandAdmiralThrawnGrandSchemer).toBeInZone('discard');
                 expect(context.atst).toBeInZone('groundArena');
 
-                expect(context.player2).toBeAbleToSelectExactly([context.gladiatorStarDestroyer, context.atst]);
+                expect(context.player2).toBeAbleToSelectExactly([context.gladiatorStarDestroyer, context.atst, context.lukeSkywalkerFaithfulFriend]);
                 context.player2.clickCard(context.atst);
 
                 expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine]);
@@ -139,6 +140,18 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 expect(context.battlefieldMarine).toBeCapturedBy(context.atst);
 
                 expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should ready Thrawn if there are no units to choose', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.superlaserBlast);
+                context.player2.clickPrompt('Pass');
+
+                context.player1.clickCard(context.grandAdmiralThrawnGrandSchemer);
+                expect(context.grandAdmiralThrawnGrandSchemer.exhausted).toBeFalse();
+
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
