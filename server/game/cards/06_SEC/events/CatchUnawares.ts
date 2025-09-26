@@ -12,7 +12,7 @@ export default class CatchUnawares extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attach with a unit. The defender gets -4/-0 for this attack.',
+            title: 'Attack with a unit. The defender gets -4/-0 for this attack.',
             initiateAttack: {
                 defenderLastingEffects: {
                     effect: abilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 }),
