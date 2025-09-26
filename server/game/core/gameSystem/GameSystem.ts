@@ -193,7 +193,10 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     public getTargetMessage(targets: PlayerOrCard | PlayerOrCard[], context: TContext): MsgArg[] {
         return Helpers.asArray(targets).map((target) => {
             if (target.isCard() && target.isBase()) {
-                return { format: '{0}\'s base', args: [target.controller] };
+                return {
+                    format: target.controller === context.player ? 'their own base' : '{0}\'s base',
+                    args: [target.controller]
+                };
             }
             return target;
         });

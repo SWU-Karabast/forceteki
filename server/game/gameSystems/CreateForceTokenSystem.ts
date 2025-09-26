@@ -11,6 +11,7 @@ export interface ICreateForceTokenProperties extends IPlayerTargetSystemProperti
 export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ICreateForceTokenProperties> {
     public override name = 'createForceToken';
     public override readonly eventName = EventName.OnTokensCreated;
+    public override readonly effectDescription = 'gain the Force';
 
     public override eventHandler(event, additionalProperties: Partial<ICreateForceTokenProperties> = {}): void {
         const context = event.context;
@@ -24,10 +25,6 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
 
             forceTokens[0].moveTo(ZoneName.Base);
         }
-    }
-
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        return ['gain the Force', []];
     }
 
     public override defaultTargets(context: TContext): Player[] {

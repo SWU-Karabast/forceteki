@@ -17,7 +17,8 @@ export default class ForceLightning extends EventCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    effect: AbilityHelper.ongoingEffects.loseAllAbilities()
+                    effect: AbilityHelper.ongoingEffects.loseAllAbilities(),
+                    ongoingEffectDescription: 'remove all abilities from'
                 })
             },
             then: (thenContext) => ({
