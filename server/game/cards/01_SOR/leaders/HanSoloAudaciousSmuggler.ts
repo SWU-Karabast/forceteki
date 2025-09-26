@@ -22,6 +22,7 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
+                    effect: 'put a card from their hand into play as a ready resource',
                     immediateEffect: AbilityHelper.immediateEffects.resourceCard({
                         readyResource: true
                     })
@@ -51,6 +52,7 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
             when: {
                 onPhaseStarted: (context) => context.phase === PhaseName.Action, // Should we make some sort of short-hand/easier way for this?
             },
+            effectDescription: 'defeat a resource at the start of the next action phase',
             immediateEffect: AbilityHelper.immediateEffects.selectCard({
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
