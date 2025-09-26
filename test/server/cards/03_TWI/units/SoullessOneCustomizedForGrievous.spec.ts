@@ -81,7 +81,7 @@ describe('Soulless One, Customized for Grievous', function () {
             });
         });
 
-        it('should not be able to target and exhaust IG88 Ruthless Bounty Hunter leader', async function () {
+        it('should not be able to target and exhaust IG88 leader', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -97,6 +97,27 @@ describe('Soulless One, Customized for Grievous', function () {
 
             expect(context.player1).toBeAbleToSelectExactly([context.r2d2]);
             expect(context.player1).not.toBeAbleToSelectExactly([context.ig88]);
+            context.player1.clickPrompt('Pass');
+
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should be able to target and exhaust IG88 leader unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['r2d2#ignoring-protocol'],
+                    spaceArena: ['soulless-one#customized-for-grievous'],
+                    leader: { card: 'ig88#ruthless-bounty-hunter', deployed: true }
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.soullessOne);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.r2d2, context.ig88]);
             context.player1.clickPrompt('Pass');
 
             expect(context.player2).toBeActivePlayer();
