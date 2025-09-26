@@ -7,7 +7,7 @@ import { cardCannot } from './CardCannot';
 // const { copyCard } = require('./Effects/Library/copyCard');
 // const { gainAllAbilities } = require('./Effects/Library/GainAllAbilities');
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
-import { addExploit, modifyCost } from './ModifyCost';
+import { addExploit, exhaustUnitsInsteadOfResources, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import type { KeywordName, Trait } from '../core/Constants';
 import { EffectName } from '../core/Constants';
@@ -33,6 +33,7 @@ import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/
 import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
+import type { IExhaustUnitsCostAdjusterProperties } from '../core/cost/ExhaustUnitsCostAdjuster';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -272,6 +273,9 @@ export = {
     ignoreSpecificAspectPenalties: (properties: Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreSpecificAspects, ...properties }),
     ignorePilotingPilotLimit: () => OngoingEffectBuilder.card.static(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit),
     addExploit: (properties: IExploitCostAdjusterProperties) => addExploit(properties),
+    canExhaustUnitsInsteadOfResources: <TContext extends AbilityContext>(
+        properties: Omit<IExhaustUnitsCostAdjusterProperties<TContext>, 'costAdjustType'>
+    ) => exhaustUnitsInsteadOfResources(properties),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>
