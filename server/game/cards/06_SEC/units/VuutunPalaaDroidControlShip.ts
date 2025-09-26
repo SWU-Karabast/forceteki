@@ -18,7 +18,7 @@ export default class VuutunPalaaDroidControlShip extends NonLeaderUnitCard {
         });
 
         registrar.addConstantAbility({
-            title: 'Each friendly Droid unit may be exhausted to pay costs',
+            title: 'Each friendly Droid unit may be exhausted to pay costs as if it were a resource',
             ongoingEffect: AbilityHelper.ongoingEffects.canExhaustUnitsInsteadOfResources({
                 cardCondition: (card, _) => card.hasSomeTrait(Trait.Droid)
             })

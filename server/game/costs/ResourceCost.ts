@@ -54,7 +54,6 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     public queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext<TCard>, result: ICostResult) {
         Contract.assertNotNullLike(result);
 
-
         for (const costAdjuster of this.getMatchingCostAdjusters(context)) {
             costAdjuster.queueGenerateEventGameSteps(events, context, this, result);
         }
