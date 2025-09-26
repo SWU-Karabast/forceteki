@@ -88,13 +88,13 @@ export class ExhaustUnitCostAdjuster extends CostAdjuster {
 
         // If exhausting units is the only way the player can pay the cost, skip straight to unit selection
         if (!result.canCancel && !canPlayWithoutExhausting) {
-            this.resolveExhaust(events, context, result);
+            this.resolveExhaust(context, result);
             return;
         }
 
         const choices = ['Pay cost by exhausting units'];
         const handlers = [
-            () => this.resolveExhaust(events, context, result)
+            () => this.resolveExhaust(context, result)
         ];
 
         if (result.canCancel) {
@@ -120,7 +120,7 @@ export class ExhaustUnitCostAdjuster extends CostAdjuster {
         });
     }
 
-    private resolveExhaust(events: any[], context: AbilityContext, result: ICostResult) {
+    private resolveExhaust(context: AbilityContext, result: ICostResult) {
         // step 1: ask player to choose defeat targets
         this.targetResolver.resolve(context, result);
 
@@ -128,7 +128,7 @@ export class ExhaustUnitCostAdjuster extends CostAdjuster {
         context.game.queueSimpleStep(() => {
             if (!result.cancelled) {
                 this.numExhaustedUnits = Helpers.asArray(context.targets.exhaustUnitsCostAdjuster).length;
-                events.push(this.buildExhaustEvent(context));
+                result.payCostEvents.push(this.buildExhaustEvent(context));
             }
         }, `generate exhaustUnitsCostAdjuster event for ${context.source.internalName}`);
     }

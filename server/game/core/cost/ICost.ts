@@ -7,7 +7,8 @@ import type { ResourceCost } from '../../costs/ResourceCost';
 export interface ICostResult {
     canCancel: boolean;
     cancelled: boolean;
-    events: GameEvent[];
+    determineCostEvents: GameEvent[];
+    payCostEvents: GameEvent[];
     playCosts: boolean;
     triggerCosts: boolean;
 }

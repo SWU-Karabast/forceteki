@@ -60,7 +60,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
 
         context.game.queueSimpleStep(() => {
             if (!result.cancelled) {
-                events.push(this.getExhaustResourceEvent(context));
+                result.payCostEvents.push(this.getExhaustResourceEvent(context));
             }
         }, `generate exhaust resources event for ${context.source.internalName}`);
     }

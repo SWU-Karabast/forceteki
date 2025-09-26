@@ -231,7 +231,8 @@ export class AbilityResolver extends BaseStepWithPipeline {
         return {
             cancelled: false,
             canCancel: this.canCancel,
-            events: [],
+            determineCostEvents: [],
+            payCostEvents: [],
             playCosts: true,
             triggerCosts: true
         };
@@ -276,8 +277,11 @@ export class AbilityResolver extends BaseStepWithPipeline {
         }
 
         this.resolutionComplete = true;
-        if (this.costResults.events.length > 0) {
-            this.game.openEventWindow(this.costResults.events);
+        if (this.costResults.determineCostEvents.length > 0) {
+            this.game.openEventWindow(this.costResults.determineCostEvents);
+        }
+        if (this.costResults.payCostEvents.length > 0) {
+            this.game.openEventWindow(this.costResults.payCostEvents);
         }
     }
 
@@ -285,7 +289,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
         if (this.cancelled) {
             return;
         }
-        this.cancelled = this.costResults.events.some((event) => event.isCancelled);
+        this.cancelled = this.costResults.payCostEvents.some((event) => event.isCancelled);
         if (this.cancelled) {
             this.game.addMessage('{0} attempted to use {1}, but did not successfully pay the required costs', this.context.player, this.context.source);
         }

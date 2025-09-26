@@ -243,7 +243,7 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
             context.game.queueSimpleStep(() => {
                 if (!results.cancelled) {
                     if (cost.queueGenerateEventGameSteps) {
-                        cost.queueGenerateEventGameSteps(results.events, context, results);
+                        cost.queueGenerateEventGameSteps([], context, results);
                     } else {
                         if (cost.resolve) {
                             cost.resolve(context, results);
@@ -254,7 +254,7 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
                                     ? cost.payEvents(context)
                                     : [new GameEvent('payCost', context, {}, () => cost.pay(context))];
 
-                                results.events = results.events.concat(newEvents);
+                                results.payCostEvents = results.payCostEvents.concat(newEvents);
                             }
                         }, `Generate cost events for ${cost.gameSystem ? cost.gameSystem : cost.constructor.name} for ${this}`);
                     }
