@@ -988,6 +988,10 @@ class Game extends EventEmitter {
     promptWithMenu(player, contextObj, properties) {
         Contract.assertNotNullLike(player);
 
+        if (this.actionPhaseActivePlayer && this.actionPhaseActivePlayer !== player) {
+            this.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(this.actionPhaseActivePlayer.id);
+        }
+
         this.queueStep(new MenuPrompt(this, player, contextObj, properties));
     }
 
@@ -998,6 +1002,10 @@ class Game extends EventEmitter {
      */
     promptWithHandlerMenu(player, properties) {
         Contract.assertNotNullLike(player);
+
+        if (this.actionPhaseActivePlayer && this.actionPhaseActivePlayer !== player) {
+            this.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(this.actionPhaseActivePlayer.id);
+        }
 
         if (properties.multiSelect) {
             this.queueStep(new HandlerMenuMultipleSelectionPrompt(this, player, properties));

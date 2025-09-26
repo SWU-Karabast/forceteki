@@ -2261,6 +2261,33 @@ describe('Undo', function() {
                 expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
                 expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
             });
+
+            undoIt('should require confirmation to rollback after the opponent is prompted to make a choice', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['i-am-your-father'],
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['viper-probe-droid'],
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.iAmYourFather);
+                context.player1.clickCard(context.viperProbeDroid);
+
+                context.player2.clickPrompt('Viper Probe Droid takes 7 damage');
+
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+                expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            });
         });
     });
 });
