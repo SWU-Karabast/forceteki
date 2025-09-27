@@ -1342,6 +1342,43 @@ const mockCards = [
         unique: false,
         internalName: 'ambitions-reward',
     }),
+    buildMockCard({
+        title: 'Alexandr Kallus',
+        subtitle: 'With New Purpose',
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'spectre'],
+        setId: {
+            set: 'SEC',
+            number: 155
+        },
+        cost: 7,
+        unique: true,
+        arena: 'ground',
+        internalName: 'alexandr-kallus#with-new-purpose',
+    }),
+    buildMockCard({
+        title: 'Lando Calrissian',
+        subtitle: 'Trust Me',
+        power: 6,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        keywords: ['grit'],
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['fringe', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 68
+        },
+        cost: 7,
+        unique: true,
+        arena: 'ground',
+        internalName: 'lando-calrissian#trust-me',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
