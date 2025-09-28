@@ -6,13 +6,13 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                     phase: 'action',
                     player1: {
                         hand: ['grand-admiral-thrawn#grand-schemer', 'superlaser-blast'],
-                        groundArena: ['battlefield-marine'],
+                        groundArena: ['battlefield-marine', 'rebel-pathfinder'],
                         spaceArena: ['imperial-interceptor']
                     },
                     player2: {
                         groundArena: ['atst'],
                         spaceArena: ['gladiator-star-destroyer'],
-                        hand: ['power-of-the-dark-side', 'no-glory-only-results'],
+                        hand: ['power-of-the-dark-side', 'no-glory-only-results', 'change-of-heart'],
                         leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
                     }
                 });
@@ -73,7 +73,7 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 expect(context.grandAdmiralThrawnGrandSchemer).toBeInZone('discard');
                 expect(context.atst).toBeInZone('groundArena');
 
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.imperialInterceptor]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.rebelPathfinder, context.imperialInterceptor]);
                 context.player1.clickCard(context.battlefieldMarine);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.atst]);
@@ -102,7 +102,7 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 expect(context.grandAdmiralThrawnGrandSchemer).toBeInZone('discard');
                 expect(context.atst).toBeInZone('groundArena');
 
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.imperialInterceptor]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.rebelPathfinder, context.imperialInterceptor]);
                 context.player1.clickCard(context.imperialInterceptor);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.gladiatorStarDestroyer]);
@@ -113,7 +113,7 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('should allow the opponent to control the when defeated when defeated with No Glory Only Results', function () {
+            it('should allow the opponent to control the when defeated with No Glory Only Results', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralThrawnGrandSchemer);
@@ -134,10 +134,60 @@ describe('Grand Admiral Thrawn, Grand Schemer\'s Reward', function() {
                 expect(context.player2).toBeAbleToSelectExactly([context.gladiatorStarDestroyer, context.atst, context.lukeSkywalkerFaithfulFriend]);
                 context.player2.clickCard(context.atst);
 
-                expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.rebelPathfinder]);
                 context.player2.clickCard(context.battlefieldMarine);
 
                 expect(context.battlefieldMarine).toBeCapturedBy(context.atst);
+
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should allow capture of a unit that changed control with the when played', function () {
+                const { context } = contextRef;
+
+                context.player1.clickPrompt('Pass');
+                context.player2.clickCard(context.changeOfHeart);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.player1.clickCard(context.grandAdmiralThrawnGrandSchemer);
+                context.player2.clickPrompt('Choose a non-leader unit to be captured');
+                expect(context.player2).toBeAbleToSelectExactly([context.gladiatorStarDestroyer, context.atst, context.battlefieldMarine]);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeCapturedBy(context.grandAdmiralThrawnGrandSchemer);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should allow capture of a unit that changed control with the when defeated', function () {
+                const { context } = contextRef;
+
+                context.player1.clickPrompt('Pass');
+                context.player2.clickCard(context.changeOfHeart);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.player1.clickCard(context.grandAdmiralThrawnGrandSchemer);
+                context.player2.clickPrompt('Choose a non-leader unit to be captured');
+                expect(context.player2).toBeAbleToSelectExactly([context.gladiatorStarDestroyer, context.atst, context.battlefieldMarine]);
+                context.player2.clickCard(context.atst);
+
+                expect(context.atst).toBeCapturedBy(context.grandAdmiralThrawnGrandSchemer);
+
+                expect(context.player2).toBeActivePlayer();
+
+                context.player2.clickCard(context.powerOfTheDarkSide);
+                context.player1.clickCard(context.grandAdmiralThrawnGrandSchemer);
+
+                expect(context.grandAdmiralThrawnGrandSchemer).toBeInZone('discard');
+                expect(context.atst).toBeInZone('groundArena');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.imperialInterceptor]);
+                context.player1.clickCard(context.rebelPathfinder);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.atst]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeCapturedBy(context.rebelPathfinder);
 
                 expect(context.player1).toBeActivePlayer();
             });
