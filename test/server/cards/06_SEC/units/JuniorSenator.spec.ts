@@ -12,6 +12,7 @@ describe('Junior Senator', function () {
                     player2: {
                         hand: ['junior-senator'],
                         groundArena: ['pyke-sentinel'],
+                        spaceArena: [{ card: 'green-squadron-awing', upgrades: ['chewbacca#faithful-first-mate'] }],
                         discard: ['hotshot-dl44-blaster']
                     }
                 });

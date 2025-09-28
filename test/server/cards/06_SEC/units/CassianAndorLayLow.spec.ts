@@ -5,11 +5,11 @@ describe('Cassian Andor, Lay Low', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['blood-sport', 'open-fire'],
+                        hand: ['blood-sport', 'open-fire', 'torpedo-barrage'],
                         groundArena: ['battlefield-marine', 'consular-security-force']
                     },
                     player2: {
-                        hand: ['daring-raid'],
+                        hand: ['daring-raid', 'covering-the-wing'],
                         groundArena: ['resourceful-pursuers', 'cargo-juggernaut', 'cassian-andor#lay-low']
                     }
                 });
@@ -71,7 +71,39 @@ describe('Cassian Andor, Lay Low', function() {
                 context.player2.clickCard(context.daringRaid);
                 context.player2.clickCard(context.cassianAndorLayLow);
 
-                expect(context.cassianAndor).toBeInZone('discard');
+                expect(context.cassianAndorLayLow).toBeInZone('discard');
+            });
+
+            it('should not prevent indirect damage', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.torpedoBarrage);
+                context.player1.clickPrompt('Deal indirect damage to opponent');
+
+                context.player2.setDistributeIndirectDamagePromptState(new Map([
+                    [context.p2Base, 3],
+                    [context.cassianAndorLayLow, 2],
+                ]));
+
+                expect(context.cassianAndorLayLow).toBeInZone('discard');
+            });
+
+            it('should prevent damage to prevent defeating shield', function () {
+                const { context } = contextRef;
+
+                context.player1.clickPrompt('Pass');
+
+                context.player2.clickCard(context.coveringTheWing);
+                context.player2.clickPrompt('Trigger');
+                context.player2.clickCard(context.cassianAndorLayLow);
+
+                context.player1.clickCard(context.bloodSport);
+
+                context.player2.clickPrompt('If an enemy card ability would do damage to this unit, prevent 2 of that damage');
+
+                expect(context.cassianAndor).toHaveExactUpgradeNames(['shield']);
+
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
