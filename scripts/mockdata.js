@@ -74,23 +74,6 @@ const mockCards = [
         internalName: 'crosshair#filled-with-doubt',
     }),
     buildMockCard({
-        title: 'AAT Incinerator',
-        power: 3,
-        hp: 6,
-        hasNonKeywordAbility: true,
-        aspects: ['aggression'],
-        types: ['unit'],
-        traits: ['imperial', 'vehicle', 'tank'],
-        setId: {
-            set: 'SEC',
-            number: 169
-        },
-        cost: 5,
-        unique: true,
-        arena: 'ground',
-        internalName: 'aat-incinerator',
-    }),
-    buildMockCard({
         title: 'Emergency Powers',
         hasNonKeywordAbility: true,
         aspects: ['vigilance', 'villainy'],
@@ -414,6 +397,7 @@ const mockCards = [
         power: 7,
         hp: 7,
         hasNonKeywordAbility: true,
+        keywords: ['hidden'],
         aspects: ['cunning'],
         types: ['unit'],
         traits: ['underworld'],
@@ -564,7 +548,7 @@ const mockCards = [
         internalName: 'high-command-councilor',
     }),
     buildMockCard({
-        title: 'High Command Councilor',
+        title: 'Ando Commission',
         power: 4,
         hp: 3,
         hasNonKeywordAbility: false,
@@ -619,7 +603,7 @@ const mockCards = [
         internalName: 'lobot#cloud-city-coordinator',
     }),
     buildMockCard({
-        title: 'Rebel Functionary',
+        title: 'Rebellious Functionary',
         power: 2,
         hp: 2,
         hasNonKeywordAbility: false,
@@ -634,7 +618,7 @@ const mockCards = [
         cost: 1,
         unique: false,
         arena: 'ground',
-        internalName: 'rebel-functionary',
+        internalName: 'rebellious-functionary',
     }),
     buildMockCard({
         title: 'Rebel Propagandist',
@@ -898,34 +882,6 @@ const mockCards = [
         internalName: 'miraj-scintel#the-weak-deserve-to-kneel',
     }),
     buildMockCard({
-        title: 'Let\'s Call It War',
-        hasNonKeywordAbility: true,
-        aspects: ['aggression'],
-        types: ['event'],
-        traits: ['tactic'],
-        setId: {
-            set: 'SEC',
-            number: 180
-        },
-        cost: 3,
-        unique: false,
-        internalName: 'lets-call-it-war',
-    }),
-    buildMockCard({
-        title: 'Let\'s Call It War',
-        hasNonKeywordAbility: true,
-        aspects: ['aggression'],
-        types: ['event'],
-        traits: ['tactic'],
-        setId: {
-            set: 'SEC',
-            number: 180
-        },
-        cost: 3,
-        unique: false,
-        internalName: 'lets-call-it-war',
-    }),
-    buildMockCard({
         title: 'Convene the Senate',
         hasNonKeywordAbility: true,
         aspects: ['command'],
@@ -938,20 +894,6 @@ const mockCards = [
         cost: 3,
         unique: false,
         internalName: 'convene-the-senate',
-    }),
-    buildMockCard({
-        title: 'Emergency Powers',
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        types: ['event'],
-        traits: ['law'],
-        setId: {
-            set: 'SEC',
-            number: 40
-        },
-        cost: 1,
-        unique: false,
-        internalName: 'emergency-powers',
     }),
     buildMockCard({
         title: 'AAT Incinerator',
@@ -1089,7 +1031,7 @@ const mockCards = [
             set: 'SEC',
             number: 44
         },
-        cost: 5,
+        cost: 3,
         unique: false,
         arena: 'ground',
         internalName: 'populist-champion',
@@ -1235,7 +1177,7 @@ const mockCards = [
         title: 'Chancellor Valorum',
         subtitle: 'Civil Servant',
         power: 3,
-        hp: 5,
+        hp: 7,
         hasNonKeywordAbility: true,
         aspects: ['command', 'command'],
         types: ['unit'],
@@ -1391,6 +1333,24 @@ const mockCards = [
         power: 1,
         unique: false,
         internalName: 'ambitions-reward',
+    }),
+    buildMockCard({
+        title: 'Cassian Andor',
+        subtitle: 'Lay Low',
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['fringe'],
+        setId: {
+            set: 'SEC',
+            number: 42
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'cassian-andor#lay-low',
     }),
 ];
 
