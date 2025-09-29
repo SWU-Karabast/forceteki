@@ -86,10 +86,10 @@ describe('Alexsandr Kallus, With New Purpose', function () {
             const { context } = contextRef;
 
             context.player2.clickCard(context.chewbacca);
-            context.player1.clickPrompt('Play Chewbacca with Piloting');
+            context.player2.clickPrompt('Play Chewbacca with Piloting');
             context.player2.clickCard(context.atst);
 
-            context.player2.passAction();
+            context.player1.passAction();
 
             context.player2.clickCard(context.atst);
             context.player2.clickCard(context.p1Base);
