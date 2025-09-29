@@ -3,11 +3,11 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, TargetMode, ZoneName } from '../../../core/Constants';
 
-export default class AlexandrKallusWithNewPurpose extends NonLeaderUnitCard {
+export default class AlexsandrKallusWithNewPurpose extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'alexandr-kallus#with-new-purpose-id',
-            internalName: 'alexandr-kallus#with-new-purpose',
+            id: 'alexsandr-kallus#with-new-purpose-id',
+            internalName: 'alexsandr-kallus#with-new-purpose',
         };
     }
 
@@ -15,7 +15,7 @@ export default class AlexandrKallusWithNewPurpose extends NonLeaderUnitCard {
         registrar.addConstantAbility({
             title: 'While you have the initiative, each other friendly unique unit gains Raid 2',
             condition: (context) => context.player.hasInitiative(),
-            matchTarget: (card, context) => card !== context.source && card.unique && card.controller === context.player,
+            matchTarget: (card, context) => card !== context.source && card.isUnit() && card.unique && card.controller === context.player,
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 })
         });
 

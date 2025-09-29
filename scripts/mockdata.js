@@ -1343,7 +1343,7 @@ const mockCards = [
         internalName: 'ambitions-reward',
     }),
     buildMockCard({
-        title: 'Alexandr Kallus',
+        title: 'Alexsandr Kallus',
         subtitle: 'With New Purpose',
         power: 6,
         hp: 6,
@@ -1358,7 +1358,7 @@ const mockCards = [
         cost: 7,
         unique: true,
         arena: 'ground',
-        internalName: 'alexandr-kallus#with-new-purpose',
+        internalName: 'alexsandr-kallus#with-new-purpose',
     }),
     buildMockCard({
         title: 'Lando Calrissian',
