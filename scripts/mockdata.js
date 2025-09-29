@@ -1285,6 +1285,43 @@ const mockCards = [
         internalName: 'ambitions-reward',
     }),
     buildMockCard({
+        title: 'Alexsandr Kallus',
+        subtitle: 'With New Purpose',
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'spectre'],
+        setId: {
+            set: 'SEC',
+            number: 155
+        },
+        cost: 7,
+        unique: true,
+        arena: 'ground',
+        internalName: 'alexsandr-kallus#with-new-purpose',
+    }),
+    buildMockCard({
+        title: 'Lando Calrissian',
+        subtitle: 'Trust Me',
+        power: 6,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        keywords: ['grit'],
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['fringe', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 68
+        },
+        cost: 7,
+        unique: true,
+        arena: 'ground',
+        internalName: 'lando-calrissian#trust-me',
+    }),
+    buildMockCard({
         title: 'Cassian Andor',
         subtitle: 'Lay Low',
         power: 2,
