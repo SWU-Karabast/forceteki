@@ -1269,6 +1269,7 @@ export class Lobby {
                 opponent.socket.user,
                 gameMessages,
                 this.id,
+                this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
                 viewport

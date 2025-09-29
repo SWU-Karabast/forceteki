@@ -199,6 +199,10 @@ class Game extends EventEmitter {
         return this._router.id;
     }
 
+    get gameStepsSinceLastUndo() {
+        return this.snapshotManager.gameStepsSinceLastUndo;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -1967,6 +1971,8 @@ class Game extends EventEmitter {
             if (!rollbackResult.success) {
                 return false;
             }
+
+            this._actionsSinceLastUndo = 0;
 
             this.postRollbackOperations(rollbackResult.entryPoint);
 

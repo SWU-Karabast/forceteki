@@ -114,6 +114,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 value: bugReport.timestamp,
                 inline: true,
             },
+            {
+                name: 'Game Steps Since Last Undo',
+                value: bugReport.gameStepsSinceLastUndo,
+                inline: true,
+            }
         ];
 
         // Add screen resolution if available

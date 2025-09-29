@@ -353,6 +353,7 @@ export interface ISerializedReportState {
     lobbyId: string;
     timestamp: string;
     messages: { date: Date; message: MessageText | { alert: { type: string; message: string | string[] } } }[];
+    gameStepsSinceLastUndo: string;
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;
     viewport?: { width: number; height: number } | null;
