@@ -18,7 +18,7 @@ import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer, ISwuStatsToken } from './GameServer';
-import { AlertType, GameErrorSeverity } from '../game/core/Constants';
+import { AlertType, GameEndReason, GameErrorSeverity } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 
@@ -612,7 +612,7 @@ export class Lobby {
             this.game.addMessage('{0} has left the game', this.game.getPlayerById(id));
             const otherPlayer = this.users.find((u) => u.id !== id);
             if (otherPlayer) {
-                this.game.endGame(this.game.getPlayerById(otherPlayer.id), `${user.username} has conceded`);
+                this.game.endGame(this.game.getPlayerById(otherPlayer.id), GameEndReason.PlayerLeft);
             }
             this.sendGameState(this.game);
         }
