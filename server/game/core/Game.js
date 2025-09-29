@@ -1970,6 +1970,7 @@ class Game extends EventEmitter {
         if (this.enableConfirmationToUndo && this.snapshotManager.requiresConfirmationToRollbackTo(settings)) {
             this.promptWithHandlerMenu(this.getPlayerById(playerId).opponent, {
                 activePromptTitle: 'You opponent would like to rollback to a previous action. Are you sure you want to allow this?',
+                waitingPromptTitle: 'Waiting for opponent to decide whether to allow rollback',
                 choices: ['Allow', 'Deny'],
                 handlers: [
                     () => {
