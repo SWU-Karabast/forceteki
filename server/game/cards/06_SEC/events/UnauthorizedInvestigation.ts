@@ -17,7 +17,7 @@ export default class UnauthorizedInvestigation extends EventCard {
         registrar.setEventAbility({
             title: `Create a Spy token. You may disclose ${Helpers.aspectString(aspects)}. If you do, create another Spy token`,
             immediateEffect: abilityHelper.immediateEffects.createSpy(),
-            then: => ({
+            then: ({
                 title: `Disclose ${Helpers.aspectString(aspects)} to create another Spy token`,
                 immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
                 ifYouDo: {
