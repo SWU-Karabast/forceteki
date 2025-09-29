@@ -1947,9 +1947,28 @@ class Game extends EventEmitter {
     rollbackToSnapshot(playerId, settings) {
         const result = this.rollbackToSnapshotInternal(settings);
 
-        if (result) {
-            this.addAlert(AlertType.Notification, '{0} has rolled back to a previous action', this.getPlayerById(playerId));
+        if (!result) {
+            return;
         }
+
+        let message;
+        switch (settings.type) {
+            case SnapshotType.Manual:
+                message = 'a previous bookmark';
+                break;
+            case SnapshotType.Phase:
+                message = `the start of the ${settings.phaseName} phase (round ${this.roundNumber})`;
+                break;
+            case SnapshotType.Quick:
+            case SnapshotType.Action:
+                message = 'their previous action';
+                break;
+            default:
+                // @ts-expect-error this is here in case we add a new value for SnapshotType
+                Contract.fail(`Unknown snapshot type: ${settings.type}`);
+        }
+
+        this.addAlert(AlertType.Notification, '{0} has rolled back to {1}', this.getPlayerById(playerId), message);
     }
 
     rollbackToSnapshotInternal(settings) {
