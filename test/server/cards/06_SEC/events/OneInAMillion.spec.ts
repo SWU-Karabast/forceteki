@@ -106,7 +106,10 @@ describe('One in a Million', function () {
 
             const { context } = contextRef;
             context.player1.clickCard(context.oneInAMillion);
-            context.player1.clickPrompt('');
+
+            // TODO FIX THIS UNWATED WARNING
+            context.player1.clickPrompt('Play anyway');
+
             context.player1.clickCard(context.avenger);
 
             expect(context.player2).toBeActivePlayer();
