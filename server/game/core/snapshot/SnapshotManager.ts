@@ -232,6 +232,21 @@ export class SnapshotManager {
         return { success: false };
     }
 
+    public requiresConfirmationToRollbackTo(settings: IGetSnapshotSettings): boolean {
+        switch (settings.type) {
+            case SnapshotType.Action:
+                return this.actionSnapshots.getSnapshotProperties(settings.playerId, this.checkGetOffset(settings.actionOffset))?.requiresConfirmationToRollback ?? false;
+            case SnapshotType.Manual:
+                return this.manualSnapshots.get(settings.playerId)?.getSnapshotProperties(settings.snapshotId)?.requiresConfirmationToRollback ?? false;
+            case SnapshotType.Phase:
+                return this.phaseSnapshots.getSnapshotProperties(settings.phaseName, this.checkGetOffset(settings.phaseOffset))?.requiresConfirmationToRollback ?? false;
+            case SnapshotType.Quick:
+                return !this.canQuickRollbackWithoutConfirmation(settings.playerId);
+            default:
+                throw new Error(`Unimplemented snapshot type in requiresConfirmationToRollbackTo: ${JSON.stringify(settings)}`);
+        }
+    }
+
     private quickRollback(playerId: string): number | null {
         const rollbackPoint = this.getQuickRollbackPoint(playerId);
 

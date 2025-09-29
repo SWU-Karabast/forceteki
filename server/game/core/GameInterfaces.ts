@@ -23,6 +23,7 @@ export interface GameConfiguration {
     buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     userTimeoutDisconnect: (userId: string) => void;
     undoMode?: UndoMode;
+    enableConfirmationToUndo?: boolean;
 }
 
 export interface ICurrentlyResolving {

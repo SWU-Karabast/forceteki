@@ -234,6 +234,7 @@ class Game extends EventEmitter {
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
+        this.enableConfirmationToUndo = details.enableConfirmationToUndo ?? false;
         this.owner = details.owner;
         this.started = false;
         this.statsUpdated = false;
@@ -1950,17 +1951,44 @@ class Game extends EventEmitter {
     /**
      * Attempts to restore the designated snapshot
      *
+     * @param {string} playerId - The ID of the player requesting the rollback
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
-     * @returns True if a snapshot was restored, false otherwise
      */
     rollbackToSnapshot(playerId, settings) {
-        const result = this.rollbackToSnapshotInternal(settings);
+        if (!this.isUndoEnabled) {
+            return;
+        }
 
-        if (result) {
-            this.addAlert(AlertType.Notification, '{0} has rolled back to a previous action', this.getPlayerById(playerId));
+        const performRollback = () => {
+            const result = this.rollbackToSnapshotInternal(settings);
+
+            if (result) {
+                this.addAlert(AlertType.Notification, '{0} has rolled back to a previous action', this.getPlayerById(playerId));
+            }
+        };
+
+        if (this.enableConfirmationToUndo && this.snapshotManager.requiresConfirmationToRollbackTo(settings)) {
+            this.promptWithHandlerMenu(this.getPlayerById(playerId).opponent, {
+                activePromptTitle: 'You opponent would like to rollback to a previous action. Are you sure you want to allow this?',
+                choices: ['Allow', 'Deny'],
+                handlers: [
+                    () => {
+                        performRollback();
+                    },
+                    () => {
+                        this.addAlert(AlertType.Notification, '{0} has denied the rollback request', this.getPlayerById(playerId).opponent);
+                    }
+                ]
+            });
+        } else {
+            performRollback();
         }
     }
 
+    /**
+     * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings
+     * @returns True if a snapshot was restored, false otherwise
+     */
     rollbackToSnapshotInternal(settings) {
         if (!this.isUndoEnabled) {
             return false;
