@@ -18,7 +18,6 @@ export default class GrandAdmiralThrawnGrandSchemer extends NonLeaderUnitCard {
                 choosingPlayer: RelativePlayer.Opponent,
                 mode: TargetMode.Select,
                 choices: () => ({
-
                     ['Choose a non-leader unit to be captured']: abilityHelper.immediateEffects.selectCard({
                         choosingPlayer: RelativePlayer.Opponent,
                         controller: RelativePlayer.Opponent,
