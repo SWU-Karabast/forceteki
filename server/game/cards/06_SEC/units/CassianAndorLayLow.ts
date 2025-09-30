@@ -24,10 +24,9 @@ export default class CassianAndorLayLow extends NonLeaderUnitCard {
 
         registrar.addReplacementEffectAbility({
             title: 'If an enemy card ability would do damage to this unit, prevent 2 of that damage',
-            when: { onDamageDealt: (event, context) =>
-                event.card === context.source &&
-                !event.isIndirect && event.damageSource.type !== DamageSourceType.Attack && event.damageSource.player !== context.source.controller },
-
+            when: {
+                onDamageDealt: (event, context) => this.isFriendlyUnitDamagedByEnemyUnit(event, context)
+            },
             replaceWith: {
                 replacementImmediateEffect: new DamageSystem((context) => ({
                     target: context.source,
@@ -39,5 +38,21 @@ export default class CassianAndorLayLow extends NonLeaderUnitCard {
             effect: 'prevent 2 damage to {1}',
             effectArgs: (context) => [context.source]
         });
+    }
+
+    private isFriendlyUnitDamagedByEnemyUnit(event, context): boolean {
+        // If an enemy unit received the damage
+        if (event.card === context.source) {
+            switch (event.damageSource.type) {
+                case DamageSourceType.Ability:
+                    // TODO: event.damageSource.controller will eventually be non-optional
+                    const controller = event.damageSource.controller ?? event.damageSource.card.controller;
+                    // If the damage was dealt by a friendly unit via an ability
+                    return event.damageSource.card.is() &&
+                      controller !== context.player;
+            }
+        }
+
+        return false;
     }
 }
