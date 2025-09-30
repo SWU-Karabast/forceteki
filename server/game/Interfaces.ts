@@ -337,6 +337,11 @@ export interface ISerializedGameState {
 
 export type MessageText = string | (string | number)[];
 
+export interface ISerializedMessage {
+    date: Date;
+    message: MessageText | { alert: { type: string; message: string | string[] } };
+}
+
 export interface ISerializedReportState {
     description: string;
     gameState: ISerializedGameState;
@@ -352,7 +357,7 @@ export interface ISerializedReportState {
     };
     lobbyId: string;
     timestamp: string;
-    messages: { date: Date; message: MessageText | { alert: { type: string; message: string | string[] } } }[];
+    messages: ISerializedMessage[];
     gameStepsSinceLastUndo: string;
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;

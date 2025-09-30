@@ -951,7 +951,17 @@ export class Lobby {
                 ? `Maximum error count ${Lobby.MaxGameMessageErrors} exceeded, game halted to prevent server crash`
                 : 'Severe game error reported, game is in an unrecoverable state';
 
-            game.discordDispatcher.formatAndSendServerErrorAsync(discordMessage, error, this.id)
+            const [player1Id, player2Id] = game.getPlayers().map((p) => p.id);
+            game.discordDispatcher.formatAndSendServerErrorAsync(
+                discordMessage,
+                error,
+                this.game.captureGameState(player1Id),
+                this.game.getLogMessages(),
+                this.id,
+                player1Id,
+                player2Id,
+                this.game.gameStepsSinceLastUndo
+            )
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
 
             game.addMessage(
