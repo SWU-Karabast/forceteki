@@ -20,8 +20,8 @@ export default class TurbolaserSalvo extends EventCard {
                 activePromptTitle: 'Choose an arena',
                 showUnresolvable: true,
                 choices: {
-                    ['Ground']: this.eventEffect(ZoneName.GroundArena, AbilityHelper),
                     ['Space']: this.eventEffect(ZoneName.SpaceArena, AbilityHelper),
+                    ['Ground']: this.eventEffect(ZoneName.GroundArena, AbilityHelper),
                 }
             }
         });

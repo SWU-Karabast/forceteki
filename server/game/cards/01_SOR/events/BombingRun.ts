@@ -19,8 +19,8 @@ export default class BombingRun extends EventCard {
                 mode: TargetMode.Select,
                 activePromptTitle: 'Choose an arena',
                 choices: {
-                    ['Ground']: this.eventEffect(ZoneName.GroundArena, AbilityHelper),
                     ['Space']: this.eventEffect(ZoneName.SpaceArena, AbilityHelper),
+                    ['Ground']: this.eventEffect(ZoneName.GroundArena, AbilityHelper),
                 }
             }
         });
