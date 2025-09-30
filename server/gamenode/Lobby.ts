@@ -18,7 +18,7 @@ import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer, ISwuStatsToken } from './GameServer';
-import { AlertType, GameErrorSeverity } from '../game/core/Constants';
+import { AlertType, GameEndReason, GameErrorSeverity } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 
@@ -122,6 +122,7 @@ export class Lobby {
     private usersLeftCount = 0;
     private playersDetails: PlayerDetails[] = [];
     private gameMessageErrorCount = 0;
+    private statsUpdateStatus = new Map<string, Map<StatsSource, IStatsMessageFormat>>();
 
     public constructor(
         lobbyName: string,
@@ -620,7 +621,7 @@ export class Lobby {
             this.game.addMessage('{0} has left the game', this.game.getPlayerById(id));
             const otherPlayer = this.users.find((u) => u.id !== id);
             if (otherPlayer) {
-                this.game.endGame(this.game.getPlayerById(otherPlayer.id), `${user.username} has conceded`);
+                this.game.endGame(this.game.getPlayerById(otherPlayer.id), GameEndReason.PlayerLeft);
             }
             this.sendGameState(this.game);
         }
@@ -719,6 +720,7 @@ export class Lobby {
     private async onStartGameAsync() {
         try {
             this.rematchRequest = null;
+            this.statsUpdateStatus.clear();
             const game = new Game(this.buildGameSettings(), { router: this });
             this.game = game;
             game.started = true;
@@ -984,6 +986,13 @@ export class Lobby {
         if (this.hasPlayer(userId)) {
             // we try/catch in the offchance the user disconnects after the if statement
             try {
+                // cache update message in case we undo the game-end and end again
+                if (this.statsUpdateStatus.has(userId)) {
+                    this.statsUpdateStatus.get(userId).set(messageParameters.source, messageParameters);
+                } else {
+                    this.statsUpdateStatus.set(userId, new Map([[messageParameters.source, messageParameters]]));
+                }
+
                 this.getUser(userId).socket.send('statsSubmitNotification', messageParameters);
             } catch (error) {
                 logger.error('(sendStatsMessageToUser): Error sending statsSubmitNotification', { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId });
@@ -1000,12 +1009,12 @@ export class Lobby {
             if (!playerUser.user.isAuthenticatedUser()) {
                 return { type: StatsSaveStatus.Warning,
                     source: StatsSource.Karabast,
-                    message: 'Deck stats can only be saved for logged-in users' };
+                    message: 'deck stats can only be saved for logged-in users' };
             }
             if (!playerUser.isDeckPresentInDb) {
                 return { type: StatsSaveStatus.Warning,
                     source: StatsSource.Karabast,
-                    message: 'Stats can only be updated for saved decks' };
+                    message: 'stats can only be updated for saved decks' };
             }
 
             // Get the deck service
@@ -1021,12 +1030,12 @@ export class Lobby {
             logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${this.id}`, { lobbyId: this.id, userId: playerUser.user.getId() });
             return { type: StatsSaveStatus.Success,
                 source: StatsSource.Karabast,
-                message: 'Deck stats successfully updated' };
+                message: 'deck stats successfully updated' };
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck Karabast stats for a player:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: playerUser.user.getId() });
             return { type: StatsSaveStatus.Error,
                 source: StatsSource.Karabast,
-                message: 'An error occurred while updating stats' };
+                message: 'an error occurred while updating stats' };
         }
     }
 
@@ -1056,12 +1065,12 @@ export class Lobby {
                 player1SwuStatsStatus: this.hasSwuStatsSource(player1User) ? {
                     type: StatsSaveStatus.Error,
                     source: StatsSource.SwuStats,
-                    message: 'An error occurred while sending stats'
+                    message: 'an error occurred while sending stats'
                 } : null,
                 player2SwuStatsStatus: this.hasSwuStatsSource(player2User) ? {
                     type: StatsSaveStatus.Error,
                     source: StatsSource.SwuStats,
-                    message: 'An error occurred while sending stats'
+                    message: 'an error occurred while sending stats'
                 } : null
             };
         }
@@ -1081,8 +1090,8 @@ export class Lobby {
     private async endGameUpdateStatsAsync(game: Game): Promise<void> {
         logger.info(`Lobby ${this.id}: Updating deck stats for game ${game.id}`, { lobbyId: this.id });
         // pre-populate the status messages with an error that we will send by default in case something fails
-        let player1KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'An error occurred while updating stats' };
-        let player2KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'An error occurred while updating stats' };
+        let player1KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'an error occurred while updating stats' };
+        let player2KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'an error occurred while updating stats' };
 
         // Get the players from the game
         const players = game.getPlayers();
@@ -1100,10 +1109,10 @@ export class Lobby {
 
         // SWUStats
         let player1SwuStatsStatus = this.hasSwuStatsSource(player1User)
-            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'An error occurred while updating stats' }
+            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'an error occurred while updating stats' }
             : null;
         let player2SwuStatsStatus = this.hasSwuStatsSource(player2User)
-            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'An error occurred while updating stats' }
+            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'an error occurred while updating stats' }
             : null;
 
         try {
@@ -1190,6 +1199,37 @@ export class Lobby {
         }
     }
 
+    /**
+     * If the game has already ended and stats were updated (i.e. there was an undo and we're ending again),
+     * send a clear stats message to the user
+     * @param game
+     */
+    private sendRepeatedEndGameUpdateStatsMessages(game: Game): void {
+        const cachedMessages: { userId: string; content: IStatsMessageFormat }[] = [];
+
+        for (const [userId, messageTypes] of this.statsUpdateStatus) {
+            for (const messageType of messageTypes.values()) {
+                cachedMessages.push({ userId, content: messageType });
+            }
+        }
+
+        for (const message of cachedMessages) {
+            // if the last message was not a success, just repeat the same message
+            if (message.content.type !== StatsSaveStatus.Success) {
+                this.sendStatsMessageToUser(message.userId, message.content);
+                continue;
+            }
+
+            this.sendStatsMessageToUser(message.userId,
+                {
+                    type: StatsSaveStatus.Warning,
+                    source: message.content.source,
+                    message: 'stats already updated for this game'
+                }
+            );
+        }
+    }
+
     private sendGameStateToSpectator(socket: Socket, spectatorId: string): void {
         if (this.game) {
             socket.send('gamestate', this.game.getState(spectatorId));
@@ -1202,12 +1242,16 @@ export class Lobby {
 
     public sendGameState(game: Game, forceSend = false): void {
         // we check here if the game ended and update the stats.
-        if (game.winnerNames.length > 0 && game.finishedAt && !game.statsUpdated) {
-            // Update deck stats asynchronously
-            game.statsUpdated = true;
-            this.endGameUpdateStatsAsync(game).catch((error) => {
-                logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-            });
+        if (game.winnerNames.length > 0 && game.finishedAt) {
+            if (game.statsUpdated) {
+                this.sendRepeatedEndGameUpdateStatsMessages(game);
+            } else {
+                // Update deck stats asynchronously
+                game.statsUpdated = true;
+                this.endGameUpdateStatsAsync(game).catch((error) => {
+                    logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+                });
+            }
         }
 
         // we send the game state to all users and spectators
