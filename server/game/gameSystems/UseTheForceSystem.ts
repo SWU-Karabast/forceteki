@@ -11,6 +11,7 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
     public override name = 'useTheForce';
     public override readonly eventName = EventName.OnCardLeavesPlay;
     public override readonly costDescription: string = 'using the Force';
+    public override readonly effectDescription: string = 'use the Force';
 
     public override eventHandler(event): void {
         const forceToken = event.card;
@@ -24,7 +25,7 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (Helpers.asArray(properties.target).length === 1 && context.player === Helpers.asArray(properties.target)[0]) {
-            return ['use the Force', []];
+            return super.getEffectMessage(context);
         }
 
         return ['make {0} use the Force', [this.getTargetMessage(properties.target, context)]];

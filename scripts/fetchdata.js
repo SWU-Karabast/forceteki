@@ -148,7 +148,6 @@ function populateMissingData(attributes, id) {
                 ]
             };
             break;
-        case '6015383018': // Sneaking Suspicion
         case '7069246970': // Sly Moore
         case '8365930807': // Cad Bane
         case '0024944513': // Armor of Fortune
@@ -160,6 +159,8 @@ function populateMissingData(attributes, id) {
         case '0602708575': // Kaydel Connix
         case '8401985446': // Topple the Summit
         case '1369084772': // Tala Durith
+        case '6015383018': // Sneaking Suspicion
+        case '7248761207': // FN Trooper Corps
             attributes.keywords = {
                 data: [{
                     attributes: {

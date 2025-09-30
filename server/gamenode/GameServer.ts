@@ -1237,7 +1237,13 @@ export class GameServer {
             if (lobby.gameType === MatchType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
-                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
+                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, {
+                        ...lobbyUser.deck.getDecklist(),
+                        deckID: lobbyUser.deck.id,
+                        deckLink: lobbyUser.decklist.deckLink,
+                        deckSource: lobbyUser.decklist.deckSource,
+                        isPresentInDb: lobbyUser.decklist.isPresentInDb,
+                    }));
                 }
             }
 
@@ -1415,7 +1421,6 @@ export class GameServer {
 
         await lobby.addLobbyUserAsync(player.user, socket);
         socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket.socket, player));
-
         if (!socket.eventContainsListener('requeue')) {
             socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck));
         }

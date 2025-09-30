@@ -6,7 +6,7 @@ import { RelativePlayer } from '../../../core/Constants';
 export default class FNTrooperCorps extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'fn-trooper-corps-id',
+            id: '7248761207',
             internalName: 'fn-trooper-corps',
         };
     }

@@ -22,13 +22,12 @@ export default class LukeSkywalkerYouStillWithMe extends NonLeaderUnitCard {
             },
             optional: true,
             replaceWith: {
+                effect: 'move him to the ground arena instead of being defeated',
                 replacementImmediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.detachPilot(),
                     AbilityHelper.immediateEffects.exhaust()
                 ]),
-            },
-            effect: '{1}\'s ability moves him to the ground arena instead of being defeated',
-            effectArgs: (context) => [context.source],
+            }
         });
     }
 }

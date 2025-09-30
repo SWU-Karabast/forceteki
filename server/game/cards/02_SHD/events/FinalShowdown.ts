@@ -23,6 +23,7 @@ export default class FinalShowdown extends EventCard {
                     when: {
                         onPhaseStarted: (context) => context.phase === PhaseName.Regroup
                     },
+                    effectDescription: 'lose the game at the start of the regroup phase',
                     immediateEffect: AbilityHelper.immediateEffects.loseGame({
                         target: context.player
                     })

@@ -12,6 +12,7 @@ import {
     AlertType,
     ChatObjectType,
     EffectName,
+    GameEndReason,
     PhaseName,
     PlayType,
     RelativePlayer,
@@ -274,7 +275,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit, controller: this });
     }
 
-    public hasSomeArenaUpgrade(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties) {
+    public hasSomeArenaUpgrade(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
     }
 
@@ -1344,7 +1345,11 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     }
 
     private buildAvailableSnapshotsState(isActionPhaseActivePlayer = false) {
-        if (!this.game.isUndoEnabled) {
+        if (
+            !this.game.isUndoEnabled ||
+            this.game.gameEndReason === GameEndReason.Concede ||
+            this.game.gameEndReason === GameEndReason.PlayerLeft
+        ) {
             return null;
         }
 
