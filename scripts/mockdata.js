@@ -1339,6 +1339,143 @@ const mockCards = [
         arena: 'ground',
         internalName: 'cassian-andor#lay-low',
     }),
+    buildMockCard({
+        title: 'Dryden Vos',
+        subtitle: 'I Get All Worked Up',
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 137
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'dryden-vos#i-get-all-worked-up',
+    }),
+    buildMockCard({
+        title: 'Defense Fleet X-Wing',
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        keywords: ['sentinel'],
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['new republic', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 60
+        },
+        cost: 3,
+        unique: false,
+        arena: 'space',
+        internalName: 'defense-fleet-xwing',
+    }),
+    buildMockCard({
+        title: 'Loan Shark',
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        keywords: ['ambush', 'raid 1'],
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['official'],
+        setId: {
+            set: 'SEC',
+            number: 222
+        },
+        cost: 4,
+        unique: false,
+        arena: 'ground',
+        internalName: 'loan-shark',
+    }),
+    buildMockCard({
+        title: 'Covert Operative',
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        types: ['unit'],
+        traits: ['rebel'],
+        setId: {
+            set: 'SEC',
+            number: 253
+        },
+        cost: 4,
+        unique: false,
+        arena: 'ground',
+        internalName: 'covert-operative',
+    }),
+    buildMockCard({
+        title: 'Academy Disciplinarian',
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['imperial', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 165
+        },
+        cost: 3,
+        unique: false,
+        arena: 'ground',
+        internalName: 'academy-disciplinarian',
+    }),
+    buildMockCard({
+        title: 'Theed Security',
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['naboo', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 95
+        },
+        cost: 2,
+        unique: false,
+        arena: 'ground',
+        internalName: 'theed-security',
+    }),
+    buildMockCard({
+        title: 'Emissary\'s Sheathipede',
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['separatist', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 215
+        },
+        cost: 2,
+        unique: false,
+        arena: 'space',
+        internalName: 'emissarys-sheathipede',
+    }),
+    buildMockCard({
+        title: 'One in a Million',
+        hasNonKeywordAbility: true,
+        keywords: ['plot'],
+        aspects: ['vigilance', 'heroism'],
+        types: ['event'],
+        traits: ['gambit'],
+        setId: {
+            set: 'SEC',
+            number: 53
+        },
+        cost: 1,
+        unique: false,
+        internalName: 'one-in-a-million',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
