@@ -23,7 +23,10 @@ export default class LeiaOrganaOfASecretBloodline extends LeaderUnitCard {
         const aspects = [Aspect.Vigilance, Aspect.Command, Aspect.Aggression, Aspect.Cunning, Aspect.Heroism];
         registrar.addActionAbility({
             title: `Disclose ${Helpers.aspectString(aspects, 'or')} to give an experience token to a unit that does not share an aspect with the disclosed card`,
-            cost: AbilityHelper.costs.exhaustSelf(),
+            cost: [
+                AbilityHelper.costs.abilityActivationResourceCost(1),
+                AbilityHelper.costs.exhaustSelf()
+            ],
             immediateEffect: AbilityHelper.immediateEffects.disclose({
                 aspects: aspects,
                 mode: DiscloseMode.Any

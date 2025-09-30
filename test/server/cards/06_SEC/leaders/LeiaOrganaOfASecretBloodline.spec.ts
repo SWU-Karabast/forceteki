@@ -65,6 +65,7 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                 context.player1.clickCard(context.porg);
 
                 expect(context.leiaOrgana.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
                 expect(context.porg).toHaveExactUpgradeNames(['experience']);
                 expect(context.player2).toBeActivePlayer();
             });
@@ -93,6 +94,7 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                 // Ability resolves with no effect
                 expect(context.player2).toBeActivePlayer();
                 expect(context.leiaOrgana.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
             });
 
             it('When cards in hand do not have the required aspects, the ability has no effect', async function () {
@@ -122,6 +124,7 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                 // Ability resolves with no effect
                 expect(context.player2).toBeActivePlayer();
                 expect(context.leiaOrgana.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
             });
 
             it('When no units are on board, the experience part of the ability is automatically skipped', async function () {
@@ -157,6 +160,7 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                 // Ability resolves with no effect
                 expect(context.player2).toBeActivePlayer();
                 expect(context.leiaOrgana.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
             });
 
             it('Can choose to disclose nothing and have no effect', async function () {
