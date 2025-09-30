@@ -13,11 +13,11 @@ export default class TheedSecurity extends NonLeaderUnitCard {
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'If an opponent controls an upgrade, give an Experience token to a unit',
+            title: 'Give an Experience token to a unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.opponent.hasSomeArenaUpgrade({}),
+                    condition: (context) => context.player.opponent.hasSomeArenaUpgrade(),
                     onTrue: abilityHelper.immediateEffects.giveExperience()
                 })
             }
