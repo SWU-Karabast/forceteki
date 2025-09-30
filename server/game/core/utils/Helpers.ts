@@ -43,9 +43,13 @@ export function countUniqueAspects(cards: Card | Card[]): number {
     return aspects.size;
 }
 
-export function aspectString(aspects: Aspect[]): string {
+export function aspectString(aspects: Aspect[], conjunction: string = ''): string {
     return aspects
-        .map((aspect) => capitalize(aspect))
+        .map((aspect, index) => {
+            return (conjunction && index === aspects.length - 1)
+                ? `${conjunction} ${capitalize(aspect)}`
+                : `${capitalize(aspect)}`;
+        })
         .join(', ');
 }
 

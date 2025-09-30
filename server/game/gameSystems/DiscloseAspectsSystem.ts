@@ -12,8 +12,14 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 
+export enum DiscloseMode {
+    Any = 'any',
+    All = 'all'
+}
+
 export interface IDiscloseAspectsProperties extends IPlayerTargetSystemProperties {
     aspects: Aspect[];
+    mode?: DiscloseMode;
 }
 
 export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscloseAspectsProperties> {
@@ -64,6 +70,23 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
 
     private generateSelectCardSystem(context: TContext, additionalProperties: Partial<IDiscloseAspectsProperties> = {}, cancelEvents = []) {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        if (properties.mode === DiscloseMode.Any) {
+            return new SelectCardSystem<TContext>({
+                zoneFilter: ZoneName.Hand,
+                controller: RelativePlayer.Self,
+                mode: TargetMode.Single,
+                cardCondition: (card) => properties.aspects.some((aspect) => card.aspects.includes(aspect)),
+                immediateEffect: new RevealSystem<TContext>({
+                    activePromptTitle: `Opponent discloses ${Helpers.aspectString(properties.aspects, 'or')}`,
+                    promptedPlayer: RelativePlayer.Opponent,
+                    useDisplayPrompt: true,
+                    interactMode: ViewCardInteractMode.ViewOnly
+                }),
+                cancelHandler: cancelEvents ? () => cancelEvents.forEach((event) => event.cancel()) : null,
+                cancelIfNoTargets: true,
+            });
+        }
 
         return new SelectCardSystem<TContext>({
             zoneFilter: ZoneName.Hand,
