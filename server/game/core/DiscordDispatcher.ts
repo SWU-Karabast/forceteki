@@ -358,6 +358,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         formData.append('payload_json', JSON.stringify(data));
 
         const timestamp = new Date().getTime();
+
         this.addGameStateToForm(formData, gameState, lobbyId, timestamp);
         this.addGameMessagesToForm(formData, messages, lobbyId, player1Id, player2Id, timestamp);
 

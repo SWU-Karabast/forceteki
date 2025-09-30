@@ -952,10 +952,15 @@ export class Lobby {
                 : 'Severe game error reported, game is in an unrecoverable state';
 
             const [player1Id, player2Id] = game.getPlayers().map((p) => p.id);
+
+            // TODO: re-enable once game state capture has error guards
+            // const gameState = this.game.captureGameState(player1Id);
+            const gameState = { captureError: 'Game state capture not implemented yet for server error reports' } as any;
+
             game.discordDispatcher.formatAndSendServerErrorAsync(
                 discordMessage,
                 error,
-                this.game.captureGameState(player1Id),
+                gameState,
                 this.game.getLogMessages(),
                 this.id,
                 player1Id,
