@@ -43,15 +43,20 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
+        const players = Helpers.asArray(properties.target);
 
-        const targets = Helpers.asArray(properties.target);
-        if (targets.length === 1 || new Set(targets.map((target) => derive(properties.amount, target))).size === 1) {
-            return ['make {0} {1}discard {2}', [this.getTargetMessage(targets, context), properties.random ? 'randomly ' : '', ChatHelpers.pluralize(derive(properties.amount, targets[0]), 'a card', 'cards')]];
-        }
-        return [ChatHelpers.formatWithLength(targets.length, 'to '), targets.map((target): FormatMessage => ({
-            format: 'make {0} {1}discard {2}',
-            args: [target, properties.random ? 'randomly ' : '', ChatHelpers.pluralize(derive(properties.amount, target), 'a card', 'cards')]
-        }))];
+        const effectMessage = (player: Player): FormatMessage => {
+            return {
+                format: 'make {0} {1}discard {2}',
+                args: [
+                    player === context.player ? 'themself' : player,
+                    properties.random ? 'randomly ' : '',
+                    ChatHelpers.pluralize(derive(properties.amount, player), 'a card', 'cards')
+                ]
+            };
+        };
+
+        return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
     public override canAffectInternal(playerOrPlayers: Player | Player[], context: TContext, additionalProperties: Partial<IDiscardCardsFromHandProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
@@ -85,17 +90,20 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
             const amount = Math.min(availableHand.length, derive(properties.amount, player));
             if (amount === 0) {
                 // No event generated here as no discard occured
+                this.sendDiscardMessage([], choosingPlayer, context, properties.random);
                 continue;
             }
 
             if (amount >= availableHand.length && choosingPlayer.autoSingleTarget) {
                 this.generateEventsForCards(availableHand, context, events, additionalProperties);
+                this.sendDiscardMessage(availableHand, choosingPlayer, context, properties.random);
                 continue;
             }
 
             if (properties.random) {
                 const randomCards = Helpers.getRandomArrayElements(availableHand, amount, context.game.randomGenerator);
                 this.generateEventsForCards(randomCards, context, events, additionalProperties);
+                this.sendDiscardMessage(randomCards, choosingPlayer, context, true);
                 continue;
             }
 
@@ -116,6 +124,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 selectCardMode: amount === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
                 onSelect: (cards) => {
                     this.generateEventsForCards(Helpers.asArray(cards), context, events, additionalProperties);
+                    this.sendDiscardMessage(Helpers.asArray(cards), choosingPlayer, context);
                     return true;
                 }
             });
@@ -128,6 +137,23 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         // all the work for this system happens in the queueGenerateEventGameSteps method and the generated discard events,
         // so the top-level discard event should just auto-succeed
         event.condition = () => true;
+    }
+
+    private sendDiscardMessage(cards: Card[], player: Player, context: TContext, randomly: boolean = false): void {
+        const cardList: string | FormatMessage = cards.length === 0 ? 'no cards' : {
+            format: ChatHelpers.formatWithLength(cards.length),
+            args: cards
+        };
+
+        context.game.addMessage(
+            '{0}{1} discards {2}{3} due to {4}{5}',
+            player,
+            (randomly && cards.length > 0) ? ' randomly' : '',
+            cardList,
+            cards.length > 0 ? ' from their hand' : '',
+            context.source,
+            (cards.length === 0 && player.hand.length === 0) ? ' because they had no cards in hand' : ''
+        );
     }
 
     private generateEventsForCards(cards: Card[], context: TContext, events: any[], additionalProperties: Partial<IDiscardCardsFromHandProperties>): void {

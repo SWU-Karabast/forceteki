@@ -152,7 +152,7 @@ export function WithDamage<TBaseClass extends CardConstructor<TState>, TState ex
         }
 
         protected override afterSetState(oldState: any) {
-            // Active Attack is transitive and should always be null during the start of a turn.
+            // Active Attack is transitive and should always be null during the start of an action
             this._activeAttack = null;
         }
     };

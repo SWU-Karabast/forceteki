@@ -8,6 +8,7 @@ import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { IOngoingEffectFactory, WhenType } from '../Interfaces';
 import * as Contract from '../core/utils/Contract';
+import * as Helpers from '../core/utils/Helpers';
 import OngoingEffectLibrary from '../ongoingEffects/OngoingEffectLibrary';
 import type { GameObject } from '../core/GameObject';
 import type { Card } from '../core/card/Card';
@@ -30,7 +31,7 @@ export interface IDelayedEffectProperties extends IGameSystemProperties {
 export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IDelayedEffectProperties> {
     public override readonly name: string = 'applyDelayedEffect';
     public override readonly eventName: EventName = EventName.OnEffectApplied;
-    public override readonly effectDescription: string = 'apply a delayed effect';
+    public override readonly effectDescription = 'apply a delayed effect';
 
     protected override defaultProperties: IDelayedEffectProperties = {
         title: null,
@@ -68,7 +69,15 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<IDelayedEffectProperties>): [string, any[]] {
         const { effectDescription, target } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        return [effectDescription ?? this.effectDescription, [this.getTargetMessage(target, context)]];
+        if (effectDescription) {
+            return [effectDescription, [this.getTargetMessage(target, context)]];
+        }
+
+        if (target && Helpers.asArray(target).length === 1) {
+            return ['apply a delayed effect to {0}', [this.getTargetMessage(target, context)]];
+        }
+
+        return super.getEffectMessage(context, additionalProperties);
     }
 
     public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<IDelayedEffectProperties>): void {

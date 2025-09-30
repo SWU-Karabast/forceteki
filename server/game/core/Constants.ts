@@ -561,3 +561,9 @@ export enum GameErrorSeverity {
      */
     SevereHaltGame = 'severeHaltGame',
 }
+
+export enum GameEndReason {
+    Concede = 'concede',
+    GameRules = 'gameRules',
+    PlayerLeft = 'playerLeft',
+}

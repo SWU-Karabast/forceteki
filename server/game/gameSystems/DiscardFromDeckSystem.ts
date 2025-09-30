@@ -5,9 +5,11 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
+import * as Helpers from '../core/utils/Helpers';
 import * as Contract from '../core/utils/Contract';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { GameEvent } from '../core/event/GameEvent';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IDiscardFromDeckProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -22,7 +24,30 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['discard {0} from deck', [ChatHelpers.pluralize(properties.amount, 'a card', 'cards')]];
+        const players = Helpers.asArray(properties.target);
+
+        const effectMessage = (player: Player): FormatMessage => {
+            const targetIsSelf = player === context.player;
+            const actualAmount = Math.min(player.drawDeck.length, properties.amount ?? 0);
+            const targetMessage: string | FormatMessage = targetIsSelf ? 'their' : { format: '{0}\'s', args: [player] };
+
+            if (actualAmount === 0) {
+                return {
+                    format: 'discard no cards from {0} deck because it is empty',
+                    args: [targetMessage]
+                };
+            }
+
+            const discardedCards = player.getTopCardsOfDeck(actualAmount);
+            const cardList: FormatMessage = { format: ChatHelpers.formatWithLength(discardedCards.length), args: discardedCards };
+
+            return {
+                format: 'discard {0} from {1} deck',
+                args: [cardList, targetMessage]
+            };
+        };
+
+        return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
     public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IDiscardFromDeckProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

@@ -55,8 +55,8 @@ describe('Smoke and Cinders', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.handSize).toBe(2);
                 expect(context.player2.handSize).toBe(2);
-                expect(context.getChatLogs(4)).toContain(
-                    'player1 plays Smoke and Cinders to make player1 discard 2 cards and to make player2 discard a card'
+                expect(context.getChatLogs(3)).toContain(
+                    'player1 plays Smoke and Cinders to make themself discard 2 cards and to make player2 discard a card'
                 );
 
                 reset();

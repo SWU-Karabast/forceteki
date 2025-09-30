@@ -33,7 +33,7 @@ describe('The Will of the Force ability', function () {
                 expect(context.getChatLogs(4)).toContain('player1 plays The Will of the Force to choose a target for The Will of the Force and to choose if they want to use the Force');
                 expect(context.getChatLogs(4)).toContain('player1 uses The Will of the Force to return Cartel Spacer to player2\'s hand');
                 expect(context.getChatLogs(4)).toContain('player1 uses The Will of the Force to use the Force');
-                expect(context.getChatLogs(4)).toContain('player2 discards Wampa');
+                expect(context.getChatLogs(4)).toContain('player2 randomly discards Wampa from their hand due to The Will of the Force');
             });
 
             it('returns a unit to the hand of its owner controller and does nothing else if you do not use the Force', async function () {

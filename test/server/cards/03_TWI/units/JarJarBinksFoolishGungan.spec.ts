@@ -21,7 +21,7 @@ describe('Jar Jar Binks, Foolish Gungan', function () {
             context.player1.clickCard(context.p2Base);
 
             // Ability hits own base
-            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to randomly select player1\'s base from Jar Jar Binks, Republic ARC-170, Wampa, AT-ST, Restored ARC-170, player2\'s base, and player1\'s base, and to deal 2 damage to player1\'s base');
+            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to randomly select their own base from Jar Jar Binks, Republic ARC-170, Wampa, AT-ST, Restored ARC-170, player2\'s base, and their own base, and to deal 2 damage to their own base');
             expect(context.p1Base.damage).toBe(2);
             expect(context.p2Base.damage).toBe(2);
 
@@ -30,7 +30,7 @@ describe('Jar Jar Binks, Foolish Gungan', function () {
             context.player1.clickCard(context.p2Base);
 
             // Ability hits Republic ARC-170 (friendly unit)
-            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to randomly select Republic ARC-170 from Jar Jar Binks, Republic ARC-170, Wampa, AT-ST, Restored ARC-170, player2\'s base, and player1\'s base, and to deal 2 damage to Republic ARC-170');
+            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to randomly select Republic ARC-170 from Jar Jar Binks, Republic ARC-170, Wampa, AT-ST, Restored ARC-170, player2\'s base, and their own base, and to deal 2 damage to Republic ARC-170');
             expect(context.republicArc170.damage).toBe(2);
             expect(context.p2Base.damage).toBe(4);
 
@@ -39,7 +39,7 @@ describe('Jar Jar Binks, Foolish Gungan', function () {
             context.player1.clickCard(context.p2Base);
 
             // Ability hits Wampa (enemy unit)
-            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to randomly select Wampa from Jar Jar Binks, Republic ARC-170, Wampa, AT-ST, Restored ARC-170, player2\'s base, and player1\'s base, and to deal 2 damage to Wampa');
+            expect(context.getChatLogs(1)).toContain('player1 uses Jar Jar Binks to randomly select Wampa from Jar Jar Binks, Republic ARC-170, Wampa, AT-ST, Restored ARC-170, player2\'s base, and their own base, and to deal 2 damage to Wampa');
             expect(context.wampa.damage).toBe(2);
             expect(context.p2Base.damage).toBe(6);
         });

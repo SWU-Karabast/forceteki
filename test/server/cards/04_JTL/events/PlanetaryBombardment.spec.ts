@@ -64,7 +64,7 @@ describe('Planetary Bombardment', function() {
             context.player1.clickPrompt('Deal indirect damage to yourself');
 
             expect(context.p1Base.damage).toBe(8);
-            expect(context.getChatLogs(1)).toContain('player1 uses Planetary Bombardment to deal 8 indirect damage to player1\'s base');
+            expect(context.getChatLogs(1)).toContain('player1 uses Planetary Bombardment to deal 8 indirect damage to their own base');
         });
     });
 });

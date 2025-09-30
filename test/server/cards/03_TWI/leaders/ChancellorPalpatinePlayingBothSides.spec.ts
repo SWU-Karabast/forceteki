@@ -29,7 +29,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
                 expect(context.getChatLogs(1)).toContain(
-                    'player1 uses Chancellor Palpatine, exhausting Chancellor Palpatine to draw a card, then to heal 2 damage from player1\'s base, and then to flip Chancellor Palpatine'
+                    'player1 uses Chancellor Palpatine, exhausting Chancellor Palpatine to draw a card, then to heal 2 damage from their own base, and then to flip Chancellor Palpatine'
                 );
 
                 context.moveToNextActionPhase();

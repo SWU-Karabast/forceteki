@@ -26,7 +26,10 @@ export default class HondoOhnakaSuperfluousSwindler extends NonLeaderUnitCard {
                     dependsOn: 'upgrade',
                     activePromptTitle: 'Choose a different unit to attach the upgrade to',
                     controller: WildcardRelativePlayer.Any,
-                    cardCondition: (card, context) => context.targets.upgrade.isUpgrade() && card !== context.targets.upgrade.parentCard && context.targets.upgrade.canAttach(card, context.player),
+                    cardCondition: (card, context) =>
+                        context.targets.upgrade.isUpgrade() &&
+                        card !== context.targets.upgrade.parentCard &&
+                        context.targets.upgrade.canAttach(card, context, context.player),
                     immediateEffect: AbilityHelper.immediateEffects.attachUpgrade((context) => ({
                         newController: RelativePlayer.Self,
                         upgrade: context.targets.upgrade,
