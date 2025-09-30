@@ -29,6 +29,10 @@ interface LobbySpectator {
     socket?: Socket;
 }
 
+enum LobbySettingKeys {
+    UndoEnabled = 'undoEnabled',
+}
+
 export interface LobbyUser extends LobbySpectator {
     state: 'connected' | 'disconnected';
     ready: boolean;
@@ -100,8 +104,10 @@ export class Lobby {
     private readonly testGameBuilder?: any;
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
-    private readonly undoMode: UndoMode = UndoMode.Disabled;
     private readonly swuStatsEnabled: boolean = true;
+
+    // configurable lobby properties
+    private undoMode: UndoMode = UndoMode.Disabled;
 
     private game?: Game;
     public users: LobbyUser[] = [];
@@ -176,7 +182,9 @@ export class Lobby {
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
-            undoEnabled: this.undoMode === UndoMode.Full,
+            settings: {
+                undoEnabled: this.undoMode === UndoMode.Full,
+            },
         };
     }
 
@@ -1275,6 +1283,33 @@ export class Lobby {
                 user.socket.send('lobbystate', this.getLobbyState(user));
             }
         }
+    }
+
+    private updateSetting(socket: Socket, ...args: any[]): void {
+        // Expect the rematch mode to be passed as the first argument: 'reset' or 'regular'
+        Contract.assertTrue(args.length === 2, 'Expected setting name and value arguments but argument length is: ' + args.length);
+        const settingName = args[0];
+        const settingValue = args[1];
+        Contract.assertTrue(typeof settingName === 'string', 'Invalid setting argument, expected string name but received: ' + settingName);
+
+        const user = this.getUser(socket.user.getId());
+        Contract.assertTrue(user.id === this.lobbyOwnerId, `User ${user.id} attempted to change lobby settings but is not the lobby owner (${this.lobbyOwnerId})`);
+
+        switch (settingName) {
+            case LobbySettingKeys.UndoEnabled:
+                this.assertSettingType(settingName, settingValue, 'boolean');
+                this.undoMode = settingValue ? UndoMode.Full : UndoMode.Disabled;
+                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo`);
+                break;
+            default:
+                Contract.fail(`Unknown setting name: ${settingName}`);
+        }
+
+        this.sendLobbyState();
+    }
+
+    private assertSettingType(settingName: string, settingValue: any, expectedType: string): void {
+        Contract.assertTrue(typeof settingValue === expectedType, `Invalid setting value for ${settingName}, expected ${expectedType} but received: ` + settingValue);
     }
 
     // Report bug method; front-end RPC from sendLobbyMessage()
