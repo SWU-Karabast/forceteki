@@ -17,6 +17,7 @@ export default class ScreechingTieFighter extends NonLeaderUnitCard {
     ) {
         registrar.addOnAttackAbility({
             title: 'Select a Ground unit to lose all Keywords for this phase',
+            optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
