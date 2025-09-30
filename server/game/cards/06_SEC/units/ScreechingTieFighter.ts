@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class ScreechingTieFighter extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,13 +16,13 @@ export default class ScreechingTieFighter extends NonLeaderUnitCard {
         AbilityHelper: IAbilityHelper
     ) {
         registrar.addOnAttackAbility({
-            title: 'Select a Ground unit to lose all Keywords for this phase',
+            title: 'Select a ground unit to lose all Keywords for this phase',
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    effect: AbilityHelper.ongoingEffects.loseKeyword(Object.values(KeywordName)),
+                    effect: AbilityHelper.ongoingEffects.loseAllKeywords(),
                     ongoingEffectDescription: 'remove all Keywords from',
                 })
             }
