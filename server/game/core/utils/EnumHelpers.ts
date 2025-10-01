@@ -264,5 +264,5 @@ export function aspectString(
                 ? `${conjunction} ${Helpers.capitalize(aspect)}`
                 : Helpers.capitalize(aspect);
         })
-        .join(aspects.length > 2 ? ', ' : ' ');
+        .join((!conjunction || aspects.length > 2) ? ', ' : ' ');
 }
