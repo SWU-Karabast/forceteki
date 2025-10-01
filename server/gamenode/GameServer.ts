@@ -34,6 +34,8 @@ import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { requireEnvVars } from '../env';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
+import { RuntimeProfiler } from '../utils/profiler';
+
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -205,6 +207,12 @@ export class GameServer {
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
         logger.info(`GameServer: Detected ${cpus().length} logical CPU cores.`);
+
+        // Start CPU profiling test for 120 seconds
+        this.startCpuProfilingTest(120);
+
+        // Start allocation profiling test for 120 seconds
+        this.startAllocProfilingTest(120);
 
         // check if NEXTAUTH variable is set
         requireEnvVars(
@@ -1695,6 +1703,56 @@ export class GameServer {
             };
         } catch (error) {
             logger.error(`Error logging GC stats: ${error}`);
+        }
+    }
+
+    private async startCpuProfilingTest(durationSeconds: number): Promise<void> {
+        try {
+            const profiler = new RuntimeProfiler();
+            logger.info(`[GameServer] Starting CPU profiling test for ${durationSeconds} seconds...`);
+
+            await profiler.startCPU();
+
+            // Stop profiling after 120 seconds
+            setTimeout(async () => {
+                try {
+                    const profileFile = await profiler.stopCPU('gameserver-startup-test');
+                    if (profileFile) {
+                        logger.info(`[GameServer] CPU profiling test completed. Profile saved to: ${profileFile}`);
+                    } else {
+                        logger.warn('[GameServer] CPU profiling test completed but no profile file was generated');
+                    }
+                } catch (error) {
+                    logger.error(`[GameServer] Error stopping CPU profiling test: ${error}`);
+                }
+            }, durationSeconds * 1000);
+        } catch (error) {
+            logger.error(`[GameServer] Error starting CPU profiling test: ${error}`);
+        }
+    }
+
+    private async startAllocProfilingTest(durationSeconds: number): Promise<void> {
+        try {
+            const profiler = new RuntimeProfiler();
+            logger.info(`[GameServer] Starting allocation profiling test for ${durationSeconds} seconds...`);
+
+            await profiler.startAllocSampling(1024 * 64); // 64KB sampling interval
+
+            // Stop profiling after 120 seconds
+            setTimeout(async () => {
+                try {
+                    const profileFile = await profiler.stopAllocSampling('gameserver-alloc-test');
+                    if (profileFile) {
+                        logger.info(`[GameServer] Allocation profiling test completed. Profile saved to: ${profileFile}`);
+                    } else {
+                        logger.warn('[GameServer] Allocation profiling test completed but no profile file was generated');
+                    }
+                } catch (error) {
+                    logger.error(`[GameServer] Error stopping allocation profiling test: ${error}`);
+                }
+            }, durationSeconds * 1000);
+        } catch (error) {
+            logger.error(`[GameServer] Error starting allocation profiling test: ${error}`);
         }
     }
 }
