@@ -1,9 +1,9 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { Aspect, EventName, WildcardCardType } from '../../../core/Constants';
+import { Aspect, Conjunction, EventName, WildcardCardType } from '../../../core/Constants';
 import { DiscloseMode } from '../../../gameSystems/DiscloseAspectsSystem';
-import * as Helpers from '../../../core/utils/Helpers';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import * as Contract from '../../../core/utils/Contract';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
@@ -22,7 +22,7 @@ export default class LeiaOrganaOfASecretBloodline extends LeaderUnitCard {
     ) {
         const aspects = [Aspect.Vigilance, Aspect.Command, Aspect.Aggression, Aspect.Cunning, Aspect.Heroism];
         registrar.addActionAbility({
-            title: `Disclose ${Helpers.aspectString(aspects, 'or')} to give an experience token to a unit that does not share an aspect with the disclosed card`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects, Conjunction.Or)} to give an experience token to a unit that does not share an aspect with the disclosed card`,
             cost: [
                 AbilityHelper.costs.abilityActivationResourceCost(1),
                 AbilityHelper.costs.exhaustSelf()
@@ -48,7 +48,7 @@ export default class LeiaOrganaOfASecretBloodline extends LeaderUnitCard {
     ) {
         const aspects = [Aspect.Vigilance, Aspect.Command, Aspect.Aggression, Aspect.Cunning, Aspect.Heroism];
         registrar.addOnAttackAbility({
-            title: `Disclose ${Helpers.aspectString(aspects, 'or')} to give an experience token to a unit that does not share an aspect with the disclosed card`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects, Conjunction.Or)} to give an experience token to a unit that does not share an aspect with the disclosed card`,
             immediateEffect: AbilityHelper.immediateEffects.disclose({
                 aspects: aspects,
                 mode: DiscloseMode.Any

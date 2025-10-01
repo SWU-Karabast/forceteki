@@ -43,16 +43,6 @@ export function countUniqueAspects(cards: Card | Card[]): number {
     return aspects.size;
 }
 
-export function aspectString(aspects: Aspect[], conjunction: string = ''): string {
-    return aspects
-        .map((aspect, index) => {
-            return (conjunction && index === aspects.length - 1)
-                ? `${conjunction} ${capitalize(aspect)}`
-                : `${capitalize(aspect)}`;
-        })
-        .join(', ');
-}
-
 /**
  * Counts the occurrences of each distinct item in an array.
  *
