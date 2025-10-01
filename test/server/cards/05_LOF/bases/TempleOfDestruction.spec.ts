@@ -132,9 +132,10 @@ describe('Temple of Destruction\'s ability', function() {
 
             context.player1.passAction();
             context.player2.clickCard(context.takedown);
-            context.player2.clickCard(context.k2soCassiansCounterpart);
-            context.player1.clickPrompt('Deal 3 damage to opponent\'s base');
+            context.player2.clickCard(context.k2so);
 
+            // 3 Damage is dealt to base, but player1 should not get the Force
+            expect(context.p2Base.damage).toBe(3);
             expect(context.player1).toBeActivePlayer();
             expect(context.player1.hasTheForce).toBe(false);
         });

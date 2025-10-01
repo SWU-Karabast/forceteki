@@ -10,8 +10,7 @@ describe('K-2SO, Cassian\'s Counterpart', function() {
                     player2: {
                         hand: ['wampa'],
                         groundArena: ['krayt-dragon'],
-                    },
-                    autoSingleTarget: true
+                    }
                 });
             });
 
@@ -24,30 +23,24 @@ describe('K-2SO, Cassian\'s Counterpart', function() {
                 expect(context.player1).not.toHavePassAbilityButton();
 
                 context.player1.clickPrompt('The opponent discards a card');
+                context.player2.clickCard(context.wampa);
                 expect(context.player2.handSize).toBe(0);
                 expect(context.wampa).toBeInZone('discard');
 
-                context.player1.moveCard(context.k2so, 'groundArena');
-                context.player2.clickCard(context.kraytDragon);
-                context.player2.clickCard(context.k2so);
-                expect(context.player1).toHaveExactPromptButtons(['Deal 3 damage to opponent\'s base', 'The opponent discards a card']);
-                expect(context.player1).not.toHavePassAbilityButton();
-
-                context.player1.clickPrompt('The opponent discards a card');
-                expect(context.player2.handSize).toBe(0);
-
+                // Reset for next test
                 context.player1.moveCard(context.k2so, 'groundArena');
                 context.moveToNextActionPhase();
 
                 context.player1.clickCard(context.k2so);
                 context.player1.clickCard(context.kraytDragon);
-                expect(context.p2Base.damage).toBe(2);
 
                 expect(context.player1).toHaveExactPromptButtons(['Deal 3 damage to opponent\'s base', 'The opponent discards a card']);
                 expect(context.player1).not.toHavePassAbilityButton();
 
                 context.player1.clickPrompt('Deal 3 damage to opponent\'s base');
-                expect(context.p2Base.damage).toBe(5);
+
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
@@ -67,11 +60,10 @@ describe('K-2SO, Cassian\'s Counterpart', function() {
 
             context.player2.clickCard(context.noGloryOnlyResults);
             context.player2.clickCard(context.k2so);
-            expect(context.player2).toHaveExactPromptButtons(['Deal 3 damage to opponent\'s base', 'The opponent discards a card']);
-            context.player2.clickPrompt('Deal 3 damage to opponent\'s base');
-            expect(context.p1Base.damage).toBe(3);
 
-            context.player1.passAction();
+            // Damage is automatically resolved since there are no cards in hand to discard
+            expect(context.p1Base.damage).toBe(3);
+            expect(context.player1).toBeActivePlayer();
         });
     });
 });

@@ -138,11 +138,9 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player2.clickCard(context.takedown);
                 context.player2.clickCard(context.k2so);
 
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Deal 3 damage to opponent\'s base',
-                    'The opponent discards a card'
-                ]);
-                context.player1.clickPrompt('Deal 3 damage to opponent\'s base');
+                // Damage option is automatically selected since there are no cards in hand to discard
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.player1).toBeActivePlayer();
 
                 // Move to the regroup phase
                 context.moveToRegroupPhase();
