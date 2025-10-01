@@ -43,17 +43,13 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
         });
     }
 
-    private isDamageFromEnemyCardAbilityV1(event, context): boolean {
-        return event.card === context.source &&
-          !event.isIndirect && event.damageSource.type !== DamageSourceType.Attack && event.damageSource.player !== context.source.controller;
-    }
-
-    private isDamageFromEnemyCardAbilityV2(event, context): boolean {
+    private isDamageFromEnemyCardAbility(event, context): boolean {
         if (event.card !== context.source) {
             return false;
         }
 
-        if (event.isIndirect) {
+        // TODO add isUnpreventable flag to event
+        if (event.isUnpreventable || event.isIndirect) {
             return false;
         }
 
@@ -61,7 +57,6 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
             return false;
         }
 
-        const controller = event.damageSource.controller ?? event.damageSource.card.controller;
-        return controller !== context.source.controller;
+        return event.damageSource.player !== context.source.controller;
     }
 }
