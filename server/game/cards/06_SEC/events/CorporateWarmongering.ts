@@ -21,11 +21,11 @@ export default class CorporateWarmongering extends EventCard {
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 3, hp: 3 }),
                 }),
             },
-            then: (context) => ({
+            then: (thenContext) => ({
                 title: 'Give each other friendly unit +1/+1 for this phase',
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 }),
-                    target: context.player.getArenaUnits({ otherThan: context.target })
+                    target: thenContext.player.getArenaUnits({ otherThan: context.target })
                 })
             })
         });
