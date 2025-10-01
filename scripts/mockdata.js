@@ -1526,6 +1526,107 @@ const mockCards = [
         unique: false,
         internalName: 'one-in-a-million',
     }),
+    buildMockCard({
+        title: 'Restore Freedom',
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        types: ['event'],
+        traits: ['gambit'],
+        setId: {
+            set: 'SEC',
+            number: 257
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'restore-freedom',
+    }),
+    buildMockCard({
+        title: 'The Wrong Ride',
+        hasNonKeywordAbility: true,
+        keywords: ['plot'],
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['disaster'],
+        setId: {
+            set: 'SEC',
+            number: 235
+        },
+        cost: 3,
+        unique: false,
+        internalName: 'the-wrong-ride',
+    }),
+    buildMockCard({
+        title: 'Dressellian Commandos',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'heroism'],
+        keywords: ['ambush', 'plot'],
+        types: ['unit'],
+        traits: ['rebel', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 100
+        },
+        cost: 5,
+        unique: false,
+        arena: 'ground',
+        internalName: 'dressellian-commandos',
+    }),
+    buildMockCard({
+        title: 'Crucible',
+        subtitle: 'Centuries of Wisdom',
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['jedi', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 119
+        },
+        cost: 6,
+        unique: true,
+        arena: 'space',
+        internalName: 'crucible#centuries-of-wisdom',
+    }),
+    buildMockCard({
+        title: 'Libertine',
+        subtitle: 'Under New Ownership',
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'cunning'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 212
+        },
+        cost: 4,
+        unique: true,
+        arena: 'space',
+        internalName: 'libertine#under-new-ownership',
+    }),
+    buildMockCard({
+        title: 'Cikatro Vizago',
+        subtitle: 'Business Is What Matters',
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 218
+        },
+        cost: 3,
+        unique: true,
+        arena: 'ground',
+        internalName: 'cikatro-vizago#business-is-what-matters',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
