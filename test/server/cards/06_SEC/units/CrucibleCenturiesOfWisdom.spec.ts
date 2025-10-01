@@ -75,12 +75,11 @@ describe('Crucible, Centuries of Wisdom', function () {
                     hand: ['power-of-the-dark-side', 'no-glory-only-results'],
                     groundArena: ['battlefield-marine'],
                     spaceArena: ['lurking-tie-phantom'],
-                    leader: { card: 'iden-versio#inferno-squad-commander', deployed: true }
+                    leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
+                    hasInitiative: true,
                 }
             });
             const { context } = contextRef;
-
-            context.player1.clickPrompt('Pass');
 
             context.player2.clickCard(context.noGloryOnlyResults);
             context.player2.clickCard(context.crucibleCenturiesOfWisdom);
