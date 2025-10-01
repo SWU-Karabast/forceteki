@@ -10,7 +10,7 @@ describe('Cassian Andor, Lay Low', function() {
                     },
                     player2: {
                         hand: ['daring-raid', 'covering-the-wing'],
-                        groundArena: ['resourceful-pursuers', 'cargo-juggernaut', 'cassian-andor#lay-low']
+                        groundArena: ['resourceful-pursuers', 'cargo-juggernaut', 'cassian-andor#lay-low', 'val#loyal-to-the-end']
                     }
                 });
             });
@@ -52,6 +52,7 @@ describe('Cassian Andor, Lay Low', function() {
                 expect(context.consularSecurityForce.damage).toBe(2);
                 expect(context.cargoJuggernaut.isUpgraded()).toBeFalse();
                 expect(context.cassianAndorLayLow.damage).toBe(0);
+                expect(context.valLoyalToTheEnd.damage).toBe(2);
             });
 
             it('should prevent only 2 damage from enemy card abilities', function () {
@@ -101,9 +102,21 @@ describe('Cassian Andor, Lay Low', function() {
 
                 context.player2.clickPrompt('If an enemy card ability would do damage to this unit, prevent 2 of that damage');
 
-                expect(context.cassianAndor).toHaveExactUpgradeNames(['shield']);
+                expect(context.cassianAndorLayLow).toHaveExactUpgradeNames(['shield']);
 
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not prevent damage from Val Bounty', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.openFire);
+                context.player1.clickCard(context.valLoyalToTheEnd);
+                context.player1.clickPrompt('You');
+                context.player1.clickCard(context.cassianAndorLayLow);
+                context.player2.clickCard(context.cassianAndorLayLow);
+
+                expect(context.cassianAndorLayLow.damage).toBe(1);
             });
         });
     });
