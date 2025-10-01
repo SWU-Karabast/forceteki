@@ -244,5 +244,28 @@ describe('The Disclose aspects mechanic', function() {
             expect(context.player1).toBeActivePlayer();
             expect(context.player1.hand.length).toBe(2);
         });
+
+        it('is automatically skipped if the required aspects cannot be disclosed with cards in hand', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: [],
+                    groundArena: ['mina-bonteri#stop-this-war']
+                },
+                player2: {
+                    hasInitiative: true,
+                    hand: ['vanquish']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player 2 plays Vanquish to defeat Mina Bonteri
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.minaBonteri);
+
+            expect(context.player1).toBeActivePlayer();
+            expect(context.player1.hand.length).toBe(0); // No card drawn
+        });
     });
 });

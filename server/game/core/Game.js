@@ -21,7 +21,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint, GameErrorSeverity } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint, GameErrorSeverity, GameEndReason } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -197,6 +197,10 @@ class Game extends EventEmitter {
 
     get lobbyId() {
         return this._router.id;
+    }
+
+    get gameStepsSinceLastUndo() {
+        return this.snapshotManager.gameStepsSinceLastUndo;
     }
 
     /**
@@ -807,9 +811,9 @@ class Game extends EventEmitter {
     checkWinCondition() {
         const losingPlayers = this.getPlayers().filter((player) => player.base.damage >= player.base.getHp());
         if (losingPlayers.length === 1) {
-            this.endGame(losingPlayers[0].opponent, 'base destroyed');
+            this.endGame(losingPlayers[0].opponent, GameEndReason.GameRules);
         } else if (losingPlayers.length === 2) { // draw game
-            this.endGame(losingPlayers, 'both bases destroyed');
+            this.endGame(losingPlayers, GameEndReason.GameRules);
         }
     }
 
@@ -817,9 +821,11 @@ class Game extends EventEmitter {
      * Display message declaring victory for one player, and record stats for
      * the game
      * @param {Player[]|Player} winnerPlayers
-     * @param {String} reason
+     * @param {GameEndReason} reasonCode
      */
-    endGame(winnerPlayers, reason) {
+    endGame(winnerPlayers, reasonCode) {
+        this.gameEndReason = reasonCode;
+
         if (this.state.winnerNames.length > 0) {
             // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
@@ -843,7 +849,6 @@ class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers);
         }
         this.finishedAt = new Date();
-        this.gameEndReason = reason;
         // this._router.gameWon(this, reason, winner);
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
@@ -928,7 +933,7 @@ class Game extends EventEmitter {
         var otherPlayer = this.getOtherPlayer(player);
 
         if (otherPlayer) {
-            this.endGame(otherPlayer, 'concede');
+            this.endGame(otherPlayer, GameEndReason.Concede);
         }
     }
 
@@ -1946,9 +1951,28 @@ class Game extends EventEmitter {
     rollbackToSnapshot(playerId, settings) {
         const result = this.rollbackToSnapshotInternal(settings);
 
-        if (result) {
-            this.addAlert(AlertType.Notification, '{0} has rolled back to a previous action', this.getPlayerById(playerId));
+        if (!result) {
+            return;
         }
+
+        let message;
+        switch (settings.type) {
+            case SnapshotType.Manual:
+                message = 'a previous bookmark';
+                break;
+            case SnapshotType.Phase:
+                message = `the start of the ${settings.phaseName} phase (round ${this.roundNumber})`;
+                break;
+            case SnapshotType.Quick:
+            case SnapshotType.Action:
+                message = 'their previous action';
+                break;
+            default:
+                // @ts-expect-error this is here in case we add a new value for SnapshotType
+                Contract.fail(`Unknown snapshot type: ${settings.type}`);
+        }
+
+        this.addAlert(AlertType.Notification, '{0} has rolled back to {1}', this.getPlayerById(playerId), message);
     }
 
     rollbackToSnapshotInternal(settings) {
@@ -1967,6 +1991,8 @@ class Game extends EventEmitter {
             if (!rollbackResult.success) {
                 return false;
             }
+
+            this._actionsSinceLastUndo = 0;
 
             this.postRollbackOperations(rollbackResult.entryPoint);
 
