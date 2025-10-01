@@ -5,11 +5,11 @@ describe('Cassian Andor, Lay Low', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['blood-sport', 'open-fire', 'torpedo-barrage'],
+                        hand: ['blood-sport', 'open-fire', 'torpedo-barrage', 'change-of-heart'],
                         groundArena: ['battlefield-marine', 'consular-security-force']
                     },
                     player2: {
-                        hand: ['daring-raid', 'covering-the-wing'],
+                        hand: ['daring-raid', 'covering-the-wing', 'power-of-the-dark-side'],
                         groundArena: ['resourceful-pursuers', 'cargo-juggernaut', 'cassian-andor#lay-low', 'val#loyal-to-the-end']
                     }
                 });
@@ -107,7 +107,7 @@ describe('Cassian Andor, Lay Low', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not prevent damage from Val Bounty', function () {
+            it('should prevent damage from Val Bounty', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.openFire);
@@ -117,6 +117,22 @@ describe('Cassian Andor, Lay Low', function() {
                 context.player2.clickCard(context.cassianAndorLayLow);
 
                 expect(context.cassianAndorLayLow.damage).toBe(1);
+            });
+
+            it('should not prevent damage from Val Bounty after Val changes control', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.valLoyalToTheEnd);
+
+                context.player2.clickCard(context.powerOfTheDarkSide);
+                context.player1.clickCard(context.valLoyalToTheEnd);
+
+                context.player2.clickPrompt('You');
+                context.player2.clickCard(context.cassianAndorLayLow);
+                expect(context.cassianAndorLayLow).toBeInZone('discard');
+
+                context.player1.clickCard(context.battlefieldMarine);
             });
         });
     });

@@ -27,7 +27,6 @@ export default class CassianAndorLayLow extends NonLeaderUnitCard {
             when: { onDamageDealt: (event, context) =>
                 event.card === context.source &&
                 !event.isIndirect && event.damageSource.type !== DamageSourceType.Attack && event.damageSource.player !== context.source.controller },
-
             replaceWith: {
                 replacementImmediateEffect: new DamageSystem((context) => ({
                     target: context.source,
