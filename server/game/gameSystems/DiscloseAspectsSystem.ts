@@ -60,17 +60,13 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         return selectCardSystem.hasLegalTarget(newContext, null, mustChangeGameState);
     }
 
-    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<IDiscloseAspectsProperties>): void {
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
-
-        const { aspects } = this.generatePropertiesFromContext(context, additionalProperties);
-
-        event.aspectsDisclosed = aspects;
-    }
-
     // Private helpers
 
-    private generateSelectCardSystem(context: TContext, additionalProperties: Partial<IDiscloseAspectsProperties> = {}, cancelEvents = []) {
+    private generateSelectCardSystem(
+        context: TContext,
+        additionalProperties: Partial<IDiscloseAspectsProperties> = {},
+        events = []
+    ): SelectCardSystem<TContext> {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const mode = properties.mode ?? DiscloseMode.All;
 
@@ -87,7 +83,8 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                         useDisplayPrompt: true,
                         interactMode: ViewCardInteractMode.ViewOnly
                     }),
-                    cancelHandler: cancelEvents ? () => cancelEvents.forEach((event) => event.cancel()) : null,
+                    cancelHandler: events ? () => events.forEach((event) => event.cancel()) : null,
+                    onSelectHandler: (cards) => this.updateEventsWithSelectedCards(events, cards),
                     cancelIfNoTargets: true,
                 });
             case DiscloseMode.All:
@@ -106,11 +103,18 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                         useDisplayPrompt: true,
                         interactMode: ViewCardInteractMode.ViewOnly
                     }),
-                    cancelHandler: cancelEvents ? () => cancelEvents.forEach((event) => event.cancel()) : null,
+                    cancelHandler: events ? () => events.forEach((event) => event.cancel()) : null,
+                    onSelectHandler: (cards) => this.updateEventsWithSelectedCards(events, cards),
                     cancelIfNoTargets: true,
                 });
             default:
                 Contract.fail(`Unrecognized disclose mode: ${mode}`);
+        }
+    }
+
+    private updateEventsWithSelectedCards(events: any[], selectedCards: Card | Card[]) {
+        for (const event of events) {
+            event.disclosedCards = Helpers.asArray(selectedCards);
         }
     }
 

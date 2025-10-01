@@ -66,8 +66,8 @@ export default class LeiaOrganaOfASecretBloodline extends LeaderUnitCard {
 
     private disclosedCard(context: AbilityContext): Card {
         const revealedCards = context.events
-            .filter((event) => event.name === EventName.OnCardRevealed)
-            .flatMap((event) => event.cards);
+            .filter((event) => event.name === EventName.OnAspectsDisclosed)
+            .flatMap((event) => event.disclosedCards || []);
 
         // Only one card should be revealed
         Contract.assertArraySize(revealedCards, 1);
