@@ -1964,6 +1964,23 @@ class Game extends EventEmitter {
             return;
         }
 
+        let message;
+        switch (settings.type) {
+            case SnapshotType.Manual:
+                message = 'a previous bookmark';
+                break;
+            case SnapshotType.Phase:
+                message = `the start of the ${settings.phaseName} phase (round ${this.roundNumber})`;
+                break;
+            case SnapshotType.Quick:
+            case SnapshotType.Action:
+                message = 'their previous action';
+                break;
+            default:
+                // @ts-expect-error this is here in case we add a new value for SnapshotType
+                Contract.fail(`Unknown snapshot type: ${settings.type}`);
+        }
+
         const performRollback = () => {
             const result = this.rollbackToSnapshotInternal(settings);
 
@@ -1971,44 +1988,10 @@ class Game extends EventEmitter {
                 return;
             }
 
-            let message;
-            switch (settings.type) {
-                case SnapshotType.Manual:
-                    message = 'a previous bookmark';
-                    break;
-                case SnapshotType.Phase:
-                    message = `the start of the ${settings.phaseName} phase (round ${this.roundNumber})`;
-                    break;
-                case SnapshotType.Quick:
-                case SnapshotType.Action:
-                    message = 'their previous action';
-                    break;
-                default:
-                    // @ts-expect-error this is here in case we add a new value for SnapshotType
-                    Contract.fail(`Unknown snapshot type: ${settings.type}`);
-            }
-
             this.addAlert(AlertType.Notification, '{0} has rolled back to {1}', this.getPlayerById(playerId), message);
         };
 
         if (this.enableConfirmationToUndo && this.snapshotManager.requiresConfirmationToRollbackTo(settings)) {
-            let message;
-            switch (settings.type) {
-                case SnapshotType.Manual:
-                    message = 'a previous bookmark';
-                    break;
-                case SnapshotType.Phase:
-                    message = `the start of the ${settings.phaseName} phase (round ${this.roundNumber})`;
-                    break;
-                case SnapshotType.Quick:
-                case SnapshotType.Action:
-                    message = 'their previous action';
-                    break;
-                default:
-                    // @ts-expect-error this is here in case we add a new value for SnapshotType
-                    Contract.fail(`Unknown snapshot type: ${settings.type}`);
-            }
-
             this.promptWithHandlerMenu(this.getPlayerById(playerId).opponent, {
                 activePromptTitle: `You opponent would like to rollback to ${message}. Are you sure you want to allow this?`,
                 waitingPromptTitle: 'Waiting for opponent to decide whether to allow rollback',
