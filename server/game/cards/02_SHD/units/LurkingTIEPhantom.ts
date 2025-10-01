@@ -39,8 +39,29 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
         registrar.addDamagePreventionAbility({
             title: 'Prevent all damage that would be dealt to it by enemy card abilities',
             when: { onDamageDealt: (event, context) =>
-                event.card === context.source &&
-                !event.isIndirect && event.damageSource.type !== DamageSourceType.Attack && event.damageSource.player !== context.source.controller }
+                this.isDamageFromEnemyCardAbility(event, context) }
         });
+    }
+
+    private isDamageFromEnemyCardAbilityV1(event, context): boolean {
+        return event.card === context.source &&
+          !event.isIndirect && event.damageSource.type !== DamageSourceType.Attack && event.damageSource.player !== context.source.controller;
+    }
+
+    private isDamageFromEnemyCardAbilityV2(event, context): boolean {
+        if (event.card !== context.source) {
+            return false;
+        }
+
+        if (event.isIndirect) {
+            return false;
+        }
+
+        if (event.damageSource.type !== DamageSourceType.Ability) {
+            return false;
+        }
+
+        const controller = event.damageSource.controller ?? event.damageSource.card.controller;
+        return controller !== context.source.controller;
     }
 }
