@@ -567,3 +567,8 @@ export enum GameEndReason {
     GameRules = 'gameRules',
     PlayerLeft = 'playerLeft',
 }
+
+export enum Conjunction {
+    And = 'and',
+    Or = 'or',
+}

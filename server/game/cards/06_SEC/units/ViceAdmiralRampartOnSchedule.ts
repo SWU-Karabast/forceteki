@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, TargetMode } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class ViceAdmiralRampartOnSchedule extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class ViceAdmiralRampartOnSchedule extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command, Aspect.Command, Aspect.Villainy];
         registrar.addOnAttackAbility({
-            title: `Disclose ${Helpers.aspectString(aspects)} to give an Experience token to each of up to 2 other units`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects)} to give an Experience token to each of up to 2 other units`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Give an Experience token to each of up to 2 other units',

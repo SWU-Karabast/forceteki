@@ -439,7 +439,6 @@ export class Lobby {
             return;
         }
 
-        logger.info(`Lobby: user ${existingUser.username} sent chat message: ${args[0]}`, { lobbyId: this.id, userName: existingUser.username, userId: existingUser.id });
         this.gameChat.addChatMessage(existingUser, args[0]);
         this.sendLobbyState();
     }
