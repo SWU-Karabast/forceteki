@@ -32,7 +32,7 @@ export default class LeiaOrganaOfASecretBloodline extends LeaderUnitCard {
                 mode: DiscloseMode.Any
             }),
             ifYouDo: (ifYouDoContext) => ({
-                title: 'Give experience to a unit that does not share an aspect with the disclosed card',
+                title: `Give an experience token to a unit that does not have a ${this.reducedAspectList(this.disclosedCard(ifYouDoContext).aspects)} aspect`,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card, _) => !this.disclosedCardSharesAspect(ifYouDoContext, card),
@@ -54,7 +54,7 @@ export default class LeiaOrganaOfASecretBloodline extends LeaderUnitCard {
                 mode: DiscloseMode.Any
             }),
             ifYouDo: (ifYouDoContext) => ({
-                title: 'Give experience to a unit that does not share an aspect with the disclosed card',
+                title: `Give an experience token to a unit that does not have a ${this.reducedAspectList(this.disclosedCard(ifYouDoContext).aspects)} aspect`,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card, _) => !this.disclosedCardSharesAspect(ifYouDoContext, card),
@@ -64,7 +64,7 @@ export default class LeiaOrganaOfASecretBloodline extends LeaderUnitCard {
         });
     }
 
-    private disclosedCardSharesAspect(context: AbilityContext, card: Card): boolean {
+    private disclosedCard(context: AbilityContext): Card {
         const revealedCards = context.events
             .filter((event) => event.name === EventName.OnCardRevealed)
             .flatMap((event) => event.cards);
@@ -72,8 +72,18 @@ export default class LeiaOrganaOfASecretBloodline extends LeaderUnitCard {
         // Only one card should be revealed
         Contract.assertArraySize(revealedCards, 1);
 
-        const disclosedCard = revealedCards[0];
+        return revealedCards[0];
+    }
+
+    private disclosedCardSharesAspect(context: AbilityContext, card: Card): boolean {
+        const disclosedCard = this.disclosedCard(context);
 
         return card.aspects.some((aspect) => disclosedCard.aspects.includes(aspect));
+    }
+
+    private reducedAspectList(aspects: Aspect[]): string {
+        // Eliminate duplicates so we don't say "Vigilance or Vigilance" in the ifYouDo ability title
+        const set = new Set(aspects);
+        return EnumHelpers.aspectString(Array.from(set), Conjunction.Or);
     }
 }

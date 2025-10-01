@@ -1,7 +1,8 @@
+
 describe('Leia Organa, Of a Secret Bloodline', () => {
     integration(function (contextRef) {
         const disclosePrompt = 'Disclose Vigilance, Command, Aggression, Cunning, or Heroism to give an experience token to a unit that does not share an aspect with the disclosed card';
-        const experiencePrompt = 'Give experience to a unit that does not share an aspect with the disclosed card';
+        const experiencePrompt = (aspectString: string) => `Give an experience token to a unit that does not have a ${aspectString} aspect`;
 
         describe('Leia Organa\'s undeployed ability', function () {
             it('Gives an experience token to a unit that does not share an aspect with the disclosed card', async function () {
@@ -19,8 +20,8 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                             'fleet-lieutenant',
                             'constructed-lightsaber',
                         ],
-                        groundArena: ['battlefield-marine', 'consular-security-force', 'porg'],
-                        spaceArena: ['concord-dawn-interceptors', 'green-squadron-awing']
+                        groundArena: ['battlefield-marine', 'dume#redeem-the-future', 'porg'],
+                        spaceArena: ['concord-dawn-interceptors', 'relentless-firespray']
                     },
                     player2: {
                         groundArena: ['atst']
@@ -51,11 +52,11 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                 expect(context.player2).toHaveEnabledPromptButton('Done');
                 context.player2.clickDone();
 
-                expect(context.player1).toHavePrompt(experiencePrompt);
+                expect(context.player1).toHavePrompt(experiencePrompt('Vigilance'));
                 expect(context.player1).toBeAbleToSelectExactly([
                     // Cards with Vigilance aspect are not selectable
                     context.battlefieldMarine,
-                    context.greenSquadronAwing,
+                    context.relentlessFirespray,
                     context.porg,
 
                     // Enemy units are valid targets
@@ -77,8 +78,8 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                         leader: 'leia-organa#of-a-secret-bloodline',
                         resources: 5,
                         hand: [],
-                        groundArena: ['battlefield-marine', 'consular-security-force', 'porg'],
-                        spaceArena: ['concord-dawn-interceptors', 'green-squadron-awing']
+                        groundArena: ['battlefield-marine', 'dume#redeem-the-future', 'porg'],
+                        spaceArena: ['concord-dawn-interceptors', 'relentless-firespray']
                     },
                     player2: {
                         groundArena: ['atst']
@@ -107,8 +108,8 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                             'constructed-lightsaber',
                             'viper-probe-droid'
                         ],
-                        groundArena: ['battlefield-marine', 'consular-security-force', 'porg'],
-                        spaceArena: ['concord-dawn-interceptors', 'green-squadron-awing']
+                        groundArena: ['battlefield-marine', 'dume#redeem-the-future', 'porg'],
+                        spaceArena: ['concord-dawn-interceptors', 'relentless-firespray']
                     },
                     player2: {
                         groundArena: ['atst']
@@ -214,8 +215,8 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                             'fleet-lieutenant',
                             'constructed-lightsaber',
                         ],
-                        groundArena: ['battlefield-marine', 'consular-security-force', 'porg'],
-                        spaceArena: ['concord-dawn-interceptors', 'green-squadron-awing']
+                        groundArena: ['battlefield-marine', 'dume#redeem-the-future', 'porg'],
+                        spaceArena: ['concord-dawn-interceptors', 'relentless-firespray']
                     },
                     player2: {
                         groundArena: ['atst']
@@ -248,11 +249,11 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                 expect(context.player2).toHaveEnabledPromptButton('Done');
                 context.player2.clickDone();
 
-                expect(context.player1).toHavePrompt(experiencePrompt);
+                expect(context.player1).toHavePrompt(experiencePrompt('Command'));
                 expect(context.player1).toBeAbleToSelectExactly([
                     // Cards with Command aspect are not selectable
-                    context.consularSecurityForce,
-                    context.greenSquadronAwing,
+                    context.dume,
+                    context.relentlessFirespray,
                     context.concordDawnInterceptors,
                     context.porg,
 
