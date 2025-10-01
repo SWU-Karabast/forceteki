@@ -268,8 +268,8 @@ export class SnapshotManager {
         if (
             this.game.currentPhase === PhaseName.Regroup &&
             playerPromptType === PromptType.Resource &&
-            currentOpenPrompt.isAllPlayerPrompt() &&
-            currentOpenPrompt.completionCondition(player)
+            currentOpenPrompt?.isAllPlayerPrompt() &&
+            currentOpenPrompt?.completionCondition(player)
         ) {
             return QuickRollbackPoint.Current;
         }
