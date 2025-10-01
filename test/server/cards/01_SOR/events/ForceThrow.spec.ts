@@ -24,7 +24,7 @@ describe('Force Throw', function() {
                 // Opponent discards a card
                 context.player1.clickPrompt('Opponent discards');
                 context.player2.clickCard(context.karabast);
-                expect(context.getChatLogs(2)).toContain('player2 discards Karabast');
+                expect(context.getChatLog()).toEqual('player2 discards Karabast from their hand due to Force Throw');
 
                 // Validate board state and options
                 expect(context.karabast).toBeInZone('discard');

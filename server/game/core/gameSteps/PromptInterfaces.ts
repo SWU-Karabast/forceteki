@@ -147,4 +147,5 @@ export interface IDisplayCardsSelectProperties extends IDisplayCardPromptPropert
     noSelectedCardsButtonText?: string;
     selectedCardsButtonText?: string;
     showSelectionOrder?: boolean;
+    displayTextByCardUuid?: Map<string, string>;
 }

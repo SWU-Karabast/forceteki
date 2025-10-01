@@ -32,7 +32,7 @@ describe('CR90 Relief Runner', function () {
 
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.getChatLogs(2)).toContain('player2 uses CR90 Relief Runner to distribute up to 3 healing to a unit or base');
-                expect(context.getChatLogs(2)).toContain('player2 uses CR90 Relief Runner to distribute 3 healing to player2\'s base');
+                expect(context.getChatLogs(2)).toContain('player2 uses CR90 Relief Runner to distribute 3 healing to their own base');
             });
 
             it('should heal up to 3 damage from a unit or a base when defeated (can distribute less)', function () {
@@ -51,6 +51,29 @@ describe('CR90 Relief Runner', function () {
                 ]));
 
                 expect(context.consularSecurityForce.damage).toBe(3);
+            });
+
+            it('can choose a target with no damage', function () {
+                const { context } = contextRef;
+
+                // kill cr90 relief runner
+                context.player1.clickCard(context.rivalsFall);
+                context.player1.clickCard(context.cr90ReliefRunner);
+
+                // can choose a unit or a base
+                expect(context.player2).toBeAbleToSelectExactly([context.consularSecurityForce, context.greenSquadronAwing, context.p1Base, context.p2Base]);
+                expect(context.p1Base.damage).toBe(0);
+
+                // can heal less than 3 damage
+                context.player2.setDistributeHealingPromptState(new Map([
+                    [context.p1Base, 3],
+                ]));
+
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.getChatLogs(2)).toEqual([
+                    'player2 uses CR90 Relief Runner to distribute up to 3 healing to a unit or base',
+                    'player2 uses CR90 Relief Runner to distribute no effective healing',
+                ]);
             });
         });
     });

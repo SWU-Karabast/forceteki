@@ -396,7 +396,8 @@ export class GameServer {
                     showWelcomeMessage: user.getShowWelcomeMessage(),
                     preferences: user.getPreferences(),
                     needsUsernameChange: user.needsUsernameChange(),
-                    swuStatsRefreshToken: user.getSwuStatsRefreshToken()
+                    swuStatsRefreshToken: user.getSwuStatsRefreshToken(),
+                    moderation: user.getModeration(),
                 } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
@@ -494,6 +495,32 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (change-username) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        // Add this new route for setting moderation as seen:
+        app.post('/api/set-moderation-seen', authMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+
+                // Check if user is authenticated (not an anonymous user)
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (set-moderation-seen): Anonymous user ${user.getId()} attempted to set moderation seen`, { userId: user.getId() });
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Authentication required to set moderation seen'
+                    });
+                }
+
+                const result = await this.userFactory.setModerationSeenAsync(user.getId());
+
+                return res.status(200).json({
+                    success: result,
+                    message: 'Moderation status updated'
+                });
+            } catch (err) {
+                logger.error('GameServer (set-moderation-seen) Server Error: ', err);
                 next(err);
             }
         });
@@ -1218,7 +1245,13 @@ export class GameServer {
             if (lobby.gameType === MatchType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
-                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
+                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, {
+                        ...lobbyUser.deck.getDecklist(),
+                        deckID: lobbyUser.deck.id,
+                        deckLink: lobbyUser.decklist.deckLink,
+                        deckSource: lobbyUser.decklist.deckSource,
+                        isPresentInDb: lobbyUser.decklist.isPresentInDb,
+                    }));
                 }
             }
 
@@ -1396,7 +1429,6 @@ export class GameServer {
 
         await lobby.addLobbyUserAsync(player.user, socket);
         socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket.socket, player));
-
         if (!socket.eventContainsListener('requeue')) {
             socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck));
         }

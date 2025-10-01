@@ -67,17 +67,24 @@ export abstract class Phase extends BaseStepWithPipeline {
 
         this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => {
             if (this.name !== PhaseName.Setup) {
-                this.game.addAlert(AlertType.Notification, 'Turn: {0} - {1} Phase', this.game.roundNumber, Helpers.upperCaseFirstLetter(this.name));
+                this.game.addAlert(AlertType.Notification, 'Round: {0} - {1} Phase', this.game.roundNumber, Helpers.upperCaseFirstLetter(this.name));
             }
         });
     }
 
     protected endPhase(initializeMode: PhaseInitializeMode): void {
-        const checkTakeSnapshot = initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase;
-        if (checkTakeSnapshot) {
-            // reset trackers indicating if a player has been prompted
-            this.game.resetPromptedPlayersTracking();
+        const shouldUpdateTimepoint = initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase;
+
+        // TODO: we haven't implemented end of setup or regroup phases yet
+        const checkTakeSnapshot = shouldUpdateTimepoint && this.name === PhaseName.Action;
+
+        if (shouldUpdateTimepoint) {
             this.game.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.EndOfPhase);
+
+            if (checkTakeSnapshot) {
+                // reset trackers indicating if a player has been prompted
+                this.game.resetPromptedPlayersTracking();
+            }
         }
 
         this.game.createEventAndOpenWindow(

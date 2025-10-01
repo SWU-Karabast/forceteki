@@ -5,7 +5,6 @@ import { SimpleStep } from '../SimpleStep';
 import { ActionWindow } from '../ActionWindow';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import type { IStep } from '../IStep';
-import * as Contract from '../../utils/Contract';
 
 export class ActionPhase extends Phase {
     private readonly getNextActionNumber: () => number;
@@ -21,8 +20,6 @@ export class ActionPhase extends Phase {
         snapshotManager: SnapshotManager,
         initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal
     ) {
-        Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToEndOfPhase, 'ActionPhase does not support rolling back to the end of the phase');
-
         super(game, PhaseName.Action, snapshotManager);
 
         this.getNextActionNumber = getNextActionNumber;
@@ -32,10 +29,15 @@ export class ActionPhase extends Phase {
             setupStep.push(new SimpleStep(this.game, () => this.setupActionPhase(initializeMode), 'setupActionPhase'));
         }
 
+        const actionWindowStep: IStep[] = [];
+        if (initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase) {
+            actionWindowStep.push(new SimpleStep(game, () => this.queueNextAction(game.actionNumber), 'queueNextAction'));
+        }
+
         this.initialise(
             [
                 ...setupStep,
-                new SimpleStep(this.game, () => this.queueNextAction(game.actionNumber), 'queueNextAction'),
+                ...actionWindowStep,
                 new SimpleStep(this.game, () => this.tearDownActionPhase(), 'tearDownActionPhase')
             ],
             initializeMode

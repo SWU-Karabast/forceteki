@@ -1,3 +1,4 @@
+import * as Util from '../../../../Util';
 import type { Card } from '../../card/Card';
 import type Game from '../../Game';
 import type { Player } from '../../Player';
@@ -16,6 +17,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
     private readonly selectedCardsButtonText: string;
     private readonly selectedCardsHandler: (cards: Card[]) => void;
     private readonly showSelectionOrder: boolean;
+    private readonly displayTextByCardUuid: Map<string, string>;
 
     private selectedCards: Card[] = [];
 
@@ -54,6 +56,17 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
             this.doneButton = { text: this.selectedCardsButtonText, arg: 'done' };
         }
         // if there is only one card to select, the done button is not needed as we'll auto-fire when it's clicked
+
+        if (properties.displayTextByCardUuid) {
+            const mapKeys = Array.from(properties.displayTextByCardUuid.keys());
+            const cardUuids = this.displayCards.map((s) => s.card.uuid);
+            Contract.assertTrue(
+                Util.stringArraysEqual(mapKeys, cardUuids),
+                `Provided card display text map does not match passed display card uuids\n\tMap keys:${mapKeys.join(', ')}\n\tCard uuids:${cardUuids.join(', ')}`
+            );
+
+            this.displayTextByCardUuid = properties.displayTextByCardUuid;
+        }
     }
 
     protected override defaultProperties() {
@@ -72,6 +85,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
             setId: card.setId,
             internalName: card.internalName,
             selectionState,
+            displayText: this.displayTextByCardUuid?.get(card.uuid),
             selectionOrder: selectionState === DisplayCardSelectionState.Selected && this.showSelectionOrder
                 ? this.selectedCards.indexOf(card) + 1
                 : null,

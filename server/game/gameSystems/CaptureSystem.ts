@@ -17,6 +17,7 @@ export interface ICaptureProperties extends ICardTargetSystemProperties {
 export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ICaptureProperties = ICaptureProperties> extends CardTargetSystem<TContext, TProperties> {
     public override readonly name = 'capture';
     public override readonly eventName = EventName.OnCardCaptured;
+    public override readonly effectDescription = 'capture {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit];
 
     public eventHandler(event): void {
@@ -33,6 +34,10 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
             return false;
         }
 
+        if (!properties.captor.isInPlay() || !properties.captor.isUnit()) {
+            return false;
+        }
+
         return super.canAffectInternal(card, context);
     }
 
@@ -43,7 +48,7 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { captor, target } = this.generatePropertiesFromContext(context);
         if (captor === context.source) {
-            return ['capture {0}', [this.getTargetMessage(target, context)]];
+            return super.getEffectMessage(context);
         }
         return ['capture {0} with {1}', [this.getTargetMessage(target, context), captor]];
     }

@@ -1,7 +1,7 @@
 import FormData from 'form-data';
 
 import { httpPostFormData } from '../../Util';
-import type { ISerializedReportState, ISerializedUndoFailureState, MessageText } from '../Interfaces';
+import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState } from '../Interfaces';
 import { logger } from '../../logger';
 
 interface IDiscordFormat {
@@ -34,7 +34,16 @@ export interface IDiscordDispatcher {
      * @param lobbyId The lobby ID associated with the error
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
-    formatAndSendServerErrorAsync(description: string, error: Error, lobbyId: string): Promise<EitherPostResponseOrBoolean>;
+    formatAndSendServerErrorAsync(
+        description: string,
+        error: Error,
+        gameState: ISerializedGameState,
+        messages: ISerializedMessage[],
+        lobbyId: string,
+        player1Id: string,
+        player2Id: string,
+        gameStepsSinceLastUndo?: number
+    ): Promise<EitherPostResponseOrBoolean>;
 }
 
 export class DiscordDispatcher implements IDiscordDispatcher {
@@ -114,6 +123,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 value: bugReport.timestamp,
                 inline: true,
             },
+            {
+                name: 'Game Steps Since Last Undo',
+                value: bugReport.gameStepsSinceLastUndo,
+                inline: true,
+            }
         ];
 
         // Add screen resolution if available
@@ -160,21 +174,9 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         // Add the message payload
         formData.append('payload_json', JSON.stringify(data));
 
-        // Add the game state as a file attachment
-        const gameStateJson = JSON.stringify(bugReport.gameState, null, 2);
-        const fileName = `bug-report-${bugReport.lobbyId}-${new Date().getTime()}.json`;
-        formData.append('files[0]', Buffer.from(gameStateJson), {
-            filename: fileName,
-            contentType: 'application/json',
-        });
-
-        // Add the messages as a text file attachment
-        const messagesText = DiscordDispatcher.formatMessagesToText(bugReport.messages, bugReport.reporter.id, bugReport.opponent.id);
-        const messagesFileName = `bug-report-messages-${bugReport.lobbyId}-${new Date().getTime()}.txt`;
-        formData.append('files[1]', Buffer.from(messagesText), {
-            filename: messagesFileName,
-            contentType: 'text/plain',
-        });
+        const timestamp = new Date().getTime();
+        this.addGameStateToForm(formData, bugReport.gameState, bugReport.lobbyId, timestamp);
+        this.addGameMessagesToForm(formData, bugReport.messages, bugReport.lobbyId, bugReport.reporter.id, bugReport.opponent.id, timestamp);
 
         // Send to Discord webhook with file attachment using our custom function
         try {
@@ -193,6 +195,24 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             });
             throw error;
         }
+    }
+
+    private addGameStateToForm(formData: FormData, gameState: any, lobbyId: string, timestamp: number): void {
+        const gameStateJson = JSON.stringify(gameState, null, 2);
+        const fileName = `bug-report-${lobbyId}-${timestamp}.json`;
+        formData.append('files[0]', Buffer.from(gameStateJson), {
+            filename: fileName,
+            contentType: 'application/json',
+        });
+    }
+
+    private addGameMessagesToForm(formData: FormData, messages: ISerializedMessage[], lobbyId: string, reporterId: string, opponentId: string, timestamp: number): void {
+        const messagesText = DiscordDispatcher.formatMessagesToText(messages, reporterId, opponentId);
+        const fileName = `bug-report-messages-${lobbyId}-${timestamp}.json`;
+        formData.append('files[1]', Buffer.from(messagesText), {
+            filename: fileName,
+            contentType: 'application/json',
+        });
     }
 
     public formatAndSendUndoFailureReportAsync(undoFailure: ISerializedUndoFailureState): Promise<EitherPostResponseOrBoolean> {
@@ -272,7 +292,16 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         return httpPostFormData(this._serverErrorWebhookUrl, formData);
     }
 
-    public formatAndSendServerErrorAsync(description: string, error: Error, lobbyId: string): Promise<EitherPostResponseOrBoolean> {
+    public formatAndSendServerErrorAsync(
+        description: string,
+        error: Error,
+        gameState: ISerializedGameState,
+        messages: ISerializedMessage[],
+        lobbyId: string,
+        player1Id: string,
+        player2Id: string,
+        gameStepsSinceLastUndo?: number
+    ): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
             if (process.env.NODE_ENV !== 'test') {
@@ -304,6 +333,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 value: error.message,
                 inline: false,
             },
+            {
+                name: 'Game Steps Since Last Undo',
+                value: gameStepsSinceLastUndo != null ? gameStepsSinceLastUndo.toString() : 'N/A',
+                inline: true,
+            },
         ];
 
         const data: IDiscordFormat = {
@@ -323,8 +357,13 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         // Add the message payload
         formData.append('payload_json', JSON.stringify(data));
 
-        const fileName = `server-error-stack-trace-${lobbyId}-${new Date().getTime()}.txt`;
-        formData.append('files[0]', Buffer.from(error.stack || ''), {
+        const timestamp = new Date().getTime();
+
+        this.addGameStateToForm(formData, gameState, lobbyId, timestamp);
+        this.addGameMessagesToForm(formData, messages, lobbyId, player1Id, player2Id, timestamp);
+
+        const fileName = `server-error-stack-trace-${lobbyId}-${timestamp}.txt`;
+        formData.append('files[2]', Buffer.from(error.stack || ''), {
             filename: fileName,
             contentType: 'text/plain',
         });
@@ -338,7 +377,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
      * @param reporter Reporting player
      * @returns Formatted text string
      */
-    private static formatMessagesToText(messages: { date: Date; message: MessageText | { alert: { type: string; message: string | string[] } } }[], reporter: string, opponent: string): string {
+    private static formatMessagesToText(messages: ISerializedMessage[], reporter: string, opponent: string): string {
         return messages.map((messageEntry) => {
             const message = messageEntry.message;
 

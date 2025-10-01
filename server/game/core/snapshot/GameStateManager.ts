@@ -6,7 +6,7 @@ import * as Helpers from '../utils/Helpers.js';
 import { to } from '../utils/TypeHelpers';
 import v8 from 'node:v8';
 import { logger } from '../../../logger';
-import { AlertType } from '../Constants';
+import { AlertType, GameErrorSeverity } from '../Constants';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
@@ -51,7 +51,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {
-            this.game.reportError(error, true);
+            this.game.reportError(error, GameErrorSeverity.SevereHaltGame);
 
             throw error;
         }
@@ -154,7 +154,8 @@ export class GameStateManager implements IGameObjectRegistrar {
                 }
             } catch (error) {
                 if (!beforeRollbackSnapshot) {
-                    this.game.reportSevereRollbackFailure(error, 'Error during rollback to snapshot and no beforeRollbackSnapshot provided. Game has reached an unrecoverable state.');
+                    logger.error('Error during rollback to snapshot and no beforeRollbackSnapshot provided, game may be in unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.game.lobbyId });
+                    this.game.reportSevereRollbackFailure(error);
                 }
 
                 rollbackError = error;
@@ -168,7 +169,8 @@ export class GameStateManager implements IGameObjectRegistrar {
                     this.game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.');
                     return false;
                 } catch (error) {
-                    this.game.reportSevereRollbackFailure(error, 'The attempt to restore game state from prior to rollback has failed. Game has reached an unrecoverable state.');
+                    logger.error('The attempt to restore game state from prior to rollback has failed. Game has reached an unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.game.lobbyId });
+                    this.game.reportSevereRollbackFailure(error);
                 }
             }
 

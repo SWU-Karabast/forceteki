@@ -18,7 +18,7 @@ import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer, ISwuStatsToken } from './GameServer';
-import { AlertType } from '../game/core/Constants';
+import { AlertType, GameEndReason, GameErrorSeverity } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 
@@ -27,6 +27,10 @@ interface LobbySpectator {
     username: string;
     state: 'connected' | 'disconnected';
     socket?: Socket;
+}
+
+enum LobbySettingKeys {
+    UndoEnabled = 'undoEnabled',
 }
 
 export interface LobbyUser extends LobbySpectator {
@@ -42,6 +46,8 @@ export enum DeckSource {
     SWUStats = 'swuStats',
     SWUDB = 'swuDb',
     SWUnlimitedDB = 'swUnlimitedDb',
+    SWUBase = 'swuBase',
+    SWUCardHub = 'swuCardHub',
     Unknown = 'unknown'
 }
 
@@ -98,8 +104,10 @@ export class Lobby {
     private readonly testGameBuilder?: any;
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
-    private readonly undoMode: UndoMode = UndoMode.Disabled;
     private readonly swuStatsEnabled: boolean = true;
+
+    // configurable lobby properties
+    private undoMode: UndoMode = UndoMode.Disabled;
 
     private game?: Game;
     public users: LobbyUser[] = [];
@@ -114,6 +122,7 @@ export class Lobby {
     private usersLeftCount = 0;
     private playersDetails: PlayerDetails[] = [];
     private gameMessageErrorCount = 0;
+    private statsUpdateStatus = new Map<string, Map<StatsSource, IStatsMessageFormat>>();
 
     public constructor(
         lobbyName: string,
@@ -173,7 +182,9 @@ export class Lobby {
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
-            undoEnabled: this.undoMode === UndoMode.Full,
+            settings: {
+                undoEnabled: this.undoMode === UndoMode.Full,
+            },
         };
     }
 
@@ -183,7 +194,8 @@ export class Lobby {
             username: user.username,
             state: user.state,
             ready: user.ready,
-            authenticated: user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser()
+            authenticated: user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser(),
+            chatDisabled: !!user.socket?.user.getModeration(),
         };
 
         const extendedData = fullData ? {
@@ -609,7 +621,7 @@ export class Lobby {
             this.game.addMessage('{0} has left the game', this.game.getPlayerById(id));
             const otherPlayer = this.users.find((u) => u.id !== id);
             if (otherPlayer) {
-                this.game.endGame(this.game.getPlayerById(otherPlayer.id), `${user.username} has conceded`);
+                this.game.endGame(this.game.getPlayerById(otherPlayer.id), GameEndReason.PlayerLeft);
             }
             this.sendGameState(this.game);
         }
@@ -694,8 +706,13 @@ export class Lobby {
                 return DeckSource.SWUDB;
             } else if (deckLink.includes('swunlimiteddb.com')) {
                 return DeckSource.SWUnlimitedDB;
+            } else if (deckLink.includes('swubase.com')) {
+                return DeckSource.SWUBase;
+            } else if (deckLink.includes('swucardhub.fr')) {
+                return DeckSource.SWUCardHub;
             }
         }
+
         // Default fallback
         return DeckSource.Unknown;
     }
@@ -703,6 +720,7 @@ export class Lobby {
     private async onStartGameAsync() {
         try {
             this.rematchRequest = null;
+            this.statsUpdateStatus.clear();
             const game = new Game(this.buildGameSettings(), { router: this });
             this.game = game;
             game.started = true;
@@ -926,7 +944,7 @@ export class Lobby {
         return timeout;
     }
 
-    public handleError(game: Game, error: Error, severeGameMessage = false) {
+    public handleError(game: Game, error: Error, severity = GameErrorSeverity.Normal) {
         logger.error('Game: handleError', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
 
         let maxErrorCountExceeded = false;
@@ -934,27 +952,44 @@ export class Lobby {
         this.gameMessageErrorCount++;
         if (this.gameMessageErrorCount > Lobby.MaxGameMessageErrors) {
             logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
-            severeGameMessage = true;
+            severity = GameErrorSeverity.SevereHaltGame;
             maxErrorCountExceeded = true;
         }
 
-        if (game && severeGameMessage) {
+        if (game && (severity === GameErrorSeverity.SevereGameMessageOnly || severity === GameErrorSeverity.SevereHaltGame)) {
             const discordMessage = maxErrorCountExceeded
                 ? `Maximum error count ${Lobby.MaxGameMessageErrors} exceeded, game halted to prevent server crash`
                 : 'Severe game error reported, game is in an unrecoverable state';
 
-            game.discordDispatcher.formatAndSendServerErrorAsync(discordMessage, error, this.id)
+            const [player1Id, player2Id] = game.getPlayers().map((p) => p.id);
+
+            // TODO: re-enable once game state capture has error guards
+            // const gameState = this.game.captureGameState(player1Id);
+            const gameState = { captureError: 'Game state capture not implemented yet for server error reports' } as any;
+
+            game.discordDispatcher.formatAndSendServerErrorAsync(
+                discordMessage,
+                error,
+                gameState,
+                this.game.getLogMessages(),
+                this.id,
+                player1Id,
+                player2Id,
+                this.game.gameStepsSinceLastUndo
+            )
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
 
             game.addMessage(
-                `A server error has occurred, apologies.  Your game may now be in an inconsistent state, or you may be able to continue. The error has been reported to the dev team. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
+                `A server error has occurred, apologies. Your game may now be in an inconsistent state, or you may be able to continue. The error has been reported to the dev team. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
             );
 
             // send game state so that the message can be seen
             this.sendGameState(this.game);
 
-            // this is ugly since we're probably within an exception handler currently, but if we get here it's already crisis
-            throw error;
+            if (severity === GameErrorSeverity.SevereHaltGame) {
+                // this is ugly since we're probably within an exception handler currently, but if we get here it's already crisis
+                throw error;
+            }
         }
     }
 
@@ -966,6 +1001,13 @@ export class Lobby {
         if (this.hasPlayer(userId)) {
             // we try/catch in the offchance the user disconnects after the if statement
             try {
+                // cache update message in case we undo the game-end and end again
+                if (this.statsUpdateStatus.has(userId)) {
+                    this.statsUpdateStatus.get(userId).set(messageParameters.source, messageParameters);
+                } else {
+                    this.statsUpdateStatus.set(userId, new Map([[messageParameters.source, messageParameters]]));
+                }
+
                 this.getUser(userId).socket.send('statsSubmitNotification', messageParameters);
             } catch (error) {
                 logger.error('(sendStatsMessageToUser): Error sending statsSubmitNotification', { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId });
@@ -982,12 +1024,12 @@ export class Lobby {
             if (!playerUser.user.isAuthenticatedUser()) {
                 return { type: StatsSaveStatus.Warning,
                     source: StatsSource.Karabast,
-                    message: 'Deck stats can only be saved for logged-in users' };
+                    message: 'deck stats can only be saved for logged-in users' };
             }
             if (!playerUser.isDeckPresentInDb) {
                 return { type: StatsSaveStatus.Warning,
                     source: StatsSource.Karabast,
-                    message: 'Stats can only be updated for saved decks' };
+                    message: 'stats can only be updated for saved decks' };
             }
 
             // Get the deck service
@@ -1003,12 +1045,12 @@ export class Lobby {
             logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${this.id}`, { lobbyId: this.id, userId: playerUser.user.getId() });
             return { type: StatsSaveStatus.Success,
                 source: StatsSource.Karabast,
-                message: 'Deck stats successfully updated' };
+                message: 'deck stats successfully updated' };
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck Karabast stats for a player:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: playerUser.user.getId() });
             return { type: StatsSaveStatus.Error,
                 source: StatsSource.Karabast,
-                message: 'An error occurred while updating stats' };
+                message: 'an error occurred while updating stats' };
         }
     }
 
@@ -1038,12 +1080,12 @@ export class Lobby {
                 player1SwuStatsStatus: this.hasSwuStatsSource(player1User) ? {
                     type: StatsSaveStatus.Error,
                     source: StatsSource.SwuStats,
-                    message: 'An error occurred while sending stats'
+                    message: 'an error occurred while sending stats'
                 } : null,
                 player2SwuStatsStatus: this.hasSwuStatsSource(player2User) ? {
                     type: StatsSaveStatus.Error,
                     source: StatsSource.SwuStats,
-                    message: 'An error occurred while sending stats'
+                    message: 'an error occurred while sending stats'
                 } : null
             };
         }
@@ -1063,8 +1105,8 @@ export class Lobby {
     private async endGameUpdateStatsAsync(game: Game): Promise<void> {
         logger.info(`Lobby ${this.id}: Updating deck stats for game ${game.id}`, { lobbyId: this.id });
         // pre-populate the status messages with an error that we will send by default in case something fails
-        let player1KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'An error occurred while updating stats' };
-        let player2KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'An error occurred while updating stats' };
+        let player1KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'an error occurred while updating stats' };
+        let player2KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'an error occurred while updating stats' };
 
         // Get the players from the game
         const players = game.getPlayers();
@@ -1082,10 +1124,10 @@ export class Lobby {
 
         // SWUStats
         let player1SwuStatsStatus = this.hasSwuStatsSource(player1User)
-            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'An error occurred while updating stats' }
+            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'an error occurred while updating stats' }
             : null;
         let player2SwuStatsStatus = this.hasSwuStatsSource(player2User)
-            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'An error occurred while updating stats' }
+            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'an error occurred while updating stats' }
             : null;
 
         try {
@@ -1118,7 +1160,14 @@ export class Lobby {
                 player1KarabastStatus.type = StatsSaveStatus.Warning;
                 player2KarabastStatus.message = 'stats not updated due to game ending before round 2';
                 player2KarabastStatus.type = StatsSaveStatus.Warning;
-                // so we throw here?
+                if (player1SwuStatsStatus) {
+                    player1SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
+                    player1SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
+                if (player2SwuStatsStatus) {
+                    player2SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
+                    player2SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
                 logger.info('stats not updated due to game ending before round 2', { lobbyId: this.id });
                 return;
             }
@@ -1141,6 +1190,17 @@ export class Lobby {
             if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier && this.swuStatsEnabled) {
                 ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1User, player2User));
             }
+            // Send warning that swustats are not updated when in non-premier format.
+            if (this.format !== SwuGameFormat.Premier && this.swuStatsEnabled) {
+                if (player1SwuStatsStatus) {
+                    player1SwuStatsStatus.message = 'stats update not supported for non-Premier formats';
+                    player1SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
+                if (player2SwuStatsStatus) {
+                    player2SwuStatsStatus.message = 'stats update not supported for non-Premier formats';
+                    player2SwuStatsStatus.type = StatsSaveStatus.Warning;
+                }
+            }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for ${game.id}`, { lobbyId: this.id });
         } finally {
             this.sendStatsMessageToUser(player1User.user.getId(), player1KarabastStatus);
@@ -1151,6 +1211,37 @@ export class Lobby {
             if (player2SwuStatsStatus && this.swuStatsEnabled) {
                 this.sendStatsMessageToUser(player2User.user.getId(), player2SwuStatsStatus);
             }
+        }
+    }
+
+    /**
+     * If the game has already ended and stats were updated (i.e. there was an undo and we're ending again),
+     * send a clear stats message to the user
+     * @param game
+     */
+    private sendRepeatedEndGameUpdateStatsMessages(game: Game): void {
+        const cachedMessages: { userId: string; content: IStatsMessageFormat }[] = [];
+
+        for (const [userId, messageTypes] of this.statsUpdateStatus) {
+            for (const messageType of messageTypes.values()) {
+                cachedMessages.push({ userId, content: messageType });
+            }
+        }
+
+        for (const message of cachedMessages) {
+            // if the last message was not a success, just repeat the same message
+            if (message.content.type !== StatsSaveStatus.Success) {
+                this.sendStatsMessageToUser(message.userId, message.content);
+                continue;
+            }
+
+            this.sendStatsMessageToUser(message.userId,
+                {
+                    type: StatsSaveStatus.Warning,
+                    source: message.content.source,
+                    message: 'stats already updated for this game'
+                }
+            );
         }
     }
 
@@ -1166,12 +1257,16 @@ export class Lobby {
 
     public sendGameState(game: Game, forceSend = false): void {
         // we check here if the game ended and update the stats.
-        if (game.winnerNames.length > 0 && game.finishedAt && !game.statsUpdated) {
-            // Update deck stats asynchronously
-            game.statsUpdated = true;
-            this.endGameUpdateStatsAsync(game).catch((error) => {
-                logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-            });
+        if (game.winnerNames.length > 0 && game.finishedAt) {
+            if (game.statsUpdated) {
+                this.sendRepeatedEndGameUpdateStatsMessages(game);
+            } else {
+                // Update deck stats asynchronously
+                game.statsUpdated = true;
+                this.endGameUpdateStatsAsync(game).catch((error) => {
+                    logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+                });
+            }
         }
 
         // we send the game state to all users and spectators
@@ -1203,6 +1298,33 @@ export class Lobby {
                 user.socket.send('lobbystate', this.getLobbyState(user));
             }
         }
+    }
+
+    private updateSetting(socket: Socket, ...args: any[]): void {
+        // Expect the rematch mode to be passed as the first argument: 'reset' or 'regular'
+        Contract.assertTrue(args.length === 2, 'Expected setting name and value arguments but argument length is: ' + args.length);
+        const settingName = args[0];
+        const settingValue = args[1];
+        Contract.assertTrue(typeof settingName === 'string', 'Invalid setting argument, expected string name but received: ' + settingName);
+
+        const user = this.getUser(socket.user.getId());
+        Contract.assertTrue(user.id === this.lobbyOwnerId, `User ${user.id} attempted to change lobby settings but is not the lobby owner (${this.lobbyOwnerId})`);
+
+        switch (settingName) {
+            case LobbySettingKeys.UndoEnabled:
+                this.assertSettingType(settingName, settingValue, 'boolean');
+                this.undoMode = settingValue ? UndoMode.Full : UndoMode.Disabled;
+                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo`);
+                break;
+            default:
+                Contract.fail(`Unknown setting name: ${settingName}`);
+        }
+
+        this.sendLobbyState();
+    }
+
+    private assertSettingType(settingName: string, settingValue: any, expectedType: string): void {
+        Contract.assertTrue(typeof settingValue === expectedType, `Invalid setting value for ${settingName}, expected ${expectedType} but received: ` + settingValue);
     }
 
     // Report bug method; front-end RPC from sendLobbyMessage()
@@ -1241,6 +1363,7 @@ export class Lobby {
                 opponent.socket.user,
                 gameMessages,
                 this.id,
+                this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
                 viewport

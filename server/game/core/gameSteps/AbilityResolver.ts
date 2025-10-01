@@ -1,6 +1,6 @@
 import { BaseStepWithPipeline } from './BaseStepWithPipeline.js';
 import { SimpleStep } from './SimpleStep.js';
-import { ZoneName, Stage, EventName, RelativePlayer } from '../Constants.js';
+import { ZoneName, Stage, EventName, RelativePlayer, GameErrorSeverity } from '../Constants.js';
 import { GameEvent } from '../event/GameEvent.js';
 import type Game from '../Game.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
@@ -341,7 +341,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
         try {
             return this.pipeline.continue(this.game);
         } catch (err) {
-            this.game.reportError(err, true);
+            this.game.reportError(err, GameErrorSeverity.SevereGameMessageOnly);
 
             // if we hit an error resolving an ability, try to close out the ability gracefully and move on
             // to see if we can preserve a playable game state

@@ -40,8 +40,8 @@ export class SnapshotManager {
     ]);
 
     private static readonly TestSnapshotLimits = new Map<SnapshotType, number>([
-        [SnapshotType.Action, 2],
-        [SnapshotType.Phase, 1],
+        [SnapshotType.Action, 3],
+        [SnapshotType.Phase, 2],
     ]);
 
     public readonly undoMode: UndoMode;
@@ -56,6 +56,8 @@ export class SnapshotManager {
 
     /** Maps each player id to a map of snapshots by snapshot id */
     protected readonly manualSnapshots: Map<string, SnapshotMap<number>>;
+
+    private _gameStepsSinceLastUndo?: number;
 
     public get currentSnapshotId(): number | null {
         return this.snapshotFactory.currentSnapshotId;
@@ -75,6 +77,10 @@ export class SnapshotManager {
 
     public get currentSnapshottedTimepoint(): SnapshotTimepoint | null {
         return this.snapshotFactory.currentSnapshottedTimepoint;
+    }
+
+    public get gameStepsSinceLastUndo(): number {
+        return this._gameStepsSinceLastUndo;
     }
 
     /** Exposes a version of GameStateManager that doesn't have access to rollback functionality */
@@ -107,6 +113,10 @@ export class SnapshotManager {
         }
 
         this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint);
+
+        if (this._gameStepsSinceLastUndo != null) {
+            this._gameStepsSinceLastUndo++;
+        }
     }
 
     public takeSnapshot(settings: ISnapshotSettings): number {
@@ -226,6 +236,7 @@ export class SnapshotManager {
         if (rolledBackSnapshotIdx != null) {
             // Throw out all snapshots after the rollback snapshot.
             this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
+            this._gameStepsSinceLastUndo = 0;
             return { success: true, entryPoint: this.getEntryPointAfterRollback(settings) };
         }
 
@@ -343,10 +354,7 @@ export class SnapshotManager {
                             entryPoint: RollbackRoundEntryPoint.EndOfActionPhase,
                         };
                     case PhaseName.Regroup:
-                        return {
-                            type: RollbackEntryPointType.Round,
-                            entryPoint: RollbackRoundEntryPoint.EndOfRegroupPhase,
-                        };
+                        throw new Error('Rolling back to end of regroup phase is not supported');
                 }
             default:
                 Contract.fail(`Unimplemented snapshot type: ${JSON.stringify(settings)}`);

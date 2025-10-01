@@ -150,7 +150,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 context.player1.clickCard(context.cassianAndor);
                 context.player1.clickPrompt(prompt);
 
-                expect(context.player1).toHavePrompt(`The ability "${prompt}" will have no effect. Are you sure you want to use it?`);
+                expect(context.player1).toHaveNoEffectAbilityPrompt(prompt);
                 context.player1.clickPrompt('Use it anyway');
 
                 expect(context.cassianAndor.exhausted).toBeTrue();
@@ -163,7 +163,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        deck: ['k2so#cassians-counterpart', 'red-three#unstoppable'],
+                        deck: ['k2so#cassians-counterpart', 'atst', 'awing', 'red-three#unstoppable'],
                         hand: ['daring-raid'],
                         groundArena: ['yoda#old-master'],
                         spaceArena: ['green-squadron-awing'],
@@ -174,9 +174,6 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                         groundArena: ['wampa'],
                         spaceArena: ['tieln-fighter'],
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -217,8 +214,8 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
 
                 context.player2.passAction();
 
-                // Expect to have spent daring-raid and gained red three
-                expect(context.player1.hand).toHaveSize(2);
+                // Expect to have spent daring-raid and gained red three + 2 cards from regroup phase
+                expect(context.player1.hand).toHaveSize(4);
                 expect(context.player1.hand).toContain(context.redThree);
             });
 

@@ -52,7 +52,8 @@ export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty, ICa
 
 export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
     getPlayCardActions(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction[];
-    getPlayCardFromOutOfPlayActions(propertyOverrides?: IPlayCardActionOverrides);
+    getPlayCardFromOutOfPlayActions(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction[];
+    getPlayCardWithPlotAction(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction;
     buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
 }
 
@@ -115,10 +116,6 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
             }
         }
 
-        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Plot)) {
-            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Plot, propertyOverrides));
-        }
-
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides));
         }
@@ -154,6 +151,19 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         }
 
         return playCardActions;
+    }
+
+    public getPlayCardWithPlotAction(propertyOverrides: IPlayCardActionOverrides = null) {
+        Contract.assertTrue(
+            this.zoneName === ZoneName.Resource,
+            `Attempting to get "play with plot" actions for card ${this.internalName} in invalid zone: ${this.zoneName}`
+        );
+
+        const actions = this.buildPlayCardActions(PlayType.Plot, propertyOverrides);
+
+        Contract.assertArraySize(actions, 1, `Expected exactly one "play with plot" action for card ${this.internalName}, found ${actions.length}`);
+
+        return actions[0];
     }
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {

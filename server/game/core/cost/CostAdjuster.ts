@@ -36,7 +36,7 @@ export enum CostStage {
 export interface ICostAdjusterPropertiesBase {
 
     /** The type of cards that can be reduced */
-    cardTypeFilter?: CardTypeFilter;
+    cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
 
     /** The type of cost adjustment */
     costAdjustType: CostAdjustType;
@@ -111,7 +111,7 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     protected readonly limit: AbilityLimit | null;
     private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext, currentAmount?: number) => number);
     private readonly match?: (card: Card, adjusterSource: Card) => boolean;
-    private readonly cardTypeFilter?: CardTypeFilter;
+    private readonly cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     private readonly playType?: PlayType;
     private readonly attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
     private readonly costStage: CostStage;

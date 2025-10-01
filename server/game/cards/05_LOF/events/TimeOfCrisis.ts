@@ -15,27 +15,26 @@ export default class TimeOfCrisis extends EventCard {
         registrar.setEventAbility({
             title: 'Each player chooses a unit they control. Deal 3 damage to each unit not chosen this way',
             targetResolvers: {
-                opponentChoice: {
-                    choosingPlayer: RelativePlayer.Opponent,
-                    cardTypeFilter: WildcardCardType.Unit,
-                    zoneFilter: WildcardZoneName.AnyArena,
-                    controller: RelativePlayer.Opponent,
-                    immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                        amount: 3,
-                        target: context.player.opponent.getArenaUnits({ otherThan: context.targets.opponentChoice })
-                    })),
-                },
                 selfChoice: {
                     choosingPlayer: RelativePlayer.Self,
                     cardTypeFilter: WildcardCardType.Unit,
                     zoneFilter: WildcardZoneName.AnyArena,
-                    controller: RelativePlayer.Self,
-                    immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                        amount: 3,
-                        target: context.player.getArenaUnits({ otherThan: context.targets.selfChoice })
-                    })),
+                    controller: RelativePlayer.Self
+                },
+                opponentChoice: {
+                    choosingPlayer: RelativePlayer.Opponent,
+                    cardTypeFilter: WildcardCardType.Unit,
+                    zoneFilter: WildcardZoneName.AnyArena,
+                    controller: RelativePlayer.Opponent
                 }
-            }
+            },
+            then: (thenContext) => ({
+                title: 'Deal 3 damage to each unit not chosen this way',
+                immediateEffect: AbilityHelper.immediateEffects.damage({
+                    amount: 3,
+                    target: thenContext.game.getArenaUnits({ condition: (card) => card !== thenContext.targets.opponentChoice && card !== thenContext.targets.selfChoice })
+                })
+            })
         });
     }
 }
