@@ -59,6 +59,25 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
+    public override hasLegalTarget(
+        context: TContext,
+        additionalProperties?: Partial<IDiscardCardsFromHandProperties>,
+        mustChangeGameState?: GameStateChangeRequired
+    ): boolean {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        for (const player of properties.target as Player[]) {
+            const availableHand = player.hand.filter((card) => properties.cardCondition(card, context) && EnumHelpers.cardTypeMatches(card.type, properties.cardTypeFilter));
+            const amount = Math.min(availableHand.length, derive(properties.amount, player));
+
+            if (amount > 0 || (mustChangeGameState && mustChangeGameState !== GameStateChangeRequired.None)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public override canAffectInternal(playerOrPlayers: Player | Player[], context: TContext, additionalProperties: Partial<IDiscardCardsFromHandProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         for (const player of Helpers.asArray(playerOrPlayers)) {
             const properties = this.generatePropertiesFromContext(context, additionalProperties);

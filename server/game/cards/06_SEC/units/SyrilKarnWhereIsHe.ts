@@ -35,8 +35,7 @@ export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
                             }),
                             ['Discard a card']: abilityHelper.immediateEffects.discardCardsFromOwnHand({
                                 target: context.targets.targetUnit.controller,
-                                amount: 1,
-                                isCost: true
+                                amount: 1
                             })
                         })
                     }
