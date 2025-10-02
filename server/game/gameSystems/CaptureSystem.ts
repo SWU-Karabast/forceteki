@@ -4,11 +4,12 @@ import { GameStateChangeRequired, ZoneName, WildcardCardType, EventName, Ability
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import type { IBaseCard } from '../core/card/BaseCard';
 
 export interface ICaptureProperties extends ICardTargetSystemProperties {
 
     /** Defaults to context.source, if used in an event must be provided explicitly */
-    captor?: IUnitCard;
+    captor?: IUnitCard | IBaseCard;
 }
 
 /**
@@ -34,7 +35,7 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
             return false;
         }
 
-        if (!properties.captor.isInPlay() || !properties.captor.isUnit()) {
+        if (properties.captor.isUnit() && !properties.captor.isInPlay()) {
             return false;
         }
 
@@ -47,18 +48,25 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { captor, target } = this.generatePropertiesFromContext(context);
+
         if (captor === context.source) {
             return super.getEffectMessage(context);
         }
-        return ['capture {0} with {1}', [this.getTargetMessage(target, context), captor]];
+
+        return ['capture {0} with {1}', [
+            this.getTargetMessage(target, context),
+            this.getTargetMessage(captor, context)
+        ]];
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<TProperties>): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         const { captor } = this.generatePropertiesFromContext(context);
 
-        Contract.assertTrue(captor.isUnit(), `Attempting to capture card ${card.internalName} for card ${captor.internalName} but the captor is not a unit card`);
-        Contract.assertTrue(captor.isInPlay(), `Attempting to capture card ${card.internalName} for card ${captor.internalName} but the captor is in non-play zone ${captor.zoneName}`);
+        Contract.assertTrue(
+            (captor.isUnit() && captor.isInPlay()) || captor.isBase(),
+            `Attempting to capture card ${card.internalName} for card ${captor.internalName} but the captor is neither an in-play unit nor a base`
+        );
 
         event.captor = captor;
     }

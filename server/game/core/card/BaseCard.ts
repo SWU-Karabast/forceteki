@@ -1,4 +1,5 @@
 import type { Player } from '../Player';
+import type { ICardState } from './Card';
 import { Card } from './Card';
 import { CardType } from '../Constants';
 import * as Contract from '../utils/Contract';
@@ -15,10 +16,17 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import { EpicActionAbility } from '../../abilities/EpicActionAbility';
 import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ICardWithCaptureZone } from '../zone/CaptureZone';
+import { CaptureZone } from '../zone/CaptureZone';
+import type { GameObjectRef } from '../GameObjectBase';
 
-const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
+const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card<IBaseCardState>)))));
 
-export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities<IBaseCard>, ICardWithTriggeredAbilities<IBaseCard> {
+export interface IBaseCardState extends ICardState {
+    captureZone: GameObjectRef<CaptureZone> | null;
+}
+
+export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities<IBaseCard>, ICardWithTriggeredAbilities<IBaseCard>, ICardWithCaptureZone {
     get epicActionSpent(): boolean;
 }
 
@@ -29,6 +37,10 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     public get epicActionSpent() {
         Contract.assertNotNullLike(this._epicActionAbility, `Attempting to check if epic action for card ${this.internalName} is spent, but no epic action ability is set`);
         return this.epicActionSpentInternal();
+    }
+
+    public get captureZone(): CaptureZone {
+        return this.game.gameObjectManager.get(this.state.captureZone);
     }
 
     public constructor(owner: Player, cardData: ICardDataJson) {
@@ -45,6 +57,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
 
         this.setDamageEnabled(true);
         this.setActiveAttackEnabled(true);
+        this.initializeCaptureZone();
 
         for (const ability of this.getTriggeredAbilities()) {
             ability.registerEvents();
@@ -98,4 +111,9 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
+
+    private initializeCaptureZone() {
+        this.state.captureZone = new CaptureZone(this.game, this.owner, this)
+            .getRef();
+    }
 }

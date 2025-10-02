@@ -25,6 +25,7 @@ import type { GameEvent } from '../../event/GameEvent';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
+import type { ICaptor, ICardWithCaptureZone } from '../../zone/CaptureZone';
 import { CaptureZone } from '../../zone/CaptureZone';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { Player } from '../../Player';
@@ -80,15 +81,14 @@ export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardA
     addPilotingGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<T, IUnitCard>): void;
 }
 
-export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty {
+export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone {
     get defaultArena(): Arena;
     get capturedUnits(): IUnitCard[];
-    get captureZone(): CaptureZone;
     get lastPlayerToModifyHp(): Player;
     get isClonedUnit(): boolean;
     readonly upgrades: IUpgradeCard[];
     isClone(): this is Clone;
-    getCaptor(): IUnitCard | null;
+    getCaptor(): ICaptor | null;
     isAttacking(): boolean;
     isCaptured(): boolean;
     isUpgraded(): boolean;
@@ -240,7 +240,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return false;
         }
 
-        public getCaptor(): IUnitCard | null {
+        public getCaptor(): ICaptor | null {
             if (this.zone.name !== ZoneName.Capture) {
                 return null;
             }
