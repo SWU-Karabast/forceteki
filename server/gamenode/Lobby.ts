@@ -671,13 +671,15 @@ export class Lobby {
         // eslint-disable-next-line
         const router = this;
 
+        const enableConfirmationToUndo = true;
         const game: Game = await this.testGameBuilder.setUpTestGameAsync(
             setupData,
             this.cardDataGetter,
             router,
             { id: 'exe66', username: 'Order66' },
             { id: 'th3w4y', username: 'ThisIsTheWay' },
-            UndoMode.Full
+            UndoMode.Full,
+            enableConfirmationToUndo
         );
 
         this.game = game;

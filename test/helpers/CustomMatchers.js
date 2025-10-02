@@ -580,6 +580,28 @@ var customMatchers = {
             }
         };
     },
+    toHaveConfirmUndoPrompt: function () {
+        return {
+            compare: function (player) {
+                var result = {};
+
+                const rollbackActionPromptText = 'You opponent would like to rollback to their previous action. Are you sure you want to allow this?';
+                const rollbackManualPromptText = 'You opponent would like to rollback to a previous bookmark. Are you sure you want to allow this?';
+                const hasRollbackActionPrompt = player.hasPrompt(rollbackActionPromptText);
+                const hasRollbackManualPrompt = !hasRollbackActionPrompt && player.hasPrompt(rollbackManualPromptText);
+                result.pass = hasRollbackActionPrompt || hasRollbackManualPrompt;
+
+                if (result.pass) {
+                    const promptText = hasRollbackActionPrompt ? rollbackActionPromptText : rollbackManualPromptText;
+                    result.message = `Expected ${player.name} not to have confirm undo prompt '${promptText}' but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have confirm undo prompt but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                }
+
+                return result;
+            }
+        };
+    },
     toBeInBottomOfDeck: function () {
         return {
             compare: function (card, player, numCards) {
