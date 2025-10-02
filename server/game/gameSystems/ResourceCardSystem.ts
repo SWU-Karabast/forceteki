@@ -5,6 +5,8 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 import * as Contract from '../core/utils/Contract';
 import type { GameEvent } from '../core/event/GameEvent';
 import { ReadySystem } from './ReadySystem';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
+import * as Helpers from '../core/utils/Helpers';
 
 export interface IResourceCardProperties extends ICardTargetSystemProperties {
     // TODO: remove completely if faceup logic is not needed
@@ -71,7 +73,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         if (card === context.source) {
             return ['move {0} to {1}\'s resources', [this.getTargetMessage(card, context), card.controller.opponent]];
         }
-        return ['move a card to {0}\'s resources', [card.controller.opponent]];
+        return ['move {0} to {1}\'s resources', [ChatHelpers.pluralize(Helpers.asArray(properties.target).length, 'a card', 'cards'), context.player.opponent]];
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IResourceCardProperties>): void {
