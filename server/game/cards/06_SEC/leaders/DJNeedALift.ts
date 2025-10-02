@@ -19,6 +19,7 @@ export default class DJNeedALift extends LeaderUnitCard {
     ) {
         registrar.addActionAbility({
             title: 'Choose a friendly unit to capture a unit you play from your hand',
+            cost: AbilityHelper.costs.exhaustSelf(),
             targetResolvers: {
                 friendlyUnit: {
                     controller: RelativePlayer.Self,
