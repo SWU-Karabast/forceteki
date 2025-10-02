@@ -2,6 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { DamageSourceType, DefeatSourceType } from '../../../IDamageOrDefeatSource';
+import { DamagePreventionType, RelativePlayer } from '../../../core/Constants';
 
 export default class LurkingTIEPhantom extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -25,38 +26,11 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
             }
         });
 
-        // registrar.addConstantAbility({
-        //     title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
-        //     ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({
-        //         title: 'Prevent all damage that would be dealt to it by enemy card abilities',
-        //         type: AbilityType.ReplacementEffect,
-        //         when: { onDamageDealt: (event, context) =>
-        //             event.card === context.source &&
-        //             !event.isIndirect && event.damageSource.type !== DamageSourceType.Attack && event.damageSource.player !== context.source.controller }
-        //     })
-        // });
-
         registrar.addDamagePreventionAbility({
             title: 'Prevent all damage that would be dealt to it by enemy card abilities',
-            when: { onDamageDealt: (event, context) =>
-                this.isDamageFromEnemyCardAbility(event, context) }
+            preventionType: DamagePreventionType.All,
+            preventDamageFromSource: RelativePlayer.Opponent,
+            preventDamageFrom: DamageSourceType.Ability
         });
-    }
-
-    private isDamageFromEnemyCardAbility(event, context): boolean {
-        if (event.card !== context.source) {
-            return false;
-        }
-
-        // TODO add isUnpreventable flag to event
-        if (event.isUnpreventable || event.isIndirect) {
-            return false;
-        }
-
-        if (event.damageSource.type !== DamageSourceType.Ability) {
-            return false;
-        }
-
-        return event.damageSource.player !== context.source.controller;
     }
 }

@@ -474,6 +474,11 @@ export enum AbilityRestriction {
     ReturnToHand = 'returnToHand',
 }
 
+export enum DamagePreventionType {
+    All = 'all',
+    Reduce = 'reduce',
+}
+
 export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
     CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
