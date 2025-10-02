@@ -2,16 +2,16 @@ import type { IDamagePreventionAbilityProps, IReplacementEffectAbilityProps } fr
 import type { Card } from '../card/Card';
 import type Game from '../Game';
 import { DamagePreventionSystem } from '../../gameSystems/DamagePreventionSystem';
-import ReplacementEffectAbility from './ReplacementEffectAbility';
-import { RelativePlayer } from '../Constants';
+import { AbilityType, RelativePlayer } from '../Constants';
+import TriggeredAbility from './TriggeredAbility';
 
-export default class DamagePreventionAbility extends ReplacementEffectAbility {
+export default class DamagePreventionAbility extends TriggeredAbility {
     public constructor(game: Game, card: Card, properties: IDamagePreventionAbilityProps) {
         const { replaceWith: cancelProps, ...otherProps } = properties;
         const replacementAbilityProps: IReplacementEffectAbilityProps =
             Object.assign(otherProps, { immediateEffect: new DamagePreventionSystem(cancelProps), when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) } });
 
-        super(game, card, replacementAbilityProps);
+        super(game, card, replacementAbilityProps, AbilityType.ReplacementEffect);
     }
 
     // TODO: Ideally this would go in the system I think, but I'm not sure if we can do that given that we need to have this in the 'when'

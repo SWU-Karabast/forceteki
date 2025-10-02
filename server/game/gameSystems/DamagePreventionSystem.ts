@@ -1,12 +1,16 @@
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import type { Card } from '../core/card/Card';
+import type { DamagePreventionType, RelativePlayer } from '../core/Constants';
 import { MetaEventName } from '../core/Constants';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
+import type { DamageSourceType } from '../IDamageOrDefeatSource';
 import type { IReplacementEffectAbilityProps } from '../Interfaces';
 import { ReplacementEffectSystem } from './ReplacementEffectSystem';
 
 export interface IDamagePreventionSystemProperties extends Omit<IReplacementEffectAbilityProps, 'when'> {
-    // effect?: string; // TODO - Do we need this?
-    preventAllDamage?: boolean;
+    preventionType: DamagePreventionType;
+    preventDamageFromSource?: RelativePlayer; // TSTODO - update to accept an array
+    preventDamageFrom?: DamageSourceType;
     preventionAmount?: number;
     triggerCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean; // This can be used to further limit what damage is prevented in addition to the default 'when' checks
 }
@@ -75,17 +79,21 @@ export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = T
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
-        if (properties.replacementImmediateEffect) {
-            properties.replacementImmediateEffect.setDefaultTargetFn(() => properties.target);
-        }
+
         return properties;
     }
 
-    public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<IDamagePreventionSystemProperties>): void {
-        super.addPropertiesToEvent(event, target, context, additionalProperties);
+    // public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<IDamagePreventionSystemProperties>): void {
+    //     super.addPropertiesToEvent(event, target, context, additionalProperties);
 
-        const { replacementImmediateEffect } = this.generatePropertiesFromContext(event.context, additionalProperties);
-        event.replacementImmediateEffect = replacementImmediateEffect;
+    //     const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
+    //     event.replacementImmediateEffect = properties.replacementImmediateEffect;
+    // }
+
+    protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}): GameSystem<TContext> {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties) as IDamagePreventionSystemProperties;
+
+        return super.getReplacementImmediateEffect(context, additionalProperties);
     }
 
     // public override hasLegalTarget(context: TContext, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}, _mustChangeGameState): boolean {

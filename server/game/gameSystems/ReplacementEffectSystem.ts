@@ -87,8 +87,14 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
     public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<IReplacementEffectSystemProperties<TContext>>): void {
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
-        const { replacementImmediateEffect } = this.generatePropertiesFromContext(event.context, additionalProperties);
+        const replacementImmediateEffect = this.getReplacementImmediateEffect(event.context, additionalProperties);
         event.replacementImmediateEffect = replacementImmediateEffect;
+    }
+
+    protected getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}): GameSystem<TContext> {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        // const { replacementImmediateEffect } = this.generatePropertiesFromContext(context, additionalProperties);
+        return properties.replacementImmediateEffect;
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}, _mustChangeGameState): boolean {
