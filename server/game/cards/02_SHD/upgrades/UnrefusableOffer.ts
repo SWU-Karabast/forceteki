@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { KeywordName, PhaseName, PlayType, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { KeywordName, MetaEventName, PhaseName, PlayType, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class UnrefusableOffer extends UpgradeCard {
@@ -31,9 +31,9 @@ export default class UnrefusableOffer extends UpgradeCard {
                 }),
                 ifYouDo: (ifYouDoContext) => ({
                     title: 'At the start of the regroup phase, defeat it',
-                    ifYouDoCondition: (context) => context.events.filter((e) => e.name === 'playCard').length > 0,
+                    ifYouDoCondition: (context) => context.events.filter((e) => e.name === MetaEventName.PlayCard).length > 0 && context.events[0].card.isInPlay(),
                     immediateEffect: AbilityHelper.immediateEffects.delayedCardEffect({
-                        title: 'Defeat it',
+                        title: `Defeat ${ifYouDoContext.events[0].card.title}`,
                         target: ifYouDoContext.events[0].card,
                         when: {
                             onPhaseStarted: (context) => context.phase === PhaseName.Regroup
