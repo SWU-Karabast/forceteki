@@ -1,11 +1,14 @@
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import type { Card } from '../core/card/Card';
-import type { DamagePreventionType, RelativePlayer } from '../core/Constants';
+import type { RelativePlayer } from '../core/Constants';
+import { DamagePreventionType, DamageType } from '../core/Constants';
 import { MetaEventName } from '../core/Constants';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { DamageSourceType } from '../IDamageOrDefeatSource';
 import type { IReplacementEffectAbilityProps } from '../Interfaces';
 import { ReplacementEffectSystem } from './ReplacementEffectSystem';
+import * as Contract from '../core/utils/Contract';
+import { DamageSystem } from './DamageSystem';
 
 export interface IDamagePreventionSystemProperties extends Omit<IReplacementEffectAbilityProps, 'when'> {
     preventionType: DamagePreventionType;
@@ -15,7 +18,7 @@ export interface IDamagePreventionSystemProperties extends Omit<IReplacementEffe
     triggerCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean; // This can be used to further limit what damage is prevented in addition to the default 'when' checks
 }
 
-export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends ReplacementEffectSystem<TContext> {
+export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends ReplacementEffectSystem<TContext, IDamagePreventionSystemProperties> {
     public override readonly eventName = MetaEventName.ReplacementEffect;
 
     // public override eventHandler(event, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}): void {
@@ -93,7 +96,20 @@ export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = T
     protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}): GameSystem<TContext> {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as IDamagePreventionSystemProperties;
 
-        return super.getReplacementImmediateEffect(context, additionalProperties);
+        switch (properties.preventionType) {
+            case DamagePreventionType.All:
+                return null; // Ignore all damage
+            case DamagePreventionType.Reduce:
+                Contract.assertPositiveNonZero(properties.preventionAmount, 'preventionAmount must be a positive non-zero number for DamagePreventionType.Reduce');
+                return new DamageSystem((context) => ({
+                    target: context.source,
+                    amount: Math.max(context.event.amount - properties.preventionAmount, 0),
+                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy.Opponent, // Copied this from Cassian - why is it capitalized?
+                    type: context.event.type,
+                }));
+            default:
+                Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
+        }
     }
 
     // public override hasLegalTarget(context: TContext, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}, _mustChangeGameState): boolean {

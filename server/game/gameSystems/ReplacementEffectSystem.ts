@@ -14,7 +14,7 @@ export interface IReplacementEffectSystemProperties<TContext extends TriggeredAb
     replacementImmediateEffect?: GameSystem<TContext>;
 }
 
-export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends GameSystem<TContext, IReplacementEffectSystemProperties<TContext>> {
+export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext, TProperties extends IReplacementEffectSystemProperties<TContext> = IReplacementEffectSystemProperties<TContext>> extends GameSystem<TContext, TProperties> {
     public override readonly eventName = MetaEventName.ReplacementEffect;
 
     public override eventHandler(event, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}): void {
@@ -57,7 +57,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}) {
-        const event = this.createEvent(null, context, additionalProperties);
+        const event = this.createEvent(null, context, additionalProperties as Partial<TProperties>);
 
         this.addPropertiesToEvent(event, null, context, additionalProperties);
         event.setHandler((event) => this.eventHandler(event, additionalProperties));
@@ -77,7 +77,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+        const properties = super.generatePropertiesFromContext(context, additionalProperties as Partial<TProperties>);
         if (properties.replacementImmediateEffect) {
             properties.replacementImmediateEffect.setDefaultTargetFn(() => properties.target);
         }
@@ -85,7 +85,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
     }
 
     public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<IReplacementEffectSystemProperties<TContext>>): void {
-        super.addPropertiesToEvent(event, target, context, additionalProperties);
+        super.addPropertiesToEvent(event, target, context, additionalProperties as Partial<TProperties>);
 
         const replacementImmediateEffect = this.getReplacementImmediateEffect(event.context, additionalProperties);
         event.replacementImmediateEffect = replacementImmediateEffect;
