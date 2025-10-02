@@ -43,6 +43,10 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return this.game.gameObjectManager.get(this.state.captureZone);
     }
 
+    public get capturedUnits() {
+        return this.captureZone.cards;
+    }
+
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Base);

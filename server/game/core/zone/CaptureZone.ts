@@ -12,6 +12,7 @@ export type ICaptor = IUnitCard | IBaseCard;
 
 export interface ICardWithCaptureZone extends Card {
     get captureZone(): CaptureZone;
+    get capturedUnits(): IUnitCard[];
 }
 
 // STATE TODO: Because these spawn during the Game's life span, do we need to make the captor a Ref? Hm, in-place no, but for file saves yes.

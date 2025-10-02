@@ -4,6 +4,10 @@ import { EventCard } from '../../../core/card/EventCard';
 import { PhaseName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class Arrest extends EventCard {
+    // protected override get overrideNotImplemented(): boolean {
+    //     return false;
+    // }
+
     protected override getImplementationId() {
         return {
             id: '1407380526',

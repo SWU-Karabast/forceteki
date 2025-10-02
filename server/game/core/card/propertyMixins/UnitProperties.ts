@@ -83,7 +83,6 @@ export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardA
 
 export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone {
     get defaultArena(): Arena;
-    get capturedUnits(): IUnitCard[];
     get lastPlayerToModifyHp(): Player;
     get isClonedUnit(): boolean;
     readonly upgrades: IUpgradeCard[];
