@@ -4,7 +4,7 @@ describe('Hunting Assassin Droid', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['hunting-assassin-droid']
+                    groundArena: ['hunting-assassin-droid', { card: 'wampa', damage: 1 }]
                 },
                 player2: {
                     groundArena: ['battlefield-marine']
