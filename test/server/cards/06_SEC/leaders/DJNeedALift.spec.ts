@@ -1,5 +1,5 @@
 
-describe('DJ, Need A Lift', function () {
+describe('DJ, Need A Lift?', function () {
     integration(function (contextRef) {
         const friendlyUnitPrompt = 'Choose a friendly unit to capture a unit you play from your hand';
         const unitInHandPrompt = (friendlyUnit: string) => `Choose a unit in your hand to play for 1 Resource less. ${friendlyUnit} captures it.`;
@@ -214,6 +214,40 @@ describe('DJ, Need A Lift', function () {
                 expect(context.dj.exhausted).toBeTrue();
             });
 
+            it('interacts correctly with units that cannot be captured', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'dj#need-a-lift',
+                        resources: 5,
+                        groundArena: ['swoop-racer'],
+                        hand: ['ig11#i-cannot-be-captured']
+                    },
+                    player2: {
+                        groundArena: ['atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Activate DJ's ability
+                context.player1.clickCard(context.dj);
+
+                expect(context.player1).toHavePrompt(friendlyUnitPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.swoopRacer]);
+                context.player1.clickCard(context.swoopRacer);
+
+                expect(context.player1).toHavePrompt(unitInHandPrompt(context.swoopRacer.title));
+                expect(context.player1).toBeAbleToSelectExactly([context.ig11]);
+                context.player1.clickCard(context.ig11);
+
+                // IG-11 cannot be captured. He is instead defeated and deals 3 damage to enemy ground units
+                expect(context.ig11).toBeInZone('discard', context.player1);
+                expect(context.atst.damage).toBe(3);
+                expect(context.player1.exhaustedResourceCount).toBe(4); // Cost is reduced by 1
+                expect(context.dj.exhausted).toBeTrue();
+            });
+
             it('does nothing if there are no friendly units in play', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -396,7 +430,7 @@ describe('DJ, Need A Lift', function () {
                 expect(context.cantinaBouncer.exhausted).toBeFalse();
             });
 
-            it('rescued enemy units do not enter play ready', async function () {
+            it('enemy units rescued from a friendly captor do not enter play ready', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -422,6 +456,44 @@ describe('DJ, Need A Lift', function () {
                 // P2 plays Waylay to return Discerning Veteran to P1's hand
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(context.discerningVeteran);
+                expect(context.discerningVeteran).toBeInZone('hand', context.player1);
+
+                // AT-ST is rescued but should enter play exhausted
+                expect(context.atst).toBeInZone('groundArena', context.player2);
+                expect(context.atst.exhausted).toBeTrue();
+            });
+
+            it('enemy units rescued from an enemy captor do not enter play ready', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: {
+                            card: 'dj#need-a-lift',
+                            deployed: true
+                        },
+                        hand: ['discerning-veteran', 'cantina-bouncer']
+                    },
+                    player2: {
+                        hand: ['change-of-heart'],
+                        groundArena: ['atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 plays Discerning Veteran and captures AT-ST
+                context.player1.clickCard(context.discerningVeteran);
+                context.player1.clickCard(context.atst);
+                expect(context.atst).toBeCapturedBy(context.discerningVeteran);
+
+                // P2 plays Change of Heart to take control of Discerning Veteran
+                context.player2.clickCard(context.changeOfHeart);
+                context.player2.clickCard(context.discerningVeteran);
+                expect(context.discerningVeteran).toBeInZone('groundArena', context.player2);
+
+                // P1 plays Cantina Bouncer to return Discerning Veteran to P1's hand
+                context.player1.clickCard(context.cantinaBouncer);
+                context.player1.clickCard(context.discerningVeteran);
                 expect(context.discerningVeteran).toBeInZone('hand', context.player1);
 
                 // AT-ST is rescued but should enter play exhausted

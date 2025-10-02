@@ -50,7 +50,7 @@ export default class DJNeedALift extends LeaderUnitCard {
         AbilityHelper: IAbilityHelper
     ) {
         registrar.addConstantAbility({
-            title: 'Each token unit you create enters play ready.',
+            title: 'Friendly units that are rescued enter play ready',
             targetController: RelativePlayer.Self,
             ongoingEffect: OngoingEffectBuilder.player.static(EffectName.RescuedUnitsEnterPlayReady)
         });
