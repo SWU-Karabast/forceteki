@@ -4,23 +4,25 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
-
-export default class TheGalleonMaraudingPirateShip extends NonLeaderUnitCard {
+export default class WarriorOfClanOrdo extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-galleon#marauding-pirate-ship-id',
-            internalName: 'the-galleon#marauding-pirate-ship',
+            id: '3906840057',
+            internalName: 'warrior-of-clan-ordo',
         };
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
-        const aspects = [Aspect.Aggression, Aspect.Aggression, Aspect.Villainy];
-        registrar.addWhenPlayedAbility({
-            title: `Disclose ${EnumHelpers.aspectString(aspects)} to create 3 Spy tokens `,
+        const aspects = [Aspect.Aggression];
+        registrar.addOnAttackAbility({
+            title: `Disclose ${EnumHelpers.aspectString(aspects)} to not deal 2 damage to your base`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
-            ifYouDo: {
-                title: 'Create 3 Spy tokens',
-                immediateEffect: abilityHelper.immediateEffects.createSpy({ amount: 3 })
+            ifYouDoNot: {
+                title: 'Deal 2 damage to your base',
+                immediateEffect: abilityHelper.immediateEffects.damage((context) => ({
+                    amount: 2,
+                    target: context.player.base,
+                }))
             }
         });
     }

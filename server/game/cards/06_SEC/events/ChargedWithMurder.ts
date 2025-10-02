@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect, WildcardCardType } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class ChargedWithMurder extends EventCard {
     protected override getImplementationId () {
@@ -15,7 +15,7 @@ export default class ChargedWithMurder extends EventCard {
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Vigilance, Aspect.Vigilance];
         registrar.setEventAbility({
-            title: `Disclose ${Helpers.aspectString(aspects)}. If you do, defeat a damaged non-leader unit`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects)}. If you do, defeat a damaged non-leader unit`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Defeat a damaged non-leader unit',

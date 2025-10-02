@@ -2,7 +2,6 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, TargetMode, WildcardCardType } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
@@ -16,7 +15,7 @@ export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Aggression, Aspect.Aggression, Aspect.Villainy];
         registrar.addOnAttackAbility({
-            title: `Disclose ${Helpers.aspectString(aspects)} to choose a unit. Deal 2 damage to that unit unless its controller discards a card from their hand`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects)} to choose a unit. Deal 2 damage to that unit unless its controller discards a card from their hand`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Choose a unit to deal 2 damage unless its controller discard a card',
