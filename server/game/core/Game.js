@@ -849,6 +849,7 @@ class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers);
         }
         this.finishedAt = new Date();
+        this._router.handleGameEnd();
         // this._router.gameWon(this, reason, winner);
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
