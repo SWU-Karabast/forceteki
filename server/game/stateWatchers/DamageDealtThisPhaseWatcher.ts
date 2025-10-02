@@ -109,7 +109,15 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
     }
 
     private getCardId(card: IInPlayCard) {
-        return (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId);
+        if (card.isInPlay()) {
+            return card.inPlayId;
+        }
+
+        if (card.zone.hiddenForPlayers == null) {
+            return card.mostRecentInPlayId;
+        }
+
+        return null;
     }
 
     protected override getResetValue(): IDamageDealtThisPhase {
