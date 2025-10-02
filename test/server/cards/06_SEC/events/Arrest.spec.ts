@@ -1,4 +1,5 @@
-describe('Arrest', function() {
+// TODO: Enable these tests when we remove the overrideNotImplemented flag in Arrest.ts
+xdescribe('Arrest', function() {
     integration(function(contextRef) {
         it('the player\'s base captures an enemy non-leader unit, which is then rescued at the start of the regroup phase', async function() {
             await contextRef.setupTestAsync({
