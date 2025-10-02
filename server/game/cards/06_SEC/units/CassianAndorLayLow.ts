@@ -21,23 +21,6 @@ export default class CassianAndorLayLow extends NonLeaderUnitCard {
 
         });
 
-        // registrar.addReplacementEffectAbility({
-        //     title: 'If an enemy card ability would do damage to this unit, prevent 2 of that damage',
-        //     when: { onDamageDealt: (event, context) =>
-        //         event.card === context.source &&
-        //         !event.isIndirect && event.damageSource.type !== DamageSourceType.Attack && event.damageSource.player !== context.source.controller },
-        //     replaceWith: {
-        //         replacementImmediateEffect: new DamageSystem((context) => ({
-        //             target: context.source,
-        //             amount: Math.max(context.event.amount - 2, 0),
-        //             source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy.Opponent,
-        //             type: context.event.type,
-        //         }))
-        //     },
-        //     effect: 'prevent 2 damage to {1}',
-        //     effectArgs: (context) => [context.source]
-        // });
-
         registrar.addDamagePreventionAbility({
             title: 'If an enemy card ability would do damage to this unit, prevent 2 of that damage',
             preventionType: DamagePreventionType.Reduce,

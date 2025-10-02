@@ -7,9 +7,8 @@ import TriggeredAbility from './TriggeredAbility';
 
 export default class DamagePreventionAbility extends TriggeredAbility {
     public constructor(game: Game, card: Card, properties: IDamagePreventionAbilityProps) {
-        const { replaceWith: cancelProps, ...otherProps } = properties;
         const replacementAbilityProps: IReplacementEffectAbilityProps =
-            Object.assign(otherProps, { immediateEffect: new DamagePreventionSystem(properties),
+            Object.assign({}, properties, { immediateEffect: new DamagePreventionSystem(properties),
                 when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) } });
 
         super(game, card, replacementAbilityProps, AbilityType.ReplacementEffect);
