@@ -19,7 +19,7 @@ describe('The Wrong Ride', function () {
             expect(context.player2.readyResourceCount).toBe(3);
         });
 
-        it('The Wrong Ride\'s ability should exhaust 2 enemy resources', async function () {
+        it('The Wrong Ride\'s ability should exhaust 2 enemy resources when played with plot', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
