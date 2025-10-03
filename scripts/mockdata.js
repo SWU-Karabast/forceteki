@@ -1650,6 +1650,24 @@ const mockCards = [
         internalName: 'creditors-claim',
     }),
     buildMockCard({
+        title: 'Ziton Moj',
+        subtitle: 'Black Sun Bully',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 168
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'ziton-moj#black-sun-bully',
+    }),
+    buildMockCard({
         title: 'DJ',
         subtitle: 'Need a Lift?',
         power: 4,
