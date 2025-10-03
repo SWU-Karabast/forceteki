@@ -1614,6 +1614,42 @@ const mockCards = [
         internalName: 'cikatro-vizago#business-is-what-matters',
     }),
     buildMockCard({
+        title: 'Zam Wesell',
+        subtitle: 'Inconspicuous Assassin',
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'bounty hunter'],
+        setId: {
+            set: 'SEC',
+            number: 29
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'zam-wesell#inconspicuous-assassin',
+    }),
+    buildMockCard({
+        title: 'Creditor\'s Claim',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['upgrade'],
+        traits: ['supply'],
+        setId: {
+            set: 'SEC',
+            number: 39
+        },
+        upgradeHp: 2,
+        upgradePower: 2,
+        power: 2,
+        hp: 2,
+        cost: 3,
+        unique: false,
+        internalName: 'creditors-claim',
+    }),
+    buildMockCard({
         title: 'DJ',
         subtitle: 'Need a Lift?',
         power: 4,
