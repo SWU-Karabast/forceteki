@@ -1277,20 +1277,20 @@ export class Lobby {
         socket.socket.send('lobbystate', this.getLobbyState());
     }
 
-    public sendGameState(game: Game, forceSend = false): void {
-        // we check here if the game ended and update the stats.
-        if (game.winnerNames.length > 0 && game.finishedAt) {
-            if (game.statsUpdated) {
-                this.sendRepeatedEndGameUpdateStatsMessages(game);
-            } else {
-                // Update deck stats asynchronously
-                game.statsUpdated = true;
-                this.endGameUpdateStatsAsync(game).catch((error) => {
-                    logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-                });
-            }
+    public handleGameEnd(): void {
+        if (this.game.statsUpdated) {
+            this.sendRepeatedEndGameUpdateStatsMessages(this.game);
+        } else {
+            // Update deck stats asynchronously
+            this.game.statsUpdated = true;
+            this.endGameUpdateStatsAsync(this.game).catch((error) => {
+                logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+            });
         }
+    }
 
+
+    public sendGameState(game: Game, forceSend = false): void {
         // we send the game state to all users and spectators
         // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
