@@ -21,8 +21,31 @@ describe('Direct Hit', function() {
 
             context.player1.clickCard(context.imperialInterceptor);
             expect(context.imperialInterceptor).toBeInZone('discard');
+        });
 
-            // TODO: test with attached Pilot leader
+        it('cannot target a leader Vehicle', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'boba-fett#any-methods-necessary',
+                    spaceArena: ['cartel-spacer', 'auzituck-liberator-gunship'],
+                    resources: 6
+                },
+                player2: {
+                    hand: ['direct-hit'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.bobaFett);
+            context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
+            context.player1.clickCard(context.auzituckLiberatorGunship);
+            context.player1.clickPrompt('Done');
+
+            context.player2.clickCard(context.directHit);
+            expect(context.player2).not.toBeAbleToSelect(context.auzituckLiberatorGunship);
+            context.player2.clickCard(context.cartelSpacer);
         });
     });
 });
