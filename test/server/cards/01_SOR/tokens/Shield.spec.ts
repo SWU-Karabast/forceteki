@@ -27,7 +27,7 @@ describe('Shield', function() {
                 expect(context.tielnFighter.isUpgraded()).toBe(false);
                 expect(context.getChatLogs(2)).toEqual([
                     'player1 attacks TIE/ln Fighter with Cartel Spacer',
-                    'player2 uses TIE/ln Fighter\'s gained ability from Shield to defeat Shield instead of taking damage',
+                    'player2 uses Shield to defeat Shield instead of taking damage',
                 ]);
 
                 // second attack to confirm that shield effect is off
@@ -71,8 +71,6 @@ describe('Shield', function() {
 
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCard(context.tielnFighter);
-
-                context.player2.clickPrompt('Prevent all damage to attached unit with Shield');
 
                 expect(context.cartelSpacer.damage).toBe(2);
                 expect(context.tielnFighter.damage).toBe(0);

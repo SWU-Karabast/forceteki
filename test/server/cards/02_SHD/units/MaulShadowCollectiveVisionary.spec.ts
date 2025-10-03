@@ -52,7 +52,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.maul.damage).toBe(0);
                 expect(context.luminaraUnduli.damage).toBe(7);
                 expect(context.mercenaryCompany.damage).toBe(4);
-                expect(context.getChatLogs(1)).toContain('player1 uses Maul to deal 4 combat damage to Mercenary Company instead of Maul');
+                expect(context.getChatLogs(1)).toContain('player1 uses Maul to deal 4 combat damage to Mercenary Company instead of taking damage');
 
                 reset(false);
 
@@ -189,7 +189,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                 context.player1.clickCard(context.mercenaryCompany);
 
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Defeat shield to prevent attached unit from taking damage',
+                    'Defeat Shield to prevent attached unit from taking damage',
                     'Redirect combat damage to another Underworld unit'
                 ]);
                 context.player1.clickPrompt('Redirect combat damage to another Underworld unit');
@@ -214,10 +214,10 @@ describe('Maul, Shadow Collective Visionary', function() {
                 context.player1.clickCard(context.mercenaryCompany);
 
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Defeat shield to prevent attached unit from taking damage',
+                    'Defeat Shield to prevent attached unit from taking damage',
                     'Redirect combat damage to another Underworld unit'
                 ]);
-                context.player1.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+                context.player1.clickPrompt('Defeat Shield to prevent attached unit from taking damage');
 
                 expect(context.maul.damage).toBe(0);
                 expect(context.maul.isUpgraded()).toBeFalse();

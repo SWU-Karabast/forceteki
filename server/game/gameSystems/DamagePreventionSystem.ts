@@ -16,7 +16,7 @@ export interface IDamagePreventionSystemProperties extends Omit<IReplacementEffe
     preventDamageFrom?: DamageSourceType;
     preventionAmount?: number;
     replaceWithSystem?: GameSystem;
-    triggerCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean; // This can be used to further limit what damage is prevented in addition to the default 'when' checks
+    triggerCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean; // This can be used to override the default trigger condition for special cases
 }
 
 export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends ReplacementEffectSystem<TContext, IDamagePreventionSystemProperties> {

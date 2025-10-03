@@ -1,7 +1,9 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, DamageType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { AbilityType, DamagePreventionType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -24,27 +26,56 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
                     condition: (context) => context.event.attack.targetIsUnit(),
                     onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect((maulContext) => ({
                         target: maulContext.source,
-                        effect: AbilityHelper.ongoingEffects.gainAbility({
+                        effect: AbilityHelper.ongoingEffects.gainDamagePreventionAbility({
                             title: 'Redirect combat damage to another Underworld unit',
-                            type: AbilityType.ReplacementEffect,
-                            when: {
-                                onDamageDealt: (event, context) =>
-                                    event.card === context.source && event.type === DamageType.Combat
-                            },
-                            replaceWith: {
+                            type: AbilityType.DamagePrevention,
+                            preventionType: DamagePreventionType.Replace,
+                            preventDamageFrom: DamageSourceType.Attack,
+                            replaceWithSystem: AbilityHelper.immediateEffects.combatDamage((damageContext) => ({
                                 target: maulContext.target,
-                                replacementImmediateEffect: AbilityHelper.immediateEffects.combatDamage(
-                                    (damageContext) => ({
-                                        amount: damageContext.event.amount,
-                                        sourceAttack: damageContext.event.damageSource.attack,
-                                        source: damageContext.event.damageSource.damageDealtBy
-                                    })
-                                )
-                            }
+                                amount: (damageContext as TriggeredAbilityContext).event.amount,
+                                sourceAttack: (damageContext as TriggeredAbilityContext).event.damageSource.attack,
+                                source: (damageContext as TriggeredAbilityContext).event.damageSource.damageDealtBy
+                            }))
                         })
-                    })),
+                    }))
                 })
             }
         });
+
+        // registrar.addOnAttackAbility({
+        //     title: 'Choose another friendly Underworld unit. All combat damage that would be dealt to this unit during this attack is dealt to the chosen unit instead.',
+        //     optional: true,
+        //     targetResolver: {
+        //         cardTypeFilter: WildcardCardType.Unit,
+        //         controller: RelativePlayer.Self,
+        //         cardCondition: (card, context) => card.hasSomeTrait(Trait.Underworld) && card !== context.source,
+        //         immediateEffect: AbilityHelper.immediateEffects.conditional({
+        //             // don't bother triggering the ability if we're attacking a base
+        //             condition: (context) => context.event.attack.targetIsUnit(),
+        //             onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect((maulContext) => ({
+        //                 target: maulContext.source,
+        //                 effect: AbilityHelper.ongoingEffects.gainAbility({
+        //                     title: 'Redirect combat damage to another Underworld unit',
+        //                     type: AbilityType.ReplacementEffect,
+        //                     when: {
+        //                         onDamageDealt: (event, context) =>
+        //                             event.card === context.source && event.type === DamageType.Combat
+        //                     },
+        //                     replaceWith: {
+        //                         target: maulContext.target,
+        //                         replacementImmediateEffect: AbilityHelper.immediateEffects.combatDamage(
+        //                             (damageContext) => ({
+        //                                 amount: damageContext.event.amount,
+        //                                 sourceAttack: damageContext.event.damageSource.attack,
+        //                                 source: damageContext.event.damageSource.damageDealtBy
+        //                             })
+        //                         )
+        //                     }
+        //                 })
+        //             })),
+        //         })
+        //     }
+        // });
     }
 }

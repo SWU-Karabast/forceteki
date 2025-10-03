@@ -45,7 +45,7 @@ export type IDamagePreventionAbilityProps<TSource extends Card = Card> = Omit<IR
     preventDamageFrom?: DamageSourceType;
     preventionAmount?: number;
     replaceWithSystem?: GameSystem;
-    triggerCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean; // This can be used to further limit what damage is prevented in addition to the default 'when' checks
+    targetCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean; // This can be used to override the default assumption that the damage is being dealt to context.source
 };
 
 /** Interface definition for addActionAbility */

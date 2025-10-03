@@ -31,22 +31,15 @@ export default class Shield extends TokenUpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        // registrar.addReplacementEffectAbility({
-        //     title: 'Defeat shield to prevent attached unit from taking damage', // TODO - we need to get the card title in here
-        //     when: {
-        //         onDamageDealt: (event, context) => event.card === context.source.parentCard && !event.isIndirect,
-        //     },
-        //     replaceWith: {
-        //         target: this,
-        //         replacementImmediateEffect: AbilityHelper.immediateEffects.defeat()
-        //     },
-        //     effect: 'prevent {1} from taking damage',
-        //     effectArgs: (context) => [context.source.parentCard],
-        // });
-
-        registrar.addDamagePreventionAbilityTargetingAttached({
-            title: 'Prevent all damage to attached unit with Shield',
+        registrar.addDamagePreventionAbility({
+            title: 'Defeat Shield to prevent attached unit from taking damage',
             preventionType: DamagePreventionType.Replace,
+            targetCondition(card, context) {
+                if (context.source.isUpgrade() && card === context.source.parentCard) {
+                    return true;
+                }
+                return false;
+            },
             replaceWithSystem: AbilityHelper.immediateEffects.defeat({
                 target: this
             }),

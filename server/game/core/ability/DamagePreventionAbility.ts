@@ -16,7 +16,13 @@ export default class DamagePreventionAbility extends TriggeredAbility {
 
     // TODO: Ideally this would go in the system I think, but I'm not sure if we can do that given that we need to have this in the 'when'
     private buildDamagePreventionTrigger(event, context, properties: IDamagePreventionAbilityProps): boolean {
-        if (event.card !== context.source) {
+        // TODO: Maybe we can name this better?
+        // If a custom targetCondition is provided, this means the damage prevention should apply to the card that meets that condition instead of context.source
+        if (properties.targetCondition) {
+            if (properties.targetCondition(event.card, context) === false) {
+                return false;
+            }
+        } else if (event.card !== context.source) {
             return false;
         }
 
