@@ -13,7 +13,7 @@ import type { Trait } from '../core/Constants';
 import { KeywordName } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
-import type { IAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
+import type { IAbilityPropsWithType, IDamagePreventionEffectAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
@@ -117,6 +117,8 @@ export = {
     cloneUnit: (target: Card) => OngoingEffectBuilder.card.static(EffectName.CloneUnit, (game) => new CloneUnitEffect(game, target)),
     isLeader: () => OngoingEffectBuilder.card.static(EffectName.IsLeader),
     gainAbility: (properties: IAbilityPropsWithType) =>
+        OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
+    gainDamagePreventionAbility: (properties: IDamagePreventionEffectAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
     // TODO BUG: if multiple cards gain keywords from the same effect and one of them is blanked, they will all be blanked
     gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<KeywordNameOrProperties>) => {

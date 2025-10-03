@@ -282,6 +282,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         }
 
         event.isIndirect = properties.isIndirect;
+        event.isUnpreventable = properties.isUnpreventable || properties.isIndirect;
         event.damageSource = abilityDamageSource;
 
         Contract.assertNotNullLike(properties.amount);

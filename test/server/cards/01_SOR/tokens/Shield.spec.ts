@@ -27,7 +27,7 @@ describe('Shield', function() {
                 expect(context.tielnFighter.isUpgraded()).toBe(false);
                 expect(context.getChatLogs(2)).toEqual([
                     'player1 attacks TIE/ln Fighter with Cartel Spacer',
-                    'player2 uses Shield to prevent TIE/ln Fighter from taking damage',
+                    'player2 uses Shield to defeat Shield instead of TIE/ln Fighter taking damage',
                 ]);
 
                 // second attack to confirm that shield effect is off

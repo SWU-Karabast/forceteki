@@ -2,7 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import {
     AbilityType,
-    DamageType,
+    DamagePreventionType,
     KeywordName,
     RelativePlayer,
     Trait,
@@ -11,7 +11,6 @@ import {
 } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
-import { DamageSystem } from '../../../gameSystems/DamageSystem';
 
 export default class ShienFlurry extends EventCard {
     protected override getImplementationId() {
@@ -39,22 +38,10 @@ export default class ShienFlurry extends EventCard {
                                 AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush),
                                 AbilityHelper.ongoingEffects.gainAbility({
                                     title: 'The next time it would be dealt damage this phase prevent 2 of that damage',
-                                    type: AbilityType.ReplacementEffect,
-                                    when: {
-                                        onDamageDealt: (event, context) => event.card === context.source && !event.isIndirect
-                                    },
-                                    limit: AbilityHelper.limit.perGame(1),
-                                    effect: 'prevent 2 damage to {1}',
-                                    effectArgs: (context) => [context.source],
-                                    replaceWith: {
-                                        replacementImmediateEffect: new DamageSystem((context) => ({
-                                            type: context.event.type,
-                                            target: context.source,
-                                            amount: Math.max(context.event.amount - 2, 0),
-                                            source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
-                                            sourceAttack: context.event.damageSource.attack,
-                                        }))
-                                    },
+                                    type: AbilityType.DamagePrevention,
+                                    preventionType: DamagePreventionType.Reduce,
+                                    preventionAmount: 2,
+                                    limit: AbilityHelper.limit.perGame(1)
                                 })
                             ]
                         }),

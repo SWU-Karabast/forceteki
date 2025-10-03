@@ -24,6 +24,9 @@ describe('Turbolaser Salvo', function() {
             expect(context.player1).toBeAbleToSelectExactly([context.avenger, context.concordDawnInterceptors]);
             context.player1.clickCard(context.avenger);
 
+            expect(context.player2).toHaveExactPromptButtons(['Defeat shield to prevent attached unit from taking damage', 'Prevent all damage that would be dealt to it by enemy card abilities']);
+            context.player2.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+
             // Ensure damage was dealt to all enemy ships (except Lurking TIE)
             expect(context.blackSunStarfighter).toBeInZone('discard');
             expect(context.imperialInterceptor).toBeInZone('discard');
