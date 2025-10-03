@@ -8,7 +8,7 @@ import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import { SimpleZone } from './SimpleZone';
 
-export type ICaptor = IUnitCard | IBaseCard;
+export type ICaptorCard = IUnitCard | IBaseCard;
 
 export interface ICardWithCaptureZone extends Card {
     get captureZone(): CaptureZone;
@@ -18,12 +18,12 @@ export interface ICardWithCaptureZone extends Card {
 // STATE TODO: Because these spawn during the Game's life span, do we need to make the captor a Ref? Hm, in-place no, but for file saves yes.
 @registerState()
 export class CaptureZone extends SimpleZone<IUnitCard> {
-    public readonly captor: ICaptor;
+    public readonly captor: ICaptorCard;
     public override readonly hiddenForPlayers: null;
     public override readonly name: ZoneName.Capture;
     public declare owner: Player;
 
-    public constructor(game: Game, owner: Player, captor: ICaptor) {
+    public constructor(game: Game, owner: Player, captor: ICaptorCard) {
         Contract.assertTrue(captor.isUnit() || captor.isBase(), `Attempting to create a capture zone with card ${captor.internalName} but it is not a unit or base card`);
 
         super(game, owner);

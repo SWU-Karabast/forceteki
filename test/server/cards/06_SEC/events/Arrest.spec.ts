@@ -71,7 +71,7 @@ xdescribe('Arrest', function() {
             // Player 2 plays L3-37 to rescue the captured unit
             context.player2.clickCard(context.l337);
             expect(context.player2).toHavePrompt('Rescue a captured card. if you do not, give a Shield token to this unit');
-            expect(context.player2).toBeAbleToSelect(context.battlefieldMarine);
+            expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine]);
             context.player2.clickCard(context.battlefieldMarine);
 
             expect(context.p1Base.capturedUnits.length).toBe(0);
@@ -111,6 +111,80 @@ xdescribe('Arrest', function() {
             expect(context.p1Base.capturedUnits.length).toBe(0);
             expect(context.pykeSentinel).toBeInZone('groundArena', context.player1);
             expect(context.pykeSentinel.exhausted).toBeTrue();
+        });
+
+        it('rescue targeting works correctly when multiple bases have captured units', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['arrest', 'l337#droid-revolutionary'],
+                    groundArena: ['pyke-sentinel'],
+                },
+                player2: {
+                    hand: ['arrest'],
+                    groundArena: ['battlefield-marine'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player 1 plays Arrest to capture Battlefield Marine
+            context.player1.clickCard(context.arrest);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.battlefieldMarine).toBeCapturedBy(context.p1Base);
+
+            // Player 2 plays Arrest to capture Pyke Sentinel
+            context.player2.clickCard(context.arrest);
+            context.player2.clickCard(context.pykeSentinel);
+            expect(context.pykeSentinel).toBeCapturedBy(context.p2Base);
+
+            // Player 1 plays L3-37 to rescue a captured unit
+            context.player1.clickCard(context.l337);
+            expect(context.player1).toHavePrompt('Rescue a captured card. if you do not, give a Shield token to this unit');
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.battlefieldMarine,
+                context.pykeSentinel
+            ]);
+
+            // Rescues Pyke Sentinel
+            context.player1.clickCard(context.pykeSentinel);
+            expect(context.p2Base.capturedUnits.length).toBe(0);
+            expect(context.pykeSentinel).toBeInZone('groundArena', context.player1);
+            expect(context.pykeSentinel.exhausted).toBeTrue();
+
+            // Move to the regroup phase
+            context.moveToRegroupPhase();
+
+            // Battlefield Marine is rescued
+            expect(context.p1Base.capturedUnits.length).toBe(0);
+            expect(context.battlefieldMarine).toBeInZone('groundArena', context.player2);
+            expect(context.battlefieldMarine.exhausted).toBeTrue();
+        });
+
+        it('has no effect if there are no enemy non-leader units in play to capture', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['arrest'],
+                    groundArena: ['pyke-sentinel'],
+                },
+                player2: {
+                    leader: {
+                        card: 'sabine-wren#galvanized-revolutionary',
+                        deployed: true
+                    }
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player 1 plays Arrest
+            context.player1.clickCard(context.arrest);
+
+            expect(context.player1).toHaveNoEffectAbilityPrompt('Your base captures an enemy non-leader unit');
+            context.player1.clickPrompt('Use it anyway');
+
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });
