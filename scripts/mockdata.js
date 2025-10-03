@@ -1663,6 +1663,24 @@ const mockCards = [
         unique: false,
         internalName: 'creditors-claim',
     }),
+    buildMockCard({
+        title: 'Ziton Moj',
+        subtitle: 'Black Sun Bully',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 168
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'ziton-moj#black-sun-bully',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
