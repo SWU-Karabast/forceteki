@@ -35,7 +35,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
             )
         );
 
-        effects = this.filterApplicableEffects(event.card, effects);
+        effects = this.filterApplicableEffects(event.card, effects, event.context);
 
         for (const effect of effects) {
             event.context.game.ongoingEffectEngine.add(effect);
@@ -52,7 +52,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
             )
         );
 
-        return this.filterApplicableEffects(card, effects);
+        return this.filterApplicableEffects(card, effects, context);
     }
 
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): [string, any[]] {
@@ -64,7 +64,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
             properties,
             additionalProperties,
             (target, context, additionalProps) => this.getEffectFactoriesAndProperties(target, context, additionalProps),
-            (target, effects) => this.filterApplicableEffects(target, effects)
+            (target, effects) => this.filterApplicableEffects(target, effects, context)
         );
     }
 
@@ -91,7 +91,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
 
         const effects = effectFactories.map((factory) => factory(context.game, context.source, effectProperties));
 
-        return super.canAffectInternal(card, context) && this.filterApplicableEffects(card, effects).length > 0;
+        return super.canAffectInternal(card, context) && this.filterApplicableEffects(card, effects, context).length > 0;
     }
 
     private getEffectFactoriesAndProperties(target: Card, context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): { effectFactories: IOngoingCardEffectGenerator[]; effectProperties: IOngoingCardEffectProps };
@@ -109,12 +109,15 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         return { effectFactories: Helpers.asArray(effect), effectProperties: effectProperties(target) };
     }
 
-    protected filterApplicableEffects(card: Card, effects: OngoingCardEffect[]) {
+    protected filterApplicableEffects(card: Card, effects: OngoingCardEffect[], context?: TContext) {
         const lastingEffectRestrictions = card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
 
         return effects.filter((effect) => {
             if (card.isBlank() && (effect.impl.type === EffectName.GainAbility || effect.impl.type === EffectName.GainKeyword)) {
                 // If the target is blanked, it cannot gain abilities or keywords
+                return false;
+            }
+            if (effect.condition != null && !effect.condition(context)) {
                 return false;
             }
             return !lastingEffectRestrictions.some((condition) => condition(effect.impl));
