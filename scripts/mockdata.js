@@ -1114,20 +1114,6 @@ const mockCards = [
         internalName: 'catch-unawares',
     }),
     buildMockCard({
-        title: 'Arrest',
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'villainy'],
-        types: ['event'],
-        traits: ['law'],
-        setId: {
-            set: 'SEC',
-            number: 195
-        },
-        cost: 2,
-        unique: false,
-        internalName: 'arrest',
-    }),
-    buildMockCard({
         title: 'Tempest Assault',
         hasNonKeywordAbility: true,
         aspects: ['aggression', 'villainy'],
@@ -1626,6 +1612,79 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'cikatro-vizago#business-is-what-matters',
+    }),
+    buildMockCard({
+        title: 'Zam Wesell',
+        subtitle: 'Inconspicuous Assassin',
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'bounty hunter'],
+        setId: {
+            set: 'SEC',
+            number: 29
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'zam-wesell#inconspicuous-assassin',
+    }),
+    buildMockCard({
+        title: 'Creditor\'s Claim',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['upgrade'],
+        traits: ['supply'],
+        setId: {
+            set: 'SEC',
+            number: 39
+        },
+        upgradeHp: 2,
+        upgradePower: 2,
+        power: 2,
+        hp: 2,
+        cost: 3,
+        unique: false,
+        internalName: 'creditors-claim',
+    }),
+    buildMockCard({
+        title: 'Ziton Moj',
+        subtitle: 'Black Sun Bully',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 168
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'ziton-moj#black-sun-bully',
+    }),
+    buildMockCard({
+        title: 'DJ',
+        subtitle: 'Need a Lift?',
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'cunning'],
+        keywords: ['saboteur'],
+        types: ['leader'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 18
+        },
+        cost: 6,
+        unique: true,
+        arena: 'ground',
+        internalName: 'dj#need-a-lift',
     }),
 ];
 
