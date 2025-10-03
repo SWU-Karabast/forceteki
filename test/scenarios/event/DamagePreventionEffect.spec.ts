@@ -385,7 +385,7 @@ describe('Damage Prevention Effects', function() {
                     expect(context.maul.damage).toBe(0);
                     expect(context.luminaraUnduli.damage).toBe(7);
                     expect(context.mercenaryCompany.damage).toBe(4);
-                    expect(context.getChatLogs(1)).toContain('player1 uses Maul to deal 4 combat damage to Mercenary Company instead of taking damage');
+                    expect(context.getChatLogs(1)).toContain('player1 uses Maul to deal 4 combat damage to Mercenary Company instead of Maul taking damage');
 
                     reset(false);
 
@@ -521,7 +521,7 @@ describe('Damage Prevention Effects', function() {
                     expect(context.tielnFighter.isUpgraded()).toBe(false);
                     expect(context.getChatLogs(2)).toEqual([
                         'player1 attacks TIE/ln Fighter with Cartel Spacer',
-                        'player2 uses Shield to defeat Shield instead of taking damage',
+                        'player2 uses Shield to defeat Shield instead of TIE/ln Fighter taking damage',
                     ]);
 
                     // second attack to confirm that shield effect is off

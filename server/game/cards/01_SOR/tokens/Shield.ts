@@ -32,7 +32,7 @@ export default class Shield extends TokenUpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDamagePreventionAbility({
-            title: 'Defeat Shield to prevent attached unit from taking damage',
+            title: 'Defeat shield to prevent attached unit from taking damage',
             preventionType: DamagePreventionType.Replace,
             targetCondition(card, context) {
                 if (context.source.isUpgrade() && card === context.source.parentCard) {

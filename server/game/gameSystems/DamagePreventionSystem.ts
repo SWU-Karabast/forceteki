@@ -28,11 +28,11 @@ export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = T
             case DamagePreventionType.All:
                 return ['prevent all damage to {0}', [context.source]];
             case DamagePreventionType.Reduce:
-                return ['prevent {0} damage to {1}', [properties.preventionAmount, context.source]];
+                return ['prevent {0} damage to {1}', [properties.preventionAmount, context.event.card]];
             case DamagePreventionType.Replace:
                 const replaceWith = properties.replaceWithSystem;
                 const replaceMessage = replaceWith.getEffectMessage(context);
-                return ['{0} instead of taking damage', [replaceMessage, context.source]]; // TODO: how the heck do we get the effect description from the replacementImmediateEffect here?
+                return ['{0} instead of {1} taking damage', [replaceMessage, context.event.card]]; // TODO: how the heck do we get the effect description from the replacementImmediateEffect here?
             default:
                 Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
         }
@@ -53,10 +53,11 @@ export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = T
             case DamagePreventionType.Reduce:
                 Contract.assertPositiveNonZero(properties.preventionAmount, 'preventionAmount must be a positive non-zero number for DamagePreventionType.Reduce');
                 return new DamageSystem((context) => ({
-                    target: context.source,
+                    target: context.event.card,
                     amount: Math.max(context.event.amount - properties.preventionAmount, 0),
-                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy.Opponent, // Copied this from Cassian - why is it capitalized?
+                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy, // Copied this from Cassian - why is it capitalized?
                     type: context.event.type,
+                    sourceAttack: context.event.damageSource.attack,
                 }));
             case DamagePreventionType.Replace:
                 const replaceWith = properties.replaceWithSystem;
