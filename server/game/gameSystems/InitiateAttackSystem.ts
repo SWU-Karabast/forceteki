@@ -46,7 +46,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
 
         super.addPropertiesToEvent(event, attacker, context, additionalProperties);
 
-        event.attackAbility = this.generateAttackAbilityNoTarget(attacker, properties);
+        event.attackAbility = this.generateAttackAbilityNoTarget(attacker, properties, context.source);
         event.optional = properties.optional ?? context.ability.optional;
     }
 
@@ -60,7 +60,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
             return false;
         }
 
-        const attackAbility = this.generateAttackAbilityNoTarget(card, properties);
+        const attackAbility = this.generateAttackAbilityNoTarget(card, properties, context.source);
         const newContext = attackAbility.createContext(context.player);
 
         return !attackAbility.meetsRequirements(newContext, properties.ignoredRequirements) &&
@@ -71,8 +71,8 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
      * Generate an attack ability for the specified card.
      * Uses the passed properties but strips out the `target` property to avoid overriding it in the attack.
      */
-    private generateAttackAbilityNoTarget(card: IUnitCard, properties: IAttackProperties) {
+    private generateAttackAbilityNoTarget(card: IUnitCard, properties: IAttackProperties, initiateAttackSource: Card) {
         const { target, ...propertiesNoTarget } = properties;
-        return card.game.gameObjectManager.createWithoutRefsUnsafe(() => new InitiateAttackAction(card.game, card, propertiesNoTarget));
+        return card.game.gameObjectManager.createWithoutRefsUnsafe(() => new InitiateAttackAction(card.game, card, propertiesNoTarget, initiateAttackSource));
     }
 }
