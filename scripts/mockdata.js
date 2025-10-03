@@ -1627,6 +1627,42 @@ const mockCards = [
         arena: 'ground',
         internalName: 'cikatro-vizago#business-is-what-matters',
     }),
+    buildMockCard({
+        title: 'Zam Wesell',
+        subtitle: 'Inconspicuous Assassin',
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'bounty hunter'],
+        setId: {
+            set: 'SEC',
+            number: 29
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'zam-wesell#inconspicuous-assassin',
+    }),
+    buildMockCard({
+        title: 'Creditor\'s Claim',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['upgrade'],
+        traits: ['supply'],
+        setId: {
+            set: 'SEC',
+            number: 39
+        },
+        upgradeHp: 2,
+        upgradePower: 2,
+        power: 2,
+        hp: 2,
+        cost: 3,
+        unique: false,
+        internalName: 'creditors-claim',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
