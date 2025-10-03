@@ -93,7 +93,6 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
 
     protected getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}): GameSystem<TContext> {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        // const { replacementImmediateEffect } = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.replacementImmediateEffect;
     }
 

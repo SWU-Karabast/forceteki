@@ -38,12 +38,6 @@ export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = T
         }
     }
 
-    // public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}) {
-    //     const properties = super.generatePropertiesFromContext(context, additionalProperties);
-
-    //     return properties;
-    // }
-
     protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}): GameSystem<TContext> {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as IDamagePreventionSystemProperties;
 
@@ -63,7 +57,6 @@ export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = T
                 const replaceWith = properties.replaceWithSystem;
                 Contract.assertNotNullLike(replaceWith, 'replaceWith must be defined for DamagePreventionType.Replace');
 
-                // TODO how can we remove this cast?
                 return replaceWith as GameSystem<TContext>;
             default:
                 Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
