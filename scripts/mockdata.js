@@ -1114,20 +1114,6 @@ const mockCards = [
         internalName: 'catch-unawares',
     }),
     buildMockCard({
-        title: 'Arrest',
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'villainy'],
-        types: ['event'],
-        traits: ['law'],
-        setId: {
-            set: 'SEC',
-            number: 195
-        },
-        cost: 2,
-        unique: false,
-        internalName: 'arrest',
-    }),
-    buildMockCard({
         title: 'Tempest Assault',
         hasNonKeywordAbility: true,
         aspects: ['aggression', 'villainy'],
@@ -1662,6 +1648,25 @@ const mockCards = [
         cost: 3,
         unique: false,
         internalName: 'creditors-claim',
+    }),
+    buildMockCard({
+        title: 'DJ',
+        subtitle: 'Need a Lift?',
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'cunning'],
+        keywords: ['saboteur'],
+        types: ['leader'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 18
+        },
+        cost: 6,
+        unique: true,
+        arena: 'ground',
+        internalName: 'dj#need-a-lift',
     }),
 ];
 

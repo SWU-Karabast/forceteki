@@ -114,6 +114,7 @@ export enum EffectName {
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
     PrintedAttributesOverride = 'printedAttributesOverride',
+    RescuedUnitsEnterPlayReady = 'rescuedUnitsEnterPlayReady',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
     SuppressEffects = 'suppressEffects',
