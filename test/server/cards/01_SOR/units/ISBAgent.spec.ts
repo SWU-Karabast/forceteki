@@ -28,12 +28,6 @@ describe('ISB Agent', function() {
                     expect(context.player1).not.toHavePassAbilityButton();
                     context.player1.clickCard(context.confiscate);
 
-                    expect(context.getChatLogs(3)).toEqual([
-                        'player1 plays ISB Agent',
-                        'player1 uses ISB Agent to reveal Confiscate',
-                        'player1 reveals Confiscate due to ISB Agent',
-                    ]);
-
                     expect(context.player2).toHaveExactViewableDisplayPromptCards([context.confiscate]);
                     expect(context.player2).toHaveEnabledPromptButton('Done');
                     expect(context.getChatLogs(1)[0]).toContain(context.confiscate.title);
@@ -45,6 +39,11 @@ describe('ISB Agent', function() {
 
                     expect(context.isbAgent).toBeInZone('groundArena');
                     expect(context.wampa.damage).toBe(1);
+                    expect(context.getChatLogs(3)).toEqual([
+                        'player1 plays ISB Agent',
+                        'player1 uses ISB Agent to reveal Confiscate',
+                        'player1 uses ISB Agent to deal 1 damage to Wampa',
+                    ]);
                 });
 
                 it('should do nothing when an event is not revealed', function () {

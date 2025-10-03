@@ -63,15 +63,11 @@ export type IViewCardProperties = IViewCardOnlyProperties | IViewAndSelectCardsP
 
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IViewCardProperties = IViewCardProperties> extends CardTargetSystem<TContext, TProperties> {
     public override eventHandler(event): void {
-        const context = event.context;
-        context.game.addMessage(this.getMessage(event.message, context), ...event.messageArgs);
-
         if (event.promptHandler) {
             event.promptHandler();
         }
     }
 
-    protected abstract getChatMessage(useDisplayPrompt: boolean, context: TContext, additionalProperties: Partial<TProperties>): string;
     protected abstract getPromptedPlayer(properties: IViewCardProperties, context: TContext): Player;
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
@@ -103,8 +99,6 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         Contract.assertFalse(!useDisplayPrompt && properties.interactMode !== ViewCardInteractMode.ViewOnly, 'Cannot disable display prompt for non-basic view card prompts');
 
         event.cards = cards;
-        event.message = this.getChatMessage(useDisplayPrompt, context, additionalProperties);
-        event.messageArgs = this.getMessageArgs(event, context, additionalProperties);
         event.displayTextByCardUuid = properties.displayTextByCardUuid;
         event.promptHandler = useDisplayPrompt ? this.buildPromptHandler(cards, properties, context) : null;
     }
@@ -214,15 +208,6 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
                 onComplete
             });
     }
-
-    public getMessage(message, context: TContext): string {
-        if (typeof message === 'function') {
-            return message(context);
-        }
-        return message;
-    }
-
-    public abstract getMessageArgs(event: any, context: TContext, additionalProperties);
 
     private addOnSelectEffectMessage(
         context: TContext,
