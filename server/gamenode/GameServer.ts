@@ -362,6 +362,8 @@ export class GameServer {
             }
         });
 
+        // *** Start of User Object calls ***
+
         app.post('/api/get-user', authMiddleware('get-user'), (req, res, next) => {
             try {
                 // const { decks, preferences } = req.body;
@@ -491,7 +493,6 @@ export class GameServer {
             }
         });
 
-        // Add this new route for setting moderation as seen:
         app.post('/api/set-moderation-seen', authMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
@@ -517,33 +518,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/save-sound-preferences', authMiddleware(), async (req, res, next) => {
-            try {
-                const { soundPreferences } = req.body;
-                const user = req.user as User;
-
-                // Check if user is authenticated
-                if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences to dynamodb`);
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Error attempting to save sound preferences'
-                    });
-                }
-
-                // Update user preferences with sound preferences
-                await this.userFactory.updateUserPreferencesAsync(user.getId(), { sound: soundPreferences });
-
-                return res.status(200).json({
-                    success: true,
-                    message: 'Sound preferences saved successfully'
-                });
-            } catch (err) {
-                logger.error('GameServer (save-sound-preferences) Server error:', err);
-                next(err);
-            }
-        });
-
+        // SWUSTATS
         // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
         app.post('/api/link-swustats', async (req, res, next) => {
             try {
@@ -593,6 +568,30 @@ export class GameServer {
                 next(err);
             }
         });
+
+        app.put('/api/update-preferences', authMiddleware('get-preferences'), async (req, res, next) => {
+            try {
+                const { preferences } = req.body;
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences to dynamodb`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Error attempting to save sound preferences'
+                    });
+                }
+                const result = await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences);
+                return res.status(200).json({
+                    success: true,
+                    message: 'Preferences saved successfully',
+                    updatedObject: result,
+                });
+            } catch (err) {
+                logger.error('GameServer (update-preferences) Server error:', err);
+                next(err);
+            }
+        });
+        // *** End of User Object calls ***
 
         // user DECKS
         app.post('/api/get-decks', authMiddleware('get-decks'), async (req, res, next) => {

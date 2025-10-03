@@ -255,7 +255,6 @@ export class UserFactory {
             // Get existing user preferences
             const userProfile = await dbService.getUserProfileAsync(userId);
             const currentPreferences = userProfile?.preferences || {};
-
             // Merge sound preferences with defaults if they don't exist
             const mergedPreferences = {
                 ...getDefaultPreferences(),
