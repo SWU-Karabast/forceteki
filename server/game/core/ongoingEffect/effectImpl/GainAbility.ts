@@ -111,6 +111,10 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
                 gainedAbilityUuid = target.addGainedReplacementEffectAbility(properties);
                 break;
 
+            case AbilityType.DamagePrevention:
+                gainedAbilityUuid = target.addGainedDamagePreventionAbility(properties);
+                break;
+
             default:
                 Contract.fail(`Unknown ability type: ${this.abilityType}`);
         }
@@ -136,6 +140,10 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
 
             case AbilityType.ReplacementEffect:
                 target.removeGainedReplacementEffectAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
+                break;
+
+            case AbilityType.DamagePrevention:
+                target.removeGainedDamagePreventionAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
                 break;
 
             default:

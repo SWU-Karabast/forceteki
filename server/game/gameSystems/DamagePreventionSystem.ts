@@ -15,6 +15,7 @@ export interface IDamagePreventionSystemProperties extends Omit<IReplacementEffe
     preventDamageFromSource?: RelativePlayer; // TSTODO - update to accept an array
     preventDamageFrom?: DamageSourceType;
     preventionAmount?: number;
+    replaceWithSystem?: GameSystem;
     triggerCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean; // This can be used to further limit what damage is prevented in addition to the default 'when' checks
 }
 
@@ -28,16 +29,20 @@ export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = T
                 return ['prevent all damage to {0}', [context.source]];
             case DamagePreventionType.Reduce:
                 return ['prevent {0} damage to {1}', [properties.preventionAmount, context.source]];
+            case DamagePreventionType.Replace:
+                const replaceWith = properties.replaceWithSystem;
+                const replaceMessage = replaceWith.getEffectMessage(context);
+                return ['{0} instead of taking damage', [replaceMessage, context.source]]; // TODO: how the heck do we get the effect description from the replacementImmediateEffect here?
             default:
                 Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
         }
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    // public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}) {
+    //     const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
-        return properties;
-    }
+    //     return properties;
+    // }
 
     protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}): GameSystem<TContext> {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as IDamagePreventionSystemProperties;
@@ -53,6 +58,12 @@ export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = T
                     source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy.Opponent, // Copied this from Cassian - why is it capitalized?
                     type: context.event.type,
                 }));
+            case DamagePreventionType.Replace:
+                const replaceWith = properties.replaceWithSystem;
+                Contract.assertNotNullLike(replaceWith, 'replaceWith must be defined for DamagePreventionType.Replace');
+
+                // TODO how can we remove this cast?
+                return replaceWith as GameSystem<TContext>;
             default:
                 Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
         }
