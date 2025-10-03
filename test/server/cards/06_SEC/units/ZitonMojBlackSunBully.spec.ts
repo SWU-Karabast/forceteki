@@ -38,6 +38,26 @@ describe('Ziton Moj, Black Sun Bully', function() {
             expect(context.player2).toHavePrompt('Select between 0 and 1 cards to resource');
         });
 
+        it('Ziton Moj\'s ability should not deal 2 damage to a base when both players pass', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['ziton-moj#black-sun-bully'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.passAction();
+            context.player2.passAction();
+
+            expect(context.p1Base.damage).toBe(0);
+            expect(context.p2Base.damage).toBe(0);
+
+            expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
+            expect(context.player2).toHavePrompt('Select between 0 and 1 cards to resource');
+        });
+
         it('Ziton Moj\'s ability should deal 2 damage to a base when opponent claims initiative while Ziton is under his control', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
