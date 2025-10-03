@@ -1674,6 +1674,7 @@ const mockCards = [
         hp: 6,
         hasNonKeywordAbility: true,
         aspects: ['cunning', 'cunning'],
+        keywords: ['saboteur'],
         types: ['leader'],
         traits: ['underworld'],
         setId: {
