@@ -41,7 +41,11 @@ describe('Direct Hit', function() {
             context.player1.clickCard(context.bobaFett);
             context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
             context.player1.clickCard(context.auzituckLiberatorGunship);
-            context.player1.clickPrompt('Done');
+            expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.auzituckLiberatorGunship]);
+
+            // TODO: why is there no way to hit 'done' here?
+            context.player1.setDistributeDamagePromptState(new Map([
+            ]));
 
             context.player2.clickCard(context.directHit);
             expect(context.player2).not.toBeAbleToSelect(context.auzituckLiberatorGunship);
