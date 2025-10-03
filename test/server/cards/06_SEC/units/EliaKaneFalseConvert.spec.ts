@@ -60,7 +60,7 @@ describe('Elia Kane, False Convert', function() {
                 expect(context.getChatLogs(3)).toEqual([
                     'player1 plays Elia Kane',
                     'player1 uses Elia Kane to randomly select 3 cards, and to look at 3 enemy resources',
-                    'player1 uses Elia Kane to defeat Restock and to move the top card of player2\'s deck to their resources and to ready it',
+                    'player1 uses Elia Kane to defeat a ready Restock and to move the top card of player2\'s deck to their resources and to ready it',
                 ]);
             });
 

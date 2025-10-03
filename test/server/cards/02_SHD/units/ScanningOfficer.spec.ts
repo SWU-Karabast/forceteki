@@ -120,7 +120,7 @@ describe('Scanning Officer', function () {
             expect(context.getChatLogs(3)).toEqual([
                 'player1 plays Scanning Officer',
                 'player1 uses Scanning Officer to randomly select 3 cards, and to reveal Reckless Gunslinger, Armed to the Teeth, and Wampa',
-                'player1 uses Scanning Officer to defeat Reckless Gunslinger and Armed to the Teeth and to move 2 cards to player2\'s resources',
+                'player1 uses Scanning Officer to defeat a ready Reckless Gunslinger and an exhausted Armed to the Teeth and to move 2 cards to player2\'s resources',
             ]);
         });
 
