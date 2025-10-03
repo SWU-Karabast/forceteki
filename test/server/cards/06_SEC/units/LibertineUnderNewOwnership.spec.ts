@@ -7,6 +7,12 @@ describe('Libertine, Under New Ownership', function() {
                     player1: {
                         hand: ['dismantle-the-conspiracy'],
                         spaceArena: ['libertine#under-new-ownership'],
+                        groundArena: [{
+                            card: 'cantina-bouncer',
+                            capturedUnits: [
+                                'reckless-gunslinger'
+                            ]
+                        }]
                     },
                     player2: {
                         hand: ['unexpected-escape'],
