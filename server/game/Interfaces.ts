@@ -334,7 +334,7 @@ export interface IPlayerSerializedState {
     groundArena?: ISafeSerializedArrayType<string | ISerializedCardState>;
     spaceArena?: ISafeSerializedArrayType<string | ISerializedCardState>;
     discard?: ISafeSerializedArrayType<string>;
-    resources?: ISafeSerializedArrayType<number | IResourceState | (string | ISerializedCardState)>;
+    resources?: ISafeSerializedType<number | IResourceState> | ISafeSerializedArrayType<(string | ISerializedCardState)>;
     base?: ISafeSerializedType<string | ISerializedCardState>;
     leader?: ISafeSerializedType<string | ISerializedCardState>;
     deck?: ISafeSerializedType<number> | ISafeSerializedArrayType<string>;
