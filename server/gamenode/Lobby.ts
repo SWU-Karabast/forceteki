@@ -944,13 +944,13 @@ export class Lobby {
     }
 
     public handleError(game: Game, error: Error, severity = GameErrorSeverity.Normal) {
-        logger.error('Game: handleError', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+        logger.error('Lobby: handleError', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
 
         let maxErrorCountExceeded = false;
 
         this.gameMessageErrorCount++;
         if (this.gameMessageErrorCount > Lobby.MaxGameMessageErrors) {
-            logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
+            logger.error('Lobby: too many errors for request, halting', { lobbyId: this.id });
             severity = GameErrorSeverity.SevereHaltGame;
             maxErrorCountExceeded = true;
         }
@@ -962,9 +962,7 @@ export class Lobby {
 
             const [player1Id, player2Id] = game.getPlayers().map((p) => p.id);
 
-            // TODO: re-enable once game state capture has error guards
-            // const gameState = this.game.captureGameState(player1Id);
-            const gameState = { captureError: 'Game state capture not implemented yet for server error reports' } as any;
+            const gameState = this.game.captureGameState(player1Id);
 
             game.discordDispatcher.formatAndSendServerErrorAsync(
                 discordMessage,
@@ -990,6 +988,31 @@ export class Lobby {
                 throw error;
             }
         }
+    }
+
+    public handleSerializationFailure(game: Game, error: Error): never {
+        logger.error('Lobby: handleSerializationFailure', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+
+        const [player1Id, player2Id] = game.getPlayers().map((p) => p.id);
+
+        const gameState = this.game.captureGameState(player1Id);
+
+        game.discordDispatcher.formatAndSendServerErrorAsync(
+            'Error during game state serialization, game is an unrecoverable state',
+            error,
+            gameState,
+            this.game.getLogMessages(),
+            this.id,
+            player1Id,
+            player2Id,
+            this.game.gameStepsSinceLastUndo
+        )
+            .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
+
+        // send a failure game state to the players
+        this.sendGameState(this.game);
+
+        throw error;
     }
 
     /**
