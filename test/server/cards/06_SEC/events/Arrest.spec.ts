@@ -1,5 +1,4 @@
-// TODO: Enable these tests when we remove the overrideNotImplemented flag in Arrest.ts
-xdescribe('Arrest', function() {
+describe('Arrest', function() {
     integration(function(contextRef) {
         it('the player\'s base captures an enemy non-leader unit, which is then rescued at the start of the regroup phase', async function() {
             await contextRef.setupTestAsync({
@@ -127,14 +126,16 @@ xdescribe('Arrest', function() {
             });
 
             const { context } = contextRef;
+            const p1Arrest = context.player1.findCardByName('arrest');
+            const p2Arrest = context.player2.findCardByName('arrest');
 
             // Player 1 plays Arrest to capture Battlefield Marine
-            context.player1.clickCard(context.arrest);
+            context.player1.clickCard(p1Arrest);
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.battlefieldMarine).toBeCapturedBy(context.p1Base);
 
             // Player 2 plays Arrest to capture Pyke Sentinel
-            context.player2.clickCard(context.arrest);
+            context.player2.clickCard(p2Arrest);
             context.player2.clickCard(context.pykeSentinel);
             expect(context.pykeSentinel).toBeCapturedBy(context.p2Base);
 
@@ -181,8 +182,8 @@ xdescribe('Arrest', function() {
             // Player 1 plays Arrest
             context.player1.clickCard(context.arrest);
 
-            expect(context.player1).toHaveNoEffectAbilityPrompt('Your base captures an enemy non-leader unit');
-            context.player1.clickPrompt('Use it anyway');
+            expect(context.player1).toHavePrompt('Playing Arrest will have no effect. Are you sure you want to play it?');
+            context.player1.clickPrompt('Play anyway');
 
             expect(context.player2).toBeActivePlayer();
         });
