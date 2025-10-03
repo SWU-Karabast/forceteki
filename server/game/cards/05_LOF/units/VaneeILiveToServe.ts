@@ -21,7 +21,7 @@ export default class VaneeILiveToServe extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
-                cardCondition: (card, context) => card.controller === context.player && card.isExperience(),
+                cardCondition: (card, context) => card.isExperience() && card.parentCard?.controller === context.player,
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             },
             ifYouDo: {
