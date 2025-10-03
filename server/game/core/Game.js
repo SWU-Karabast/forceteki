@@ -203,6 +203,10 @@ class Game extends EventEmitter {
         return this.snapshotManager.gameStepsSinceLastUndo;
     }
 
+    get serializationFailure() {
+        return this._serializationFailure;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -244,6 +248,9 @@ class Game extends EventEmitter {
         this.playStarted = false;
         this.createdAt = new Date();
         this.preUndoStateForError = null;
+
+        /** @private @type {boolean} */
+        this._serializationFailure = false;
 
         this.playerHasBeenPrompted = new Map();
 
@@ -320,11 +327,31 @@ class Game extends EventEmitter {
 
     /**
      * Reports errors from the game engine back to the router, optionally halting the game if the error is severe.
-     * @param {Error} e
+     * @param {Error} error
      * @param {GameErrorSeverity} severity
      */
-    reportError(e, severity = GameErrorSeverity.Normal) {
-        this._router.handleError(this, e, severity);
+    reportError(error, severity = GameErrorSeverity.Normal) {
+        this._router.handleError(this, error, severity);
+    }
+
+    /**
+     * Reports that game state serialization failed.
+     * Sends an error report and cleans up the game, as the game is now in an invalid state.
+     * @param {Error} error
+     * @returns {never}
+     */
+    reportSerializationFailure(error) {
+        // if we've already seen a serialization failure, we may be in an infinite loop while try to report it, so just throw
+        if (this._serializationFailure) {
+            throw error;
+        }
+
+        this._serializationFailure = true;
+
+        this._router.handleSerializationFailure(this, error);
+
+        // we won't reach here, this is just to make TS happy about the return type
+        throw error;
     }
 
     /**
@@ -1867,41 +1894,61 @@ class Game extends EventEmitter {
     //  * This information is sent to the client
     //  */
     getState(notInactivePlayerId) {
-        let activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
-        let playerState = {};
-        if (this.started) {
-            for (const player of this.getPlayers()) {
-                playerState[player.id] = player.getStateSummary(activePlayer);
+        try {
+            const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
+
+            if (this._serializationFailure) {
+                return {
+                    messages: [`A severe server error has occurred and made this game unplayable. This incident has been reported to the dev team. Please feel free to reach out in the Karabast discord to provide additional details so we can resolve this faster (game id ${this.id}).`],
+                    playerUpdate: activePlayer.name,
+                    id: this.id,
+                    owner: this.owner,
+                    players: {},
+                    phase: this.currentPhase,
+                    initiativeClaimed: this.isInitiativeClaimed,
+                    clientUIProperties: {},
+                    spectators: {},
+                    winners: [],
+                };
             }
 
-            const gameState = {
-                playerUpdate: activePlayer.name,
-                id: this.id,
-                manualMode: this.manualMode,
-                owner: this.owner,
-                players: playerState,
-                phase: this.currentPhase,
-                messages: this.gameChat.messages,
-                initiativeClaimed: this.isInitiativeClaimed,
-                clientUIProperties: this.clientUIProperties,
-                spectators: this.getSpectators().map((spectator) => {
-                    return {
-                        id: spectator.id,
-                        name: spectator.name
-                    };
-                }),
-                started: this.started,
-                gameMode: this.gameMode,
-                winners: this.winnerNames,
-                undoEnabled: this.isUndoEnabled,
-            };
+            let playerState = {};
+            if (this.started) {
+                for (const player of this.getPlayers()) {
+                    playerState[player.id] = player.getStateSummary(activePlayer);
+                }
 
-            // clean out any properies that are null or undefined to reduce the message size
-            Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
+                const gameState = {
+                    playerUpdate: activePlayer.name,
+                    id: this.id,
+                    manualMode: this.manualMode,
+                    owner: this.owner,
+                    players: playerState,
+                    phase: this.currentPhase,
+                    messages: this.gameChat.messages,
+                    initiativeClaimed: this.isInitiativeClaimed,
+                    clientUIProperties: this.clientUIProperties,
+                    spectators: this.getSpectators().map((spectator) => {
+                        return {
+                            id: spectator.id,
+                            name: spectator.name
+                        };
+                    }),
+                    started: this.started,
+                    gameMode: this.gameMode,
+                    winners: this.winnerNames,
+                    undoEnabled: this.isUndoEnabled,
+                };
 
-            return gameState;
+                // clean out any properies that are null or undefined to reduce the message size
+                Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
+
+                return gameState;
+            }
+            return {};
+        } catch (e) {
+            this.reportSerializationFailure(e);
         }
-        return {};
     }
 
     /** @param {string} playerId */
@@ -2089,22 +2136,18 @@ class Game extends EventEmitter {
     /**
      * Captures the current game state for a bug report
      * @param {string} reportingPlayer
-     * @returns A simplified game state representation
+     * @returns {import('../Interfaces').ISerializedGameState} A simplified game state representation
      */
     captureGameState(reportingPlayer) {
         if (!this) {
             return {
-                phase: 'unknown',
-                player1: {},
-                player2: {}
+                error: 'game not found'
             };
         }
         const players = this.getPlayers();
         if (players.length !== 2) {
             return {
-                phase: this.currentPhase,
-                player1: {},
-                player2: {}
+                error: `invalid number of players: ${players.length}`
             };
         }
         let player1, player2;
@@ -2125,10 +2168,11 @@ class Game extends EventEmitter {
             default:
                 Contract.fail(`Reporting player ${reportingPlayer} is not a player in this game`);
         }
+
         return {
             phase: this.currentPhase,
-            player1: player1.capturePlayerState('player1'),
-            player2: player2.capturePlayerState('player2'),
+            player1: Helpers.safeSerialize(this, () => player1.capturePlayerState('player1'), null),
+            player2: Helpers.safeSerialize(this, () => player2.capturePlayerState('player2'), null),
         };
     }
 
