@@ -34,8 +34,11 @@ describe('Ezra Bridger', function() {
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.momentOfPeace]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
-                expect(context.getChatLogs(1)).toContain('player1 looks at a card');
-                expect(context.getChatLogs(1)).not.toContain('Moment of Peace');
+                expect(context.getChatLogs(3)).toEqual([
+                    'player1 attacks Death Trooper with Ezra Bridger',
+                    'player2\'s Death Trooper is defeated by player1 due to having no remaining HP',
+                    'player1 uses Ezra Bridger to look at a card',
+                ]);
 
                 // check that the damage was done before player1 clicks prompt
                 expect(context.ezraBridger.damage).toBe(3);

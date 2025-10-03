@@ -42,7 +42,12 @@ describe('Qi\'ra, Playing Her Part', function () {
 
             expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
             context.player1.chooseListOption('Battlefield Marine');
-            expect(context.getChatLogs(1)).toContain('player1 names Battlefield Marine using Qi\'ra');
+            expect(context.getChatLogs(4)).toEqual([
+                'player1 plays Qi\'ra',
+                'player1 uses Qi\'ra to look at the opponent’s hand',
+                'player1 names Battlefield Marine using Qi\'ra',
+                'player1 uses Qi\'ra to apply a lasting effect to player2 while in play',
+            ]);
 
             // battlefield marine should cost 5
             expect(context.player2).toBeActivePlayer();

@@ -36,34 +36,6 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         return ['look at {0}', [effectArg]];
     }
 
-    public override getMessageArgs(event: any, context: TContext, additionalProperties: Partial<ILookAtProperties>): any[] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
-            this.getPromptedPlayer(properties, context), this.getTargetMessage(event.cards, context)
-        ];
-        return messageArgs;
-    }
-
-    protected override getChatMessage(useDisplayPrompt: boolean, context: TContext, additionalProperties: Partial<ILookAtProperties>): string {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
-        if (useDisplayPrompt) {
-            if (Helpers.equalArrays(Helpers.asArray(properties.target), context.player.opponent.hand)) {
-                return '{0} looks at the opponent’s hand';
-            } else if (Helpers.asArray(properties.target)
-                .every((card) => card.zone.owner === context.player.opponent && card.zoneName === ZoneName.Resource)
-            ) {
-                const targetCount = Helpers.asArray(properties.target).length;
-                return targetCount === 1
-                    ? '{0} looks at an enemy resource'
-                    : `{0} looks at ${targetCount} enemy resources`;
-            }
-            return '{0} looks at a card';
-        }
-
-        return Helpers.derive(properties.message, context);
-    }
-
     protected override getPromptedPlayer(properties: ILookAtProperties, context: TContext): Player {
         return context.player;
     }
