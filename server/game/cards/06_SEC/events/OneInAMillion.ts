@@ -1,24 +1,20 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { AbilityRestriction, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import { WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class OneInAMillion extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'one-in-a-million-id',
+            id: '3612601170',
             internalName: 'one-in-a-million',
         };
     }
 
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
-        registrar.addConstantAbility({
+        registrar.addPlayRestrictionAbility({
             title: 'This card can\'t be played from your hand',
-            sourceZoneFilter: WildcardZoneName.Any,
-            ongoingEffect: abilityHelper.ongoingEffects.cardCannot({
-                cannot: AbilityRestriction.Play,
-                restrictedActionCondition: (_, source) => source.zoneName === ZoneName.Hand,
-            })
+            restrictedActionCondition: (_, source) => source.zoneName === ZoneName.Hand,
         });
 
         registrar.setEventAbility({
