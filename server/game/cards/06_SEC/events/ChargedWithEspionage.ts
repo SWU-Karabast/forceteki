@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class ChargedWithEspionage extends EventCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class ChargedWithEspionage extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Cunning, Aspect.Cunning];
         registrar.setEventAbility({
-            title: `Disclose ${Helpers.aspectString(aspects)}. If you do, look at an opponent's hand and discard a unit from it`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects)}. If you do, look at an opponent's hand and discard a unit from it`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Look at an opponent\'s hand and discard a unit from it',

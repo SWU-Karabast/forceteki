@@ -114,6 +114,7 @@ export enum EffectName {
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
     PrintedAttributesOverride = 'printedAttributesOverride',
+    RescuedUnitsEnterPlayReady = 'rescuedUnitsEnterPlayReady',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
     SuppressEffects = 'suppressEffects',
@@ -566,4 +567,9 @@ export enum GameEndReason {
     Concede = 'concede',
     GameRules = 'gameRules',
     PlayerLeft = 'playerLeft',
+}
+
+export enum Conjunction {
+    And = 'and',
+    Or = 'or',
 }

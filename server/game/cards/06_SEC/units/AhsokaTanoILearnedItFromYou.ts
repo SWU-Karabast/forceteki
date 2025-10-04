@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class AhsokaTanoILearnedItFromYou extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class AhsokaTanoILearnedItFromYou extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command, Aspect.Heroism];
         registrar.addTriggeredAbility({
-            title: `Disclose ${Helpers.aspectString(aspects)} to attack with another unit`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects)} to attack with another unit`,
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
             },

@@ -187,8 +187,13 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
                 cards = cards.concat(player.baseZone.cards);
                 break;
             case ZoneName.Capture:
-                cards = game.allArenas.getUnitCards().flatMap((card) => card.capturedUnits);
-                cards = cards.filter((card) => card.owner === player);
+                const capturedByUnits = game.getArenaUnits()
+                    .flatMap((card) => card.capturedUnits)
+                    .filter((card) => card.owner === player);
+                const capturedByBase = game.getPlayers()
+                    .flatMap((p) => p.base.capturedUnits)
+                    .filter((card) => card.owner === player);
+                cards = capturedByUnits.concat(capturedByBase);
                 break;
             default:
                 cards = player.getCardsInZone(zone);

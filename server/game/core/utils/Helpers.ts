@@ -5,6 +5,8 @@ import type { IRandomness } from '../Randomness';
 import { CardType, ZoneName } from '../Constants';
 import * as Contract from './Contract';
 import * as EnumHelpers from './EnumHelpers';
+import type Game from '../Game';
+import type { ISerializationError } from '../../Interfaces';
 
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
 export function shuffleArray<T>(array: T[], randomGenerator: IRandomness): void {
@@ -41,12 +43,6 @@ export function countUniqueAspects(cards: Card | Card[]): number {
         card.aspects.forEach((aspect) => aspects.add(aspect));
     });
     return aspects.size;
-}
-
-export function aspectString(aspects: Aspect[]): string {
-    return aspects
-        .map((aspect) => capitalize(aspect))
-        .join(', ');
 }
 
 /**
@@ -352,5 +348,17 @@ function deleteEmptyPropertiesRecursiveInPlaceInternal(obj, visited) {
     for (const key of keysToDelete) {
         // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete obj[key];
+    }
+}
+
+export function safeSerialize<T>(game: Game, serialize: () => T, entityName?: string): T | ISerializationError {
+    try {
+        return serialize();
+    } catch (e) {
+        if (game.serializationFailure) {
+            return { [entityName ?? 'error']: `${(e as Error).message}\n${(e as Error).stack}` };
+        }
+
+        game.reportSerializationFailure(e);
     }
 }
