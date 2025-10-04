@@ -61,5 +61,5 @@ export type IBaseAbilityRegistrar = IBasicAbilityRegistrar<BaseCard> & {
 export type IEventAbilityRegistrar = IBasicAbilityRegistrar<EventCard> & {
     setEventAbility(properties: IEventAbilityProps): void;
     addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<EventCard>): void;
-    addPlayRestrictionAbility(properties:IPlayRestrictionAbilityProps): void;
+    addPlayRestrictionAbility(properties: IPlayRestrictionAbilityProps): void;
 };
