@@ -4,12 +4,6 @@ import { EventCard } from '../../../core/card/EventCard';
 import { PhaseName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class Arrest extends EventCard {
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    protected override get overrideNotImplemented(): boolean {
-        // TODO: Remove this when base capture UI is implemented on the client
-        return true;
-    }
-
     protected override getImplementationId() {
         return {
             id: '1407380526',
