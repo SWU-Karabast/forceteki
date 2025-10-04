@@ -20,9 +20,10 @@ import type { GameObjectRef } from '../GameObjectBase';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
+import { WithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
 
 // STATE TODO: This needs the eventAbility to be converted to state.
-const EventCardParent = WithCost(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard<IEventCardState>)));
+const EventCardParent = WithCost(WithConstantAbilities(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard<IEventCardState>))));
 
 export interface IEventCardState extends IPlayableOrDeployableCardState {
     eventAbility: GameObjectRef<EventAbility>;
