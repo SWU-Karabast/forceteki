@@ -569,25 +569,25 @@ export class GameServer {
             }
         });
 
-        app.put('/api/update-preferences', authMiddleware('get-preferences'), async (req, res, next) => {
+        app.put('/api/user/:userId/preferences', authMiddleware('PUT-preferences'), async (req, res, next) => {
             try {
                 const { preferences } = req.body;
+                const { userId } = req.params;
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences to dynamodb`);
+                    logger.error(`GameServer (PUT-preferences): Anonymous user ${user.getId()} attempted to save sound preferences to dynamodb`);
                     return res.status(401).json({
                         success: false,
-                        message: 'Error attempting to save sound preferences'
+                        message: 'Error attempting to save preferences'
                     });
                 }
-                const result = await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences);
+                await this.userFactory.updateUserPreferencesAsync(userId, preferences);
                 return res.status(200).json({
                     success: true,
                     message: 'Preferences saved successfully',
-                    updatedObject: result,
                 });
             } catch (err) {
-                logger.error('GameServer (update-preferences) Server error:', err);
+                logger.error('GameServer (PUT-preferences) Server error:', err);
                 next(err);
             }
         });

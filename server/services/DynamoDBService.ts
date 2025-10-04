@@ -10,7 +10,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 import * as Contract from '../game/core/utils/Contract';
-import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity } from './DynamoDBInterfaces';
+import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity, UserPreferences } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import { iDeckDataEntitySchema, iDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
 
@@ -504,6 +504,55 @@ class DynamoDBService {
                 { ':preferences': settings }
             );
         }, 'Error saving user settings');
+    }
+
+    /**
+     * Update user preferences partially (supports nested updates)
+     * @param userId User ID
+     * @param preferences Partial preferences to update
+     */
+    public updateUserPreferencesAsync(userId: string, preferences: Partial<UserPreferences>): Promise<void> {
+        return this.executeDbOperationAsync(async () => {
+            const updateExpressions: string[] = [];
+            const expressionAttributeValues: Record<string, any> = {};
+            const expressionAttributeNames: Record<string, string> = {};
+
+            // Helper function to build update expressions for nested objects
+            const buildNestedUpdate = (obj: any, basePath: string[], valuePrefix: string) => {
+                Object.entries(obj).forEach(([key, value]) => {
+                    if (value !== undefined) {
+                        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                            // It's a nested object, recurse
+                            buildNestedUpdate(value, [...basePath, key], `${valuePrefix}_${key}`);
+                        } else {
+                            const pathParts = [...basePath, key];
+                            const pathExpression = pathParts.map((part, idx) => {
+                                const attrName = `#${part}`;
+                                expressionAttributeNames[attrName] = part;
+                                return attrName;
+                            }).join('.');
+
+                            const valueName = `:${valuePrefix}_${key}`;
+                            updateExpressions.push(`${pathExpression} = ${valueName}`);
+                            expressionAttributeValues[valueName] = value;
+                        }
+                    }
+                });
+            };
+            buildNestedUpdate(preferences, ['preferences'], 'pref');
+            if (updateExpressions.length === 0) {
+                return;
+            }
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+                ExpressionAttributeValues: expressionAttributeValues,
+                ExpressionAttributeNames: expressionAttributeNames,
+            });
+
+            await this.client.send(command);
+        }, 'Error updating user preferences');
     }
 
     // Clear all data (for testing purposes only)
