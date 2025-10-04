@@ -6,6 +6,7 @@ import type { Player } from '../core/Player';
 import { DamageSystem } from './DamageSystem';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { GameEvent } from '../core/event/GameEvent';
+import * as Contract from '../core/utils/Contract';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -21,7 +22,9 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
 
     public eventHandler(event): void {
         const gameEvent = event as GameEvent;
-        if (gameEvent.context && gameEvent.context.player && event.player === gameEvent.context.player && event.amount > 0 && event.player.drawDeck.length > 0) {
+        Contract.assertNotNullLike(gameEvent.context);
+
+        if (gameEvent.context.player && event.player === gameEvent.context.player && event.amount > 0 && event.player.drawDeck.length > 0) {
             gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(gameEvent.context.player.id);
         }
 
