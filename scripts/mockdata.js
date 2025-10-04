@@ -1214,25 +1214,6 @@ const mockCards = [
         internalName: 'grand-admiral-thrawn#grand-schemer',
     }),
     buildMockCard({
-        title: 'Hondo Ohnaka',
-        subtitle: 'You Better Hurry',
-        power: 6,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['aggression', 'villainy'],
-        types: ['unit'],
-        traits: ['underworld'],
-        setId: {
-            set: 'SEC',
-            number: 140
-        },
-        cost: 6,
-        unique: true,
-        arena: 'ground',
-        internalName: 'hondo-ohnaka#you-better-hurry',
-    }),
-    buildMockCard({
         title: 'The Galleon',
         subtitle: 'Marauding Pirate Ship',
         power: 6,
@@ -1527,39 +1508,6 @@ const mockCards = [
         internalName: 'restore-freedom',
     }),
     buildMockCard({
-        title: 'The Wrong Ride',
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['cunning'],
-        types: ['event'],
-        traits: ['disaster'],
-        setId: {
-            set: 'SEC',
-            number: 235
-        },
-        cost: 3,
-        unique: false,
-        internalName: 'the-wrong-ride',
-    }),
-    buildMockCard({
-        title: 'Dressellian Commandos',
-        power: 4,
-        hp: 5,
-        hasNonKeywordAbility: false,
-        aspects: ['command', 'heroism'],
-        keywords: ['ambush', 'plot'],
-        types: ['unit'],
-        traits: ['rebel', 'trooper'],
-        setId: {
-            set: 'SEC',
-            number: 100
-        },
-        cost: 5,
-        unique: false,
-        arena: 'ground',
-        internalName: 'dressellian-commandos',
-    }),
-    buildMockCard({
         title: 'Crucible',
         subtitle: 'Centuries of Wisdom',
         power: 5,
@@ -1685,6 +1633,24 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'dj#need-a-lift',
+    }),
+    buildMockCard({
+        title: 'Director Kennic',
+        subtitle: 'I Lose Nothing But Time',
+        power: 8,
+        hp: 10,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 90
+        },
+        cost: 9,
+        unique: true,
+        arena: 'ground',
+        internalName: 'director-krennic#i-lose-nothing-but-me',
     }),
 ];
 
