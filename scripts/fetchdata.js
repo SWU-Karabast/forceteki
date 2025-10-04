@@ -160,6 +160,7 @@ function populateMissingData(attributes, id) {
         case '8401985446': // Topple the Summit
         case '1369084772': // Tala Durith
         case '6015383018': // Sneaking Suspicion
+        case '8796918121': // The Wrong Ride
         case '7248761207': // FN Trooper Corps
             attributes.keywords = {
                 data: [{

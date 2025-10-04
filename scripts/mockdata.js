@@ -1527,21 +1527,6 @@ const mockCards = [
         internalName: 'restore-freedom',
     }),
     buildMockCard({
-        title: 'The Wrong Ride',
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['cunning'],
-        types: ['event'],
-        traits: ['disaster'],
-        setId: {
-            set: 'SEC',
-            number: 235
-        },
-        cost: 3,
-        unique: false,
-        internalName: 'the-wrong-ride',
-    }),
-    buildMockCard({
         title: 'Dressellian Commandos',
         power: 4,
         hp: 5,
