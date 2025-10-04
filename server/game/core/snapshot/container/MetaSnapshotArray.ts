@@ -50,7 +50,7 @@ export class MetaSnapshotArray {
                 break;
         }
 
-        return rollbackEntry?.snapshotProperties() ?? null;
+        return rollbackEntry?.snapshotProperties();
     }
 
     public rollbackToSnapshot(rollbackPoint: QuickRollbackPoint): number | null {
