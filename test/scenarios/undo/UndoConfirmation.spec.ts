@@ -360,19 +360,25 @@ describe('Undo confirmation', function() {
                     deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay'],
                 },
                 player2: {
-                    groundArena: ['atat-suppressor'],
+                    hand: ['atat-suppressor'],
                     resources: 10,
-                    hasInitiative: true,
                 },
                 enableConfirmationToUndo: true,
             });
 
             const { context } = contextRef;
 
-            // Generate a quick snapshot
-            context.player2.passAction();
+            // Generate a quick snapshot for each player
+            context.player1.passAction();
+            context.player2.clickCard(context.atatSuppressor);
+
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
 
             context.player1.clickCard(context.infernoFour);
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+
             context.player1.clickDisplayCardPromptButton(context.sabineWren.uuid, 'top');
             context.player1.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'bottom');
 
@@ -384,6 +390,16 @@ describe('Undo confirmation', function() {
 
             context.player2.clickPrompt('Allow');
             expect(context.player1).toBeActivePlayer();
+            expect(context.infernoFour).toBeInZone('hand');
+
+            // Play Inferno Four again but this time perform the undo while the prompt is still active
+            context.player1.clickCard(context.infernoFour);
+            contextRef.snapshot.quickRollback(context.player1.id);
+            expect(context.player2).toHaveConfirmUndoPrompt();
+
+            context.player2.clickPrompt('Allow');
+            expect(context.player1).toBeActivePlayer();
+            expect(context.infernoFour).toBeInZone('hand');
         });
 
         it('should require confirmation to rollback after drawing a card', async function() {
