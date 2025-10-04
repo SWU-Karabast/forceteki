@@ -1214,25 +1214,6 @@ const mockCards = [
         internalName: 'grand-admiral-thrawn#grand-schemer',
     }),
     buildMockCard({
-        title: 'Hondo Ohnaka',
-        subtitle: 'You Better Hurry',
-        power: 6,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['aggression', 'villainy'],
-        types: ['unit'],
-        traits: ['underworld'],
-        setId: {
-            set: 'SEC',
-            number: 140
-        },
-        cost: 6,
-        unique: true,
-        arena: 'ground',
-        internalName: 'hondo-ohnaka#you-better-hurry',
-    }),
-    buildMockCard({
         title: 'The Galleon',
         subtitle: 'Marauding Pirate Ship',
         power: 6,
@@ -1525,24 +1506,6 @@ const mockCards = [
         cost: 2,
         unique: false,
         internalName: 'restore-freedom',
-    }),
-    buildMockCard({
-        title: 'Dressellian Commandos',
-        power: 4,
-        hp: 5,
-        hasNonKeywordAbility: false,
-        aspects: ['command', 'heroism'],
-        keywords: ['ambush', 'plot'],
-        types: ['unit'],
-        traits: ['rebel', 'trooper'],
-        setId: {
-            set: 'SEC',
-            number: 100
-        },
-        cost: 5,
-        unique: false,
-        arena: 'ground',
-        internalName: 'dressellian-commandos',
     }),
     buildMockCard({
         title: 'Crucible',
