@@ -105,6 +105,7 @@ export class Lobby {
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
     private readonly swuStatsEnabled: boolean = true;
+    private readonly enableConfirmationToUndo: boolean;
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
@@ -150,6 +151,7 @@ export class Lobby {
         this.gameFormat = lobbyGameFormat;
         this.server = gameServer;
         this.undoMode = process.env.ENVIRONMENT === 'development' || enableUndo ? UndoMode.Full : UndoMode.CurrentSnapshotOnly;
+        this.enableConfirmationToUndo = lobbyGameType !== MatchType.Private;
     }
 
     public get id(): string {
@@ -798,6 +800,7 @@ export class Lobby {
             gameMode: GameMode.Premier,
             players,
             undoMode: this.undoMode,
+            enableConfirmationToUndo: this.enableConfirmationToUndo,
             cardDataGetter: this.cardDataGetter,
             useActionTimer,
             pushUpdate: () => this.sendGameState(this.game),
