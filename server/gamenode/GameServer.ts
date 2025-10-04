@@ -34,6 +34,7 @@ import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { requireEnvVars } from '../env';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
+import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -153,6 +154,7 @@ export class GameServer {
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
     public readonly swuStatsHandler: SwuStatsHandler;
+    private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
 
     private constructor(
@@ -1090,6 +1092,7 @@ export class GameServer {
             this.cardDataGetter,
             this.deckValidator,
             this,
+            this.discordDispatcher,
             this.testGameBuilder,
             enableUndo
         );
@@ -1107,6 +1110,7 @@ export class GameServer {
             this.cardDataGetter,
             this.deckValidator,
             this,
+            this.discordDispatcher,
             this.testGameBuilder,
             true
         );
@@ -1387,7 +1391,8 @@ export class GameServer {
             format,
             this.cardDataGetter,
             this.deckValidator,
-            this
+            this,
+            this.discordDispatcher
         );
 
         this.lobbies.set(lobby.id, lobby);
