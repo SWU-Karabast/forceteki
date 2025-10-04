@@ -23,8 +23,9 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
     public eventHandler(event): void {
         const gameEvent = event as GameEvent;
         Contract.assertNotNullLike(gameEvent.context);
+        Contract.assertNotNullLike(gameEvent.context.player);
 
-        if (gameEvent.context.player && event.player === gameEvent.context.player && event.amount > 0 && event.player.drawDeck.length > 0) {
+        if (event.player === gameEvent.context.player && event.amount > 0 && event.player.drawDeck.length > 0) {
             gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(gameEvent.context.player.id);
         }
 

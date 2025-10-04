@@ -46,7 +46,7 @@ export class RegroupPhase extends Phase {
             // create a single event for drawing cards step
             new DrawSystem({ amount: 2 }).resolve(
                 player,
-                this.game.getFrameworkContext(),
+                this.game.getFrameworkContext(player),
                 TriggerHandlingMode.ResolvesTriggers
             );
         }
