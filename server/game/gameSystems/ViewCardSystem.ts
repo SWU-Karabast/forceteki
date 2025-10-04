@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MsgArg } from '../core/chat/GameChat';
+import { ZoneName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -79,6 +80,12 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         const event = this.createEvent(null, context, additionalProperties);
         this.updateEvent(event, cards, context, additionalProperties);
         events.push(event);
+
+        const isViewingOpponentCards = cards.some((card) => card.controller !== context.player);
+        const isViewingOwnDeck = cards.some((card) => card.zoneName === ZoneName.Deck && card.controller === context.player);
+        if (isViewingOpponentCards || isViewingOwnDeck) {
+            context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
+        }
     }
 
     public override addPropertiesToEvent(event, cards, context: TContext, additionalProperties): void {

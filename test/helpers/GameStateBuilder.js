@@ -106,6 +106,10 @@ class GameStateBuilder {
 
         context.game.gameMode = SwuGameFormat.Premier;
 
+        if (options.hasOwnProperty('enableConfirmationToUndo')) {
+            context.game.enableConfirmationToUndo = !!options.enableConfirmationToUndo; // Ensures a boolean value
+        }
+
         if (options.player1.hasInitiative) {
             context.game.initiativePlayer = context.player1Object;
         } else if (options.player2.hasInitiative) {
@@ -291,7 +295,8 @@ class GameStateBuilder {
             'phase',
             'phaseTransitionHandler',
             'autoSingleTarget',
-            'testUndo'
+            'testUndo',
+            'enableConfirmationToUndo',
         ];
 
         // Check for unknown properties
