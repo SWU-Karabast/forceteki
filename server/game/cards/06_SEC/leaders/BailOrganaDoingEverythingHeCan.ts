@@ -40,7 +40,7 @@ export default class BailOrganaDoingEverythingHeCan extends LeaderUnitCard {
                 onTrue: abilityHelper.immediateEffects.selectCard({
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Resource,
-                    mustChangeGameState: GameStateChangeRequired.MustFullyResolve, // TODO - is this needed?
+                    mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                     immediateEffect: abilityHelper.immediateEffects.returnToHand()
                 })
             }),
