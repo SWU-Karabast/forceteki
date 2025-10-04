@@ -45,5 +45,34 @@ describe('Nimble Prowess', function () {
                 expect(context.greenSquadronAwing.exhausted).toBeTrue();
             });
         });
+
+        it('Nimble Prowess\'s ability can be played from opponent discard (with A Fine Addition) and exhaust a unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['a-fine-addition', 'takedown'],
+                    groundArena: ['wampa']
+                },
+                player2: {
+                    discard: ['nimble-prowess'],
+                    groundArena: ['battlefield-marine'],
+                    spaceArena: ['awing']
+                }
+            });
+
+            const { context } = contextRef;
+            context.player1.clickCard(context.takedown);
+            context.player1.clickCard(context.awing);
+
+            context.player2.passAction();
+            context.player1.clickCard(context.aFineAddition);
+            context.player1.clickCard(context.nimbleProwess);
+            context.player1.clickCard(context.wampa);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.battlefieldMarine.exhausted).toBeTrue();
+        });
     });
 });
