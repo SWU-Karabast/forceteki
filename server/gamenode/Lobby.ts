@@ -21,6 +21,7 @@ import type { GameServer, ISwuStatsToken } from './GameServer';
 import { AlertType, GameEndReason, GameErrorSeverity } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
+import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 
 interface LobbySpectator {
     id: string;
@@ -105,6 +106,7 @@ export class Lobby {
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
     private readonly swuStatsEnabled: boolean = true;
+    private readonly discordDispatcher: DiscordDispatcher;
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
@@ -131,6 +133,7 @@ export class Lobby {
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         gameServer: GameServer,
+        discordDispatcher: DiscordDispatcher,
         testGameBuilder?: any,
         enableUndo = false
     ) {
@@ -149,6 +152,7 @@ export class Lobby {
         this.deckValidator = deckValidator;
         this.gameFormat = lobbyGameFormat;
         this.server = gameServer;
+        this.discordDispatcher = discordDispatcher;
         this.undoMode = process.env.ENVIRONMENT === 'development' || enableUndo ? UndoMode.Full : UndoMode.CurrentSnapshotOnly;
     }
 
@@ -733,21 +737,21 @@ export class Lobby {
 
             // For each user, if they have a deck, select it in the game
             this.users.forEach((user) => {
-                if (user.deck) {
-                    game.selectDeck(user.id, user.deck);
-                    this.playersDetails.push({
-                        user: user.socket.user,
-                        baseID: user.deck.base.id,
-                        leaderID: user.deck.leader.id,
-                        deckID: user.deck.id,
-                        deckLink: user.decklist.deckLink,
-                        deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
-                        deck: user.deck.getDecklist(),
-                        isDeckPresentInDb: user.decklist.isPresentInDb,
-                        swuStatsRefreshToken: user.socket.user.getSwuStatsRefreshToken(),
-                        swuStatsToken: this.server.swuStatsTokenMapping.get(user.id),
-                    });
-                }
+                Contract.assertNotNullLike(user.deck, `User ${user.id} doesn't have a deck assigned at game start for lobby ${this.id}`);
+
+                game.selectDeck(user.id, user.deck);
+                this.playersDetails.push({
+                    user: user.socket.user,
+                    baseID: user.deck.base.id,
+                    leaderID: user.deck.leader.id,
+                    deckID: user.deck.id,
+                    deckLink: user.decklist.deckLink,
+                    deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
+                    deck: user.deck.getDecklist(),
+                    isDeckPresentInDb: user.decklist.isPresentInDb,
+                    swuStatsRefreshToken: user.socket.user.getSwuStatsRefreshToken(),
+                    swuStatsToken: this.server.swuStatsTokenMapping.get(user.id),
+                });
             });
 
             await game.initialiseAsync();
@@ -759,6 +763,14 @@ export class Lobby {
                     { error: { message: error.message, stack: error.stack }, lobbyId: this.id }
                 );
                 this.matchmakingFailed(error);
+
+                this.discordDispatcher?.formatAndSendGameStartErrorAsync(
+                    'Game failed to start, lobby closed',
+                    error,
+                    this.id
+                ).catch((e) => {
+                    logger.error('Lobby: error sending game start error to discord', { error: { message: e.message, stack: e.stack }, lobbyId: this.id });
+                });
             }
         }
     }
@@ -964,7 +976,7 @@ export class Lobby {
 
             const gameState = this.game.captureGameState(player1Id);
 
-            game.discordDispatcher.formatAndSendServerErrorAsync(
+            this.discordDispatcher.formatAndSendServerErrorAsync(
                 discordMessage,
                 error,
                 gameState,
@@ -997,7 +1009,7 @@ export class Lobby {
 
         const gameState = this.game.captureGameState(player1Id);
 
-        game.discordDispatcher.formatAndSendServerErrorAsync(
+        this.discordDispatcher.formatAndSendServerErrorAsync(
             'Error during game state serialization, game is an unrecoverable state',
             error,
             gameState,
@@ -1392,7 +1404,7 @@ export class Lobby {
             );
 
             // Send to Discord
-            const success = await this.game.discordDispatcher.formatAndSendBugReportAsync(bugReport);
+            const success = await this.discordDispatcher.formatAndSendBugReportAsync(bugReport);
             if (!success) {
                 throw new Error('Bug report failed to send to discord. See logs for details.');
             }
