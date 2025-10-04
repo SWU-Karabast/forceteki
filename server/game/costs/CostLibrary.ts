@@ -15,6 +15,8 @@ import type { IAttackableCard } from '../core/card/CardInterfaces';
 import { AbilityResourceCost } from './AbilityResourceCost';
 import { UseTheForceSystem } from '../gameSystems/UseTheForceSystem';
 import type { DistributiveOmit } from '../core/utils/Helpers';
+import { DiscardCardsFromHandSystem } from '../gameSystems/DiscardCardsFromHandSystem';
+import type { Player } from '../core/Player';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = DistributiveOmit<ISelectCardProperties<TContext>, 'immediateEffect'>;
 
@@ -92,6 +94,13 @@ export function useTheForce<TContext extends AbilityContext = AbilityContext>():
  */
 export function discardCardFromOwnHand<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext> = {}): ICost<TContext> {
     return getSelectCost(new DiscardSpecificCardSystem<TContext>({ isCost: true }), { ...properties, zoneFilter: ZoneName.Hand, controller: RelativePlayer.Self }, 'Choose a card to discard');
+}
+
+/**
+ * Cost that requires discarding multiple cards from the hand.
+ */
+export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(amount: number, targetPlayer: Player): ICost<TContext> {
+    return new GameSystemCost<TContext>(new DiscardCardsFromHandSystem<TContext>({ isCost: true, amount: amount, target: targetPlayer }));
 }
 
 /**

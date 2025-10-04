@@ -20,6 +20,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import { CardLastingEffectSystem } from './CardLastingEffectSystem';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { IOngoingCardEffectGenerator, KeywordNameOrProperties } from '../Interfaces';
@@ -27,6 +28,7 @@ import { KeywordInstance } from '../core/ability/KeywordInstance';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 import type { OngoingCardEffect } from '../core/ongoingEffect/OngoingCardEffect';
 import type { OngoingPlayerEffect } from '../core/ongoingEffect/OngoingPlayerEffect';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IAttackLastingEffectProperties<TContext extends AbilityContext = AbilityContext> {
     condition?: (attack: Attack, context: TContext) => boolean;
@@ -93,10 +95,37 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             return;
         }
 
-        this.registerAttackEffects(context, event.attackerLastingEffects, event.defenderLastingEffects, event.attack);
+        const { attackerEffects, defenderEffects } = this.registerAttackEffects(context, event.attackerLastingEffects, event.defenderLastingEffects, event.attack);
 
         const attack: Attack = event.attack;
-        context.game.addMessage('{0} attacks {1} with {2}', attack.attackingPlayer, this.getTargetMessage(attack.getAllTargets(), event.context), attack.attacker);
+
+        const attackMessage: FormatMessage[] = [
+            { format: '{0} attacks {1} with {2}', args: [attack.attackingPlayer, this.getTargetMessage(attack.getAllTargets(), event.context), attack.attacker] },
+        ];
+
+        const effectMessage: FormatMessage[] = [];
+        if (attackerEffects != null) {
+            const [message, args] = attackerEffects.getEffectMessage(context);
+            effectMessage.push({ format: message, args: Helpers.asArray(args) });
+        }
+
+        for (const target of attack.getAllTargets()) {
+            const defenderEffect = defenderEffects.get(target);
+            if (defenderEffect) {
+                const [message, args] = defenderEffect.getEffectMessage(context);
+                effectMessage.push({ format: message, args: Helpers.asArray(args) });
+            }
+        }
+
+        if (effectMessage.length > 0 && context.ability?.isAttackAction() && context.ability.initiateAttackSource) {
+            attackMessage.push({ format: 'uses {0} to {1}',
+                args: [
+                    context.ability.initiateAttackSource,
+                    { format: ChatHelpers.formatWithLength(effectMessage.length, 'to '), args: effectMessage }
+                ] });
+        }
+
+        context.game.addMessage(ChatHelpers.formatWithLength(attackMessage.length), ...attackMessage);
         context.game.queueStep(new AttackFlow(context, attack));
     }
 
@@ -256,17 +285,26 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         context: TContext,
         attackerLastingEffects: IAttackLastingEffectPropertiesOrFactory<TContext> | IAttackLastingEffectPropertiesOrFactory<TContext>[],
         defenderLastingEffects: IAttackLastingEffectPropertiesOrFactory<TContext> | IAttackLastingEffectPropertiesOrFactory<TContext>[],
-        attack: Attack) {
+        attack: Attack
+    ): { attackerEffects?: CardLastingEffectSystem; defenderEffects: Map<Card, CardLastingEffectSystem> } {
         // create events for all effects to be generated
         const effectEvents: GameEvent[] = [];
-        const effectsRegistered = [
-            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(attackerLastingEffects), attack.attacker, context, attack, effectEvents),
-            attack.getAllTargets().map((target) => this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), target, context, attack, effectEvents))
-        ].some((result) => result);
+        const attackerEffects = this.queueCreateLastingEffectsGameSteps(Helpers.asArray(attackerLastingEffects), attack.attacker, context, attack, effectEvents);
+        let effectsRegistered = attackerEffects != null;
+        const defenderEffectsMap = new Map<Card, CardLastingEffectSystem>();
+        for (const target of attack.getAllTargets()) {
+            const defenderEffects = this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), target, context, attack, effectEvents);
+            effectsRegistered = effectsRegistered || defenderEffects != null;
+            if (defenderEffects) {
+                defenderEffectsMap.set(target, defenderEffects);
+            }
+        }
 
         if (effectsRegistered) {
             context.game.queueSimpleStep(() => context.game.openEventWindow(effectEvents), 'open event window for attack effects');
         }
+
+        return { attackerEffects, defenderEffects: defenderEffectsMap };
     }
 
     /** @returns True if attack lasting effects were registered, false otherwise */
@@ -276,17 +314,19 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         context: TContext,
         attack: Attack,
         effectEvents: GameEvent[]
-    ): boolean {
+    ): CardLastingEffectSystem | null {
         if (lastingEffects == null || (Array.isArray(lastingEffects) && lastingEffects.length === 0)) {
-            return false;
+            return null;
         }
 
-        for (const lastingEffect of lastingEffects) {
-            const effectSystem = this.buildCardLastingEffectSystem(lastingEffect, context, attack, target);
-            effectSystem.queueGenerateEventGameSteps(effectEvents, context);
+        const effectSystem = this.buildCardLastingEffectSystem(lastingEffects, context, attack, target);
+        if (effectSystem.getApplicableEffects(target, context).length === 0) {
+            return null;
         }
 
-        return true;
+        effectSystem.queueGenerateEventGameSteps(effectEvents, context);
+
+        return effectSystem;
     }
 
     private attackerGainsSaboteur(attackTarget: IAttackableCard, context: TContext, additionalProperties?: Partial<IAttackProperties<TContext>>) {
@@ -332,28 +372,28 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             properties.attackerCombatDamageOverride
         );
 
-        for (const attackerLastingEffect of attackerLastingEffects) {
-            const effectSystem = this.buildCardLastingEffectSystem(attackerLastingEffect, context, attack, attackTarget);
-            const applicableEffects = effectSystem.getApplicableEffects(properties.attacker, context);
+        const effectSystem = this.buildCardLastingEffectSystem(attackerLastingEffects, context, attack, attackTarget);
+        const applicableEffects = effectSystem.getApplicableEffects(properties.attacker, context);
 
-            for (const effect of applicableEffects) {
-                if (predicate(effect)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return applicableEffects.some((effect) => predicate(effect));
     }
 
-    private buildCardLastingEffectSystem(lastingEffect: IAttackLastingEffectPropertiesOrFactory<TContext>, context: TContext, attack: Attack, target: Card) {
-        const lastingEffectProperties = typeof lastingEffect === 'function' ? lastingEffect(context, attack) : lastingEffect;
-
+    private buildCardLastingEffectSystem(lastingEffects: IAttackLastingEffectPropertiesOrFactory<TContext>[], context: TContext, attack: Attack, target: Card) {
         return new CardLastingEffectSystem({
-            ...lastingEffectProperties,
             duration: Duration.UntilEndOfAttack,
             target: target,
-            condition: lastingEffectProperties.condition == null ? null : (context: TContext) => lastingEffectProperties.condition(attack, context)
+            effect: lastingEffects
+                .map((lastingEffect) => (typeof lastingEffect === 'function' ? lastingEffect(context, attack) : lastingEffect))
+                .flatMap((lastingEffectProperties) => {
+                    return Helpers.asArray(lastingEffectProperties.effect).map((factory) => {
+                        return (game, source, props) => factory(game, source, {
+                            ...props,
+                            condition: lastingEffectProperties.condition == null
+                                ? props.condition
+                                : (context: TContext) => lastingEffectProperties.condition(attack, context) && (props.condition == null ? true : props.condition(context)),
+                        });
+                    });
+                }),
         });
     }
 }

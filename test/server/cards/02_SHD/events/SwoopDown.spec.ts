@@ -46,6 +46,10 @@ describe('Swoop Down', function () {
             expect(context.player2).toBeActivePlayer();
             expect(context.allianceXwing.damage).toBe(1); // 3-2
             expect(context.consularSecurityForce.damage).toBe(4); // 2+2
+            expect(context.getChatLogs(2)).toEqual([
+                'player1 plays Swoop Down to initiate an attack with Alliance X-Wing',
+                'player1 attacks Consular Security Force with Alliance X-Wing and uses Swoop Down to give Saboteur and to give +2/+0 to Alliance X-Wing for this attack and to give -2/-0 to Consular Security Force for this attack',
+            ]);
         });
     });
 });

@@ -71,6 +71,39 @@ describe('Sneak Attack', function() {
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.sabineWren);
                 expect(context.sabineWren).toBeInZone('discard');
+
+                context.moveToRegroupPhase();
+            });
+
+            it('should not bug if the unit is defeated because of the uniqueness rule', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['sneak-attack', 'sabine-wren#you-can-count-on-me', 'obiwan-kenobi#following-fate', 'recruit'],
+                        groundArena: ['battlefield-marine', { card: 'sabine-wren#you-can-count-on-me', exhausted: true }],
+                        spaceArena: ['cartel-spacer'],
+                        base: 'administrators-tower',
+                        leader: 'luke-skywalker#faithful-friend',
+                        resources: 3
+                    },
+                    player2: {
+                        groundArena: ['atst'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const p1Sabines = context.player1.findCardsByName('sabine-wren#you-can-count-on-me');
+                context.sabineInHand = p1Sabines.find((sabine) => sabine.zoneName === 'hand');
+                context.sabineInPlay = p1Sabines.find((sabine) => sabine.zoneName === 'groundArena');
+
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.sabineInHand);
+                context.player1.clickCard(context.sabineInHand); // Choose to defeat the one played with Sneak Attack
+                expect(context.sabineInHand).toBeInZone('discard');
+                expect(context.sabineInPlay).toBeInZone('groundArena');
+
+                context.moveToRegroupPhase();
             });
 
             it('should trigger "when played" and "when defeated" abilities at the correct timing point', async function () {

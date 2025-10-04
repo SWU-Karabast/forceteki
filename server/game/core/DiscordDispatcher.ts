@@ -44,6 +44,19 @@ export interface IDiscordDispatcher {
         player2Id: string,
         gameStepsSinceLastUndo?: number
     ): Promise<EitherPostResponseOrBoolean>;
+
+    /**
+     * Format and send a server error report to Discord indicating that a game failed to start and the lobby was closed
+     * @param description A brief description of the error context
+     * @param error The error object to report
+     * @param lobbyId The lobby ID associated with the error
+     * @returns Promise that returns the response body as a string if successful, throws an error otherwise
+     */
+    formatAndSendGameStartErrorAsync(
+        description: string,
+        error: Error,
+        lobbyId: string
+    ): Promise<EitherPostResponseOrBoolean>;
 }
 
 export class DiscordDispatcher implements IDiscordDispatcher {
@@ -364,6 +377,65 @@ export class DiscordDispatcher implements IDiscordDispatcher {
 
         const fileName = `server-error-stack-trace-${lobbyId}-${timestamp}.txt`;
         formData.append('files[2]', Buffer.from(error.stack || ''), {
+            filename: fileName,
+            contentType: 'text/plain',
+        });
+
+        return httpPostFormData(this._serverErrorWebhookUrl, formData);
+    }
+
+    public formatAndSendGameStartErrorAsync(
+        description: string,
+        error: Error,
+        lobbyId: string
+    ): Promise<EitherPostResponseOrBoolean> {
+        if (!this._serverErrorWebhookUrl) {
+            // If no webhook URL is configured, just log it
+            if (process.env.NODE_ENV !== 'test') {
+                logger.warn('Server error could not be sent to Discord: No webhook URL configured for server errors');
+            }
+            return Promise.resolve(false);
+        }
+
+        // Truncate description if it's too long for Discord embeds
+        const embedDescription = description.length > 1024
+            ? description.substring(0, 1021) + '...'
+            : description;
+
+        const fields = [
+            {
+                name: 'Lobby ID',
+                value: lobbyId,
+                inline: true,
+            },
+            {
+                name: 'Error Message',
+                value: error.message,
+                inline: false,
+            },
+        ];
+
+        const data: IDiscordFormat = {
+            content: `Server error in Lobby **${lobbyId}**!`,
+            embeds: [
+                {
+                    title: 'Server Error Report',
+                    color: 0xFF0000, // Red color
+                    description: embedDescription,
+                    fields,
+                    timestamp: new Date().toISOString(),
+                },
+            ]
+        };
+
+        const formData = new FormData();
+        // Add the message payload
+        formData.append('payload_json', JSON.stringify(data));
+
+        const timestamp = new Date().getTime();
+
+        const fileName = `server-error-stack-trace-${lobbyId}-${timestamp}.txt`;
+        formData.append('files[0]', Buffer.from(error.stack || ''), {
             filename: fileName,
             contentType: 'text/plain',
         });

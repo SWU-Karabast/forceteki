@@ -126,7 +126,7 @@ export class SwuStatsHandler {
                 logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUStats`, { lobbyId });
                 return { type: StatsSaveStatus.Warning,
                     source: StatsSource.SwuStats,
-                    message: 'Draws are currently not supported by SWUStats' };
+                    message: 'draws are currently not supported by SWUStats' };
             }
 
             // Build the payload
@@ -162,7 +162,7 @@ export class SwuStatsHandler {
             logger.info(`Successfully sent game result to SWUStats for game ${game.id}`, { lobbyId });
             return { type: StatsSaveStatus.Success,
                 source: StatsSource.SwuStats,
-                message: 'Successfully sent game result to SWUStats' };
+                message: 'successfully sent game result to SWUStats' };
         } catch (error) {
             logger.error('Failed to send game result to SWUStats', {
                 error: { message: error.message, stack: error.stack },

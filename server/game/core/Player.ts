@@ -1396,15 +1396,15 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             const groundArenaCards = this.game.groundArena.getCards({ controller: this });
             if (groundArenaCards.length > 0) {
                 state.groundArena = groundArenaCards
-                    .filter((card) => !card.isLeaderUnit() && card.captureCardState() !== null)
-                    .map((card) => card.captureCardState());
+                    .filter((card) => !card.isLeaderUnit())
+                    .map((card) => Helpers.safeSerialize(this.game, () => card.captureCardState(), card.internalName));
             }
             // Space arena units
             const spaceArenaCards = this.game.spaceArena.getCards({ controller: this });
             if (spaceArenaCards.length > 0) {
                 state.spaceArena = spaceArenaCards
-                    .filter((card) => !card.isLeaderUnit() && card.captureCardState() !== null)
-                    .map((card) => card.captureCardState());
+                    .filter((card) => !card.isLeaderUnit())
+                    .map((card) => Helpers.safeSerialize(this.game, () => card.captureCardState(), card.internalName));
             }
             // Discard pile
             if (this.discardZone.count > 0) {
@@ -1416,20 +1416,23 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
             // Resources
             if (this.resourceZone.count > 0) {
-                state.resources = this.resourceZone.cards.map((card) => {
-                    // If it's ready, just return the card name
-                    return !card.exhausted ? card.internalName : {
-                        card: card.internalName,
-                        exhausted: card.exhausted
-                    };
-                });
+                // If it's ready, just return the card name
+                state.resources = this.resourceZone.cards.map((card) =>
+                    (Helpers.safeSerialize(this.game, () =>
+                        (!card.exhausted
+                            ? card.internalName
+                            : {
+                                card: card.internalName,
+                                exhausted: card.exhausted
+                            }), card.internalName
+                    )));
             }
 
             // Leader
-            state.leader = this.leader.captureCardState();
+            state.leader = Helpers.safeSerialize(this.game, () => this.leader.captureCardState(), null);
 
             // Base
-            state.base = this.base.captureCardState();
+            state.base = Helpers.safeSerialize(this.game, () => this.base.captureCardState(), null);
 
             // Initiative
             state.hasInitiative = this.hasInitiative();
