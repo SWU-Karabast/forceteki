@@ -1686,6 +1686,24 @@ const mockCards = [
         arena: 'ground',
         internalName: 'dj#need-a-lift',
     }),
+    buildMockCard({
+        title: 'Director Kennic',
+        subtitle: 'I Lose Nothing But Time',
+        power: 8,
+        hp: 10,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 90
+        },
+        cost: 9,
+        unique: true,
+        arena: 'ground',
+        internalName: 'director-krennic#i-lose-nothing-but-me',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
