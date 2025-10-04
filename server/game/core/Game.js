@@ -1993,15 +1993,15 @@ class Game extends EventEmitter {
 
         if (this.enableConfirmationToUndo && this.snapshotManager.requiresConfirmationToRollbackTo(settings)) {
             this.promptWithHandlerMenu(this.getPlayerById(playerId).opponent, {
-                activePromptTitle: `You opponent would like to rollback to ${message}. Are you sure you want to allow this?`,
-                waitingPromptTitle: 'Waiting for opponent to decide whether to allow rollback',
+                activePromptTitle: `You opponent would like to undo to ${message}. Are you sure you want to allow this?`,
+                waitingPromptTitle: 'Waiting for opponent to decide whether to allow undo',
                 choices: ['Allow', 'Deny'],
                 handlers: [
                     () => {
                         performRollback();
                     },
                     () => {
-                        this.addAlert(AlertType.Notification, '{0} has denied the rollback request', this.getPlayerById(playerId).opponent);
+                        this.addAlert(AlertType.Notification, '{0} has denied the undo request', this.getPlayerById(playerId).opponent);
                     }
                 ]
             });

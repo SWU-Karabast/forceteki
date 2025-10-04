@@ -585,8 +585,8 @@ var customMatchers = {
             compare: function (player) {
                 var result = {};
 
-                const rollbackActionPromptText = 'You opponent would like to rollback to their previous action. Are you sure you want to allow this?';
-                const rollbackManualPromptText = 'You opponent would like to rollback to a previous bookmark. Are you sure you want to allow this?';
+                const rollbackActionPromptText = 'You opponent would like to undo to their previous action. Are you sure you want to allow this?';
+                const rollbackManualPromptText = 'You opponent would like to undo to a previous bookmark. Are you sure you want to allow this?';
                 const hasRollbackActionPrompt = player.hasPrompt(rollbackActionPromptText);
                 const hasRollbackManualPrompt = !hasRollbackActionPrompt && player.hasPrompt(rollbackManualPromptText);
                 result.pass = hasRollbackActionPrompt || hasRollbackManualPrompt;
