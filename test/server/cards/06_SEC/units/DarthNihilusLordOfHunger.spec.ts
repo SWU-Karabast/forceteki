@@ -1,96 +1,179 @@
 describe('Darth Nihilus, Lord of Hunger', function () {
     integration(function (contextRef) {
-        it('When Played: should deal 3 damage to the unit with the least remaining HP among other units and give an Experience token if it\'s non-Vehicle', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['darth-nihilus#lord-of-hunger'],
-                    groundArena: ['wampa'] // friendly non-vehicle with plenty of HP to avoid being the min
-                },
-                player2: {
-                    groundArena: [
-                        { card: 'battlefield-marine', damage: 2 }, // hp 3 -> remaining 1 (min, non-vehicle)
-                        'atst' // vehicle with full hp -> not the min
-                    ]
-                }
+        describe('Darth Nihilus\' when played ability', function () {
+            it('should deal 3 damage to the unit with the least remaining HP among other units and give an Experience token if it\'s non-Vehicle', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['darth-nihilus#lord-of-hunger'],
+                        groundArena: ['wampa']
+                    },
+                    player2: {
+                        groundArena: ['scout-bike-pursuer', 'atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthNihilusLordOfHunger);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.scoutBikePursuer]);
+                context.player1.clickCard(context.scoutBikePursuer);
+
+                expect(context.scoutBikePursuer.damage).toBe(3);
+
+                expect(context.darthNihilusLordOfHunger).toHaveExactUpgradeNames(['experience']);
             });
 
-            const { context } = contextRef;
+            it('should deal 3 damage to the unit with the least remaining HP among other units and give an Experience token if it\'s non-Vehicle (choose if tie and do not give experience if target is a vehicle unit)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['darth-nihilus#lord-of-hunger'],
+                        groundArena: ['wampa']
+                    },
+                    player2: {
+                        groundArena: [{ card: 'atst', damage: 2 }]
+                    }
+                });
 
-            // Play Darth Nihilus from hand
-            context.player1.clickCard(context.darthNihilusLordOfHunger);
+                const { context } = contextRef;
 
-            // Should be asked to select the unit with the least remaining HP among other units
-            // Only Battlefield Marine (remaining 1) should be selectable
-            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
-            context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.darthNihilusLordOfHunger);
 
-            // Battlefield Marine takes 3 damage and is defeated
-            expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.wampa]);
+                context.player1.clickCard(context.atst);
 
-            // Since target was non-Vehicle, Darth should gain an Experience token
-            expect(context.darthNihilusLordOfHunger.upgrades.map((u) => u.internalName)).toContain('experience');
+                expect(context.atst.damage).toBe(5);
+
+                expect(context.darthNihilusLordOfHunger).toHaveExactUpgradeNames([]);
+            });
+
+            it('should deal 3 damage to the unit with the least remaining HP among other units and give an Experience token if it\'s non-Vehicle (must choose our unit if opponent does not have one)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['darth-nihilus#lord-of-hunger'],
+                        groundArena: [{ card: 'atst', damage: 2 }]
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthNihilusLordOfHunger);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+                expect(context.player1).not.toHavePassAbilityButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
+
+                context.player1.clickCard(context.atst);
+
+                expect(context.atst.damage).toBe(5);
+                expect(context.darthNihilusLordOfHunger).toHaveExactUpgradeNames([]);
+            });
+
+            it('should deal 3 damage to the unit with the least remaining HP among other units and give an Experience token if it\'s non-Vehicle (should not deal to Nihilus if he is alone)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['darth-nihilus#lord-of-hunger'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthNihilusLordOfHunger);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
 
-        it('When Played: should not give an Experience token if the lowest HP target is a Vehicle', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['darth-nihilus#lord-of-hunger']
-                },
-                player2: {
-                    groundArena: [
-                        { card: 'atst', damage: 6 }, // hp 7 -> remaining 1 (min, vehicle)
-                        'battlefield-marine' // hp 3 -> remaining 3
-                    ]
-                }
+        describe('Darth Nihilus\' on attack ability', function () {
+            it('should deal 3 damage to the unit with the least remaining HP among other units and give an Experience token if it\'s non-Vehicle', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['darth-nihilus#lord-of-hunger', 'wampa']
+                    },
+                    player2: {
+                        groundArena: ['scout-bike-pursuer', 'atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthNihilusLordOfHunger);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.scoutBikePursuer]);
+                context.player1.clickCard(context.scoutBikePursuer);
+
+                expect(context.scoutBikePursuer.damage).toBe(3);
+
+                expect(context.darthNihilusLordOfHunger).toHaveExactUpgradeNames(['experience']);
             });
 
-            const { context } = contextRef;
+            it('should deal 3 damage to the unit with the least remaining HP among other units and give an Experience token if it\'s non-Vehicle (choose if tie and do not give experience if target is a vehicle unit)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['darth-nihilus#lord-of-hunger', 'wampa']
+                    },
+                    player2: {
+                        groundArena: [{ card: 'atst', damage: 2 }]
+                    }
+                });
 
-            context.player1.clickCard(context.darthNihilusLordOfHunger);
+                const { context } = contextRef;
 
-            // Only the AT-ST (vehicle) with remaining 1 should be selectable
-            expect(context.player1).toBeAbleToSelectExactly([context.atst]);
-            context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.darthNihilusLordOfHunger);
+                context.player1.clickCard(context.p2Base);
 
-            // AT-ST takes 3 damage and is defeated
-            expect(context.atst).toBeInZone('discard');
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.wampa]);
+                context.player1.clickCard(context.atst);
 
-            // Since target was a Vehicle, Darth should NOT gain an Experience token
-            expect(context.darthNihilusLordOfHunger.upgrades.map((u) => u.internalName)).not.toContain('experience');
-        });
+                expect(context.atst.damage).toBe(5);
 
-        it('On Attack: should target a unit with the least remaining HP among other units; grant Experience only if non-Vehicle', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    groundArena: ['darth-nihilus#lord-of-hunger']
-                },
-                player2: {
-                    groundArena: [
-                        { card: 'battlefield-marine', damage: 2 }, // remaining 1 (non-vehicle)
-                        { card: 'atst', damage: 6 } // remaining 1 (vehicle) -> tie; player chooses
-                    ]
-                }
+                expect(context.darthNihilusLordOfHunger).toHaveExactUpgradeNames([]);
             });
 
-            const { context } = contextRef;
+            it('should deal 3 damage to the unit with the least remaining HP among other units and give an Experience token if it\'s non-Vehicle (must choose our unit if opponent does not have one)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: [],
+                        groundArena: ['darth-nihilus#lord-of-hunger', { card: 'atst', damage: 2 }]
+                    },
+                });
 
-            // Start an attack with Darth to trigger the onAttack ability
-            context.player1.clickCard(context.darthNihilusLordOfHunger);
-            context.player1.clickCard(context.p2Base);
+                const { context } = contextRef;
 
-            // Both units tied at the lowest remaining HP should be selectable
-            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.atst]);
+                context.player1.clickCard(context.darthNihilusLordOfHunger);
+                context.player1.clickCard(context.p2Base);
 
-            // Choose the non-vehicle to verify Experience is granted
-            context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+                expect(context.player1).not.toHavePassAbilityButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
-            // Marine defeated by 3 damage
-            expect(context.battlefieldMarine).toBeInZone('discard');
-            // Darth gains Experience
-            expect(context.darthNihilusLordOfHunger.upgrades.map((u) => u.internalName)).toContain('experience');
+                context.player1.clickCard(context.atst);
+
+                expect(context.atst.damage).toBe(5);
+                expect(context.darthNihilusLordOfHunger).toHaveExactUpgradeNames([]);
+            });
+
+            it('should deal 3 damage to the unit with the least remaining HP among other units and give an Experience token if it\'s non-Vehicle (should not deal to Nihilus if he is alone)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['darth-nihilus#lord-of-hunger'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthNihilusLordOfHunger);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
