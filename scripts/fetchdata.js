@@ -150,6 +150,7 @@ function populateMissingData(attributes, id) {
             break;
         case '7069246970': // Sly Moore
         case '8365930807': // Cad Bane
+        case '3612601170': // One In a Million
         case '0024944513': // Armor of Fortune
         case '7936097828': // Chancellor Palpatine
         case '7365023470': // Mas Amedda

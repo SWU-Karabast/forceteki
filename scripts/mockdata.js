@@ -1479,21 +1479,6 @@ const mockCards = [
         internalName: 'emissarys-sheathipede',
     }),
     buildMockCard({
-        title: 'One in a Million',
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['vigilance', 'heroism'],
-        types: ['event'],
-        traits: ['gambit'],
-        setId: {
-            set: 'SEC',
-            number: 53
-        },
-        cost: 1,
-        unique: false,
-        internalName: 'one-in-a-million',
-    }),
-    buildMockCard({
         title: 'Restore Freedom',
         hasNonKeywordAbility: true,
         aspects: ['heroism'],
