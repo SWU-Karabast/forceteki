@@ -175,6 +175,11 @@ export type IReplacementEffectAbilityPropsWithType<TSource extends Card = Card> 
     type: AbilityType.ReplacementEffect;
 };
 
+export interface IPlayRestrictionAbilityProps {
+    title: string;
+    restrictedActionCondition?: (context: AbilityContext, source: Card) => boolean;
+}
+
 /** Ability types with gain contdition */
 export type IConstantAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IConstantAbilityProps<TTarget> & IGainCondition<TSource>;
 export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
@@ -297,42 +302,58 @@ export interface ISetId {
     number: number;
 }
 
+export type ISerializationError = Record<string, string>;
+
 export interface IResourceState {
     readyCount: number;
     exhaustedCount: number;
 }
 
+type ISafeSerializedType<T> = T | ISerializationError;
+type ISafeSerializedArrayType<T> = (T | ISerializationError)[] | ISerializationError;
+
+export interface ISerializedUpgradeState {
+    card: string;
+    ownerAndController: ISafeSerializedType<string>;
+}
+
+export interface ISerializedCapturedCardState {
+    card: string;
+    owner: ISafeSerializedType<string>;
+}
+
 /* Serialized state retrieving interfaces */
 export interface ISerializedCardState {
     card: string;
-    damage?: number;
-    upgrades?: ({ card: string; ownerAndController: string } | string)[];
-    deployed?: boolean;
-    exhausted?: boolean;
-    capturedUnits?: ({ card: string; owner: string } | string)[];
-    flipped?: boolean;
-    owner?: string;
+    damage?: ISafeSerializedType<number>;
+    upgrades?: ISafeSerializedArrayType<ISerializedUpgradeState | string>;
+    deployed?: ISafeSerializedType<boolean>;
+    exhausted?: ISafeSerializedType<boolean>;
+    capturedUnits?: ISafeSerializedArrayType<ISerializedCapturedCardState | string>;
+    flipped?: ISafeSerializedType<boolean>;
+    owner?: ISafeSerializedType<string>;
 }
 
 export interface IPlayerSerializedState {
     hand?: number | string[];
-    groundArena?: (string | ISerializedCardState)[];
-    spaceArena?: (string | ISerializedCardState)[];
-    discard?: string[];
-    resources?: number | IResourceState | (string | ISerializedCardState)[];
-    base?: string | ISerializedCardState;
-    leader?: string | ISerializedCardState;
-    deck?: number | string[];
-    hasInitiative?: boolean;
-    hasForceToken?: boolean;
+    groundArena?: ISafeSerializedArrayType<string | ISerializedCardState>;
+    spaceArena?: ISafeSerializedArrayType<string | ISerializedCardState>;
+    discard?: ISafeSerializedArrayType<string>;
+    resources?: ISafeSerializedType<number | IResourceState> | ISafeSerializedArrayType<(string | ISerializedCardState)>;
+    base?: ISafeSerializedType<string | ISerializedCardState>;
+    leader?: ISafeSerializedType<string | ISerializedCardState>;
+    deck?: ISafeSerializedType<number> | ISafeSerializedArrayType<string>;
+    hasInitiative?: ISafeSerializedType<boolean>;
+    hasForceToken?: ISafeSerializedType<boolean>;
 }
 
 export interface ISerializedGameState {
     phase?: string;
-    reportingPlayer?: IPlayerSerializedState;
-    opponent?: IPlayerSerializedState;
-    player1?: IPlayerSerializedState;
-    player2?: IPlayerSerializedState;
+    reportingPlayer?: ISafeSerializedType<IPlayerSerializedState>;
+    opponent?: ISafeSerializedType<IPlayerSerializedState>;
+    player1?: ISafeSerializedType<IPlayerSerializedState>;
+    player2?: ISafeSerializedType<IPlayerSerializedState>;
+    error?: string;
 }
 
 export type MessageText = string | (string | number)[];

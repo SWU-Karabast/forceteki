@@ -41,12 +41,9 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addTriggeredAbility({
+        registrar.addOnAttackCompletedAbility({
             title: 'Return a friendly non-leader unit to its owner\'s hand. If you do, play a non-Villainy unit that costs less than the returned unit for free',
             optional: true,
-            when: {
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source,
-            },
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: WildcardZoneName.AnyArena,

@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { GameStateChangeRequired, WildcardCardType, EventName } from '../core/Constants';
+import { GameStateChangeRequired, WildcardCardType, EventName, EffectName } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 
@@ -32,6 +32,12 @@ export class RescueSystem<TContext extends AbilityContext = AbilityContext, TPro
         super.updateEvent(event, card, context, additionalProperties);
 
         // add contingent event for putting the rescued unit back into play
-        event.setContingentEventsGenerator((event) => [new PutIntoPlaySystem({ target: card, controller: card.owner }).generateEvent(event.context)]);
+        event.setContingentEventsGenerator((event) => [
+            new PutIntoPlaySystem({
+                target: card,
+                controller: card.owner,
+                entersReady: card.owner.hasOngoingEffect(EffectName.RescuedUnitsEnterPlayReady)
+            }).generateEvent(event.context)
+        ]);
     }
 }

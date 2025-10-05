@@ -14,11 +14,8 @@ export default class AhsokaTanoILearnedItFromYou extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command, Aspect.Heroism];
-        registrar.addTriggeredAbility({
+        registrar.addOnAttackCompletedAbility({
             title: `Disclose ${EnumHelpers.aspectString(aspects)} to attack with another unit`,
-            when: {
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source,
-            },
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Attack with another unit',

@@ -14,11 +14,8 @@ export default class ChancellorValorumCivilServant extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command, Aspect.Command, Aspect.Command];
-        registrar.addTriggeredAbility({
+        registrar.addOnAttackCompletedAbility({
             title: `Disclose ${EnumHelpers.aspectString(aspects)} to put the top card of your deck into play as a resource`,
-            when: {
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source,
-            },
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Put the top card of your deck into play as a resource',

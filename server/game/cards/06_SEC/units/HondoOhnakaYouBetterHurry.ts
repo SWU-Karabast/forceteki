@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class HondoOhnakaYouBetterHurry extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'hondo-ohnaka#you-better-hurry-id',
+            id: '8845103653',
             internalName: 'hondo-ohnaka#you-better-hurry',
         };
     }

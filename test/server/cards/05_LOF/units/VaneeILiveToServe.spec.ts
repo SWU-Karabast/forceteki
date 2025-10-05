@@ -62,5 +62,72 @@ describe('Vanee, I Live to Serve', () => {
             expect(context.vanee).toHaveExactUpgradeNames(['experience']);
             expect(context.darthVader).toHaveExactUpgradeNames([]);
         });
+
+        it('Vanee\'s on attack ability can defeat an enemy Experience token on a friendly unit', async () => {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [
+                        'vanee#i-live-to-serve',
+                        'darth-vader#commanding-the-first-legion',
+                    ]
+                },
+                player2: {
+                    hand: ['clan-wren-rescuer'],
+                    hasInitiative: true,
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.clanWrenRescuer);
+            context.player2.clickCard(context.darthVader);
+            expect(context.darthVader).toHaveExactUpgradeNames(['experience']);
+
+            const vaderExperience = context.darthVader.upgrades[0];
+
+            context.player1.clickCard(context.vanee);
+            context.player1.clickCard(context.p2Base);
+            expect(context.player1).toBeAbleToSelectExactly([vaderExperience]);
+
+            context.player1.clickCard(vaderExperience);
+            expect(context.player1).toBeAbleToSelectExactly([context.darthVader, context.vanee]);
+
+            context.player1.clickCard(context.vanee);
+            expect(context.vanee).toHaveExactUpgradeNames(['experience']);
+            expect(context.darthVader).toHaveExactUpgradeNames([]);
+        });
+
+        it('Vanee\'s on attack ability cannot defeat a friendly Experience token on an enemy unit', async () => {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['clan-wren-rescuer'],
+                    groundArena: [
+                        'vanee#i-live-to-serve',
+                    ]
+                },
+                player2: {
+                    groundArena: [
+                        'darth-vader#commanding-the-first-legion',
+                    ],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.clanWrenRescuer);
+            context.player1.clickCard(context.darthVader);
+            expect(context.darthVader).toHaveExactUpgradeNames(['experience']);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.vanee);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.vanee).toHaveExactUpgradeNames([]);
+            expect(context.darthVader).toHaveExactUpgradeNames(['experience']);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
