@@ -24,11 +24,8 @@ export default class InfusedBrawler extends NonLeaderUnitCard {
             }
         });
 
-        registrar.addTriggeredAbility({
+        registrar.addOnAttackCompletedAbility({
             title: 'Defeat an Experience token on Infused Brawler',
-            when: {
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source,
-            },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.upgrades.some((x) => x.isExperience()),
                 onTrue: AbilityHelper.immediateEffects.defeat((context) => ({
