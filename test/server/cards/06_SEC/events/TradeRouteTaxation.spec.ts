@@ -4,7 +4,7 @@ describe('Trade Route Taxation', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['trade-route-taxation'],
+                    hand: ['trade-route-taxation', 'daring-raid'],
                     groundArena: ['wampa', 'atst']
                 },
                 player2: {
@@ -18,6 +18,13 @@ describe('Trade Route Taxation', function () {
 
             expect(context.player2).toBeAbleToSelectAllOf([context.awing, context.protector]);
             expect(context.player2).not.toBeAbleToSelectAllOf([context.resupply]);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.daringRaid);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.p2Base.damage).toBe(2);
 
             context.moveToNextActionPhase();
 
