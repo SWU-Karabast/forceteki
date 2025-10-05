@@ -24,7 +24,8 @@ export default class UndercoverOperation extends EventCard {
             title: 'Ready a unit that was played this phase. If it costs 3 or less, create a Spy token',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card) => this.cardsPlayedThisPhase.someCardPlayed((entry) => entry.card === card),
+                cardCondition: (card) => this.cardsPlayedThisPhase.someCardPlayed((entry) =>
+                    entry.card === card && card.canBeInPlay() && entry.inPlayId === card.inPlayId),
                 immediateEffect: abilityHelper.immediateEffects.simultaneous([
                     abilityHelper.immediateEffects.ready(),
                     abilityHelper.immediateEffects.conditional({
