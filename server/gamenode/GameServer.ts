@@ -575,7 +575,7 @@ export class GameServer {
                 const { userId } = req.params;
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (PUT-preferences): Anonymous user ${user.getId()} attempted to save sound preferences to dynamodb`);
+                    logger.error(`GameServer (PUT-preferences): Anonymous user ${user.getId()} attempted to save preferences to dynamodb`);
                     return res.status(401).json({
                         success: false,
                         message: 'Error attempting to save preferences'

@@ -519,8 +519,12 @@ class DynamoDBService {
 
             // Helper function to build update expressions for nested objects
             const buildNestedUpdate = (obj: any, basePath: string[], valuePrefix: string) => {
-                Object.entries(obj).forEach(([key, value]) => {
+                for (const key in obj) {
+                    const value = obj[key];
                     if (value !== undefined) {
+                        if (value instanceof Map) {
+                            Contract.fail('Map types are not supported in buildNestedUpdate. Convert to object first.');
+                        }
                         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
                             // It's a nested object, recurse
                             buildNestedUpdate(value, [...basePath, key], `${valuePrefix}_${key}`);
@@ -537,7 +541,7 @@ class DynamoDBService {
                             expressionAttributeValues[valueName] = value;
                         }
                     }
-                });
+                }
             };
             buildNestedUpdate(preferences, ['preferences'], 'pref');
             if (updateExpressions.length === 0) {
