@@ -1694,22 +1694,11 @@ function buildSetStr(card) {
     return `${card.setId.set}_${card.setId.number}`;
 }
 
-function isToken(card) {
-    return card.types.includes('token');
-}
-
 function addMockCards(cards) {
     const cardsById = new Map();
     const mockCardNames = [];
 
-    const tokensByName = new Map();
-
     for (const card of cards) {
-        if (isToken(card)) {
-            tokensByName.set(card.title, card);
-            continue;
-        }
-
         cardsById.set(buildSetStr(card), card);
     }
 
@@ -1719,18 +1708,11 @@ function addMockCards(cards) {
         //     console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js`, 'yellow'));
         // }
 
-        if (isToken(card)) {
-            tokensByName.set(card.title, card);
-            continue;
-        }
-
         cardsById.set(buildSetStr(card), card);
         mockCardNames.push(card.internalName);
     }
 
-    const cardsWithMocks = Array.from(cardsById.values()).concat(Array.from(tokensByName.values()));
-
-    return { mockCardNames, cards: cardsWithMocks };
+    return { mockCardNames, cards: Array.from(cardsById.values()) };
 }
 
 module.exports = { addMockCards };
