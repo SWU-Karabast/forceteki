@@ -1694,20 +1694,37 @@ function buildSetStr(card) {
     return `${card.setId.set}_${card.setId.number}`;
 }
 
+function isToken(card) {
+    return card.types.includes('token');
+}
+
 function addMockCards(cards) {
     const cardsById = new Map();
     const mockCardNames = [];
 
+    const tokensByName = new Map();
+
     for (const card of cards) {
+        if (isToken(card)) {
+            tokensByName.set(card.title, card);
+            continue;
+        }
+
         cardsById.set(buildSetStr(card), card);
     }
 
     for (const card of mockCards) {
-        cards.push(card);
-        mockCardNames.push(card.internalName);
+        if (isToken(card)) {
+            tokensByName.set(card.title, card);
+            continue;
+        }
+
+        cardsById.set(buildSetStr(card), card);
     }
 
-    return mockCardNames;
+    const cardsWithMocks = Array.from(cardsById.values()).concat(Array.from(tokensByName.values()));
+
+    return { mockCardNames, cards: cardsWithMocks };
 }
 
 module.exports = { addMockCards };

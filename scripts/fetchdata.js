@@ -383,12 +383,12 @@ async function main() {
     const downloadProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}' });
     downloadProgressBar.start(totalPageCount, 0);
 
-    let cards = (await Promise.all([...Array(totalPageCount).keys()]
+    let downloadedCards = (await Promise.all([...Array(totalPageCount).keys()]
         .map((pageNumber) => getCardData(pageNumber + 1, downloadProgressBar))))
         .flat()
         .filter((n) => n); // remove nulls
     // cards = cards.concat([cunningForceBase, aggressionForceBase]);
-    const mockCardNames = addMockCards(cards);
+    const { mockCardNames, cards } = addMockCards(downloadedCards);
 
     downloadProgressBar.stop();
 
