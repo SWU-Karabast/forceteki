@@ -23,9 +23,9 @@ describe('Bazin Netal, Spy For The First Order', function() {
                 // Player looks at the opponent's hand and discards a card from it, opponent draws a card
                 context.player1.clickCard(context.bazineNetal);
 
-                // Cards are not revealed in chat
-                expect(context.getChatLogs(1)[0]).not.toContain(context.atst.title);
-                expect(context.getChatLogs(1)[0]).not.toContain(context.waylay.title);
+                // Cards are revealed in chat
+                expect(context.getChatLogs(1)[0]).toContain(context.atst.title);
+                expect(context.getChatLogs(1)[0]).toContain(context.waylay.title);
 
                 // Player sees the opponent's hand and is able to optionally discard a card from it
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -48,9 +48,9 @@ describe('Bazin Netal, Spy For The First Order', function() {
                 // Player looks at the opponent's hand and decides not to discard a card from it
                 context.player1.clickCard(context.bazineNetal);
 
-                // Cards are not revealed in chat
-                expect(context.getChatLogs(1)[0]).not.toContain(context.atst.title);
-                expect(context.getChatLogs(1)[0]).not.toContain(context.wampa.title);
+                // Cards are revealed in chat
+                expect(context.getChatLogs(1)[0]).toContain(context.atst.title);
+                expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
 
                 // Player sees the opponent's hand and is able to optionally discard a card from it
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
