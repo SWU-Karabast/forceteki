@@ -1,12 +1,13 @@
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
-import type { CardType } from '../../game/core/Constants';
+import { CardType } from '../../game/core/Constants';
 import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
 import type { IDecklistInternal, ISwuDbCardEntry } from './DeckInterfaces';
-import { DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbDecklist } from './DeckInterfaces';
+import { DecklistLocation, DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbDecklist } from './DeckInterfaces';
 import { SwuGameFormat } from '../../SwuGameFormat';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
+import * as Contract from '../../game/core/utils/Contract';
 
 enum SwuSet {
     SOR = 'sor',
@@ -179,6 +180,7 @@ export class DeckValidator {
                 [DeckValidationFailureReason.IllegalInFormat]: [],
                 [DeckValidationFailureReason.TooManyCopiesOfCard]: [],
                 [DeckValidationFailureReason.UnknownCardId]: [],
+                [DeckValidationFailureReason.InvalidDecklistLocation]: []
             };
 
             // Combine main deck and sideboard cards.
@@ -208,9 +210,11 @@ export class DeckValidator {
 
             // Validate leader.
             const leaderData = this.getCardCheckData(deck.leader.id);
+            this.checkCardLocation(deck.leader, leaderData, DecklistLocation.Leader, failures);
             this.checkFormatLegality(leaderData, format, failures);
 
             // Validate base.
+            this.checkCardLocation(deck.base, baseData, DecklistLocation.Base, failures);
             this.checkFormatLegality(baseData, format, failures);
 
             // Validate each card in the deck (and sideboard).
@@ -222,6 +226,7 @@ export class DeckValidator {
                     continue;
                 }
 
+                this.checkCardLocation(card, cardData, DecklistLocation.Deck, failures);
                 this.checkFormatLegality(cardData, format, failures);
 
                 if (card.count < 0) {
@@ -253,12 +258,40 @@ export class DeckValidator {
         return this.cardData.get(cardId);
     }
 
+    protected getCardLocation(cardData: ICardCheckData): DecklistLocation | null {
+        switch (cardData.type) {
+            case CardType.Leader:
+                return DecklistLocation.Leader;
+            case CardType.Base:
+                return DecklistLocation.Base;
+            case CardType.Event:
+            case CardType.BasicUnit:
+            case CardType.BasicUpgrade:
+                return DecklistLocation.Deck;
+            case CardType.TokenCard:
+            case CardType.TokenUnit:
+            case CardType.TokenUpgrade:
+                return null;
+            default:
+                Contract.fail(`Unexpected card type: '${cardData.type}'`);
+        }
+    }
+
     protected checkFormatLegality(cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
         if (
             (cardData.banned && format !== SwuGameFormat.Open) ||
             (!legalSets.includes(cardData.set) && format === SwuGameFormat.Premier)
         ) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({ id: cardData.set, name: cardData.titleAndSubtitle });
+        }
+    }
+
+    protected checkCardLocation(card: ISwuDbCardEntry, cardData: ICardCheckData, location: DecklistLocation, failures: IDeckValidationFailures) {
+        if (this.getCardLocation(cardData) !== location) {
+            failures[DeckValidationFailureReason.InvalidDecklistLocation].push({
+                card: { id: card.id, name: cardData.titleAndSubtitle },
+                location
+            });
         }
     }
 
