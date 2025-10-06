@@ -492,5 +492,31 @@ describe('Undo confirmation', function() {
             context.player2.clickPrompt('Allow');
             expect(context.player1).toBeActivePlayer();
         });
+
+        it('should not require confirmation to rollback after the opponent choose a target', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['power-of-the-dark-side'],
+                    groundArena: ['wampa'],
+                },
+                player2: {
+                    groundArena: ['viper-probe-droid'],
+                    hasInitiative: true,
+                },
+                enableConfirmationToUndo: true,
+            });
+
+            const { context } = contextRef;
+
+            // Generate a quick snapshot
+            context.player2.passAction();
+
+            context.player1.clickCard(context.powerOfTheDarkSide);
+            context.player2.clickCard(context.viperProbeDroid);
+
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+        });
     });
 });

@@ -84,6 +84,10 @@ export abstract class UiPrompt extends BaseStep {
     public setPrompt(): void {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
+                if (this.game.actionPhaseActivePlayer && this.game.actionPhaseActivePlayer !== player && this.isOpponentRevealNewInfoPrompt()) {
+                    this.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(this.game.actionPhaseActivePlayer.id);
+                }
+
                 player.activeForPreviousPrompt = true;
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
 
@@ -101,6 +105,10 @@ export abstract class UiPrompt extends BaseStep {
     }
 
     public isAllPlayerPrompt(): this is AllPlayerPrompt {
+        return false;
+    }
+
+    protected isOpponentRevealNewInfoPrompt(): boolean {
         return false;
     }
 

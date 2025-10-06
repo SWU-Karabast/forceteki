@@ -40,6 +40,11 @@ class MenuPrompt extends UiPrompt {
     }
 
     /** @override */
+    isOpponentRevealNewInfoPrompt() {
+        return true;
+    }
+
+    /** @override */
     menuCommand(player, arg, method) {
         if (!this.context[method]) {
             return false;

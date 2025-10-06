@@ -62,6 +62,11 @@ class HandlerMenuMultipleSelectionPrompt extends HandlerMenuPrompt {
         };
     }
 
+    /** @override */
+    isOpponentRevealNewInfoPrompt() {
+        return true;
+    }
+
     getCurrentSelection() {
         return this.selectedOptions;
     }
