@@ -1714,6 +1714,11 @@ function addMockCards(cards) {
     }
 
     for (const card of mockCards) {
+        // uncomment the below to emit a log line for each mock card that is now in the official data
+        // if (cardsById.has(setStr)) {
+        //     console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js`, 'yellow'));
+        // }
+
         if (isToken(card)) {
             tokensByName.set(card.title, card);
             continue;
