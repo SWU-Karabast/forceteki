@@ -5,7 +5,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 export default class TheWrongRide extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'the-wrong-ride-id',
+            id: '8796918121',
             internalName: 'the-wrong-ride',
         };
     }

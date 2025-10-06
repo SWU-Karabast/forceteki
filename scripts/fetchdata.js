@@ -150,16 +150,23 @@ function populateMissingData(attributes, id) {
             break;
         case '7069246970': // Sly Moore
         case '8365930807': // Cad Bane
+        case '3612601170': // One In a Million
         case '0024944513': // Armor of Fortune
         case '7936097828': // Chancellor Palpatine
         case '7365023470': // Mas Amedda
         case '2919204327': // Naboo Royal Starship
+        case '8826807979': // Dressellian Commandos
         case '9985741271': // Jar Jar Binks
         case '2877797132': // Unveiled Might
+        case '3776423866': // Trade Route Taxation
+        case '8845103653': // Hondo Ohnaka
         case '0602708575': // Kaydel Connix
+        case '7482343383': // Cinta Kaz
+        case '2785395871': // Sudden Ferocity
         case '8401985446': // Topple the Summit
         case '1369084772': // Tala Durith
         case '6015383018': // Sneaking Suspicion
+        case '8796918121': // The Wrong Ride
         case '7248761207': // FN Trooper Corps
             attributes.keywords = {
                 data: [{
@@ -376,12 +383,12 @@ async function main() {
     const downloadProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}' });
     downloadProgressBar.start(totalPageCount, 0);
 
-    let cards = (await Promise.all([...Array(totalPageCount).keys()]
+    let downloadedCards = (await Promise.all([...Array(totalPageCount).keys()]
         .map((pageNumber) => getCardData(pageNumber + 1, downloadProgressBar))))
         .flat()
         .filter((n) => n); // remove nulls
     // cards = cards.concat([cunningForceBase, aggressionForceBase]);
-    const mockCardNames = addMockCards(cards);
+    const { mockCardNames, cards } = addMockCards(downloadedCards);
 
     downloadProgressBar.stop();
 

@@ -5,6 +5,8 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 import * as Contract from '../core/utils/Contract';
 import type { GameEvent } from '../core/event/GameEvent';
 import { ReadySystem } from './ReadySystem';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
+import * as Helpers from '../core/utils/Helpers';
 
 export interface IResourceCardProperties extends ICardTargetSystemProperties {
     // TODO: remove completely if faceup logic is not needed
@@ -60,18 +62,31 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IResourceCardProperties;
         const card = Array.isArray(properties.target) ? properties.target[0] : properties.target;
+        const numberOfTargets = Helpers.asArray(properties.target).length;
+
+        let suffix = '';
+        if (properties.readyResource) {
+            if (numberOfTargets === 1) {
+                suffix = ' and to ready it';
+            } else {
+                suffix = ' and to ready them';
+            }
+        }
 
         if (properties.targetPlayer === RelativePlayer.Self) {
-            if (card === context.source) {
-                return ['move {0} to their resources', [this.getTargetMessage(card, context)]];
+            if (numberOfTargets === 1 && card === context.source) {
+                return [`move {0} to their resources${suffix}`, [this.getTargetMessage(card, context)]];
             }
-            return ['move a card to their resources', []];
+            return [`move {0} to their resources${suffix}`, [ChatHelpers.pluralize(numberOfTargets, 'a card', 'cards')]];
         }
 
-        if (card === context.source) {
-            return ['move {0} to {1}\'s resources', [this.getTargetMessage(card, context), card.controller.opponent]];
+        if (numberOfTargets === 1 && card === context.source) {
+            return [`move {0} to {1}'s resources${suffix}`, [this.getTargetMessage(card, context), card.controller.opponent]];
         }
-        return ['move a card to {0}\'s resources', [card.controller.opponent]];
+        if (numberOfTargets === 1 && card === context.player.opponent.getTopCardOfDeck()) {
+            return [`move the top card of {0}'s deck to their resources${suffix}`, [context.player.opponent]];
+        }
+        return [`move {0} to {1}'s resources${suffix}`, [ChatHelpers.pluralize(numberOfTargets, 'a card', 'cards'), context.player.opponent]];
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IResourceCardProperties>): void {

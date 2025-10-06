@@ -34,6 +34,7 @@ import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { requireEnvVars } from '../env';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
+import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -153,6 +154,7 @@ export class GameServer {
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
     public readonly swuStatsHandler: SwuStatsHandler;
+    private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
 
     private constructor(
@@ -362,6 +364,8 @@ export class GameServer {
             }
         });
 
+        // *** Start of User Object calls ***
+
         app.post('/api/get-user', authMiddleware('get-user'), (req, res, next) => {
             try {
                 // const { decks, preferences } = req.body;
@@ -491,7 +495,6 @@ export class GameServer {
             }
         });
 
-        // Add this new route for setting moderation as seen:
         app.post('/api/set-moderation-seen', authMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
@@ -517,33 +520,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/save-sound-preferences', authMiddleware(), async (req, res, next) => {
-            try {
-                const { soundPreferences } = req.body;
-                const user = req.user as User;
-
-                // Check if user is authenticated
-                if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences to dynamodb`);
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Error attempting to save sound preferences'
-                    });
-                }
-
-                // Update user preferences with sound preferences
-                await this.userFactory.updateUserPreferencesAsync(user.getId(), { sound: soundPreferences });
-
-                return res.status(200).json({
-                    success: true,
-                    message: 'Sound preferences saved successfully'
-                });
-            } catch (err) {
-                logger.error('GameServer (save-sound-preferences) Server error:', err);
-                next(err);
-            }
-        });
-
+        // SWUSTATS
         // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
         app.post('/api/link-swustats', async (req, res, next) => {
             try {
@@ -593,6 +570,30 @@ export class GameServer {
                 next(err);
             }
         });
+
+        app.put('/api/user/:userId/preferences', authMiddleware('PUT-preferences'), async (req, res, next) => {
+            try {
+                const { preferences } = req.body;
+                const { userId } = req.params;
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (PUT-preferences): Anonymous user ${user.getId()} attempted to save preferences to dynamodb`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Error attempting to save preferences'
+                    });
+                }
+                await this.userFactory.updateUserPreferencesAsync(userId, preferences);
+                return res.status(200).json({
+                    success: true,
+                    message: 'Preferences saved successfully',
+                });
+            } catch (err) {
+                logger.error('GameServer (PUT-preferences) Server error:', err);
+                next(err);
+            }
+        });
+        // *** End of User Object calls ***
 
         // user DECKS
         app.post('/api/get-decks', authMiddleware('get-decks'), async (req, res, next) => {
@@ -1090,6 +1091,7 @@ export class GameServer {
             this.cardDataGetter,
             this.deckValidator,
             this,
+            this.discordDispatcher,
             this.testGameBuilder,
             enableUndo
         );
@@ -1107,6 +1109,7 @@ export class GameServer {
             this.cardDataGetter,
             this.deckValidator,
             this,
+            this.discordDispatcher,
             this.testGameBuilder,
             true
         );
@@ -1387,7 +1390,8 @@ export class GameServer {
             format,
             this.cardDataGetter,
             this.deckValidator,
-            this
+            this,
+            this.discordDispatcher
         );
 
         this.lobbies.set(lobby.id, lobby);

@@ -1214,25 +1214,6 @@ const mockCards = [
         internalName: 'grand-admiral-thrawn#grand-schemer',
     }),
     buildMockCard({
-        title: 'Hondo Ohnaka',
-        subtitle: 'You Better Hurry',
-        power: 6,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['aggression', 'villainy'],
-        types: ['unit'],
-        traits: ['underworld'],
-        setId: {
-            set: 'SEC',
-            number: 140
-        },
-        cost: 6,
-        unique: true,
-        arena: 'ground',
-        internalName: 'hondo-ohnaka#you-better-hurry',
-    }),
-    buildMockCard({
         title: 'The Galleon',
         subtitle: 'Marauding Pirate Ship',
         power: 6,
@@ -1498,21 +1479,6 @@ const mockCards = [
         internalName: 'emissarys-sheathipede',
     }),
     buildMockCard({
-        title: 'One in a Million',
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['vigilance', 'heroism'],
-        types: ['event'],
-        traits: ['gambit'],
-        setId: {
-            set: 'SEC',
-            number: 53
-        },
-        cost: 1,
-        unique: false,
-        internalName: 'one-in-a-million',
-    }),
-    buildMockCard({
         title: 'Restore Freedom',
         hasNonKeywordAbility: true,
         aspects: ['heroism'],
@@ -1525,39 +1491,6 @@ const mockCards = [
         cost: 2,
         unique: false,
         internalName: 'restore-freedom',
-    }),
-    buildMockCard({
-        title: 'The Wrong Ride',
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['cunning'],
-        types: ['event'],
-        traits: ['disaster'],
-        setId: {
-            set: 'SEC',
-            number: 235
-        },
-        cost: 3,
-        unique: false,
-        internalName: 'the-wrong-ride',
-    }),
-    buildMockCard({
-        title: 'Dressellian Commandos',
-        power: 4,
-        hp: 5,
-        hasNonKeywordAbility: false,
-        aspects: ['command', 'heroism'],
-        keywords: ['ambush', 'plot'],
-        types: ['unit'],
-        traits: ['rebel', 'trooper'],
-        setId: {
-            set: 'SEC',
-            number: 100
-        },
-        cost: 5,
-        unique: false,
-        arena: 'ground',
-        internalName: 'dressellian-commandos',
     }),
     buildMockCard({
         title: 'Crucible',
@@ -1650,6 +1583,24 @@ const mockCards = [
         internalName: 'creditors-claim',
     }),
     buildMockCard({
+        title: 'Ziton Moj',
+        subtitle: 'Black Sun Bully',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 168
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'ziton-moj#black-sun-bully',
+    }),
+    buildMockCard({
         title: 'DJ',
         subtitle: 'Need a Lift?',
         power: 4,
@@ -1667,6 +1618,24 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'dj#need-a-lift',
+    }),
+    buildMockCard({
+        title: 'Director Kennic',
+        subtitle: 'I Lose Nothing But Time',
+        power: 8,
+        hp: 10,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 90
+        },
+        cost: 9,
+        unique: true,
+        arena: 'ground',
+        internalName: 'director-krennic#i-lose-nothing-but-me',
     }),
 ];
 
@@ -1725,27 +1694,43 @@ function buildSetStr(card) {
     return `${card.setId.set}_${card.setId.number}`;
 }
 
+function isToken(card) {
+    return card.types.includes('token');
+}
+
 function addMockCards(cards) {
     const cardsById = new Map();
     const mockCardNames = [];
 
+    const tokensByName = new Map();
+
     for (const card of cards) {
+        if (isToken(card)) {
+            tokensByName.set(card.title, card);
+            continue;
+        }
+
         cardsById.set(buildSetStr(card), card);
     }
 
     for (const card of mockCards) {
-        const setStr = buildSetStr(card);
+        // uncomment the below to emit a log line for each mock card that is now in the official data
+        // if (cardsById.has(setStr)) {
+        //     console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js`, 'yellow'));
+        // }
 
-        if (cardsById.has(setStr)) {
-            // console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js\n`, 'yellow'));
-            cardsById.get(setStr).id = card.id;
-        } else {
-            cards.push(card);
-            mockCardNames.push(card.internalName);
+        if (isToken(card)) {
+            tokensByName.set(card.title, card);
+            continue;
         }
+
+        cardsById.set(buildSetStr(card), card);
+        mockCardNames.push(card.internalName);
     }
 
-    return mockCardNames;
+    const cardsWithMocks = Array.from(cardsById.values()).concat(Array.from(tokensByName.values()));
+
+    return { mockCardNames, cards: cardsWithMocks };
 }
 
 module.exports = { addMockCards };

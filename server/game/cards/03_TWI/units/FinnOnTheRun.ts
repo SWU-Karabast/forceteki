@@ -12,11 +12,8 @@ export default class FinnOnTheRun extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addTriggeredAbility({
+        registrar.addOnAttackCompletedAbility({
             title: 'For this phase, if damage would be dealt to that unit, prevent 1 of that damage',
-            when: {
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source,
-            },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.unique,

@@ -1,9 +1,11 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { Card } from '../core/card/Card';
+import { Card } from '../core/card/Card';
 import type { IUpgradeCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import type { MsgArg } from '../core/chat/GameChat';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import type { PlayerOrCard } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
@@ -82,6 +84,21 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         } else {
             card.moveTo(ZoneName.Discard);
         }
+    }
+
+    public override getTargetMessage(targets: PlayerOrCard | PlayerOrCard[], context: TContext): MsgArg[] {
+        return super.getTargetMessage(targets, context).map((target) => {
+            if (target instanceof Card && target.canBeExhausted() && target.zoneName === ZoneName.Resource) {
+                return {
+                    format: '{0} {1}',
+                    args: [
+                        target.exhausted ? 'an exhausted' : 'a ready',
+                        target,
+                    ]
+                };
+            }
+            return target;
+        });
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

@@ -30,10 +30,13 @@ describe('The Will of the Force ability', function () {
                 expect(context.wampa).toBeInZone('discard', context.player2);
                 expect(context.player1.hasTheForce).toBeFalse();
                 expect(context.player2.handSize).toBe(1);
-                expect(context.getChatLogs(4)).toContain('player1 plays The Will of the Force to choose a target for The Will of the Force and to choose if they want to use the Force');
-                expect(context.getChatLogs(4)).toContain('player1 uses The Will of the Force to return Cartel Spacer to player2\'s hand');
-                expect(context.getChatLogs(4)).toContain('player1 uses The Will of the Force to use the Force');
-                expect(context.getChatLogs(4)).toContain('player2 randomly discards Wampa from their hand due to The Will of the Force');
+                expect(context.getChatLogs(5)).toEqual([
+                    'player1 plays The Will of the Force to choose a target for The Will of the Force and to choose if they want to use the Force',
+                    'player1 uses The Will of the Force to return Cartel Spacer to player2\'s hand',
+                    'player1 uses The Will of the Force to use the Force',
+                    'player1 uses The Will of the Force to make player2 randomly discard a card',
+                    'player2 randomly discards Wampa from their hand due to The Will of the Force',
+                ]);
             });
 
             it('returns a unit to the hand of its owner controller and does nothing else if you do not use the Force', async function () {
@@ -93,7 +96,7 @@ describe('The Will of the Force ability', function () {
                 expect(context.atst).toBeInZone('hand', context.player1);
                 expect(context.player1.hasTheForce).toBeFalse();
                 expect(context.player1.handSize).toBe(1);
-                expect(context.getChatLogs(3)).toContain('player1 uses The Will of the Force to return AT-ST to their hand');
+                expect(context.getChatLogs(4)).toContain('player1 uses The Will of the Force to return AT-ST to their hand');
             });
 
             it('returns a unit to the hand of its owner controller and does nothing else if you do not have the Force', async function () {

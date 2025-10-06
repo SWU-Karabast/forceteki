@@ -1,4 +1,4 @@
-import type { IAbilityPropsWithType, IActionAbilityPropsWithGainCondition, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamagePreventionEffectAbilityPropsWithGainCondition, IEpicActionProps, IEventAbilityProps, IKeywordPropertiesWithGainCondition, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition } from '../../Interfaces';
+import type { IAbilityPropsWithType, IActionAbilityPropsWithGainCondition, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamagePreventionEffectAbilityPropsWithGainCondition, IEpicActionProps, IEventAbilityProps, IKeywordPropertiesWithGainCondition, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition, IPlayRestrictionAbilityProps } from '../../Interfaces';
 import type { BaseCard } from './BaseCard';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './baseClasses/PlayableOrDeployableCard';
 import type { Card } from './Card';
@@ -62,4 +62,5 @@ export type IBaseAbilityRegistrar = IBasicAbilityRegistrar<BaseCard> & {
 export type IEventAbilityRegistrar = IBasicAbilityRegistrar<EventCard> & {
     setEventAbility(properties: IEventAbilityProps): void;
     addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<EventCard>): void;
+    addPlayRestrictionAbility(properties: IPlayRestrictionAbilityProps): void;
 };
