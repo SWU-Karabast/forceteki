@@ -1725,6 +1725,7 @@ function addMockCards(cards) {
         }
 
         cardsById.set(buildSetStr(card), card);
+        mockCardNames.push(card.internalName);
     }
 
     const cardsWithMocks = Array.from(cardsById.values()).concat(Array.from(tokensByName.values()));
