@@ -1703,15 +1703,8 @@ function addMockCards(cards) {
     }
 
     for (const card of mockCards) {
-        const setStr = buildSetStr(card);
-
-        if (cardsById.has(setStr)) {
-            // console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js\n`, 'yellow'));
-            cardsById.get(setStr).id = card.id;
-        } else {
-            cards.push(card);
-            mockCardNames.push(card.internalName);
-        }
+        cards.push(card);
+        mockCardNames.push(card.internalName);
     }
 
     return mockCardNames;
