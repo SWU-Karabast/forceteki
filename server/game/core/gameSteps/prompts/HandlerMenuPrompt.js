@@ -128,11 +128,6 @@ class HandlerMenuPrompt extends UiPrompt {
     }
 
     /** @override */
-    isOpponentRevealNewInfoPrompt() {
-        return true;
-    }
-
-    /** @override */
     menuCommand(player, arg) {
         if (typeof arg === 'string') {
             if (arg === 'cancel') {

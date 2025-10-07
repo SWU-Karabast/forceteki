@@ -493,7 +493,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should not require confirmation to rollback after the opponent choose a target', async function() {
+        it('should require confirmation to rollback after the opponent choose a target', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -515,7 +515,7 @@ describe('Undo confirmation', function() {
             context.player1.clickCard(context.powerOfTheDarkSide);
             context.player2.clickCard(context.viperProbeDroid);
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
             expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
         });
 

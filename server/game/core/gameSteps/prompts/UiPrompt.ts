@@ -109,7 +109,7 @@ export abstract class UiPrompt extends BaseStep {
     }
 
     protected isOpponentRevealNewInfoPrompt(): boolean {
-        return false;
+        return true;
     }
 
     protected startActionTimer(player: Player) {

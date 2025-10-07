@@ -61,10 +61,6 @@ export class DropdownListPrompt extends UiPrompt {
         return { menuTitle: this.properties.waitingPromptTitle, promptUuid: this.uuid };
     }
 
-    public override isOpponentRevealNewInfoPrompt(): boolean {
-        return true;
-    }
-
     /** Selected list option is returned via this call */
     public override menuCommand(player: Player, arg: string, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
