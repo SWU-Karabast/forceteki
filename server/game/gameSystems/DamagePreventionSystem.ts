@@ -2,18 +2,21 @@ import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityCo
 import { DamagePreventionType, DamageType } from '../core/Constants';
 import { MetaEventName } from '../core/Constants';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
-import type { IReplacementEffectAbilityProps } from '../Interfaces';
+import type { IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
 import { ReplacementEffectSystem } from './ReplacementEffectSystem';
 import * as Contract from '../core/utils/Contract';
 import { DamageSystem } from './DamageSystem';
 
-export interface IDamagePreventionSystemProperties extends Omit<IReplacementEffectAbilityProps, 'when'> {
+export interface IDamagePreventionSystemProperties<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends IReplacementEffectSystemProperties<TContext> {
     preventionType: DamagePreventionType;
     preventionAmount?: number;
     replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
 }
 
-export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext, TProperties extends IDamagePreventionSystemProperties = IDamagePreventionSystemProperties> extends ReplacementEffectSystem<TContext, TProperties> {
+export class DamagePreventionSystem<
+    TContext extends TriggeredAbilityContext = TriggeredAbilityContext,
+    TProperties extends IDamagePreventionSystemProperties<TContext> = IDamagePreventionSystemProperties<TContext>
+> extends ReplacementEffectSystem<TContext, TProperties> {
     public override readonly eventName = MetaEventName.ReplacementEffect;
 
     public override getEffectMessage(context: TContext): [string, any[]] {
