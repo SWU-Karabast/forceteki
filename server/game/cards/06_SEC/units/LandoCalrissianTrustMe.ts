@@ -29,7 +29,7 @@ export default class LandoCalrissianTrustMe extends NonLeaderUnitCard {
                     dependsOn: 'enemyUnit',
                     activePromptTitle: 'Choose a friendly non-leader unit to be captured.',
                     controller: RelativePlayer.Self,
-                    cardTypeFilter: WildcardCardType.Unit,
+                    cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardCondition: (card, context) => card !== context.source,
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
