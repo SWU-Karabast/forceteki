@@ -26,10 +26,10 @@ export default class CikatroVizagoBusinessIsWhatMatters extends NonLeaderUnitCar
                 const topCard = thenContext.player.getTopCardOfDeck();
 
                 return {
-                    title: `Opponent pays 1 resource or you draw ${topCard.title}`,
+                    title: `Opponent pays 1 resource or you draw ${topCard?.title}`,
                     thenCondition: (context) => context.player.drawDeck.length > 0,
                     targetResolver: {
-                        waitingPromptTitle: `Opponent is choosing whether to pay 1 resource or let you draw ${topCard.title}`,
+                        waitingPromptTitle: `Opponent is choosing whether to pay 1 resource or let you draw ${topCard?.title}`,
                         mode: TargetMode.Select,
                         choosingPlayer: RelativePlayer.Opponent,
                         choices: {
@@ -37,7 +37,7 @@ export default class CikatroVizagoBusinessIsWhatMatters extends NonLeaderUnitCar
                                 target: thenContext.player.opponent,
                                 amount: 1
                             }),
-                            [`Opponent draws ${topCard.title}`]: AbilityHelper.immediateEffects.drawSpecificCard({
+                            [`Opponent draws ${topCard?.title}`]: AbilityHelper.immediateEffects.drawSpecificCard({
                                 target: topCard
                             })
                         }
