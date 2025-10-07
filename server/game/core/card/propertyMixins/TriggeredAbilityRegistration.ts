@@ -91,10 +91,10 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
 
         // ******************************************** ABILITY STATE MANAGEMENT ********************************************
         /**
-             * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
-             *
-             * @returns The uuid of the created triggered ability
-             */
+         * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+         *
+         * @returns The uuid of the created triggered ability
+         */
         public addGainedTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): string {
             const addedAbility = this.createTriggeredAbility(properties);
             this.state.triggeredAbilities.push(addedAbility.getRef());
@@ -104,10 +104,10 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
         }
 
         /**
-             * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
-             *
-             * @returns The uuid of the created triggered ability
-             */
+         * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+         *
+         * @returns The uuid of the created triggered ability
+         */
         public addGainedReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): string {
             const addedAbility = this.createReplacementEffectAbility(properties);
             this.state.triggeredAbilities.push(addedAbility.getRef());
@@ -117,10 +117,10 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
         }
 
         /**
-             * Adds a dynamically gained damage prevention ability to the card and immediately registers its triggers. Used for "gain ability" effects.
-             *
-             * @returns The uuid of the created triggered ability
-             */
+         * Adds a dynamically gained damage prevention ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+         *
+         * @returns The uuid of the created triggered ability
+         */
         public addGainedDamagePreventionAbility<TSource extends Card = this>(properties: IDamagePreventionAbilityProps<TSource>): string {
             const addedAbility = this.createDamagePreventionAbility({ ...properties });
             this.state.triggeredAbilities.push(addedAbility.getRef());
