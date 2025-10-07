@@ -21,7 +21,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
 
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<ILookAtProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-            const targetCount = Helpers.asArray(properties.target).length;
+        const targetCount = Helpers.asArray(properties.target).length;
         let effectArg: string | FormatMessage = ChatHelpers.pluralize(targetCount, 'a card', targetCount + ' cards');
 
         if (Helpers.equalArrays(Helpers.asArray(properties.target), context.player.opponent.hand)) {
