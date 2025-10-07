@@ -387,8 +387,20 @@ async function main() {
         .map((pageNumber) => getCardData(pageNumber + 1, downloadProgressBar))))
         .flat()
         .filter((n) => n); // remove nulls
+
+    const tokenCards = [];
+    const downloadedNonTokenCards = [];
+    for (const card of downloadedCards) {
+        if (card.types.includes('token')) {
+            tokenCards.push(card);
+        } else {
+            downloadedNonTokenCards.push(card);
+        }
+    }
+
     // cards = cards.concat([cunningForceBase, aggressionForceBase]);
-    const { mockCardNames, cards } = addMockCards(downloadedCards);
+    let { mockCardNames, cards } = addMockCards(downloadedNonTokenCards);
+    cards = cards.concat(tokenCards);
 
     downloadProgressBar.stop();
 
