@@ -107,6 +107,7 @@ export class Lobby {
     private readonly lobbyCreateTime: Date = new Date();
     private readonly swuStatsEnabled: boolean = true;
     private readonly discordDispatcher: DiscordDispatcher;
+    private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
@@ -193,12 +194,21 @@ export class Lobby {
     }
 
     private buildLobbyUserData(user: LobbyUser, fullData = false) {
+        const authenticatedStatus = user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser();
+
+        const previousAuthenticatedStatus = this.previousAuthenticatedStatusByUser.get(user.id);
+        if (previousAuthenticatedStatus != null && previousAuthenticatedStatus !== authenticatedStatus) {
+            logger.warn(`Lobby: user ${user.username} authentication status changed from ${previousAuthenticatedStatus} to ${authenticatedStatus}`, { lobbyId: this.id, userName: user.username, userId: user.id });
+        }
+
+        this.previousAuthenticatedStatusByUser.set(user.id, authenticatedStatus);
+
         const basicData = {
             id: user.id,
             username: user.username,
             state: user.state,
             ready: user.ready,
-            authenticated: user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser(),
+            authenticated: authenticatedStatus,
             chatDisabled: !!user.socket?.user.getModeration(),
         };
 
