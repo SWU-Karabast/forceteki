@@ -97,6 +97,10 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
                 return;
             }
 
+            if (player !== context.player) {
+                context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
+            }
+
             const topCards = player.getTopCardsOfDeck(amount);
             topCards.forEach((card) => this.generateEventsForCard(card, context, events, additionalProperties));
 
