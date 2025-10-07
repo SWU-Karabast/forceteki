@@ -1695,24 +1695,30 @@ function buildSetStr(card) {
 }
 
 function addMockCards(cards) {
-    const cardsById = new Map();
+    const mockCardsById = new Map();
     const mockCardNames = [];
 
-    for (const card of cards) {
-        cardsById.set(buildSetStr(card), card);
-    }
+    const allCards = [];
 
     for (const card of mockCards) {
-        // uncomment the below to emit a log line for each mock card that is now in the official data
-        // if (cardsById.has(setStr)) {
-        //     console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js`, 'yellow'));
-        // }
-
-        cardsById.set(buildSetStr(card), card);
+        mockCardsById.set(buildSetStr(card), card);
         mockCardNames.push(card.internalName);
+        allCards.push(card);
     }
 
-    return { mockCardNames, cards: Array.from(cardsById.values()) };
+    for (const card of cards) {
+        const setStr = buildSetStr(card);
+        if (mockCardsById.has(setStr)) {
+            // uncomment the below to emit a log line for each mock card that is now in the official data
+            // console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js`, 'yellow'));
+
+            continue;
+        }
+
+        allCards.push(card);
+    }
+
+    return { mockCardNames, cards: allCards };
 }
 
 module.exports = { addMockCards };
