@@ -174,6 +174,42 @@ describe('Lando Calrissian, Trust Me', function() {
                 expect(context.landoCalrissian).toBeInZone('groundArena', context.player1);
                 expect(context.player1.base.damage).toBe(4);
             });
+
+            it('works correctly with capture replacement effects like IG-11', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: { card: 'dagobah-swamp', damage: 10 },
+                        hand: ['lando-calrissian#trust-me'],
+                        groundArena: ['ig11#i-cannot-be-captured']
+                    },
+                    player2: {
+                        spaceArena: ['tie-bomber'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 plays Lando
+                context.player1.clickCard(context.landoCalrissian);
+
+                // Choose enemy unit to do the capturing
+                expect(context.player1).toHavePrompt(enemyUnitPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.tieBomber]);
+                context.player1.clickCard(context.tieBomber);
+
+                // Choose other friendly non-leader unit to be captured (IG-11 should be selectable)
+                expect(context.player1).toHavePrompt(friendlyUnitPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.ig11]);
+                context.player1.clickCard(context.ig11);
+
+                // IG-11 is defeated instead of being captured
+                expect(context.ig11).toBeInZone('discard', context.player1);
+                expect(context.tieBomber.capturedUnits.length).toBe(0);
+
+                // Healing still occured since IG-11's effect replaced the original condition
+                expect(context.player1.base.damage).toBe(4);
+            });
         });
     });
 });
