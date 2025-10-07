@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { ZoneName } from '../../../core/Constants';
 
 export default class GeneralGrievousScuttlingToSafety extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +18,7 @@ export default class GeneralGrievousScuttlingToSafety extends NonLeaderUnitCard 
                 onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
             },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.zoneName === 'groundArena',
+                condition: (context) => context.source.zoneName === ZoneName.GroundArena,
                 onTrue: AbilityHelper.immediateEffects.returnToHand(),
             }),
         });
