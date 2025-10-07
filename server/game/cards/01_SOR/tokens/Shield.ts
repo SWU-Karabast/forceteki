@@ -34,13 +34,13 @@ export default class Shield extends TokenUpgradeCard {
         registrar.addDamagePreventionAbility({
             title: 'Defeat shield to prevent attached unit from taking damage',
             preventionType: DamagePreventionType.Replace,
-            targetCondition(card, context) {
+            cardPreventionCondition(card, context) {
                 if (context.source.isUpgrade() && card === context.source.parentCard) {
                     return true;
                 }
                 return false;
             },
-            replaceWithSystem: AbilityHelper.immediateEffects.defeat({
+            replaceWithEffect: AbilityHelper.immediateEffects.defeat({
                 target: this
             }),
         });

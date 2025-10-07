@@ -30,8 +30,8 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
                             title: 'Redirect combat damage to another Underworld unit',
                             type: AbilityType.DamagePrevention,
                             preventionType: DamagePreventionType.Replace,
-                            preventDamageFrom: DamageSourceType.Attack,
-                            replaceWithSystem: AbilityHelper.immediateEffects.combatDamage((damageContext) => ({
+                            damageOfType: DamageSourceType.Attack,
+                            replaceWithEffect: AbilityHelper.immediateEffects.combatDamage((damageContext) => ({
                                 target: maulContext.target,
                                 amount: (damageContext as TriggeredAbilityContext).event.amount,
                                 sourceAttack: (damageContext as TriggeredAbilityContext).event.damageSource.attack,

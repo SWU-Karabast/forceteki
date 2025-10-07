@@ -25,7 +25,7 @@ export default class AaylaSecuraMasterOfTheBlade extends NonLeaderUnitCard {
                     title: 'Prevent all combat damage that would be dealt to this unit',
                     type: AbilityType.DamagePrevention,
                     preventionType: DamagePreventionType.All,
-                    preventDamageFrom: DamageSourceType.Attack
+                    damageOfType: DamageSourceType.Attack
                 }),
             })),
         });

@@ -24,8 +24,8 @@ export default class CassianAndorLayLow extends NonLeaderUnitCard {
         registrar.addDamagePreventionAbility({
             title: 'If an enemy card ability would do damage to this unit, prevent 2 of that damage',
             preventionType: DamagePreventionType.Reduce,
-            preventDamageFromSource: RelativePlayer.Opponent,
-            preventDamageFrom: DamageSourceType.Ability,
+            onlyFromPlayer: RelativePlayer.Opponent,
+            damageOfType: DamageSourceType.Ability,
             preventionAmount: 2
         });
     }

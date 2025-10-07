@@ -41,11 +41,18 @@ export type ITriggeredAbilityProps<TSource extends Card = Card> = ITriggeredAbil
 export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IReplacementEffectAbilityWhenProps<TSource> | IReplacementEffectAbilityAggregateWhenProps<TSource>;
 export type IDamagePreventionAbilityProps<TSource extends Card = Card> = Omit<IReplacementEffectAbilityBaseProps<TSource>, 'when'> & {
     preventionType: DamagePreventionType;
-    preventDamageFromSource?: RelativePlayer; // TSTODO - update to accept an array
-    preventDamageFrom?: DamageSourceType;
+    onlyFromPlayer?: RelativePlayer; // TSTODO - update to accept an array
+    damageOfType?: DamageSourceType;
     preventionAmount?: number;
-    replaceWithSystem?: GameSystem;
-    targetCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean; // This can be used to override the default assumption that the damage is being dealt to context.source
+    replaceWithEffect?: GameSystem;
+
+    /**
+     * This can be used to override the default assumption that the damage is being dealt to context.source
+     * @param card
+     * @param context
+     * @returns True if the card meets the defined condition
+     */
+    cardPreventionCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean;
 };
 
 /** Interface definition for addActionAbility */

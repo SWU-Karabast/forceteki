@@ -29,8 +29,8 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
         registrar.addDamagePreventionAbility({
             title: 'Prevent all damage that would be dealt to it by enemy card abilities',
             preventionType: DamagePreventionType.All,
-            preventDamageFromSource: RelativePlayer.Opponent,
-            preventDamageFrom: DamageSourceType.Ability
+            onlyFromPlayer: RelativePlayer.Opponent,
+            damageOfType: DamageSourceType.Ability
         });
     }
 }
