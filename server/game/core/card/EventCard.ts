@@ -2,11 +2,11 @@ import type { Player } from '../Player';
 import type { ICardWithCostProperty } from './propertyMixins/Cost';
 import { WithCost } from './propertyMixins/Cost';
 import type { MoveZoneDestination } from '../Constants';
-import { CardType, EffectName, ZoneName } from '../Constants';
+import { AbilityRestriction, CardType, EffectName, WildcardZoneName, ZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
-import type { IEventAbilityProps } from '../../Interfaces';
+import type { IEventAbilityProps, IPlayRestrictionAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
@@ -115,6 +115,7 @@ export class EventCard extends EventCardParent implements IEventCard {
             ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<EventCard>,
             setEventAbility: (properties: IEventAbilityProps) => this.setEventAbility(properties),
             addDecreaseCostAbility: (properties: IDecreaseCostAbilityProps<EventCard>) => this.addDecreaseCostAbility(properties),
+            addPlayRestrictionAbility: (properties: IPlayRestrictionAbilityProps) => this.addPlayRestrictionAbility(properties),
         };
     }
 
@@ -133,5 +134,19 @@ export class EventCard extends EventCardParent implements IEventCard {
     /** Add a constant ability on the card that decreases its cost under the given condition */
     private addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<EventCard>): void {
         this.state.constantAbilities.push(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)).getRef());
+    }
+
+    private addPlayRestrictionAbility(properties: IPlayRestrictionAbilityProps) {
+        const ability = this.createConstantAbility({
+            title: properties.title,
+            sourceZoneFilter: WildcardZoneName.Any,
+            ongoingEffect: this.game.abilityHelper.ongoingEffects.cardCannot({
+                cannot: AbilityRestriction.Play,
+                restrictedActionCondition: properties.restrictedActionCondition,
+            }),
+        });
+
+        ability.registeredEffects = this.addEffectToEngine(ability);
+        this.state.constantAbilities.push(ability.getRef());
     }
 }

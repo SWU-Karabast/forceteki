@@ -1479,21 +1479,6 @@ const mockCards = [
         internalName: 'emissarys-sheathipede',
     }),
     buildMockCard({
-        title: 'One in a Million',
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['vigilance', 'heroism'],
-        types: ['event'],
-        traits: ['gambit'],
-        setId: {
-            set: 'SEC',
-            number: 53
-        },
-        cost: 1,
-        unique: false,
-        internalName: 'one-in-a-million',
-    }),
-    buildMockCard({
         title: 'Restore Freedom',
         hasNonKeywordAbility: true,
         aspects: ['heroism'],
@@ -1710,26 +1695,30 @@ function buildSetStr(card) {
 }
 
 function addMockCards(cards) {
-    const cardsById = new Map();
+    const mockCardsById = new Map();
     const mockCardNames = [];
 
-    for (const card of cards) {
-        cardsById.set(buildSetStr(card), card);
-    }
+    const allCards = [];
 
     for (const card of mockCards) {
-        const setStr = buildSetStr(card);
-
-        if (cardsById.has(setStr)) {
-            // console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js\n`, 'yellow'));
-            cardsById.get(setStr).id = card.id;
-        } else {
-            cards.push(card);
-            mockCardNames.push(card.internalName);
-        }
+        mockCardsById.set(buildSetStr(card), card);
+        mockCardNames.push(card.internalName);
+        allCards.push(card);
     }
 
-    return mockCardNames;
+    for (const card of cards) {
+        const setStr = buildSetStr(card);
+        if (mockCardsById.has(setStr)) {
+            // uncomment the below to emit a log line for each mock card that is now in the official data
+            // console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js`, 'yellow'));
+
+            continue;
+        }
+
+        allCards.push(card);
+    }
+
+    return { mockCardNames, cards: allCards };
 }
 
 module.exports = { addMockCards };

@@ -150,6 +150,7 @@ function populateMissingData(attributes, id) {
             break;
         case '7069246970': // Sly Moore
         case '8365930807': // Cad Bane
+        case '3612601170': // One In a Million
         case '0024944513': // Armor of Fortune
         case '7936097828': // Chancellor Palpatine
         case '7365023470': // Mas Amedda
@@ -382,12 +383,24 @@ async function main() {
     const downloadProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}' });
     downloadProgressBar.start(totalPageCount, 0);
 
-    let cards = (await Promise.all([...Array(totalPageCount).keys()]
+    let downloadedCards = (await Promise.all([...Array(totalPageCount).keys()]
         .map((pageNumber) => getCardData(pageNumber + 1, downloadProgressBar))))
         .flat()
         .filter((n) => n); // remove nulls
+
+    const tokenCards = [];
+    const downloadedNonTokenCards = [];
+    for (const card of downloadedCards) {
+        if (card.types.includes('token')) {
+            tokenCards.push(card);
+        } else {
+            downloadedNonTokenCards.push(card);
+        }
+    }
+
     // cards = cards.concat([cunningForceBase, aggressionForceBase]);
-    const mockCardNames = addMockCards(cards);
+    let { mockCardNames, cards } = addMockCards(downloadedNonTokenCards);
+    cards = cards.concat(tokenCards);
 
     downloadProgressBar.stop();
 

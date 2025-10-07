@@ -21,11 +21,8 @@ export default class ZebOrreliosHeadstrongWarrior extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addTriggeredAbility({
+        registrar.addOnAttackCompletedAbility({
             title: 'If the defender was defeated, you may deal 4 damage to a ground unit',
-            when: {
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source,
-            },
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
