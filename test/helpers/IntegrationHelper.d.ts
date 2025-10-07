@@ -39,6 +39,7 @@ interface SnapshotUtils {
     countAvailableManualSnapshots: (playerId: string) => number;
     hasAvailableQuickSnapshot: (playerId: string) => boolean;
     rollbackToSnapshot: (settings: ITestGetSnapshotSettings) => boolean;
+    quickRollback: (playerId: string) => void;
     takeManualSnapshot: (playerId: string) => number;
 }
 
@@ -103,6 +104,7 @@ interface SwuSetupTestOptions extends ISerializedGameState {
     autoSingleTarget?: boolean;
     phaseTransitionHandler?: (phase: PhaseName) => void;
     testUndo?: boolean;
+    enableConfirmationToUndo?: boolean;
 
     [field: string]: any;
 }
@@ -136,6 +138,7 @@ declare namespace jasmine {
         toHavePassAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
         toHaveNoEffectAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
         toHavePassSingleTargetPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any, target: any): boolean;
+        toHaveConfirmUndoPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toAllBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toBeInZone(zone, player?: PlayerInteractionWrapper): boolean;

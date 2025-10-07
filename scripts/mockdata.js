@@ -1320,25 +1320,6 @@ const mockCards = [
         internalName: 'alexsandr-kallus#with-new-purpose',
     }),
     buildMockCard({
-        title: 'Lando Calrissian',
-        subtitle: 'Trust Me',
-        power: 6,
-        hp: 8,
-        hasNonKeywordAbility: true,
-        keywords: ['grit'],
-        aspects: ['vigilance'],
-        types: ['unit'],
-        traits: ['fringe', 'official'],
-        setId: {
-            set: 'SEC',
-            number: 68
-        },
-        cost: 7,
-        unique: true,
-        arena: 'ground',
-        internalName: 'lando-calrissian#trust-me',
-    }),
-    buildMockCard({
         title: 'Cassian Andor',
         subtitle: 'Lay Low',
         power: 2,
@@ -1527,24 +1508,6 @@ const mockCards = [
         unique: true,
         arena: 'space',
         internalName: 'libertine#under-new-ownership',
-    }),
-    buildMockCard({
-        title: 'Cikatro Vizago',
-        subtitle: 'Business Is What Matters',
-        power: 3,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning'],
-        types: ['unit'],
-        traits: ['underworld'],
-        setId: {
-            set: 'SEC',
-            number: 218
-        },
-        cost: 3,
-        unique: true,
-        arena: 'ground',
-        internalName: 'cikatro-vizago#business-is-what-matters',
     }),
     buildMockCard({
         title: 'Zam Wesell',
