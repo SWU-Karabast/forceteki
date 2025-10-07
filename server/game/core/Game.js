@@ -2029,8 +2029,12 @@ class Game extends EventEmitter {
         };
 
         if (this.enableConfirmationToUndo && this.snapshotManager.requiresConfirmationToRollbackTo(settings)) {
+            let undoTypePromptMessage = message;
+            if (settings.type !== SnapshotType.Quick && settings.type !== SnapshotType.Action) {
+                undoTypePromptMessage = `to ${message}`;
+            }
             this.promptWithHandlerMenu(this.getPlayerById(playerId).opponent, {
-                activePromptTitle: `You opponent would like to undo to ${message}. Are you sure you want to allow this?`,
+                activePromptTitle: `Your opponent would like to undo ${undoTypePromptMessage}`,
                 waitingPromptTitle: 'Waiting for opponent to decide whether to allow undo',
                 choices: ['Allow', 'Deny'],
                 handlers: [
