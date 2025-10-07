@@ -1654,7 +1654,7 @@ const mockCards = [
         cost: 2,
         unique: true,
         arena: 'ground',
-        internalName: 'garinda#information-broker',
+        internalName: 'garindan#information-broker',
     }),
     buildMockCard({
         title: 'General Grievous',
