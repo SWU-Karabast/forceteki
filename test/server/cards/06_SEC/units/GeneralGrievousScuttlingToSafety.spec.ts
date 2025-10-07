@@ -9,7 +9,7 @@ describe('General Grievous, Scuttling to Safety', function() {
                     },
                     player2: {
                         hand: ['change-of-heart'],
-                        groundArena: ['rebel-pathfinder'],
+                        groundArena: ['rebel-pathfinder', { card: 'luke-skywalker#jedi-knight', upgrades: ['vambrace-flamethrower'] }],
                         hasInitiative: true
                     }
                 });
@@ -62,6 +62,22 @@ describe('General Grievous, Scuttling to Safety', function() {
 
                 expect(context.battlefieldMarine.damage).toBe(2);
                 expect(context.rebelPathfinder).toBeInZone('discard');
+            });
+
+            it('should die from on attack triggers', function () {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.lukeSkywalkerJediKnight);
+                context.player2.clickCard(context.generalGrievousScuttlingToSafety);
+
+                context.player2.clickPrompt('You');
+                context.player2.clickPrompt('(no effect) Restore 3');
+                context.player2.clickPrompt('Trigger');
+                context.player2.setDistributeDamagePromptState(new Map([
+                    [context.generalGrievousScuttlingToSafety, 3],
+                ]));
+
+                expect(context.generalGrievousScuttlingToSafety).toBeInZone('discard');
             });
         });
     });

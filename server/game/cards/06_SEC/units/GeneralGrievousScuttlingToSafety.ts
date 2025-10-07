@@ -16,7 +16,10 @@ export default class GeneralGrievousScuttlingToSafety extends NonLeaderUnitCard 
             when: {
                 onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
             },
-            immediateEffect: AbilityHelper.immediateEffects.returnToHand(),
+            immediateEffect: AbilityHelper.immediateEffects.conditional({
+                condition: (context) => context.source.zoneName === 'groundArena',
+                onTrue: AbilityHelper.immediateEffects.returnToHand(),
+            }),
         });
     }
 }
