@@ -1,5 +1,4 @@
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-import type { Card } from '../core/card/Card';
 import type { RelativePlayer } from '../core/Constants';
 import { DamagePreventionType, DamageType } from '../core/Constants';
 import { MetaEventName } from '../core/Constants';
@@ -15,8 +14,7 @@ export interface IDamagePreventionSystemProperties extends Omit<IReplacementEffe
     preventDamageFromSource?: RelativePlayer; // TSTODO - update to accept an array
     preventDamageFrom?: DamageSourceType;
     preventionAmount?: number;
-    replaceWithSystem?: GameSystem;
-    triggerCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean; // This can be used to override the default trigger condition for special cases
+    replaceWithEffect?: GameSystem;
 }
 
 export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends ReplacementEffectSystem<TContext, IDamagePreventionSystemProperties> {
@@ -30,7 +28,7 @@ export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = T
             case DamagePreventionType.Reduce:
                 return ['prevent {0} damage to {1}', [properties.preventionAmount, context.event.card]];
             case DamagePreventionType.Replace:
-                const replaceWith = properties.replaceWithSystem;
+                const replaceWith = properties.replaceWithEffect;
                 const replaceMessage = replaceWith.getEffectMessage(context);
                 return ['{0} instead of {1} taking damage', [replaceMessage, context.event.card]]; // TODO: how the heck do we get the effect description from the replacementImmediateEffect here?
             default:
@@ -54,7 +52,7 @@ export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = T
                     sourceAttack: context.event.damageSource.attack,
                 }));
             case DamagePreventionType.Replace:
-                const replaceWith = properties.replaceWithSystem;
+                const replaceWith = properties.replaceWithEffect;
                 Contract.assertNotNullLike(replaceWith, 'replaceWith must be defined for DamagePreventionType.Replace');
 
                 return replaceWith as GameSystem<TContext>;
