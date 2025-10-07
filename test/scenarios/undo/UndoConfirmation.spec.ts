@@ -518,5 +518,66 @@ describe('Undo confirmation', function() {
             expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
             expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
         });
+
+        it('should require confirmation to rollback in the middle of a multi-step action', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'grand-moff-tarkin#oversector-governor',
+                    hand: ['endless-legions'],
+                    base: 'echo-base',
+                    resources: [
+                        'discerning-veteran',
+                        'snowspeeder',
+                        'specforce-soldier',
+                        'ruthless-raider',
+                        'pelta-supply-frigate',
+                        'frozen-in-carbonite',
+                        'confiscate',
+                        'pyke-sentinel',
+                        'battlefield-marine',
+                        'admiral-piett#captain-of-the-executor',
+                        'relentless#konstantines-folly',
+                        'clone-commander-cody#commanding-the-212th',
+                        'arquitens-assault-cruiser',
+                        'ahsoka-tano#chasing-whispers',
+                        'wrecker#boom',
+                    ],
+                },
+                player2: {
+                    groundArena: ['hevy#staunch-martyr', 'gor#grievouss-pet'],
+                    spaceArena: ['tie-advanced'],
+                    hand: ['regional-governor', 'resupply'],
+                    hasInitiative: true,
+                },
+            });
+
+            const { context } = contextRef;
+
+            // Generate a quick snapshot
+            context.player2.passAction();
+
+            context.player1.clickCard(context.endlessLegions);
+            context.player1.clickCard(context.admiralPiett);
+            context.player1.clickCard(context.ahsokaTano);
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickDone();
+            context.player2.clickDone();
+
+            context.player1.clickCard(context.admiralPiett);
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+
+            context.player1.clickCard(context.ahsokaTano);
+            context.player2.clickCard(context.resupply);
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
+            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
