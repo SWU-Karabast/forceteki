@@ -248,9 +248,9 @@ export class SnapshotManager {
             case SnapshotType.Action:
                 return this.actionSnapshots.getSnapshotProperties(settings.playerId, this.checkGetOffset(settings.actionOffset))?.requiresConfirmationToRollback ?? false;
             case SnapshotType.Manual:
-                return this.manualSnapshots.get(settings.playerId)?.getSnapshotProperties(settings.snapshotId)?.requiresConfirmationToRollback ?? false;
+                return this.manualSnapshots.get(settings.playerId)?.getSnapshotProperties(settings.snapshotId)?.requiresConfirmationToRollback ?? true;
             case SnapshotType.Phase:
-                return this.phaseSnapshots.getSnapshotProperties(settings.phaseName, this.checkGetOffset(settings.phaseOffset))?.requiresConfirmationToRollback ?? false;
+                return this.phaseSnapshots.getSnapshotProperties(settings.phaseName, this.checkGetOffset(settings.phaseOffset))?.requiresConfirmationToRollback ?? true;
             case SnapshotType.Quick:
                 return !this.canQuickRollbackWithoutConfirmation(settings.playerId);
             default:
