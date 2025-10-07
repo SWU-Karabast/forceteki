@@ -1,5 +1,4 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, DamagePreventionType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
@@ -33,9 +32,9 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
                             damageOfType: DamageSourceType.Attack,
                             replaceWithEffect: AbilityHelper.immediateEffects.combatDamage((damageContext) => ({
                                 target: maulContext.target,
-                                amount: (damageContext as TriggeredAbilityContext).event.amount,
-                                sourceAttack: (damageContext as TriggeredAbilityContext).event.damageSource.attack,
-                                source: (damageContext as TriggeredAbilityContext).event.damageSource.damageDealtBy
+                                amount: damageContext.event.amount,
+                                sourceAttack: damageContext.event.damageSource.attack,
+                                source: damageContext.event.damageSource.damageDealtBy
                             }))
                         })
                     }))

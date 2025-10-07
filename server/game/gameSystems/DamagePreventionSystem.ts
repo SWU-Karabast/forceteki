@@ -10,10 +10,10 @@ import { DamageSystem } from './DamageSystem';
 export interface IDamagePreventionSystemProperties extends Omit<IReplacementEffectAbilityProps, 'when'> {
     preventionType: DamagePreventionType;
     preventionAmount?: number;
-    replaceWithEffect?: GameSystem;
+    replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
 }
 
-export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends ReplacementEffectSystem<TContext, IDamagePreventionSystemProperties> {
+export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext, TProperties extends IDamagePreventionSystemProperties = IDamagePreventionSystemProperties> extends ReplacementEffectSystem<TContext, TProperties> {
     public override readonly eventName = MetaEventName.ReplacementEffect;
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -32,8 +32,8 @@ export class DamagePreventionSystem<TContext extends TriggeredAbilityContext = T
         }
     }
 
-    protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<IDamagePreventionSystemProperties> = {}): GameSystem<TContext> {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties) as IDamagePreventionSystemProperties;
+    protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<TProperties> = {}): GameSystem<TContext> {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         switch (properties.preventionType) {
             case DamagePreventionType.All:

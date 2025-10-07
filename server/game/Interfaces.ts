@@ -44,7 +44,7 @@ export type IDamagePreventionAbilityProps<TSource extends Card = Card> = Omit<IR
     onlyFromPlayer?: RelativePlayer; // TSTODO - update to accept an array
     damageOfType?: DamageSourceType;
     preventionAmount?: number;
-    replaceWithEffect?: GameSystem;
+    replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
 
     /**
      * This can be used to override the default assumption that the damage is being dealt to context.source
