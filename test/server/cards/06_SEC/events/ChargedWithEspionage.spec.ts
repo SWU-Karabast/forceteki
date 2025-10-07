@@ -36,6 +36,9 @@ describe('Charged With Espionage', function () {
                 expect(context.getChatLogs(1)[0]).toContain(context.infernoFour.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.vigilance.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.protector.title);
+                expect(context.getChatLogs(1)[0]).toEqual(
+                    'player1 uses Charged with Espionage to look at the opponent\'s hand and sees Battlefield Marine, Vigilance, Protector, and Inferno Four',
+                );
 
                 // Discard one of the units
                 context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);

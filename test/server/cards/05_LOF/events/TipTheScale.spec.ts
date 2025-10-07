@@ -33,6 +33,9 @@ describe('Tip The Scale', function () {
                 expect(context.getChatLogs(1)[0]).toContain(context.infernoFour.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.waylay.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.protector.title);
+                expect(context.getChatLogs(1)[0]).toEqual(
+                    'player1 plays Tip the Scale to look at the opponent\'s hand and sees Sabine Wren, Battlefield Marine, Waylay, Protector, and Inferno Four',
+                );
 
                 context.player1.clickCardInDisplayCardPrompt(context.waylay);
                 expect(context.waylay).toBeInZone('discard');

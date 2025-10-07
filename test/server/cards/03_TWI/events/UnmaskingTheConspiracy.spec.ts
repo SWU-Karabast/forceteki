@@ -29,6 +29,9 @@ describe('Unmasking the Conspiracy', function() {
             // Check that the lookAt sends ALL the opponents cards in hand to chat
             expect(context.getChatLogs(1)[0]).toContain(context.atst.title);
             expect(context.getChatLogs(1)[0]).toContain(context.waylay.title);
+            expect(context.getChatLogs(1)[0]).toEqual(
+                'player1 uses Unmasking the Conspiracy to look at the opponent\'s hand and sees AT-ST and Waylay',
+            );
 
             // Discards a card from the opponent's hand
             expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.atst, context.waylay]);

@@ -23,7 +23,9 @@ describe('Spark Of Rebellion', function () {
                 expect(context.getChatLogs(1)[0]).toContain(context.waylay.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.protector.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.infernoFour.title);
-
+                expect(context.getChatLogs(1)[0]).toEqual(
+                    'player1 plays Spark of Rebellion to look at the opponent\'s hand and sees Battlefield Marine, Waylay, Protector, and Inferno Four',
+                );
                 context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toBeInZone('discard');
 
@@ -37,7 +39,9 @@ describe('Spark Of Rebellion', function () {
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.infernoFour]);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
-                expect(context.getChatLogs(1)[0]).toContain(context.infernoFour.title);
+                expect(context.getChatLogs(1)[0]).toContain(context.infernoFour.title);expect(context.getChatLogs(1)).toEqual([
+                    'player1 plays Spark of Rebellion to look at the opponent\'s hand and sees Inferno Four',
+                ]);
 
                 context.player1.clickCardInDisplayCardPrompt(context.infernoFour);
                 expect(context.infernoFour).toBeInZone('discard');

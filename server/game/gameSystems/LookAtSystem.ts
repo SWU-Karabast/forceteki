@@ -21,27 +21,27 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
 
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<ILookAtProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        let effectArgs: any[] = ['a card'];
-
-        let format = 'look at {0}';
-        const cardsFormat: FormatMessage = { format: ChatHelpers.formatWithLength(Helpers.asArray(properties.target).length, ''), args: this.getTargetMessage(properties.target, context) };
+            const targetCount = Helpers.asArray(properties.target).length;
+        let effectArg: string | FormatMessage = ChatHelpers.pluralize(targetCount, 'a card', targetCount + ' cards');
 
         if (Helpers.equalArrays(Helpers.asArray(properties.target), context.player.opponent.hand)) {
-            const handSize = Helpers.asArray(properties.target).length;
-            format = 'look at the opponent\'s hand and sees ' + ChatHelpers.formatWithLength(handSize, '');
-            effectArgs = this.getTargetMessage(properties.target, context);
+            effectArg = {
+                format: 'the opponent\'s hand and sees {0}',
+                args: [this.getTargetMessage(properties.target, context)]
+            }
         } else if (Helpers.asArray(properties.target)
             .every((card) => card.zone.owner === context.player.opponent && card.zoneName === ZoneName.Resource)
         ) {
-            const targetCount = Helpers.asArray(properties.target).length;
-            format = targetCount === 1
-                ? 'look at an enemy resource and sees'
-                : `look at ${targetCount} enemy resources and sees`;
-            format += ' ' + ChatHelpers.formatWithLength(targetCount, '');
-            effectArgs = this.getTargetMessage(properties.target, context);
+            effectArg = {
+                format: '{0} and sees {1}',
+                args: [
+                    ChatHelpers.pluralize(targetCount, 'an enemy resource', 'enemy resources'),
+                    this.getTargetMessage(properties.target, context),
+                ],
+            };
         }
 
-        return [format, effectArgs];
+        return ['look at {0}', [effectArg]];
     }
 
     protected override getPromptedPlayer(properties: ILookAtProperties, context: TContext): Player {
