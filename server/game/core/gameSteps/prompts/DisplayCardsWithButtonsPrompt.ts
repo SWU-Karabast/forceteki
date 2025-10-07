@@ -49,7 +49,6 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
         }));
     }
 
-
     public override onPerCardMenuCommand(player: Player, arg: string, cardUuid: string, uuid: string, method: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
 

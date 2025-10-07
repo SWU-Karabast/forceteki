@@ -28,6 +28,10 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         const { amount } = this.generatePropertiesFromContext(context);
         const deckLength = player.drawDeck.length;
 
+        if (deckLength > 0 && player === context.player) {
+            context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
+        }
+
         if (deckLength === 1) {
             const lookAtEvent = new LookAtSystem({
                 target: player.drawDeck[0],

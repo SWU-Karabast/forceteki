@@ -106,6 +106,7 @@ export class Lobby {
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
     private readonly swuStatsEnabled: boolean = true;
+    private readonly enableConfirmationToUndo: boolean;
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
 
@@ -155,6 +156,7 @@ export class Lobby {
         this.server = gameServer;
         this.discordDispatcher = discordDispatcher;
         this.undoMode = process.env.ENVIRONMENT === 'development' || enableUndo ? UndoMode.Full : UndoMode.CurrentSnapshotOnly;
+        this.enableConfirmationToUndo = lobbyGameType !== MatchType.Private;
     }
 
     public get id(): string {
@@ -685,13 +687,15 @@ export class Lobby {
         // eslint-disable-next-line
         const router = this;
 
+        const enableConfirmationToUndo = true;
         const game: Game = await this.testGameBuilder.setUpTestGameAsync(
             setupData,
             this.cardDataGetter,
             router,
             { id: 'exe66', username: 'Order66' },
             { id: 'th3w4y', username: 'ThisIsTheWay' },
-            UndoMode.Full
+            UndoMode.Full,
+            enableConfirmationToUndo
         );
 
         this.game = game;
@@ -818,6 +822,7 @@ export class Lobby {
             gameMode: GameMode.Premier,
             players,
             undoMode: this.undoMode,
+            enableConfirmationToUndo: this.enableConfirmationToUndo,
             cardDataGetter: this.cardDataGetter,
             useActionTimer,
             pushUpdate: () => this.sendGameState(this.game),

@@ -80,7 +80,7 @@ export class SetupPhase extends Phase {
             new DrawSystem({ amount: player.getStartingHandSize() })
                 .resolve(
                     player,
-                    this.game.getFrameworkContext(),
+                    this.game.getFrameworkContext(player),
                     TriggerHandlingMode.ResolvesTriggers
                 );
         }

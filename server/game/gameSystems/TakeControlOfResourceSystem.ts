@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameStateChangeRequired, EventName } from '../core/Constants';
+import type { GameEvent } from '../core/event/GameEvent';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
@@ -22,6 +23,11 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
     public eventHandler(event): void {
         const card = event.card as Card;
         Contract.assertTrue(card.canBeExhausted() && card.canChangeController());
+
+        const gameEvent = event as GameEvent;
+        if (gameEvent.context && event.newController === gameEvent.context.player && card.controller !== event.newController) {
+            gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(gameEvent.context.player.id);
+        }
 
         const exhausted = card.exhausted;
         card.takeControl(event.newController);
