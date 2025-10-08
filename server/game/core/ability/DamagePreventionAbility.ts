@@ -1,4 +1,4 @@
-import type { IDamagePreventionAbilityProps, IReplacementEffectAbilityProps } from '../../Interfaces';
+import type { IDamagePreventionAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
 import { DamagePreventionSystem } from '../../gameSystems/DamagePreventionSystem';
@@ -8,15 +8,17 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 
 export default class DamagePreventionAbility extends TriggeredAbility {
     public constructor(game: Game, card: Card, properties: IDamagePreventionAbilityProps) {
-        const replacementAbilityProps: IReplacementEffectAbilityProps =
-            Object.assign({}, properties, { immediateEffect: new DamagePreventionSystem(properties),
-                when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) } });
+        const triggeredAbilityProps: ITriggeredAbilityProps = {
+            ...properties,
+            immediateEffect: new DamagePreventionSystem(properties),
+            when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) }
+        };
 
-        super(game, card, replacementAbilityProps, AbilityType.ReplacementEffect);
+        super(game, card, triggeredAbilityProps, AbilityType.ReplacementEffect);
     }
 
     private buildDamagePreventionTrigger(event, context, properties: IDamagePreventionAbilityProps): boolean {
-        // If a custom cardPreventionCondition is provided, this means the damage prevention should apply to the card that meets that condition instead of context.source
+        // If a cardPreventionCondition is provided, this means the damage prevention should apply to the card that meets that condition instead of context.source
         if (properties.cardPreventionCondition) {
             if (properties.cardPreventionCondition(event.card, context) === false) {
                 return false;
