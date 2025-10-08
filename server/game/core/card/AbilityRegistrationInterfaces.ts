@@ -1,4 +1,4 @@
-import type { IAbilityPropsWithType, IActionAbilityPropsWithGainCondition, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamagePreventionEffectAbilityPropsWithGainCondition, IEpicActionProps, IEventAbilityProps, IKeywordPropertiesWithGainCondition, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition, IPlayRestrictionAbilityProps } from '../../Interfaces';
+import type { IAbilityPropsWithType, IActionAbilityPropsWithGainCondition, IAttachCardContext, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamagePreventionEffectAbilityPropsWithGainCondition, IEpicActionProps, IEventAbilityProps, IKeywordPropertiesWithGainCondition, IPlayRestrictionAbilityProps, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition } from '../../Interfaces';
 import type { BaseCard } from './BaseCard';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './baseClasses/PlayableOrDeployableCard';
 import type { Card } from './Card';
@@ -52,7 +52,7 @@ export type IUpgradeAbilityRegistrar = IBasicAbilityRegistrar<UpgradeCard> &
       addGainOnAttackAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<UpgradeCard, IUnitCard>): void;
       addGainWhenDefeatedAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<UpgradeCard, IUnitCard>): void;
       addGainKeywordTargetingAttached(properties: IKeywordPropertiesWithGainCondition<UpgradeCard>): void;
-      setAttachCondition(attachCondition: (card: Card) => boolean): void;
+      setAttachCondition(attachCondition: (context: IAttachCardContext<UpgradeCard>) => boolean): void;
   };
 
 export type IBaseAbilityRegistrar = IBasicAbilityRegistrar<BaseCard> & {

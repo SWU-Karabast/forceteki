@@ -1,7 +1,6 @@
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, Trait } from '../../../core/Constants';
-import type { Card } from '../../../core/card/Card';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class GrievoussWheelBike extends UpgradeCard {
@@ -13,7 +12,7 @@ export default class GrievoussWheelBike extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addGainKeywordTargetingAttached({ keyword: KeywordName.Overwhelm });
 

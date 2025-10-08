@@ -490,6 +490,7 @@ export class Lobby {
         this.users.forEach((user) => {
             user.ready = false;
         });
+        this.playersDetails = [];
         this.sendLobbyState();
     }
 
@@ -767,7 +768,6 @@ export class Lobby {
                     swuStatsToken: this.server.swuStatsTokenMapping.get(user.id),
                 });
             });
-
             await game.initialiseAsync();
             this.sendGameState(game);
         } catch (error) {

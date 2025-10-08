@@ -12,6 +12,6 @@ export default class BolsteredEndurance extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
+        registrar.setAttachCondition((context) => context.attachTarget.hasSomeTrait(Trait.Force));
     }
 }
