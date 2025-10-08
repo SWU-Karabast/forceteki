@@ -1795,6 +1795,111 @@ const mockCards = [
         unique: false,
         internalName: 'diplomatic-immunity',
     }),
+    buildMockCard({
+        title: 'Galen Erso',
+        subtitle: 'You\'ll Never Win',
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['plot'],
+        types: ['unit'],
+        traits: ['imperial'],
+        setId: {
+            set: 'SEC',
+            number: 46
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'galen-erso#youll-never-win',
+    }),
+    buildMockCard({
+        title: 'Blue Ace',
+        subtitle: 'Colorful Racer',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['ambush'],
+        types: ['unit'],
+        traits: ['resistance', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 204
+        },
+        cost: 4,
+        unique: true,
+        arena: 'space',
+        internalName: 'blue-ace#colorful-racer',
+    }),
+    buildMockCard({
+        title: 'Willrow Hood',
+        subtitle: 'On the Run',
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['fringe'],
+        setId: {
+            set: 'SEC',
+            number: 61
+        },
+        cost: 3,
+        unique: true,
+        arena: 'ground',
+        internalName: 'willrow-hood#on-the-run',
+    }),
+    buildMockCard({
+        title: 'Remote Escort Tank',
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['heroism'],
+        keywords: ['plot'],
+        types: ['unit'],
+        traits: ['republic', 'vehicle', 'tank'],
+        setId: {
+            set: 'SEC',
+            number: 255
+        },
+        cost: 6,
+        unique: false,
+        arena: 'ground',
+        internalName: 'remote-escort-tank',
+    }),
+    buildMockCard({
+        title: 'Inner Rim Coalition',
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['republic', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 154
+        },
+        cost: 6,
+        unique: false,
+        arena: 'ground',
+        internalName: 'inner-rim-coalition',
+    }),
+    buildMockCard({
+        title: 'Implicate',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'SEC',
+            number: 231
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'implicate',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
