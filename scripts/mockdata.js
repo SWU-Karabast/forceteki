@@ -1917,6 +1917,38 @@ const mockCards = [
         arena: 'ground',
         internalName: 'valiant-commando',
     }),
+    buildMockCard({
+        title: 'Pursue the Lead',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'SEC',
+            number: 178
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'pursue-the-lead',
+    }),
+    buildMockCard({
+        title: 'Strike Force X-Wing',
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        keywords: ['plot'],
+        traits: ['rebel', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 152
+        },
+        cost: 4,
+        unique: false,
+        arena: 'space',
+        internalName: 'strike-force-xwing',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
