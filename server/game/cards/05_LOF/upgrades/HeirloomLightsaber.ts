@@ -13,7 +13,7 @@ export default class HeirloomLightsaber extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         // Attach to a non-Vehicle unit
-        registrar.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         // If attached unit is a Force unit, it gains Restore 1
         registrar.addGainKeywordTargetingAttached({
