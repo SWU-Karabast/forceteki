@@ -52,6 +52,13 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
             return super.getEffectMessage(context);
         }
 
+        if (captor.controller !== context.source.controller) {
+            return ['make {0} capture {1}', [
+                this.getTargetMessage(captor, context),
+                this.getTargetMessage(target, context)
+            ]];
+        }
+
         return ['capture {0} with {1}', [
             this.getTargetMessage(target, context),
             this.getTargetMessage(captor, context)
