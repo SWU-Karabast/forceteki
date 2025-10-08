@@ -1900,6 +1900,23 @@ const mockCards = [
         unique: false,
         internalName: 'implicate',
     }),
+    buildMockCard({
+        title: 'Valiant Commando',
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 150
+        },
+        cost: 3,
+        unique: false,
+        arena: 'ground',
+        internalName: 'valiant-commando',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
