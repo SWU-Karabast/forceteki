@@ -16,6 +16,7 @@ import type { Player } from '../core/Player';
 
 export enum DiscloseMode {
     Any = 'any',
+    Some = 'some',
     All = 'all'
 }
 
@@ -79,6 +80,27 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                     cardCondition: (card) => properties.aspects.some((aspect) => card.aspects.includes(aspect)),
                     immediateEffect: new RevealSystem<TContext>({
                         activePromptTitle: `Opponent discloses ${EnumHelpers.aspectString(properties.aspects, Conjunction.Or)}`,
+                        promptedPlayer: RelativePlayer.Opponent,
+                        useDisplayPrompt: true,
+                        interactMode: ViewCardInteractMode.ViewOnly
+                    }),
+                    cancelHandler: events ? () => events.forEach((event) => event.cancel()) : null,
+                    onSelectHandler: (cards) => this.updateEventsWithSelectedCards(events, cards),
+                    cancelIfNoTargets: true,
+                });
+            case DiscloseMode.Some:
+                return new SelectCardSystem<TContext>({
+                    zoneFilter: ZoneName.Hand,
+                    controller: RelativePlayer.Self,
+                    mode: TargetMode.BetweenVariable,
+                    minNumCardsFunc: (_context) => 1,
+                    maxNumCardsFunc: (_context, selectedCards) => this.numberOfCardsToSelect(properties.aspects, selectedCards),
+                    cardCondition: (card) => properties.aspects.some((aspect) => card.aspects.includes(aspect)),
+                    multiSelectCardCondition: (card, selectedCards, context) =>
+                        this.handCanSatisfyAspects(context.player.hand, properties.aspects) &&
+                        this.cardContainsMissingAspects(card, selectedCards, properties.aspects),
+                    immediateEffect: new RevealSystem<TContext>({
+                        activePromptTitle: `Opponent discloses ${EnumHelpers.aspectString(properties.aspects)}`,
                         promptedPlayer: RelativePlayer.Opponent,
                         useDisplayPrompt: true,
                         interactMode: ViewCardInteractMode.ViewOnly

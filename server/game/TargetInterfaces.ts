@@ -114,8 +114,8 @@ interface ICardExactlyUpToVariableTargetResolver<TContext extends AbilityContext
 
 interface ICardBetweenVariableTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode: TargetMode.BetweenVariable;
-    minNumCardsFunc: (context: TContext) => number;
-    maxNumCardsFunc: (context: TContext) => number;
+    minNumCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
+    maxNumCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
     useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }

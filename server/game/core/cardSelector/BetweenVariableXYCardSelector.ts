@@ -7,14 +7,14 @@ import { BaseCardSelector } from './BaseCardSelector.js';
 
 export interface IBetweenVariableXYCardSelectorProperties<TContext> extends IBaseCardSelectorProperties<TContext> {
     mode: TargetMode.BetweenVariable;
-    minNumCardsFunc: (context: TContext) => number;
-    maxNumCardsFunc: (context: TContext) => number;
+    minNumCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
+    maxNumCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
     useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 
 export class BetweenVariableXYCardSelector<TContext extends AbilityContext = AbilityContext> extends BaseCardSelector<TContext> {
-    public minNumCardsFunc: (context: TContext) => number;
-    public maxNumCardsFunc: (context: TContext) => number;
+    public minNumCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
+    public maxNumCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
     public useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 
     public constructor(properties: IBetweenVariableXYCardSelectorProperties<TContext>) {
@@ -43,16 +43,16 @@ export class BetweenVariableXYCardSelector<TContext extends AbilityContext = Abi
     public override hasReachedLimit(selectedCards: Card[], context: TContext) {
         const matchingCards = this.getMatchingCards(context);
         const useSingleSelectMode = this.useSingleSelectModeFunc == null ? false : this.useSingleSelectModeFunc(context.source, matchingCards, context);
-        return (useSingleSelectMode && selectedCards.length > 0) || selectedCards.length === this.maxNumCardsFunc(context) ||
-          (this.minNumCardsFunc(context) === 1 && selectedCards.length === 1 && this.getMatchingCards(context).length === 1);
+        return (useSingleSelectMode && selectedCards.length > 0) || selectedCards.length === this.maxNumCardsFunc(context, selectedCards) ||
+          (this.minNumCardsFunc(context, selectedCards) === 1 && selectedCards.length === 1 && this.getMatchingCards(context).length === 1);
     }
 
     public override hasExceededLimit(selectedCards: Card[], context: TContext) {
-        return selectedCards.length > this.maxNumCardsFunc(context);
+        return selectedCards.length > this.maxNumCardsFunc(context, selectedCards);
     }
 
     public override hasEnoughSelected(selectedCards: Card[], context: TContext) {
-        return selectedCards.length >= this.minNumCardsFunc(context);
+        return selectedCards.length >= this.minNumCardsFunc(context, selectedCards);
     }
 
     public override hasEnoughTargets(context: TContext) {
