@@ -20,7 +20,9 @@ describe('Viper Probe Droid', function() {
                 context.player1.clickCard(context.viperProbeDroid);
                 expect(context.viperProbeDroid.zoneName).toBe('groundArena');
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.wampa, context.battlefieldMarine, context.pykeSentinel]);
-                expect(context.getChatLogs(1)[0]).not.toContain(context.wampa.title);  // confirm that there is no chat message for the cards
+                expect(context.getChatLogs(1)[0]).toEqual(
+                    'player1 uses Viper Probe Droid to look at the opponent\'s hand and sees Wampa, Battlefield Marine, and Pyke Sentinel',
+                );
                 context.player1.clickDone();
                 expect(context.player2).toBeActivePlayer();
             });
