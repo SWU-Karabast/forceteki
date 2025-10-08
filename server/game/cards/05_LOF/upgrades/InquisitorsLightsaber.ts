@@ -12,7 +12,7 @@ export default class InquisitorsLightsaber extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => !context.target.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addConstantAbilityTargetingAttached({
             title: 'While attacking a Force unit, this unit gets +2/+0.',

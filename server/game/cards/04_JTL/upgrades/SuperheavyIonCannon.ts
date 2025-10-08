@@ -12,7 +12,7 @@ export default class SuperheavyIonCannon extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => context.target.hasSomeTrait(Trait.CapitalShip) || context.target.hasSomeTrait(Trait.Transport));
+        registrar.setAttachCondition((context) => context.attachTarget.hasSomeTrait(Trait.CapitalShip) || context.attachTarget.hasSomeTrait(Trait.Transport));
 
         registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Exhaust an enemy non-leader unit to deal indirect damage equal to its power to the controller',

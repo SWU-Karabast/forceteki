@@ -12,7 +12,7 @@ export default class HardpointHeavyBlaster extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => context.target.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 2 damage to a target in the defender\'s arena',

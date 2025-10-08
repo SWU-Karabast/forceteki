@@ -12,7 +12,7 @@ export default class SquadSupport extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => !context.target.isLeader());
+        registrar.setAttachCondition((context) => !context.attachTarget.isLeader());
 
         registrar.addGainConstantAbilityTargetingAttached({
             title: 'This unit gets +1/+1 for each Trooper unit you control.',

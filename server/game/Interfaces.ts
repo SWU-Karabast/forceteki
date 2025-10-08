@@ -301,12 +301,12 @@ export interface IAttachCardContext<TSource extends IInPlayCard> {
     /**
      * The player who will control the upgrade at the time of attachment
      */
-    player: Player;
+    controllingPlayer: Player;
 
     /**
      * The card being targeted for attachment
      */
-    target: Card;
+    attachTarget: Card;
 }
 
 export type IKeywordPropertiesWithGainCondition<TSource extends IUpgradeCard> = IKeywordProperties & IGainCondition<TSource>;

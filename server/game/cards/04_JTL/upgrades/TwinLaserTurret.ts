@@ -12,7 +12,7 @@ export default class TwinLaserTurret extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => context.target.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 1 damage to each of up to 2 units in this arena.',

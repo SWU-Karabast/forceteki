@@ -12,7 +12,7 @@ export default class FigureOfUnity extends UpgradeCard {
     }
 
     public override setupCardAbilities (registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => context.target.unique);
+        registrar.setAttachCondition((context) => context.attachTarget.unique);
 
         registrar.addGainConstantAbilityTargetingAttached({
             title: 'While this unit is ready, each other friendly unit gains Overwhelm, Raid 1, and Restore 1',

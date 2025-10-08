@@ -13,8 +13,8 @@ export default class TheMandaloriansRifle extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setAttachCondition((context) =>
-            !context.target.hasSomeTrait(Trait.Vehicle) &&
-            context.target.controller === context.player
+            !context.attachTarget.hasSomeTrait(Trait.Vehicle) &&
+            context.attachTarget.controller === context.controllingPlayer
         );
 
         registrar.addWhenPlayedAbility({

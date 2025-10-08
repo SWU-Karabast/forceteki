@@ -12,7 +12,7 @@ export default class Electrostaff extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => !context.target.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addConstantAbility({
             title: 'While attached unit is defending, the attacker gets -1/-0',

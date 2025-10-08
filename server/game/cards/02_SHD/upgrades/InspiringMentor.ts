@@ -14,7 +14,7 @@ export default class InspiringMentor extends UpgradeCard {
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         this.disableWhenDefeatedCheck = true;
 
-        registrar.setAttachCondition((context) => !context.target.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addGainTriggeredAbilityTargetingAttached({
             title: 'Give an Experience token to another friendly unit',

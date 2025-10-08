@@ -13,7 +13,7 @@ export default class UnrefusableOffer extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => !context.target.isLeaderUnit());
+        registrar.setAttachCondition((context) => !context.attachTarget.isLeaderUnit());
 
         registrar.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,

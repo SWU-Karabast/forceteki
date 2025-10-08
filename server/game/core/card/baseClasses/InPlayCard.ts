@@ -246,8 +246,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         } else if (this.attachCondition) {
             const context: IAttachCardContext<this> = {
                 source: this,
-                player: newController || this.controller,
-                target: newParentCard
+                controllingPlayer: newController || this.controller,
+                attachTarget: newParentCard
             };
 
             Contract.assertTrue(this.attachCondition(context));
@@ -285,8 +285,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
         const attachContext: IAttachCardContext<this> = {
             source: this,
-            player: controller,
-            target: targetCard
+            controllingPlayer: controller,
+            attachTarget: targetCard
         };
 
         if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(attachContext))) {

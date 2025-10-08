@@ -12,7 +12,7 @@ export default class MoralAuthority extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => context.target.unique && context.target.controller === context.player);
+        registrar.setAttachCondition((context) => context.attachTarget.unique && context.attachTarget.controller === context.controllingPlayer);
 
         registrar.addWhenPlayedAbility({
             title: 'Attached unit captures an enemy non-leader unit with less remaining HP than it',

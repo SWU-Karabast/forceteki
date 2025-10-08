@@ -12,7 +12,7 @@ export default class FrozenInCarbonite extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => context.target.isNonLeaderUnit());
+        registrar.setAttachCondition((context) => context.attachTarget.isNonLeaderUnit());
 
         registrar.addWhenPlayedAbility({
             title: 'Exhaust attached unit',

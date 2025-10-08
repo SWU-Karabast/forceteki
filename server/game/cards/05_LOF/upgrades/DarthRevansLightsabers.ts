@@ -12,7 +12,7 @@ export default class DarthRevanLightsabers extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => !context.target.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addGainKeywordTargetingAttached({
             gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Sith),

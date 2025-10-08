@@ -13,7 +13,7 @@ export default class BobaFettsArmor extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => !context.target.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addReplacementEffectAbility({
             title: 'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',

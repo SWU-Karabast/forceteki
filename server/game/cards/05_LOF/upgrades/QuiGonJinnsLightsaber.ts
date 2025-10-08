@@ -15,8 +15,8 @@ export default class QuiGonJinnsLightsaber extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setAttachCondition((context) =>
-            context.target.controller === context.player &&
-            !context.target.hasSomeTrait(Trait.Vehicle)
+            context.attachTarget.controller === context.controllingPlayer &&
+            !context.attachTarget.hasSomeTrait(Trait.Vehicle)
         );
 
         registrar.addWhenPlayedAbility({

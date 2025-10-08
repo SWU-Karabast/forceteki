@@ -12,7 +12,7 @@ export default class NamelessValor extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((context) => context.target.isToken());
+        registrar.setAttachCondition((context) => context.attachTarget.isToken());
         registrar.addGainKeywordTargetingAttached({ keyword: KeywordName.Overwhelm });
     }
 }
