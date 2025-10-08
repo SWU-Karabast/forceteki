@@ -2,7 +2,7 @@ import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterface
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import type { IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
-import type { AbilityContext } from '../../ability/AbilityContext';
+import { AbilityContext } from '../../ability/AbilityContext';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { CardType, EffectName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, Trait, WildcardZoneName, ZoneName } from '../../Constants';
@@ -72,7 +72,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     private readonly _printedUpgradeHp: number;
     private readonly _printedUpgradePower: number;
 
-    protected attachCondition: (card: Card) => boolean;
+    protected attachCondition: (card: Card, context: AbilityContext) => boolean;
 
     /**
      * If true, then this card's ongoing effects are disabled in preparation for it to be defeated (usually due to unique rule).
@@ -244,7 +244,9 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         if (this.isUnit() && this.hasSomeTrait(Trait.Pilot)) {
             Contract.assertTrue(newParentCard.canAttachPilot(this));
         } else if (this.attachCondition) {
-            Contract.assertTrue(this.attachCondition(newParentCard));
+            const player = newController || this.controller;
+            const context = new AbilityContext({ game: this.game, player: player, source: this });
+            Contract.assertTrue(this.attachCondition(newParentCard, context));
         }
 
         newParentCard.attachUpgrade(this);
@@ -276,7 +278,10 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      */
     public canAttach(targetCard: Card, context: AbilityContext, controller: Player = this.controller): boolean {
         this.checkIsAttachable();
-        if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
+
+        // Update context with target controller for attach condition check
+        const contextWithUpdatedPlayer = new AbilityContext({ ...context, player: controller });
+        if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard, contextWithUpdatedPlayer))) {
             return false;
         }
 

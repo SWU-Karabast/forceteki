@@ -1,10 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { AbilityContext } from '../../../core/ability/AbilityContext';
-import type { Card } from '../../../core/card/Card';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, Trait } from '../../../core/Constants';
-import type { Player } from '../../../core/Player';
 
 export default class DarthMaulsLightsaber extends UpgradeCard {
     protected override getImplementationId() {
@@ -14,11 +11,12 @@ export default class DarthMaulsLightsaber extends UpgradeCard {
         };
     }
 
-    public override canAttach(targetCard: Card, _context: AbilityContext, controller: Player): boolean {
-        return targetCard.isUnit() && !targetCard.hasSomeTrait(Trait.Vehicle) && targetCard.controller === controller;
-    }
-
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setAttachCondition((card, context) =>
+            card.controller === context.player &&
+            !card.hasSomeTrait(Trait.Vehicle)
+        );
+
         registrar.addWhenPlayedAbility({
             title: 'Attack with Darth Maul. For this attack, he gains overwhelm and can\'t attack bases.',
             optional: true,

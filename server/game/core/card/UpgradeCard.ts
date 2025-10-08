@@ -18,6 +18,7 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar, IUpgradeAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IConstantAbilityRegistrar } from './propertyMixins/ConstantAbilityRegistration';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { AbilityContext } from '../ability/AbilityContext';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
 
@@ -180,7 +181,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     }
 
     /** Adds a condition that must return true for the upgrade to be allowed to attach to the passed card. */
-    private setAttachCondition(attachCondition: (card: Card) => boolean) {
+    private setAttachCondition(attachCondition: (card: Card, context: AbilityContext<this>) => boolean) {
         Contract.assertIsNullLike(this.attachCondition, 'Attach condition is already set');
 
         this.attachCondition = attachCondition;

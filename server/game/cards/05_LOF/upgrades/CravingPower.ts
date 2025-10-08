@@ -1,10 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { AbilityContext } from '../../../core/ability/AbilityContext';
-import type { Card } from '../../../core/card/Card';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
-import type { Player } from '../../../core/Player';
 
 export default class CravingPower extends UpgradeCard {
     protected override getImplementationId() {
@@ -14,11 +11,9 @@ export default class CravingPower extends UpgradeCard {
         };
     }
 
-    public override canAttach(targetCard: Card, _context: AbilityContext, controller: Player): boolean {
-        return targetCard.isUnit() && targetCard.controller === controller;
-    }
-
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setAttachCondition((card, context) => card.controller === context.player);
+
         registrar.addWhenPlayedAbility({
             title: 'Deal damage to an enemy unit equal to attached unit\'s power',
             targetResolver: {
