@@ -1938,6 +1938,7 @@ const mockCards = [
         hasNonKeywordAbility: true,
         aspects: ['aggression', 'heroism'],
         types: ['unit'],
+        keywords: ['plot'],
         traits: ['rebel', 'vehicle', 'fighter'],
         setId: {
             set: 'SEC',

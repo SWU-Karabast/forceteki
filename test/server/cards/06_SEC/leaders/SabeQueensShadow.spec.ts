@@ -22,7 +22,7 @@ describe('Sabe, Queen\'s Shadow', function () {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader. If you do, look at the top 2 cards of the defending player\'s deck. Discord 1 of those cards');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader. If you do, look at the top 2 cards of the defending player\'s deck. Discard 1 of those cards');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
@@ -46,7 +46,7 @@ describe('Sabe, Queen\'s Shadow', function () {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.specforceSoldier);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader. If you do, look at the top 2 cards of the defending player\'s deck. Discord 1 of those cards');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader. If you do, look at the top 2 cards of the defending player\'s deck. Discard 1 of those cards');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
@@ -102,7 +102,7 @@ describe('Sabe, Queen\'s Shadow', function () {
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader. If you do, look at the top 2 cards of the defending player\'s deck. Discord 1 of those cards');
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader. If you do, look at the top 2 cards of the defending player\'s deck. Discard 1 of those cards');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeActivePlayer();
@@ -124,7 +124,7 @@ describe('Sabe, Queen\'s Shadow', function () {
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader. If you do, look at the top 2 cards of the defending player\'s deck. Discord 1 of those cards');
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader. If you do, look at the top 2 cards of the defending player\'s deck. Discard 1 of those cards');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toHaveExactDisplayPromptCards({

@@ -16,7 +16,7 @@ export default class SabeQueensShadow extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Exhaust this leader. If you do, look at the top 2 cards of the defending player\'s deck. Discord 1 of those cards',
+            title: 'Exhaust this leader. If you do, look at the top 2 cards of the defending player\'s deck. Discard 1 of those cards',
             when: {
                 onDamageDealt: (event, context) =>
                     // TODO: refactor damage enum types to account for the fact that overwhelm is combat damage
@@ -26,7 +26,7 @@ export default class SabeQueensShadow extends LeaderUnitCard {
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.exhaust(),
             ifYouDo: {
-                title: 'Look at the top 2 cards of the defending player\'s deck. Discord 1 of those cards',
+                title: 'Look at the top 2 cards of the defending player\'s deck. Discard 1 of those cards',
                 immediateEffect: abilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
                     target: context.player.opponent.getTopCardsOfDeck(2),
                     canChooseFewer: false,
