@@ -6,6 +6,8 @@ import type { IReplacementEffectSystemProperties } from './ReplacementEffectSyst
 import { ReplacementEffectSystem } from './ReplacementEffectSystem';
 import * as Contract from '../core/utils/Contract';
 import { DamageSystem } from './DamageSystem';
+import type { FormatMessage } from '../core/chat/GameChat';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 
 export interface IDamagePreventionSystemProperties<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends IReplacementEffectSystemProperties<TContext> {
     preventionType: DamagePreventionType;
@@ -21,18 +23,32 @@ export class DamagePreventionSystem<
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        switch (properties.preventionType) {
-            case DamagePreventionType.All:
-                return ['prevent all damage to {0}', [context.source]];
-            case DamagePreventionType.Reduce:
-                return ['prevent {0} damage to {1}', [properties.preventionAmount, context.event.card]];
-            case DamagePreventionType.Replace:
-                const replaceWith = properties.replaceWithEffect;
-                const replaceMessage = replaceWith.getEffectMessage(context);
-                return ['{0} instead of {1} taking damage', [replaceMessage, context.event.card]];
-            default:
-                Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
-        }
+
+        const effectMessage = (): FormatMessage => {
+            switch (properties.preventionType) {
+                case DamagePreventionType.All:
+                    return {
+                        format: 'prevent all damage to {0}',
+                        args: [context.source],
+                    };
+                case DamagePreventionType.Reduce:
+                    return {
+                        format: 'prevent {0} damage to {1}',
+                        args: [properties.preventionAmount, context.event.card],
+                    };
+                case DamagePreventionType.Replace:
+                    const replaceWith = properties.replaceWithEffect;
+                    const replaceMessage = replaceWith.getEffectMessage(context);
+                    return {
+                        format: '{0} instead of {1} taking damage',
+                        args: [replaceMessage, context.event.card],
+                    };
+                default:
+                    Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
+            }
+        };
+
+        return [ChatHelpers.formatWithLength(1, 'to '), [effectMessage()]];
     }
 
     protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<TProperties> = {}): GameSystem<TContext> {
