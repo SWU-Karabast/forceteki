@@ -2,6 +2,7 @@ import type { IActionAbilityProps } from '../../../Interfaces';
 import type { ActionAbility } from '../../ability/ActionAbility';
 import type { Card, CardConstructor, ICardState } from '../Card';
 import * as Contract from '../../utils/Contract';
+import { registerState } from '../../GameObjectUtils';
 
 export interface IActionAbilityRegistrar<T extends Card> {
     addActionAbility(properties: IActionAbilityProps<T>): ActionAbility;
@@ -16,10 +17,11 @@ export interface ICardWithActionAbilities<T extends Card> {
 
 /** Mixin function that adds the ability to register action abilities to a base card class. */
 export function WithActionAbilities<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
-    return class WithActionAbilities extends BaseClass {
+    @registerState()
+    class WithActionAbilities extends BaseClass {
         private addActionAbility(properties: IActionAbilityProps<this>): ActionAbility {
             const ability = this.createActionAbility({ ...properties, printedAbility: true });
-            this.state.actionAbilities.push(ability.getRef());
+            this.actionAbilities.push(ability);
             return ability;
         }
 
@@ -50,7 +52,7 @@ export function WithActionAbilities<TBaseClass extends CardConstructor<TState>, 
         */
         public addGainedActionAbility(properties: IActionAbilityProps): string {
             const addedAbility = this.createActionAbility({ ...properties, printedAbility: false });
-            this.state.actionAbilities.push(addedAbility.getRef());
+            this.actionAbilities.push(addedAbility);
 
             return addedAbility.uuid;
         }
@@ -69,7 +71,9 @@ export function WithActionAbilities<TBaseClass extends CardConstructor<TState>, 
             const updatedAbilityList = this.actionAbilities.filter((ability) => !(ability.uuid === removeAbilityUuid && ability.printedAbility === printedAbility));
             Contract.assertEqual(updatedAbilityList.length, this.actionAbilities.length - 1, `Expected to find one instance of gained action ability to remove but instead found ${this.actionAbilities.length - updatedAbilityList.length}`);
 
-            this.state.actionAbilities = updatedAbilityList.map((x) => x.getRef());
+            this.actionAbilities = updatedAbilityList;
         }
-    };
+    }
+
+    return WithActionAbilities;
 }

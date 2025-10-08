@@ -133,7 +133,7 @@ export class EventCard extends EventCardParent implements IEventCard {
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
     private addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<EventCard>): void {
-        this.state.constantAbilities.push(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)).getRef());
+        this.constantAbilities.push(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
     }
 
     private addPlayRestrictionAbility(properties: IPlayRestrictionAbilityProps) {
@@ -147,6 +147,6 @@ export class EventCard extends EventCardParent implements IEventCard {
         });
 
         ability.registeredEffects = this.addEffectToEngine(ability);
-        this.state.constantAbilities.push(ability.getRef());
+        this.constantAbilities.push(ability);
     }
 }

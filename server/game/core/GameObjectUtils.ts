@@ -19,7 +19,7 @@ export enum CopyMode {
     /** Copies from the state using only the Metadata fields. */
     UseMetaDataOnly = 0,
 
-    /** Copies from the state using a bulk copy method, and then re-applies any of the map/array/record Metadata fields to recreate the cached values. */
+    /** Copies from the state using a bulk copy method, and then re-applies any of the map/array/record Metadata fields to recreate the cached values. Inefficient, but safe. */
     UseBulkCopy = 1
 }
 

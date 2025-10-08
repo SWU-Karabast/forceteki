@@ -20,18 +20,17 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import type TriggeredAbility from '../ability/TriggeredAbility';
 import type { Card } from './Card';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
-import type { GameObjectRef } from '../GameObjectBase';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ConstantAbility } from '../ability/ConstantAbility';
+import { registerState, undoObject } from '../GameObjectUtils';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard<ILeaderUnitCardState>));
 
 /** Represents a deployable leader in a deployed state (i.e., is also a unit) */
 export interface ILeaderUnitCard extends ILeaderCard, IUnitCard {}
 
-export interface ILeaderUnitCardState extends IInPlayCardState {
-    deployEpicActionLimit: GameObjectRef<EpicActionLimit>;
-}
+// STATE TODO: Obsolete, to be removed.
+export type ILeaderUnitCardState = IInPlayCardState;
 
 /** Represents a deployable leader in an undeployed state */
 export interface IDeployableLeaderCard extends ILeaderUnitCard {
@@ -40,24 +39,28 @@ export interface IDeployableLeaderCard extends ILeaderUnitCard {
     undeploy(): void;
 }
 
+@registerState()
 export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDeployableLeaderCard {
     protected setupLeaderUnitSide;
 
+    @undoObject()
+    private accessor _deployEpicActionLimit: EpicActionLimit;
+
     protected get deployEpicActionLimit() {
-        return this.game.getFromRef(this.state.deployEpicActionLimit);
+        return this._deployEpicActionLimit;
     }
 
-    protected deployEpicActions: ActionAbility[] = [];
+    private deployEpicActions: ActionAbility[] = [];
 
     public get deployed() {
-        return this.state.deployed;
+        return this._deployed;
     }
 
     public override getType(): CardType {
         if (this.canBeUpgrade && this.isAttached()) {
             return CardType.LeaderUpgrade;
         }
-        return this.state.deployed ? CardType.LeaderUnit : CardType.Leader;
+        return this._deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
     public constructor(owner: Player, cardData: ICardDataJson) {
@@ -81,11 +84,6 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         this.validateCardAbilities(this.triggeredAbilities, cardData.deployBox);
     }
 
-    protected override setupDefaultState() {
-        super.setupDefaultState();
-        this.state.deployed = false;
-    }
-
     protected deployActionAbilityProps(AbilityHelper: IAbilityHelper): Partial<IActionAbilityProps<this>> {
         return {};
     }
@@ -93,11 +91,11 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     protected override initializeStateForAbilitySetup() {
         super.initializeStateForAbilitySetup();
         this.deployEpicActions = [];
-        this.state.deployEpicActionLimit = new EpicActionLimit(this.game).getRef();
+        this._deployEpicActionLimit = new EpicActionLimit(this.game);
     }
 
     public override isUnit(): this is IUnitCard {
-        return this.state.deployed && !this.isAttached();
+        return this._deployed && !this.isAttached();
     }
 
     public override isDeployableLeader(): this is IDeployableLeaderCard {
@@ -126,9 +124,9 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
 
     /** Deploy the leader to the arena. Handles the move operation and state changes. */
     public deploy(deployProps: { type: DeployType.LeaderUnit } | { type: DeployType.LeaderUpgrade; parentCard: IUnitCard }) {
-        Contract.assertFalse(this.state.deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
+        Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
 
-        this.state.deployed = true;
+        this._deployed = true;
 
         switch (deployProps.type) {
             case DeployType.LeaderUpgrade:
@@ -143,9 +141,9 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
 
     /** Return the leader from the arena to the base zone. Handles the move operation and state changes. */
     public undeploy() {
-        Contract.assertTrue(this.state.deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`);
+        Contract.assertTrue(this._deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`);
 
-        this.state.deployed = false;
+        this._deployed = false;
         this.moveTo(ZoneName.Base);
     }
 
@@ -259,7 +257,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         switch (this.zoneName) {
             case ZoneName.GroundArena:
             case ZoneName.SpaceArena:
-                this.state.deployed = true;
+                this._deployed = true;
                 this.setDamageEnabled(true);
                 this.setActiveAttackEnabled(true);
                 this.setUpgradesEnabled(true);
@@ -269,7 +267,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
                 break;
 
             case ZoneName.Base:
-                this.state.deployed = false;
+                this._deployed = false;
                 this.setDamageEnabled(false);
                 this.setActiveAttackEnabled(false);
                 this.setUpgradesEnabled(false);
@@ -293,6 +291,8 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     }
 }
 
+// STATE TODO: Once we've fully converted to decorators, this can be removed and LeaderUnitCardInternal can be renamed to LeaderUnitCard
+@registerState()
 export class LeaderUnitCard extends LeaderUnitCardInternal {
     public declare state: never;
 }

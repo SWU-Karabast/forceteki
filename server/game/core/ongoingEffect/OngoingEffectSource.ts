@@ -5,6 +5,7 @@ import { Duration, WildcardZoneName } from '../Constants.js';
 import type { OngoingEffect } from './OngoingEffect';
 import type Game from '../Game';
 import type { IOngoingEffectFactory } from '../../Interfaces';
+import { registerState } from '../GameObjectUtils';
 
 // This class is inherited by Card and also represents Framework effects
 
@@ -12,6 +13,7 @@ import type { IOngoingEffectFactory } from '../../Interfaces';
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IOngoingEffectSourceState extends IGameObjectState { }
 
+@registerState()
 export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingEffectSourceState> extends GameObject<T> {
     public constructor(game: Game, name = 'Framework effect') {
         super(game, name);

@@ -12,6 +12,7 @@ import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
+import { registerState, undoState } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
@@ -57,26 +58,29 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
     buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
 }
 
-export interface IPlayableOrDeployableCardState extends ICardState {
-    exhausted: boolean | null;
-}
+// STATE TODO: Obsolete, to be removed.
+export type IPlayableOrDeployableCardState = ICardState;
 
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
+@registerState()
 export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> extends Card<T> implements IPlayableOrDeployableCard {
     protected preEnterPlayAbilities: PreEnterPlayAbility[] = [];
 
+    @undoState()
+    private accessor _exhausted: boolean | null = null;
+
     public get exhausted(): boolean {
-        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
-        return this.state.exhausted;
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
+        return this._exhausted;
     }
 
     public set exhausted(val: boolean) {
-        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
-        this.state.exhausted = val;
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
+        this._exhausted = val;
     }
 
     // see Card constructor for list of expected args
@@ -91,7 +95,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
             const plotProps = Object.assign(this.buildGeneralAbilityProps('keyword_plot'), PlotAbility.buildPlotAbilityProperties(this.title));
             const plotAbility = this.createTriggeredAbility(plotProps);
             plotAbility.registerEvents();
-            this.state.triggeredAbilities.push(plotAbility.getRef());
+            this.triggeredAbilities.push(plotAbility);
         }
     }
 
@@ -222,13 +226,13 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
     }
 
     public exhaust() {
-        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
-        this.state.exhausted = true;
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
+        this._exhausted = true;
     }
 
     public ready() {
-        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
-        this.state.exhausted = false;
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
+        this._exhausted = false;
     }
 
     public override canBeExhausted(): this is IPlayableOrDeployableCard {
@@ -237,16 +241,16 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
     public override getSummary(activePlayer: Player) {
         return { ...super.getSummary(activePlayer),
-            exhausted: this.state.exhausted };
+            exhausted: this._exhausted };
     }
 
     public override getCardState(): any {
         return { ...super.getCardState(),
-            exhausted: this.state.exhausted };
+            exhausted: this._exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {
-        this.state.exhausted = enabledStatus ? true : null;
+        this._exhausted = enabledStatus ? true : null;
     }
 
     /**

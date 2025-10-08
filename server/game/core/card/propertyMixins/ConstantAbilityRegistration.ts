@@ -4,6 +4,7 @@ import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import type { Card, CardConstructor, ICardState } from '../Card';
 import * as Contract from '../../utils/Contract';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
+import { registerState } from '../../GameObjectUtils';
 
 
 export interface IConstantAbilityRegistrar<T extends Card> {
@@ -19,14 +20,15 @@ export interface ICardWithConstantAbilities<T extends Card> {
 
 /** Mixin function that adds the ability to register constant abilities to a base card class. */
 export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
-    return class WithConstantAbilities extends BaseClass {
+    @registerState()
+    class WithConstantAbilities extends BaseClass {
         private addConstantAbility(properties: IConstantAbilityProps<this>): ConstantAbility {
             const ability = this.createConstantAbility({ ...properties, printedAbility: true });
             // This check is necessary to make sure on-play cost-reduction effects are registered
             if (ability.sourceZoneFilter === WildcardZoneName.Any) {
                 ability.registeredEffects = this.addEffectToEngine(ability);
             }
-            this.state.constantAbilities.push(ability.getRef());
+            this.constantAbilities.push(ability);
             return ability;
         }
 
@@ -54,7 +56,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
              */
         public addGainedConstantAbility(properties: IConstantAbilityProps<this>): string {
             const addedAbility = this.createConstantAbility({ ...properties, printedAbility: false });
-            this.state.constantAbilities.push(addedAbility.getRef());
+            this.constantAbilities.push(addedAbility);
             addedAbility.registeredEffects = this.addEffectToEngine(addedAbility);
 
             return addedAbility.uuid;
@@ -89,10 +91,12 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
                 Contract.fail(`Did not find any instance of target gained ability to remove on card ${this.internalName}`);
             }
 
-            this.state.constantAbilities = remainingAbilities.map((x) => x.getRef());
+            this.constantAbilities = remainingAbilities;
 
             this.removeEffectFromEngine(abilityToRemove.registeredEffects);
             abilityToRemove.registeredEffects = [];
         }
-    };
+    }
+
+    return WithConstantAbilities;
 }

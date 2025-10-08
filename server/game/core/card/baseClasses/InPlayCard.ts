@@ -6,7 +6,6 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { CardType, EffectName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, Trait, WildcardZoneName, ZoneName } from '../../Constants';
-import type { GameObjectRef } from '../../GameObjectBase';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { Player } from '../../Player';
@@ -26,19 +25,15 @@ import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
+import { registerState, undoObject, undoState } from '../../GameObjectUtils';
 
 const InPlayCardParent = WithAllAbilityTypes(WithCost(PlayableOrDeployableCard));
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor<T extends IInPlayCardState = IInPlayCardState> = new (...args: any[]) => InPlayCard<T>;
 
-export interface IInPlayCardState extends IPlayableOrDeployableCardState {
-    disableOngoingEffectsForDefeat: boolean | null;
-    mostRecentInPlayId: number;
-    pendingDefeat: boolean | null;
-    movedFromZone: ZoneName | null;
-    parentCard: GameObjectRef<IUnitCard> | null;
-}
+// STATE TODO: Obselete, to be removed.
+export type IInPlayCardState = IPlayableOrDeployableCardState;
 
 export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities<IInPlayCard>, ICardWithConstantAbilities<IInPlayCard>, ICardWithTriggeredAbilities<IInPlayCard>, ICardWithPreEnterPlayAbilities {
     get printedUpgradeHp(): number;
@@ -68,11 +63,15 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
  * 2. Defeat state management
  * 3. Uniqueness management
  */
+@registerState()
 export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends InPlayCardParent<T> implements IInPlayCard {
     private readonly _printedUpgradeHp: number;
     private readonly _printedUpgradePower: number;
 
     protected attachCondition: (card: Card) => boolean;
+
+    @undoState()
+    private accessor _disableOngoingEffectsForDefeat: boolean = null;
 
     /**
      * If true, then this card's ongoing effects are disabled in preparation for it to be defeated (usually due to unique rule).
@@ -81,9 +80,12 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      * Can only be true if pendingDefeat is also true.
      */
     public get disableOngoingEffectsForDefeat() {
-        this.assertPropertyEnabledForZone(this.state.disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
-        return this.state.disableOngoingEffectsForDefeat;
+        this.assertPropertyEnabledForZone(this._disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
+        return this._disableOngoingEffectsForDefeat;
     }
+
+    @undoState()
+    private accessor _mostRecentInPlayId: number = -1
 
     /**
      * Every time a card enters play, it becomes a new "copy" of the card as far as the game is concerned (SWU 8.6.4).
@@ -92,7 +94,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      */
     public get inPlayId() {
         this.assertPropertyEnabledForZoneBoolean(EnumHelpers.isArena(this.zoneName), 'inPlayId');
-        return this.state.mostRecentInPlayId;
+        return this._mostRecentInPlayId;
     }
 
     /**
@@ -105,21 +107,29 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
             'mostRecentInPlayId'
         );
 
-        return this.state.mostRecentInPlayId;
+        return this._mostRecentInPlayId;
     }
 
     /** The card that this card is underneath */
     public get parentCard(): IUnitCard {
-        Contract.assertNotNullLike(this.state.parentCard);
+        Contract.assertNotNullLike(this._parentCard);
         // TODO: move IsInPlay to be usable here
         Contract.assertTrue(this.isInPlay());
 
-        return this.game.gameObjectManager.get(this.state.parentCard);
+        return this._parentCard;
     }
 
     protected set parentCard(value: IUnitCard | null) {
-        this.state.parentCard = value?.getRef();
+        this._parentCard = value;
     }
+
+    // NAMING NOTE: Normally underscore is used for TS private only, but this is an exception for UnitProperties.ts
+    @undoState()
+    protected accessor _pendingDefeat: boolean = null;
+
+    // NAMING NOTE: Normally underscore is used for TS private only, but this is an exception for UnitProperties.ts
+    @undoObject()
+    protected accessor _parentCard: IUnitCard | null = null;
 
     /**
      * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
@@ -128,8 +138,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      * When this is true, most systems cannot target the card.
      */
     public get pendingDefeat() {
-        this.assertPropertyEnabledForZone(this.state.pendingDefeat, 'pendingDefeat');
-        return this.state.pendingDefeat;
+        this.assertPropertyEnabledForZone(this._pendingDefeat, 'pendingDefeat');
+        return this._pendingDefeat;
     }
 
     public constructor(owner: Player, cardData: ICardDataJson) {
@@ -154,15 +164,6 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         }
     }
 
-    protected override setupDefaultState() {
-        super.setupDefaultState();
-
-        this.state.pendingDefeat = null;
-        this.state.mostRecentInPlayId = -1;
-        this.state.disableOngoingEffectsForDefeat = null;
-        this.state.parentCard = null;
-    }
-
     public isInPlay(): boolean {
         return EnumHelpers.isArena(this.zoneName);
     }
@@ -172,8 +173,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     protected setPendingDefeatEnabled(enabledStatus: boolean) {
-        this.state.pendingDefeat = enabledStatus ? false : null;
-        this.state.disableOngoingEffectsForDefeat = enabledStatus ? false : null;
+        this._pendingDefeat = enabledStatus ? false : null;
+        this._disableOngoingEffectsForDefeat = enabledStatus ? false : null;
     }
 
     public checkIsAttachable(): void {
@@ -182,7 +183,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
     public assertIsUpgrade(): void {
         Contract.assertTrue(this.isUpgrade());
-        Contract.assertNotNullLike(this.state.parentCard);
+        Contract.assertNotNullLike(this._parentCard);
     }
 
     public get printedUpgradeHp(): number {
@@ -226,7 +227,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         // this assert needed for type narrowing or else the moveTo fails
         Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
 
-        if (this.state.parentCard) {
+        if (this._parentCard) {
             this.unattach();
         }
 
@@ -259,11 +260,11 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     public isAttached(): boolean {
         // TODO: I think we can't check this here because we need to be able to check if this is attached in some places like the getType method
         // this.assertIsUpgrade();
-        return !!this.state.parentCard;
+        return !!this._parentCard;
     }
 
     public unattach(event = null) {
-        Contract.assertNotNullLike(this.state.parentCard, 'Attempting to unattach upgrade when already unattached');
+        Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
         this.assertIsUpgrade();
 
         this.parentCard.unattachUpgrade(this, event);
@@ -295,7 +296,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
     public override getSummary(activePlayer: Player) {
         return { ...super.getSummary(activePlayer),
-            parentCardId: this.state.parentCard ? this.state.parentCard.uuid : null };
+            parentCardId: this._parentCard ? this._parentCard.uuid : null };
     }
 
     // ********************************************* ABILITY SETUP *********************************************
@@ -352,14 +353,14 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
             // increment to a new in-play id if we're entering play, indicating that we are now a new "copy" of this card (SWU 8.6.4)
             if (!EnumHelpers.isArena(prevZone)) {
-                this.state.mostRecentInPlayId += 1;
+                this._mostRecentInPlayId += 1;
             }
         } else {
             this.setPendingDefeatEnabled(false);
 
             // if we're moving from a visible zone (discard, capture) to a hidden zone, increment the in-play id to represent the loss of information (card becomes a new copy)
             if (EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self) && !EnumHelpers.isHiddenFromOpponent(prevZone, RelativePlayer.Self)) {
-                this.state.mostRecentInPlayId += 1;
+                this._mostRecentInPlayId += 1;
             }
         }
     }
@@ -399,8 +400,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     public registerPendingUniqueDefeat() {
         Contract.assertTrue(this.getDuplicatesInPlayForController().length > 0);
 
-        this.state.pendingDefeat = true;
-        this.state.disableOngoingEffectsForDefeat = true;
+        this._pendingDefeat = true;
+        this._disableOngoingEffectsForDefeat = true;
     }
 
     public checkUnique() {

@@ -13,6 +13,7 @@ import type TriggeredAbility from '../ability/TriggeredAbility';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ConstantAbility } from '../ability/ConstantAbility';
+import { registerState } from '../GameObjectUtils';
 
 const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -22,6 +23,7 @@ export interface IDoubleSidedLeaderCard extends ILeaderCard {
     flipLeader(): void;
 }
 
+@registerState()
 export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implements IDoubleSidedLeaderCard {
     protected setupLeaderBackSide = false;
 
@@ -34,11 +36,10 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
 
     protected override setupDefaultState() {
         super.setupDefaultState();
-        this.state.onStartingSide = true;
     }
 
     public get onStartingSide() {
-        return this.state.onStartingSide;
+        return this._onStartingSide;
     }
 
     public override get aspects(): Aspect[] {
@@ -77,7 +78,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
     }
 
     public flipLeader() {
-        this.state.onStartingSide = !this.state.onStartingSide;
+        this._onStartingSide = !this._onStartingSide;
     }
 
     public override initializeForStartZone(): void {
@@ -89,7 +90,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
     }
 
     public override getSummary(activePlayer: Player): string {
-        return { ...super.getSummary(activePlayer), onStartingSide: this.state.onStartingSide };
+        return { ...super.getSummary(activePlayer), onStartingSide: this._onStartingSide };
     }
 
     public override createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {

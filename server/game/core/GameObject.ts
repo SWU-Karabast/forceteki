@@ -4,34 +4,34 @@ import { AbilityRestriction, EffectName, Stage } from './Constants';
 import type Game from './Game';
 import type { Player } from './Player';
 import type { Card } from './card/Card';
-import type { GameObjectRef, IGameObjectBaseState } from './GameObjectBase';
+import type { IGameObjectBaseState } from './GameObjectBase';
 import { GameObjectBase } from './GameObjectBase';
 import type { Restriction } from './ongoingEffect/effectImpl/Restriction';
 import type { OngoingCardEffect } from './ongoingEffect/OngoingCardEffect';
+import { registerState, undoArray, undoState } from './GameObjectUtils';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IGameObjectState extends IGameObjectBaseState {
-    id: string;
-    nameField: string;
-    ongoingEffects: GameObjectRef<OngoingCardEffect>[];
+    // id: string;
+    // nameField: string;
+    // ongoingEffects: GameObjectRef<OngoingCardEffect>[];
 }
 
 // TODO: Rename to TargetableGameObject? Or something to imply this is a object with effects (as opposed to an Ability).
+@registerState()
 export abstract class GameObject<T extends IGameObjectState = IGameObjectState> extends GameObjectBase<T> {
-    private get ongoingEffects(): readonly OngoingCardEffect[] {
-        return this.state.ongoingEffects.map((x) => this.game.getFromRef(x));
-    }
+    @undoArray(false)
+    private accessor _ongoingEffects: OngoingCardEffect[] = [];
+
+    @undoState()
+    private accessor _name: string;
 
     public get name() {
-        return this.state.nameField;
+        return this._name;
     }
 
-    public get id() {
-        return this.state.id;
-    }
-
-    public set id(value) {
-        this.state.id = value;
-    }
+    @undoState()
+    public accessor id: string;
 
     public constructor(
         game: Game,
@@ -40,25 +40,20 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     ) {
         super(game);
 
-        this.state.id = id ?? name;
-        this.state.nameField = name;
-    }
-
-    protected override setupDefaultState() {
-        super.setupDefaultState();
-        this.state.ongoingEffects = [];
+        this.id = id ?? name;
+        this._name = name;
     }
 
     public addOngoingEffect(ongoingEffect: OngoingCardEffect) {
-        this.state.ongoingEffects.push(ongoingEffect.getRef());
+        this._ongoingEffects.push(ongoingEffect);
     }
 
     public removeOngoingEffect(ongoingEffect: OngoingCardEffect) {
-        this.state.ongoingEffects = this.ongoingEffects.filter((e) => e.uuid !== ongoingEffect.uuid).map((x) => x.getRef());
+        this._ongoingEffects = this._ongoingEffects.filter((e) => e.uuid !== ongoingEffect.uuid);
     }
 
     public removeOngoingEffects(type: EffectName) {
-        this.state.ongoingEffects = this.ongoingEffects.filter((e) => e.type !== type).map((x) => x.getRef());
+        this._ongoingEffects = this._ongoingEffects.filter((e) => e.type !== type);
     }
 
     public getOngoingEffectValues<V = any>(type: EffectName): V[] {
@@ -134,9 +129,9 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     }
 
     protected getOngoingEffects() {
-        const suppressEffects = this.ongoingEffects.filter((ongoingEffect) => ongoingEffect.type === EffectName.SuppressEffects);
+        const suppressEffects = this._ongoingEffects.filter((ongoingEffect) => ongoingEffect.type === EffectName.SuppressEffects);
         const suppressedEffects = suppressEffects.reduce((array, ongoingEffect) => array.concat(ongoingEffect.getValue(this)), []);
-        return this.ongoingEffects.filter((ongoingEffect) => !suppressedEffects.includes(ongoingEffect));
+        return this._ongoingEffects.filter((ongoingEffect) => !suppressedEffects.includes(ongoingEffect));
     }
 
     public isPlayer(): this is Player {

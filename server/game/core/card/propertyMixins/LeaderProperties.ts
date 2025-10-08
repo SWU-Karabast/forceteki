@@ -6,16 +6,15 @@ import type { IPlayableOrDeployableCardState, PlayableOrDeployableCardConstructo
 import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
 import type { ILeaderAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import { registerState, undoState } from '../../GameObjectUtils';
 
 export const LeaderPropertiesCard = WithLeaderProperties(PlayableOrDeployableCard);
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ILeaderCard extends ICardWithExhaustProperty {}
 
-export interface ILeaderPropertiesCardState extends IPlayableOrDeployableCardState {
-    deployed: boolean;
-    onStartingSide: boolean;
-}
+// STATE TODO: Obsolete, to be removed.
+export type ILeaderPropertiesCardState = IPlayableOrDeployableCardState;
 
 /**
  * Mixin function that adds the standard properties for a unit (leader or non-leader) to a base class.
@@ -26,7 +25,16 @@ export interface ILeaderPropertiesCardState extends IPlayableOrDeployableCardSta
  * - the ability to have attached upgrades
  */
 export function WithLeaderProperties<TState extends IPlayableOrDeployableCardState, TBaseClass extends PlayableOrDeployableCardConstructor = PlayableOrDeployableCardConstructor>(BaseClass: TBaseClass) {
-    return class AsLeader extends (BaseClass as typeof BaseClass & PlayableOrDeployableCardConstructor<TState & ILeaderPropertiesCardState>) implements ILeaderCard {
+    @registerState()
+    class AsLeader extends (BaseClass as typeof BaseClass & PlayableOrDeployableCardConstructor<TState & ILeaderPropertiesCardState>) implements ILeaderCard {
+        // STATE TODO: I am uncertain if this needs to be undefined or false to start. LeaderUnitCard sets the default, which is odd.
+        // NAMING NOTE: Normally only TS private fields would start with underscore, but there's a unusual split of logic and accessors between here and LeaderUnitCard, so this is a exception to the rule.
+        @undoState()
+        protected accessor _deployed: boolean = false;
+
+        @undoState()
+        protected accessor _onStartingSide: boolean = true;
+
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
@@ -58,5 +66,7 @@ export function WithLeaderProperties<TState extends IPlayableOrDeployableCardSta
         public override takeControl(newController: Player, _moveTo?: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource): undefined {
             Contract.fail(`Attempting to take control of leader ${this.internalName} for player ${newController.name}, which is illegal`);
         }
-    };
+    }
+
+    return AsLeader;
 }
