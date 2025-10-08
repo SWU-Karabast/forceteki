@@ -12,6 +12,6 @@ export default class KnightsSaber extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Jedi) && !card.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => context.attachTarget.hasSomeTrait(Trait.Jedi) && !context.attachTarget.hasSomeTrait(Trait.Vehicle));
     }
 }
