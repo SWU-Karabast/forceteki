@@ -243,6 +243,21 @@ export class SnapshotManager {
         return { success: false };
     }
 
+    public requiresConfirmationToRollbackTo(settings: IGetSnapshotSettings): boolean {
+        switch (settings.type) {
+            case SnapshotType.Action:
+                return this.actionSnapshots.getSnapshotProperties(settings.playerId, this.checkGetOffset(settings.actionOffset))?.requiresConfirmationToRollback ?? false;
+            case SnapshotType.Manual:
+                return this.manualSnapshots.get(settings.playerId)?.getSnapshotProperties(settings.snapshotId)?.requiresConfirmationToRollback ?? true;
+            case SnapshotType.Phase:
+                return this.phaseSnapshots.getSnapshotProperties(settings.phaseName, this.checkGetOffset(settings.phaseOffset))?.requiresConfirmationToRollback ?? true;
+            case SnapshotType.Quick:
+                return !this.canQuickRollbackWithoutConfirmation(settings.playerId);
+            default:
+                throw new Error(`Unimplemented snapshot type in requiresConfirmationToRollbackTo: ${JSON.stringify(settings)}`);
+        }
+    }
+
     private quickRollback(playerId: string): number | null {
         const rollbackPoint = this.getQuickRollbackPoint(playerId);
 
@@ -377,6 +392,20 @@ export class SnapshotManager {
         const rollbackPoint = this.getQuickRollbackPoint(playerId);
 
         return this.quickSnapshots.get(playerId)?.hasQuickSnapshot(rollbackPoint) ?? false;
+    }
+
+    public canQuickRollbackWithoutConfirmation(playerId: string): boolean {
+        const rollbackPoint = this.getQuickRollbackPoint(playerId);
+        const quickSnapshotProperties = this.quickSnapshots.get(playerId)?.getSnapshotProperties(rollbackPoint);
+        if (!quickSnapshotProperties) {
+            return false;
+        }
+
+        return !quickSnapshotProperties.requiresConfirmationToRollback;
+    }
+
+    public setRequiresConfirmationToRollbackCurrentSnapshot(playerId: string) {
+        this.actionSnapshots.setRequiresConfirmationToRollbackCurrentSnapshot(playerId);
     }
 
     public clearAllSnapshots(): void {

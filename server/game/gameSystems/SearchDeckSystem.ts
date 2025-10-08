@@ -121,6 +121,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         const cards = this.getDeck(player).slice(0, amount);
         this.promptSelectCards(event, additionalProperties, cards, new Set());
         events.push(event);
+        context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(player.id);
     }
 
     private getNumCards(numCards: Derivable<number>, context: TContext): number {

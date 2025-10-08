@@ -52,6 +52,10 @@ export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasi
         };
     }
 
+    public override isOpponentRevealNewInfoPrompt(): boolean {
+        return false;
+    }
+
     protected override getDisplayCards(): IDisplayCard[] {
         return this.displayCards.map((card) => ({
             cardUuid: card.uuid,

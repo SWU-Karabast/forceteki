@@ -43,8 +43,11 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         const expectedCardDataVersionPath = path.join(__dirname, '../../card-data-version.txt');
         Contract.assertTrue(fs.existsSync(expectedCardDataVersionPath), `Repository file ${expectedCardDataVersionPath} not found${getCardsSuffix}`);
 
-        const actualCardDataVersion = fs.readFileSync(actualCardDataVersionPath, 'utf8');
-        const expectedCardDataVersion = fs.readFileSync(expectedCardDataVersionPath, 'utf8');
+        const actualCardDataVersion = fs.readFileSync(actualCardDataVersionPath, 'utf8')
+            .split('\n')[0].trim();
+        const expectedCardDataVersion = fs.readFileSync(expectedCardDataVersionPath, 'utf8')
+            .split('\n')[0].trim();
+
         Contract.assertTrue(actualCardDataVersion === expectedCardDataVersion, `Json card data version mismatch, expected '${expectedCardDataVersion}' but found '${actualCardDataVersion}' currently installed${getCardsSuffix}`);
     }
 
