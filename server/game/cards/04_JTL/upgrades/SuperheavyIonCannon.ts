@@ -1,6 +1,5 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
-import type { Card } from '../../../core/card/Card';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
@@ -13,7 +12,7 @@ export default class SuperheavyIonCannon extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.CapitalShip) || card.hasSomeTrait(Trait.Transport));
+        registrar.setAttachCondition((context) => context.target.hasSomeTrait(Trait.CapitalShip) || context.target.hasSomeTrait(Trait.Transport));
 
         registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Exhaust an enemy non-leader unit to deal indirect damage equal to its power to the controller',

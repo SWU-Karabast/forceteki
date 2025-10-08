@@ -1,5 +1,4 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { Card } from '../../../core/card/Card';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait, ZoneName } from '../../../core/Constants';
@@ -13,7 +12,7 @@ export default class FallenLightsaber extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => !context.target.hasSomeTrait(Trait.Vehicle));
 
         registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 1 damage to each ground unit the defending player controls',

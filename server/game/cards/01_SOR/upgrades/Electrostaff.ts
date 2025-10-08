@@ -2,7 +2,6 @@ import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistr
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { Card } from '../../../core/card/Card';
 
 export default class Electrostaff extends UpgradeCard {
     protected override getImplementationId() {
@@ -13,7 +12,7 @@ export default class Electrostaff extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => !context.target.hasSomeTrait(Trait.Vehicle));
 
         registrar.addConstantAbility({
             title: 'While attached unit is defending, the attacker gets -1/-0',

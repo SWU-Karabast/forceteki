@@ -12,7 +12,7 @@ export default class JediTrials extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
+        registrar.setAttachCondition((context) => context.target.hasSomeTrait(Trait.Force));
 
         registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Give an Experience token to this unit',

@@ -386,9 +386,9 @@ Some cards can only attach to cards that meet certain requirements. These requir
 
 ```typescript
 public override setupCardAbilities() {
-    this.setAttachCondition((card: Card) =>
-        card.controller === context.player  // friendly
-        !card.hasSomeTrait(Trait.Vehicle)   // non-Vehicle
+    this.setAttachCondition((context) =>
+        context.target.controller === context.player  // friendly
+        !context.target.hasSomeTrait(Trait.Vehicle)   // non-Vehicle
     );
 
     // ...set abilities here ...

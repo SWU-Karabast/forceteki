@@ -1,5 +1,4 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { Card } from '../../../core/card/Card';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
@@ -13,7 +12,7 @@ export default class SquadSupport extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card: Card) => !card.isLeader());
+        registrar.setAttachCondition((context) => !context.target.isLeader());
 
         registrar.addGainConstantAbilityTargetingAttached({
             title: 'This unit gets +1/+1 for each Trooper unit you control.',

@@ -12,7 +12,7 @@ export default class NimbleProwess extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card, context) => card.controller === context.player);
+        registrar.setAttachCondition((context) => context.target.controller === context.player);
 
         registrar.addWhenPlayedAbility({
             title: 'Exhaust a unit in attached unit\'s arena',

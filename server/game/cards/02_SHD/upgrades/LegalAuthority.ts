@@ -12,7 +12,7 @@ export default class LegalAuthority extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card, context) => card.controller === context.player);
+        registrar.setAttachCondition((context) => context.target.controller === context.player);
 
         registrar.addWhenPlayedAbility({
             title: 'Attached unit captures an enemy non-leader unit with less power than it',
