@@ -27,8 +27,6 @@ describe('Unmasking the Conspiracy', function() {
             expect(context.battlefieldMarine).toBeInZone('discard');
 
             // Check that the lookAt sends ALL the opponents cards in hand to chat
-            expect(context.getChatLogs(1)[0]).toContain(context.atst.title);
-            expect(context.getChatLogs(1)[0]).toContain(context.waylay.title);
             expect(context.getChatLogs(1)[0]).toEqual(
                 'player1 uses Unmasking the Conspiracy to look at the opponent\'s hand and sees AT-ST and Waylay',
             );

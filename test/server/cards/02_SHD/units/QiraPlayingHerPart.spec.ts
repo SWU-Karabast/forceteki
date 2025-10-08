@@ -23,12 +23,6 @@ describe('Qi\'ra, Playing Her Part', function () {
             // play qira and increase cost of Battlefield Marine
             context.player1.clickCard(context.qira);
 
-            // Cards are revealed in chat
-            expect(context.getChatLogs(1)[0]).toContain(marine2.title);
-            expect(context.getChatLogs(1)[0]).toContain(context.resupply.title);
-            expect(context.getChatLogs(1)[0]).toContain(context.vanquish.title);
-            expect(context.getChatLogs(1)[0]).toContain(context.changeOfHeart.title);
-
             // Player sees the opponent's hand
             expect(context.player1).toHaveEnabledPromptButton('Done');
             expect(context.player1).toHaveExactViewableDisplayPromptCards([

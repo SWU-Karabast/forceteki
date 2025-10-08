@@ -28,11 +28,6 @@ describe('Bodhi Rook', function () {
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
                 // Check that cards are revealed in chat
-                expect(context.getChatLogs(1)[0]).toContain(context.sabineWren.title);
-                expect(context.getChatLogs(1)[0]).toContain(context.battlefieldMarine.title);
-                expect(context.getChatLogs(1)[0]).toContain(context.infernoFour.title);
-                expect(context.getChatLogs(1)[0]).toContain(context.waylay.title);
-                expect(context.getChatLogs(1)[0]).toContain(context.protector.title);
                 expect(context.getChatLogs(1)[0]).toEqual(
                     'player1 uses Bodhi Rook to look at the opponent\'s hand and sees Sabine Wren, Battlefield Marine, Waylay, Protector, and Inferno Four',
                 );

@@ -52,8 +52,6 @@ describe('Bazin Netal, Spy For The First Order', function() {
                 context.player1.clickCard(context.bazineNetal);
 
                 // Cards are revealed in chat
-                expect(context.getChatLogs(1)[0]).toContain(context.atst.title);
-                expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
                 expect(context.getChatLogs(1)[0]).toEqual(
                     'player1 uses Bazine Netal to look at the opponent\'s hand and sees AT-ST and Wampa',
                 );
