@@ -382,11 +382,14 @@ Static upgrade stat bonuses from the printed upgrade values are automatically in
 
 #### Attachment requirements
 
-Some cards can only attach to cards that meet certain requirements. These requirements can be set with the `setAttachCondition()` method, which accepts a handler method accepting a potential card to attach to and returns true if the card is a legal attach target for this upgrade. See Vambrace Grappleshot, which can only attach to non-vehicles:
+Some cards can only attach to cards that meet certain requirements. These requirements can be set with the `setAttachCondition()` method, which accepts a handler method accepting a potential card to attach to and returns true if the card is a legal attach target for this upgrade. See The Mandalorian's Rifle, which can only attach to friendly non-vehicle units:
 
 ```typescript
 public override setupCardAbilities() {
-    this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+    this.setAttachCondition((card: Card) =>
+        card.controller === context.player  // friendly
+        !card.hasSomeTrait(Trait.Vehicle)   // non-Vehicle
+    );
 
     // ...set abilities here ...
 }
