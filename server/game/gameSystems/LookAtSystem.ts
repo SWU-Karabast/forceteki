@@ -28,7 +28,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
             effectArg = {
                 format: 'the opponent\'s hand and sees {0}',
                 args: [this.getTargetMessage(properties.target, context)]
-            }
+            };
         } else if (Helpers.asArray(properties.target)
             .every((card) => card.zone.owner === context.player.opponent && card.zoneName === ZoneName.Resource)
         ) {

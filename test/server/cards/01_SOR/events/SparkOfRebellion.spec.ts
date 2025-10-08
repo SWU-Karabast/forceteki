@@ -39,7 +39,8 @@ describe('Spark Of Rebellion', function () {
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.infernoFour]);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
-                expect(context.getChatLogs(1)[0]).toContain(context.infernoFour.title);expect(context.getChatLogs(1)).toEqual([
+                expect(context.getChatLogs(1)[0]).toContain(context.infernoFour.title);
+                expect(context.getChatLogs(1)).toEqual([
                     'player1 plays Spark of Rebellion to look at the opponent\'s hand and sees Inferno Four',
                 ]);
 
