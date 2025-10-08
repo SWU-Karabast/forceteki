@@ -34,6 +34,40 @@ describe('Garindan, Information Broker', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('Garinda\'s ability should name a card, look at opponent\'s hand and not discard cards if there is no card that name', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['garindan#information-broker'],
+                },
+                player2: {
+                    hand: ['wampa', 'millennium-falcon#bucket-of-bolts', 'millennium-falcon#piece-of-junk'],
+                    spaceArena: ['millennium-falcon#landos-pride']
+                }
+            });
+
+            const { context } = contextRef;
+
+            const ibhFalcon = context.player2.findCardByName('millennium-falcon#bucket-of-bolts');
+            const sorFalcon = context.player2.findCardByName('millennium-falcon#piece-of-junk');
+
+            context.player1.clickCard(context.garindan);
+
+            expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
+            context.player1.chooseListOption('Cunning');
+
+            expect(context.player1).toHaveExactDisplayPromptCards({
+                invalid: [context.wampa, ibhFalcon, sorFalcon],
+            });
+            context.player1.clickDone();
+
+            expect(context.wampa).toBeInZone('hand');
+            expect(sorFalcon).toBeInZone('hand');
+            expect(ibhFalcon).toBeInZone('hand');
+
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('Garinda\'s ability should be skipped as opponent has no card in hand', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

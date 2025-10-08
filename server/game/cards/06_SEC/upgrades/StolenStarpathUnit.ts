@@ -13,7 +13,7 @@ export default class StolenStarpathUnit extends UpgradeCard {
 
     public override setupCardAbilities (registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addGainOnAttackAbilityTargetingAttached({
-            title: 'Name a card',
+            title: 'Name a card, reveal opponent\'s hand, and create a Spy token for each card with that name',
             targetResolver: {
                 mode: TargetMode.DropdownList,
                 options: this.game.playableCardTitles,
