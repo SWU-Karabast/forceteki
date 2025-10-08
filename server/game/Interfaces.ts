@@ -29,6 +29,7 @@ import type { IInitiateAttackProperties } from './gameSystems/InitiateAttackSyst
 import type { FormatMessage } from './core/chat/GameChat';
 import type { ISnapshotSettingsBase } from './core/snapshot/SnapshotInterfaces';
 import type { Lobby } from '../gamenode/Lobby';
+import type { IInPlayCard } from './core/card/baseClasses/InPlayCard';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -289,6 +290,23 @@ export type IIfYouDoAbilityPropsWithSystems<TContext extends AbilityContext> = I
 
 export interface IGainCondition<TSource extends IUpgradeCard> {
     gainCondition?: (context: AbilityContext<TSource>) => boolean;
+}
+
+export interface IAttachCardContext<TSource extends IInPlayCard> {
+    /**
+     * The card that is the source of the attach condition
+     */
+    source: TSource;
+
+    /**
+     * The player who will control the upgrade at the time of attachment
+     */
+    controllingPlayer: Player;
+
+    /**
+     * The card being targeted for attachment
+     */
+    attachTarget: Card;
 }
 
 export type IKeywordPropertiesWithGainCondition<TSource extends IUpgradeCard> = IKeywordProperties & IGainCondition<TSource>;
