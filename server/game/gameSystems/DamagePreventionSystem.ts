@@ -29,19 +29,19 @@ export class DamagePreventionSystem<
                 case DamagePreventionType.All:
                     return {
                         format: 'prevent all damage to {0}',
-                        args: [context.source],
+                        args: [this.getTargetMessage(context.source, context)],
                     };
                 case DamagePreventionType.Reduce:
                     return {
                         format: 'prevent {0} damage to {1}',
-                        args: [properties.preventionAmount, context.event.card],
+                        args: [String(properties.preventionAmount), this.getTargetMessage(context.event.card, context)],
                     };
                 case DamagePreventionType.Replace:
                     const replaceWith = properties.replaceWithEffect;
                     const replaceMessage = replaceWith.getEffectMessage(context);
                     return {
                         format: '{0} instead of {1} taking damage',
-                        args: [replaceMessage, context.event.card],
+                        args: [replaceMessage, this.getTargetMessage(context.event.card, context)],
                     };
                 default:
                     Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
