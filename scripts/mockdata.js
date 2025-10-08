@@ -1873,7 +1873,7 @@ const mockCards = [
         title: 'Inner Rim Coalition',
         power: 6,
         hp: 5,
-        hasNonKeywordAbility: false,
+        hasNonKeywordAbility: true,
         aspects: ['aggression', 'heroism'],
         types: ['unit'],
         traits: ['republic', 'official'],
