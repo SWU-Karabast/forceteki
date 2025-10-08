@@ -442,10 +442,10 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
     .addPhrase((phrase) =>
         phrase
             .setMetadata({ originalWord: 'coloredboy' })
-            .addPattern(pattern`colo[u]red[ ]boy`)
-            .addPattern(pattern`colo[u]red[ ]man`)
-            .addPattern(pattern`colo[u]red[ ]guy`)
-            .addPattern(pattern`colo[u]red[ ]girl`)
-            .addPattern(pattern`colo[u]red[ ]woman`)
-            .addPattern(pattern`colo[u]red[ ]person`)
+            .addPattern(pattern`col[o][u]red[ ]boy`)
+            .addPattern(pattern`col[o][u]red[ ]man`)
+            .addPattern(pattern`col[o][u]red[ ]guy`)
+            .addPattern(pattern`col[o][u]red[ ]girl`)
+            .addPattern(pattern`col[o][u]red[ ]woman`)
+            .addPattern(pattern`col[o][u]red[ ]person`)
     );
