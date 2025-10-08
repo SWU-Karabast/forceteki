@@ -1,4 +1,5 @@
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+import type { FormatMessage } from '../core/chat/GameChat';
 import { AbilityType, GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { GameObject } from '../core/GameObject';
@@ -6,6 +7,7 @@ import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 
 export interface IReplacementEffectSystemProperties<TContext extends TriggeredAbilityContext> extends IGameSystemProperties {
     effect?: string;
@@ -67,13 +69,29 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { replacementImmediateEffect, effect } = this.generatePropertiesFromContext(context);
-        if (effect) {
-            return [effect, []];
-        }
-        if (replacementImmediateEffect) {
-            return ['{0} instead of {1}', [replacementImmediateEffect.getEffectMessage(context), this.getTargetMessage(context.event.card, context)]];
-        }
-        return ['cancel the effects of {0}', [this.getTargetMessage(context.event.card, context)]];
+
+        const effectMessage = (): FormatMessage => {
+            if (effect) {
+                return {
+                    format: effect,
+                    args: []
+                };
+            }
+
+            if (replacementImmediateEffect) {
+                return {
+                    format: '{0} instead of {1}',
+                    args: [replacementImmediateEffect.getEffectMessage(context), this.getTargetMessage(context.event.card, context)]
+                };
+            }
+
+            return {
+                format: 'cancel the effects of {0}',
+                args: [this.getTargetMessage(context.event.card, context)]
+            };
+        };
+
+        return [ChatHelpers.formatWithLength(1, 'to '), [effectMessage()]];
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<TProperties> = {}) {

@@ -25,6 +25,7 @@ describe('Replacement effect', function() {
                 expect(context.doctorPershing.damage).toBe(0);
                 expect(context.doctorPershing).toHaveExactUpgradeNames(['shield']);
                 expect(context.player1.hand.length).toBe(1);
+                expect(context.getChatLogs(2)).toContain('player1 uses Shield to defeat Shield instead of Doctor Pershing taking damage');
             });
         });
     });
