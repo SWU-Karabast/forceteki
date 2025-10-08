@@ -17,12 +17,12 @@ export default class EvilIsEverywhere extends EventCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => {
-                    const villainyAspectCount = context.player.getArenaUnits({})
-                        .map((x) => x.aspects)
-                        .flat()
-                        .filter((x) => x === Aspect.Villainy).length;
+                    const villainyAspectCount = context.player.getArenaUnits()
+                        .flatMap((x) => x.aspects)
+                        .filter((x) => x === Aspect.Villainy)
+                        .length;
 
-                    return card.isUnit() && card.cost === villainyAspectCount;
+                    return card.isUnit() && card.cost <= villainyAspectCount;
                 },
                 immediateEffect: abilityHelper.immediateEffects.defeat()
             }
