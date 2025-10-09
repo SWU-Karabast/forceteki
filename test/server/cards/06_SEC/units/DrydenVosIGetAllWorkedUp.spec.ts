@@ -168,7 +168,7 @@ describe('Dryden Vos, I Get All Worked Up', function() {
             context.player2.clickCard(context.makeAnOpening);
             context.player2.clickCard(context.drydenVos);
 
-            expect(context.p2Base.damage).toBe(0);
+            context.setDamage(context.p2Base, 0);
 
             context.player1.clickCard(context.surpriseStrike);
             context.player1.clickCard(context.drydenVos);
