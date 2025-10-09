@@ -1,4 +1,5 @@
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+import type { FormatMessage } from '../core/chat/GameChat';
 import { AbilityType, GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { GameObject } from '../core/GameObject';
@@ -6,6 +7,7 @@ import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 
 export interface IReplacementEffectSystemProperties<TContext extends TriggeredAbilityContext> extends IGameSystemProperties {
     effect?: string;
@@ -14,10 +16,10 @@ export interface IReplacementEffectSystemProperties<TContext extends TriggeredAb
     replacementImmediateEffect?: GameSystem<TContext>;
 }
 
-export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends GameSystem<TContext, IReplacementEffectSystemProperties<TContext>> {
+export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext, TProperties extends IReplacementEffectSystemProperties<TContext> = IReplacementEffectSystemProperties<TContext>> extends GameSystem<TContext, TProperties> {
     public override readonly eventName = MetaEventName.ReplacementEffect;
 
-    public override eventHandler(event, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}): void {
+    public override eventHandler(event, additionalProperties: Partial<TProperties> = {}): void {
         const triggerWindow = event.context.replacementEffectWindow;
 
         Contract.assertNotNullLike(triggerWindow, `Replacement effect '${this} resolving outside of any trigger window`);
@@ -56,7 +58,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         event.context.cancel();
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}) {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}) {
         const event = this.createEvent(null, context, additionalProperties);
 
         this.addPropertiesToEvent(event, null, context, additionalProperties);
@@ -67,16 +69,32 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { replacementImmediateEffect, effect } = this.generatePropertiesFromContext(context);
-        if (effect) {
-            return [effect, []];
-        }
-        if (replacementImmediateEffect) {
-            return ['{0} instead of {1}', [replacementImmediateEffect.getEffectMessage(context), this.getTargetMessage(context.event.card, context)]];
-        }
-        return ['cancel the effects of {0}', [this.getTargetMessage(context.event.card, context)]];
+
+        const effectMessage = (): FormatMessage => {
+            if (effect) {
+                return {
+                    format: effect,
+                    args: []
+                };
+            }
+
+            if (replacementImmediateEffect) {
+                return {
+                    format: '{0} instead of {1}',
+                    args: [replacementImmediateEffect.getEffectMessage(context), this.getTargetMessage(context.event.card, context)]
+                };
+            }
+
+            return {
+                format: 'cancel the effects of {0}',
+                args: [this.getTargetMessage(context.event.card, context)]
+            };
+        };
+
+        return [ChatHelpers.formatWithLength(1, 'to '), [effectMessage()]];
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}) {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<TProperties> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         if (properties.replacementImmediateEffect) {
             properties.replacementImmediateEffect.setDefaultTargetFn(() => properties.target);
@@ -84,14 +102,19 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         return properties;
     }
 
-    public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<IReplacementEffectSystemProperties<TContext>>): void {
+    public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<TProperties>): void {
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
-        const { replacementImmediateEffect } = this.generatePropertiesFromContext(event.context, additionalProperties);
+        const replacementImmediateEffect = this.getReplacementImmediateEffect(event.context, additionalProperties);
         event.replacementImmediateEffect = replacementImmediateEffect;
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}, _mustChangeGameState): boolean {
+    protected getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<TProperties> = {}): GameSystem<TContext> {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        return properties.replacementImmediateEffect;
+    }
+
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}, _mustChangeGameState): boolean {
         Contract.assertNotNullLike(context.event);
 
         if (!context.event.canResolve) {
@@ -109,7 +132,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         return context.event.card ? [context.event.card] : [];
     }
 
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}): boolean {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<TProperties> = {}): boolean {
         const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(context);
         return (
             replacementGameAction &&
@@ -122,7 +145,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         return false;
     }
 
-    protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<IReplacementEffectSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         return this.isTargetTypeValid(target);
     }
 }

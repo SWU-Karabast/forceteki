@@ -44,13 +44,11 @@ describe('Overwhelming Barrage', function() {
                 expect(context.tielnFighter).toBeInZone('discard');
                 expect(context.hanSolo.damage).toBe(1);
 
-                expect(context.getChatLogs(5)).toEqual([
-                    'player1 plays Overwhelming Barrage to give +2/+2 to Wampa for this phase',
-                    'player1 uses Overwhelming Barrage to distribute 6 damage among units',
-                    'player2 uses Shield to prevent First Order TIE Fighter from taking damage',
-                    'player1 uses Overwhelming Barrage to deal 2 damage to AT-ST, 1 damage to Battlefield Marine, 1 damage to TIE/ln Fighter, and 1 damage to Han Solo',
-                    'player2\'s TIE/ln Fighter is defeated by player1 due to having no remaining HP',
-                ]);
+                expect(context.getChatLogs(5)).toContain('player1 plays Overwhelming Barrage to give +2/+2 to Wampa for this phase');
+                expect(context.getChatLogs(4)).toContain('player1 uses Overwhelming Barrage to distribute 6 damage among units');
+                expect(context.getChatLogs(3)).toContain('player2 uses Shield to defeat Shield instead of First Order TIE Fighter taking damage');
+                expect(context.getChatLogs(2)).toContain('player1 uses Overwhelming Barrage to deal 2 damage to AT-ST, 1 damage to Battlefield Marine, 1 damage to TIE/ln Fighter, and 1 damage to Han Solo');
+                expect(context.getChatLogs(1)).toContain('player2\'s TIE/ln Fighter is defeated by player1 due to having no remaining HP');
 
                 // attack into wampa to confirm stats buff
                 context.setDamage(context.atst, 0);
