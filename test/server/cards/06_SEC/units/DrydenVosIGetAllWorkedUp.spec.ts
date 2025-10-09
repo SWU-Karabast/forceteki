@@ -143,5 +143,52 @@ describe('Dryden Vos, I Get All Worked Up', function() {
             // 2x(2 + Raid 1 (from hondo) + +1/+0 (from cody))
             expect(context.p2Base.damage).toBe(8);
         });
+
+        it('Dryden Vos\'s on attack ability should double his Raid and +X (7 buffs/debuffs)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['surprise-strike'],
+                    groundArena: ['marchion-ro#eye-of-the-nihil', 'benthic-two-tubes#partisan-lieutenant',
+                        'hondo-ohnaka#you-better-hurry', 'clone-commander-cody#commanding-the-212th',
+                        { card: 'dryden-vos#i-get-all-worked-up', damage: 2 }],
+                    spaceArena: ['first-light#headquarters-of-the-crimson-dawn']
+                },
+                player2: {
+                    hand: ['make-an-opening']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.benthicTwoTubes);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickCard(context.drydenVos);
+
+            context.player2.clickCard(context.makeAnOpening);
+            context.player2.clickCard(context.drydenVos);
+
+            expect(context.p2Base.damage).toBe(0);
+
+            context.player1.clickCard(context.surpriseStrike);
+            context.player1.clickCard(context.drydenVos);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player1).toHavePassAbilityPrompt(prompt);
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player2).toBeActivePlayer();
+
+            // 2 base
+            // -2 make an openning
+            // raid 2 from benthic
+            // raid 1 from hondo
+            // raid 3 from marchion ro
+            // +2 from Grit
+            // +1 from cody
+            // +3 from surprise strike
+            // total : 12 x 2 = 24
+            expect(context.p2Base.damage).toBe(24);
+        });
     });
 });

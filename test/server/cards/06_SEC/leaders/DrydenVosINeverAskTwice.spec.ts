@@ -22,7 +22,9 @@ describe('Dryden Vos, I Never Ask Twice', function () {
 
             // choose a card to discard
             context.player1.clickPrompt(undeployedPrompt);
+            expect(context.player1).toHavePrompt('Choose a card to discard');
             expect(context.player1).toBeAbleToSelectExactly([context.atst, context.avenger]);
+            expect(context.player1).toHaveEnabledPromptButton('Cancel');
             expect(context.player1).not.toHavePassAbilityButton();
             expect(context.player1).not.toHaveChooseNothingButton();
             context.player1.clickCard(context.avenger);
@@ -46,6 +48,89 @@ describe('Dryden Vos, I Never Ask Twice', function () {
             expect(context.wampa.damage).toBe(3);
             expect(context.consularSecurityForce.damage).toBe(4);
 
+            expect(context.avenger).toBeInZone('discard', context.player1);
+            expect(context.drydenVos.exhausted).toBeTrue();
+        });
+
+        it('Dryden Vos\'s undeployed ability must exhaust himself and discard a card which costs 6 or more to play a unit from hand which costs 5 or less and give it Ambush (no enough resources for some playable cards)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'dryden-vos#i-never-ask-twice',
+                    hand: ['wampa', 'rukh#thrawns-assassin', 'atst', 'avenger#hunting-star-destroyer'],
+                    base: 'shadow-collective-camp',
+                    resources: 4
+                },
+                player2: {
+                    groundArena: ['consular-security-force']
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.drydenVos);
+
+            // choose a card to discard
+            expect(context.player1).toHavePrompt('Choose a card to discard');
+            expect(context.player1).toBeAbleToSelectExactly([context.atst, context.avenger]);
+            expect(context.player1).toHaveEnabledPromptButton('Cancel');
+            expect(context.player1).not.toHavePassAbilityButton();
+            expect(context.player1).not.toHaveChooseNothingButton();
+            context.player1.clickCard(context.avenger);
+
+            // choose a unit to play with ambush
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            expect(context.player1).toHaveChooseNothingButton();
+            context.player1.clickCard(context.wampa);
+
+            // trigger or pass ambush
+            expect(context.player1).toHavePassAbilityPrompt('Ambush');
+            context.player1.clickPrompt('Trigger');
+
+            // choose which unit to attack
+            expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
+            context.player1.clickCard(context.consularSecurityForce);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.player1.exhaustedResourceCount).toBe(4);
+
+            expect(context.wampa.damage).toBe(3);
+            expect(context.consularSecurityForce.damage).toBe(4);
+
+            expect(context.avenger).toBeInZone('discard', context.player1);
+            expect(context.drydenVos.exhausted).toBeTrue();
+        });
+
+        it('Dryden Vos\'s undeployed ability must exhaust himself and discard a card which costs 6 or more to play a unit from hand which costs 5 or less and give it Ambush (no enough resources for all playable cards)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'dryden-vos#i-never-ask-twice',
+                    hand: ['wampa', 'rukh#thrawns-assassin', 'atst', 'avenger#hunting-star-destroyer'],
+                    base: 'shadow-collective-camp',
+                    resources: 3
+                },
+                player2: {
+                    groundArena: ['consular-security-force']
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.drydenVos);
+
+            // choose a card to discard
+            expect(context.player1).toHavePrompt('Choose a card to discard');
+            expect(context.player1).toBeAbleToSelectExactly([context.atst, context.avenger]);
+            expect(context.player1).toHaveEnabledPromptButton('Cancel');
+            expect(context.player1).not.toHavePassAbilityButton();
+            expect(context.player1).not.toHaveChooseNothingButton();
+            context.player1.clickCard(context.avenger);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.wampa).toBeInZone('hand', context.player1);
+            expect(context.rukh).toBeInZone('hand', context.player1);
+            expect(context.atst).toBeInZone('hand', context.player1);
             expect(context.avenger).toBeInZone('discard', context.player1);
             expect(context.drydenVos.exhausted).toBeTrue();
         });
@@ -86,7 +171,8 @@ describe('Dryden Vos, I Never Ask Twice', function () {
                 phase: 'action',
                 player1: {
                     leader: 'dryden-vos#i-never-ask-twice',
-                    hand: ['wampa', 'rukh#thrawns-assassin']
+                    hand: ['wampa', 'rukh#thrawns-assassin'],
+                    resources: 6
                 },
                 player2: {
                     groundArena: ['yoda#old-master']
@@ -95,10 +181,8 @@ describe('Dryden Vos, I Never Ask Twice', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.drydenVos);
-
-            expect(context.player1).not.toHaveEnabledPromptButton(undeployedPrompt);
-            context.player1.clickPrompt('Cancel');
+            expect(context.player1).toBeActivePlayer();
+            expect(context.drydenVos).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
 
         it('Dryden Vos\'s deployed ability must discard a card from hand to play a unit from hand and give it Ambush (no limit per turn)', async function () {
@@ -202,8 +286,6 @@ describe('Dryden Vos, I Never Ask Twice', function () {
             expect(context.wampa).toBeInZone('groundArena', context.player1);
             expect(context.yoda).toBeInZone('discard', context.player1);
             expect(context.drydenVos.exhausted).toBeFalse();
-
-            context.player2.passAction();
         });
 
         it('Dryden Vos\'s deployed ability must discard a card from hand to play a unit from hand and give it Ambush (only 1 card to discard)', async function () {
