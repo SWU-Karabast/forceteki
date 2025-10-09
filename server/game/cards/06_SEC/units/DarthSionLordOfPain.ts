@@ -19,14 +19,14 @@ export default class DarthSionLordOfPain extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Give an experience token to this unit for each enemy unit defeated this phase',
+            title: 'Give an experience token to Darth Sion for each enemy unit defeated this phase',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({
                 amount: this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayerNew(context.player.opponent).length,
                 target: context.source
             })),
         });
         registrar.addWhenDefeatedAbility({
-            title: 'If this unit had 7 or more power, return it to his owner\'s hand',
+            title: 'Return Darth Sion to his owner\'s hand',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.event.lastKnownInformation.power >= 7,
                 onTrue: AbilityHelper.immediateEffects.returnToHand(),

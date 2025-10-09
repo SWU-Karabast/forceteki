@@ -69,6 +69,25 @@ describe('Darth Sion, Lord of Pain', function () {
                 context.player2.clickCard(context.darthSionLordOfPain);
                 expect(context.darthSionLordOfPain.zoneName).toBe('hand');
             });
+
+            it('should return Darth Sion to hand if defeated while temporarily buffed to 7 or more power', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['darth-sion#lord-of-pain'],
+                        hand: ['surprise-strike'],
+                    },
+                    player2: {
+                        groundArena: ['reinforcement-walker'],
+                    },
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.surpriseStrike);
+                context.player1.clickCard(context.darthSionLordOfPain);
+                context.player1.clickCard(context.reinforcementWalker);
+                expect(context.darthSionLordOfPain.zoneName).toBe('hand');
+            });
         });
     });
 });
