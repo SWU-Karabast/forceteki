@@ -1949,6 +1949,51 @@ const mockCards = [
         arena: 'space',
         internalName: 'strike-force-xwing',
     }),
+    buildMockCard({
+        title: 'Let\'s Talk',
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'SEC',
+            number: 131
+        },
+        cost: 9,
+        unique: false,
+        internalName: 'lets-talk',
+    }),
+    buildMockCard({
+        title: 'The Eye of Aldhani',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['event'],
+        traits: ['innate', 'trick'],
+        setId: {
+            set: 'SEC',
+            number: 73
+        },
+        cost: 1,
+        unique: false,
+        internalName: 'the-eye-of-aldhani',
+    }),
+    buildMockCard({
+        title: 'Outer Rim Constable',
+        power: 3,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['fringe', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 163
+        },
+        cost: 2,
+        unique: false,
+        arena: 'ground',
+        internalName: 'outer-rim-constable',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
