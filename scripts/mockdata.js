@@ -1589,6 +1589,7 @@ const mockCards = [
         hp: 10,
         hasNonKeywordAbility: true,
         aspects: ['command', 'villainy'],
+        keywords: ['sentinel'],
         types: ['unit'],
         traits: ['imperial', 'official'],
         setId: {
