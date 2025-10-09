@@ -162,6 +162,10 @@ class PlayerInteractionWrapper {
         var baseCard = this.player.base;
         baseCard.damage = baseOptions.damage || 0;
 
+        if (baseOptions.capturedUnits) {
+            this.setCapturedUnits(baseCard, baseOptions.capturedUnits);
+        }
+
         Util.refreshGameState(this.game);
     }
 
