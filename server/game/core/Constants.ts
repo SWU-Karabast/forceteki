@@ -341,6 +341,7 @@ export enum MetaEventName {
 export enum AbilityType {
     Action = 'action',
     Constant = 'constant',
+    DamagePrevention = 'damagePrevention',
     DelayedEffect = 'delayedEffect',
     Event = 'event',
     ReplacementEffect = 'replacementEffect',
@@ -473,6 +474,12 @@ export enum AbilityRestriction {
     BeCaptured = 'beCaptured',
     BeDefeated = 'beDefeated',
     ReturnToHand = 'returnToHand',
+}
+
+export enum DamagePreventionType {
+    All = 'all',
+    Reduce = 'reduce',
+    Replace = 'replace',
 }
 
 export enum StateWatcherName {

@@ -1,6 +1,6 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { DamagePreventionType, RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { IAbilityHelper } from '../../../AbilityHelper';
@@ -34,15 +34,28 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
             }),
         });
 
-        registrar.addReplacementEffectAbility({
+        registrar.addDamagePreventionAbility({
             title: 'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage',
-            when: {
-                onDamageDealt: (event, context) =>
-                    event.card.controller === context.player &&
-                    event.damageSource.player === context.player &&
-                    event.damageSource.card?.isUnit() && event.damageSource.card?.hasSomeTrait(Trait.Creature)
-            },
+            preventionType: DamagePreventionType.All,
+            shouldCardHaveDamagePrevention: (card, context) => this.isDamageFromFriendlyCreatureUnit(card, context),
         });
+    }
+
+    private isDamageFromFriendlyCreatureUnit(card, context) {
+        const event = context.event;
+        if (card.controller !== context.player) {
+            return false;
+        }
+        if (event.damageSource.player !== context.player) {
+            return false;
+        }
+        if (!event.damageSource.card?.isUnit()) {
+            return false;
+        }
+        if (!event.damageSource.card?.hasSomeTrait(Trait.Creature)) {
+            return false;
+        }
+        return true;
     }
 
     private isFirstCreaturePlayedByControllerThisPhase(card: Card) {
