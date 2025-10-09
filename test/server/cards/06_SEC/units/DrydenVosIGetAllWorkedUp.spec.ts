@@ -180,11 +180,11 @@ describe('Dryden Vos, I Get All Worked Up', function() {
             expect(context.player2).toBeActivePlayer();
 
             // 2 base
-            // -2 make an openning
+            // -2 make an opening
             // raid 2 from benthic
             // raid 1 from hondo
             // raid 3 from marchion ro
-            // +2 from Grit
+            // +2 from grit (first light)
             // +1 from cody
             // +3 from surprise strike
             // total : 12 x 2 = 24
