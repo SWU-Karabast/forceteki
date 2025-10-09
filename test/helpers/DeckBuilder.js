@@ -329,6 +329,10 @@ class DeckBuilder {
     }
 
     getCapturedUnitsFromCard(card, ownerFilter = () => true) {
+        if (!card) {
+            return [];
+        }
+
         let capturedUnits = [];
         if (typeof card !== 'string' && card.capturedUnits) {
             for (const capturedUnit of card.capturedUnits) {
