@@ -1589,6 +1589,7 @@ const mockCards = [
         hp: 10,
         hasNonKeywordAbility: true,
         aspects: ['command', 'villainy'],
+        keywords: ['sentinel'],
         types: ['unit'],
         traits: ['imperial', 'official'],
         setId: {
@@ -1993,6 +1994,125 @@ const mockCards = [
         unique: false,
         arena: 'ground',
         internalName: 'outer-rim-constable',
+    }),
+    buildMockCard({
+        title: 'Lurking Snub Fighter',
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['plot'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 189
+        },
+        cost: 3,
+        unique: false,
+        arena: 'space',
+        internalName: 'lurking-snub-fighter',
+    }),
+    buildMockCard({
+        title: 'Raxian Assembly',
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['separatist', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 118
+        },
+        cost: 5,
+        unique: false,
+        arena: 'ground',
+        internalName: 'raxian-assembly',
+    }),
+    buildMockCard({
+        title: 'First Light',
+        subtitle: 'Threatening Elegance',
+        power: 5,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['plot', 'ambush'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 88
+        },
+        cost: 7,
+        unique: true,
+        arena: 'space',
+        internalName: 'first-light#threatening-elegance',
+    }),
+    buildMockCard({
+        title: 'Reconnaissance',
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'SEC',
+            number: 125
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'reconnaissance',
+    }),
+    buildMockCard({
+        title: 'Beguile',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'SEC',
+            number: 233
+        },
+        cost: 3,
+        unique: false,
+        internalName: 'beguile',
+    }),
+    buildMockCard({
+        title: 'Condemn',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['upgrade'],
+        traits: ['condition'],
+        setId: {
+            set: 'SEC',
+            number: 38
+        },
+        upgradeHp: 0,
+        upgradePower: 0,
+        power: 0,
+        hp: 0,
+        cost: 3,
+        unique: false,
+        internalName: 'condemn',
+    }),
+    buildMockCard({
+        title: 'Dryden Vos',
+        subtitle: 'I Never Ask Twice',
+        power: 5,
+        hp: 7,
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['overwhelm'],
+        types: ['leader'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 7
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'dryden-vos#i-never-ask-twice',
     }),
 ];
 
