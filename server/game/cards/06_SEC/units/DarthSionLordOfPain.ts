@@ -19,7 +19,7 @@ export default class DarthSionLordOfPain extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Give an experience token to this unit for each friendly unit defeated this phase',
+            title: 'Give an experience token to this unit for each enemy unit defeated this phase',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({
                 amount: this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayerNew(context.player.opponent).length,
                 target: context.source
