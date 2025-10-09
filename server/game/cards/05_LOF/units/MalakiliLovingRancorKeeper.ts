@@ -37,7 +37,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         registrar.addDamagePreventionAbility({
             title: 'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage',
             preventionType: DamagePreventionType.All,
-            cardPreventionCondition: (card, context) => this.isDamageFromFriendlyCreatureUnit(card, context),
+            shouldCardHaveDamagePrevention: (card, context) => this.isDamageFromFriendlyCreatureUnit(card, context),
         });
     }
 

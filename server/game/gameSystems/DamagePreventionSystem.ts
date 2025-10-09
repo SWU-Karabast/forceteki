@@ -56,7 +56,7 @@ export class DamagePreventionSystem<
 
         switch (properties.preventionType) {
             case DamagePreventionType.All:
-                return null; // Returning NoActionSystem here causes an error: Contract assertion failure: Replacement effect 'GameSystem: ' for replacementEffect did not generate any events
+                return null;
             case DamagePreventionType.Reduce:
                 Contract.assertPositiveNonZero(properties.preventionAmount, `preventionAmount must be a positive non-zero number for DamagePreventionType.Reduce. Found: ${properties.preventionAmount}`);
                 return new DamageSystem((context) => ({

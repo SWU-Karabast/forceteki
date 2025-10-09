@@ -18,7 +18,7 @@ export default class BobaFettsArmor extends UpgradeCard {
             title: 'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
             preventionType: DamagePreventionType.Reduce,
             preventionAmount: 2,
-            cardPreventionCondition(card, context) {
+            shouldCardHaveDamagePrevention(card, context) {
                 if (context.source.isUpgrade() && card === context.source.parentCard && context.source.parentCard.title === 'Boba Fett') {
                     return true;
                 }

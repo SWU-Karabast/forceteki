@@ -48,12 +48,12 @@ export type IDamagePreventionAbilityProps<TSource extends Card = Card> = Omit<IR
     replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
 
     /**
-     * This can be used to override the default assumption that the damage is being dealt to context.source
+     * This can be used to override the default assumption that prevention applies to context.sourcea
      * @param card
      * @param context
      * @returns True if the card meets the defined condition
      */
-    cardPreventionCondition?: (card: Card, context?: TriggeredAbilityContext) => boolean;
+    shouldCardHaveDamagePrevention?: (card: Card, context?: TriggeredAbilityContext) => boolean;
 };
 
 /** Interface definition for addActionAbility */

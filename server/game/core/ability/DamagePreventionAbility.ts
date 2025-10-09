@@ -19,8 +19,8 @@ export default class DamagePreventionAbility extends TriggeredAbility {
 
     private buildDamagePreventionTrigger(event, context, properties: IDamagePreventionAbilityProps): boolean {
         // If a cardPreventionCondition is provided, this means the damage prevention should apply to the card that meets that condition instead of context.source
-        if (properties.cardPreventionCondition) {
-            if (properties.cardPreventionCondition(event.card, context) === false) {
+        if (properties.shouldCardHaveDamagePrevention) {
+            if (properties.shouldCardHaveDamagePrevention(event.card, context) === false) {
                 return false;
             }
         } else if (event.card !== context.source) {
