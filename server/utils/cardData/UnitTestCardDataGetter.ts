@@ -27,6 +27,11 @@ export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements
             ) as ICardDataJson
         );
 
+        const allCardTitles = UnitTestCardDataGetter.readFileSync(
+            folderRoot,
+            CardDataGetter.allCardTitlesFileName
+        ) as string[];
+
         const playableCardTitles = UnitTestCardDataGetter.readFileSync(
             folderRoot,
             CardDataGetter.playableCardTitlesFileName
@@ -35,7 +40,7 @@ export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements
         const setCodeMap = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.setCodeMapFileName) as Record<string, string>;
 
         const leaderNames = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.leaderNamesFileName) as { name: string; id: string; subtitle: string }[];
-        super(folderRoot, cardMapJson, tokenData, playableCardTitles, setCodeMap, leaderNames);
+        super(folderRoot, cardMapJson, tokenData, allCardTitles, playableCardTitles, setCodeMap, leaderNames);
     }
 
     public getCardSync(id: string): ICardDataJson {

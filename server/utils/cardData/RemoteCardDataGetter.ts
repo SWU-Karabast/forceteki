@@ -15,13 +15,14 @@ export class RemoteCardDataGetter extends CardDataGetter {
             )).json() as Promise<ICardDataJson>
         );
 
+        const allCardTitles = await (await RemoteCardDataGetter.fetchFileAsync(remoteDataUrl, CardDataGetter.allCardTitlesFileName)).json() as string[];
         const playableCardTitles = await (await RemoteCardDataGetter.fetchFileAsync(remoteDataUrl, CardDataGetter.playableCardTitlesFileName)).json() as string[];
 
         const setCodeMap = await RemoteCardDataGetter.fetchFileAsync(remoteDataUrl, CardDataGetter.setCodeMapFileName)
             .then((response) => response.json() as Promise<Record<string, string>>);
 
         const leaderNames = await (await RemoteCardDataGetter.fetchFileAsync(remoteDataUrl, CardDataGetter.leaderNamesFileName)).json() as { name: string; id: string; subtitle?: string }[];
-        return new RemoteCardDataGetter(remoteDataUrl, cardMap, tokenData, playableCardTitles, setCodeMap, leaderNames);
+        return new RemoteCardDataGetter(remoteDataUrl, cardMap, tokenData, allCardTitles, playableCardTitles, setCodeMap, leaderNames);
     }
 
     protected static getRelativePathFromInternalName(internalName: string) {
@@ -49,11 +50,12 @@ export class RemoteCardDataGetter extends CardDataGetter {
         remoteDataUrl: string,
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,
+        allCardTitles: string[],
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
         leaderNames: { name: string; id: string; subtitle?: string }[],
     ) {
-        super(cardMapJson, tokenData, playableCardTitles, setCodeMap, leaderNames);
+        super(cardMapJson, tokenData, allCardTitles, playableCardTitles, setCodeMap, leaderNames);
 
         this.remoteDataUrl = remoteDataUrl;
     }
