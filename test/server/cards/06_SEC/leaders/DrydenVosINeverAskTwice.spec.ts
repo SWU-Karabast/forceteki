@@ -370,5 +370,22 @@ describe('Dryden Vos, I Never Ask Twice', function () {
 
             expect(context.yoda).toBeInZone('discard', context.player1);
         });
+
+        it('Dryden Vos\'s deployed ability should does nothing if hand is empty', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'dryden-vos#i-never-ask-twice', deployed: true, exhausted: true },
+                },
+                player2: {
+                    groundArena: ['yoda#old-master']
+                }
+            });
+
+            const { context } = contextRef;
+
+            expect(context.player1).toBeActivePlayer();
+            expect(context.drydenVos).not.toHaveAvailableActionWhenClickedBy(context.player1);
+        });
     });
 });
