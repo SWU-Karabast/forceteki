@@ -2045,7 +2045,7 @@ const mockCards = [
             number: 88
         },
         cost: 7,
-        unique: false,
+        unique: true,
         arena: 'space',
         internalName: 'first-light#threatening-elegance',
     }),
