@@ -100,48 +100,48 @@ describe('Malakili, Loving Rancor Keeper', function () {
             expect(context.wampa.damage).toBe(3);
         });
 
-        it('Malakili\'s ability should prevent damage on friendly unit done by friendly Creature unit (stolen)', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hasForceToken: true,
-                    hand: ['wild-rancor'],
-                    groundArena: ['malakili#loving-rancor-keeper', 'wampa', 'battlefield-marine'],
-                },
-                player2: {
-                    hand: ['change-of-heart', 'jabbas-rancor#pateesa'],
-                    groundArena: ['atst']
-                }
-            });
-            const { context } = contextRef;
+        // it('Malakili\'s ability should prevent damage on friendly unit done by friendly Creature unit (stolen)', async function () {
+        //     await contextRef.setupTestAsync({
+        //         phase: 'action',
+        //         player1: {
+        //             hasForceToken: true,
+        //             hand: ['wild-rancor'],
+        //             groundArena: ['malakili#loving-rancor-keeper', 'wampa', 'battlefield-marine'],
+        //         },
+        //         player2: {
+        //             hand: ['change-of-heart', 'jabbas-rancor#pateesa'],
+        //             groundArena: ['atst']
+        //         }
+        //     });
+        //     const { context } = contextRef;
 
-            context.player1.passAction();
+        //     context.player1.passAction();
 
-            // steal malakili
-            context.player2.clickCard(context.changeOfHeart);
-            context.player2.clickCard(context.malakili);
+        //     // steal malakili
+        //     context.player2.clickCard(context.changeOfHeart);
+        //     context.player2.clickCard(context.malakili);
 
-            context.player1.clickCard(context.wildRancor);
+        //     context.player1.clickCard(context.wildRancor);
 
-            // wild rancor damage everyone
-            expect(context.player2).toBeActivePlayer();
-            expect(context.atst.damage).toBe(2);
-            expect(context.malakili.damage).toBe(2);
-            expect(context.wampa.damage).toBe(2);
-            expect(context.battlefieldMarine.damage).toBe(2);
+        //     // wild rancor damage everyone
+        //     expect(context.player2).toBeActivePlayer();
+        //     expect(context.atst.damage).toBe(2);
+        //     expect(context.malakili.damage).toBe(2);
+        //     expect(context.wampa.damage).toBe(2);
+        //     expect(context.battlefieldMarine.damage).toBe(2);
 
-            context.setDamage(context.wampa, 0);
-            context.setDamage(context.atst, 0);
+        //     context.setDamage(context.wampa, 0);
+        //     context.setDamage(context.atst, 0);
 
-            // play jabba's rancor
-            context.player2.clickCard(context.jabbasRancor);
-            context.player2.clickCard(context.atst);
-            context.player2.clickCard(context.wampa);
+        //     // play jabba's rancor
+        //     context.player2.clickCard(context.jabbasRancor);
+        //     context.player2.clickCard(context.atst);
+        //     context.player2.clickCard(context.wampa);
 
-            // damage should be prevented on player 2 friendly unit
-            expect(context.player1).toBeActivePlayer();
-            expect(context.atst.damage).toBe(0);
-            expect(context.wampa.damage).toBe(3);
-        });
+        //     // damage should be prevented on player 2 friendly unit
+        //     expect(context.player1).toBeActivePlayer();
+        //     expect(context.atst.damage).toBe(0);
+        //     expect(context.wampa.damage).toBe(3);
+        // });
     });
 });

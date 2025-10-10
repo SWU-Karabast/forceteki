@@ -53,6 +53,8 @@ describe('Cassian Andor, Lay Low', function() {
                 expect(context.cargoJuggernaut.isUpgraded()).toBeFalse();
                 expect(context.cassianAndorLayLow.damage).toBe(0);
                 expect(context.valLoyalToTheEnd.damage).toBe(2);
+
+                expect(context.getChatLogs(3)).toContain('player2 uses Cassian Andor to prevent 2 damage to Cassian Andor');
             });
 
             it('should prevent only 2 damage from enemy card abilities', function () {

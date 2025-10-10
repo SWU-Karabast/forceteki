@@ -357,6 +357,8 @@ export class SwuStatsHandler {
             serverObject.swuStatsTokenMapping.set(playerDetails.user.getId(), resultTokens);
             playerAccessToken = resultTokens.accessToken;
             await this.userFactory.addSwuStatsRefreshTokenAsync(playerDetails.user.getId(), resultTokens.refreshToken);
+            // set the refresh token to correct one
+            playerDetails.user.setRefreshToken(resultTokens.refreshToken);
         }
         return playerAccessToken;
     }

@@ -221,10 +221,10 @@ export class DiscordDispatcher implements IDiscordDispatcher {
 
     private addGameMessagesToForm(formData: FormData, messages: ISerializedMessage[], lobbyId: string, reporterId: string, opponentId: string, timestamp: number): void {
         const messagesText = DiscordDispatcher.formatMessagesToText(messages, reporterId, opponentId);
-        const fileName = `bug-report-messages-${lobbyId}-${timestamp}.json`;
+        const fileName = `bug-report-messages-${lobbyId}-${timestamp}.txt`;
         formData.append('files[1]', Buffer.from(messagesText), {
             filename: fileName,
-            contentType: 'application/json',
+            contentType: 'text/plain',
         });
     }
 
