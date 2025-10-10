@@ -55,6 +55,7 @@ describe('Willrow Hood On the Run', function () {
                 context.player2.clickCard(context.disablingFangFighter);
                 context.player2.clickCard(context.theDarksaber);
 
+                expect(context.theDarksaber.zoneName).toBe('discard');
                 expect(context.willrowHoodOnTheRun).toHaveExactUpgradeNames(['jedi-lightsaber']);
             });
 
@@ -65,6 +66,8 @@ describe('Willrow Hood On the Run', function () {
                 context.player2.clickCard(context.bamboozle);
                 context.player2.clickCard(context.willrowHoodOnTheRun);
 
+                expect(context.theDarksaber.zoneName).toBe('hand');
+                expect(context.jediLightsaber.zoneName).toBe('hand');
                 expect(context.willrowHoodOnTheRun).toHaveExactUpgradeNames([]);
             });
         });
@@ -89,7 +92,7 @@ describe('Willrow Hood On the Run', function () {
             expect(context.theDarksaber.zoneName).toBe('discard');
         });
 
-        it('should defeate the upgrade if unit is returned to hand', async function () {
+        it('should defeat the upgrade if unit is returned to hand', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
