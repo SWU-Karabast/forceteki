@@ -56,6 +56,7 @@ const { Lobby } = require('../../gamenode/Lobby.js');
 const { DiscordDispatcher } = require('./DiscordDispatcher.js');
 const { GameStatisticsLogger } = require('../../gameStatistics/GameStatisticsTracker.js');
 const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
+const { PerGameUndoLimit, UnlimitedUndoLimit } = require('./snapshot/UndoLimit.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -240,6 +241,9 @@ class Game extends EventEmitter {
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
         this.enableConfirmationToUndo = details.enableConfirmationToUndo ?? false;
+        this.freeUndoLimit = details.enableConfirmationToUndo
+            ? new PerGameUndoLimit(1)
+            : new UnlimitedUndoLimit();
         this.owner = details.owner;
         this.started = false;
         this.statsUpdated = false;
@@ -2025,13 +2029,17 @@ class Game extends EventEmitter {
             const result = this.rollbackToSnapshotInternal(settings);
 
             if (!result) {
-                return;
+                return false;
             }
 
             this.addAlert(AlertType.Notification, '{0} has rolled back to {1}', this.getPlayerById(playerId), message);
+            return true;
         };
 
-        if (this.enableConfirmationToUndo && this.snapshotManager.requiresConfirmationToRollbackTo(settings)) {
+        if (
+            this.enableConfirmationToUndo &&
+            (this.freeUndoLimit.hasReachedLimit(playerId) || this.snapshotManager.requiresConfirmationToRollbackTo(settings))
+        ) {
             let undoTypePromptMessage = message;
             if (settings.type !== SnapshotType.Quick && settings.type !== SnapshotType.Action) {
                 undoTypePromptMessage = `to ${message}`;
@@ -2050,7 +2058,10 @@ class Game extends EventEmitter {
                 ]
             });
         } else {
-            performRollback();
+            const result = performRollback();
+            if (result) {
+                this.freeUndoLimit.incrementUses(playerId);
+            }
         }
     }
 
