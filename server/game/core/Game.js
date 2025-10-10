@@ -461,8 +461,11 @@ class Game extends EventEmitter {
      * @returns {Array}
      */
     getAllCapturedCards(player) {
-        return this.findAnyCardsInPlay((card) => card.isUnit() && card.owner === player)
+        const cardsCapturedByUnits = this
+            .findAnyCardsInPlay((card) => card.isUnit() && card.owner === player)
             .flatMap((card) => card.capturedUnits);
+
+        return cardsCapturedByUnits.concat(player.base.capturedUnits);
     }
 
     /**
