@@ -19,27 +19,27 @@ describe('Implicate', function () {
             it('should create a spy token when selected unit is attacked', function () {
                 const { context } = contextRef;
 
-                //Play Implicate selecting Onyx Squadron Brute as the sentinel
+                // Play Implicate selecting Onyx Squadron Brute as the sentinel
                 context.player1.clickCard(context.implicate);
-                expect(context.player1).toBeAbleToSelectExactly([context.onyxSquadronBrute, 
-                                                                 context.swoopRacer, 
-                                                                 context.battlefieldMarine, 
-                                                                 context.patrollingVwing, 
-                                                                 context.republicYwing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.onyxSquadronBrute,
+                    context.swoopRacer,
+                    context.battlefieldMarine,
+                    context.patrollingVwing,
+                    context.republicYwing]);
                 context.player1.clickCard(context.onyxSquadronBrute);
 
-                //Can still attack base on ground
+                // Can still attack base on ground
                 context.player2.clickCard(context.battlefieldMarine);
                 context.player2.clickCard(context.p1Base);
 
                 context.player1.passAction();
 
-                //Can only attack the Brute showing sentinel is active
+                // Can only attack the Brute showing sentinel is active
                 context.player2.clickCard(context.patrollingVwing);
                 expect(context.player2).toBeAbleToSelectExactly([context.onyxSquadronBrute]);
                 context.player2.clickCard(context.onyxSquadronBrute);
-                
-                //check damage and check spy generation
+
+                // check damage and check spy generation
                 expect(context.onyxSquadronBrute.damage).toBe(1);
                 let spies = context.player1.findCardsByName('spy');
                 expect(spies.length).toBe(1);
@@ -52,8 +52,8 @@ describe('Implicate', function () {
                 context.player2.clickCard(context.republicYwing);
                 expect(context.player2).toBeAbleToSelectExactly([context.onyxSquadronBrute]);
                 context.player2.clickCard(context.onyxSquadronBrute);
-                
-                //check second spy generation
+
+                // check second spy generation
                 expect(context.onyxSquadronBrute.damage).toBe(2);
                 spies = context.player1.findCardsByName('spy');
                 expect(spies.length).toBe(2);
@@ -62,18 +62,17 @@ describe('Implicate', function () {
                 expect(spies[1].exhausted).toBeTrue();
                 expect(context.republicYwing.damage).toBe(2);
 
-                //move to next phase and sentinel is gone on the Brute
+                // move to next phase and sentinel is gone on the Brute
                 context.moveToNextActionPhase();
                 context.player1.passAction();
                 context.player2.clickCard(context.republicYwing);
                 expect(context.player2).toBeAbleToSelectExactly([context.onyxSquadronBrute, context.p1Base]);
                 context.player2.clickCard(context.p1Base);
-                
-                //No spy was generated this phase.
+
+                // No spy was generated this phase.
                 spies = context.player1.findCardsByName('spy');
                 expect(spies.length).toBe(2);
                 expect(spies).toAllBeInZone('groundArena');
-
             });
         });
     });

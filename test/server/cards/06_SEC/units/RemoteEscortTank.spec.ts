@@ -51,7 +51,7 @@ describe('Remote Escort Tank', function() {
                 });
 
                 const { context } = contextRef;
-                
+
                 context.player1.clickCard(context.sabineWren);
                 context.player1.clickPrompt('Deploy Sabine Wren');
                 context.player1.clickPrompt('Trigger');

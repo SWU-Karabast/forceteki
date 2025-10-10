@@ -26,7 +26,7 @@ describe('Inner Rim Coalition', function() {
 
                 expect(context.player1).toBeAbleToSelectExactly([context.brightHope, context.battlefieldMarine, context.cartelSpacer, context.moistureFarmer]);
                 context.player1.clickCard(context.moistureFarmer);
-            })
+            });
 
             it('should be optional', async function () {
                 await contextRef.setupTestAsync({
@@ -39,8 +39,8 @@ describe('Inner Rim Coalition', function() {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }, 'kelleran-beq#the-sabered-hand'],
                         spaceArena: ['bright-hope#the-last-transport']
                     },
-                });    
-                
+                });
+
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.moistureFarmer);
@@ -59,9 +59,9 @@ describe('Inner Rim Coalition', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                            groundArena: ['moisture-farmer', 'inner-rim-coalition'],
-                            spaceArena: ['cartel-spacer']
-                        },
+                        groundArena: ['moisture-farmer', 'inner-rim-coalition'],
+                        spaceArena: ['cartel-spacer']
+                    },
                     player2: {
                         leader: { card: 'admiral-piett#commanding-the-armada', exhausted: true, deployed: true },
                         hand: ['no-glory-only-results'],
@@ -78,7 +78,6 @@ describe('Inner Rim Coalition', function() {
 
                 context.player1.passAction();
             });
-
-        });            
-    })
-})
+        });
+    });
+});

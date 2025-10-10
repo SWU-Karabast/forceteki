@@ -1,5 +1,5 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { AbilityType, KeywordName, Trait, WildcardCardType } from '../../../core/Constants';
+import { AbilityType, KeywordName, WildcardCardType } from '../../../core/Constants';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
@@ -17,20 +17,19 @@ export default class Implicate extends EventCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
-                effect: [
-                    AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel }),
-                    AbilityHelper.ongoingEffects.gainAbility({
+                    effect: [
+                        AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel }),
+                        AbilityHelper.ongoingEffects.gainAbility({
                             type: AbilityType.Triggered,
                             title: 'Create a Spy token',
-                            when: { 
+                            when: {
                                 onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
-                                },
+                            },
                             immediateEffect: AbilityHelper.immediateEffects.createSpy()
                         })
                     ]
                 }))
             }
-            
         });
     }
 }
