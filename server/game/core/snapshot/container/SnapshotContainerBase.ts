@@ -63,6 +63,11 @@ export abstract class SnapshotContainerBase {
         return null;
     }
 
+    public getSnapshotPropertiesById(snapshotId: number): ISnapshotProperties | null {
+        const snapshot = this.getAllSnapshots().find((s) => s.id === snapshotId);
+        return snapshot ? this.extractSnapshotProperties(snapshot) : null;
+    }
+
     protected rollbackToSnapshotInternal(snapshot: IGameSnapshot): boolean {
         const success = this.gameStateManager.rollbackToSnapshot(snapshot, this.getCurrentSnapshotFn());
         if (!success) {
@@ -82,7 +87,8 @@ export abstract class SnapshotContainerBase {
             roundNumber: snapshot.roundNumber,
             actionNumber: snapshot.actionNumber,
             currentPhase: snapshot.phase,
-            snapshotId: snapshot.id
+            snapshotId: snapshot.id,
+            requiresConfirmationToRollback: snapshot.requiresConfirmationToRollback,
         };
     }
 }

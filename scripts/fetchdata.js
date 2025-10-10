@@ -148,6 +148,18 @@ function populateMissingData(attributes, id) {
                 ]
             };
             break;
+        case '8826807979': // Dressellian Commandos
+            attributes.keywords = {
+                data: [
+                    {
+                        attributes: { name: 'Plot' }
+                    },
+                    {
+                        attributes: { name: 'Ambush' }
+                    },
+                ]
+            };
+            break;
         case '7069246970': // Sly Moore
         case '8365930807': // Cad Bane
         case '3612601170': // One In a Million
@@ -155,7 +167,6 @@ function populateMissingData(attributes, id) {
         case '7936097828': // Chancellor Palpatine
         case '7365023470': // Mas Amedda
         case '2919204327': // Naboo Royal Starship
-        case '8826807979': // Dressellian Commandos
         case '9985741271': // Jar Jar Binks
         case '2877797132': // Unveiled Might
         case '3776423866': // Trade Route Taxation

@@ -398,8 +398,6 @@ describe('DJ, Need A Lift?', function () {
             });
 
             it('friendly units rescued from a base captor enter play ready', async function () {
-                pending('Needs base capture UI to be implemented on the client');
-
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {

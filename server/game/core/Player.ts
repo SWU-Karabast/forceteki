@@ -1,7 +1,6 @@
 import type { IGameObjectState } from './GameObject';
 import { GameObject } from './GameObject';
 import type { Deck, IDeckList as IDeckList } from '../../utils/deck/Deck.js';
-import UpgradePrompt from './gameSteps/prompts/UpgradePrompt.js';
 import type { CostAdjuster, ICanAdjustProperties } from './cost/CostAdjuster';
 import { CostAdjustType } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
@@ -1025,15 +1024,6 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         const legalZonesForType = Helpers.defaultLegalZonesForCardTypeFilter(cardType);
 
         return legalZonesForType && EnumHelpers.cardZoneMatches(EnumHelpers.asConcreteZone(zone), legalZonesForType);
-    }
-
-    /**
-     * This is only used when an upgrade is dragged into play.  Usually,
-     * upgrades are played by playCard()
-     * @deprecated
-     */
-    public promptForUpgrade(card, playingType) {
-        this.game.queueStep(new UpgradePrompt(this.game, this, card, playingType));
     }
 
     // get skillModifier() {

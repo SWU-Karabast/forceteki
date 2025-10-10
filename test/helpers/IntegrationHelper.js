@@ -85,6 +85,10 @@ global.integration = function (definitions, enableUndo = false) {
                 getCurrentSnapshotId: () => gameFlowWrapper.snapshotManager?.currentSnapshotId,
                 getCurrentSnapshottedAction: () => gameFlowWrapper.snapshotManager?.currentSnapshottedAction,
                 rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshotInternal(settings),
+                quickRollback: (playerId) => {
+                    newContext.game.rollbackToSnapshot(playerId, { type: SnapshotType.Quick, playerId });
+                    newContext.game.continue();
+                },
                 countAvailableActionSnapshots: (playerId) => newContext.game.countAvailableActionSnapshots(playerId),
                 countAvailableManualSnapshots: (playerId) => newContext.game.countAvailableManualSnapshots(playerId),
                 hasAvailableQuickSnapshot: (playerId) => newContext.game.hasAvailableQuickSnapshot(playerId),

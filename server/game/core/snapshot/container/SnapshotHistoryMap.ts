@@ -128,4 +128,11 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
     public override clearAllSnapshots(): void {
         this.snapshots.clear();
     }
+
+    public setRequiresConfirmationToRollbackCurrentSnapshot(key: T) {
+        const snapshot = this.getSnapshot(key, 0);
+        if (snapshot) {
+            snapshot.requiresConfirmationToRollback = true;
+        }
+    }
 }
