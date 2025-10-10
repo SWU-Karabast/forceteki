@@ -223,6 +223,44 @@ global.undoIt = function(expectation, assertion, timeout) {
         await assertion();
     }, timeout);
 };
+global.undoFit = function(expectation, assertion, timeout) {
+    fit(expectation + ' (with Undo)', async function() {
+        /** @type {SwuTestContext} */
+        const context = this.contextRef.context;
+        const snapshotUtils = this.contextRef.snapshot;
+        context.isUndoTest = true;
+
+        // If the game setup was in a beforeEach before this was called, take a snapshot.
+        if (context.hasSetupGame) {
+            snapshotUtils.startOfTestSnapshot = buildStartOfTestSnapshot(context.game);
+        }
+
+        if (snapshotUtils.startOfTestSnapshot?.snapshotId === -1) {
+            throw new Error('Snapshot ID invalid');
+        }
+
+        const messagesBeforeAssertion = context.game.gameChat.messages.slice();
+
+        await assertion();
+        if (snapshotUtils.startOfTestSnapshot?.snapshotId == null) {
+            // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
+            return;
+        }
+        const rolledBack = context.game.rollbackToSnapshotInternal({
+            type: SnapshotType.Manual,
+            playerId: snapshotUtils.startOfTestSnapshot.player.id,
+            snapshotId: snapshotUtils.startOfTestSnapshot.snapshotId
+        });
+        if (!rolledBack) {
+            // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
+            return;
+        }
+
+        context.game.gameChat.messages = messagesBeforeAssertion;
+
+        await assertion();
+    }, timeout);
+};
 
 /**
  * A shortcut to repeat a test with a rollback in between, and optionally an alternate case afterwards

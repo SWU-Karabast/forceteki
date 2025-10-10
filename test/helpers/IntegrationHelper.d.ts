@@ -172,6 +172,15 @@ declare namespace jasmine {
 declare function undoIt(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number): void;
 
 /**
+ * Define a single spec. A spec should contain one or more expectations that test the state of the code.
+ * A spec whose expectations all succeed will be passing and a spec with any failures will fail.
+ * @param expectation Textual description of what this spec is checking
+ * @param assertion Function that contains the code of your test. If not provided the test will be pending.
+ * @param timeout Custom timeout for an async spec.
+ */
+declare function undoFit(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number): void;
+
+/**
  * Takes a snapshot, runs the assertion code, then rolls back and repeats.
  * @param context
  * @param assertion Function that contains the code of your test that will be then be rolled back and repeated to ensure rolling back works.

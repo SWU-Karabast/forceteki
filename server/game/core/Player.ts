@@ -178,7 +178,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         Contract.assertNotNullLike(game);
 
         this.user = user;
-        this.state.id = id;
+        this.id = id;
         this.printedType = 'player';
         this.socket = null;
         this.disconnected = false;

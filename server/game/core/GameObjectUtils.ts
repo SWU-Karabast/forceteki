@@ -74,17 +74,21 @@ export function undoState<T extends GameObjectBase, TValue extends string | numb
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateSimpleMetadata] ??= [];
         (metaState[stateSimpleMetadata] as string[]).push(context.name);
+        const name = context.name;
 
         // No need to use the backing fields, read and write directly to state.
         return {
-            get(this) {
-                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                return this.state[context.name as string];
+            get(this: T) {
+                return this.state[name];
             },
-            set(this, newValue) {
-                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[context.name as string] = newValue;
+            set(this: T, newValue: TValue) {
+                this.state[name] = newValue;
             },
+            init(this: T, value: TValue) {
+                this.state[name] = value;
+                // We don't use the internal field and only use the data within state.
+                return undefined;
+            }
         };
     };
 }
@@ -124,7 +128,7 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
                     target.set.call(this, newValue);
                 },
                 init(this: T, value: TValue[]) {
-                    this.state[name] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
+                    this.state[name] = value?.map((x) => x.getRef());
                     return value;
                 }
             };
@@ -132,14 +136,20 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
 
         return {
             get(this: T) {
-                return target.get.call(this);
+                try {
+                    return target.get.call(this);
+                } catch (error) {
+                    // @ts-ignore
+                    console.error('This: ' + this.constructor.name, this.title ?? this.name ?? this.id);
+                    throw error;
+                }
             },
             set(this: T, newValue: TValue[]) {
                 this.state[name] = newValue?.map((x) => x.getRef());
                 target.set.call(this, newValue ? CreateUndoArrayInternal(this, name, newValue) : newValue);
             },
             init(this: T, value: TValue[]) {
-                this.state[name] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
+                this.state[name] = value?.map((x) => x.getRef());
                 return value ? CreateUndoArrayInternal(this, name) : value;
             }
         };
@@ -221,6 +231,7 @@ export function undoRecord<T extends GameObjectBase, TValue extends GameObjectBa
     };
 }
 
+/** Creates a undo safe GameObject reference. */
 export function undoObject<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
@@ -250,7 +261,7 @@ export function undoObject<T extends GameObjectBase, TValue extends GameObjectBa
             },
             init(value) {
                 // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[context.name] = value != null ? value.getRef() : value;
+                this.state[context.name] = value?.getRef();
                 return value;
             }
         };
