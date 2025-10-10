@@ -13,7 +13,7 @@ export default class Beguile extends EventCard {
 
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Look at an opponent\'s hand',
+            title: 'Look at an opponent\'s hand. Then, return to hand an enemy non-leader unit which costs 6 or less',
             immediateEffect: abilityHelper.immediateEffects.lookAt((context) => ({
                 target: context.player.opponent.hand,
                 useDisplayPrompt: true
