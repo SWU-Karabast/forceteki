@@ -167,10 +167,8 @@ export class SnapshotFactory {
     private updateCurrentActionSnapshot(snapshot: IGameSnapshot): void {
         Contract.assertNotNullLike(this.currentActionSnapshot, 'Attempting to read action snapshot before any is set, meaning the game is likely not initialized');
 
-        this.currentActionSnapshot = {
-            ...snapshot,
-            requiresConfirmationToRollback: false,
-        };
+        this.currentActionSnapshot = snapshot;
+        this.currentActionSnapshot.requiresConfirmationToRollback = false;
     }
 
     /** Helper method for correctly building snapshot containers in a way that they can pass back a handle for calling the `clearNewerSnapshots()` method */

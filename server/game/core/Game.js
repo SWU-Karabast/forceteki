@@ -248,6 +248,9 @@ class Game extends EventEmitter {
         this.preUndoStateForError = null;
 
         /** @private @type {boolean} */
+        this._gameStateChangedSinceLastTimepoint = false;
+
+        /** @private @type {boolean} */
         this._serializationFailure = false;
 
         this.playerHasBeenPrompted = new Map();
@@ -723,6 +726,16 @@ class Game extends EventEmitter {
     //         record.typeSwitched = conflict.conflictTypeSwitched;
     //     }
     // }
+
+    setGameStateChanged() {
+        this._gameStateChangedSinceLastTimepoint = true;
+    }
+
+    resetForNewTimepoint() {
+        for (const player of this.getPlayers()) {
+            player.hasResolvedAbilityThisTimepoint = false;
+        }
+    }
 
     restartAllActionTimers() {
         this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
@@ -2028,7 +2041,13 @@ class Game extends EventEmitter {
             this.addAlert(AlertType.Notification, '{0} has rolled back to {1}', this.getPlayerById(playerId), message);
         };
 
-        if (this.enableConfirmationToUndo && this.snapshotManager.requiresConfirmationToRollbackTo(settings)) {
+        if (
+            this.enableConfirmationToUndo &&
+            (
+                this.snapshotManager.requiresConfirmationToRollbackTo(settings) ||
+                this.opponentHasRevealedInformationOnTheirTurn(playerId)
+            )
+        ) {
             let undoTypePromptMessage = message;
             if (settings.type !== SnapshotType.Quick && settings.type !== SnapshotType.Action) {
                 undoTypePromptMessage = `to ${message}`;
@@ -2049,6 +2068,22 @@ class Game extends EventEmitter {
         } else {
             performRollback();
         }
+    }
+
+    /**
+     * @private
+     * @param {string} playerId
+     */
+    opponentHasRevealedInformationOnTheirTurn(playerId) {
+        const player = this.getPlayerById(playerId);
+        const opponent = player.opponent;
+
+        // if it's the undoing player's action, no risk of revealed information
+        if (this.currentPhase === PhaseName.Action && this.actionPhaseActivePlayer === player) {
+            return false;
+        }
+
+        return !!opponent.hasResolvedAbilityThisTimepoint;
     }
 
     /**
