@@ -16,15 +16,15 @@ export default class WillrowHoodOnTheRun extends NonLeaderUnitCard {
             title: 'Upgrade cannot be defeated or returned to hand by enemy card abilities',
             when: {
                 onCardDefeated: (event, context) =>
-                    context.source.upgrades.filter((upgrade) => upgrade.owner === context.player).length === 1 &&
+                    context.source.upgrades.filter((upgrade) => upgrade.controller === context.player).length === 1 &&
                     context.source.upgrades.includes(event.card) &&
-                    event.card.owner === context.player &&
+                    event.card.controller === context.player &&
                     event.defeatSource.type === DefeatSourceType.Ability &&
                     event.defeatSource.player !== context.player,
                 onCardMoved: (event, context) =>
-                    context.source.upgrades.filter((upgrade) => upgrade.owner === context.player).length === 1 &&
-                    event.card.owner === context.player &&
+                    context.source.upgrades.filter((upgrade) => upgrade.controller === context.player).length === 1 &&
                     context.source.upgrades.includes(event.card) &&
+                    event.card.controller === context.player &&
                     event.destination === ZoneName.Hand &&
                     event.context.player !== context.player
             }
