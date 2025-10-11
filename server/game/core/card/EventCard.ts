@@ -68,7 +68,7 @@ export class EventCard extends EventCardParent implements IEventCard {
     /** Ability of event card when played. Will be a "blank" ability with no effect if this card is disabled by an effect. */
     public getEventAbility(): EventAbility {
         if (this.isBlank()) {
-            const blankSource = this.getOngoingEffectSources(EffectName.Blank);
+            const blankSource = this.getOngoingEffectSources(EffectName.BlankCard);
             return new EventAbility(this.game, this, {
                 title: 'No effect',
                 printedAbility: false,

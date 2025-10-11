@@ -50,6 +50,7 @@ import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPl
 import type { ICardWithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
+import type { BlankNamedCardsForPlayer } from '../ongoingEffect/effectImpl/BlankNamedCard';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -774,7 +775,24 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // *************************************** EFFECT HELPERS ***************************************
     public isBlank(): boolean {
-        return this.hasOngoingEffect(EffectName.Blank);
+        if (this.hasOngoingEffect(EffectName.BlankCard)) {
+            return true;
+        }
+
+        const blankNamedCardsForPlayer = this.owner.getOngoingEffectValues<BlankNamedCardsForPlayer>(EffectName.BlankNamedCardsForPlayer);
+        for (const blankedCard of blankNamedCardsForPlayer) {
+            if (blankedCard.nonLeadersOnly === true && this.isLeader()) {
+                continue;
+            }
+            if (blankedCard.namedCardTitle === this.title) {
+                if (blankedCard.includeOutOfPlay === true) {
+                    return true;
+                }
+                return this.canBeInPlay() && this.isInPlay();
+            }
+        }
+
+        return false;
     }
 
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {

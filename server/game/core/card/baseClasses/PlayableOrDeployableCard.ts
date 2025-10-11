@@ -109,22 +109,26 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
     public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         let playCardActions: PlayCardAction[] = [];
 
+        const isBlank = this.isBlank();
+
         if (this.zoneName === ZoneName.Hand) {
             playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides));
-            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+            if (!isBlank && this.hasSomeKeyword(KeywordName.Piloting)) {
                 playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
             }
         }
 
-        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides));
-        }
+        if (!isBlank) {
+            if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+                playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides));
+            }
 
-        if (this.zoneName === ZoneName.Discard) {
-            if (this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
-                playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
-                if (this.hasSomeKeyword(KeywordName.Piloting)) {
-                    playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+            if (this.zoneName === ZoneName.Discard) {
+                if (this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
+                    playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+                    if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                        playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+                    }
                 }
             }
         }

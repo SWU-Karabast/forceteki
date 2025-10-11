@@ -84,7 +84,7 @@ export class PlayEventAction extends PlayCardAction {
 
             let reason = '';
             if (context.source.isBlank()) {
-                const blankSource = context.source.getOngoingEffectSources(EffectName.Blank);
+                const blankSource = context.source.getOngoingEffectSources(EffectName.BlankCard);
                 reason = `due to an ongoing effect of ${blankSource[0].title}`;
             } else if (!context.source.isImplemented) {
                 reason = 'because the card is not implemented yet';
