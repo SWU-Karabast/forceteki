@@ -345,5 +345,78 @@ describe('Willrow Hood On the Run', function () {
                 expect(context.willrowHoodOnTheRun).toHaveExactUpgradeNames([]);
             });
         });
+
+        describe('Willrow Hood\'s ability with one stolen upgrade', function () {
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['shuttle-st149#under-krennics-authority'],
+                        groundArena: [{ card: 'willrow-hood#on-the-run' }],
+                    },
+                    player2: {
+                        hand: ['disabling-fang-fighter', 'bamboozle'],
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['shield'] }]
+                    }
+                });
+            });
+
+            it('should not allow Willrow Hood\'s upgrade to be defeated if he stole an enemy upgrade', function () {
+                const { context } = contextRef;
+                context.player1.clickCard(context.shuttleSt149);
+                context.player1.clickPrompt('Take control of a token upgrade on a unit and attach it to a different eligible unit.');
+                context.player1.clickCard(context.shield);
+                context.player1.clickCard(context.willrowHoodOnTheRun);
+                context.player2.clickCard(context.disablingFangFighter);
+                context.player2.clickCard(context.shield);
+
+                expect(context.willrowHoodOnTheRun).toHaveExactUpgradeNames(['shield']);
+            });
+
+            it('should not allow Willrow Hood\'s upgrade to be returned to hand if he stole an enemy upgrade', function () {
+                const { context } = contextRef;
+                context.player1.clickCard(context.shuttleSt149);
+                context.player1.clickPrompt('Take control of a token upgrade on a unit and attach it to a different eligible unit.');
+                context.player1.clickCard(context.shield);
+                context.player1.clickCard(context.willrowHoodOnTheRun);
+                context.player2.clickCard(context.bamboozle);
+                context.player2.clickCard(context.willrowHoodOnTheRun);
+
+                expect(context.willrowHoodOnTheRun).toHaveExactUpgradeNames(['shield']);
+            });
+        });
+
+        describe('Willrow Hood\'s ability with friendly token upgrade', function () {
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['shuttle-st149#under-krennics-authority'],
+                        groundArena: [{ card: 'willrow-hood#on-the-run', upgrades: ['shield'] }],
+                    },
+                    player2: {
+                        hand: ['disabling-fang-fighter', 'bamboozle']
+                    }
+                });
+            });
+
+            it('should not allow Willrow Hood\'s upgrade to be defeated if it is a token upgrade', function () {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.disablingFangFighter);
+                context.player2.clickCard(context.shield);
+                expect(context.willrowHoodOnTheRun).toHaveExactUpgradeNames(['shield']);
+            });
+
+            it('should not allow Willrow Hood\'s upgrade to be returned to hand if it is a token upgrade', function () {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.bamboozle);
+                context.player2.clickCard(context.willrowHoodOnTheRun);
+                expect(context.willrowHoodOnTheRun).toHaveExactUpgradeNames(['shield']);
+            });
+        });
     });
 });
