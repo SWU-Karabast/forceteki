@@ -233,5 +233,7 @@ describe('Obi-Wan Kenobi, Finding What Doesn\'t Exist', function() {
             // can not play it again
             expect(context.arquitensAssaultCruiser).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
+
+        //TODO ADD TEST WITH SMUGGLE EVENT, BOUNCE BACK, YODA, CHAM, DJ
     });
 });

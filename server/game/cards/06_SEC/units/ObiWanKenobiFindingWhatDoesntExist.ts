@@ -35,7 +35,10 @@ export default class ObiWanKenobiFindingWhatDoesntExist extends NonLeaderUnitCar
                     })),
                     abilityHelper.immediateEffects.forThisPhasePlayerEffect((context) => ({
                         effect: abilityHelper.ongoingEffects.ignoreAllAspectPenalties({
-                            match: (card) => card === ifYouDoContext.events[0].card
+                            match: (card) => {
+                                const targetedCard = ifYouDoContext.events[0].card;
+                                return card === targetedCard && (!card.canBeInPlay() || card.mostRecentInPlayId === targetedCard.mostRecentInPlayId);
+                            }
                         }),
                         target: context.player,
                     }))
