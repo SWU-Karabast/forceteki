@@ -83,9 +83,16 @@ export class PlayEventAction extends PlayCardAction {
             }
 
             let reason = '';
+            // TODO: We should find some way to improve this blank source reason logic
             if (context.source.isBlank()) {
-                const blankSource = context.source.getOngoingEffectSources(EffectName.BlankCard);
-                reason = `due to an ongoing effect of ${blankSource[0].title}`;
+                if (context.source.hasOngoingEffect(EffectName.BlankCard)) {
+                    const blankSource = context.source.getOngoingEffectSources(EffectName.BlankCard);
+                    reason = `due to an ongoing effect of ${blankSource[0].title}`;
+                } else if (context.source.owner.hasOngoingEffect(EffectName.BlankNamedCardsForPlayer)) {
+                    const blankSources = context.source.owner.getOngoingEffectSources(EffectName.BlankNamedCardsForPlayer);
+
+                    reason = `due to an ongoing effect of ${blankSources[0].title}`;
+                }
             } else if (!context.source.isImplemented) {
                 reason = 'because the card is not implemented yet';
             }

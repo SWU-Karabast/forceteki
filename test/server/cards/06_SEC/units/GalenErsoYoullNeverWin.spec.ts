@@ -23,8 +23,8 @@ describe('Galen Erso - You\'ll Never Win', function() {
             context.player1.chooseListOption('Luke Skywalker');
         });
 
-        describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, named enemy leader', function() {
-            it('cards should not be blanked when their title is named', async function () {
+        describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, named enemy leaders', function() {
+            it('should not be blanked when their title is named', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -49,7 +49,7 @@ describe('Galen Erso - You\'ll Never Win', function() {
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
             });
 
-            it('units should not be blanked when their title is named', async function () {
+            it('should not be blanked when their title is named', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -74,7 +74,7 @@ describe('Galen Erso - You\'ll Never Win', function() {
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
             });
 
-            it('pilots should not be blanked when their title is named', async function () {
+            it('should not be blanked as Pilots when their title is named', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -270,6 +270,47 @@ describe('Galen Erso - You\'ll Never Win', function() {
                 context.player2.clickCard(context.p1Base);
 
                 expect(context.p2Base.damage).toBe(4);
+            });
+
+            it('should not be playable using Smuggle', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                    },
+                    player2: {
+                        resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'tech#source-of-insight']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Tech');
+
+                expect(context.tech).not.toHaveAvailableActionWhenClickedBy(context.player2);
+            });
+
+            it('should not be playable using Plot', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                    },
+                    player2: {
+                        leader: 'darth-vader#dark-lord-of-the-sith',
+                        resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'dressellian-commandos']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Dressellian Commandos');
+
+                context.player2.clickCard(context.darthVader);
+                context.player2.clickPrompt('Deploy Darth Vader');
+                expect(context.player1).toBeActivePlayer();
             });
 
             it('should be blanked if owned by the opponent even if controlled by Galen\'s owner', async function () {
@@ -478,6 +519,52 @@ describe('Galen Erso - You\'ll Never Win', function() {
                 expect(context.p1Base.damage).toBe(1);
             });
 
+            it('should be playable using Smuggle', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'luke-skywalker#faithful-friend',
+                        base: 'echo-base',
+                        hand: ['galen-erso#youll-never-win'],
+                        resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'tech#source-of-insight']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Tech');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.tech);
+                expect(context.tech).toBeInZone('groundArena');
+            });
+
+            it('should be playable using Plot', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        leader: 'luke-skywalker#faithful-friend',
+                        base: 'echo-base',
+                        resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'dressellian-commandos']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Dressellian Commandos');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickPrompt('Deploy Luke Skywalker');
+                context.player1.clickPrompt('Trigger');
+                expect(context.dressellianCommandos).toBeInZone('groundArena');
+            });
+
             it('should not be blanked even if controlled by Galen\'s opponent', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -602,6 +689,52 @@ describe('Galen Erso - You\'ll Never Win', function() {
                 expect(context.p1Base.damage).toBe(3); // Would be 4 if Raid 1 was still active
             });
 
+
+            it('should not be playable using Smuggle', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'luke-skywalker#faithful-friend',
+                        base: 'echo-base',
+                        hand: ['galen-erso#youll-never-win'],
+                        resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'jetpack']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Jetpack');
+
+                expect(context.jetpack).not.toHaveAvailableActionWhenClickedBy(context.player2);
+            });
+
+            it('should not be playable using Plot', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-vader#dark-lord-of-the-sith',
+                        hand: ['galen-erso#youll-never-win'],
+                    },
+                    player2: {
+                        leader: 'luke-skywalker#faithful-friend',
+                        base: 'echo-base',
+                        resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'unveiled-might']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Unveiled Might');
+
+                context.player2.clickCard(context.lukeSkywalker);
+                context.player2.clickPrompt('Deploy Luke Skywalker');
+
+                expect(context.unveiledMight).toBeInZone('resource');
+                expect(context.player1).toBeActivePlayer();
+            });
+
             it('should not remove stat increases granted by pilot upgrades', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -723,6 +856,58 @@ describe('Galen Erso - You\'ll Never Win', function() {
                 expect(context.p2Base.damage).toBe(4);
             });
 
+            it('should be playable using Smuggle', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'luke-skywalker#faithful-friend',
+                        base: 'chopper-base',
+                        hand: ['galen-erso#youll-never-win'],
+                        resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'jetpack']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Jetpack');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.jetpack);
+                context.player1.clickCard(context.galenErso);
+                expect(context.jetpack).toBeInZone('groundArena');
+                expect(context.jetpack).toBeAttachedTo(context.galenErso);
+            });
+
+            it('should be playable using Plot', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        leader: 'luke-skywalker#faithful-friend',
+                        base: 'echo-base',
+                        resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'unveiled-might']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Unveiled Might');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickPrompt('Deploy Luke Skywalker');
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.lukeSkywalker, context.galenErso]);
+
+                context.player1.clickCard(context.galenErso);
+                expect(context.unveiledMight).toBeAttachedTo(context.galenErso);
+            });
+
             it('should not remove stat increases granted by pilot upgrades', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -744,73 +929,294 @@ describe('Galen Erso - You\'ll Never Win', function() {
             });
         });
 
-        // describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play,', function() {
-        //     it('named events should be blanked when played from hand', async function () {
-        //         await contextRef.setupTestAsync({
-        //             phase: 'action',
-        //             player1: {
-        //             },
-        //         });
+        describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, named enemy events', function() {
+            it('should be blanked when played from hand', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                    },
+                    player2: {
+                        hand: ['takedown']
+                    }
+                });
 
-        //         const { context } = contextRef;
-        //         expect(context.player1).toBeActivePlayer();
-        //     });
+                const { context } = contextRef;
 
-        //     it('named events should be blanked when played with Smuggle', async function () {
-        //         await contextRef.setupTestAsync({
-        //             phase: 'action',
-        //             player1: {
-        //             },
-        //         });
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Takedown');
 
-        //         const { context } = contextRef;
-        //         expect(context.player1).toBeActivePlayer();
-        //     });
+                context.player2.clickCard(context.takedown);
+                expect(context.player2).toHaveEnabledPromptButton('Play anyway');
+                context.player2.clickPrompt('Play anyway');
+                expect(context.takedown).toBeInZone('discard');
 
-        //     it('named events should be blanked when played with Plot', async function () {
-        //         await contextRef.setupTestAsync({
-        //             phase: 'action',
-        //             player1: {
-        //             },
-        //         });
+                expect(context.player1).toBeActivePlayer();
+            });
 
-        //         const { context } = contextRef;
-        //         expect(context.player1).toBeActivePlayer();
-        //     });
-        // });
+            it('should not be playable with alternate costs', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        groundArena: [{ card: 'village-protectors', upgrades: ['shield'] }]
+                    },
+                    player2: {
+                        hand: ['bamboozle', 'waylay']
+                    }
+                });
 
-        // describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play,', function() {
-        //     it('named bases should lose Epic Actions', async function () {
-        //         await contextRef.setupTestAsync({
-        //             phase: 'action',
-        //             player1: {
-        //             },
-        //         });
+                const { context } = contextRef;
 
-        //         const { context } = contextRef;
-        //         expect(context.player1).toBeActivePlayer();
-        //     });
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Bamboozle');
 
-        //     it('named bases should lose abilities', async function () {
-        //         await contextRef.setupTestAsync({
-        //             phase: 'action',
-        //             player1: {
-        //             },
-        //         });
+                context.player2.clickCard(context.bamboozle);
 
-        //         const { context } = contextRef;
-        //         expect(context.player1).toBeActivePlayer();
-        //     });
+                expect(context.player2).toHaveEnabledPromptButton('Play anyway');
+                context.player2.clickPrompt('Play anyway');
+                expect(context.bamboozle).toBeInZone('discard');
 
-        //     it('named bases that have a deckbuilding restriction should not cause a game loss', async function () {
-        //         await contextRef.setupTestAsync({
-        //             phase: 'action',
-        //             player1: {
-        //             },
-        //         });
+                expect(context.player1).toBeActivePlayer();
+            });
 
-        //         const { context } = contextRef;
-        //         expect(context.player1).toBeActivePlayer();
-        //     });
+            it('should not be playable with Smuggle', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                    },
+                    player2: {
+                        resources: ['smugglers-aid', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Smuggler\'s Aid');
+
+                expect(context.smugglersAid).not.toHaveAvailableActionWhenClickedBy(context.player2);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not be playable with Plot', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                    },
+                    player2: {
+                        leader: 'luke-skywalker#faithful-friend',
+                        resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'topple-the-summit']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Topple the Summit');
+
+                context.player2.clickCard(context.lukeSkywalker);
+                context.player2.clickPrompt('Deploy Luke Skywalker');
+
+                expect(context.player1).toBeActivePlayer();
+            });
+        });
+
+        describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, named friendly events', function() {
+            it('should not be blanked when played from hand', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win', 'takedown'],
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Takedown');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.takedown);
+                expect(context.player1).not.toHaveEnabledPromptButton('Play anyway');
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard');
+            });
+
+            it('should be playable with alternate costs', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win', 'bamboozle', 'waylay'],
+                    },
+                    player2: {
+                        groundArena: [{ card: 'village-protectors', upgrades: ['shield'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Bamboozle');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.bamboozle);
+                expect(context.player1).toHaveEnabledPromptButtons(['Play Bamboozle', 'Play Bamboozle by discarding a Cunning card', 'Cancel']);
+                context.player1.clickPrompt('Play Bamboozle by discarding a Cunning card');
+                context.player1.clickCard(context.waylay);
+                context.player1.clickCard(context.villageProtectors);
+                expect(context.villageProtectors.exhausted).toBeTrue();
+                expect(context.villageProtectors.upgrades.length).toBe(0);
+            });
+
+            it('should be playable with Smuggle', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'luke-skywalker#faithful-friend',
+                        base: 'kestro-city',
+                        hand: ['galen-erso#youll-never-win'],
+                        resources: ['smugglers-aid', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Smuggler\'s Aid');
+
+                context.player2.passAction();
+
+                expect(context.smugglersAid).toHaveAvailableActionWhenClickedBy(context.player1);
+            });
+
+            it('should be playable with Plot', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'luke-skywalker#faithful-friend',
+                        base: 'kestro-city',
+                        groundArena: [{ card: 'niima-outpost-constables', damage: 1 }],
+                        hand: ['galen-erso#youll-never-win'],
+                        resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'topple-the-summit', 'wampa', 'wampa', 'wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Topple the Summit');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickPrompt('Deploy Luke Skywalker');
+                context.player1.clickPrompt('Trigger');
+                expect(context.lukeSkywalker.damage).toBe(0);
+                expect(context.galenErso.damage).toBe(0);
+                expect(context.niimaOutpostConstables.damage).toBe(4);
+                expect(context.toppleTheSummit).toBeInZone('discard');
+            });
+        });
+
+        describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, named enemy bases', function() {
+            it('should lose Epic Actions', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        groundArena: [{ card: 'wampa', damage: 3 }]
+                    },
+                    player2: {
+                        base: 'tarkintown'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Tarkintown');
+
+                expect(context.tarkintown).not.toHaveAvailableActionWhenClickedBy(context.player2);
+            });
+
+            it('should lose abilities', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                    },
+                    player2: {
+                        groundArena: ['nightsister-warrior'],
+                        base: 'nightsister-lair'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Nightsister Lair');
+
+                context.player2.clickCard(context.nightsisterWarrior);
+                context.player2.clickCard(context.p1Base);
+                expect(context.player2.hasTheForce).toBeFalse();
+            });
+        });
+
+        describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, named friendly bases', function() {
+            it('should not lose Epic Actions', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        base: 'tarkintown'
+                    },
+                    player2: {
+                        groundArena: [{ card: 'wampa', damage: 3 }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Tarkintown');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.tarkintown);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard');
+            });
+
+            it('should not lose abilities', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        base: 'nightsister-lair',
+                        groundArena: ['nightsister-warrior'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Nightsister Lair');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.nightsisterWarrior);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1.hasTheForce).toBeTrue();
+            });
+        });
     });
 });

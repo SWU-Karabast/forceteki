@@ -171,17 +171,18 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
     }
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
+        const isBlank = this.isBlank();
         // add this card's Exploit amount onto any that come from the property overrides
         const exploitValue = this.getNumericKeywordTotal(KeywordName.Exploit);
         const propertyOverridesWithExploit = Helpers.mergeNumericProperty(propertyOverrides, 'exploitValue', exploitValue);
 
         let defaultPlayAction: PlayCardAction = null;
         if (playType === PlayType.Piloting) {
-            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+            if (this.hasSomeKeyword(KeywordName.Piloting) && !isBlank) {
                 defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Piloting, playType);
             }
         } else if (playType === PlayType.Smuggle) {
-            if (this.hasSomeKeyword(KeywordName.Smuggle)) {
+            if (this.hasSomeKeyword(KeywordName.Smuggle) && !isBlank) {
                 defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Smuggle, playType);
             }
         } else {

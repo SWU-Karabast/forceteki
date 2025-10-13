@@ -16,11 +16,18 @@ export default class Bamboozle extends EventCard {
     }
 
     protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null) {
+        const playActions = super.buildPlayCardActions(playType, propertyOverrides);
+
+        // TODO: Probably try to find a more generic way to handle this sort of thing
+        if (this.isBlank()) {
+            return playActions;
+        }
+
         const bamboozleAction = playType === PlayType.Smuggle || playType === PlayType.Piloting
             ? []
             : [this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayBamboozleAction(this, { playType }, this.game.abilityHelper))];
 
-        return super.buildPlayCardActions(playType, propertyOverrides).concat(bamboozleAction);
+        return playActions.concat(bamboozleAction);
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
