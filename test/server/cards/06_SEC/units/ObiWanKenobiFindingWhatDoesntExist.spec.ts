@@ -151,6 +151,116 @@ describe('Obi-Wan Kenobi, Finding What Doesn\'t Exist', function() {
             expect(context.wampa).toBeInZone('discard', context.player2);
         });
 
+        it('should discard the top card from opponent\'s deck when he deals combat damage to a base. We can play this card from discard this phase ignoring all aspect penalties (easy event)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'jyn-erso#resisting-oppression',
+                    groundArena: ['obiwan-kenobi#finding-what-doesnt-exist']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    deck: ['resupply']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.obiwanKenobi);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.resupply);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.resupply).toBeInZone('resource', context.player1);
+        });
+
+        it('should discard the top card from opponent\'s deck when he deals combat damage to a base. We can play this card from discard this phase ignoring all aspect penalties (arquitens)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'jyn-erso#resisting-oppression',
+                    groundArena: ['obiwan-kenobi#finding-what-doesnt-exist']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    spaceArena: ['awing'],
+                    deck: ['arquitens-assault-cruiser']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.obiwanKenobi);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.arquitensAssaultCruiser);
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.awing);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.awing).toBeInZone('resource', context.player1);
+        });
+
+        it('should discard the top card from opponent\'s deck when he deals combat damage to a base. We can play this card from discard this phase ignoring all aspect penalties (aid from the innocent)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'jyn-erso#resisting-oppression',
+                    base: 'echo-base',
+                    groundArena: ['obiwan-kenobi#finding-what-doesnt-exist'],
+                    deck: ['battlefield-marine', 'yoda#old-master', 'bamboozle',
+                        'jedi-holocron', 'atst', 'gungi#finding-himself', 'awing',
+                        'for-a-cause-i-believe-in', 'i-am-your-father', 'power-of-the-dark-side']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    // TODO REMOVE AVENGER AND FIX AID FROM THE INNOCENT CONTEXT.PLAYER
+                    deck: ['aid-from-the-innocent', 'avenger#hunting-star-destroyer']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.obiwanKenobi);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.aidFromTheInnocent);
+            expect(context.player1).toHaveExactDisplayPromptCards({
+                selectable: [context.bamboozle, context.jediHolocron, context.forACauseIBelieveIn],
+                invalid: [context.battlefieldMarine, context.yoda, context.atst, context.gungi, context.awing, context.iAmYourFather, context.powerOfTheDarkSide]
+            });
+            expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+            context.player1.clickCardInDisplayCardPrompt(context.bamboozle);
+            context.player1.clickCardInDisplayCardPrompt(context.jediHolocron);
+            context.player1.clickDone();
+
+            expect(context.bamboozle).toBeInZone('discard', context.player1);
+            expect(context.jediHolocron).toBeInZone('discard', context.player1);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.bamboozle);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.wampa.exhausted).toBeTrue();
+            expect(context.player1.exhaustedResourceCount).toBe(5); // 5 for aid from innocent + 0 (2-2) for bamboozle
+
+            context.player2.passAction();
+            context.player1.clickCard(context.jediHolocron);
+            context.player1.clickCard(context.obiwanKenobi);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.player1.exhaustedResourceCount).toBe(6);// 5 for aid from innocent + 0 (2-2) for bamboozle + 1 (3-2) for jedi holocron
+        });
+
         it('should discard the top card from opponent\'s deck when he deals combat damage to a base. We can play this card from discard this phase ignoring all aspect penalties. If we find another way to play it, aspect penalties should not apply', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
