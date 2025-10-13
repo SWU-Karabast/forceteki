@@ -16,7 +16,7 @@ export class PlayEventAction extends PlayCardAction {
         this.moveEventToDiscard(context);
 
         const eventAbility = context.source.getEventAbility();
-        const abilityContext = eventAbility.createContext();
+        const abilityContext = eventAbility.createContext(context.player);
         abilityContext.playType = context.playType;
         if (this.earlyTargetResults) {
             this.copyContextTargets(context, abilityContext);
