@@ -70,13 +70,15 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
     private addConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<UpgradeCard>, 'title' | 'condition' | 'matchTarget' | 'ongoingEffect'>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
-        registrar.addConstantAbility({
-            title: properties.title,
-            condition: properties.condition || (() => true),
-            matchTarget: (card, context) => this.isInPlay() && card === context.source.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
-            targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
-            ongoingEffect: properties.ongoingEffect
-        });
+        if (!this.isBlank()) {
+            registrar.addConstantAbility({
+                title: properties.title,
+                condition: properties.condition || (() => true),
+                matchTarget: (card, context) => this.isInPlay() && !this.isBlank() && card === context.source.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
+                targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
+                ongoingEffect: properties.ongoingEffect
+            });
+        }
     }
 
     /**

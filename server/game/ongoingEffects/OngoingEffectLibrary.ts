@@ -34,6 +34,7 @@ import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/
 import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
+import type { BlankNamedCardsForPlayer } from '../core/ongoingEffect/effectImpl/BlankNamedCard';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -57,7 +58,8 @@ export = {
     //     OngoingEffectBuilder.card.static(EffectName.AttachmentRestrictTraitAmount, object),
     // attachmentTraitRestriction: (traits) => OngoingEffectBuilder.card.static(EffectName.AttachmentTraitRestriction, traits),
     // attachmentUniqueRestriction: () => OngoingEffectBuilder.card.static(EffectName.AttachmentUniqueRestriction),
-    blankEventCard: () => OngoingEffectBuilder.card.static(EffectName.Blank),
+    blankEventCard: () => OngoingEffectBuilder.card.static(EffectName.BlankCard),
+    blankNamedCardsForPlayer: (effectImpl: BlankNamedCardsForPlayer) => OngoingEffectBuilder.player.static(EffectName.BlankNamedCardsForPlayer, effectImpl),
     // calculatePrintedMilitarySkill: (func) => OngoingEffectBuilder.card.static(EffectName.CalculatePrintedMilitarySkill, func),
 
     // canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>
@@ -133,7 +135,7 @@ export = {
     gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
         OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => new GainKeyword(game, calculate(target, context))),
     multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
-    loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
+    loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.BlankCard),
     loseKeyword: (keywordOrKeywords: KeywordName | KeywordName[]) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keywordOrKeywords),
     loseAllKeywords: () => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, Object.values(KeywordName)),
     overridePrintedAttributes: (printedAttributesOverride: PrintedAttributesOverride) => OngoingEffectBuilder.card.static(EffectName.PrintedAttributesOverride, printedAttributesOverride),

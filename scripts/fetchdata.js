@@ -314,6 +314,7 @@ function getCardData(page, progressBar) {
 function buildCardLists(cards) {
     const cardMap = [];
     const setCodeMap = {};
+    const allCardTitlesSet = new Set();
     const playableCardTitlesSet = new Set();
     const seenNames = [];
     const leaderNames = [];
@@ -360,6 +361,7 @@ function buildCardLists(cards) {
         seenNames.push(card.internalName);
         cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle, cost: card.cost });
 
+        allCardTitlesSet.add(card.title);
         if (!card.types.includes('token') && !card.types.includes('leader') && !card.types.includes('base')) {
             playableCardTitlesSet.add(card.title);
         }
@@ -372,11 +374,14 @@ function buildCardLists(cards) {
         }
     }
 
+    const allCardTitles = Array.from(allCardTitlesSet);
+    allCardTitles.sort();
+
     const playableCardTitles = Array.from(playableCardTitlesSet);
     playableCardTitles.sort();
 
     const uniqueCards = [...uniqueCardsMap].map(([internalName, card]) => card);
-    return { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames };
+    return { uniqueCards, cardMap, allCardTitles, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames };
 }
 
 async function main() {
@@ -415,7 +420,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames } = buildCardLists(cards);
+    const { uniqueCards, cardMap, allCardTitles, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames } = buildCardLists(cards);
 
     cards.map((card) => delete card.debugObject);
 
@@ -436,6 +441,7 @@ async function main() {
     // }
 
     fs.writeFile(path.join(pathToJSON, '_cardMap.json'), JSON.stringify(cardMap, null, 2));
+    fs.writeFile(path.join(pathToJSON, '_allCardTitles.json'), JSON.stringify(allCardTitles, null, 2));
     fs.writeFile(path.join(pathToJSON, '_playableCardTitles.json'), JSON.stringify(playableCardTitles, null, 2));
     fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_mockCardNames.json'), JSON.stringify(mockCardNames, null, 2));
