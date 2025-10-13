@@ -795,6 +795,24 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return false;
     }
 
+
+    // *************************************** EFFECT HELPERS ***************************************
+    public isBlankOutOfPlay(): boolean {
+        const blankNamedCardsForPlayer = this.owner.getOngoingEffectValues<BlankNamedCardsForPlayer>(EffectName.BlankNamedCardsForPlayer);
+        for (const blankedCard of blankNamedCardsForPlayer) {
+            if (blankedCard.nonLeadersOnly === true && this.isLeader()) {
+                continue;
+            }
+            if (blankedCard.namedCardTitle === this.title) {
+                if (blankedCard.includeOutOfPlay === true) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
         return (
             (ignoredRequirements.includes('triggeringRestrictions') ||

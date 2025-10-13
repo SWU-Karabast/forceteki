@@ -19,7 +19,7 @@ export default class Bamboozle extends EventCard {
         const playActions = super.buildPlayCardActions(playType, propertyOverrides);
 
         // TODO: Probably try to find a more generic way to handle this sort of thing
-        if (this.isBlank()) {
+        if (this.isBlankOutOfPlay()) {
             return playActions;
         }
 

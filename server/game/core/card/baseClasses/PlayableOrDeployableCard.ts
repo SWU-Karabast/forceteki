@@ -109,16 +109,16 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
     public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         let playCardActions: PlayCardAction[] = [];
 
-        const isBlank = this.isBlank();
+        const isBlankOutOfPlay = this.isBlankOutOfPlay();
 
         if (this.zoneName === ZoneName.Hand) {
             playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides));
-            if (!isBlank && this.hasSomeKeyword(KeywordName.Piloting)) {
+            if (!isBlankOutOfPlay && this.hasSomeKeyword(KeywordName.Piloting)) {
                 playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
             }
         }
 
-        if (!isBlank) {
+        if (!isBlankOutOfPlay) {
             if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
                 playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides));
             }
@@ -171,18 +171,18 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
     }
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
-        const isBlank = this.isBlank();
+        const isBlankOutOfPlay = this.isBlankOutOfPlay();
         // add this card's Exploit amount onto any that come from the property overrides
         const exploitValue = this.getNumericKeywordTotal(KeywordName.Exploit);
         const propertyOverridesWithExploit = Helpers.mergeNumericProperty(propertyOverrides, 'exploitValue', exploitValue);
 
         let defaultPlayAction: PlayCardAction = null;
         if (playType === PlayType.Piloting) {
-            if (this.hasSomeKeyword(KeywordName.Piloting) && !isBlank) {
+            if (this.hasSomeKeyword(KeywordName.Piloting) && !isBlankOutOfPlay) {
                 defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Piloting, playType);
             }
         } else if (playType === PlayType.Smuggle) {
-            if (this.hasSomeKeyword(KeywordName.Smuggle) && !isBlank) {
+            if (this.hasSomeKeyword(KeywordName.Smuggle) && !isBlankOutOfPlay) {
                 defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Smuggle, playType);
             }
         } else {
