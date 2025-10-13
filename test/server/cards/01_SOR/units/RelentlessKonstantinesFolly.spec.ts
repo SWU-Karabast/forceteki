@@ -17,68 +17,68 @@ describe('Relentless, Konstantine\'s Folly', function() {
                 });
             });
 
-            // it('should nullify the effects of the first event the opponent plays each round', function () {
-            //     const { context } = contextRef;
+            it('should nullify the effects of the first event the opponent plays each round', function () {
+                const { context } = contextRef;
 
-            //     context.player1.clickCard(context.relentless);
+                context.player1.clickCard(context.relentless);
 
-            //     // play an event, with no effect
-            //     let exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
-            //     context.player2.clickCard(context.vanquish);
-            //     context.player2.clickPrompt('Play anyway');
-            //     expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 5);
-            //     expect(context.relentless).toBeInZone('spaceArena');
-            //     expect(context.vanquish).toBeInZone('discard');
-            //     expect(context.getChatLogs(1)).toContain('player2 plays Vanquish to do nothing due to an ongoing effect of Relentless');
+                // play an event, with no effect
+                let exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickPrompt('Play anyway');
+                expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 5);
+                expect(context.relentless).toBeInZone('spaceArena');
+                expect(context.vanquish).toBeInZone('discard');
+                expect(context.getChatLogs(1)).toContain('player2 plays Vanquish to do nothing due to an ongoing effect of Relentless');
 
-            //     context.player1.passAction();
+                context.player1.passAction();
 
-            //     // play a second event, with effect
-            //     exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
-            //     context.player2.clickCard(context.repair);
-            //     context.player2.clickCard(context.p2Base);
-            //     expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 1);
-            //     expect(context.p2Base.damage).toBe(2);
+                // play a second event, with effect
+                exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
+                context.player2.clickCard(context.repair);
+                context.player2.clickCard(context.p2Base);
+                expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 1);
+                expect(context.p2Base.damage).toBe(2);
 
-            //     // next round, it should nullify the first event played again
-            //     context.moveToNextActionPhase();
-            //     context.player1.passAction();
-            //     exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
-            //     context.player2.clickCard(context.momentOfPeace);
-            //     context.player2.clickPrompt('Play anyway');
-            //     expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 1);
-            //     expect(context.relentless).toHaveExactUpgradeNames([]);
-            // });
+                // next round, it should nullify the first event played again
+                context.moveToNextActionPhase();
+                context.player1.passAction();
+                exhaustedResourcesBeforeCardPlay = context.player2.exhaustedResourceCount;
+                context.player2.clickCard(context.momentOfPeace);
+                context.player2.clickPrompt('Play anyway');
+                expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 1);
+                expect(context.relentless).toHaveExactUpgradeNames([]);
+            });
 
-            // it('should not nullify a second or later event even if Relentless was played after the first event', function () {
-            //     const { context } = contextRef;
+            it('should not nullify a second or later event even if Relentless was played after the first event', function () {
+                const { context } = contextRef;
 
-            //     context.player1.passAction();
+                context.player1.passAction();
 
-            //     context.player2.clickCard(context.repair);
-            //     context.player2.clickCard(context.p2Base);
-            //     expect(context.p2Base.damage).toBe(2);
+                context.player2.clickCard(context.repair);
+                context.player2.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
 
-            //     context.player1.clickCard(context.relentless);
+                context.player1.clickCard(context.relentless);
 
-            //     expect(context.relentless).toBeInZone('spaceArena');
-            //     context.player2.clickCard(context.vanquish);
-            //     context.player2.clickCard(context.relentless);
-            //     expect(context.relentless).toBeInZone('discard');
-            // });
+                expect(context.relentless).toBeInZone('spaceArena');
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.relentless);
+                expect(context.relentless).toBeInZone('discard');
+            });
 
-            // it('should not nullify an event played by its controller', function () {
-            //     const { context } = contextRef;
+            it('should not nullify an event played by its controller', function () {
+                const { context } = contextRef;
 
-            //     context.player1.clickCard(context.relentless);
+                context.player1.clickCard(context.relentless);
 
-            //     context.player2.passAction();
+                context.player2.passAction();
 
-            //     context.player1.clickCard(context.daringRaid);
-            //     expect(context.p2Base.damage).toBe(5);
-            //     context.player1.clickCard(context.p2Base);
-            //     expect(context.p2Base.damage).toBe(7);
-            // });
+                context.player1.clickCard(context.daringRaid);
+                expect(context.p2Base.damage).toBe(5);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(7);
+            });
 
             it('should nullify events played with smuggle after the cost is paid', function () {
                 const { context } = contextRef;
