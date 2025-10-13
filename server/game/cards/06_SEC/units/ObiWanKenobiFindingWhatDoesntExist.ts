@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { DamageType } from '../../../core/Constants';
+import { DamageType, ZoneName } from '../../../core/Constants';
 
 export default class ObiWanKenobiFindingWhatDoesntExist extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -37,7 +37,9 @@ export default class ObiWanKenobiFindingWhatDoesntExist extends NonLeaderUnitCar
                         effect: abilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                             match: (card) => {
                                 const targetedCard = ifYouDoContext.events[0].card;
-                                return card === targetedCard && (!card.canBeInPlay() || card.mostRecentInPlayId === targetedCard.mostRecentInPlayId);
+                                return card === targetedCard &&
+                                  card.zoneName === ZoneName.Discard &&
+                                  (!card.canBeInPlay() || card.mostRecentInPlayId === targetedCard.mostRecentInPlayId);
                             }
                         }),
                         target: context.player,
