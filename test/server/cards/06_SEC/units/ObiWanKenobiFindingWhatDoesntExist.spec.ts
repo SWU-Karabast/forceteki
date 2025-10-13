@@ -219,8 +219,7 @@ describe('Obi-Wan Kenobi, Finding What Doesn\'t Exist', function() {
                 },
                 player2: {
                     groundArena: ['wampa'],
-                    // TODO REMOVE AVENGER AND FIX AID FROM THE INNOCENT CONTEXT.PLAYER
-                    deck: ['aid-from-the-innocent', 'avenger#hunting-star-destroyer']
+                    deck: ['aid-from-the-innocent']
                 }
             });
 
