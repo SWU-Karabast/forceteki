@@ -41,6 +41,7 @@ interface SnapshotUtils {
     rollbackToSnapshot: (settings: ITestGetSnapshotSettings) => boolean;
     quickRollback: (playerId: string) => void;
     takeManualSnapshot: (playerId: string) => number;
+    quickRollbackRequiresConfirmation: (playerId: string) => boolean;
 }
 
 interface SwuTestContextRef {

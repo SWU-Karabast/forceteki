@@ -23,8 +23,8 @@ describe('Undo confirmation', function() {
             context.player1.clickCard(context.republicArc170);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player1).toBeActivePlayer();
@@ -54,8 +54,8 @@ describe('Undo confirmation', function() {
             context.player1.clickCard(context.jarJarBinks);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).toHaveConfirmUndoPrompt();
@@ -91,8 +91,8 @@ describe('Undo confirmation', function() {
             context.player1.clickCard(context.republicArc170);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).toHaveConfirmUndoPrompt();
@@ -129,8 +129,8 @@ describe('Undo confirmation', function() {
             context.player1.clickCardInDisplayCardPrompt(context.restoredArc170);
             context.player1.clickDone();
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).toHaveConfirmUndoPrompt();
@@ -169,8 +169,8 @@ describe('Undo confirmation', function() {
             context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'top');
             context.player1.clickDisplayCardPromptButton(context.frontierAtrt.uuid, 'top');
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).toHaveConfirmUndoPrompt();
@@ -204,8 +204,8 @@ describe('Undo confirmation', function() {
             context.player2.clickDone();
             context.player1.clickCard(context.wampa);
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).not.toHaveConfirmUndoPrompt();
@@ -234,8 +234,8 @@ describe('Undo confirmation', function() {
             context.player1.clickCard(context.viperProbeDroid);
             context.player1.clickDone();
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).toHaveConfirmUndoPrompt();
@@ -270,8 +270,8 @@ describe('Undo confirmation', function() {
             context.player2.clickCard(context.karabast);
             context.player1.clickCard(context.atst);
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).toHaveConfirmUndoPrompt();
@@ -304,8 +304,8 @@ describe('Undo confirmation', function() {
             context.player1.clickCard(context.p2Base);
             context.player1.clickPrompt('Trigger');
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).toHaveConfirmUndoPrompt();
@@ -342,8 +342,8 @@ describe('Undo confirmation', function() {
 
             context.player1.clickCard(context.djBlatantThief);
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).toHaveConfirmUndoPrompt();
@@ -372,18 +372,18 @@ describe('Undo confirmation', function() {
             context.player1.passAction();
             context.player2.clickCard(context.atatSuppressor);
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             context.player1.clickCard(context.infernoFour);
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             context.player1.clickDisplayCardPromptButton(context.sabineWren.uuid, 'top');
             context.player1.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'bottom');
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).toHaveConfirmUndoPrompt();
@@ -421,8 +421,8 @@ describe('Undo confirmation', function() {
 
             context.player1.clickCard(context.patrollingVwing);
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).toHaveConfirmUndoPrompt();
@@ -451,8 +451,8 @@ describe('Undo confirmation', function() {
 
             context.player1.clickCard(context.patrollingVwing);
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).not.toHaveConfirmUndoPrompt();
@@ -483,8 +483,8 @@ describe('Undo confirmation', function() {
 
             context.player2.clickPrompt('Viper Probe Droid takes 7 damage');
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             contextRef.snapshot.quickRollback(context.player1.id);
             expect(context.player2).toHaveConfirmUndoPrompt();
@@ -515,8 +515,8 @@ describe('Undo confirmation', function() {
             context.player1.clickCard(context.powerOfTheDarkSide);
             context.player2.clickCard(context.viperProbeDroid);
 
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
         });
 
         it('should require confirmation to rollback in the middle of a multi-step action', async function() {
@@ -565,17 +565,17 @@ describe('Undo confirmation', function() {
             context.player2.clickDone();
 
             context.player1.clickCard(context.admiralPiett);
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeTrue();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             context.player1.clickCard(context.ahsokaTano);
             context.player2.clickCard(context.resupply);
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             context.player1.clickCard(context.battlefieldMarine);
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player1.id)).toBeFalse();
-            expect(context.game.snapshotManager.canQuickRollbackWithoutConfirmation(context.player2.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
             expect(context.player2).toBeActivePlayer();
         });

@@ -104,6 +104,7 @@ global.integration = function (definitions, enableUndo = false) {
                 countAvailableManualSnapshots: (playerId) => newContext.game.countAvailableManualSnapshots(playerId),
                 hasAvailableQuickSnapshot: (playerId) => newContext.game.hasAvailableQuickSnapshot(playerId),
                 takeManualSnapshot: (playerId) => newContext.game.takeManualSnapshot(playerId),
+                quickRollbackRequiresConfirmation: (playerId) => newContext.game.snapshotManager.getQuickRollbackInformation(playerId).requiresConfirmation,
             };
 
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');

@@ -4,7 +4,7 @@ import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
-import type { IRollbackRoundEntryPoint, IRollbackSetupEntryPoint } from './SnapshotInterfaces';
+import type { ICanRollBackResult, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint } from './SnapshotInterfaces';
 import { SnapshotTimepoint } from './SnapshotInterfaces';
 import { RollbackEntryPointType, type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
@@ -67,6 +67,10 @@ export class SnapshotManager {
         return this.snapshotFactory.currentSnapshottedAction;
     }
 
+    public get currentSnapshottedActivePlayer(): string | null {
+        return this.snapshotFactory.currentSnapshottedActivePlayer;
+    }
+
     public get currentSnapshottedPhase(): PhaseName | null {
         return this.snapshotFactory.currentSnapshottedPhase;
     }
@@ -112,6 +116,10 @@ export class SnapshotManager {
             // if undo is not enabled, still do explicit GO cleanup to avoid heavy memory usage
             this._gameStateManager.removeUnusedGameObjects();
             return;
+        }
+
+        if (timepoint === SnapshotTimepoint.Action) {
+            this.snapshotFactory.setNextSnapshotIsSamePlayer(this.game.actionPhaseActivePlayer.id === this.currentSnapshottedActivePlayer);
         }
 
         this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint);
@@ -257,16 +265,16 @@ export class SnapshotManager {
         return { success: false };
     }
 
-    public requiresConfirmationToRollbackTo(settings: IGetSnapshotSettings): boolean {
+    public getRollbackInformation(settings: IGetSnapshotSettings): ICanRollBackResult {
         switch (settings.type) {
             case SnapshotType.Action:
-                return this.actionSnapshots.getSnapshotProperties(settings.playerId, this.checkGetOffset(settings.actionOffset))?.requiresConfirmationToRollback ?? false;
+                return { requiresConfirmation: this.actionSnapshots.getSnapshotProperties(settings.playerId, this.checkGetOffset(settings.actionOffset))?.requiresConfirmationToRollback ?? true };
             case SnapshotType.Manual:
-                return this.manualSnapshots.get(settings.playerId)?.getSnapshotProperties(settings.snapshotId)?.requiresConfirmationToRollback ?? true;
+                return { requiresConfirmation: this.manualSnapshots.get(settings.playerId)?.getSnapshotProperties(settings.snapshotId)?.requiresConfirmationToRollback ?? true };
             case SnapshotType.Phase:
-                return this.phaseSnapshots.getSnapshotProperties(settings.phaseName, this.checkGetOffset(settings.phaseOffset))?.requiresConfirmationToRollback ?? true;
+                return { requiresConfirmation: this.phaseSnapshots.getSnapshotProperties(settings.phaseName, this.checkGetOffset(settings.phaseOffset))?.requiresConfirmationToRollback ?? true };
             case SnapshotType.Quick:
-                return !this.canQuickRollbackWithoutConfirmation(settings.playerId);
+                return this.getQuickRollbackInformation(settings.playerId);
             default:
                 throw new Error(`Unimplemented snapshot type in requiresConfirmationToRollbackTo: ${JSON.stringify(settings)}`);
         }
@@ -406,14 +414,20 @@ export class SnapshotManager {
         return this.quickSnapshots.get(playerId)?.hasQuickSnapshot(rollbackPoint) ?? false;
     }
 
-    public canQuickRollbackWithoutConfirmation(playerId: string): boolean {
+    public getQuickRollbackInformation(playerId: string): ICanRollBackResult {
         const rollbackPoint = this.getQuickRollbackPoint(playerId);
         const quickSnapshotProperties = this.quickSnapshots.get(playerId)?.getSnapshotProperties(rollbackPoint);
+        const isSameTimepoint = quickSnapshotProperties.snapshotId === this.currentSnapshotId;
+
         if (!quickSnapshotProperties) {
-            return false;
+            return { requiresConfirmation: true, isSameTimepoint };
         }
 
-        return !quickSnapshotProperties.requiresConfirmationToRollback;
+        if (rollbackPoint !== QuickRollbackPoint.Current && !quickSnapshotProperties.nextSnapshotIsSamePlayer) {
+            return { requiresConfirmation: true, isSameTimepoint };
+        }
+
+        return { requiresConfirmation: quickSnapshotProperties.requiresConfirmationToRollback, isSameTimepoint };
     }
 
     public setRequiresConfirmationToRollbackCurrentSnapshot(playerId: string) {

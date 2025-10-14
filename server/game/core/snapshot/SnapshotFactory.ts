@@ -35,27 +35,31 @@ export class SnapshotFactory {
     private lastAssignedSnapshotId = -1;
 
     public get currentSnapshotId(): number | null {
-        return this.currentActionSnapshot?.id ?? null;
+        return this.currentActionSnapshot?.id;
     }
 
     public get currentSnapshottedAction(): number | null {
-        return this.currentActionSnapshot?.actionNumber ?? null;
+        return this.currentActionSnapshot?.actionNumber;
+    }
+
+    public get currentSnapshottedActivePlayer(): string | null {
+        return this.currentActionSnapshot?.activePlayerId;
     }
 
     public get currentSnapshottedPhase(): PhaseName | null {
-        return this.currentActionSnapshot?.phase ?? null;
+        return this.currentActionSnapshot?.phase;
     }
 
     public get currentSnapshottedRound(): number | null {
-        return this.currentActionSnapshot?.roundNumber ?? null;
+        return this.currentActionSnapshot?.roundNumber;
     }
 
     public get currentSnapshottedTimepoint(): SnapshotTimepoint | null {
-        return this.currentActionSnapshot?.timepoint ?? null;
+        return this.currentActionSnapshot?.timepoint;
     }
 
     public get currentSnapshotRequiresConfirmationToRollback(): boolean | null {
-        return this.currentActionSnapshot?.requiresConfirmationToRollback ?? null;
+        return this.currentActionSnapshot?.requiresConfirmationToRollback;
     }
 
     public constructor(game: Game, gameStateManager: GameStateManager) {
@@ -145,11 +149,18 @@ export class SnapshotFactory {
             states: this.gameStateManager.buildGameStateForSnapshot(),
             rngState: this.game.randomGenerator.rngState,
             requiresConfirmationToRollback: false,
+            activePlayerId: this.game.actionPhaseActivePlayer?.id
         };
 
         this.lastAssignedSnapshotId = nextSnapshotId;
 
         this.currentActionSnapshot = snapshot;
+    }
+
+    public setNextSnapshotIsSamePlayer(value: boolean) {
+        if (this.currentActionSnapshot) {
+            this.currentActionSnapshot.nextSnapshotIsSamePlayer = value;
+        }
     }
 
     /**

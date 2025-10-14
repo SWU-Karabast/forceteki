@@ -56,6 +56,7 @@ const { Lobby } = require('../../gamenode/Lobby.js');
 const { DiscordDispatcher } = require('./DiscordDispatcher.js');
 const { GameStatisticsLogger } = require('../../gameStatistics/GameStatisticsTracker.js');
 const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
+const { QuickRollbackPoint } = require('./snapshot/container/MetaSnapshotArray.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -2018,6 +2019,8 @@ class Game extends EventEmitter {
             return false;
         }
 
+        const rollbackInformation = this.snapshotManager.getRollbackInformation(settings);
+
         let message;
         switch (settings.type) {
             case SnapshotType.Manual:
@@ -2027,6 +2030,8 @@ class Game extends EventEmitter {
                 message = `the start of the ${settings.phaseName} phase (round ${this.roundNumber})`;
                 break;
             case SnapshotType.Quick:
+                message = `their ${rollbackInformation.isSameTimepoint ? 'current' : 'previous'} action`;
+                break;
             case SnapshotType.Action:
                 message = 'their previous action';
                 break;
@@ -2052,7 +2057,7 @@ class Game extends EventEmitter {
         if (
             this.enableConfirmationToUndo &&
             (
-                this.snapshotManager.requiresConfirmationToRollbackTo(settings) ||
+                rollbackInformation.requiresConfirmation ||
                 this.opponentHasRevealedInformationOnTheirTurn(playerId)
             )
         ) {

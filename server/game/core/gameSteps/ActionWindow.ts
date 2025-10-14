@@ -27,8 +27,7 @@ export class ActionWindow extends UiPrompt {
         prevPlayerPassed: boolean,
         setPassStatus: (passed: boolean) => boolean,
         actionNumber: number,
-        snapshotManager: SnapshotManager,
-        activePlayer?: Player
+        snapshotManager: SnapshotManager
     ) {
         super(game);
         this.prevPlayerPassed = prevPlayerPassed;
@@ -36,7 +35,7 @@ export class ActionWindow extends UiPrompt {
         this.snapshotManager = snapshotManager;
         this.actionNumber = actionNumber;
 
-        this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
+        this.activePlayer = this.game.actionPhaseActivePlayer;
         this.activePlayer.actionTimer.stop();
 
         Contract.assertNotNullLike(this.activePlayer);
