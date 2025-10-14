@@ -417,7 +417,7 @@ export class SnapshotManager {
     public getQuickRollbackInformation(playerId: string): ICanRollBackResult {
         const rollbackPoint = this.getQuickRollbackPoint(playerId);
         const quickSnapshotProperties = this.quickSnapshots.get(playerId)?.getSnapshotProperties(rollbackPoint);
-        const isSameTimepoint = quickSnapshotProperties.snapshotId === this.currentSnapshotId;
+        const isSameTimepoint = quickSnapshotProperties?.snapshotId === this.currentSnapshotId;
 
         if (!quickSnapshotProperties) {
             return { requiresConfirmation: true, isSameTimepoint };
