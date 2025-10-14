@@ -57,6 +57,7 @@ const { DiscordDispatcher } = require('./DiscordDispatcher.js');
 const { GameStatisticsLogger } = require('../../gameStatistics/GameStatisticsTracker.js');
 const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
 const { QuickRollbackPoint } = require('./snapshot/container/MetaSnapshotArray.js');
+const { PerGameUndoLimit, UnlimitedUndoLimit } = require('./snapshot/UndoLimit.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -241,6 +242,12 @@ class Game extends EventEmitter {
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
         this.enableConfirmationToUndo = details.enableConfirmationToUndo ?? false;
+
+        /** @private @type {import('./snapshot/UndoLimit.js').UndoLimit} */
+        this.freeUndoLimit = details.enableConfirmationToUndo
+            ? new PerGameUndoLimit(1)
+            : new UnlimitedUndoLimit();
+
         this.owner = details.owner;
         this.started = false;
         this.statsUpdated = false;
@@ -1969,6 +1976,18 @@ class Game extends EventEmitter {
         }
     }
 
+    /** @param {boolean} enabled */
+    setUndoConfirmationRequired(enabled) {
+        if (this.enableConfirmationToUndo === enabled) {
+            return;
+        }
+
+        this.enableConfirmationToUndo = enabled;
+        this.freeUndoLimit = enabled
+            ? new PerGameUndoLimit(1)
+            : new UnlimitedUndoLimit();
+    }
+
     /** @param {string} playerId */
     countAvailableActionSnapshots(playerId) {
         Contract.assertNotNullLike(playerId);
@@ -2050,14 +2069,14 @@ class Game extends EventEmitter {
             }
 
             this.addAlert(AlertType.Notification, '{0} has rolled back to {1}', this.getPlayerById(playerId), message);
-
-            return result;
+            return true;
         };
 
         if (
             this.enableConfirmationToUndo &&
             (
                 rollbackInformation.requiresConfirmation ||
+                this.freeUndoLimit.hasReachedLimit(playerId) ||
                 this.opponentHasRevealedInformationOnTheirTurn(playerId)
             )
         ) {
@@ -2082,7 +2101,13 @@ class Game extends EventEmitter {
             return true;
         }
 
-        return performRollback();
+        const result = performRollback();
+
+        if (result) {
+            this.freeUndoLimit.incrementUses(playerId);
+        }
+
+        return result;
     }
 
     /**
