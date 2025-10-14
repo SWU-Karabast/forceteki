@@ -21,7 +21,7 @@ export default class FirstLightThreateningElegance extends NonLeaderUnitCard {
                     event.isDefeatedByAttacker &&
                     DefeatCardSystem.defeatSourceCard(event) === context.source
             },
-            immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
+            immediateEffect: AbilityHelper.immediateEffects.draw()
         });
     }
 }
