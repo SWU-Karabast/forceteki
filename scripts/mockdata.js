@@ -2205,7 +2205,7 @@ const mockCards = [
         title: 'Queen Amidala',
         subtitle: 'Championing Her People',
         power: 5,
-        hp: 5,
+        hp: 3,
         hasNonKeywordAbility: true,
         aspects: ['command', 'heroism'],
         types: ['unit'],
