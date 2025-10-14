@@ -618,6 +618,84 @@ describe('Undo confirmation', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
+            it('each player gets their own free undo before their limit is reached', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine', 'consular-security-force'],
+                        spaceArena: ['republic-arc170']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'atst'],
+                        spaceArena: ['tie-advanced']
+                    },
+                    enableConfirmationToUndo: true
+                });
+
+                const { context } = contextRef;
+
+                // P1 attacks base with Battlefield Marine
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                // Undo the attack (free undo, no confirmation required)
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).not.toHaveConfirmUndoPrompt();
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.player1).toBeActivePlayer();
+
+                // P1 attacks base with Republic ARC-170 instead
+                context.player1.clickCard(context.republicArc170);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(3);
+
+                // P2 attacks base with Wampa
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+
+                // Undo the attack (free undo, no confirmation required)
+                contextRef.snapshot.quickRollback(context.player2.id);
+                expect(context.player1).not.toHaveConfirmUndoPrompt();
+                expect(context.wampa.exhausted).toBeFalse();
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+
+                // P2 attacks base with TIE Advanced instead
+                context.player2.clickCard(context.tieAdvanced);
+                context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(3);
+
+                // P1 attacks base with Battlefield Marine
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                // Undo the attack (no longer free undo, confirmation required)
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt();
+                context.player2.clickPrompt('Allow');
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.player1).toBeActivePlayer();
+
+                // P1 attacks base with Consular Security Force instead
+                context.player1.clickCard(context.consularSecurityForce);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(6);
+
+                // P2 attacks base with Wampa
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.p1Base);
+
+                // Undo the attack (no longer free undo, confirmation required)
+                contextRef.snapshot.quickRollback(context.player2.id);
+                expect(context.player1).toHaveConfirmUndoPrompt();
+                context.player1.clickPrompt('Allow');
+                expect(context.wampa.exhausted).toBeFalse();
+                expect(context.p1Base.damage).toBe(3);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('actions which require confirmation are not free, and do not count against the free undo limit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
