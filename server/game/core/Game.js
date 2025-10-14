@@ -248,6 +248,9 @@ class Game extends EventEmitter {
         this.preUndoStateForError = null;
 
         /** @private @type {boolean} */
+        this._gameStateChangedSinceLastTimepoint = false;
+
+        /** @private @type {boolean} */
         this._serializationFailure = false;
 
         this.playerHasBeenPrompted = new Map();
@@ -723,6 +726,16 @@ class Game extends EventEmitter {
     //         record.typeSwitched = conflict.conflictTypeSwitched;
     //     }
     // }
+
+    setGameStateChanged() {
+        this._gameStateChangedSinceLastTimepoint = true;
+    }
+
+    resetForNewTimepoint() {
+        for (const player of this.getPlayers()) {
+            player.hasResolvedAbilityThisTimepoint = false;
+        }
+    }
 
     restartAllActionTimers() {
         this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
@@ -1995,10 +2008,11 @@ class Game extends EventEmitter {
      *
      * @param {string} playerId - The ID of the player requesting the rollback
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
+     * @return True if the rollback was successful or we prompted the opponent to confirm, false otherwise
      */
     rollbackToSnapshot(playerId, settings) {
         if (!this.isUndoEnabled) {
-            return;
+            return false;
         }
 
         let message;
@@ -2018,17 +2032,27 @@ class Game extends EventEmitter {
                 Contract.fail(`Unknown snapshot type: ${settings.type}`);
         }
 
+        const rollbackHandler = this._snapshotManager.buildRollbackHandler(settings);
+
         const performRollback = () => {
-            const result = this.rollbackToSnapshotInternal(settings);
+            const result = this.rollbackToSnapshotInternal(settings, rollbackHandler);
 
             if (!result) {
-                return;
+                return false;
             }
 
             this.addAlert(AlertType.Notification, '{0} has rolled back to {1}', this.getPlayerById(playerId), message);
+
+            return result;
         };
 
-        if (this.enableConfirmationToUndo && this.snapshotManager.requiresConfirmationToRollbackTo(settings)) {
+        if (
+            this.enableConfirmationToUndo &&
+            (
+                this.snapshotManager.requiresConfirmationToRollbackTo(settings) ||
+                this.opponentHasRevealedInformationOnTheirTurn(playerId)
+            )
+        ) {
             let undoTypePromptMessage = message;
             if (settings.type !== SnapshotType.Quick && settings.type !== SnapshotType.Action) {
                 undoTypePromptMessage = `to ${message}`;
@@ -2046,16 +2070,34 @@ class Game extends EventEmitter {
                     }
                 ]
             });
-        } else {
-            performRollback();
+
+            return true;
         }
+
+        return performRollback();
+    }
+
+    /**
+     * @private
+     * @param {string} playerId
+     */
+    opponentHasRevealedInformationOnTheirTurn(playerId) {
+        const player = this.getPlayerById(playerId);
+        const opponent = player.opponent;
+
+        // if it's the undoing player's action, no risk of revealed information
+        if (this.currentPhase === PhaseName.Action && this.actionPhaseActivePlayer === player) {
+            return false;
+        }
+
+        return !!opponent.hasResolvedAbilityThisTimepoint;
     }
 
     /**
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings
      * @returns True if a snapshot was restored, false otherwise
      */
-    rollbackToSnapshotInternal(settings) {
+    rollbackToSnapshotInternal(settings, rollbackHandler = null) {
         if (!this.isUndoEnabled) {
             return false;
         }
@@ -2066,7 +2108,7 @@ class Game extends EventEmitter {
         try {
             this.preUndoStateForError = { gameState: this.captureGameState('any'), settings };
 
-            rollbackResult = this._snapshotManager.rollbackTo(settings);
+            rollbackResult = rollbackHandler ? rollbackHandler() : this._snapshotManager.rollbackTo(settings);
 
             if (!rollbackResult.success) {
                 return false;
@@ -2093,6 +2135,8 @@ class Game extends EventEmitter {
                     gameStates
                 });
             }
+
+            return rollbackResult.success;
         } catch (error) {
             if (process.env.NODE_ENV !== 'test') {
                 this.reportSevereRollbackFailure(error);
@@ -2102,8 +2146,6 @@ class Game extends EventEmitter {
         } finally {
             this.preUndoStateForError = null;
         }
-
-        return true;
     }
 
     reportSevereRollbackFailure(error) {

@@ -280,6 +280,8 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         this.resolutionComplete = true;
         if (this.costResults.events.length > 0) {
+            this.context.player.hasResolvedAbilityThisTimepoint = true;
+
             this.game.openEventWindow(this.costResults.events);
         }
     }
@@ -302,6 +304,10 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         const ability = this.context.ability;
 
+        if (ability.hasTargetsChosenByPlayer(this.context, this.context.player.opponent)) {
+            this.context.player.hasResolvedAbilityThisTimepoint = true;
+        }
+
         if (this.context.ability.hasTargets() && !ability.hasSomeLegalTarget(this.context) && !ability.canResolveWithoutLegalTargets) {
             // Ability cannot resolve, so display a message and cancel it
             this.game.addMessage('{0} attempted to use {1}, but there are insufficient legal targets', this.context.player, this.context.source);
@@ -323,6 +329,8 @@ export class AbilityResolver extends BaseStepWithPipeline {
             }
             return;
         }
+
+        this.context.player.hasResolvedAbilityThisTimepoint = true;
 
         // Increment limits (limits aren't used up on cards in hand)
         if (this.context.ability.limit && this.context.source.zoneName !== ZoneName.Hand &&

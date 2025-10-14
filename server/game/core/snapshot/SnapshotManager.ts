@@ -106,6 +106,8 @@ export class SnapshotManager {
 
     /** Indicates that we're on a new action and that a new action snapshot can be taken */
     public moveToNextTimepoint(timepoint: SnapshotTimepoint) {
+        this.game.resetForNewTimepoint();
+
         if (this.undoMode === UndoMode.Disabled) {
             // if undo is not enabled, still do explicit GO cleanup to avoid heavy memory usage
             this._gameStateManager.removeUnusedGameObjects();
@@ -215,6 +217,17 @@ export class SnapshotManager {
             return { success: false };
         }
 
+        return this.rollbackToInternal(settings);
+    }
+
+    public buildRollbackHandler(settings: IGetSnapshotSettings): () => IRollbackResult {
+        const quickRollbackPoint = settings.type === SnapshotType.Quick ? this.getQuickRollbackPoint(settings.playerId) : null;
+        return () => this.rollbackToInternal(settings, quickRollbackPoint);
+    }
+
+    private rollbackToInternal(settings: IGetSnapshotSettings, overrideQuickRollbackPoint?: QuickRollbackPoint): IRollbackResult {
+        Contract.assertFalse(settings.type !== SnapshotType.Quick && overrideQuickRollbackPoint != null, 'overrideQuickRollbackPoint can only be set when rolling back a Quick snapshot');
+
         let rolledBackSnapshotIdx: number = null;
         switch (settings.type) {
             case SnapshotType.Action:
@@ -227,7 +240,8 @@ export class SnapshotManager {
                 rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName, this.checkGetOffset(settings.phaseOffset));
                 break;
             case SnapshotType.Quick:
-                rolledBackSnapshotIdx = this.quickRollback(settings.playerId);
+                const rollbackPoint = overrideQuickRollbackPoint ?? this.getQuickRollbackPoint(settings.playerId);
+                rolledBackSnapshotIdx = this.quickRollback(settings.playerId, rollbackPoint);
                 break;
             default:
                 throw new Error(`Unimplemented snapshot type in rollbackTo: ${JSON.stringify(settings)}`);
@@ -258,9 +272,7 @@ export class SnapshotManager {
         }
     }
 
-    private quickRollback(playerId: string): number | null {
-        const rollbackPoint = this.getQuickRollbackPoint(playerId);
-
+    private quickRollback(playerId: string, rollbackPoint: QuickRollbackPoint): number | null {
         const snapshotId = this.quickSnapshots.get(playerId).rollbackToSnapshot(rollbackPoint);
 
         if (snapshotId == null) {
