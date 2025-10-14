@@ -15,9 +15,7 @@ export default class CorellianHounds extends NonLeaderUnitCard {
         registrar.addConstantAbility({
             title: 'This unit enters play ready',
             sourceZoneFilter: WildcardZoneName.Any,
-            condition: (context) => {
-                return context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena }).length === 0;
-            },
+            condition: (context) => context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena }).length === 0,
             ongoingEffect: OngoingEffectBuilder.card.static(EffectName.EntersPlayReady)
         });
     }
