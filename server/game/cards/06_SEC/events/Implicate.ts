@@ -13,7 +13,7 @@ export default class Implicate extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Choose a unit.  For this phase, it gains Sentinel and :When this unit is attacked: Create a Spy token"',
+            title: 'Choose a unit. For this phase, it gains Sentinel and When this unit is attacked: Create a Spy token"',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({

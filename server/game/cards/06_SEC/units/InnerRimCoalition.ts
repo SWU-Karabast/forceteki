@@ -16,7 +16,6 @@ export default class InnerRimCoalition extends NonLeaderUnitCard {
             title: 'Ready a unit that costs 5 or less',
             optional: true,
             targetResolver: {
-                zoneFilter: WildcardZoneName.AnyArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.hasCost() && card.cost <= 5,
                 immediateEffect: AbilityHelper.immediateEffects.ready()
