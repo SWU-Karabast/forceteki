@@ -68,6 +68,41 @@ describe('L3-37, Droid Revolutionary ability', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.l337DroidRevolutionary).toHaveExactUpgradeNames(['shield']);
             });
+
+            it('can rescue units captured by a base', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['l337#droid-revolutionary'],
+                        base: {
+                            card: 'echo-base',
+                            capturedUnits: ['wampa']
+                        }
+                    },
+                    player2: {
+                        base: {
+                            card: 'command-center',
+                            capturedUnits: ['reinforcement-walker']
+                        }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play L3-37 to rescue a captured unit
+                context.player1.clickCard(context.l337);
+
+                // All captured units should be valid targets
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.reinforcementWalker]);
+
+                // Rescue Reinforcement Walker
+                context.player1.clickCard(context.reinforcementWalker);
+
+                expect(context.reinforcementWalker).toBeInZone('groundArena', context.player1);
+                expect(context.reinforcementWalker.exhausted).toBeTrue();
+                expect(context.commandCenter.capturedUnits.length).toBe(0);
+                expect(context.echoBase.capturedUnits.length).toBe(1);
+            });
         });
     });
 });
