@@ -1271,7 +1271,7 @@ const mockCards = [
         hp: 3,
         hasNonKeywordAbility: false,
         keywords: ['hidden'],
-        aspects: ['aggression', 'heroism'],
+        aspects: ['aggression', 'villainy'],
         types: ['unit'],
         traits: ['republic', 'vehicle', 'fighter'],
         setId: {
@@ -1856,7 +1856,7 @@ const mockCards = [
         title: 'Remote Escort Tank',
         power: 5,
         hp: 5,
-        hasNonKeywordAbility: false,
+        hasNonKeywordAbility: true,
         aspects: ['heroism'],
         keywords: ['plot'],
         types: ['unit'],
