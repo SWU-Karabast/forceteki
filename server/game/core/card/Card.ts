@@ -16,6 +16,7 @@ import type { MoveZoneDestination } from '../Constants';
 import { ChatObjectType, KeywordName } from '../Constants';
 import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
+import * as Helpers from '../utils/Helpers';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
@@ -775,6 +776,33 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     // *************************************** EFFECT HELPERS ***************************************
     public isBlank(): boolean {
         return this.hasOngoingEffect(EffectName.Blank);
+    }
+
+    public isFullyBlanked(): boolean {
+        if (!this.isBlank()) {
+            return false;
+        }
+
+        // If *any* blanking effects have no exclusions, the card is fully blanked
+        return this.getOngoingEffectValues(EffectName.Blank)
+            .some((value) => !value.excludedAbilities || value.excludedAbilities.length === 0);
+    }
+
+    public hasKeywordRemoved(keyword: KeywordName): boolean {
+        if (this.isFullyBlanked()) {
+            return true;
+        }
+
+        const isBlank = this.isBlank();
+        const keywordExcludedFromBlankEffect = this.getOngoingEffectValues(EffectName.Blank)
+            .flatMap((value) => value.excludedAbilities ?? [])
+            .includes(keyword);
+
+        const isSpecificallyRemoved = this.getOngoingEffectValues(EffectName.LoseKeyword)
+            .flatMap((x) => Helpers.asArray(x))
+            .includes(keyword);
+
+        return isSpecificallyRemoved || (isBlank && !keywordExcludedFromBlankEffect);
     }
 
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {

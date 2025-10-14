@@ -1,0 +1,90 @@
+describe('Exiled From the Force', function () {
+    integration(function (contextRef) {
+        it('removes the Force trait from the attached unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['exiled-from-the-force', 'constructed-lightsaber'],
+                    groundArena: ['secretive-sage', 'youngling-padawan']
+                },
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            // Play Exiled From the Force on Secretive Sage
+            context.player1.clickCard(context.exiledFromTheForce);
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.secretiveSage,
+                context.younglingPadawan
+            ]);
+            context.player1.clickCard(context.secretiveSage);
+
+            context.player2.passAction();
+
+            // Play Constructed Lightsaber
+            context.player1.clickCard(context.constructedLightsaber);
+            expect(context.player1).toBeAbleToSelectExactly([
+                // Secretive Sage no longer has the Force trait, so its not a valid target
+                context.younglingPadawan
+            ]);
+            context.player1.clickCard(context.younglingPadawan);
+        });
+
+        it('removes all abilities except Grit from the attached unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['exiled-from-the-force'],
+                    spaceArena: ['home-one#alliance-flagship'],
+                    groundArena: [
+                        {
+                            card: 'jedi-guardian',
+                            damage: 4,
+                            upgrades: [
+                                'protector',
+                                'inspiring-mentor'
+                            ]
+                        }
+                    ]
+                },
+                player2: {
+                    groundArena: ['atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Sanity check - Jedi Guardian should have 6 power, Sentinel and Restore 1
+            expect(context.jediGuardian.getPower()).toBe(6);
+            expect(context.jediGuardian.hasSomeKeyword('grit')).toBeFalse();
+            expect(context.jediGuardian.hasSomeKeyword('sentinel')).toBeTrue();
+            expect(context.jediGuardian.hasSomeKeyword('restore')).toBeTrue();
+
+            // Play Exiled From the Force on Jedi Guardian
+            context.player1.clickCard(context.exiledFromTheForce);
+            expect(context.player1).toBeAbleToSelectExactly([context.jediGuardian, context.homeOne, context.atst]);
+            context.player1.clickCard(context.jediGuardian);
+
+            // Jedi Guardian now has Grit but loses Sentinel and Restore 1
+            expect(context.jediGuardian.getPower()).toBe(10);
+            expect(context.jediGuardian.hasSomeKeyword('grit')).toBeTrue();
+            expect(context.jediGuardian.hasSomeKeyword('sentinel')).toBeFalse();
+            expect(context.jediGuardian.hasSomeKeyword('restore')).toBeFalse();
+
+            // P2 can attack base with AT-ST because Jedi Guardian no longer has Sentinel
+            context.player2.clickCard(context.atst);
+            expect(context.player2).toBeAbleToSelect(context.p1Base);
+            context.player2.clickCard(context.p1Base);
+            expect(context.p1Base.damage).toBe(6);
+
+            // Jedi Guardian attacks base
+            context.player1.clickCard(context.jediGuardian);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(10);
+            expect(context.p1Base.damage).toBe(6); // No damage restored
+            expect(context.homeOne.upgrades.length).toBe(0); // No experience given from Inspiring Mentor's ability
+            expect(context.player2).toBeActivePlayer();
+        });
+    });
+});
