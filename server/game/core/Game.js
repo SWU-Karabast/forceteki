@@ -241,9 +241,12 @@ class Game extends EventEmitter {
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
         this.enableConfirmationToUndo = details.enableConfirmationToUndo ?? false;
+
+        /** @private @type {import('./snapshot/UndoLimit.js').UndoLimit} */
         this.freeUndoLimit = details.enableConfirmationToUndo
             ? new PerGameUndoLimit(1)
             : new UnlimitedUndoLimit();
+
         this.owner = details.owner;
         this.started = false;
         this.statsUpdated = false;
@@ -1957,6 +1960,18 @@ class Game extends EventEmitter {
         } catch (e) {
             this.reportSerializationFailure(e);
         }
+    }
+
+    /** @param {boolean} enabled */
+    setUndoConfirmationRequired(enabled) {
+        if (this.enableConfirmationToUndo === enabled) {
+            return;
+        }
+
+        this.enableConfirmationToUndo = enabled;
+        this.freeUndoLimit = enabled
+            ? new PerGameUndoLimit(1)
+            : new UnlimitedUndoLimit();
     }
 
     /** @param {string} playerId */

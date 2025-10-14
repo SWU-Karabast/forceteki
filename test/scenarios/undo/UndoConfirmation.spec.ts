@@ -579,5 +579,130 @@ describe('Undo confirmation', function() {
 
             expect(context.player2).toBeActivePlayer();
         });
+
+        describe('Free undo limits', function() {
+            it('actions which require no confirmation are free, and count against the free undo limit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine'],
+                        spaceArena: ['republic-arc170']
+                    },
+                    enableConfirmationToUndo: true
+                });
+
+                const { context } = contextRef;
+
+                // P1 attacks base with Battlefield Marine
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                // Undo the attack (free undo, no confirmation required)
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).not.toHaveConfirmUndoPrompt();
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.player1).toBeActivePlayer();
+
+                // P1 attacks base with Republic ARC-170, free undo has been consumed
+                context.player1.clickCard(context.republicArc170);
+                context.player1.clickCard(context.p2Base);
+
+                // Undo the attack (no longer free undo, confirmation required)
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt();
+                context.player2.clickPrompt('Allow');
+
+                expect(context.republicArc170.exhausted).toBeFalse();
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('actions which require confirmation are not free, and do not count against the free undo limit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['favorable-delegate'],
+                        groundArena: ['battlefield-marine', 'fighters-for-freedom'],
+                        deck: ['reinforcement-walker']
+                    },
+                    enableConfirmationToUndo: true
+                });
+
+                const { context } = contextRef;
+
+                // P1 plays Favorable Delegate and draws Reinforcement Walker to hand
+                context.player1.clickCard(context.favorableDelegate);
+                expect(context.reinforcementWalker).toBeInZone('hand', context.player1);
+
+                // Undo playing Favorable Delegate (confirmation required)
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt();
+                context.player2.clickPrompt('Allow');
+
+                expect(context.favorableDelegate).toBeInZone('hand', context.player1);
+                expect(context.reinforcementWalker).toBeInZone('deck', context.player1);
+                expect(context.player1).toBeActivePlayer();
+
+                // Attack base with Fighters for Freedom instead
+                context.player1.clickCard(context.fightersForFreedom);
+                context.player1.clickCard(context.p2Base);
+                context.player2.claimInitiative();
+
+                // Attack base with Battlefield Marine
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                // Undo the Battlefield Marine attack (free undo hasn't been consumed, so no confirmation required)
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).not.toHaveConfirmUndoPrompt();
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.p2Base.damage).toBe(3); // Only damage from Fighters for Freedom, not Battlefield Marine
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('is unlimited when confirmation to undo is disabled', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine'],
+                        spaceArena: ['republic-arc170']
+                    },
+                    enableConfirmationToUndo: false
+                });
+
+                const { context } = contextRef;
+
+                // P1 attacks base with Battlefield Marine
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                // Undo the Battlefield Marine attack (no confirmation required)
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).not.toHaveConfirmUndoPrompt();
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.player1).toBeActivePlayer();
+
+                // P1 attacks base with Republic ARC-170 instead
+                context.player1.clickCard(context.republicArc170);
+                context.player1.clickCard(context.p2Base);
+
+                // Undo the Republic ARC-170 attack (still no confirmation required)
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).not.toHaveConfirmUndoPrompt();
+                expect(context.republicArc170.exhausted).toBeFalse();
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.player1).toBeActivePlayer();
+
+                // P1 claims initiative
+                context.player1.claimInitiative();
+
+                // Undo claiming initiative (still no confirmation required)
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).not.toHaveConfirmUndoPrompt();
+                expect(context.player1).toBeActivePlayer();
+            });
+        });
     });
 });
