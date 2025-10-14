@@ -87,7 +87,7 @@ describe('Implicate', function () {
                 expect(spies[1].exhausted).toBeTrue();
                 expect(context.republicYwing.damage).toBe(2);
 
-                // move to next phase 
+                // move to next phase
                 context.moveToNextActionPhase();
                 context.player1.passAction();
                 context.player2.clickCard(context.republicYwing);

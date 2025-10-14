@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class InnerRimCoalition extends NonLeaderUnitCard {
     protected override getImplementationId() {
