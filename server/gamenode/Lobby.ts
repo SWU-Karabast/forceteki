@@ -60,7 +60,6 @@ export interface PlayerDetails {
     leaderID: string;
     baseID: string;
     deck: IDecklistInternal;
-    swuStatsRefreshToken: string | null;
     isDeckPresentInDb: boolean;
     swuStatsToken: ISwuStatsToken;
 }
@@ -764,7 +763,6 @@ export class Lobby {
                     deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
                     deck: user.deck.getDecklist(),
                     isDeckPresentInDb: user.decklist.isPresentInDb,
-                    swuStatsRefreshToken: user.socket.user.getSwuStatsRefreshToken(),
                     swuStatsToken: this.server.swuStatsTokenMapping.get(user.id),
                 });
             });

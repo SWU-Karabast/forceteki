@@ -406,6 +406,30 @@ export class UserFactory {
     }
 
     /**
+     * Fetches the SWUstats refresh token for a user
+     * @param user The user object
+     * @returns The refresh token
+     */
+    public async getUserSwuStatsRefreshTokenAsync(user: User): Promise<string | null> {
+        Contract.assertNotNullLike(user, 'user is required');
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(user.getId());
+
+            if (!userProfile) {
+                throw new Error(`No user profile found for userId ${user.getId()}`);
+            }
+            return userProfile.swuStatsRefreshToken;
+        } catch (error: any) {
+            logger.error('Error refreshing user SWUstats token:', {
+                error: { message: error.message, stack: error.stack },
+                userId: user.getId()
+            });
+            throw error;
+        }
+    }
+
+    /**
      * Remove the SWUstats refresh token (unlink account).
      */
     public async unlinkSwuStatsAsync(userId: string): Promise<void> {

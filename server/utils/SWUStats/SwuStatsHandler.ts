@@ -157,6 +157,8 @@ export class SwuStatsHandler {
             });
             if (!response.ok) {
                 const errorText = await response.text();
+                // TODO catch the error and try again.
+
                 throw new Error(`SWUStats API returned error: ${response.status} - ${errorText}`);
             }
             logger.info(`Successfully sent game result to SWUStats for game ${game.id}`, { lobbyId });
@@ -343,22 +345,22 @@ export class SwuStatsHandler {
     private async getAccessTokenAsync(
         playerDetails: PlayerDetails,
         lobbyId: string,
-        serverObject: GameServer
+        serverObject: GameServer,
+        forceRefresh: boolean = false,
     ): Promise<string | null> {
         let playerAccessToken: string = null;
         // Handle Player swu token
-        if (playerDetails.swuStatsToken && this.isTokenValid(playerDetails.swuStatsToken)) {
+        if (playerDetails.swuStatsToken && this.isTokenValid(playerDetails.swuStatsToken) && !forceRefresh) {
             playerAccessToken = playerDetails.swuStatsToken.accessToken;
             logger.info(`SWUStatsHandler: Using existing valid access token for player (${playerDetails.user.getId()})`, { lobbyId, userId: playerDetails.user.getId() });
-        } else if (playerDetails.swuStatsRefreshToken) {
+        } else if (playerDetails.swuStatsToken) {
             // Token is expired or doesn't exist, refresh it
             logger.info(`SWUStatsHandler: Access token expired or missing for player (${playerDetails.user.getId()}), refreshing...`, { lobbyId, userId: playerDetails.user.getId() });
-            const resultTokens = await this.refreshTokensAsync(playerDetails.swuStatsRefreshToken);
+            const userRefreshToken = await this.userFactory.getUserSwuStatsRefreshTokenAsync(playerDetails.user);
+            const resultTokens = await this.refreshTokensAsync(userRefreshToken);
             serverObject.swuStatsTokenMapping.set(playerDetails.user.getId(), resultTokens);
             playerAccessToken = resultTokens.accessToken;
             await this.userFactory.addSwuStatsRefreshTokenAsync(playerDetails.user.getId(), resultTokens.refreshToken);
-            // set the refresh token to correct one
-            playerDetails.user.setRefreshToken(resultTokens.refreshToken);
         }
         return playerAccessToken;
     }

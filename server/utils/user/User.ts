@@ -39,25 +39,14 @@ export abstract class User {
      */
     public abstract getPreferences(): UserPreferences;
 
+    public abstract isSWUStatsLinked(): boolean;
+
+    public abstract getSWUStatsRefreshToken(): string | null;
+
     /**
      * Sets the user's preferences
      */
     public abstract setPreferences(preferences: UserPreferences): void;
-
-    /**
-     * Gets the user's swuStatsRefreshtoken if it exists
-     */
-    public abstract setRefreshToken(refreshToken: string): void;
-
-    /**
-     * Gets the user's swuStatsRefreshtoken if it exists
-     */
-    public abstract getSwuStatsRefreshToken(): string | null;
-
-    /**
-     * Gets the user's swuStatsRefreshtoken if it exists
-     */
-    public abstract hasSwuStatsRefreshToken(): boolean;
 
     /**
      * Gets the object representation of the user for sending to the client
@@ -95,6 +84,10 @@ export class AuthenticatedUser extends User {
         return false;
     }
 
+    public override getSWUStatsRefreshToken(): string | null {
+        return this.userData.swuStatsRefreshToken;
+    }
+
     public getId(): string {
         return this.userData.id;
     }
@@ -111,25 +104,17 @@ export class AuthenticatedUser extends User {
         return this.userData.preferences;
     }
 
-    public setPreferences(preferences: UserPreferences) {
-        this.userData.preferences = preferences;
+    public isSWUStatsLinked(): boolean {
+        return !!this.userData.swuStatsRefreshToken;
     }
 
-    public setRefreshToken(refreshToken: string) {
-        this.userData.swuStatsRefreshToken = refreshToken;
+    public setPreferences(preferences: UserPreferences) {
+        this.userData.preferences = preferences;
     }
 
     public needsUsernameChange(): boolean {
         // undefined = false
         return !!this.userData.needsUsernameChange;
-    }
-
-    public getSwuStatsRefreshToken(): string | null {
-        return this.userData.swuStatsRefreshToken ?? null;
-    }
-
-    public hasSwuStatsRefreshToken(): boolean {
-        return !!this.userData.swuStatsRefreshToken;
     }
 
     public getModeration(): IModerationAction | null {
@@ -168,6 +153,14 @@ export class AnonymousUser extends User {
         return true;
     }
 
+    public isSWUStatsLinked(): boolean {
+        return false;
+    }
+
+    public override getSWUStatsRefreshToken(): string | null {
+        return null;
+    }
+
     public isDevTestUser(): boolean {
         if (process.env.ENVIRONMENT === 'development') {
             return this.id === 'exe66' || this.id === 'th3w4y';
@@ -195,19 +188,7 @@ export class AnonymousUser extends User {
         throw new Error('Anonymous users do not support preferences.');
     }
 
-    public setRefreshToken(_refreshToken: string): void {
-        throw new Error('Anonymous users do not support SWUStats refresh tokens');
-    }
-
     public override getShowWelcomeMessage(): boolean {
-        return false;
-    }
-
-    public override getSwuStatsRefreshToken(): string | null {
-        return null;
-    }
-
-    public hasSwuStatsRefreshToken(): boolean {
         return false;
     }
 

@@ -366,7 +366,7 @@ export class GameServer {
 
         // *** Start of User Object calls ***
 
-        app.post('/api/get-user', authMiddleware('get-user'), (req, res, next) => {
+        app.post('/api/get-user', authMiddleware('get-user'), async (req, res, next) => {
             try {
                 // const { decks, preferences } = req.body;
                 const user = req.user as User;
@@ -386,13 +386,21 @@ export class GameServer {
                 //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
                 //     }
                 // }
+
+                // we check here if the user has a refresh token and a map
+                if (user.isSWUStatsLinked() && !this.swuStatsTokenMapping.get(user.getId())) {
+                    const newRefreshToken = await this.swuStatsHandler.refreshTokensAsync(user.getSWUStatsRefreshToken());
+                    await this.userFactory.addSwuStatsRefreshTokenAsync(user.getId(), newRefreshToken.refreshToken);
+                    // add token mapping
+                    this.swuStatsTokenMapping.set(user.getId(), newRefreshToken);
+                }
                 return res.status(200).json({ success: true, user: {
                     id: user.getId(),
                     username: user.getUsername(),
                     showWelcomeMessage: user.getShowWelcomeMessage(),
                     preferences: user.getPreferences(),
                     needsUsernameChange: user.needsUsernameChange(),
-                    swuStatsRefreshToken: user.getSwuStatsRefreshToken(),
+                    isSWUStatsLinked: user.isSWUStatsLinked(),
                     moderation: user.getModeration(),
                 } });
             } catch (err) {
