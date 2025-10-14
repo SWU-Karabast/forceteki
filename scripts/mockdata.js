@@ -2238,6 +2238,111 @@ const mockCards = [
         arena: 'ground',
         internalName: 'the-elite-squad#neutralizing-insurgents',
     }),
+    buildMockCard({
+        title: 'Karis Nemik',
+        subtitle: 'Freedom Is a Pure Idea',
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['hidden'],
+        types: ['unit'],
+        traits: ['rebel'],
+        setId: {
+            set: 'SEC',
+            number: 148
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'karis-nemik#freedom-is-a-pure-idea',
+    }),
+    buildMockCard({
+        title: 'Captain Rex',
+        subtitle: 'Into the Firefight',
+        power: 7,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['republic', 'clone', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 48
+        },
+        cost: 6,
+        unique: true,
+        arena: 'ground',
+        internalName: 'captain-rex#into-the-firefight',
+    }),
+    buildMockCard({
+        title: 'Saw Gerrera\'s U-Wing',
+        subtitle: 'Breaking the Rules',
+        power: 4,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        keywords: ['saboteur'],
+        types: ['unit'],
+        traits: ['rebel', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 174
+        },
+        cost: 6,
+        unique: true,
+        arena: 'space',
+        internalName: 'saw-gerreras-uwing#breaking-the-rules',
+    }),
+    buildMockCard({
+        title: 'Senate Warden',
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['republic', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 59
+        },
+        cost: 2,
+        unique: false,
+        arena: 'ground',
+        internalName: 'senate-warden',
+    }),
+    buildMockCard({
+        title: 'Fully Armed and Operational',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'SEC',
+            number: 194
+        },
+        cost: 1,
+        unique: false,
+        internalName: 'fully-armed-and-operational',
+    }),
+    buildMockCard({
+        title: 'Nemik\'s Manifesto',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['upgrade'],
+        traits: ['item', 'rebel'],
+        setId: {
+            set: 'SEC',
+            number: 156
+        },
+        upgradeHp: 1,
+        upgradePower: 1,
+        power: 1,
+        hp: 1,
+        cost: 1,
+        unique: true,
+        internalName: 'nemiks-manifesto',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
