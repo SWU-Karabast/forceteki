@@ -1,7 +1,7 @@
 
 describe('Undo confirmation', function() {
     undoIntegration(function(contextRef) {
-        it('should not require confirmation to rollback if no randomness or new information was revealed', async function() {
+        it('should not require confirmation for the acting player to rollback if no randomness or new information was revealed', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -31,7 +31,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should require confirmation to rollback after random selection', async function() {
+        it('should require confirmation for the acting player to rollback after random selection', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -106,7 +106,7 @@ describe('Undo confirmation', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should require confirmation to rollback after a deck search', async function() {
+        it('should require confirmationfor the acting player to rollback after a deck search', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -140,7 +140,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should require confirmation to rollback after revealing cards from deck', async function() {
+        it('should require confirmation for the acting player to rollback after revealing cards from deck', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -180,7 +180,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should not require confirmation to rollback after revealing cards from own hand', async function() {
+        it('should not require confirmation for the acting player to rollback after revealing cards from own hand', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -213,7 +213,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should require confirmation to rollback after revealing cards from opponent', async function() {
+        it('should require confirmation for the acting player to rollback after revealing cards from opponent', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -245,7 +245,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should require confirmation to rollback after making the opponent discard a card from hand', async function() {
+        it('should require confirmation for the acting player to rollback after making the opponent discard a card from hand', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -281,7 +281,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should require confirmation to rollback after making the opponent discard a card from deck', async function() {
+        it('should require confirmation for the acting player to rollback after making the opponent discard a card from deck', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -315,7 +315,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should require confirmation to rollback after taking control of an opponent resource', async function() {
+        it('should require confirmation for the acting player to rollback after taking control of an opponent resource', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -353,7 +353,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should require confirmation to rollback after looking at own deck', async function() {
+        it('should require confirmation for the acting player to rollback after looking at own deck', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -403,7 +403,7 @@ describe('Undo confirmation', function() {
             expect(context.infernoFour).toBeInZone('hand');
         });
 
-        it('should require confirmation to rollback after drawing a card', async function() {
+        it('should require confirmation for the acting player to rollback after drawing a card', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -432,7 +432,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should not require confirmation to rollback after taking damage for drawing from an empty deck', async function() {
+        it('should not require confirmation for the acting player to rollback after taking damage for drawing from an empty deck', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -460,7 +460,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should require confirmation to rollback after the opponent is prompted to make a choice', async function() {
+        it('should require confirmation for the acting player to rollback after the opponent is prompted to make a choice', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -494,7 +494,7 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should require confirmation to rollback after the opponent choose a target', async function() {
+        it('should require confirmation for the acting player to rollback after the opponent choose a target', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -520,7 +520,7 @@ describe('Undo confirmation', function() {
             expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
         });
 
-        it('should require confirmation to rollback in the middle of a multi-step action', async function() {
+        it('should require confirmation for the acting player to rollback in the middle of a multi-step action', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
