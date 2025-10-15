@@ -2401,6 +2401,7 @@ const mockCards = [
         cost: 6,
         hasNonKeywordAbility: true,
         aspects: ['aggression', 'heroism'],
+        keywords: ['overwhelm'],
         types: ['leader'],
         traits: ['rebel'],
         setId: {
