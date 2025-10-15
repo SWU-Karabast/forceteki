@@ -58,7 +58,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Academy Defense Walker
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.academyDefenseWalker);
                 context.player1.passAction();
 
@@ -82,7 +82,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Contracted Hunter
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.contractedHunter);
 
                 context.moveToNextActionPhase();
@@ -102,7 +102,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Strafing Gunship
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.strafingGunship);
 
                 // Attack with Strafing Gunship, it can only attack the base
@@ -127,7 +127,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Grogu
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.grogu);
 
                 // Grogu no longer has an action ability
@@ -155,7 +155,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on 97th Legion
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context._97thLegion);
                 context.player1.passAction();
 
@@ -170,7 +170,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Academy Defense Walker
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.academyDefenseWalker);
 
                 // Play Protector on Academy Defense Walker to attempt to give it Sentinel again
@@ -188,7 +188,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Grogu
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.grogu);
 
                 // Play Vambrace Grappleshot on Grogu to attempt to give it a triggered ability
@@ -251,7 +251,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Academy Defense Walker
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.academyDefenseWalker);
 
                 // Play Strategic Acumen on Academy Defense Walker to attempt to give it an action ability
@@ -292,7 +292,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Academy Defense Walker
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.academyDefenseWalker);
 
                 // Play Breaking In to attempt to give Academy Defense Walker Saboteur
@@ -313,7 +313,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Liberated Slaves
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.liberatedSlaves);
 
                 // Play Heroic Sacrifice to attempt to give Liberated Slaves a triggered ability
@@ -337,7 +337,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Liberated Slaves
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.liberatedSlaves);
 
                 // Play Red Three to give all hearoism units Raid 1
@@ -371,7 +371,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Battlefield Marine
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.battlefieldMarine);
 
                 // Play General Krell to give all other friendly units a triggered ability
@@ -394,7 +394,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Liberated Slaves
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.liberatedSlaves);
                 context.player1.passAction();
 
@@ -425,7 +425,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Academy Defense Walker
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.academyDefenseWalker);
                 context.player1.passAction();
 
@@ -442,7 +442,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Academy Defense Walker
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.academyDefenseWalker);
 
                 // Play Entrenched on Academy Defense Walker
@@ -474,7 +474,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on 97th Legion
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context._97thLegion);
 
                 // 97th Legion is still in play because it has +2/+2 from Attack Pattern Delta
@@ -496,7 +496,7 @@ describe('Lose All Abilities', function() {
 
                 // Use Kazuda's ability on Academy Defense Walker
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.academyDefenseWalker);
                 context.player1.passAction();
 
