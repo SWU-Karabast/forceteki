@@ -123,5 +123,73 @@ describe('Exiled From the Force', function () {
             context.player1.clickCard(context.p2Base);
             expect(context.p2Base.damage).toBe(4);
         });
+
+        it('still has Grit if it gains grit from other sources', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['exiled-from-the-force'],
+                    groundArena: [{ card: 'lost-jedi', damage: 2 }],
+                    spaceArena: ['first-light#headquarters-of-the-crimson-dawn']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Lost Jedi already has Grit
+            expect(context.lostJedi.getPower()).toBe(3);
+            expect(context.lostJedi.hasSomeKeyword('grit')).toBeTrue();
+
+            // Play Exiled From the Force on Lost Jedi
+            context.player1.clickCard(context.exiledFromTheForce);
+            context.player1.clickCard(context.lostJedi);
+
+            // Lost Jedi still has Grit
+            expect(context.lostJedi.getPower()).toBe(3);
+            expect(context.lostJedi.hasSomeKeyword('grit')).toBeTrue();
+
+            context.player2.passAction();
+
+            // Lost Jedi attacks base
+            context.player1.clickCard(context.lostJedi);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(3);
+        });
+
+        it('interacts correctly with effects that remove keywords', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{
+                        card: 'jedi-guardian',
+                        damage: 4,
+                        upgrades: ['exiled-from-the-force']
+                    }]
+                },
+                player2: {
+                    spaceArena: ['screeching-tie-fighter'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Jedi Guardian should have Grit from Exiled From the Force
+            expect(context.jediGuardian.getPower()).toBe(8);
+            expect(context.jediGuardian.hasSomeKeyword('grit')).toBeTrue();
+
+            // Attack with Screeching TIE to remove keywords from Jedi Guardian
+            context.player2.clickCard(context.screechingTieFighter);
+            context.player2.clickCard(context.p1Base);
+            context.player2.clickCard(context.jediGuardian);
+
+            // Jedi Guardian no longer has Grit
+            expect(context.jediGuardian.getPower()).toBe(4);
+            expect(context.jediGuardian.hasSomeKeyword('grit')).toBeFalse();
+
+            context.player1.clickCard(context.jediGuardian);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(4);
+        });
     });
 });

@@ -775,17 +775,22 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // *************************************** EFFECT HELPERS ***************************************
     public isBlank(): boolean {
-        return this.hasOngoingEffect(EffectName.Blank);
+        return this.hasOngoingEffect(EffectName.Blank) ||
+          this.hasOngoingEffect(EffectName.PartiallyBlank);
     }
 
     public isFullyBlanked(): boolean {
         if (!this.isBlank()) {
             return false;
+        } else if (this.hasOngoingEffect(EffectName.Blank)) {
+            return true;
         }
 
-        // If *any* blanking effects have no exclusions, the card is fully blanked
-        return this.getOngoingEffectValues(EffectName.Blank)
-            .some((value) => !value.excludedAbilities || value.excludedAbilities.length === 0);
+        const excludedKeywords = this.getOngoingEffectValues(EffectName.PartiallyBlank)
+            .map((value) => value.exceptKeyword);
+
+        // All excluded keywords must be the same for the card to to not be fully blanked
+        return excludedKeywords.length === 0 || !excludedKeywords.every((keyword) => keyword === excludedKeywords[0]);
     }
 
     public hasKeywordRemoved(keyword: KeywordName): boolean {
@@ -794,8 +799,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         }
 
         const isBlank = this.isBlank();
-        const keywordExcludedFromBlankEffect = this.getOngoingEffectValues(EffectName.Blank)
-            .flatMap((value) => value.excludedAbilities ?? [])
+        const keywordExcludedFromBlankEffect = this.getOngoingEffectValues(EffectName.PartiallyBlank)
+            .map((value) => value.exceptKeyword)
             .includes(keyword);
 
         const isSpecificallyRemoved = this.getOngoingEffectValues(EffectName.LoseKeyword)
