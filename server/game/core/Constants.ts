@@ -113,6 +113,7 @@ export enum EffectName {
     MustAttack = 'mustAttack',
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
+    PartiallyBlank = 'partiallyBlank',
     PrintedAttributesOverride = 'printedAttributesOverride',
     RescuedUnitsEnterPlayReady = 'rescuedUnitsEnterPlayReady',
     SetPower = 'setPower',
