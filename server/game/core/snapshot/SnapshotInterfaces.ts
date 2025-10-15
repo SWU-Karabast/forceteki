@@ -98,7 +98,7 @@ export interface ISnapshotProperties {
     actionNumber: number;
     currentPhase: PhaseName;
     snapshotId: number;
-    requiresConfirmationToRollback: boolean;
+    playersRequireConfirmationToRollBack: string[];
     nextSnapshotIsSamePlayer?: boolean;
 }
 
@@ -125,7 +125,7 @@ export interface IGameSnapshot {
     states: Buffer;
     rngState: IRandomness['rngState'];
 
-    requiresConfirmationToRollback: boolean;
+    playersRequireConfirmationToRollBack: string[];
     nextSnapshotIsSamePlayer?: boolean;
 }
 

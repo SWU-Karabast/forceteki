@@ -68,6 +68,12 @@ export abstract class SnapshotContainerBase {
         return snapshot ? this.extractSnapshotProperties(snapshot) : null;
     }
 
+    public setAllSnapshotsRequireConfirmation(playerId: string): void {
+        for (const snapshot of this.getAllSnapshots()) {
+            snapshot.playersRequireConfirmationToRollBack.push(playerId);
+        }
+    }
+
     protected rollbackToSnapshotInternal(snapshot: IGameSnapshot): boolean {
         const success = this.gameStateManager.rollbackToSnapshot(snapshot, this.getCurrentSnapshotFn());
         if (!success) {
@@ -88,7 +94,7 @@ export abstract class SnapshotContainerBase {
             actionNumber: snapshot.actionNumber,
             currentPhase: snapshot.phase,
             snapshotId: snapshot.id,
-            requiresConfirmationToRollback: snapshot.requiresConfirmationToRollback,
+            playersRequireConfirmationToRollBack: snapshot.playersRequireConfirmationToRollBack,
             nextSnapshotIsSamePlayer: snapshot.nextSnapshotIsSamePlayer,
         };
     }

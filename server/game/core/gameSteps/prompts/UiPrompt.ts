@@ -85,7 +85,7 @@ export abstract class UiPrompt extends BaseStep {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
                 if (this.game.actionPhaseActivePlayer && this.game.actionPhaseActivePlayer !== player && this.isOpponentRevealNewInfoPrompt()) {
-                    this.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(this.game.actionPhaseActivePlayer.id);
+                    this.game.snapshotManager.setRequiresConfirmationToRollbackSingleAction(this.game.actionPhaseActivePlayer.id);
                 }
 
                 player.activeForPreviousPrompt = true;

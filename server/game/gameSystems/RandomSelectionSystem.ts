@@ -80,9 +80,7 @@ export class RandomSelectionSystem<TContext extends AbilityContext = AbilityCont
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        for (const player of context.game.getPlayers()) {
-            context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(player.id);
-        }
+        context.game.snapshotManager.setRequiresConfirmationToRollbackSingleAction();
         properties.innerSystem.queueGenerateEventGameSteps(events, context, additionalProperties);
     }
 }

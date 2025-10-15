@@ -29,7 +29,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         const deckLength = player.drawDeck.length;
 
         if (deckLength > 0 && player === context.player) {
-            context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
+            context.game.snapshotManager.setRequiresConfirmationToRollbackInformationRevealed(context.player.id);
         }
 
         if (deckLength === 1) {

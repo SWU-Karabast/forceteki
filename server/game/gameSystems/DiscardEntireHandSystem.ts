@@ -55,12 +55,14 @@ export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityCo
                 continue;
             }
 
-            if (player !== context.player) {
-                context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
+            const cardsToDiscard = player.getCardsInZone(ZoneName.Hand);
+
+            if (cardsToDiscard.length !== 0) {
+                context.game.snapshotManager.setRequiresConfirmationToRollbackInformationRevealed(context.player.opponent.id);
             }
 
             // Discard each card in the player's hand
-            for (const card of player.getCardsInZone(ZoneName.Hand)) {
+            for (const card of cardsToDiscard) {
                 const discardCardEvent = new DiscardSpecificCardSystem({ target: card }).generateEvent(context);
                 events.push(discardCardEvent);
             }

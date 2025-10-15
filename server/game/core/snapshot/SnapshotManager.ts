@@ -4,7 +4,7 @@ import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
-import type { ICanRollBackResult, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint } from './SnapshotInterfaces';
+import type { ICanRollBackResult, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';
 import { SnapshotTimepoint } from './SnapshotInterfaces';
 import { RollbackEntryPointType, type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
@@ -265,19 +265,29 @@ export class SnapshotManager {
         return { success: false };
     }
 
-    public getRollbackInformation(settings: IGetSnapshotSettings): ICanRollBackResult {
+    public getRollbackInformation(settings: IGetSnapshotSettings, playerIdRequestingRollback: string): ICanRollBackResult {
+        let snapshotProperties: ISnapshotProperties;
         switch (settings.type) {
             case SnapshotType.Action:
-                return { requiresConfirmation: this.actionSnapshots.getSnapshotProperties(settings.playerId, this.checkGetOffset(settings.actionOffset))?.requiresConfirmationToRollback ?? true };
+                snapshotProperties = this.actionSnapshots.getSnapshotProperties(settings.playerId, this.checkGetOffset(settings.actionOffset));
+                break;
             case SnapshotType.Manual:
-                return { requiresConfirmation: this.manualSnapshots.get(settings.playerId)?.getSnapshotProperties(settings.snapshotId)?.requiresConfirmationToRollback ?? true };
+                snapshotProperties = this.manualSnapshots.get(settings.playerId)?.getSnapshotProperties(settings.snapshotId);
+                break;
             case SnapshotType.Phase:
-                return { requiresConfirmation: this.phaseSnapshots.getSnapshotProperties(settings.phaseName, this.checkGetOffset(settings.phaseOffset))?.requiresConfirmationToRollback ?? true };
+                snapshotProperties = this.phaseSnapshots.getSnapshotProperties(settings.phaseName, this.checkGetOffset(settings.phaseOffset));
+                break;
             case SnapshotType.Quick:
                 return this.getQuickRollbackInformation(settings.playerId);
             default:
                 throw new Error(`Unimplemented snapshot type in requiresConfirmationToRollbackTo: ${JSON.stringify(settings)}`);
         }
+
+        return { requiresConfirmation: this.playerRequiresConfirmationToRollBack(playerIdRequestingRollback, snapshotProperties) };
+    }
+
+    private playerRequiresConfirmationToRollBack(playerId: string, snapshotProperties?: ISnapshotProperties) {
+        return snapshotProperties?.playersRequireConfirmationToRollBack.includes(playerId) ?? true;
     }
 
     private quickRollback(playerId: string, rollbackPoint: QuickRollbackPoint): number | null {
@@ -427,11 +437,51 @@ export class SnapshotManager {
             return { requiresConfirmation: true, isSameTimepoint };
         }
 
-        return { requiresConfirmation: quickSnapshotProperties.requiresConfirmationToRollback, isSameTimepoint };
+        return { requiresConfirmation: this.playerRequiresConfirmationToRollBack(playerId, quickSnapshotProperties), isSameTimepoint };
     }
 
-    public setRequiresConfirmationToRollbackCurrentSnapshot(playerId: string) {
-        this.actionSnapshots.setRequiresConfirmationToRollbackCurrentSnapshot(playerId);
+    /**
+     * Used in cases where something happened during an action that a player shouldn't be allowed to "free undo" past without confirmation
+     * from the opponent (if enabled).
+     *
+     * This version is for restricting a single action due to something like an opponent's decision or a random effect. It will not affect
+     * previous snapshots.
+     *
+     * For cases where hidden game information was revealed to one or both players, use
+     * {@link setRequiresConfirmationToRollbackInformationRevealed} instead.
+     * @param playerId Specific player who should be restricted from rolling back, or null if both (e.g. for a random effect)
+     */
+    public setRequiresConfirmationToRollbackSingleAction(playerId?: string) {
+        for (const players of this.game.getPlayers()) {
+            if (!playerId || players.id === playerId) {
+                this.actionSnapshots.setRequiresConfirmationToRollbackCurrentSnapshot(players.id, players.id);
+            }
+        }
+    }
+
+    /**
+     * Used in cases where something happened during an action that a player shouldn't be allowed to "free undo" past without confirmation
+     * from the opponent (if enabled).
+     *
+     * This version is for cases where hidden game information was revealed to one or both players, such as:
+     * - Drawing cards
+     * - Revealing cards from the opponent's hand / resources
+     * - Searching cards
+     * @param playerId Specific player who should be restricted from rolling back, or null if both (e.g. if a card was revealed from top of deck)
+     */
+    public setRequiresConfirmationToRollbackInformationRevealed(playerId?: string) {
+        for (const player of this.game.getPlayers()) {
+            if (playerId && player.id !== playerId) {
+                continue;
+            }
+
+            this.actionSnapshots.setAllSnapshotsRequireConfirmation(player.id);
+            this.phaseSnapshots.setAllSnapshotsRequireConfirmation(player.id);
+
+            for (const playerSnapshots of this.manualSnapshots.values()) {
+                playerSnapshots.setAllSnapshotsRequireConfirmation(player.id);
+            }
+        }
     }
 
     public clearAllSnapshots(): void {

@@ -883,7 +883,7 @@ class Game extends EventEmitter {
         for (const player of this.getPlayers()) {
             player.actionTimer.stop();
 
-            this.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(player.id);
+            this.snapshotManager.setRequiresConfirmationToRollbackSingleAction(player.id);
         }
 
         /**
@@ -2038,7 +2038,7 @@ class Game extends EventEmitter {
             return false;
         }
 
-        const rollbackInformation = this.snapshotManager.getRollbackInformation(settings);
+        const rollbackInformation = this.snapshotManager.getRollbackInformation(settings, playerId);
 
         let message;
         switch (settings.type) {

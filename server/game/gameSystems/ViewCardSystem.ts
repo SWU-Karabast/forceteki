@@ -84,7 +84,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         const isViewingOpponentCards = cards.some((card) => card.controller !== context.player);
         const isViewingOwnDeck = cards.some((card) => card.zoneName === ZoneName.Deck && card.controller === context.player);
         if (isViewingOpponentCards || isViewingOwnDeck) {
-            context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
+            context.game.snapshotManager.setRequiresConfirmationToRollbackInformationRevealed(context.player.id);
         }
     }
 

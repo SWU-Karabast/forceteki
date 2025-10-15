@@ -26,7 +26,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
         Contract.assertNotNullLike(gameEvent.context.player);
 
         if (event.player === gameEvent.context.player && event.amount > 0 && event.player.drawDeck.length > 0) {
-            gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(gameEvent.context.player.id);
+            gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackInformationRevealed(gameEvent.context.player.id);
         }
 
         event.player.drawCardsToHand(event.amount);

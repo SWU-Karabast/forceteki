@@ -26,7 +26,8 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
         const gameEvent = event as GameEvent;
         if (gameEvent.context && event.newController === gameEvent.context.player && card.controller !== event.newController) {
-            gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(gameEvent.context.player.id);
+            gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackInformationRevealed(gameEvent.context.player.opponent.id);
+            gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackSingleAction(gameEvent.context.player.id);
         }
 
         const exhausted = card.exhausted;

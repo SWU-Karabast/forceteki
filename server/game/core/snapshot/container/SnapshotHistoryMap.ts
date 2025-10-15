@@ -129,10 +129,10 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
         this.snapshots.clear();
     }
 
-    public setRequiresConfirmationToRollbackCurrentSnapshot(key: T) {
+    public setRequiresConfirmationToRollbackCurrentSnapshot(key: T, playerId: string) {
         const snapshot = this.getSnapshot(key, 0);
         if (snapshot) {
-            snapshot.requiresConfirmationToRollback = true;
+            snapshot.playersRequireConfirmationToRollBack.push(playerId);
         }
     }
 }
