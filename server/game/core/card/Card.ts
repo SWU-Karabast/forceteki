@@ -774,11 +774,28 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
 
     // *************************************** EFFECT HELPERS ***************************************
+
+    /**
+     * Whether or not this card currently has any blanking effect applied to it. It may still have
+     * some abilities if they are explicitly excluded from a partial blanking effect.
+     *
+     * @returns {boolean} `true` if the card is blanked or partially blanked, `false` otherwise.
+     */
     public isBlank(): boolean {
         return this.hasOngoingEffect(EffectName.Blank) ||
           this.hasOngoingEffect(EffectName.PartiallyBlank);
     }
 
+    /**
+     * Whether or not this card is fully blanked, meaning it has lost all abilities and
+     * cannot gain any new ones.
+     *
+     * A card with a partial blanking effect may still be fully blanked if there is also a full
+     * blanking effect present, or if multiple partial blanking effects do not have overlapping
+     * exceptions.
+     *
+     * @returns {boolean} `true` if the card is fully blanked, `false` otherwise.
+     */
     public isFullyBlanked(): boolean {
         if (!this.isBlank()) {
             return false;
