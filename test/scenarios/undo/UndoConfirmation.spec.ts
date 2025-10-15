@@ -378,7 +378,7 @@ describe('Undo confirmation', function() {
 
             context.player1.clickCard(context.infernoFour);
             expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
-            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
 
             context.player1.clickDisplayCardPromptButton(context.sabineWren.uuid, 'top');
             context.player1.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'bottom');
@@ -860,6 +860,123 @@ describe('Undo confirmation', function() {
                 contextRef.snapshot.quickRollback(context.player1.id);
                 expect(context.player2).not.toHaveConfirmUndoPrompt();
                 expect(context.player1).toBeActivePlayer();
+            });
+        });
+
+        describe('If the player\'s action', function() {
+            it('has been revealed by resolving an ability cost, the opponent requires confirmation to undo', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['salacious-crumb#obnoxious-pet'],
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        hasInitiative: true,
+                    },
+                    enableConfirmationToUndo: true
+                });
+
+                const { context } = contextRef;
+
+                // generate a quick snapshot
+                context.player2.passAction();
+
+                // P1 activate Crumb ability, P2 sees the costs resolve
+                context.player1.clickCard(context.salaciousCrumb);
+                context.player1.clickPrompt('Deal 1 damage to a ground unit');
+
+                expect(context.salaciousCrumb).toBeInZone('hand');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
+
+                context.ignoreUnresolvedActionPhasePrompts = true;
+            });
+
+            it('has been revealed by asking the opponent to make a choice, the opponent requires confirmation to undo', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['power-of-the-dark-side'],
+                    },
+                    player2: {
+                        groundArena: ['viper-probe-droid'],
+                        hasInitiative: true,
+                    },
+                    enableConfirmationToUndo: true,
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.powerOfTheDarkSide);
+
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
+
+                context.ignoreUnresolvedActionPhasePrompts = true;
+            });
+
+            it('has been revealed by playing a card', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['craving-power'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                    player2: {
+                        groundArena: ['viper-probe-droid'],
+                        hasInitiative: true,
+                    },
+                    enableConfirmationToUndo: true,
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.cravingPower);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid]);
+
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
+
+                context.ignoreUnresolvedActionPhasePrompts = true;
+            });
+
+            it('has been revealed by triggering an attack', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['sabine-wren#explosives-artist'],
+                    },
+                    player2: {
+                        groundArena: ['viper-probe-droid'],
+                        hasInitiative: true,
+                    },
+                    enableConfirmationToUndo: true,
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.sabineWren);
+                context.player1.clickCard(context.viperProbeDroid);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.p1Base, context.p2Base]);
+
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
+
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
         });
     });

@@ -58,6 +58,7 @@ const { GameStatisticsLogger } = require('../../gameStatistics/GameStatisticsTra
 const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
 const { QuickRollbackPoint } = require('./snapshot/container/MetaSnapshotArray.js');
 const { PerGameUndoLimit, UnlimitedUndoLimit } = require('./snapshot/UndoLimit.js');
+const UndoConfirmationPrompt = require('./gameSteps/prompts/UndoConfirmationPrompt.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -2072,32 +2073,13 @@ class Game extends EventEmitter {
             return true;
         };
 
-        if (
-            this.enableConfirmationToUndo &&
-            (
-                rollbackInformation.requiresConfirmation ||
-                this.freeUndoLimit.hasReachedLimit(playerId) ||
-                this.opponentHasRevealedInformationOnTheirTurn(playerId)
-            )
-        ) {
+        if (this.confirmationRequiredForUndo(playerId, rollbackInformation)) {
             let undoTypePromptMessage = message;
             if (settings.type !== SnapshotType.Quick && settings.type !== SnapshotType.Action) {
                 undoTypePromptMessage = `to ${message}`;
             }
             this.addAlert(AlertType.Notification, '{0} has requested to undo', this.getPlayerById(playerId));
-            this.promptWithHandlerMenu(this.getPlayerById(playerId).opponent, {
-                activePromptTitle: `Your opponent would like to undo ${undoTypePromptMessage}`,
-                waitingPromptTitle: 'Waiting for opponent to decide whether to allow undo',
-                choices: ['Allow', 'Deny'],
-                handlers: [
-                    () => {
-                        performRollback();
-                    },
-                    () => {
-                        this.addAlert(AlertType.Notification, '{0} has denied the undo request', this.getPlayerById(playerId).opponent);
-                    }
-                ]
-            });
+            this.queueStep(new UndoConfirmationPrompt(this, this.getPlayerById(playerId).opponent, undoTypePromptMessage, performRollback));
 
             return true;
         }
@@ -2112,10 +2094,20 @@ class Game extends EventEmitter {
     }
 
     /**
-     * @private
-     * @param {string} playerId
+     * @param {string} playerId - The ID of the player requesting the rollback
+     * @param {import('./snapshot/SnapshotInterfaces.js').ICanRollBackResult} rollbackInformation
+     * @returns {boolean}
      */
-    opponentHasRevealedInformationOnTheirTurn(playerId) {
+    confirmationRequiredForUndo(playerId, rollbackInformation) {
+        if (!this.enableConfirmationToUndo) {
+            return false;
+        }
+
+        if (rollbackInformation.requiresConfirmation || this.freeUndoLimit.hasReachedLimit(playerId)) {
+            return true;
+        }
+
+        // check if opponent has revealed information on their turn
         const player = this.getPlayerById(playerId);
         const opponent = player.opponent;
 
