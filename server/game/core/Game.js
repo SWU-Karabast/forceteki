@@ -2084,6 +2084,7 @@ class Game extends EventEmitter {
             if (settings.type !== SnapshotType.Quick && settings.type !== SnapshotType.Action) {
                 undoTypePromptMessage = `to ${message}`;
             }
+            this.addAlert(AlertType.Notification, '{0} has requested to undo', this.getPlayerById(playerId));
             this.promptWithHandlerMenu(this.getPlayerById(playerId).opponent, {
                 activePromptTitle: `Your opponent would like to undo ${undoTypePromptMessage}`,
                 waitingPromptTitle: 'Waiting for opponent to decide whether to allow undo',

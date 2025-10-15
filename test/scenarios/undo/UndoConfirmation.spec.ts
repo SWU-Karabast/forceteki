@@ -581,6 +581,85 @@ describe('Undo confirmation', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('should reset confirmation requirement for the action after rolling back', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['patrolling-vwing'],
+                    groundArena: ['wampa'],
+                },
+                player2: {
+                    hasInitiative: true,
+                },
+                enableConfirmationToUndo: true,
+            });
+
+            const { context } = contextRef;
+
+            // Generate a quick snapshot
+            context.player2.passAction();
+
+            context.player1.clickCard(context.patrollingVwing);
+
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
+
+            contextRef.snapshot.quickRollback(context.player1.id);
+            expect(context.player2).toHaveConfirmUndoPrompt();
+
+            context.player2.clickPrompt('Allow');
+            expect(context.player1).toBeActivePlayer();
+
+            // do a different action and confirm we can undo without prompt
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.p2Base);
+
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
+
+            contextRef.snapshot.quickRollback(context.player1.id);
+            expect(context.player2).not.toHaveConfirmUndoPrompt();
+            expect(context.player1).toBeActivePlayer();
+        });
+
+        it('should reset to the correct point when triggering and undo request on the start of opponent\'s action', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['patrolling-vwing'],
+                },
+                player2: {
+                    hasInitiative: true,
+                    groundArena: ['wampa'],
+                },
+                enableConfirmationToUndo: true,
+            });
+
+            const { context } = contextRef;
+
+            // Generate a quick snapshot
+            context.player2.passAction();
+
+            const p1UndoSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+            const p1UndoSnapshotActionNumber = contextRef.snapshot.getCurrentSnapshottedAction();
+
+            context.player1.clickCard(context.patrollingVwing);
+
+            context.player2.clickCard(context.wampa);
+            context.player2.clickCard(context.p1Base);
+
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
+
+            contextRef.snapshot.quickRollback(context.player1.id);
+            expect(context.player2).toHaveConfirmUndoPrompt();
+            context.player2.clickPrompt('Allow');
+
+            expect(context.player1).toBeActivePlayer();
+            expect(contextRef.snapshot.getCurrentSnapshotId()).toBe(p1UndoSnapshotId);
+            expect(contextRef.snapshot.getCurrentSnapshottedAction()).toBe(p1UndoSnapshotActionNumber);
+        });
+
         describe('Free undo limits', function() {
             it('actions which require no confirmation are free, and count against the free undo limit', async function() {
                 await contextRef.setupTestAsync({
