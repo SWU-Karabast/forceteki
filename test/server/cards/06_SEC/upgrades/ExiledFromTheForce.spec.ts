@@ -106,7 +106,7 @@ describe('Exiled From the Force', function () {
 
             // Use Kazuda to remove all abilities from Jedi Guardian and play Exiled From the Force on it
             context.player1.clickCard(context.kazudaXiono);
-            context.player1.clickPrompt('Select a friendly unit');
+            context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
             context.player1.clickCard(context.jediGuardian);
 
             context.player1.clickCard(context.exiledFromTheForce);
