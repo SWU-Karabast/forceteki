@@ -86,5 +86,42 @@ describe('Exiled From the Force', function () {
             expect(context.homeOne.upgrades.length).toBe(0); // No experience given from Inspiring Mentor's ability
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('does not give Grit if the the unit loses all abilities from another effect', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                    hand: ['exiled-from-the-force'],
+                    groundArena: [
+                        {
+                            card: 'jedi-guardian',
+                            damage: 4
+                        }
+                    ]
+                },
+            });
+
+            const { context } = contextRef;
+
+            // Use Kazuda to remove all abilities from Jedi Guardian and play Exiled From the Force on it
+            context.player1.clickCard(context.kazudaXiono);
+            context.player1.clickPrompt('Select a friendly unit');
+            context.player1.clickCard(context.jediGuardian);
+
+            context.player1.clickCard(context.exiledFromTheForce);
+            context.player1.clickCard(context.jediGuardian);
+
+            // Jedi Guardian does not gain Grit because it lost all abilities from Kazuda Xiono's ability
+            expect(context.jediGuardian.getPower()).toBe(4);
+            expect(context.jediGuardian.hasSomeKeyword('grit')).toBeFalse();
+
+            context.player2.passAction();
+
+            // Jedi Guardian attacks base
+            context.player1.clickCard(context.jediGuardian);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(4);
+        });
     });
 });
