@@ -551,6 +551,7 @@ describe('Undo confirmation', function() {
                     hand: ['regional-governor', 'resupply'],
                     hasInitiative: true,
                 },
+                enableConfirmationToUndo: true
             });
 
             const { context } = contextRef;
@@ -567,12 +568,12 @@ describe('Undo confirmation', function() {
 
             context.player1.clickCard(context.admiralPiett);
             expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
-            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
 
             context.player1.clickCard(context.ahsokaTano);
             context.player2.clickCard(context.resupply);
             expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
-            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
 
             context.player1.clickCard(context.battlefieldMarine);
             expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
