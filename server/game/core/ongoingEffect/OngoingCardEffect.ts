@@ -57,10 +57,15 @@ export class OngoingCardEffect extends OngoingEffect<Card> {
             return false;
         }
 
+        // If the target is blanked, it cannot gain keywords unless it is in an hidden zone,
+        // this is to allow blanked cards to be played if they gain smuggle
         if (target.isBlank() && this.impl.type === EffectName.GainKeyword && !EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self)) {
-            // If the target is blanked, it cannot gain keywords unless it is in an hidden zone,
-            // this is to allow blanked cards to be played if they gain smuggle
-            return false;
+            const keywords = Helpers.asArray(this.impl.getValue(target))
+                .map((k) => (typeof k === 'string' ? k : k.keyword));
+
+            if (keywords.every((k) => target.hasKeywordRemoved(k))) {
+                return false;
+            }
         }
 
         if (typeof this.matchTarget !== 'function') {
