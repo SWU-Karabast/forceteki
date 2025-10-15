@@ -922,7 +922,7 @@ describe('Undo confirmation', function() {
                 context.ignoreUnresolvedActionPhasePrompts = true;
             });
 
-            it('has been revealed by playing a card', async function() {
+            it('has been revealed by playing a card, the opponent requires confirmation to undo', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -951,7 +951,7 @@ describe('Undo confirmation', function() {
                 context.ignoreUnresolvedActionPhasePrompts = true;
             });
 
-            it('has been revealed by triggering an attack', async function() {
+            it('has been revealed by triggering an attack, the opponent requires confirmation to undo', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -976,6 +976,102 @@ describe('Undo confirmation', function() {
 
                 expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
                 expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
+
+                context.ignoreUnresolvedActionPhasePrompts = true;
+            });
+
+            it('has been revealed, and the action is undone, the opponent still requires confirmation to undo back to their own action', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['craving-power'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                    player2: {
+                        groundArena: ['viper-probe-droid'],
+                        hasInitiative: true,
+                    },
+                    enableConfirmationToUndo: true,
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.cravingPower);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid]);
+
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
+
+                // P1 reveals Craving Power but then does an undo back to start of action
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).not.toHaveConfirmUndoPrompt();
+                expect(context.cravingPower).toBeInZone('hand');
+                expect(context.player1).toBeActivePlayer();
+
+                // P2 still can't free undo to change their action
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
+
+                contextRef.snapshot.quickRollback(context.player2.id);
+                expect(context.player1).toHaveConfirmUndoPrompt();
+                context.player1.clickPrompt('Allow');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('has not been revealed (event targeting), the opponent does not require confirmation to undo', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['daring-raid'],
+                    },
+                    player2: {
+                        groundArena: ['viper-probe-droid'],
+                        hasInitiative: true,
+                    },
+                    enableConfirmationToUndo: true,
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.daringRaid);
+                expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.p1Base, context.p2Base]);
+
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
+
+                context.ignoreUnresolvedActionPhasePrompts = true;
+            });
+
+            it('has not been revealed (attack targeting), the opponent does not require confirmation to undo', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['viper-probe-droid'],
+                        hasInitiative: true,
+                    },
+                    enableConfirmationToUndo: true,
+                });
+
+                const { context } = contextRef;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.p2Base]);
+
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeFalse();
 
                 context.ignoreUnresolvedActionPhasePrompts = true;
             });
