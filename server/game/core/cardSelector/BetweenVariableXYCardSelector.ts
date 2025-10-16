@@ -52,6 +52,9 @@ export class BetweenVariableXYCardSelector<TContext extends AbilityContext = Abi
     }
 
     public override hasEnoughSelected(selectedCards: Card[], context: TContext) {
+        if (this.optional && selectedCards.length === 0) {
+            return true;
+        }
         return selectedCards.length >= this.minNumCardsFunc(context, selectedCards);
     }
 

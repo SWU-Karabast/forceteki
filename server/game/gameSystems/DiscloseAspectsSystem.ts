@@ -97,10 +97,10 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                     maxNumCardsFunc: (_context, selectedCards) => this.numberOfCardsToSelect(properties.aspects, selectedCards),
                     cardCondition: (card) => properties.aspects.some((aspect) => card.aspects.includes(aspect)),
                     multiSelectCardCondition: (card, selectedCards, context) =>
-                        this.handCanSatisfyAspects(context.player.hand, properties.aspects) &&
+                        this.handCanSatisfyAspects(context.player.hand, properties.aspects, mode) &&
                         this.cardContainsMissingAspects(card, selectedCards, properties.aspects),
                     immediateEffect: new RevealSystem<TContext>({
-                        activePromptTitle: `Opponent discloses ${EnumHelpers.aspectString(properties.aspects)}`,
+                        activePromptTitle: `Opponent discloses ${EnumHelpers.aspectString(properties.aspects, Conjunction.AndOr)}`,
                         promptedPlayer: RelativePlayer.Opponent,
                         useDisplayPrompt: true,
                         interactMode: ViewCardInteractMode.ViewOnly
@@ -117,7 +117,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                     numCardsFunc: (_context, selectedCards) => this.numberOfCardsToSelect(properties.aspects, selectedCards),
                     cardCondition: (card) => properties.aspects.some((aspect) => card.aspects.includes(aspect)),
                     multiSelectCardCondition: (card, selectedCards, context) =>
-                        this.handCanSatisfyAspects(context.player.hand, properties.aspects) &&
+                        this.handCanSatisfyAspects(context.player.hand, properties.aspects, mode) &&
                         this.cardContainsMissingAspects(card, selectedCards, properties.aspects),
                     immediateEffect: new RevealSystem<TContext>({
                         activePromptTitle: `Opponent discloses ${EnumHelpers.aspectString(properties.aspects)}`,
@@ -140,7 +140,11 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         }
     }
 
-    private handCanSatisfyAspects(hand: Card[], requiredAspects: Aspect[]): boolean {
+    private handCanSatisfyAspects(hand: Card[], requiredAspects: Aspect[], mode: DiscloseMode): boolean {
+        if (mode === DiscloseMode.Some) {
+            return hand.some((card) => requiredAspects.some((aspect) => card.aspects.includes(aspect)));
+        }
+
         return this.aspectsMissing(requiredAspects, hand).length === 0;
     }
 
