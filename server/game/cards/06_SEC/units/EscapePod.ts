@@ -13,7 +13,7 @@ export default class EscapePod extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Capture a friendly non-Vehicle, non-leader unit',
+            title: 'This unit capture a friendly non-Vehicle, non-leader unit',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

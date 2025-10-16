@@ -8,6 +8,7 @@ describe('Diplomatic Envoy', function () {
                         hand: ['diplomatic-envoy', 'battlefield-marine', 'wampa'],
                     },
                     player2: {
+                        hand: ['imperial-dark-trooper'],
                         groundArena: ['specforce-soldier', 'atst']
                     }
                 });
@@ -26,7 +27,8 @@ describe('Diplomatic Envoy', function () {
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([context.battlefieldMarine]);
                 context.player2.clickDone();
 
-                context.player2.passAction();
+                context.player2.clickCard(context.imperialDarkTrooper);
+                expect(context.player1).toBeActivePlayer();
 
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
