@@ -128,7 +128,7 @@ class Game extends EventEmitter {
     }
 
     get isUndoEnabled() {
-        return this.snapshotManager.undoMode === UndoMode.Full;
+        return this.snapshotManager.undoMode !== UndoMode.Disabled;
     }
 
     get actionNumber() {
@@ -240,10 +240,9 @@ class Game extends EventEmitter {
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
-        this.enableConfirmationToUndo = details.enableConfirmationToUndo ?? false;
 
         /** @private @type {import('./snapshot/UndoLimit.js').UndoLimit} */
-        this.freeUndoLimit = details.enableConfirmationToUndo
+        this.freeUndoLimit = details.undoMode === UndoMode.Request
             ? new PerGameUndoLimit(1)
             : new UnlimitedUndoLimit();
 
@@ -1964,11 +1963,11 @@ class Game extends EventEmitter {
 
     /** @param {boolean} enabled */
     setUndoConfirmationRequired(enabled) {
-        if (this.enableConfirmationToUndo === enabled) {
+        if (this.snapshotManager.undoMode === UndoMode.Request) {
             return;
         }
 
-        this.enableConfirmationToUndo = enabled;
+        this.snapshotManager.setUndoConfirmationRequired(enabled);
         this.freeUndoLimit = enabled
             ? new PerGameUndoLimit(1)
             : new UnlimitedUndoLimit();
@@ -2052,7 +2051,7 @@ class Game extends EventEmitter {
         };
 
         if (
-            this.enableConfirmationToUndo &&
+            this.snapshotManager.undoMode === UndoMode.Request &&
             (this.freeUndoLimit.hasReachedLimit(playerId) || this.snapshotManager.requiresConfirmationToRollbackTo(settings))
         ) {
             let undoTypePromptMessage = message;

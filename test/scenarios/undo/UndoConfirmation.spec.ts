@@ -550,6 +550,7 @@ describe('Undo confirmation', function() {
                     hand: ['regional-governor', 'resupply'],
                     hasInitiative: true,
                 },
+                enableConfirmationToUndo: true,
             });
 
             const { context } = contextRef;

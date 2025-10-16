@@ -59,7 +59,7 @@ export class SetupPhase extends Phase {
         this.game.promptWithHandlerMenu(firstPlayer, {
             promptType: PromptType.Initiative,
             activePromptTitle: 'You won the flip. Choose the player to start with initiative:',
-            source: 'Choose Initiative Player',
+            source: 'choose initiative player',
             choices: ['Yourself', 'Opponent'],
             handlers: [
                 () => {
