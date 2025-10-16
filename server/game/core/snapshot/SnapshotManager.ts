@@ -4,7 +4,7 @@ import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
-import type { ICanRollBackResult, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint } from './SnapshotInterfaces';
+import type { ICanRollBackResult, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';
 import { SnapshotTimepoint } from './SnapshotInterfaces';
 import { RollbackEntryPointType, type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
@@ -79,8 +79,12 @@ export class SnapshotManager {
         return this.snapshotFactory.currentSnapshottedRound;
     }
 
-    public get currentSnapshottedTimepoint(): SnapshotTimepoint | null {
-        return this.snapshotFactory.currentSnapshottedTimepoint;
+    public get currentSnapshottedTimepointNumber(): number | null {
+        return this.snapshotFactory.currentSnapshottedTimepointNumber;
+    }
+
+    public get currentSnapshottedTimepointType(): SnapshotTimepoint | null {
+        return this.snapshotFactory.currentSnapshottedTimepointType;
     }
 
     public get gameStepsSinceLastUndo(): number {
@@ -312,14 +316,14 @@ export class SnapshotManager {
         // TODO THIS PR: update the chunk below to account for phase boundary prompts (e.g Sneak Attack or Thrawn1 trigger)
 
         // if we're in the middle of an action, revert to start of action
-        if (this.currentSnapshottedTimepoint === SnapshotTimepoint.Action && playerPromptType !== PromptType.ActionWindow) {
+        if (this.currentSnapshottedTimepointType === SnapshotTimepoint.Action && playerPromptType !== PromptType.ActionWindow) {
             return QuickRollbackPoint.Current;
         }
 
         // if we're at a step that doesn't normally have a snapshot and we haven't already taken a snapshot for this timepoint, the previous one will still be "Current"
         // TODO: this issue makes bookkeeping confusing, is there a better way we could handle the Current / Previous distinction
         if (
-            [SnapshotTimepoint.RegroupReadyCards, SnapshotTimepoint.StartOfPhase, SnapshotTimepoint.EndOfPhase].includes(this.currentSnapshottedTimepoint) &&
+            [SnapshotTimepoint.RegroupReadyCards, SnapshotTimepoint.StartOfPhase, SnapshotTimepoint.EndOfPhase].includes(this.currentSnapshottedTimepointType) &&
             this.quickSnapshots.get(playerId)?.getMostRecentSnapshotId() < this.currentSnapshotId
         ) {
             return QuickRollbackPoint.Current;
@@ -343,7 +347,7 @@ export class SnapshotManager {
     }
 
     private getEntryPointAfterRollback(settings: IGetSnapshotSettings): IRollbackSetupEntryPoint | IRollbackRoundEntryPoint {
-        switch (this.currentSnapshottedTimepoint) {
+        switch (this.currentSnapshottedTimepointType) {
             case SnapshotTimepoint.Mulligan:
             case SnapshotTimepoint.SetupResource:
                 return {
@@ -414,7 +418,7 @@ export class SnapshotManager {
         return this.quickSnapshots.get(playerId)?.hasQuickSnapshot(rollbackPoint) ?? false;
     }
 
-    public getQuickRollbackInformation(playerId: string): ICanRollBackResult {
+    private getQuickRollbackInformation(playerId: string): ICanRollBackResult {
         const rollbackPoint = this.getQuickRollbackPoint(playerId);
         const quickSnapshotProperties = this.quickSnapshots.get(playerId)?.getSnapshotProperties(rollbackPoint);
         const isSameTimepoint = quickSnapshotProperties?.snapshotId === this.currentSnapshotId;
@@ -423,11 +427,30 @@ export class SnapshotManager {
             return { requiresConfirmation: true, isSameTimepoint };
         }
 
-        if (rollbackPoint !== QuickRollbackPoint.Current && !quickSnapshotProperties.nextSnapshotIsSamePlayer) {
+        if (this.opponentActedSinceLastSnapshot(rollbackPoint, quickSnapshotProperties)) {
             return { requiresConfirmation: true, isSameTimepoint };
         }
 
         return { requiresConfirmation: quickSnapshotProperties.requiresConfirmationToRollback, isSameTimepoint };
+    }
+
+    private opponentActedSinceLastSnapshot(rollbackPoint: QuickRollbackPoint, snapshotProperties: ISnapshotProperties) {
+        if (this.currentSnapshottedTimepointNumber == null) {
+            return true;
+        }
+
+        const timepointsSinceSnapshot = this.currentSnapshottedTimepointNumber - snapshotProperties.timepointNumber;
+
+        switch (true) {
+            case timepointsSinceSnapshot === 0 || timepointsSinceSnapshot === 1:
+                return false;
+            case timepointsSinceSnapshot === 2:
+                return !snapshotProperties.nextSnapshotIsSamePlayer;
+            case timepointsSinceSnapshot > 2:
+                return true;
+            default:
+                Contract.fail(`Negative timepoints since snapshot: ${timepointsSinceSnapshot}, between current timepoint ${this.currentSnapshottedTimepointNumber} and snapshot timepoint ${snapshotProperties.timepointNumber}`);
+        }
     }
 
     public setRequiresConfirmationToRollbackCurrentSnapshot(playerId: string) {

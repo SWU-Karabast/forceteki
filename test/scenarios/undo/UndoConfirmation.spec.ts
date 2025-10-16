@@ -520,6 +520,37 @@ describe('Undo confirmation', function() {
             expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
         });
 
+        it('should not require confirmation for rolling back one action if there is no opponent action in between', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa', 'battlefield-marine'],
+                },
+                player2: {
+                    hasInitiative: true,
+                },
+                enableConfirmationToUndo: true,
+            });
+
+            const { context } = contextRef;
+
+            context.player2.claimInitiative();
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.p2Base);
+
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.p2Base);
+
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();
+
+            contextRef.snapshot.quickRollback(context.player1.id);
+            expect(context.player2).not.toHaveConfirmUndoPrompt();
+            expect(context.battlefieldMarine.exhausted).toBeFalse();
+            expect(context.player1).toBeActivePlayer();
+        });
+
         it('should require confirmation for the acting player to rollback in the middle of a multi-step action', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',

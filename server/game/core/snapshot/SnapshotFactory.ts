@@ -33,6 +33,7 @@ export class SnapshotFactory {
     private currentActionSnapshot: IGameSnapshot;
 
     private lastAssignedSnapshotId = -1;
+    private lastAssignedTimepointNumber = -1;
 
     public get currentSnapshotId(): number | null {
         return this.currentActionSnapshot?.id;
@@ -54,7 +55,11 @@ export class SnapshotFactory {
         return this.currentActionSnapshot?.roundNumber;
     }
 
-    public get currentSnapshottedTimepoint(): SnapshotTimepoint | null {
+    public get currentSnapshottedTimepointNumber(): number | null {
+        return this.currentActionSnapshot?.timepointNumber;
+    }
+
+    public get currentSnapshottedTimepointType(): SnapshotTimepoint | null {
         return this.currentActionSnapshot?.timepoint;
     }
 
@@ -137,6 +142,7 @@ export class SnapshotFactory {
         // this should be called exactly once per action
 
         const nextSnapshotId = this.lastAssignedSnapshotId + 1;
+        const nextTimepointNumber = this.lastAssignedTimepointNumber + 1;
 
         const snapshot: IGameSnapshot = {
             id: nextSnapshotId,
@@ -144,6 +150,7 @@ export class SnapshotFactory {
             actionNumber: this.game.actionNumber,
             roundNumber: this.game.roundNumber,
             timepoint,
+            timepointNumber: nextTimepointNumber,
             phase: this.game.currentPhase,
             gameState: v8.serialize(this.game.state),
             states: this.gameStateManager.buildGameStateForSnapshot(),
@@ -153,6 +160,7 @@ export class SnapshotFactory {
         };
 
         this.lastAssignedSnapshotId = nextSnapshotId;
+        this.lastAssignedTimepointNumber = nextTimepointNumber;
 
         this.currentActionSnapshot = snapshot;
     }
@@ -180,6 +188,7 @@ export class SnapshotFactory {
 
         this.currentActionSnapshot = snapshot;
         this.currentActionSnapshot.requiresConfirmationToRollback = false;
+        this.lastAssignedTimepointNumber = snapshot.timepointNumber;
     }
 
     /** Helper method for correctly building snapshot containers in a way that they can pass back a handle for calling the `clearNewerSnapshots()` method */

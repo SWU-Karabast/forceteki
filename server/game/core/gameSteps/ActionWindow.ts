@@ -113,7 +113,7 @@ export class ActionWindow extends UiPrompt {
     // TODO: see if there's better logic for determining when and how to advance the turn, take new snapshots, etc.
     private checkUpdateSnapshot() {
         if (
-            this.snapshotManager.currentSnapshottedTimepoint !== SnapshotTimepoint.Action ||
+            this.snapshotManager.currentSnapshottedTimepointType !== SnapshotTimepoint.Action ||
             this.snapshotManager.currentSnapshottedAction !== this.actionNumber
         ) {
             this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.Action);

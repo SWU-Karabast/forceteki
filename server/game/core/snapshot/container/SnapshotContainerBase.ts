@@ -90,6 +90,8 @@ export abstract class SnapshotContainerBase {
             snapshotId: snapshot.id,
             requiresConfirmationToRollback: snapshot.requiresConfirmationToRollback,
             nextSnapshotIsSamePlayer: snapshot.nextSnapshotIsSamePlayer,
+            timepoint: snapshot.timepoint,
+            timepointNumber: snapshot.timepointNumber
         };
     }
 }

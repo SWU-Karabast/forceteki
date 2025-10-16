@@ -257,9 +257,6 @@ class Game extends EventEmitter {
         this.preUndoStateForError = null;
 
         /** @private @type {boolean} */
-        this._gameStateChangedSinceLastTimepoint = false;
-
-        /** @private @type {boolean} */
         this._serializationFailure = false;
 
         this.playerHasBeenPrompted = new Map();
@@ -738,10 +735,6 @@ class Game extends EventEmitter {
     //         record.typeSwitched = conflict.conflictTypeSwitched;
     //     }
     // }
-
-    setGameStateChanged() {
-        this._gameStateChangedSinceLastTimepoint = true;
-    }
 
     resetForNewTimepoint() {
         for (const player of this.getPlayers()) {
@@ -2073,7 +2066,7 @@ class Game extends EventEmitter {
             return true;
         };
 
-        if (this.confirmationRequiredForUndo(playerId, rollbackInformation)) {
+        if (this.confirmationRequiredForRollback(playerId, rollbackInformation)) {
             let undoTypePromptMessage = message;
             if (settings.type !== SnapshotType.Quick && settings.type !== SnapshotType.Action) {
                 undoTypePromptMessage = `to ${message}`;
@@ -2098,7 +2091,7 @@ class Game extends EventEmitter {
      * @param {import('./snapshot/SnapshotInterfaces.js').ICanRollBackResult} rollbackInformation
      * @returns {boolean}
      */
-    confirmationRequiredForUndo(playerId, rollbackInformation) {
+    confirmationRequiredForRollback(playerId, rollbackInformation) {
         if (!this.enableConfirmationToUndo) {
             return false;
         }

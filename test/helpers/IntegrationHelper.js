@@ -106,7 +106,7 @@ global.integration = function (definitions, enableUndo = false) {
                 takeManualSnapshot: (playerId) => newContext.game.takeManualSnapshot(playerId),
                 quickRollbackRequiresConfirmation: (playerId) => {
                     const rollbackInformation = newContext.game.snapshotManager.getRollbackInformation({ type: SnapshotType.Quick, playerId });
-                    return newContext.game.confirmationRequiredForUndo(playerId, rollbackInformation);
+                    return newContext.game.confirmationRequiredForRollback(playerId, rollbackInformation);
                 }
             };
 

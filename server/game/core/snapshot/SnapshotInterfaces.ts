@@ -99,6 +99,8 @@ export interface ISnapshotProperties {
     currentPhase: PhaseName;
     snapshotId: number;
     requiresConfirmationToRollback: boolean;
+    timepoint: SnapshotTimepoint;
+    timepointNumber: number;
     nextSnapshotIsSamePlayer?: boolean;
 }
 
@@ -119,6 +121,7 @@ export interface IGameSnapshot {
     roundNumber: number;
     phase: PhaseName;
     timepoint: SnapshotTimepoint;
+    timepointNumber: number;
     activePlayerId?: string;
 
     gameState: Buffer;
