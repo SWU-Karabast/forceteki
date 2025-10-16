@@ -1,8 +1,7 @@
 import type { IAbilityPropsWithType, ITriggeredAbilityBaseProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
-import { EffectName, RelativePlayer, type Aspect, type KeywordName } from '../Constants';
+import { RelativePlayer, type Aspect, type KeywordName } from '../Constants';
 import * as Contract from '../utils/Contract';
-import * as Helpers from '../utils/Helpers';
 import * as EnumHelpers from '../utils/EnumHelpers';
 
 export class KeywordInstance {
@@ -15,14 +14,7 @@ export class KeywordInstance {
             return false;
         }
 
-        if (this.card.isBlank()) {
-            return true;
-        }
-
-        const blankedKeywords: KeywordName[] = this.card.getOngoingEffectValues(EffectName.LoseKeyword)
-            .flatMap((x) => Helpers.asArray(x));
-
-        return blankedKeywords.includes(this.name);
+        return this.card.hasKeywordRemoved(this.name);
     }
 
     /*
