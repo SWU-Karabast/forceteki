@@ -18,7 +18,7 @@ export default class ChairmanPapanoidaUndauntedDiplomat extends NonLeaderUnitCar
             title: `Disclose ${EnumHelpers.aspectString(aspects)}. If you do, create a Spy token`,
             collectiveTrigger: true,
             when: {
-                onCardsDrawn: (event, context) => event.player === context.player.opponent && context.game.currentPhase === PhaseName.Action || event.player === context.player && context.game.currentPhase === PhaseName.Action,
+                onCardsDrawn: (event, context) => event.player && context.game.currentPhase === PhaseName.Action,
             },
             immediateEffect: AbilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
