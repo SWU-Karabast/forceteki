@@ -157,8 +157,6 @@ export class SwuStatsHandler {
             });
             if (!response.ok) {
                 const errorText = await response.text();
-                // TODO catch the error and try again.
-
                 throw new Error(`SWUStats API returned error: ${response.status} - ${errorText}`);
             }
             logger.info(`Successfully sent game result to SWUStats for game ${game.id}`, { lobbyId });
