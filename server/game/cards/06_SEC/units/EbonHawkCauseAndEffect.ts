@@ -25,18 +25,24 @@ export default class EbonHawkCauseAndEffect extends NonLeaderUnitCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: 'If you disclosed Heroism, this unit gets +2/+0 for this attack. If you disclosed Villainy, give the defender -4/-0 for this attack.',
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.forThisAttackCardEffect({
-                        target: ifYouDoContext.source,
-                        effect: AbilityHelper.ongoingEffects.modifyStats({
-                            power: this.disclosedCardsContainAspect(Aspect.Heroism, ifYouDoContext) ? 2 : 0,
-                            hp: 0
+                    AbilityHelper.immediateEffects.conditional({
+                        condition: this.disclosedCardsContainAspect(Aspect.Heroism, ifYouDoContext),
+                        onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect({
+                            target: ifYouDoContext.source,
+                            effect: AbilityHelper.ongoingEffects.modifyStats({
+                                power: 2,
+                                hp: 0
+                            })
                         })
                     }),
-                    AbilityHelper.immediateEffects.forThisAttackCardEffect({
-                        target: ifYouDoContext.event.attack.getAllTargets(),
-                        effect: AbilityHelper.ongoingEffects.modifyStats({
-                            power: this.disclosedCardsContainAspect(Aspect.Villainy, ifYouDoContext) ? -4 : 0,
-                            hp: 0
+                    AbilityHelper.immediateEffects.conditional({
+                        condition: this.disclosedCardsContainAspect(Aspect.Villainy, ifYouDoContext),
+                        onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect({
+                            target: ifYouDoContext.event.attack.getAllTargets(),
+                            effect: AbilityHelper.ongoingEffects.modifyStats({
+                                power: -4,
+                                hp: 0
+                            })
                         })
                     })
                 ])
