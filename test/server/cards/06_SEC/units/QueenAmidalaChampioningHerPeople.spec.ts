@@ -207,8 +207,6 @@ describe('Queen Amidala, Championing Her People', function() {
                 context.player2.clickCard(context.openFire);
                 context.player2.clickCard(context.queenAmidalaChampioningHerPeople);
 
-                context.player1.clickPrompt('Trigger');
-
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.queenAmidalaChampioningHerPeople).toBeInZone('discard');
             });
