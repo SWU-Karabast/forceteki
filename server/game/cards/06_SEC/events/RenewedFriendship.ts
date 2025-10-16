@@ -14,16 +14,15 @@ export default class RenewedFriendship extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Return a unit from your discard pile to your hand',
-            immediateEffect: AbilityHelper.immediateEffects.selectCard({
-                controller: RelativePlayer.Self,
-                cardTypeFilter: CardType.BasicUnit,
-                zoneFilter: ZoneName.Discard,
-                immediateEffect: AbilityHelper.immediateEffects.returnToHand()
-            }),
-            then: ({
-                title: 'Create 2 Spy tokens',
-                immediateEffect: AbilityHelper.immediateEffects.createSpy({ amount: 2 })
-            })
+            immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                AbilityHelper.immediateEffects.selectCard({
+                    controller: RelativePlayer.Self,
+                    cardTypeFilter: CardType.BasicUnit,
+                    zoneFilter: ZoneName.Discard,
+                    immediateEffect: AbilityHelper.immediateEffects.returnToHand()
+                }),
+                AbilityHelper.immediateEffects.createSpy({ amount: 2 })
+            ])
         });
     }
 }

@@ -19,7 +19,7 @@ export default class NemiksManifesto extends UpgradeCard {
             ongoingEffect: AbilityHelper.ongoingEffects.gainTrait(Trait.Rebel),
         });
         registrar.addGainWhenDefeatedAbilityTargetingAttached({
-            title: 'Deal 1 damage to each enemy base for each other friendly rebel unit',
+            title: 'Deal 1 damage to each enemy base for each other friendly Rebel unit',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: context.player.getArenaUnits({ condition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Rebel) }).length,
                 target: context.player.opponent.base

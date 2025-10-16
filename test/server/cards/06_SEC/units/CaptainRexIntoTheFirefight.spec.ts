@@ -100,7 +100,7 @@ describe('Captain Rex Into the Firefight', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should bee able to select a unit that already has sentinel', async function () {
+            it('should be able to select a unit that already has sentinel', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {

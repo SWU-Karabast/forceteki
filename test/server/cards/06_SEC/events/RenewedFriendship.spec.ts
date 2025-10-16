@@ -6,7 +6,10 @@ describe('Renewed Friendship', function () {
                 player1: {
                     hand: ['renewed-friendship'],
                     discard: ['power-of-the-dark-side', 'death-star-stormtrooper']
-                }
+                },
+                player2: {
+                    discard: ['battlefield-marine'],
+                },
             });
 
             const { context } = contextRef;
@@ -28,7 +31,10 @@ describe('Renewed Friendship', function () {
                 player1: {
                     hand: ['renewed-friendship'],
                     discard: ['power-of-the-dark-side']
-                }
+                },
+                player2: {
+                    discard: ['battlefield-marine'],
+                },
             });
 
             const { context } = contextRef;

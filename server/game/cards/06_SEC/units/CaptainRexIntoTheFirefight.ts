@@ -12,26 +12,12 @@ export default class CaptainRexIntoTheFirefight extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addWhenPlayedAbility({
-            title: 'Give this unit Sentinel for this phase',
-            optional: false,
-            immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
-            }),
-            then: ({
-                title: 'Give an enemy unit Sentinel for this phase',
-                targetResolver: {
-                    cardTypeFilter: WildcardCardType.Unit,
-                    controller: RelativePlayer.Opponent,
-                    immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
-                    })
-                }
-            })
-        });
-        registrar.addOnAttackCompletedAbility({
-            title: 'Give this unit Sentinel for this phase',
-            optional: false,
+        registrar.addTriggeredAbility({
+            title: 'Give this unit and an enemy unit Sentinel for this phase',
+            when: {
+                whenPlayed: true,
+                onAttackCompleted: (event, context) => event.attack.attacker === context.source,
+            },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                 effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
             }),
