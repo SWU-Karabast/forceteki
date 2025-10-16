@@ -2078,24 +2078,6 @@ const mockCards = [
         internalName: 'beguile',
     }),
     buildMockCard({
-        title: 'Condemn',
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        types: ['upgrade'],
-        traits: ['condition'],
-        setId: {
-            set: 'SEC',
-            number: 38
-        },
-        upgradeHp: 0,
-        upgradePower: 0,
-        power: 0,
-        hp: 0,
-        cost: 3,
-        unique: false,
-        internalName: 'condemn',
-    }),
-    buildMockCard({
         title: 'Dryden Vos',
         subtitle: 'I Never Ask Twice',
         power: 5,

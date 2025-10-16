@@ -26,8 +26,8 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 // Use Kazuda's ability on Contracted Hunter
                 context.player1.clickCard(context.kazudaXiono);
 
-                expect(context.player1).toHaveEnabledPromptButton('Select a friendly unit');
-                context.player1.clickPrompt('Select a friendly unit');
+                expect(context.player1).toHaveEnabledPromptButton('Remove all abilities from a friendly unit, then take another action');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.fireball, context.contractedHunter]);
                 context.player1.clickCard(context.contractedHunter);
@@ -73,7 +73,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
 
                 // Use Kazuda's ability with no friendly units on board
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
 
                 // Kazuda is exhausted, but it is still Player 1's turn
                 expect(context.kazudaXiono.exhausted).toBeTrue();
@@ -277,7 +277,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.kazudaXiono);
                 expect(context.player1).toHaveExactPromptButtons([
                     'Deploy Kazuda Xiono as a Pilot',
-                    'Select a friendly unit',
+                    'Remove all abilities from a friendly unit, then take another action',
                     'Deploy Kazuda Xiono',
                     'Cancel'
                 ]);
@@ -347,7 +347,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.kazudaXiono);
                 expect(context.player1).toHaveExactPromptButtons([
                     'Deploy Kazuda Xiono as a Pilot',
-                    'Select a friendly unit',
+                    'Remove all abilities from a friendly unit, then take another action',
                     'Deploy Kazuda Xiono',
                     'Cancel'
                 ]);
@@ -425,7 +425,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.kazudaXiono);
                 expect(context.player1).toHaveExactPromptButtons([
                     'Deploy Kazuda Xiono as a Pilot',
-                    'Select a friendly unit',
+                    'Remove all abilities from a friendly unit, then take another action',
                     'Deploy Kazuda Xiono',
                     'Cancel'
                 ]);
