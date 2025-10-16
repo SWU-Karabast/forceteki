@@ -2340,26 +2340,7 @@ const mockCards = [
         cost: 4,
         unique: false,
         internalName: 'renewed-friendship',
-    }),
-    buildMockCard({
-        title: 'Cassian Andor',
-        subtitle: 'Climb!',
-        power: 6,
-        hp: 2,
-        cost: 6,
-        hasNonKeywordAbility: true,
-        aspects: ['aggression', 'heroism'],
-        keywords: ['overwhelm'],
-        types: ['leader'],
-        traits: ['rebel'],
-        setId: {
-            set: 'SEC',
-            number: 12
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'cassian-andor#climb',
-    }),
+    })
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
