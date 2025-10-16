@@ -52,6 +52,38 @@ describe('Lightmaker, I Have An Idea', function () {
             });
         });
 
+        it('should prompt to choose an arena and exhaust each enemy unit in the chosen arena (No Glory Only Results)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['lightmaker#i-have-an-idea', 'awing'],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    hasInitiative: true,
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['wampa', 'atst'],
+                    spaceArena: ['cartel-spacer']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.lightmakerIHaveAnIdea);
+
+            expect(context.player2).toHaveEnabledPromptButtons(['Ground', 'Space']);
+            context.player2.clickPrompt('Ground');
+
+            expect(context.player1).toBeActivePlayer();
+            expect(context.battlefieldMarine.exhausted).toBeTrue();
+
+            expect(context.wampa.exhausted).toBeFalse();
+            expect(context.atst.exhausted).toBeFalse();
+            expect(context.cartelSpacer.exhausted).toBeFalse();
+        });
+
+
         it('Lightmaker\'s when defeated ability should does nothing if opponent does not have any units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
