@@ -23,6 +23,7 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Record<string, any> = {}): void {
         event.discardedFromZone = card.zoneName;
+        event.discardedPlayId = card.canBeInPlay() && card.mostRecentInPlayIdApply ? card.mostRecentInPlayId : undefined;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
     }
 }

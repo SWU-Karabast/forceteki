@@ -37,9 +37,8 @@ export default class ObiWanKenobiFindingWhatDoesntExist extends NonLeaderUnitCar
                         effect: abilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                             match: (card) => {
                                 const targetedCard = ifYouDoContext.events[0].card;
-                                return card === targetedCard &&
-                                  card.zoneName === ZoneName.Discard &&
-                                  (!card.canBeInPlay() || card.mostRecentInPlayId === targetedCard.mostRecentInPlayId);
+                                return card === targetedCard && card.zoneName === ZoneName.Discard /* &&
+                                  (!card.canBeInPlay() || card.mostRecentInPlayId === ifYouDoContext.events[0].discardedPlayId)*/;
                             }
                         }),
                         target: context.player,

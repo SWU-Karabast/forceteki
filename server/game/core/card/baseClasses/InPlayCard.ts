@@ -46,6 +46,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get disableOngoingEffectsForDefeat(): boolean;
     get inPlayId(): number;
     get mostRecentInPlayId(): number;
+    get mostRecentInPlayIdApply(): boolean;
     get parentCard(): IUnitCard;
     get pendingDefeat(): boolean;
     getUpgradeHp(): number;
@@ -101,11 +102,15 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      */
     public get mostRecentInPlayId() {
         this.assertPropertyEnabledForZoneBoolean(
-            !EnumHelpers.isArena(this.zoneName) && this.zone.hiddenForPlayers == null,
+            this.mostRecentInPlayIdApply,
             'mostRecentInPlayId'
         );
 
         return this.state.mostRecentInPlayId;
+    }
+
+    public get mostRecentInPlayIdApply () {
+        return !EnumHelpers.isArena(this.zoneName) && this.zone.hiddenForPlayers == null;
     }
 
     /** The card that this card is underneath */

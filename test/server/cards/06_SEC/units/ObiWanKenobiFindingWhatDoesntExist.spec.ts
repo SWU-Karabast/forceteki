@@ -342,5 +342,44 @@ describe('Obi-Wan Kenobi, Finding What Doesn\'t Exist', function() {
             // can not play it again
             expect(context.arquitensAssaultCruiser).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
+
+        it('should discard the top card from opponent\'s deck when he deals combat damage to a base. We can play this card from discard this phase ignoring all aspect penalties (only 1 time)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['spark-of-rebellion'],
+                    leader: 'jyn-erso#resisting-oppression',
+                    groundArena: ['obiwan-kenobi#finding-what-doesnt-exist'],
+                    resources: 30
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    deck: ['resupply'],
+                    hand: ['bounty-hunter-crew'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.obiwanKenobi);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.clickCard(context.bountyHunterCrew);
+            context.player2.clickPrompt('Ambush');
+            context.player2.clickPrompt('Pass');
+            context.player2.clickCard(context.resupply);
+
+            expect(context.player1).toBeActivePlayer();
+            expect(context.resupply).toBeInZone('hand', context.player2);
+
+            context.player1.clickCard(context.sparkOfRebellion);
+            context.player1.clickCardInDisplayCardPrompt(context.resupply);
+
+            context.player2.passAction();
+
+            expect(context.player1).toBeActivePlayer();
+            expect(context.resupply).toBeInZone('discard', context.player2);
+            expect(context.resupply).not.toHaveAvailableActionWhenClickedBy(context.player1);
+        });
     });
 });
