@@ -2277,23 +2277,6 @@ const mockCards = [
         internalName: 'saw-gerreras-uwing#breaking-the-rules',
     }),
     buildMockCard({
-        title: 'Senate Warden',
-        power: 2,
-        hp: 2,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance'],
-        types: ['unit'],
-        traits: ['republic', 'trooper'],
-        setId: {
-            set: 'SEC',
-            number: 59
-        },
-        cost: 2,
-        unique: false,
-        arena: 'ground',
-        internalName: 'senate-warden',
-    }),
-    buildMockCard({
         title: 'Fully Armed and Operational',
         hasNonKeywordAbility: true,
         aspects: ['cunning', 'villainy'],
