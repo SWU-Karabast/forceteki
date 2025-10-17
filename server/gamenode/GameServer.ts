@@ -400,11 +400,37 @@ export class GameServer {
                     showWelcomeMessage: user.getShowWelcomeMessage(),
                     preferences: user.getPreferences(),
                     needsUsernameChange: user.needsUsernameChange(),
-                    isSWUStatsLinked: user.isSWUStatsLinked(),
                     moderation: user.getModeration(),
                 } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/user/:userId/swustatsLink', authMiddleware('swustatsLink'), async (req, res, next) => {
+            const user = req.user as User;
+            try {
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (swustatsLink): Anonymous user ${user.getId()} is attempting to retrieve swustatsLink`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve swustatsLink'
+                    });
+                }
+                const hasToken = this.swuStatsTokenMapping.get(user.getId());
+                if (!hasToken) {
+                    const userRefreshToken = await this.userFactory.getUserSwuStatsRefreshTokenAsync(user);
+                    if (userRefreshToken) {
+                        const resultTokens = await this.swuStatsHandler.refreshTokensAsync(userRefreshToken);
+                        this.swuStatsTokenMapping.set(user.getId(), resultTokens);
+                    } else {
+                        return res.status(200).json({ linked: false });
+                    }
+                }
+                return res.status(200).json({ linked: true });
+            } catch (err) {
+                logger.error('GameServer (swustatsLink) Server Error: ', err);
                 next(err);
             }
         });

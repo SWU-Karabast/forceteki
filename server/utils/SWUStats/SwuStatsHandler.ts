@@ -5,7 +5,7 @@ import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
 import { GameCardMetric, type IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
-import type { PlayerDetails, IStatsMessageFormat } from '../../gamenode/Lobby';
+import type { PlayerDetails, IStatsMessageFormat, Lobby } from '../../gamenode/Lobby';
 import { StatsSource } from '../../gamenode/Lobby';
 import { StatsSaveStatus } from '../../gamenode/Lobby';
 import type { GameServer, ISwuStatsToken } from '../../gamenode/GameServer';
@@ -105,7 +105,7 @@ export class SwuStatsHandler {
      * @param game The completed game
      * @param player1Details Details about player1
      * @param player2Details Details about player2
-     * @param lobbyId the lobby id
+     * @param lobby
      * @param serverObject the server object from where we gain access to the user x accessToken
      * @returns Promise that resolves to true if successful, false otherwise
      */
@@ -113,7 +113,7 @@ export class SwuStatsHandler {
         game: Game,
         player1Details: PlayerDetails,
         player2Details: PlayerDetails,
-        lobbyId: string,
+        lobby: Lobby,
         serverObject: GameServer,
     ): Promise<IStatsMessageFormat> {
         try {
@@ -123,7 +123,7 @@ export class SwuStatsHandler {
             // Determine winner
             const winner = this.determineWinner(game, player1, player2);
             if (winner === 0) {
-                logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUStats`, { lobbyId });
+                logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUStats`, { lobbyId: lobby.id });
                 return { type: StatsSaveStatus.Warning,
                     source: StatsSource.SwuStats,
                     message: 'draws are currently not supported by SWUStats' };
@@ -137,13 +137,13 @@ export class SwuStatsHandler {
                 player1Details,
                 player2Details,
                 winner,
-                lobbyId,
+                lobby,
                 serverObject
             );
             // Log the payload for debugging (excluding API key)
             const { apiKey, p1SWUStatsToken, p2SWUStatsToken, ...payloadForLogging } = payload;
             logger.info(`Sending game result to SWUStats for game ${game.id}`, {
-                lobbyId,
+                lobbyId: lobby.id,
                 gameId: game.id,
                 payload: payloadForLogging
             });
@@ -159,7 +159,7 @@ export class SwuStatsHandler {
                 const errorText = await response.text();
                 throw new Error(`SWUStats API returned error: ${response.status} - ${errorText}`);
             }
-            logger.info(`Successfully sent game result to SWUStats for game ${game.id}`, { lobbyId });
+            logger.info(`Successfully sent game result to SWUStats for game ${game.id}`, { lobbyId: lobby.id });
             return { type: StatsSaveStatus.Success,
                 source: StatsSource.SwuStats,
                 message: 'successfully sent game result to SWUStats' };
@@ -167,7 +167,7 @@ export class SwuStatsHandler {
             logger.error('Failed to send game result to SWUStats', {
                 error: { message: error.message, stack: error.stack },
                 gameId: game.id,
-                lobbyId
+                lobbyId: lobby.id
             });
             throw error;
         }
@@ -300,7 +300,7 @@ export class SwuStatsHandler {
         player1Details: PlayerDetails,
         player2Details: PlayerDetails,
         winner: number,
-        lobbyId: string,
+        lobby: Lobby,
         serverObject: GameServer
     ): Promise<SWUstatsGameResult> {
         const player1Data = this.buildPlayerData(player1, player2, player1Details.deckLink, game, winner, 1);
@@ -309,8 +309,14 @@ export class SwuStatsHandler {
         const firstPlayer = player1Data.firstPlayer === 1 ? 1 : 2;
         const winHero = winner === 1 ? player1Data.leader : player2Data.leader;
         const loseHero = winner === 1 ? player2Data.leader : player1Data.leader;
-        const p1SWUStatsToken = await this.getAccessTokenAsync(player1Details, lobbyId, serverObject);
-        const p2SWUStatsToken = await this.getAccessTokenAsync(player2Details, lobbyId, serverObject);
+        let p1SWUStatsToken = null;
+        let p2SWUStatsToken = null;
+        if (lobby.hasSwuStatsSource(player1Details)) {
+            p1SWUStatsToken = await this.getAccessTokenAsync(player1Details, lobby.id, serverObject);
+        }
+        if (lobby.hasSwuStatsSource(player2Details)) {
+            p2SWUStatsToken = await this.getAccessTokenAsync(player2Details, lobby.id, serverObject);
+        }
         // Get winner's remaining health
         const winnerPlayer = winner === 1 ? player1 : player2;
         const winnerHealth = winnerPlayer.base?.remainingHp || 0;
@@ -344,21 +350,25 @@ export class SwuStatsHandler {
         playerDetails: PlayerDetails,
         lobbyId: string,
         serverObject: GameServer,
-        forceRefresh: boolean = false,
     ): Promise<string | null> {
-        let playerAccessToken: string = null;
+        let playerAccessToken = null;
+        const playerTokenData = serverObject.swuStatsTokenMapping.get(playerDetails.user.getId());
         // Handle Player swu token
-        if (playerDetails.swuStatsToken && this.isTokenValid(playerDetails.swuStatsToken) && !forceRefresh) {
-            playerAccessToken = playerDetails.swuStatsToken.accessToken;
+        if (playerTokenData && this.isTokenValid(playerTokenData)) {
+            playerAccessToken = playerTokenData.accessToken;
             logger.info(`SWUStatsHandler: Using existing valid access token for player (${playerDetails.user.getId()})`, { lobbyId, userId: playerDetails.user.getId() });
-        } else if (playerDetails.swuStatsToken) {
+        } else {
             // Token is expired or doesn't exist, refresh it
-            logger.info(`SWUStatsHandler: Access token expired or missing for player (${playerDetails.user.getId()}), refreshing...`, { lobbyId, userId: playerDetails.user.getId() });
+            logger.info(`SWUStatsHandler: Access token expired or missing for player (${playerDetails.user.getId()}), attempting to refreshing...`, { lobbyId, userId: playerDetails.user.getId() });
             const userRefreshToken = await this.userFactory.getUserSwuStatsRefreshTokenAsync(playerDetails.user);
-            const resultTokens = await this.refreshTokensAsync(userRefreshToken);
-            serverObject.swuStatsTokenMapping.set(playerDetails.user.getId(), resultTokens);
-            playerAccessToken = resultTokens.accessToken;
-            await this.userFactory.addSwuStatsRefreshTokenAsync(playerDetails.user.getId(), resultTokens.refreshToken);
+            if (userRefreshToken) {
+                const resultTokens = await this.refreshTokensAsync(userRefreshToken);
+                serverObject.swuStatsTokenMapping.set(playerDetails.user.getId(), resultTokens);
+                playerAccessToken = resultTokens.accessToken;
+                await this.userFactory.addSwuStatsRefreshTokenAsync(playerDetails.user.getId(), resultTokens.refreshToken);
+            } else {
+                logger.info(`SWUStatsHandler: Refresh token missing for player (${playerDetails.user.getId()}), aborting refresh...`, { lobbyId, userId: playerDetails.user.getId() });
+            }
         }
         return playerAccessToken;
     }
