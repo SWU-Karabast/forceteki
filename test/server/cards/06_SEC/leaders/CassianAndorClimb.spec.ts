@@ -239,6 +239,111 @@ describe('Cassian Andor, Climb!', function() {
                 expect(cannotBeAttacked(context.battlefieldMarine, context.game)).toBeFalse();
                 context.player1.clickCard(context.battlefieldMarine);
             });
+
+            it('does not appply the effect to enemy units that damage our base then change control', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cassian-andor#climb',
+                        hand: ['traitorous']
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        groundArena: ['battlefield-marine', 'warrior-drone']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Enemy Battlefield Marine attacks P1's base
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.p1Base);
+
+                // P1 plays Traitorous to steal the Battlefield Marine
+                context.player1.clickCard(context.traitorous);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Battlefield Marine damaged our base this phase, so it can be attacked
+                context.player2.clickCard(context.warriorDrone);
+                expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.p1Base]);
+                expect(cannotBeAttacked(context.battlefieldMarine, context.game)).toBeFalse();
+                context.player2.clickCard(context.battlefieldMarine);
+            });
+
+            it('does apply the effect to enemy units that damage their own base then change control', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cassian-andor#climb',
+                        hand: ['traitorous']
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        groundArena: ['sabine-wren#explosives-artist', 'warrior-drone']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Enemy Sabine attacks P1's base, then damages P2's own base
+                context.player2.clickCard(context.sabineWren);
+                context.player2.clickCard(context.p1Base);
+                expect(context.player2).toHavePrompt('Deal 1 damage to the defender or a base');
+                context.player2.clickCard(context.p2Base);
+
+                // P1 plays Traitorous to steal Sabine
+                context.player1.clickCard(context.traitorous);
+                context.player1.clickCard(context.sabineWren);
+
+                // Sabine damaged the enemy base this phase, so she cannot be attacked
+                expect(cannotBeAttacked(context.sabineWren, context.game)).toBeTrue();
+                context.player2.clickCard(context.warriorDrone);
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base]);
+                context.player2.clickCard(context.p1Base);
+            });
+
+            it('units that damage an opponent\'s base, leave play, then return to play do not have the effect applied', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cassian-andor#climb',
+                        groundArena: ['battlefield-marine'],
+                        hand: ['escape-pod']
+                    },
+                    player2: {
+                        groundArena: ['warrior-drone'],
+                        spaceArena: ['elite-p38-starfighter']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1's Battlefield Marine attacks P2's base
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                // Battlefield Marine cannot be attacked
+                expect(cannotBeAttacked(context.battlefieldMarine, context.game)).toBeTrue();
+                context.player2.passAction();
+
+                // P1 plays Escape Pod to capture Battlefield Marine
+                context.player1.clickCard(context.escapePod);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeCapturedBy(context.escapePod);
+
+                // P2 attacks Escape Pod with Elite P-38, rescuing the captured Battlefield Marine
+                context.player2.clickCard(context.eliteP38Starfighter);
+                context.player2.clickCard(context.escapePod);
+                expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+                expect(context.battlefieldMarine.exhausted).toBeTrue();
+                context.player1.passAction();
+
+                // Battlefield Marine should NOT be protected since it left play
+                context.player2.clickCard(context.warriorDrone);
+                expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.p1Base]);
+                expect(cannotBeAttacked(context.battlefieldMarine, context.game)).toBeFalse();
+                context.player2.clickCard(context.battlefieldMarine);
+            });
         });
 
         describe('Cassian Andor\'s unit side constant ability', function() {
@@ -309,6 +414,40 @@ describe('Cassian Andor, Climb!', function() {
                 // Cassian is immediately defeated
                 expect(context.cassianAndor).toBeInZone('base');
                 expect(context.cassianAndor.exhausted).toBeTrue();
+            });
+
+            it('Cassian survives through the regroup phase with no remaining HP if you have the initiative', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hasInitiative: true,
+                        leader: { card: 'cassian-andor#climb', deployed: true },
+                    },
+                    player2: {
+                        hand: ['open-fire']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.cassianAndor);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.clickCard(context.openFire);
+                context.player2.clickCard(context.cassianAndor);
+
+                // Cassian should still be in play with no remaining HP
+                expect(context.cassianAndor.remainingHp).toBeLessThanOrEqual(0);
+                expect(context.cassianAndor).toBeInZone('groundArena');
+
+                context.player1.claimInitiative();
+                context.moveToNextActionPhase();
+
+                // Cassian is still in play and can attack
+                expect(context.cassianAndor).toBeInZone('groundArena');
+                context.player1.clickCard(context.cassianAndor);
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base]);
+                context.player1.clickCard(context.p2Base);
             });
 
             it('prevents Cassian from being defeated by enemy card abilities while you have the initiative', async function() {
