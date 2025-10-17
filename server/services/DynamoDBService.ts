@@ -547,6 +547,7 @@ class DynamoDBService {
             if (updateExpressions.length === 0) {
                 return;
             }
+            let validationExceptionOccurred = false;
             try {
                 const command = new UpdateCommand({
                     TableName: this.tableName,
@@ -561,7 +562,16 @@ class DynamoDBService {
                 if (error.name === 'ValidationException' &&
                   error.message?.includes('document path provided in the update expression is invalid')) {
                     logger.info(`Detected NULL markers in preferences for user ${userId}, resetting to defaults`, { userId });
+                    validationExceptionOccurred = true;
+                } else {
+                    // Re-throw if it's a different error
+                    logger.error(`An error occured when updating preferences for user ${userId}`, { error: { message: error.message, stack: error.stack }, userId });
+                    throw error;
+                }
+            }
 
+            if (validationExceptionOccurred) {
+                try {
                     // Get defaults and merge with new preferences
                     const defaultPrefs = getDefaultPreferences();
                     const merged = { ...defaultPrefs, ...preferences };
@@ -582,8 +592,8 @@ class DynamoDBService {
                     });
 
                     await this.client.send(resetCommand);
-                } else {
-                    // Re-throw if it's a different error
+                } catch (error) {
+                    logger.error(`An error occured when resetting to defaults the validation Exception for user ${userId}`, { error: { message: error.message, stack: error.stack }, userId });
                     throw error;
                 }
             }
