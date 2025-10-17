@@ -25,6 +25,7 @@ export default class JabbaTheHuttWonderfulHumanBeing extends LeaderUnitCard {
                     cardCondition: (card) => card.isUnit() && card.damage > 0
                 },
                 opponentUnit: {
+                    dependsOn: 'friendlyUnit',
                     controller: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: abilityHelper.immediateEffects.damage((context) => ({

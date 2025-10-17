@@ -59,7 +59,7 @@ describe('Setup Phase', function() {
                 context.player1.clickPrompt('Mulligan');
                 expect(context.player1.hand).toEqual(beforeMulliganHand);
                 expect(context.player2).toHaveExactPromptButtons(['Mulligan', 'Keep']);
-                expect(context.player1).toHavePrompt('Waiting for opponent to choose whether to Mulligan or keep hand.');
+                expect(context.player1).toHavePrompt('Waiting for opponent to choose whether to mulligan');
                 context.player2.clickPrompt('Keep');
 
                 const afterMulliganHand = context.player1.hand;
@@ -176,7 +176,7 @@ describe('Setup Phase', function() {
 
                 // Mulligan step
                 context.player1.clickPrompt('Keep');
-                expect(context.player1).toHavePrompt('Waiting for opponent to choose whether to Mulligan or keep hand.');
+                expect(context.player1).toHavePrompt('Waiting for opponent to choose whether to mulligan');
                 context.player2.clickPrompt('Keep');
 
                 // We check if player1's hand has the only selectable cards

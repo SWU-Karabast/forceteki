@@ -1092,8 +1092,7 @@ export class GameServer {
             this.deckValidator,
             this,
             this.discordDispatcher,
-            this.testGameBuilder,
-            enableUndo
+            this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
         lobby.createLobbyUser(user, deck);
@@ -1110,8 +1109,7 @@ export class GameServer {
             this.deckValidator,
             this,
             this.discordDispatcher,
-            this.testGameBuilder,
-            true
+            this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
         const order66 = this.userFactory.createAnonymousUser('exe66', 'Order66');
