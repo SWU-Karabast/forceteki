@@ -25,7 +25,7 @@ export default class ReliefRequest extends EventCard {
                 immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
                 ifYouDo: {
                     title: 'Heal 3 damage from another unit',
-                    immediateEffect: abilityHelper.immediateEffects.selectCard({
+                    targetResolver: ({
                         cardTypeFilter: WildcardCardType.Unit,
                         cardCondition: (card) => card !== thenContext.target,
                         immediateEffect: abilityHelper.immediateEffects.heal({ amount: 3 }),
