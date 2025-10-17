@@ -84,11 +84,13 @@ global.integration = function (definitions, enableUndo = false) {
             contextRef.snapshot = {
                 getCurrentSnapshotId: () => gameFlowWrapper.snapshotManager?.currentSnapshotId,
                 getCurrentSnapshottedAction: () => gameFlowWrapper.snapshotManager?.currentSnapshottedAction,
+                rollbackToSnapshot: (settings, requestingPlayerId) => {
+                    let playerId = requestingPlayerId;
+                    if (!playerId) {
+                        playerId = settings.playerId ?? '111';
+                    }
 
-                // TODO THIS PR: add playerId to the below to indicate which player is requesting the rollback
-                // TODO THIS PR: do we still need a separate quickRollback() helper?
-                rollbackToSnapshot: (settings) => {
-                    const result = newContext.game.rollbackToSnapshot('111', settings);
+                    const result = newContext.game.rollbackToSnapshot(playerId, settings);
 
                     if (result) {
                         newContext.game.continue();

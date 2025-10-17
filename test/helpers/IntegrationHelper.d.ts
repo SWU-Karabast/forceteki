@@ -38,7 +38,7 @@ interface SnapshotUtils {
     countAvailableActionSnapshots: (playerId: string) => number;
     countAvailableManualSnapshots: (playerId: string) => number;
     hasAvailableQuickSnapshot: (playerId: string) => boolean;
-    rollbackToSnapshot: (settings: ITestGetSnapshotSettings) => boolean;
+    rollbackToSnapshot: (settings: ITestGetSnapshotSettings, requestingPlayerId?: string) => boolean;
     quickRollback: (playerId: string) => void;
     takeManualSnapshot: (playerId: string) => number;
     quickRollbackRequiresConfirmation: (playerId: string) => boolean;
