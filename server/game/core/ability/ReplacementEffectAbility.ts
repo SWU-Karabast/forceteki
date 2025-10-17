@@ -7,9 +7,25 @@ import { ReplacementEffectSystem } from '../../gameSystems/ReplacementEffectSyst
 
 export default class ReplacementEffectAbility extends TriggeredAbility {
     public constructor(game: Game, card: Card, properties: IReplacementEffectAbilityProps) {
-        const { replaceWith: cancelProps, ...otherProps } = properties;
-        const triggeredAbilityProps: ITriggeredAbilityProps =
-            Object.assign(otherProps, { immediateEffect: new ReplacementEffectSystem(cancelProps) });
+        const { replaceWith: cancelProps, onlyIfYouDoEffect, ...otherProps } = properties;
+        let triggeredAbilityProps: ITriggeredAbilityProps;
+
+        if (onlyIfYouDoEffect) {
+            triggeredAbilityProps = {
+                ...otherProps,
+                immediateEffect: onlyIfYouDoEffect,
+                ifYouDo: {
+                    title: 'Adjust the damage',
+                    immediateEffect: new ReplacementEffectSystem(cancelProps)
+                }
+            };
+        } else {
+            triggeredAbilityProps = {
+                ...otherProps,
+                immediateEffect: new ReplacementEffectSystem(cancelProps)
+            };
+        }
+
 
         super(game, card, triggeredAbilityProps, AbilityType.ReplacementEffect);
     }
