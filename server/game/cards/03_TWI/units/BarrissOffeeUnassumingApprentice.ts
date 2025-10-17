@@ -16,7 +16,7 @@ export default class BarrissOffeeUnassumingApprentice extends NonLeaderUnitCard 
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsHealedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsHealedThisPhase(registrar, this);
+        this.unitsHealedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsHealedThisPhase(registrar);
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {

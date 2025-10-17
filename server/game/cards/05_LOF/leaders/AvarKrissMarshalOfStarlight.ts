@@ -16,7 +16,7 @@ export default class AvarKrissMarshalOfStarlight extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper) {
-        this.forceUsedThisPhaseWatcher = AbilityHelper.stateWatchers.forceUsedThisPhase(registrar, this);
+        this.forceUsedThisPhaseWatcher = AbilityHelper.stateWatchers.forceUsedThisPhase(registrar);
     }
 
     protected override deployActionAbilityProps() {

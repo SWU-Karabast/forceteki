@@ -19,7 +19,7 @@ export default class AFineAddition extends EventCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
+        this.unitsDefeatedWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar);
     }
 
     protected wasEnemyUnitDefeatedThisPhaseForPlayer(player: Player): boolean {

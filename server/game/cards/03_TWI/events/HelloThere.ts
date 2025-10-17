@@ -16,7 +16,7 @@ export default class HelloThere extends EventCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.enteredPlayWatcher = AbilityHelper.stateWatchers.cardsEnteredPlayThisPhase(registrar, this);
+        this.enteredPlayWatcher = AbilityHelper.stateWatchers.cardsEnteredPlayThisPhase(registrar);
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
