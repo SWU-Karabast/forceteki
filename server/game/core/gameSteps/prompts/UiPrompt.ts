@@ -15,6 +15,8 @@ export abstract class UiPrompt extends BaseStep {
     private completed = false;
     private firstContinue = true;
 
+    private playersActiveForPrompt: Player[] = [];
+
     // indicates that the player just became active for this prompt
     // this is passed to the FE for the sake of being able to inform the player by e.g. making a sound
     private playerIsNewlyActive = new Map<Player, boolean>();
@@ -70,6 +72,17 @@ export abstract class UiPrompt extends BaseStep {
     public complete(): void {
         this.completed = true;
         this.game.setCurrentOpenPrompt(this.previousPrompt);
+
+        // if this is an opponent reveal new info prompt, require confirmation to undo for the active player
+        this.setRollbackConfirmation(this.playersActiveForPrompt);
+    }
+
+    protected setRollbackConfirmation(playersActiveForPrompt: Player[]) {
+        for (const player of playersActiveForPrompt) {
+            if (this.game.actionPhaseActivePlayer && this.game.actionPhaseActivePlayer !== player && this.isOpponentRevealNewInfoPrompt()) {
+                this.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(this.game.actionPhaseActivePlayer.id);
+            }
+        }
     }
 
     public override onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
@@ -84,9 +97,7 @@ export abstract class UiPrompt extends BaseStep {
     public setPrompt(): void {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
-                if (this.game.actionPhaseActivePlayer && this.game.actionPhaseActivePlayer !== player && this.isOpponentRevealNewInfoPrompt()) {
-                    this.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(this.game.actionPhaseActivePlayer.id);
-                }
+                this.playersActiveForPrompt.push(player);
 
                 player.activeForPreviousPrompt = true;
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));

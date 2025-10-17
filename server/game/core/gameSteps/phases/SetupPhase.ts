@@ -26,7 +26,7 @@ export class SetupPhase extends Phase {
         }
 
         const mulliganStep: IStep[] = [];
-        if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase || snapshotManager.currentSnapshottedTimepoint === SnapshotTimepoint.Mulligan) {
+        if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase || snapshotManager.currentSnapshottedTimepointType === SnapshotTimepoint.Mulligan) {
             mulliganStep.push(
                 new MulliganPrompt(game),
                 new SimpleStep(game, () => this.takeSnapshot(SnapshotTimepoint.SetupResource), 'takeSnapshotBeforeResource'),
