@@ -2328,23 +2328,6 @@ const mockCards = [
         internalName: 'lightmaker#i-have-an-idea',
     }),
     buildMockCard({
-        title: 'Heroic ARC-170',
-        power: 4,
-        hp: 3,
-        hasNonKeywordAbility: true,
-        aspects: ['heroism'],
-        types: ['unit'],
-        traits: ['republic', 'vehicle', 'fighter'],
-        setId: {
-            set: 'SEC',
-            number: 254
-        },
-        cost: 4,
-        unique: false,
-        arena: 'space',
-        internalName: 'heroic-arc170',
-    }),
-    buildMockCard({
         title: 'Renewed Friendship',
         hasNonKeywordAbility: true,
         aspects: ['command', 'heroism'],
