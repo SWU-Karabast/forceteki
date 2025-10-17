@@ -84,7 +84,20 @@ global.integration = function (definitions, enableUndo = false) {
             contextRef.snapshot = {
                 getCurrentSnapshotId: () => gameFlowWrapper.snapshotManager?.currentSnapshotId,
                 getCurrentSnapshottedAction: () => gameFlowWrapper.snapshotManager?.currentSnapshottedAction,
-                rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshotInternal(settings),
+                rollbackToSnapshot: (settings, requestingPlayerId) => {
+                    let playerId = requestingPlayerId;
+                    if (!playerId) {
+                        playerId = settings.playerId ?? '111';
+                    }
+
+                    const result = newContext.game.rollbackToSnapshot(playerId, settings);
+
+                    if (result) {
+                        newContext.game.continue();
+                    }
+
+                    return result;
+                },
                 quickRollback: (playerId) => {
                     newContext.game.rollbackToSnapshot(playerId, { type: SnapshotType.Quick, playerId });
                     newContext.game.continue();
@@ -93,6 +106,10 @@ global.integration = function (definitions, enableUndo = false) {
                 countAvailableManualSnapshots: (playerId) => newContext.game.countAvailableManualSnapshots(playerId),
                 hasAvailableQuickSnapshot: (playerId) => newContext.game.hasAvailableQuickSnapshot(playerId),
                 takeManualSnapshot: (playerId) => newContext.game.takeManualSnapshot(playerId),
+                quickRollbackRequiresConfirmation: (playerId) => {
+                    const rollbackInformation = newContext.game.snapshotManager.getRollbackInformation({ type: SnapshotType.Quick, playerId });
+                    return newContext.game.confirmationRequiredForRollback(playerId, rollbackInformation);
+                }
             };
 
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');

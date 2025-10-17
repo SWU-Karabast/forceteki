@@ -585,15 +585,21 @@ var customMatchers = {
             compare: function (player) {
                 var result = {};
 
-                const rollbackActionPromptText = 'Your opponent would like to undo their previous action';
+                const rollbackCurrentActionPromptText = 'Your opponent would like to undo their current action';
+                const rollbackPreviousActionPromptText = 'Your opponent would like to undo their previous action';
                 const rollbackManualPromptText = 'Your opponent would like to undo to a previous bookmark';
-                const hasRollbackActionPrompt = player.hasPrompt(rollbackActionPromptText);
-                const hasRollbackManualPrompt = !hasRollbackActionPrompt && player.hasPrompt(rollbackManualPromptText);
-                result.pass = hasRollbackActionPrompt || hasRollbackManualPrompt;
+
+                let promptTextFound;
+                for (const prompt of [rollbackCurrentActionPromptText, rollbackPreviousActionPromptText, rollbackManualPromptText]) {
+                    if (player.hasPrompt(prompt)) {
+                        result.pass = true;
+                        promptTextFound = prompt;
+                        break;
+                    }
+                }
 
                 if (result.pass) {
-                    const promptText = hasRollbackActionPrompt ? rollbackActionPromptText : rollbackManualPromptText;
-                    result.message = `Expected ${player.name} not to have confirm undo prompt '${promptText}' but it did.`;
+                    result.message = `Expected ${player.name} not to have confirm undo prompt '${promptTextFound}' but it did.`;
                 } else {
                     result.message = `Expected ${player.name} to have confirm undo prompt but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 }

@@ -41,7 +41,7 @@ describe('Nabat Village', function() {
 
                 // Mulligan step
                 // check if each player has correct prompt
-                expect(context.player1).toHavePrompt('Waiting for opponent to choose whether to Mulligan or keep hand.');
+                expect(context.player1).toHavePrompt('Waiting for opponent to choose whether to mulligan');
                 expect(context.player2).toHaveExactPromptButtons(['Mulligan', 'Keep']);
                 context.player2.clickPrompt('Keep');
             });

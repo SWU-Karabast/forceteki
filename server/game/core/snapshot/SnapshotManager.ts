@@ -4,7 +4,7 @@ import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
-import type { IRollbackRoundEntryPoint, IRollbackSetupEntryPoint } from './SnapshotInterfaces';
+import type { ICanRollBackResult, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';
 import { SnapshotTimepoint } from './SnapshotInterfaces';
 import { RollbackEntryPointType, type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
@@ -67,6 +67,10 @@ export class SnapshotManager {
         return this.snapshotFactory.currentSnapshottedAction;
     }
 
+    public get currentSnapshottedActivePlayer(): string | null {
+        return this.snapshotFactory.currentSnapshottedActivePlayer;
+    }
+
     public get currentSnapshottedPhase(): PhaseName | null {
         return this.snapshotFactory.currentSnapshottedPhase;
     }
@@ -75,8 +79,12 @@ export class SnapshotManager {
         return this.snapshotFactory.currentSnapshottedRound;
     }
 
-    public get currentSnapshottedTimepoint(): SnapshotTimepoint | null {
-        return this.snapshotFactory.currentSnapshottedTimepoint;
+    public get currentSnapshottedTimepointNumber(): number | null {
+        return this.snapshotFactory.currentSnapshottedTimepointNumber;
+    }
+
+    public get currentSnapshottedTimepointType(): SnapshotTimepoint | null {
+        return this.snapshotFactory.currentSnapshottedTimepointType;
     }
 
     public get gameStepsSinceLastUndo(): number {
@@ -106,10 +114,16 @@ export class SnapshotManager {
 
     /** Indicates that we're on a new action and that a new action snapshot can be taken */
     public moveToNextTimepoint(timepoint: SnapshotTimepoint) {
+        this.game.resetForNewTimepoint();
+
         if (this.undoMode === UndoMode.Disabled) {
             // if undo is not enabled, still do explicit GO cleanup to avoid heavy memory usage
             this._gameStateManager.removeUnusedGameObjects();
             return;
+        }
+
+        if (timepoint === SnapshotTimepoint.Action) {
+            this.snapshotFactory.setNextSnapshotIsSamePlayer(this.game.actionPhaseActivePlayer.id === this.currentSnapshottedActivePlayer);
         }
 
         this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint);
@@ -215,6 +229,17 @@ export class SnapshotManager {
             return { success: false };
         }
 
+        return this.rollbackToInternal(settings);
+    }
+
+    public buildRollbackHandler(settings: IGetSnapshotSettings): () => IRollbackResult {
+        const quickRollbackPoint = settings.type === SnapshotType.Quick ? this.getQuickRollbackPoint(settings.playerId) : null;
+        return () => this.rollbackToInternal(settings, quickRollbackPoint);
+    }
+
+    private rollbackToInternal(settings: IGetSnapshotSettings, overrideQuickRollbackPoint?: QuickRollbackPoint): IRollbackResult {
+        Contract.assertFalse(settings.type !== SnapshotType.Quick && overrideQuickRollbackPoint != null, 'overrideQuickRollbackPoint can only be set when rolling back a Quick snapshot');
+
         let rolledBackSnapshotIdx: number = null;
         switch (settings.type) {
             case SnapshotType.Action:
@@ -227,7 +252,8 @@ export class SnapshotManager {
                 rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName, this.checkGetOffset(settings.phaseOffset));
                 break;
             case SnapshotType.Quick:
-                rolledBackSnapshotIdx = this.quickRollback(settings.playerId);
+                const rollbackPoint = overrideQuickRollbackPoint ?? this.getQuickRollbackPoint(settings.playerId);
+                rolledBackSnapshotIdx = this.quickRollback(settings.playerId, rollbackPoint);
                 break;
             default:
                 throw new Error(`Unimplemented snapshot type in rollbackTo: ${JSON.stringify(settings)}`);
@@ -243,24 +269,22 @@ export class SnapshotManager {
         return { success: false };
     }
 
-    public requiresConfirmationToRollbackTo(settings: IGetSnapshotSettings): boolean {
+    public getRollbackInformation(settings: IGetSnapshotSettings): ICanRollBackResult {
         switch (settings.type) {
             case SnapshotType.Action:
-                return this.actionSnapshots.getSnapshotProperties(settings.playerId, this.checkGetOffset(settings.actionOffset))?.requiresConfirmationToRollback ?? false;
+                return { requiresConfirmation: this.actionSnapshots.getSnapshotProperties(settings.playerId, this.checkGetOffset(settings.actionOffset))?.requiresConfirmationToRollback ?? true };
             case SnapshotType.Manual:
-                return this.manualSnapshots.get(settings.playerId)?.getSnapshotProperties(settings.snapshotId)?.requiresConfirmationToRollback ?? true;
+                return { requiresConfirmation: this.manualSnapshots.get(settings.playerId)?.getSnapshotProperties(settings.snapshotId)?.requiresConfirmationToRollback ?? true };
             case SnapshotType.Phase:
-                return this.phaseSnapshots.getSnapshotProperties(settings.phaseName, this.checkGetOffset(settings.phaseOffset))?.requiresConfirmationToRollback ?? true;
+                return { requiresConfirmation: this.phaseSnapshots.getSnapshotProperties(settings.phaseName, this.checkGetOffset(settings.phaseOffset))?.requiresConfirmationToRollback ?? true };
             case SnapshotType.Quick:
-                return !this.canQuickRollbackWithoutConfirmation(settings.playerId);
+                return this.getQuickRollbackInformation(settings.playerId);
             default:
                 throw new Error(`Unimplemented snapshot type in requiresConfirmationToRollbackTo: ${JSON.stringify(settings)}`);
         }
     }
 
-    private quickRollback(playerId: string): number | null {
-        const rollbackPoint = this.getQuickRollbackPoint(playerId);
-
+    private quickRollback(playerId: string, rollbackPoint: QuickRollbackPoint): number | null {
         const snapshotId = this.quickSnapshots.get(playerId).rollbackToSnapshot(rollbackPoint);
 
         if (snapshotId == null) {
@@ -292,14 +316,14 @@ export class SnapshotManager {
         // TODO THIS PR: update the chunk below to account for phase boundary prompts (e.g Sneak Attack or Thrawn1 trigger)
 
         // if we're in the middle of an action, revert to start of action
-        if (this.currentSnapshottedTimepoint === SnapshotTimepoint.Action && playerPromptType !== PromptType.ActionWindow) {
+        if (this.currentSnapshottedTimepointType === SnapshotTimepoint.Action && playerPromptType !== PromptType.ActionWindow) {
             return QuickRollbackPoint.Current;
         }
 
         // if we're at a step that doesn't normally have a snapshot and we haven't already taken a snapshot for this timepoint, the previous one will still be "Current"
         // TODO: this issue makes bookkeeping confusing, is there a better way we could handle the Current / Previous distinction
         if (
-            [SnapshotTimepoint.RegroupReadyCards, SnapshotTimepoint.StartOfPhase, SnapshotTimepoint.EndOfPhase].includes(this.currentSnapshottedTimepoint) &&
+            [SnapshotTimepoint.RegroupReadyCards, SnapshotTimepoint.StartOfPhase, SnapshotTimepoint.EndOfPhase].includes(this.currentSnapshottedTimepointType) &&
             this.quickSnapshots.get(playerId)?.getMostRecentSnapshotId() < this.currentSnapshotId
         ) {
             return QuickRollbackPoint.Current;
@@ -323,7 +347,7 @@ export class SnapshotManager {
     }
 
     private getEntryPointAfterRollback(settings: IGetSnapshotSettings): IRollbackSetupEntryPoint | IRollbackRoundEntryPoint {
-        switch (this.currentSnapshottedTimepoint) {
+        switch (this.currentSnapshottedTimepointType) {
             case SnapshotTimepoint.Mulligan:
             case SnapshotTimepoint.SetupResource:
                 return {
@@ -394,14 +418,39 @@ export class SnapshotManager {
         return this.quickSnapshots.get(playerId)?.hasQuickSnapshot(rollbackPoint) ?? false;
     }
 
-    public canQuickRollbackWithoutConfirmation(playerId: string): boolean {
+    private getQuickRollbackInformation(playerId: string): ICanRollBackResult {
         const rollbackPoint = this.getQuickRollbackPoint(playerId);
         const quickSnapshotProperties = this.quickSnapshots.get(playerId)?.getSnapshotProperties(rollbackPoint);
+        const isSameTimepoint = quickSnapshotProperties?.snapshotId === this.currentSnapshotId;
+
         if (!quickSnapshotProperties) {
-            return false;
+            return { requiresConfirmation: true, isSameTimepoint };
         }
 
-        return !quickSnapshotProperties.requiresConfirmationToRollback;
+        if (this.opponentActedSinceLastSnapshot(rollbackPoint, quickSnapshotProperties)) {
+            return { requiresConfirmation: true, isSameTimepoint };
+        }
+
+        return { requiresConfirmation: quickSnapshotProperties.requiresConfirmationToRollback, isSameTimepoint };
+    }
+
+    private opponentActedSinceLastSnapshot(rollbackPoint: QuickRollbackPoint, snapshotProperties: ISnapshotProperties) {
+        if (this.currentSnapshottedTimepointNumber == null) {
+            return true;
+        }
+
+        const timepointsSinceSnapshot = this.currentSnapshottedTimepointNumber - snapshotProperties.timepointNumber;
+
+        switch (true) {
+            case timepointsSinceSnapshot === 0 || timepointsSinceSnapshot === 1:
+                return false;
+            case timepointsSinceSnapshot === 2:
+                return !snapshotProperties.nextSnapshotIsSamePlayer;
+            case timepointsSinceSnapshot > 2:
+                return true;
+            default:
+                Contract.fail(`Negative timepoints since snapshot: ${timepointsSinceSnapshot}, between current timepoint ${this.currentSnapshottedTimepointNumber} and snapshot timepoint ${snapshotProperties.timepointNumber}`);
+        }
     }
 
     public setRequiresConfirmationToRollbackCurrentSnapshot(playerId: string) {
