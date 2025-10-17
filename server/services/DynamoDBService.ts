@@ -513,49 +513,25 @@ class DynamoDBService {
      */
     public updateUserPreferencesAsync(userId: string, preferences: Partial<UserPreferences>): Promise<void> {
         return this.executeDbOperationAsync(async () => {
-            const updateExpressions: string[] = [];
-            const expressionAttributeValues: Record<string, any> = {};
-            const expressionAttributeNames: Record<string, string> = {};
-
-            // Helper function to build update expressions for nested objects
-            const buildNestedUpdate = (obj: any, basePath: string[], valuePrefix: string) => {
-                for (const key in obj) {
-                    const value = obj[key];
-                    if (value !== undefined) {
-                        if (value instanceof Map) {
-                            Contract.fail('Map types are not supported in buildNestedUpdate. Convert to object first.');
-                        }
-                        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                            // It's a nested object, recurse
-                            buildNestedUpdate(value, [...basePath, key], `${valuePrefix}_${key}`);
-                        } else {
-                            const pathParts = [...basePath, key];
-                            const pathExpression = pathParts.map((part, idx) => {
-                                const attrName = `#${part}`;
-                                expressionAttributeNames[attrName] = part;
-                                return attrName;
-                            }).join('.');
-
-                            const valueName = `:${valuePrefix}_${key}`;
-                            updateExpressions.push(`${pathExpression} = ${valueName}`);
-                            expressionAttributeValues[valueName] = value;
-                        }
-                    }
+            // Get current preferences
+            const result = await this.client.send(new GetCommand({
+                TableName: this.tableName,
+                Key: { pk: `USER#${userId}`, sk: 'PROFILE' }
+            }));
+            const originalPreference = result.Item?.preferences;
+            const merged = { ...originalPreference, ...preferences };
+            for (const key in preferences) {
+                if (typeof preferences[key] === 'object' && preferences[key] !== null &&
+                  typeof originalPreference[key] === 'object' && originalPreference[key] !== null) {
+                    merged[key] = { ...originalPreference[key], ...preferences[key] };
                 }
-            };
-            buildNestedUpdate(preferences, ['preferences'], 'pref');
-            if (updateExpressions.length === 0) {
-                return;
             }
-            const command = new UpdateCommand({
+            await this.client.send(new UpdateCommand({
                 TableName: this.tableName,
                 Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
-                UpdateExpression: `SET ${updateExpressions.join(', ')}`,
-                ExpressionAttributeValues: expressionAttributeValues,
-                ExpressionAttributeNames: expressionAttributeNames,
-            });
-
-            await this.client.send(command);
+                UpdateExpression: 'SET preferences = :p',
+                ExpressionAttributeValues: { ':p': merged }
+            }));
         }, 'Error updating user preferences');
     }
 
