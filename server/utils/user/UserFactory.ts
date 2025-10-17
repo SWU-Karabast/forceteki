@@ -24,7 +24,7 @@ const getDefaultSoundPreferences = () => ({
     muteOpponentFoundSound: false,
 });
 
-const getDefaultPreferences = (): UserPreferences => ({
+export const getDefaultPreferences = (): UserPreferences => ({
     cardback: null,
     sound: getDefaultSoundPreferences()
 });
