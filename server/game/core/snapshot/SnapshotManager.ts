@@ -17,8 +17,8 @@ import { PromptType } from '../gameSteps/PromptInterfaces';
 
 export enum UndoMode {
     Disabled = 'disabled',
-    Full = 'full',
-    CurrentSnapshotOnly = 'currentSnapshotOnly',
+    Request = 'full',
+    Free = 'free',
 }
 
 export enum QuickSnapshotType {
@@ -34,17 +34,10 @@ export enum QuickSnapshotType {
  * Also manages the GameStateManager which is used to manage GameObjects and overall game state.
  */
 export class SnapshotManager {
-    private static readonly FullSnapshotLimits = new Map<SnapshotType, number>([
+    private static readonly SnapshotLimits = new Map<SnapshotType, number>([
         [SnapshotType.Action, 3],
         [SnapshotType.Phase, 2],
     ]);
-
-    private static readonly TestSnapshotLimits = new Map<SnapshotType, number>([
-        [SnapshotType.Action, 3],
-        [SnapshotType.Phase, 2],
-    ]);
-
-    public readonly undoMode: UndoMode;
 
     private readonly game: Game;
     private readonly _gameStateManager: GameStateManager;
@@ -58,6 +51,7 @@ export class SnapshotManager {
     protected readonly manualSnapshots: Map<string, SnapshotMap<number>>;
 
     private _gameStepsSinceLastUndo?: number;
+    private _undoMode: UndoMode;
 
     public get currentSnapshotId(): number | null {
         return this.snapshotFactory.currentSnapshotId;
@@ -96,15 +90,18 @@ export class SnapshotManager {
         return this._gameStateManager;
     }
 
+    public get undoMode(): UndoMode {
+        return this._undoMode;
+    }
+
     public constructor(game: Game, undoMode: UndoMode = UndoMode.Disabled) {
         this.game = game;
         this._gameStateManager = new GameStateManager(game);
         this.snapshotFactory = new SnapshotFactory(game, this._gameStateManager);
 
-        this.undoMode = undoMode;
+        this._undoMode = undoMode;
 
-        const limits = undoMode === UndoMode.Full ? SnapshotManager.FullSnapshotLimits : SnapshotManager.TestSnapshotLimits;
-
+        const limits = SnapshotManager.SnapshotLimits;
         this.actionSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(limits.get(SnapshotType.Action));
         this.phaseSnapshots = this.snapshotFactory.createSnapshotHistoryMap<PhaseName>(limits.get(SnapshotType.Phase));
         this.manualSnapshots = new Map<string, SnapshotMap<number>>();
@@ -116,7 +113,7 @@ export class SnapshotManager {
     public moveToNextTimepoint(timepoint: SnapshotTimepoint) {
         this.game.resetForNewTimepoint();
 
-        if (this.undoMode === UndoMode.Disabled) {
+        if (this._undoMode === UndoMode.Disabled) {
             // if undo is not enabled, still do explicit GO cleanup to avoid heavy memory usage
             this._gameStateManager.removeUnusedGameObjects();
             return;
@@ -134,7 +131,7 @@ export class SnapshotManager {
     }
 
     public takeSnapshot(settings: ISnapshotSettings): number {
-        if (this.undoMode === UndoMode.Disabled) {
+        if (this._undoMode === UndoMode.Disabled) {
             return -1;
         }
 
@@ -156,6 +153,10 @@ export class SnapshotManager {
             default:
                 throw new Error(`Unimplemented snapshot type in takeSnapshot: ${JSON.stringify(settings)}`);
         }
+    }
+
+    public setUndoConfirmationRequired(enabled: boolean) {
+        this._undoMode = enabled ? UndoMode.Request : UndoMode.Free;
     }
 
     private addQuickActionSnapshot(playerId: string) {
@@ -191,7 +192,7 @@ export class SnapshotManager {
     }
 
     public addQuickStartOfActionSnapshot(playerId: string) {
-        if (this.undoMode === UndoMode.Disabled) {
+        if (this._undoMode === UndoMode.Disabled) {
             return;
         }
 
@@ -225,7 +226,7 @@ export class SnapshotManager {
     }
 
     public rollbackTo(settings: IGetSnapshotSettings): IRollbackResult {
-        if (this.undoMode !== UndoMode.Full) {
+        if (this._undoMode === UndoMode.Disabled) {
             return { success: false };
         }
 
