@@ -13,7 +13,8 @@ export default class HeroicARC170 extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Ready an exhausted enemy unit',
+            title: 'Deal 2 damage to an enemy unit',
+            optional: true,
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,

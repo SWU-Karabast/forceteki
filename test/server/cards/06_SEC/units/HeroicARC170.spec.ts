@@ -39,6 +39,7 @@ describe('Heroic ARC-170', function() {
             context.player1.clickCard(context.heroicArc170);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.strikeship, context.lukeSkywalkerFaithfulFriend]);
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
             expect(context.player2).toBeActivePlayer();
