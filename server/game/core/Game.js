@@ -1971,7 +1971,10 @@ class Game extends EventEmitter {
 
     /** @param {boolean} enabled */
     setUndoConfirmationRequired(enabled) {
-        if (this.snapshotManager.undoMode === UndoMode.Request) {
+        if (
+            enabled && this.snapshotManager.undoMode === UndoMode.Request ||
+            !enabled && this.snapshotManager.undoMode !== UndoMode.Request
+        ) {
             return;
         }
 
