@@ -508,6 +508,32 @@ class DynamoDBService {
     }
 
     /**
+     * Check if the error is because of missing keys in the preference object
+     * @param userId the users ID
+     * @param defaultPreferences preference object
+     */
+    private async checkValidationExceptionAsync(userId: string, defaultPreferences: UserPreferences): Promise<boolean> {
+        const getCommand = new GetCommand({
+            TableName: this.tableName,
+            Key: { pk: `USER#${userId}`, sk: 'PROFILE' }
+        });
+
+        const result = await this.client.send(getCommand);
+        const currentPreferences = result.Item?.preferences;
+
+        let shouldResetToDefaults = false;
+
+        const expectedKeys = Object.keys(defaultPreferences);
+        const missingKeys = expectedKeys.filter((key) => !(key in currentPreferences));
+        if (missingKeys.length > 0) {
+            shouldResetToDefaults = true;
+            logger.info(`User ${userId} is missing preferences keys: ${missingKeys.join(', ')}, will reset to defaults`, { userId });
+        }
+        return shouldResetToDefaults;
+    }
+
+
+    /**
      * Update user preferences partially (supports nested updates)
      * @param userId User ID
      * @param preferences Partial preferences to update
@@ -571,27 +597,33 @@ class DynamoDBService {
             }
 
             if (validationExceptionOccurred) {
+                logger.info(`Attempting to see whether the validation exception is expected for ${userId}`, { userId });
                 try {
-                    // Get defaults and merge with new preferences
+                    // we read and then attempt
                     const defaultPrefs = getDefaultPreferences();
-                    const merged = { ...defaultPrefs, ...preferences };
+                    if (await this.checkValidationExceptionAsync(userId, defaultPrefs)) {
+                        // Get defaults and merge with new preferences
+                        const merged = { ...defaultPrefs, ...preferences };
 
-                    for (const key in preferences) {
-                        if (typeof preferences[key] === 'object' && preferences[key] !== null &&
-                          typeof defaultPrefs[key] === 'object' && defaultPrefs[key] !== null) {
-                            merged[key] = { ...defaultPrefs[key], ...preferences[key] };
+                        for (const key in preferences) {
+                            if (typeof preferences[key] === 'object' && preferences[key] !== null &&
+                              typeof defaultPrefs[key] === 'object' && defaultPrefs[key] !== null) {
+                                merged[key] = { ...defaultPrefs[key], ...preferences[key] };
+                            }
                         }
+
+                        // Update with the merged preferences (full replace)
+                        const resetCommand = new UpdateCommand({
+                            TableName: this.tableName,
+                            Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                            UpdateExpression: 'SET preferences = :p',
+                            ExpressionAttributeValues: { ':p': merged }
+                        });
+
+                        await this.client.send(resetCommand);
+                    } else {
+                        throw new Error(`An unexpected validation exception occured when updating preferences for user ${userId}`);
                     }
-
-                    // Update with the merged preferences (full replace)
-                    const resetCommand = new UpdateCommand({
-                        TableName: this.tableName,
-                        Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
-                        UpdateExpression: 'SET preferences = :p',
-                        ExpressionAttributeValues: { ':p': merged }
-                    });
-
-                    await this.client.send(resetCommand);
                 } catch (error) {
                     logger.error(`An error occured when resetting to defaults the validation Exception for user ${userId}`, { error: { message: error.message, stack: error.stack }, userId });
                     throw error;
