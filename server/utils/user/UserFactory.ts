@@ -24,7 +24,7 @@ const getDefaultSoundPreferences = () => ({
     muteOpponentFoundSound: false,
 });
 
-const getDefaultPreferences = (): UserPreferences => ({
+export const getDefaultPreferences = (): UserPreferences => ({
     cardback: null,
     sound: getDefaultSoundPreferences()
 });
@@ -253,7 +253,7 @@ export class UserFactory {
             const dbService = await this.dbServicePromise;
             await dbService.updateUserPreferencesAsync(userId, updatedPreferences);
         } catch (error) {
-            logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack } });
+            logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack, userId: userId } });
             throw error;
         }
     }
