@@ -13,6 +13,7 @@ type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager')
 type SnapshotType = import('../../server/game/core/Constants').SnapshotType;
 type IGetSnapshotSettings = import('../../server/game/core/snapshot/SnapshotInterfaces').IGetSnapshotSettings;
 type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
+type QuickUndoAvailableState = import('../../server/game/core/snapshot/SnapshotInterfaces').QuickUndoAvailableState;
 
 declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
 
@@ -38,6 +39,7 @@ interface SnapshotUtils {
     countAvailableActionSnapshots: (playerId: string) => number;
     countAvailableManualSnapshots: (playerId: string) => number;
     hasAvailableQuickSnapshot: (playerId: string) => boolean;
+    availableQuickSnapshotState: (playerId: string) => QuickUndoAvailableState;
     rollbackToSnapshot: (settings: ITestGetSnapshotSettings, requestingPlayerId?: string) => boolean;
     quickRollback: (playerId: string) => void;
     takeManualSnapshot: (playerId: string) => number;
@@ -139,7 +141,7 @@ declare namespace jasmine {
         toHavePassAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
         toHaveNoEffectAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
         toHavePassSingleTargetPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any, target: any): boolean;
-        toHaveConfirmUndoPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
+        toHaveConfirmUndoPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, blockButtonEnabled?: boolean): boolean;
         toBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toAllBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toBeInZone(zone, player?: PlayerInteractionWrapper): boolean;

@@ -582,7 +582,7 @@ var customMatchers = {
     },
     toHaveConfirmUndoPrompt: function () {
         return {
-            compare: function (player) {
+            compare: function (player, blockButtonEnabled = null) {
                 var result = {};
 
                 const rollbackCurrentActionPromptText = 'Your opponent would like to undo their current action';
@@ -595,6 +595,19 @@ var customMatchers = {
                         result.pass = true;
                         promptTextFound = prompt;
                         break;
+                    }
+                }
+
+                if (blockButtonEnabled !== null && result.pass) {
+                    const buttons = player.currentPrompt().buttons;
+                    const blockButton = buttons.find(
+                        (button) => button.text === 'Deny and Block Requests'
+                    );
+
+                    if (blockButtonEnabled) {
+                        result.pass = blockButton && !blockButton.disabled;
+                    } else {
+                        result.pass = !blockButton || blockButton.disabled;
                     }
                 }
 

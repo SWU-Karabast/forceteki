@@ -1107,5 +1107,49 @@ describe('Undo confirmation', function() {
                 context.ignoreUnresolvedActionPhasePrompts = true;
             });
         });
+
+        describe('Blocking the opponent\'s undo requests', function() {
+            it('is offered as an option after two undo rejections', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['favorable-delegate']
+                    },
+                    player2: {
+                        hasInitiative: true,
+                    },
+                    enableConfirmationToUndo: true
+                });
+
+                const { context } = contextRef;
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.favorableDelegate);
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(true);
+                context.player2.clickPrompt('Deny and Block Requests');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('undoRequestsBlocked');
+                const result = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(result).toBeFalse();
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
