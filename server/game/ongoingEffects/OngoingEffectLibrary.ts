@@ -34,7 +34,6 @@ import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/
 import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
-import type { PartiallyBlankProperties } from '../core/ongoingEffect/effectImpl/PartiallyBlankProperties';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -135,8 +134,7 @@ export = {
         OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => new GainKeyword(game, calculate(target, context))),
     multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
-    loseAllOtherAbilities: (properties: PartiallyBlankProperties) =>
-        OngoingEffectBuilder.card.static(EffectName.PartiallyBlank, properties),
+    loseAllAbilitiesExceptFromSource: () => OngoingEffectBuilder.card.static(EffectName.PartiallyBlank),
     loseKeyword: (keywordOrKeywords: KeywordName | KeywordName[]) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keywordOrKeywords),
     loseAllKeywords: () => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, Object.values(KeywordName)),
     overridePrintedAttributes: (printedAttributesOverride: PrintedAttributesOverride) => OngoingEffectBuilder.card.static(EffectName.PrintedAttributesOverride, printedAttributesOverride),

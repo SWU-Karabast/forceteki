@@ -42,8 +42,15 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
             }
         }
 
-        this.generateSelectCardSystem(context, additionalProperties, generatedEvents)
-            .queueGenerateEventGameSteps(events, context);
+        for (const target of this.targets(context, additionalProperties)) {
+            if (target.isPlayer()) {
+                // Create new context with the targeted player so the RelativePlayer
+                // is resolved correctly in the SelectCardSystem
+                const newContext = context.copy({ player: target }) as TContext;
+                this.generateSelectCardSystem(newContext, additionalProperties, generatedEvents)
+                    .queueGenerateEventGameSteps(events, newContext);
+            }
+        }
     }
 
     public override defaultTargets(context: TContext): Player[] {

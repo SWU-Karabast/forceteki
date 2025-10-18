@@ -803,28 +803,45 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             return true;
         }
 
-        const excludedKeywords = this.getOngoingEffectValues(EffectName.PartiallyBlank)
-            .map((value) => value.exceptKeyword);
+        const partialBlankSources = this.getOngoingEffectSources(EffectName.PartiallyBlank);
 
-        // All excluded keywords must be the same for the card to to not be fully blanked
-        return excludedKeywords.length === 0 || !excludedKeywords.every((keyword) => keyword === excludedKeywords[0]);
+        // Multiple partial blank effects always result in full blanking
+        return partialBlankSources.length !== 1;
     }
 
     public hasKeywordRemoved(keyword: KeywordName): boolean {
+        // First check if the card is fully blanked
         if (this.isFullyBlanked()) {
             return true;
         }
-
-        const isBlank = this.isBlank();
-        const keywordExcludedFromBlankEffect = this.getOngoingEffectValues(EffectName.PartiallyBlank)
-            .map((value) => value.exceptKeyword)
-            .includes(keyword);
 
         const isSpecificallyRemoved = this.getOngoingEffectValues(EffectName.LoseKeyword)
             .flatMap((x) => Helpers.asArray(x))
             .includes(keyword);
 
-        return isSpecificallyRemoved || (isBlank && !keywordExcludedFromBlankEffect);
+        // Next check if the keyword is specifically removed by an effect
+        if (isSpecificallyRemoved) {
+            return true;
+        }
+
+        // Finally, check if the card is partially blanked and has gained the keyword
+        // from the same source as the partial blanking effect
+        const partialBlankSources = this.getOngoingEffectSources(EffectName.PartiallyBlank);
+        const gainThisKeywordSources = this.getOngoingEffects()
+            .filter((ongoingEffect) =>
+                ongoingEffect.type === EffectName.GainKeyword &&
+                Helpers.asArray(ongoingEffect.impl.getValue(this)).includes(keyword)
+            )
+            .map((e) => e.source);
+
+        if (
+            partialBlankSources.length === 1 &&
+            gainThisKeywordSources.includes(partialBlankSources[0])
+        ) {
+            return true;
+        }
+
+        return false;
     }
 
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
