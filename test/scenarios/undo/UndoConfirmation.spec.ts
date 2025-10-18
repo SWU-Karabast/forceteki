@@ -1109,18 +1109,22 @@ describe('Undo confirmation', function() {
         });
 
         describe('Blocking the opponent\'s undo requests', function() {
-            it('is offered as an option after two undo rejections', async function() {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['favorable-delegate']
+                        hand: ['favorable-delegate'],
+                        groundArena: ['battlefield-marine'],
                     },
                     player2: {
+                        hand: ['patrolling-vwing'],
                         hasInitiative: true,
                     },
                     enableConfirmationToUndo: true
                 });
+            });
 
+            it('is offered as an option after two undo rejections', function() {
                 const { context } = contextRef;
 
                 context.player2.passAction();
@@ -1149,6 +1153,215 @@ describe('Undo confirmation', function() {
                 });
                 expect(result).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('is offered as an option after two undo rejections regardless of any accepted requests in between', function() {
+                const { context } = contextRef;
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.favorableDelegate);
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Allow');
+
+                context.player1.clickCard(context.favorableDelegate);
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(true);
+                context.player2.clickPrompt('Deny and Block Requests');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('undoRequestsBlocked');
+                const result = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(result).toBeFalse();
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('is offered as an option after two undo rejections and from there on out, even if not used immediately', function() {
+                const { context } = contextRef;
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.favorableDelegate);
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(true);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(true);
+                context.player2.clickPrompt('Allow');
+
+                context.player1.clickCard(context.favorableDelegate);
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(true);
+                context.player2.clickPrompt('Deny and Block Requests');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('undoRequestsBlocked');
+                const result = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(result).toBeFalse();
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('does not interfere with their ability to use a free undo', function() {
+                const { context } = contextRef;
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.favorableDelegate);
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(true);
+                context.player2.clickPrompt('Deny and Block Requests');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('freeUndoAvailable');
+                const result = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(result).toBeTrue();
+                expect(context.player1).toBeActivePlayer();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+            });
+
+            it('does not interfere with the blocking player\'s ability to request an undo', function() {
+                const { context } = contextRef;
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.favorableDelegate);
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(true);
+                context.player2.clickPrompt('Deny and Block Requests');
+
+                context.player2.clickCard(context.patrollingVwing);
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player2.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player2.id);
+                expect(context.player1).toHaveConfirmUndoPrompt(false);
+                context.player1.clickPrompt('Allow');
+
+                expect(context.player2).toBeActivePlayer();
+                context.player2.clickCard(context.patrollingVwing);
+            });
+
+            it('works correctly if both players have blocked each other', function() {
+                const { context } = contextRef;
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.favorableDelegate);
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(false);
+                context.player2.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt(true);
+                context.player2.clickPrompt('Deny and Block Requests');
+
+                context.player2.clickCard(context.patrollingVwing);
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player2.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player2.id);
+                expect(context.player1).toHaveConfirmUndoPrompt(false);
+                context.player1.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player2.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player2.id);
+                expect(context.player1).toHaveConfirmUndoPrompt(false);
+                context.player1.clickPrompt('Deny');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player2.id)).toBe('requestUndoAvailable');
+                contextRef.snapshot.quickRollback(context.player2.id);
+                expect(context.player1).toHaveConfirmUndoPrompt(true);
+                context.player1.clickPrompt('Deny and Block Requests');
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player2.id)).toBe('undoRequestsBlocked');
+                const result1 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player2.id
+                });
+                expect(result1).toBeFalse();
+                expect(context.player1).toBeActivePlayer();
+
+                expect(contextRef.snapshot.availableQuickSnapshotState(context.player1.id)).toBe('undoRequestsBlocked');
+                const result2 = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(result2).toBeFalse();
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });
