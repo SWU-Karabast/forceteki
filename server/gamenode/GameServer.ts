@@ -366,7 +366,7 @@ export class GameServer {
 
         // *** Start of User Object calls ***
 
-        app.post('/api/get-user', authMiddleware('get-user'), async (req, res, next) => {
+        app.post('/api/get-user', authMiddleware('get-user'), (req, res, next) => {
             try {
                 // const { decks, preferences } = req.body;
                 const user = req.user as User;
@@ -386,14 +386,6 @@ export class GameServer {
                 //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
                 //     }
                 // }
-
-                // we check here if the user has a refresh token and a map
-                if (user.isSWUStatsLinked() && !this.swuStatsTokenMapping.get(user.getId())) {
-                    const newRefreshToken = await this.swuStatsHandler.refreshTokensAsync(user.getSWUStatsRefreshToken());
-                    await this.userFactory.addSwuStatsRefreshTokenAsync(user.getId(), newRefreshToken.refreshToken);
-                    // add token mapping
-                    this.swuStatsTokenMapping.set(user.getId(), newRefreshToken);
-                }
                 return res.status(200).json({ success: true, user: {
                     id: user.getId(),
                     username: user.getUsername(),
@@ -418,17 +410,8 @@ export class GameServer {
                         message: 'Authentication required to retrieve swustatsLink'
                     });
                 }
-                const hasToken = this.swuStatsTokenMapping.get(user.getId());
-                if (!hasToken) {
-                    const userRefreshToken = await this.userFactory.getUserSwuStatsRefreshTokenAsync(user);
-                    if (userRefreshToken) {
-                        const resultTokens = await this.swuStatsHandler.refreshTokensAsync(userRefreshToken);
-                        this.swuStatsTokenMapping.set(user.getId(), resultTokens);
-                    } else {
-                        return res.status(200).json({ linked: false });
-                    }
-                }
-                return res.status(200).json({ linked: true });
+                const linked = await this.swuStatsHandler.getAccessTokenAsync(user.getId(), this);
+                res.status(200).json({ linked: !!linked });
             } catch (err) {
                 logger.error('GameServer (swustatsLink) Server Error: ', err);
                 next(err);

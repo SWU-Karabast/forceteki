@@ -312,10 +312,10 @@ export class SwuStatsHandler {
         let p1SWUStatsToken = null;
         let p2SWUStatsToken = null;
         if (lobby.hasSwuStatsSource(player1Details)) {
-            p1SWUStatsToken = await this.getAccessTokenAsync(player1Details, lobby.id, serverObject);
+            p1SWUStatsToken = await this.getAccessTokenAsync(player1Details.user.getId(), serverObject, lobby.id);
         }
         if (lobby.hasSwuStatsSource(player2Details)) {
-            p2SWUStatsToken = await this.getAccessTokenAsync(player2Details, lobby.id, serverObject);
+            p2SWUStatsToken = await this.getAccessTokenAsync(player2Details.user.getId(), serverObject, lobby.id);
         }
         // Get winner's remaining health
         const winnerPlayer = winner === 1 ? player1 : player2;
@@ -341,33 +341,33 @@ export class SwuStatsHandler {
 
     /**
      * Get access tokens for players who have refresh tokens
-     * @param playerDetails details on the player id, deckId, decklist etc...
+     * @param userId
      * @param lobbyId
      * @param serverObject
      * @returns Promise that resolves to an access token for the player or null if no token and no refresh token is present.
      */
-    private async getAccessTokenAsync(
-        playerDetails: PlayerDetails,
-        lobbyId: string,
+    public async getAccessTokenAsync(
+        userId: string,
         serverObject: GameServer,
+        lobbyId?: string,
     ): Promise<string | null> {
         let playerAccessToken = null;
-        const playerTokenData = serverObject.swuStatsTokenMapping.get(playerDetails.user.getId());
+        const playerTokenData = serverObject.swuStatsTokenMapping.get(userId);
         // Handle Player swu token
         if (playerTokenData && this.isTokenValid(playerTokenData)) {
             playerAccessToken = playerTokenData.accessToken;
-            logger.info(`SWUStatsHandler: Using existing valid access token for player (${playerDetails.user.getId()})`, { lobbyId, userId: playerDetails.user.getId() });
+            logger.info(`SWUStatsHandler: Using existing valid access token for player (${userId})`, lobbyId ? { lobbyId, userId } : { userId });
         } else {
             // Token is expired or doesn't exist, refresh it
-            logger.info(`SWUStatsHandler: Access token expired or missing for player (${playerDetails.user.getId()}), attempting to refreshing...`, { lobbyId, userId: playerDetails.user.getId() });
-            const userRefreshToken = await this.userFactory.getUserSwuStatsRefreshTokenAsync(playerDetails.user);
+            logger.info(`SWUStatsHandler: Access token expired or missing for player (${userId}), attempting to refreshing...`, lobbyId ? { lobbyId, userId } : { userId });
+            const userRefreshToken = await this.userFactory.getUserSwuStatsRefreshTokenAsync(userId);
             if (userRefreshToken) {
                 const resultTokens = await this.refreshTokensAsync(userRefreshToken);
-                serverObject.swuStatsTokenMapping.set(playerDetails.user.getId(), resultTokens);
+                serverObject.swuStatsTokenMapping.set(userId, resultTokens);
                 playerAccessToken = resultTokens.accessToken;
-                await this.userFactory.addSwuStatsRefreshTokenAsync(playerDetails.user.getId(), resultTokens.refreshToken);
+                await this.userFactory.addSwuStatsRefreshTokenAsync(userId, resultTokens.refreshToken);
             } else {
-                logger.info(`SWUStatsHandler: Refresh token missing for player (${playerDetails.user.getId()}), aborting refresh...`, { lobbyId, userId: playerDetails.user.getId() });
+                logger.info(`SWUStatsHandler: Refresh token missing for player (${userId}), aborting refresh...`, lobbyId ? { lobbyId, userId } : { userId });
             }
         }
         return playerAccessToken;

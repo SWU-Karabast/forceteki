@@ -39,10 +39,6 @@ export abstract class User {
      */
     public abstract getPreferences(): UserPreferences;
 
-    public abstract isSWUStatsLinked(): boolean;
-
-    public abstract getSWUStatsRefreshToken(): string | null;
-
     /**
      * Sets the user's preferences
      */
@@ -84,10 +80,6 @@ export class AuthenticatedUser extends User {
         return false;
     }
 
-    public override getSWUStatsRefreshToken(): string | null {
-        return this.userData.swuStatsRefreshToken;
-    }
-
     public getId(): string {
         return this.userData.id;
     }
@@ -102,10 +94,6 @@ export class AuthenticatedUser extends User {
 
     public getPreferences(): UserPreferences {
         return this.userData.preferences;
-    }
-
-    public isSWUStatsLinked(): boolean {
-        return !!this.userData.swuStatsRefreshToken;
     }
 
     public setPreferences(preferences: UserPreferences) {
@@ -151,14 +139,6 @@ export class AnonymousUser extends User {
 
     public isAnonymousUser(): boolean {
         return true;
-    }
-
-    public isSWUStatsLinked(): boolean {
-        return false;
-    }
-
-    public override getSWUStatsRefreshToken(): string | null {
-        return null;
     }
 
     public isDevTestUser(): boolean {
