@@ -18,6 +18,7 @@ export interface IUserDataEntity {
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
     moderation?: IModerationAction;
+    undoPopupSeenDate?: string;
 }
 
 export interface IFeMatchupStatEntity extends IMatchupStatEntity {
