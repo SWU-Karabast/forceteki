@@ -52,8 +52,7 @@ class GameStateBuilder {
             router,
             { id: player1Info.id, username: player1Info.username },
             { id: player2Info.id, username: player2Info.username },
-            undoMode,
-            setupTestOptions.enableConfirmationToUndo ?? false
+            undoMode
         );
 
         const testContext = {};

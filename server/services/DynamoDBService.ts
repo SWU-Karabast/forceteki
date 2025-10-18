@@ -13,6 +13,7 @@ import * as Contract from '../game/core/utils/Contract';
 import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity, UserPreferences } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import { iDeckDataEntitySchema, iDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
+import { getDefaultPreferences } from '../utils/user/UserFactory';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -507,6 +508,32 @@ class DynamoDBService {
     }
 
     /**
+     * Check if the error is because of missing keys in the preference object
+     * @param userId the users ID
+     * @param defaultPreferences preference object
+     */
+    private async checkValidationExceptionAsync(userId: string, defaultPreferences: UserPreferences): Promise<boolean> {
+        const getCommand = new GetCommand({
+            TableName: this.tableName,
+            Key: { pk: `USER#${userId}`, sk: 'PROFILE' }
+        });
+
+        const result = await this.client.send(getCommand);
+        const currentPreferences = result.Item?.preferences;
+
+        let shouldResetToDefaults = false;
+
+        const expectedKeys = Object.keys(defaultPreferences);
+        const missingKeys = expectedKeys.filter((key) => !(key in currentPreferences));
+        if (missingKeys.length > 0) {
+            shouldResetToDefaults = true;
+            logger.info(`User ${userId} is missing preferences keys: ${missingKeys.join(', ')}, will reset to defaults`, { userId });
+        }
+        return shouldResetToDefaults;
+    }
+
+
+    /**
      * Update user preferences partially (supports nested updates)
      * @param userId User ID
      * @param preferences Partial preferences to update
@@ -517,7 +544,6 @@ class DynamoDBService {
             const expressionAttributeValues: Record<string, any> = {};
             const expressionAttributeNames: Record<string, string> = {};
 
-            // Helper function to build update expressions for nested objects
             const buildNestedUpdate = (obj: any, basePath: string[], valuePrefix: string) => {
                 for (const key in obj) {
                     const value = obj[key];
@@ -547,15 +573,62 @@ class DynamoDBService {
             if (updateExpressions.length === 0) {
                 return;
             }
-            const command = new UpdateCommand({
-                TableName: this.tableName,
-                Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
-                UpdateExpression: `SET ${updateExpressions.join(', ')}`,
-                ExpressionAttributeValues: expressionAttributeValues,
-                ExpressionAttributeNames: expressionAttributeNames,
-            });
+            let validationExceptionOccurred = false;
+            try {
+                const command = new UpdateCommand({
+                    TableName: this.tableName,
+                    Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                    UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+                    ExpressionAttributeValues: expressionAttributeValues,
+                    ExpressionAttributeNames: expressionAttributeNames,
+                });
 
-            await this.client.send(command);
+                await this.client.send(command);
+            } catch (error: any) {
+                if (error.name === 'ValidationException' &&
+                  error.message?.includes('document path provided in the update expression is invalid')) {
+                    logger.info(`Detected NULL markers in preferences for user ${userId}, resetting to defaults`, { userId });
+                    validationExceptionOccurred = true;
+                } else {
+                    // Re-throw if it's a different error
+                    logger.error(`An error occured when updating preferences for user ${userId}`, { error: { message: error.message, stack: error.stack }, userId });
+                    throw error;
+                }
+            }
+
+            if (validationExceptionOccurred) {
+                logger.info(`Attempting to see whether the validation exception is expected for ${userId}`, { userId });
+                try {
+                    // we read and then attempt
+                    const defaultPrefs = getDefaultPreferences();
+                    if (await this.checkValidationExceptionAsync(userId, defaultPrefs)) {
+                        // Get defaults and merge with new preferences
+                        const merged = { ...defaultPrefs, ...preferences };
+
+                        for (const key in preferences) {
+                            if (typeof preferences[key] === 'object' && preferences[key] !== null &&
+                              typeof defaultPrefs[key] === 'object' && defaultPrefs[key] !== null) {
+                                merged[key] = { ...defaultPrefs[key], ...preferences[key] };
+                            }
+                        }
+
+                        // Update with the merged preferences (full replace)
+                        const resetCommand = new UpdateCommand({
+                            TableName: this.tableName,
+                            Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                            UpdateExpression: 'SET preferences = :p',
+                            ExpressionAttributeValues: { ':p': merged }
+                        });
+
+                        await this.client.send(resetCommand);
+                    } else {
+                        throw new Error(`An unexpected validation exception occured when updating preferences for user ${userId}`);
+                    }
+                } catch (error) {
+                    logger.error(`An error occured when resetting to defaults the validation Exception for user ${userId}`, { error: { message: error.message, stack: error.stack }, userId });
+                    throw error;
+                }
+            }
         }, 'Error updating user preferences');
     }
 

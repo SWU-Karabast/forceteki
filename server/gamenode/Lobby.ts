@@ -31,7 +31,7 @@ interface LobbySpectator {
 }
 
 enum LobbySettingKeys {
-    UndoEnabled = 'undoEnabled',
+    RequestUndo = 'requestUndo',
 }
 
 export interface LobbyUser extends LobbySpectator {
@@ -104,7 +104,6 @@ export class Lobby {
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
     private readonly swuStatsEnabled: boolean = true;
-    private readonly enableConfirmationToUndo: boolean;
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
 
@@ -134,8 +133,7 @@ export class Lobby {
         deckValidator: DeckValidator,
         gameServer: GameServer,
         discordDispatcher: DiscordDispatcher,
-        testGameBuilder?: any,
-        enableUndo = false
+        testGameBuilder?: any
     ) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
@@ -153,8 +151,7 @@ export class Lobby {
         this.gameFormat = lobbyGameFormat;
         this.server = gameServer;
         this.discordDispatcher = discordDispatcher;
-        this.undoMode = process.env.ENVIRONMENT === 'development' || enableUndo ? UndoMode.Full : UndoMode.CurrentSnapshotOnly;
-        this.enableConfirmationToUndo = lobbyGameType !== MatchType.Private;
+        this.undoMode = lobbyGameType === MatchType.Private ? UndoMode.Free : UndoMode.Request;
     }
 
     public get id(): string {
@@ -188,7 +185,7 @@ export class Lobby {
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
             settings: {
-                undoEnabled: this.undoMode === UndoMode.Full,
+                requestUndo: this.undoMode === UndoMode.Request,
             },
         };
     }
@@ -692,7 +689,7 @@ export class Lobby {
             router,
             { id: 'exe66', username: 'Order66' },
             { id: 'th3w4y', username: 'ThisIsTheWay' },
-            UndoMode.Full
+            UndoMode.Free
         );
 
         this.game = game;
@@ -816,7 +813,6 @@ export class Lobby {
             gameMode: GameMode.Premier,
             players,
             undoMode: this.undoMode,
-            enableConfirmationToUndo: this.enableConfirmationToUndo,
             cardDataGetter: this.cardDataGetter,
             useActionTimer,
             pushUpdate: () => this.sendGameState(this.game),
@@ -1354,10 +1350,10 @@ export class Lobby {
         Contract.assertTrue(user.id === this.lobbyOwnerId, `User ${user.id} attempted to change lobby settings but is not the lobby owner (${this.lobbyOwnerId})`);
 
         switch (settingName) {
-            case LobbySettingKeys.UndoEnabled:
+            case LobbySettingKeys.RequestUndo:
                 this.assertSettingType(settingName, settingValue, 'boolean');
-                this.undoMode = settingValue ? UndoMode.Full : UndoMode.Disabled;
-                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo`);
+                this.undoMode = settingValue ? UndoMode.Request : UndoMode.Free;
+                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo confirmation`);
                 break;
             default:
                 Contract.fail(`Unknown setting name: ${settingName}`);

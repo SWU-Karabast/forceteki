@@ -160,6 +160,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     public readonly actionTimer: IActionTimer;
 
     public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
+    public hasResolvedAbilityThisTimepoint = false;
 
     public optionSettings: Partial<{ autoSingleTarget: boolean }>;
     private _promptState: PlayerPromptState;
