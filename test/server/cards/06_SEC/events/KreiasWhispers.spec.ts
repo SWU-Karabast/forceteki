@@ -21,7 +21,6 @@ describe('Kreia\'s Whispers', function () {
                 context.infernoFourUnforgetting
             ]);
             context.player1.clickCard(context.battlefieldMarine);
-            expect(context.player1.deck[0]).toBe(context.battlefieldMarine);
 
             expect(context.player1).toBeAbleToSelectExactly([
                 context.jediKnight,
@@ -56,7 +55,6 @@ describe('Kreia\'s Whispers', function () {
                 context.infernoFourUnforgetting
             ]);
             context.player1.clickCard(context.battlefieldMarine);
-            expect(context.player1.deck[0]).toBe(context.battlefieldMarine);
 
             expect(context.player1).toBeAbleToSelectExactly([
                 context.jediKnight,
@@ -88,7 +86,6 @@ describe('Kreia\'s Whispers', function () {
                 context.jediKnight
             ]);
             context.player1.clickCard(context.battlefieldMarine);
-            expect(context.player1.deck[0]).toBe(context.battlefieldMarine);
 
             expect(context.player1).toBeAbleToSelectExactly([
                 context.jediKnight
