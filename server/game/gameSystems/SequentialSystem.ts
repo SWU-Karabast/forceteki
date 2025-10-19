@@ -28,7 +28,10 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
         const message = ChatHelpers.formatWithLength(legalSystems.length, 'then to ');
         return [message, legalSystems.map((system) => {
             const [format, args] = system.getEffectMessage(context);
-            return [format, ...args];
+            return {
+                format: format,
+                args: args,
+            };
         })];
     }
 

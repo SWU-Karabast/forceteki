@@ -16,6 +16,7 @@ import type { MoveZoneDestination } from '../Constants';
 import { ChatObjectType, KeywordName } from '../Constants';
 import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
+import * as Helpers from '../utils/Helpers';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
@@ -773,8 +774,57 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
 
     // *************************************** EFFECT HELPERS ***************************************
+
+    /**
+     * Whether or not this card currently has any blanking effect applied to it. It may still have
+     * some abilities if they are explicitly excluded from a partial blanking effect.
+     *
+     * @returns {boolean} `true` if the card is blanked or partially blanked, `false` otherwise.
+     */
     public isBlank(): boolean {
-        return this.hasOngoingEffect(EffectName.Blank);
+        return this.hasOngoingEffect(EffectName.Blank) ||
+          this.hasOngoingEffect(EffectName.PartiallyBlank);
+    }
+
+    /**
+     * Whether or not this card is fully blanked, meaning it has lost all abilities and
+     * cannot gain any new ones.
+     *
+     * A card with a partial blanking effect may still be fully blanked if there is also a full
+     * blanking effect present, or if multiple partial blanking effects do not have overlapping
+     * exceptions.
+     *
+     * @returns {boolean} `true` if the card is fully blanked, `false` otherwise.
+     */
+    public isFullyBlanked(): boolean {
+        if (!this.isBlank()) {
+            return false;
+        } else if (this.hasOngoingEffect(EffectName.Blank)) {
+            return true;
+        }
+
+        const excludedKeywords = this.getOngoingEffectValues(EffectName.PartiallyBlank)
+            .map((value) => value.exceptKeyword);
+
+        // All excluded keywords must be the same for the card to to not be fully blanked
+        return excludedKeywords.length === 0 || !excludedKeywords.every((keyword) => keyword === excludedKeywords[0]);
+    }
+
+    public hasKeywordRemoved(keyword: KeywordName): boolean {
+        if (this.isFullyBlanked()) {
+            return true;
+        }
+
+        const isBlank = this.isBlank();
+        const keywordExcludedFromBlankEffect = this.getOngoingEffectValues(EffectName.PartiallyBlank)
+            .map((value) => value.exceptKeyword)
+            .includes(keyword);
+
+        const isSpecificallyRemoved = this.getOngoingEffectValues(EffectName.LoseKeyword)
+            .flatMap((x) => Helpers.asArray(x))
+            .includes(keyword);
+
+        return isSpecificallyRemoved || (isBlank && !keywordExcludedFromBlankEffect);
     }
 
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {

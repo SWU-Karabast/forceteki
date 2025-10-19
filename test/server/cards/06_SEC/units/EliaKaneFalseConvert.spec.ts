@@ -56,6 +56,12 @@ describe('Elia Kane, False Convert', function() {
                 expect(context.pykeSentinel.exhausted).toBeFalse();
                 expect(context.player2.readyResourceCount).toEqual(2);
                 expect(context.player2.exhaustedResourceCount).toEqual(2);
+
+                expect(context.getChatLogs(3)).toEqual([
+                    'player1 plays Elia Kane',
+                    'player1 uses Elia Kane to randomly select 3 cards, and to look at 3 enemy resources and sees Lom Pyke, Cad Bane, and Restock',
+                    'player1 uses Elia Kane to defeat a ready Restock and to move the top card of player2\'s deck to their resources and to ready it',
+                ]);
             });
 
             it('Replaces the defeated resource with a ready resource even if the selected resource was exhausted', function () {

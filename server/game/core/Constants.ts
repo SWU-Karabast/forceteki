@@ -113,7 +113,9 @@ export enum EffectName {
     MustAttack = 'mustAttack',
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
+    PartiallyBlank = 'partiallyBlank',
     PrintedAttributesOverride = 'printedAttributesOverride',
+    RescuedUnitsEnterPlayReady = 'rescuedUnitsEnterPlayReady',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
     SuppressEffects = 'suppressEffects',
@@ -340,6 +342,7 @@ export enum MetaEventName {
 export enum AbilityType {
     Action = 'action',
     Constant = 'constant',
+    DamagePrevention = 'damagePrevention',
     DelayedEffect = 'delayedEffect',
     Event = 'event',
     ReplacementEffect = 'replacementEffect',
@@ -474,6 +477,12 @@ export enum AbilityRestriction {
     ReturnToHand = 'returnToHand',
 }
 
+export enum DamagePreventionType {
+    All = 'all',
+    Reduce = 'reduce',
+    Replace = 'replace',
+}
+
 export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
     CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
@@ -566,4 +575,10 @@ export enum GameEndReason {
     Concede = 'concede',
     GameRules = 'gameRules',
     PlayerLeft = 'playerLeft',
+}
+
+export enum Conjunction {
+    And = 'and',
+    Or = 'or',
+    AndOr = 'and/or'
 }

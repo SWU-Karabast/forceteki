@@ -31,6 +31,10 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                 expect(context.fallenLightsaber).toBeInZone('discard');
                 expect(context.fifthBrother).toBeInZone('hand');
                 expect(context.kyloRen.exhausted).toBeTrue();
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Kylo Ren, exhausting Kylo Ren to discard Fallen Lightsaber',
+                    'player1 uses Kylo Ren to draw a card',
+                ]);
             });
 
             it('does not draw a card if an event is chosen', function () {

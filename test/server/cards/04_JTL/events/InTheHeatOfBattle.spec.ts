@@ -157,7 +157,7 @@ describe('In the Heat of Battle', () => {
 
             // Use Kazuda's ability to make Battlefield Marine lose all abilities
             context.player1.clickCard(context.kazudaXiono);
-            context.player1.clickPrompt('Select a friendly unit');
+            context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
             context.player1.clickCard(context.battlefieldMarine);
 
             // Attack with Oribiting K-Wing, it cannot target Alliance X-Wing

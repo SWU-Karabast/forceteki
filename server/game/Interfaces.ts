@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { Aspect, Duration, RelativePlayerFilter, StandardTriggeredAbilityType } from './core/Constants';
+import type { Aspect, DamagePreventionType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
@@ -29,6 +29,8 @@ import type { IInitiateAttackProperties } from './gameSystems/InitiateAttackSyst
 import type { FormatMessage } from './core/chat/GameChat';
 import type { ISnapshotSettingsBase } from './core/snapshot/SnapshotInterfaces';
 import type { Lobby } from '../gamenode/Lobby';
+import type { DamageSourceType } from './IDamageOrDefeatSource';
+import type { IInPlayCard } from './core/card/baseClasses/InPlayCard';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -38,6 +40,21 @@ import type { Lobby } from '../gamenode/Lobby';
 /** Interface definition for addTriggeredAbility */
 export type ITriggeredAbilityProps<TSource extends Card = Card> = ITriggeredAbilityWhenProps<TSource> | ITriggeredAbilityAggregateWhenProps<TSource>;
 export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IReplacementEffectAbilityWhenProps<TSource> | IReplacementEffectAbilityAggregateWhenProps<TSource>;
+export type IDamagePreventionAbilityProps<TSource extends Card = Card> = Omit<IReplacementEffectAbilityBaseProps<TSource>, 'when'> & {
+    preventionType: DamagePreventionType;
+    onlyFromPlayer?: RelativePlayer; // TSTODO - update to accept an array
+    damageOfType?: DamageSourceType;
+    preventionAmount?: number;
+    replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
+
+    /**
+     * This can be used to override the default assumption that prevention applies to context.sourcea
+     * @param card
+     * @param context
+     * @returns True if the card meets the defined condition
+     */
+    shouldCardHaveDamagePrevention?: (card: Card, context?: TriggeredAbilityContext) => boolean;
+};
 
 /** Interface definition for addActionAbility */
 export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'optional'> & {
@@ -175,18 +192,29 @@ export type IReplacementEffectAbilityPropsWithType<TSource extends Card = Card> 
     type: AbilityType.ReplacementEffect;
 };
 
+export type IDamagePreventionEffectAbilityPropsWithType<TSource extends Card = Card> = IDamagePreventionAbilityProps<TSource> & {
+    type: AbilityType.DamagePrevention;
+};
+
+export interface IPlayRestrictionAbilityProps {
+    title: string;
+    restrictedActionCondition?: (context: AbilityContext, source: Card) => boolean;
+}
+
 /** Ability types with gain contdition */
 export type IConstantAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IConstantAbilityProps<TTarget> & IGainCondition<TSource>;
 export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
 export type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
 export type IActionAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
 export type IReplacementEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IReplacementEffectAbilityProps<TTarget> & IGainCondition<TSource>;
+export type IDamagePreventionEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IDamagePreventionAbilityProps<TTarget> & IGainCondition<TSource>;
 
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
   IActionAbilityPropsWithType<TSource> |
   IConstantAbilityPropsWithType<TSource> |
-  IReplacementEffectAbilityPropsWithType<TSource>;
+  IReplacementEffectAbilityPropsWithType<TSource> |
+  IDamagePreventionEffectAbilityPropsWithType<TSource>;
 
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
 export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
@@ -286,6 +314,23 @@ export interface IGainCondition<TSource extends IUpgradeCard> {
     gainCondition?: (context: AbilityContext<TSource>) => boolean;
 }
 
+export interface IAttachCardContext<TSource extends IInPlayCard> {
+    /**
+     * The card that is the source of the attach condition
+     */
+    source: TSource;
+
+    /**
+     * The player who will control the upgrade at the time of attachment
+     */
+    controllingPlayer: Player;
+
+    /**
+     * The card being targeted for attachment
+     */
+    attachTarget: Card;
+}
+
 export type IKeywordPropertiesWithGainCondition<TSource extends IUpgradeCard> = IKeywordProperties & IGainCondition<TSource>;
 
 export interface IClientUIProperties {
@@ -297,42 +342,58 @@ export interface ISetId {
     number: number;
 }
 
+export type ISerializationError = Record<string, string>;
+
 export interface IResourceState {
     readyCount: number;
     exhaustedCount: number;
 }
 
+type ISafeSerializedType<T> = T | ISerializationError;
+type ISafeSerializedArrayType<T> = (T | ISerializationError)[] | ISerializationError;
+
+export interface ISerializedUpgradeState {
+    card: string;
+    ownerAndController: ISafeSerializedType<string>;
+}
+
+export interface ISerializedCapturedCardState {
+    card: string;
+    owner: ISafeSerializedType<string>;
+}
+
 /* Serialized state retrieving interfaces */
 export interface ISerializedCardState {
     card: string;
-    damage?: number;
-    upgrades?: ({ card: string; ownerAndController: string } | string)[];
-    deployed?: boolean;
-    exhausted?: boolean;
-    capturedUnits?: ({ card: string; owner: string } | string)[];
-    flipped?: boolean;
-    owner?: string;
+    damage?: ISafeSerializedType<number>;
+    upgrades?: ISafeSerializedArrayType<ISerializedUpgradeState | string>;
+    deployed?: ISafeSerializedType<boolean>;
+    exhausted?: ISafeSerializedType<boolean>;
+    capturedUnits?: ISafeSerializedArrayType<ISerializedCapturedCardState | string>;
+    flipped?: ISafeSerializedType<boolean>;
+    owner?: ISafeSerializedType<string>;
 }
 
 export interface IPlayerSerializedState {
     hand?: number | string[];
-    groundArena?: (string | ISerializedCardState)[];
-    spaceArena?: (string | ISerializedCardState)[];
-    discard?: string[];
-    resources?: number | IResourceState | (string | ISerializedCardState)[];
-    base?: string | ISerializedCardState;
-    leader?: string | ISerializedCardState;
-    deck?: number | string[];
-    hasInitiative?: boolean;
-    hasForceToken?: boolean;
+    groundArena?: ISafeSerializedArrayType<string | ISerializedCardState>;
+    spaceArena?: ISafeSerializedArrayType<string | ISerializedCardState>;
+    discard?: ISafeSerializedArrayType<string>;
+    resources?: ISafeSerializedType<number | IResourceState> | ISafeSerializedArrayType<(string | ISerializedCardState)>;
+    base?: ISafeSerializedType<string | ISerializedCardState>;
+    leader?: ISafeSerializedType<string | ISerializedCardState>;
+    deck?: ISafeSerializedType<number> | ISafeSerializedArrayType<string>;
+    hasInitiative?: ISafeSerializedType<boolean>;
+    hasForceToken?: ISafeSerializedType<boolean>;
 }
 
 export interface ISerializedGameState {
     phase?: string;
-    reportingPlayer?: IPlayerSerializedState;
-    opponent?: IPlayerSerializedState;
-    player1?: IPlayerSerializedState;
-    player2?: IPlayerSerializedState;
+    reportingPlayer?: ISafeSerializedType<IPlayerSerializedState>;
+    opponent?: ISafeSerializedType<IPlayerSerializedState>;
+    player1?: ISafeSerializedType<IPlayerSerializedState>;
+    player2?: ISafeSerializedType<IPlayerSerializedState>;
+    error?: string;
 }
 
 export type MessageText = string | (string | number)[];

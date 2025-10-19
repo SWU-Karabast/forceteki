@@ -86,6 +86,11 @@ interface IRollbackResultFailure extends IRollbackResultBase {
     success: false;
 }
 
+export interface ICanRollBackResult {
+    requiresConfirmation: boolean;
+    isSameTimepoint?: boolean;
+}
+
 export type IRollbackResult = IRollbackResultSuccess | IRollbackResultFailure;
 
 export interface ISnapshotProperties {
@@ -93,6 +98,10 @@ export interface ISnapshotProperties {
     actionNumber: number;
     currentPhase: PhaseName;
     snapshotId: number;
+    requiresConfirmationToRollback: boolean;
+    timepoint: SnapshotTimepoint;
+    timepointNumber: number;
+    nextSnapshotIsSamePlayer?: boolean;
 }
 
 export enum SnapshotTimepoint {
@@ -112,10 +121,15 @@ export interface IGameSnapshot {
     roundNumber: number;
     phase: PhaseName;
     timepoint: SnapshotTimepoint;
+    timepointNumber: number;
+    activePlayerId?: string;
 
     gameState: Buffer;
     states: Buffer;
     rngState: IRandomness['rngState'];
+
+    requiresConfirmationToRollback: boolean;
+    nextSnapshotIsSamePlayer?: boolean;
 }
 
 export interface IGameState {
@@ -129,4 +143,11 @@ export interface IGameState {
     lastGameEventId: number;
     readonly winnerNames: string[];
     currentPhase: PhaseName | null;
+}
+
+export enum QuickUndoAvailableState {
+    NoSnapshotAvailable = 'noSnapshotAvailable',
+    UndoRequestsBlocked = 'undoRequestsBlocked',
+    FreeUndoAvailable = 'freeUndoAvailable',
+    RequestUndoAvailable = 'requestUndoAvailable',
 }

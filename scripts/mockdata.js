@@ -102,6 +102,56 @@ const mockCards = [
         internalName: 'lets-call-it-war',
     }),
     buildMockCard({
+        title: 'Ambition\'s Reward',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['upgrade'],
+        traits: ['law'],
+        setId: {
+            set: 'SEC',
+            number: 175
+        },
+        upgradeHp: 1,
+        upgradePower: 1,
+        power: 1,
+        hp: 1,
+        cost: 2,
+        unique: false,
+        internalName: 'ambitions-reward',
+    }),
+    buildMockCard({
+        title: 'Unauthorized Investigation',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'SEC',
+            number: 181
+        },
+        cost: 3,
+        unique: false,
+        internalName: 'unauthorized-investigation',
+    }),
+    buildMockCard({
+        title: 'Grand Admiral Thrawn',
+        subtitle: 'Grand Schemer',
+        power: 8,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 193
+        },
+        cost: 7,
+        unique: true,
+        arena: 'ground',
+        internalName: 'grand-admiral-thrawn#grand-schemer',
+    }),
+    buildMockCard({
         title: 'Bo-Katan Kryze',
         subtitle: 'Alone',
         power: 8,
@@ -1064,20 +1114,6 @@ const mockCards = [
         internalName: 'catch-unawares',
     }),
     buildMockCard({
-        title: 'Arrest',
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'villainy'],
-        types: ['event'],
-        traits: ['law'],
-        setId: {
-            set: 'SEC',
-            number: 195
-        },
-        cost: 2,
-        unique: false,
-        internalName: 'arrest',
-    }),
-    buildMockCard({
         title: 'Tempest Assault',
         hasNonKeywordAbility: true,
         aspects: ['aggression', 'villainy'],
@@ -1178,25 +1214,6 @@ const mockCards = [
         internalName: 'grand-admiral-thrawn#grand-schemer',
     }),
     buildMockCard({
-        title: 'Hondo Ohnaka',
-        subtitle: 'You Better Hurry',
-        power: 6,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['aggression', 'villainy'],
-        types: ['unit'],
-        traits: ['underworld'],
-        setId: {
-            set: 'SEC',
-            number: 140
-        },
-        cost: 6,
-        unique: true,
-        arena: 'ground',
-        internalName: 'hondo-ohnaka#you-better-hurry',
-    }),
-    buildMockCard({
         title: 'The Galleon',
         subtitle: 'Marauding Pirate Ship',
         power: 6,
@@ -1254,7 +1271,7 @@ const mockCards = [
         hp: 3,
         hasNonKeywordAbility: false,
         keywords: ['hidden'],
-        aspects: ['aggression', 'heroism'],
+        aspects: ['aggression', 'villainy'],
         types: ['unit'],
         traits: ['republic', 'vehicle', 'fighter'],
         setId: {
@@ -1301,25 +1318,6 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'alexsandr-kallus#with-new-purpose',
-    }),
-    buildMockCard({
-        title: 'Lando Calrissian',
-        subtitle: 'Trust Me',
-        power: 6,
-        hp: 8,
-        hasNonKeywordAbility: true,
-        keywords: ['grit'],
-        aspects: ['vigilance'],
-        types: ['unit'],
-        traits: ['fringe', 'official'],
-        setId: {
-            set: 'SEC',
-            number: 68
-        },
-        cost: 7,
-        unique: true,
-        arena: 'ground',
-        internalName: 'lando-calrissian#trust-me',
     }),
     buildMockCard({
         title: 'Cassian Andor',
@@ -1462,20 +1460,887 @@ const mockCards = [
         internalName: 'emissarys-sheathipede',
     }),
     buildMockCard({
-        title: 'One in a Million',
+        title: 'Restore Freedom',
         hasNonKeywordAbility: true,
-        keywords: ['plot'],
-        aspects: ['vigilance', 'heroism'],
+        aspects: ['heroism'],
         types: ['event'],
         traits: ['gambit'],
         setId: {
             set: 'SEC',
-            number: 53
+            number: 257
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'restore-freedom',
+    }),
+    buildMockCard({
+        title: 'Crucible',
+        subtitle: 'Centuries of Wisdom',
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['jedi', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 119
+        },
+        cost: 6,
+        unique: true,
+        arena: 'space',
+        internalName: 'crucible#centuries-of-wisdom',
+    }),
+    buildMockCard({
+        title: 'Libertine',
+        subtitle: 'Under New Ownership',
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'cunning'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 212
+        },
+        cost: 4,
+        unique: true,
+        arena: 'space',
+        internalName: 'libertine#under-new-ownership',
+    }),
+    buildMockCard({
+        title: 'Zam Wesell',
+        subtitle: 'Inconspicuous Assassin',
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'bounty hunter'],
+        setId: {
+            set: 'SEC',
+            number: 29
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'zam-wesell#inconspicuous-assassin',
+    }),
+    buildMockCard({
+        title: 'Creditor\'s Claim',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['upgrade'],
+        traits: ['supply'],
+        setId: {
+            set: 'SEC',
+            number: 39
+        },
+        upgradeHp: 2,
+        upgradePower: 2,
+        power: 2,
+        hp: 2,
+        cost: 3,
+        unique: false,
+        internalName: 'creditors-claim',
+    }),
+    buildMockCard({
+        title: 'Ziton Moj',
+        subtitle: 'Black Sun Bully',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 168
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'ziton-moj#black-sun-bully',
+    }),
+    buildMockCard({
+        title: 'DJ',
+        subtitle: 'Need a Lift?',
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'cunning'],
+        keywords: ['saboteur'],
+        types: ['leader'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 18
+        },
+        cost: 6,
+        unique: true,
+        arena: 'ground',
+        internalName: 'dj#need-a-lift',
+    }),
+    buildMockCard({
+        title: 'Director Kennic',
+        subtitle: 'I Lose Nothing But Time',
+        power: 8,
+        hp: 10,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['sentinel'],
+        types: ['unit'],
+        traits: ['imperial', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 90
+        },
+        cost: 9,
+        unique: true,
+        arena: 'ground',
+        internalName: 'director-krennic#i-lose-nothing-but-me',
+    }),
+    buildMockCard({
+        title: 'Garindan',
+        subtitle: 'Information Broker',
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['plot'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 186
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'garindan#information-broker',
+    }),
+    buildMockCard({
+        title: 'General Grievous',
+        subtitle: 'Scuttling to Safety',
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['hidden'],
+        types: ['unit'],
+        traits: ['separatist', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 187
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'general-grievous#scuttling-to-safety',
+    }),
+    buildMockCard({
+        title: 'Kazuda Xiono',
+        subtitle: 'I\'m Not a Spy',
+        power: 2,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['raid 2'],
+        types: ['unit'],
+        traits: ['resistance'],
+        setId: {
+            set: 'SEC',
+            number: 151
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'kazuda-xiono#im-not-a-spy',
+    }),
+    buildMockCard({
+        title: 'Soulless One',
+        subtitle: 'Swift and Agile',
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['separatist', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 190
+        },
+        cost: 3,
+        unique: true,
+        arena: 'space',
+        internalName: 'soulless-one#swift-and-agile',
+    }),
+    buildMockCard({
+        title: 'Vigil',
+        subtitle: 'Securing the Future',
+        power: 5,
+        hp: 9,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['plot'],
+        types: ['unit'],
+        traits: ['resistance', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'SEC',
+            number: 50
+        },
+        cost: 7,
+        unique: true,
+        arena: 'space',
+        internalName: 'vigil#securing-the-future',
+    }),
+    buildMockCard({
+        title: 'Consular\'s Cruiser',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        keywords: ['sentinel'],
+        types: ['unit'],
+        traits: ['republic', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 117
+        },
+        cost: 5,
+        unique: false,
+        arena: 'space',
+        internalName: 'consulars-cruiser',
+    }),
+    buildMockCard({
+        title: 'Sabé',
+        subtitle: 'Queen\'s Shadow',
+        power: 3,
+        hp: 6,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['raid 1'],
+        types: ['leader'],
+        traits: ['naboo'],
+        setId: {
+            set: 'SEC',
+            number: 17
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sabe#queens-shadow',
+    }),
+    buildMockCard({
+        title: 'Contempt for Culture',
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        types: ['event'],
+        traits: ['innate'],
+        setId: {
+            set: 'SEC',
+            number: 246
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'contempt-for-culture',
+    }),
+    buildMockCard({
+        title: 'Faith in Your Friends',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['event'],
+        traits: ['gambit'],
+        setId: {
+            set: 'SEC',
+            number: 211
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'faith-in-your-friends',
+    }),
+    buildMockCard({
+        title: 'Stolen Starpath Unit',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['upgrade'],
+        traits: ['item', 'modification'],
+        setId: {
+            set: 'SEC',
+            number: 210
+        },
+        upgradeHp: 1,
+        upgradePower: 1,
+        power: 1,
+        hp: 1,
+        cost: 1,
+        unique: false,
+        internalName: 'stolen-starpath-unit',
+    }),
+    buildMockCard({
+        title: 'Diplomatic Immunity',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['upgrade'],
+        traits: ['law'],
+        setId: {
+            set: 'SEC',
+            number: 52
+        },
+        upgradeHp: 2,
+        upgradePower: 2,
+        power: 2,
+        hp: 2,
+        cost: 2,
+        unique: false,
+        internalName: 'diplomatic-immunity',
+    }),
+    buildMockCard({
+        title: 'Galen Erso',
+        subtitle: 'You\'ll Never Win',
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['plot'],
+        types: ['unit'],
+        traits: ['imperial'],
+        setId: {
+            set: 'SEC',
+            number: 46
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'galen-erso#youll-never-win',
+    }),
+    buildMockCard({
+        title: 'Blue Ace',
+        subtitle: 'Colorful Racer',
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['ambush'],
+        types: ['unit'],
+        traits: ['resistance', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 204
+        },
+        cost: 4,
+        unique: true,
+        arena: 'space',
+        internalName: 'blue-ace#colorful-racer',
+    }),
+    buildMockCard({
+        title: 'Willrow Hood',
+        subtitle: 'On the Run',
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['fringe'],
+        setId: {
+            set: 'SEC',
+            number: 61
+        },
+        cost: 3,
+        unique: true,
+        arena: 'ground',
+        internalName: 'willrow-hood#on-the-run',
+    }),
+    buildMockCard({
+        title: 'Remote Escort Tank',
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        keywords: ['plot'],
+        types: ['unit'],
+        traits: ['republic', 'vehicle', 'tank'],
+        setId: {
+            set: 'SEC',
+            number: 255
+        },
+        cost: 6,
+        unique: false,
+        arena: 'ground',
+        internalName: 'remote-escort-tank',
+    }),
+    buildMockCard({
+        title: 'Inner Rim Coalition',
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['republic', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 154
+        },
+        cost: 6,
+        unique: false,
+        arena: 'ground',
+        internalName: 'inner-rim-coalition',
+    }),
+    buildMockCard({
+        title: 'Implicate',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'SEC',
+            number: 231
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'implicate',
+    }),
+    buildMockCard({
+        title: 'Valiant Commando',
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 150
+        },
+        cost: 3,
+        unique: false,
+        arena: 'ground',
+        internalName: 'valiant-commando',
+    }),
+    buildMockCard({
+        title: 'Pursue the Lead',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'SEC',
+            number: 178
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'pursue-the-lead',
+    }),
+    buildMockCard({
+        title: 'Strike Force X-Wing',
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        keywords: ['plot'],
+        traits: ['rebel', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 152
+        },
+        cost: 4,
+        unique: false,
+        arena: 'space',
+        internalName: 'strike-force-xwing',
+    }),
+    buildMockCard({
+        title: 'Let\'s Talk',
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'SEC',
+            number: 131
+        },
+        cost: 9,
+        unique: false,
+        internalName: 'lets-talk',
+    }),
+    buildMockCard({
+        title: 'The Eye of Aldhani',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['event'],
+        traits: ['innate', 'trick'],
+        setId: {
+            set: 'SEC',
+            number: 73
         },
         cost: 1,
         unique: false,
-        internalName: 'one-in-a-million',
+        internalName: 'the-eye-of-aldhani',
     }),
+    buildMockCard({
+        title: 'Outer Rim Constable',
+        power: 3,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['fringe', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 163
+        },
+        cost: 2,
+        unique: false,
+        arena: 'ground',
+        internalName: 'outer-rim-constable',
+    }),
+    buildMockCard({
+        title: 'Lurking Snub Fighter',
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['plot'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 189
+        },
+        cost: 3,
+        unique: false,
+        arena: 'space',
+        internalName: 'lurking-snub-fighter',
+    }),
+    buildMockCard({
+        title: 'Raxian Assembly',
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['separatist', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 118
+        },
+        cost: 5,
+        unique: false,
+        arena: 'ground',
+        internalName: 'raxian-assembly',
+    }),
+    buildMockCard({
+        title: 'First Light',
+        subtitle: 'Threatening Elegance',
+        power: 5,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['plot', 'ambush'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        setId: {
+            set: 'SEC',
+            number: 88
+        },
+        cost: 7,
+        unique: true,
+        arena: 'space',
+        internalName: 'first-light#threatening-elegance',
+    }),
+    buildMockCard({
+        title: 'Reconnaissance',
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'SEC',
+            number: 125
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'reconnaissance',
+    }),
+    buildMockCard({
+        title: 'Beguile',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'SEC',
+            number: 233
+        },
+        cost: 3,
+        unique: false,
+        internalName: 'beguile',
+    }),
+    buildMockCard({
+        title: 'Dryden Vos',
+        subtitle: 'I Never Ask Twice',
+        power: 5,
+        hp: 7,
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['overwhelm'],
+        types: ['leader'],
+        traits: ['underworld'],
+        setId: {
+            set: 'SEC',
+            number: 7
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'dryden-vos#i-never-ask-twice',
+    }),
+    buildMockCard({
+        title: 'Jabba the Hutt',
+        subtitle: 'Wonderful Human Being',
+        power: 2,
+        hp: 8,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['leader'],
+        traits: ['underworld', 'hutt'],
+        setId: {
+            set: 'SEC',
+            number: 2
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jabba-the-hutt#wonderful-human-being',
+    }),
+    buildMockCard({
+        title: 'Beloved Orator',
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['new republic', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 97
+        },
+        cost: 3,
+        unique: false,
+        arena: 'ground',
+        internalName: 'beloved-orator',
+    }),
+    buildMockCard({
+        title: 'Renowned Dignitaries',
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        keywords: ['overwhelm'],
+        types: ['unit'],
+        traits: ['new republic', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 102
+        },
+        cost: 6,
+        unique: false,
+        arena: 'ground',
+        internalName: 'renowned-dignitaries',
+    }),
+    buildMockCard({
+        title: 'Hutt Cartel Starfighter',
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 240
+        },
+        cost: 3,
+        unique: false,
+        arena: 'space',
+        internalName: 'hutt-cartel-starfighter',
+    }),
+    buildMockCard({
+        title: 'Corellian Hounds',
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['creature'],
+        setId: {
+            set: 'SEC',
+            number: 170
+        },
+        cost: 5,
+        unique: false,
+        arena: 'ground',
+        internalName: 'corellian-hounds',
+    }),
+    buildMockCard({
+        title: 'Queen Amidala',
+        subtitle: 'Championing Her People',
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['naboo', 'official'],
+        setId: {
+            set: 'SEC',
+            number: 101
+        },
+        cost: 5,
+        unique: true,
+        arena: 'ground',
+        internalName: 'queen-amidala#championing-her-people',
+    }),
+    buildMockCard({
+        title: 'The Elite Squad',
+        subtitle: 'Neutralizing Insurgents',
+        power: 6,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        keywords: ['grit'],
+        types: ['unit'],
+        traits: ['imperial', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 143
+        },
+        cost: 8,
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-elite-squad#neutralizing-insurgents',
+    }),
+    buildMockCard({
+        title: 'Karis Nemik',
+        subtitle: 'Freedom Is a Pure Idea',
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['hidden'],
+        types: ['unit'],
+        traits: ['rebel'],
+        setId: {
+            set: 'SEC',
+            number: 148
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'karis-nemik#freedom-is-a-pure-idea',
+    }),
+    buildMockCard({
+        title: 'Captain Rex',
+        subtitle: 'Into the Firefight',
+        power: 7,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['republic', 'clone', 'trooper'],
+        setId: {
+            set: 'SEC',
+            number: 48
+        },
+        cost: 6,
+        unique: true,
+        arena: 'ground',
+        internalName: 'captain-rex#into-the-firefight',
+    }),
+    buildMockCard({
+        title: 'Saw Gerrera\'s U-Wing',
+        subtitle: 'Breaking the Rules',
+        power: 4,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        keywords: ['saboteur'],
+        types: ['unit'],
+        traits: ['rebel', 'vehicle', 'fighter'],
+        setId: {
+            set: 'SEC',
+            number: 174
+        },
+        cost: 6,
+        unique: true,
+        arena: 'space',
+        internalName: 'saw-gerreras-uwing#breaking-the-rules',
+    }),
+    buildMockCard({
+        title: 'Fully Armed and Operational',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'SEC',
+            number: 194
+        },
+        cost: 1,
+        unique: false,
+        internalName: 'fully-armed-and-operational',
+    }),
+    buildMockCard({
+        title: 'Nemik\'s Manifesto',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['upgrade'],
+        traits: ['item', 'rebel'],
+        setId: {
+            set: 'SEC',
+            number: 156
+        },
+        upgradeHp: 1,
+        upgradePower: 1,
+        power: 1,
+        hp: 1,
+        cost: 1,
+        unique: true,
+        internalName: 'nemiks-manifesto',
+    }),
+    buildMockCard({
+        title: 'Lightmaker',
+        subtitle: 'I Have An Idea',
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['raid 4'],
+        types: ['unit'],
+        traits: ['rebel', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'SEC',
+            number: 207
+        },
+        cost: 5,
+        unique: true,
+        arena: 'space',
+        internalName: 'lightmaker#i-have-an-idea',
+    }),
+    buildMockCard({
+        title: 'Renewed Friendship',
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['event'],
+        traits: ['innate'],
+        setId: {
+            set: 'SEC',
+            number: 105
+        },
+        cost: 4,
+        unique: false,
+        internalName: 'renewed-friendship',
+    })
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
@@ -1534,26 +2399,30 @@ function buildSetStr(card) {
 }
 
 function addMockCards(cards) {
-    const cardsById = new Map();
+    const mockCardsById = new Map();
     const mockCardNames = [];
 
-    for (const card of cards) {
-        cardsById.set(buildSetStr(card), card);
-    }
+    const allCards = [];
 
     for (const card of mockCards) {
-        const setStr = buildSetStr(card);
-
-        if (cardsById.has(setStr)) {
-            // console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js\n`, 'yellow'));
-            cardsById.get(setStr).id = card.id;
-        } else {
-            cards.push(card);
-            mockCardNames.push(card.internalName);
-        }
+        mockCardsById.set(buildSetStr(card), card);
+        mockCardNames.push(card.internalName);
+        allCards.push(card);
     }
 
-    return mockCardNames;
+    for (const card of cards) {
+        const setStr = buildSetStr(card);
+        if (mockCardsById.has(setStr)) {
+            // uncomment the below to emit a log line for each mock card that is now in the official data
+            // console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js`, 'yellow'));
+
+            continue;
+        }
+
+        allCards.push(card);
+    }
+
+    return { mockCardNames, cards: allCards };
 }
 
 module.exports = { addMockCards };

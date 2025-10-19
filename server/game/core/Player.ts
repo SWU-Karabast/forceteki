@@ -1,7 +1,6 @@
 import type { IGameObjectState } from './GameObject';
 import { GameObject } from './GameObject';
 import type { Deck, IDeckList as IDeckList } from '../../utils/deck/Deck.js';
-import UpgradePrompt from './gameSteps/prompts/UpgradePrompt.js';
 import type { CostAdjuster, ICanAdjustProperties } from './cost/CostAdjuster';
 import { CostAdjustType } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
@@ -51,8 +50,10 @@ import type { IBaseCard } from './card/BaseCard';
 import { logger } from '../../logger';
 import { StandardActionTimer } from './actionTimer/StandardActionTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
-import { PlayerTimeRemainingStatus, type IActionTimer } from './actionTimer/IActionTimer';
+import type { IActionTimer } from './actionTimer/IActionTimer';
+import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
+import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -76,6 +77,24 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     public socket: any;
     public disconnected: boolean;
     public left: boolean;
+
+    private canTakeActionsThisPhase: null;
+    // STATE TODO: Does Deck need to be a GameObject?
+    private decklistNames: Deck | null;
+    public readonly actionTimer: IActionTimer;
+
+    public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
+    public hasResolvedAbilityThisTimepoint = false;
+
+    public optionSettings: Partial<{ autoSingleTarget: boolean }>;
+    private _promptState: PlayerPromptState;
+    public opponent: Player;
+    private playableZones: PlayableZone[];
+    private _lastActionId = 0;
+
+    public activeForPreviousPrompt = false;
+    private _rejectedOpponentUndoRequests = 0;
+    private _undoRequestsBlocked = false;
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get alwaysTrackState(): boolean {
@@ -155,20 +174,13 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return this.id;
     }
 
-    private canTakeActionsThisPhase: null;
-    // STATE TODO: Does Deck need to be a GameObject?
-    private decklistNames: Deck | null;
-    public readonly actionTimer: IActionTimer;
+    public get rejectedOpponentUndoRequests(): number {
+        return this._rejectedOpponentUndoRequests;
+    }
 
-    public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
-
-    public optionSettings: Partial<{ autoSingleTarget: boolean }>;
-    private _promptState: PlayerPromptState;
-    public opponent: Player;
-    private playableZones: PlayableZone[];
-    private _lastActionId = 0;
-
-    public activeForPreviousPrompt = false;
+    public get undoRequestsBlocked(): boolean {
+        return this._undoRequestsBlocked;
+    }
 
     public constructor(id: string, user: IUser, game: Game, useTimer = false) {
         super(game, user.username);
@@ -281,6 +293,14 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
     public get hasTheForce(): boolean {
         return this.baseZone.hasForceToken();
+    }
+
+    public incrementRejectedOpponentUndoRequests() {
+        this._rejectedOpponentUndoRequests++;
+    }
+
+    public setUndoRequestsBlocked(blocked: boolean) {
+        this._undoRequestsBlocked = blocked;
     }
 
     /**
@@ -1027,15 +1047,6 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return legalZonesForType && EnumHelpers.cardZoneMatches(EnumHelpers.asConcreteZone(zone), legalZonesForType);
     }
 
-    /**
-     * This is only used when an upgrade is dragged into play.  Usually,
-     * upgrades are played by playCard()
-     * @deprecated
-     */
-    public promptForUpgrade(card, playingType) {
-        this.game.queueStep(new UpgradePrompt(this.game, this, card, playingType));
-    }
-
     // get skillModifier() {
     //     return this.getOngoingEffectValues(EffectName.ChangePlayerSkillModifier).reduce((total, value) => total + value, 0);
     // }
@@ -1345,12 +1356,15 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     }
 
     private buildAvailableSnapshotsState(isActionPhaseActivePlayer = false) {
+        if (!this.game.isUndoEnabled) {
+            return null;
+        }
+
         if (
-            !this.game.isUndoEnabled ||
             this.game.gameEndReason === GameEndReason.Concede ||
             this.game.gameEndReason === GameEndReason.PlayerLeft
         ) {
-            return null;
+            return { quickSnapshotAvailable: QuickUndoAvailableState.NoSnapshotAvailable };
         }
 
         let availableActionSnapshots = this.countAvailableActionSnapshots();
@@ -1366,7 +1380,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             actionSnapshots: availableActionSnapshots,
             actionPhaseSnapshots: this.game.countAvailablePhaseSnapshots(PhaseName.Action),
             regroupPhaseSnapshots: this.game.countAvailablePhaseSnapshots(PhaseName.Regroup),
-            hasQuickSnapshot: this.game.hasAvailableQuickSnapshot(this.id),
+            quickSnapshotAvailable: this.game.hasAvailableQuickSnapshot(this.id),
         };
     }
 
@@ -1396,15 +1410,15 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             const groundArenaCards = this.game.groundArena.getCards({ controller: this });
             if (groundArenaCards.length > 0) {
                 state.groundArena = groundArenaCards
-                    .filter((card) => !card.isLeaderUnit() && card.captureCardState() !== null)
-                    .map((card) => card.captureCardState());
+                    .filter((card) => !card.isLeaderUnit())
+                    .map((card) => Helpers.safeSerialize(this.game, () => card.captureCardState(), card.internalName));
             }
             // Space arena units
             const spaceArenaCards = this.game.spaceArena.getCards({ controller: this });
             if (spaceArenaCards.length > 0) {
                 state.spaceArena = spaceArenaCards
-                    .filter((card) => !card.isLeaderUnit() && card.captureCardState() !== null)
-                    .map((card) => card.captureCardState());
+                    .filter((card) => !card.isLeaderUnit())
+                    .map((card) => Helpers.safeSerialize(this.game, () => card.captureCardState(), card.internalName));
             }
             // Discard pile
             if (this.discardZone.count > 0) {
@@ -1416,20 +1430,23 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
             // Resources
             if (this.resourceZone.count > 0) {
-                state.resources = this.resourceZone.cards.map((card) => {
-                    // If it's ready, just return the card name
-                    return !card.exhausted ? card.internalName : {
-                        card: card.internalName,
-                        exhausted: card.exhausted
-                    };
-                });
+                // If it's ready, just return the card name
+                state.resources = this.resourceZone.cards.map((card) =>
+                    (Helpers.safeSerialize(this.game, () =>
+                        (!card.exhausted
+                            ? card.internalName
+                            : {
+                                card: card.internalName,
+                                exhausted: card.exhausted
+                            }), card.internalName
+                    )));
             }
 
             // Leader
-            state.leader = this.leader.captureCardState();
+            state.leader = Helpers.safeSerialize(this.game, () => this.leader.captureCardState(), null);
 
             // Base
-            state.base = this.base.captureCardState();
+            state.base = Helpers.safeSerialize(this.game, () => this.base.captureCardState(), null);
 
             // Initiative
             state.hasInitiative = this.hasInitiative();

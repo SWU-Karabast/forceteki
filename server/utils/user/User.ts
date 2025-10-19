@@ -35,6 +35,11 @@ export abstract class User {
     public abstract getShowWelcomeMessage(): boolean;
 
     /**
+     * Gets a users welcomeMessage status
+     */
+    public abstract getUndoPopupSeenDate(): Date | null;
+
+    /**
      * Gets the user's preferences
      */
     public abstract getPreferences(): UserPreferences;
@@ -43,6 +48,11 @@ export abstract class User {
      * Sets the user's preferences
      */
     public abstract setPreferences(preferences: UserPreferences): void;
+
+    /**
+     * Gets the user's swuStatsRefreshtoken if it exists
+     */
+    public abstract setRefreshToken(refreshToken: string): void;
 
     /**
      * Gets the user's swuStatsRefreshtoken if it exists
@@ -98,6 +108,10 @@ export class AuthenticatedUser extends User {
         return this.userData.showWelcomeMessage;
     }
 
+    public getUndoPopupSeenDate(): Date | null {
+        return this.userData.undoPopupSeenDate ? new Date(this.userData.undoPopupSeenDate) : null;
+    }
+
     public getUsername(): string {
         return this.userData.username;
     }
@@ -108,6 +122,10 @@ export class AuthenticatedUser extends User {
 
     public setPreferences(preferences: UserPreferences) {
         this.userData.preferences = preferences;
+    }
+
+    public setRefreshToken(refreshToken: string) {
+        this.userData.swuStatsRefreshToken = refreshToken;
     }
 
     public needsUsernameChange(): boolean {
@@ -183,11 +201,19 @@ export class AnonymousUser extends User {
     }
 
     public setPreferences(_preferences: UserPreferences) {
-        throw new Error('Anonymous users do not support preferences. Check supportsPreferences() before calling this method.');
+        throw new Error('Anonymous users do not support preferences.');
+    }
+
+    public setRefreshToken(_refreshToken: string): void {
+        throw new Error('Anonymous users do not support SWUStats refresh tokens');
     }
 
     public override getShowWelcomeMessage(): boolean {
         return false;
+    }
+
+    public override getUndoPopupSeenDate(): Date | null {
+        return null;
     }
 
     public override getSwuStatsRefreshToken(): string | null {

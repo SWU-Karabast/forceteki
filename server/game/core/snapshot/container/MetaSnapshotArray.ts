@@ -2,6 +2,7 @@ import type { SnapshotHistoryMap } from './SnapshotHistoryMap';
 import type { SnapshotMap } from './SnapshotMap';
 import * as Contract from '../../utils/Contract.js';
 import type { IClearNewerSnapshotsBinding } from './SnapshotContainerBase';
+import type { ISnapshotProperties } from '../SnapshotInterfaces';
 
 export enum QuickRollbackPoint {
     Current = 'current',
@@ -10,10 +11,12 @@ export enum QuickRollbackPoint {
 
 type RollbackHandler = () => number | null;
 type AvailableHandler = () => boolean;
+type SnapshotPropertiesHandler = () => ISnapshotProperties | null;
 
 interface IQuickRollbackEntry {
     rollback: RollbackHandler;
     checkAvailable: AvailableHandler;
+    snapshotProperties: SnapshotPropertiesHandler;
     snapshotId: number;
 }
 
@@ -30,6 +33,24 @@ export class MetaSnapshotArray {
         }
 
         return this.entries[this.entries.length - 1].snapshotId;
+    }
+
+    public getSnapshotProperties(rollbackPoint: QuickRollbackPoint): ISnapshotProperties | null {
+        let rollbackEntry: IQuickRollbackEntry | null;
+
+        switch (rollbackPoint) {
+            case QuickRollbackPoint.Current:
+                rollbackEntry = this.entries[this.entries.length - 1];
+                break;
+            case QuickRollbackPoint.Previous:
+                rollbackEntry = this.entries[this.entries.length - 2];
+                break;
+            default:
+                rollbackEntry = null;
+                break;
+        }
+
+        return rollbackEntry?.snapshotProperties();
     }
 
     public rollbackToSnapshot(rollbackPoint: QuickRollbackPoint): number | null {
@@ -70,6 +91,7 @@ export class MetaSnapshotArray {
         this.entries.push({
             rollback: () => snapshotMap.rollbackById(snapshotId),
             checkAvailable: () => snapshotMap.hasSnapshotId(snapshotId),
+            snapshotProperties: () => snapshotMap.getSnapshotPropertiesById(snapshotId),
             snapshotId
         });
     }

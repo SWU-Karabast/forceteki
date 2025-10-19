@@ -261,7 +261,7 @@ export abstract class TriggerWindowBase extends BaseStep {
 
         // if we can't find the ability to remove from the list, we have to error or else get stuck in an infinite loop
         if (justResolvedAbility == null) {
-            throw Error(`Could not find the resolved ability of card ${justResolvedAbility.source.internalName} in the list of unresolved abilities for player ${this.currentlyResolvingPlayer}`);
+            throw Error(`Could not find the resolved ability '${resolver.context.ability?.title}' on card ${resolver.context.source?.internalName} in the list of unresolved abilities for player ${this.currentlyResolvingPlayer.name}`);
         }
 
         unresolvedAbilitiesForPlayer.splice(unresolvedAbilitiesForPlayer.indexOf(justResolvedAbility), 1);

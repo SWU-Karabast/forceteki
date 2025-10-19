@@ -580,6 +580,47 @@ var customMatchers = {
             }
         };
     },
+    toHaveConfirmUndoPrompt: function () {
+        return {
+            compare: function (player, blockButtonEnabled = null) {
+                var result = {};
+
+                const rollbackCurrentActionPromptText = 'Your opponent would like to undo their current action';
+                const rollbackPreviousActionPromptText = 'Your opponent would like to undo their previous action';
+                const rollbackManualPromptText = 'Your opponent would like to undo to a previous bookmark';
+
+                let promptTextFound;
+                for (const prompt of [rollbackCurrentActionPromptText, rollbackPreviousActionPromptText, rollbackManualPromptText]) {
+                    if (player.hasPrompt(prompt)) {
+                        result.pass = true;
+                        promptTextFound = prompt;
+                        break;
+                    }
+                }
+
+                if (blockButtonEnabled !== null && result.pass) {
+                    const buttons = player.currentPrompt().buttons;
+                    const blockButton = buttons.find(
+                        (button) => button.text === 'Deny and Block Requests'
+                    );
+
+                    if (blockButtonEnabled) {
+                        result.pass = blockButton && !blockButton.disabled;
+                    } else {
+                        result.pass = !blockButton || blockButton.disabled;
+                    }
+                }
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have confirm undo prompt '${promptTextFound}' but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have confirm undo prompt but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                }
+
+                return result;
+            }
+        };
+    },
     toBeInBottomOfDeck: function () {
         return {
             compare: function (card, player, numCards) {

@@ -15,6 +15,7 @@ const { cards } = require('../../server/game/cards/Index.js');
 const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 const { SnapshotType, PhaseName } = require('../../server/game/core/Constants.js');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
+const { QuickUndoAvailableState } = require('../../server/game/core/snapshot/SnapshotInterfaces.js');
 
 // set to true to run all tests with undo enabled
 const ENABLE_UNDO_ALL_TESTS = false;
@@ -63,7 +64,7 @@ global.integration = function (definitions, enableUndo = false) {
         beforeEach(function () {
             process.env.ENVIRONMENT = 'development';
 
-            var gameRouter = jasmine.createSpyObj('gameRouter', ['gameWon', 'playerLeft', 'handleError']);
+            var gameRouter = jasmine.createSpyObj('gameRouter', ['gameWon', 'playerLeft', 'handleError', 'handleGameEnd']);
             gameRouter.handleError.and.callFake((game, error) => {
                 throw error;
             });
@@ -84,11 +85,33 @@ global.integration = function (definitions, enableUndo = false) {
             contextRef.snapshot = {
                 getCurrentSnapshotId: () => gameFlowWrapper.snapshotManager?.currentSnapshotId,
                 getCurrentSnapshottedAction: () => gameFlowWrapper.snapshotManager?.currentSnapshottedAction,
-                rollbackToSnapshot: (settings) => newContext.game.rollbackToSnapshotInternal(settings),
+                rollbackToSnapshot: (settings, requestingPlayerId) => {
+                    let playerId = requestingPlayerId;
+                    if (!playerId) {
+                        playerId = settings.playerId ?? '111';
+                    }
+
+                    const result = newContext.game.rollbackToSnapshot(playerId, settings);
+
+                    if (result) {
+                        newContext.game.continue();
+                    }
+
+                    return result;
+                },
+                quickRollback: (playerId) => {
+                    newContext.game.rollbackToSnapshot(playerId, { type: SnapshotType.Quick, playerId });
+                    newContext.game.continue();
+                },
                 countAvailableActionSnapshots: (playerId) => newContext.game.countAvailableActionSnapshots(playerId),
                 countAvailableManualSnapshots: (playerId) => newContext.game.countAvailableManualSnapshots(playerId),
-                hasAvailableQuickSnapshot: (playerId) => newContext.game.hasAvailableQuickSnapshot(playerId),
+                hasAvailableQuickSnapshot: (playerId) => newContext.game.hasAvailableQuickSnapshot(playerId) === QuickUndoAvailableState.FreeUndoAvailable,
+                availableQuickSnapshotState: (playerId) => newContext.game.hasAvailableQuickSnapshot(playerId),
                 takeManualSnapshot: (playerId) => newContext.game.takeManualSnapshot(playerId),
+                quickRollbackRequiresConfirmation: (playerId) => {
+                    const rollbackInformation = newContext.game.snapshotManager.getRollbackInformation({ type: SnapshotType.Quick, playerId });
+                    return newContext.game.confirmationRequiredForRollback(playerId, rollbackInformation);
+                }
             };
 
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');

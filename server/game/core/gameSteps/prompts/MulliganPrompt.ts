@@ -2,6 +2,7 @@ import { AllPlayerPrompt } from './AllPlayerPrompt';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import type Game from '../../Game';
 import * as Contract from '../../utils/Contract';
+import * as Helpers from '../../utils/Helpers';
 import { DeckZoneDestination, EffectName } from '../../Constants';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 import { DrawSystem } from '../../../gameSystems/DrawSystem';
@@ -35,7 +36,7 @@ export class MulliganPrompt extends AllPlayerPrompt {
 
     public override waitingPrompt() {
         return {
-            menuTitle: 'Waiting for opponent to choose whether to Mulligan or keep hand.'
+            menuTitle: 'Waiting for opponent to choose whether to mulligan'
         };
     }
 
@@ -76,9 +77,18 @@ export class MulliganPrompt extends AllPlayerPrompt {
                 new DrawSystem({ amount: player.getStartingHandSize() })
                     .resolve(
                         player,
-                        this.game.getFrameworkContext(),
+                        this.game.getFrameworkContext(player),
                         TriggerHandlingMode.ResolvesTriggers
                     );
+            } else {
+                // Perform a fake shuffle to ensure that the same amount of random numbers are generated
+                // in case the game was rolled back to before the mulligan decision and the players make
+                // different choices. For example, if both players decide to mulligan and after the rollback
+                // player1 decides to keep instead, we want player2 to draw the same cards as before.
+                Helpers.shuffle([
+                    ...player.deckZone.getCards(),
+                    ...player.hand,
+                ], this.game.randomGenerator);
             }
         }
         return super.complete();

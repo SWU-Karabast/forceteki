@@ -148,18 +148,36 @@ function populateMissingData(attributes, id) {
                 ]
             };
             break;
+        case '8826807979': // Dressellian Commandos
+            attributes.keywords = {
+                data: [
+                    {
+                        attributes: { name: 'Plot' }
+                    },
+                    {
+                        attributes: { name: 'Ambush' }
+                    },
+                ]
+            };
+            break;
         case '7069246970': // Sly Moore
         case '8365930807': // Cad Bane
+        case '3612601170': // One In a Million
         case '0024944513': // Armor of Fortune
         case '7936097828': // Chancellor Palpatine
         case '7365023470': // Mas Amedda
         case '2919204327': // Naboo Royal Starship
         case '9985741271': // Jar Jar Binks
         case '2877797132': // Unveiled Might
+        case '3776423866': // Trade Route Taxation
+        case '8845103653': // Hondo Ohnaka
         case '0602708575': // Kaydel Connix
+        case '7482343383': // Cinta Kaz
+        case '2785395871': // Sudden Ferocity
         case '8401985446': // Topple the Summit
         case '1369084772': // Tala Durith
         case '6015383018': // Sneaking Suspicion
+        case '8796918121': // The Wrong Ride
         case '7248761207': // FN Trooper Corps
             attributes.keywords = {
                 data: [{
@@ -239,17 +257,30 @@ function filterValues(card) {
             filteredObj.setId.number = card.attributes.cardNumber;
         }
 
+        let reprintsMap = new Map();
+
         let lofReprintMap = new Map();
         lofReprintMap.set(58, { set: 'SOR', number: 61 }); // Guardian of the Whills - SOR 61
         lofReprintMap.set(60, { set: 'TWI', number: 58 }); // Padawan Starfighter - TWI 58
         lofReprintMap.set(162, { set: 'SHD', number: 168 }); // Hunting Nexu - SHD 168
         lofReprintMap.set(164, { set: 'SOR', number: 164 }); // Wampa - SOR 164
 
-        if (filteredObj.setId.set === 'LOF' && lofReprintMap.has(filteredObj.setId.number)) {
-            let reprintData = lofReprintMap.get(filteredObj.setId.number);
+        reprintsMap.set('LOF', lofReprintMap);
+
+        let secReprintMap = new Map();
+        secReprintMap.set(30, { set: 'SOR', number: 33 }); // Death Trooper - SOR 33
+        secReprintMap.set(184, { set: 'SOR', number: 176 }); // ISB Agent - SOR 176
+        secReprintMap.set(239, { set: 'SOR', number: 228 }); // Viper Probe Droid - SOR 228
+        secReprintMap.set(250, { set: 'SOR', number: 239 }); // Rebel Pathfinder - SOR 239
+
+        reprintsMap.set('SEC', secReprintMap);
+
+        if (reprintsMap.has(filteredObj.setId.set) && reprintsMap.get(filteredObj.setId.set).has(filteredObj.setId.number)) {
+            let reprintData = reprintsMap.get(filteredObj.setId.set).get(filteredObj.setId.number);
             filteredObj.setId.set = reprintData.set;
             filteredObj.setId.number = reprintData.number;
         }
+
 
         if (filteredObj.keywords.includes('piloting')) {
             filteredObj.pilotText = filteredObj.epicAction;
@@ -376,12 +407,24 @@ async function main() {
     const downloadProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}' });
     downloadProgressBar.start(totalPageCount, 0);
 
-    let cards = (await Promise.all([...Array(totalPageCount).keys()]
+    let downloadedCards = (await Promise.all([...Array(totalPageCount).keys()]
         .map((pageNumber) => getCardData(pageNumber + 1, downloadProgressBar))))
         .flat()
         .filter((n) => n); // remove nulls
+
+    const tokenCards = [];
+    const downloadedNonTokenCards = [];
+    for (const card of downloadedCards) {
+        if (card.types.includes('token')) {
+            tokenCards.push(card);
+        } else {
+            downloadedNonTokenCards.push(card);
+        }
+    }
+
     // cards = cards.concat([cunningForceBase, aggressionForceBase]);
-    const mockCardNames = addMockCards(cards);
+    let { mockCardNames, cards } = addMockCards(downloadedNonTokenCards);
+    cards = cards.concat(tokenCards);
 
     downloadProgressBar.stop();
 
