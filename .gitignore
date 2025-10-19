@@ -13,3 +13,4 @@ test/**/json/
 test/gameSetups/*.json
 .env
 *.zip
+.github/copilot-instructions.md
