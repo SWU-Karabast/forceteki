@@ -22,6 +22,7 @@ export interface IUser {
             autoSingleTarget: boolean;
         }>;
     }>;
+    cardback?: string;
 }
 
 export function getUserWithDefaultsSet(user?: Partial<IUser> & Pick<IUser, 'username' | 'id'>): IUser | undefined {

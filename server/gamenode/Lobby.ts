@@ -798,6 +798,7 @@ export class Lobby {
             getUserWithDefaultsSet({
                 id: user.id,
                 username: user.username,
+                cardback: user.socket.user.getPreferences()?.cardback,
                 settings: {
                     optionSettings: {
                         autoSingleTarget: false,
