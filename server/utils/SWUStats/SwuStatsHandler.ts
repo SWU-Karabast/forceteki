@@ -311,10 +311,10 @@ export class SwuStatsHandler {
         const loseHero = winner === 1 ? player2Data.leader : player1Data.leader;
         let p1SWUStatsToken = null;
         let p2SWUStatsToken = null;
-        if (lobby.hasSwuStatsSource(player1Details)) {
+        if (lobby.hasSwuStatsSource(player1Details) && player1Details.user.isAuthenticatedUser()) {
             p1SWUStatsToken = await this.getAccessTokenAsync(player1Details.user.getId(), serverObject, lobby.id);
         }
-        if (lobby.hasSwuStatsSource(player2Details)) {
+        if (lobby.hasSwuStatsSource(player2Details) && player2Details.user.isAuthenticatedUser()) {
             p2SWUStatsToken = await this.getAccessTokenAsync(player2Details.user.getId(), serverObject, lobby.id);
         }
         // Get winner's remaining health
@@ -361,14 +361,14 @@ export class SwuStatsHandler {
             // Token is expired or doesn't exist, refresh it
             logger.info(`SWUStatsHandler: Access token expired or missing for player (${userId}), attempting to refreshing...`, lobbyId ? { lobbyId, userId } : { userId });
             const userRefreshToken = await this.userFactory.getUserSwuStatsRefreshTokenAsync(userId);
-            if (userRefreshToken) {
-                const resultTokens = await this.refreshTokensAsync(userRefreshToken);
-                serverObject.swuStatsTokenMapping.set(userId, resultTokens);
-                playerAccessToken = resultTokens.accessToken;
-                await this.userFactory.addSwuStatsRefreshTokenAsync(userId, resultTokens.refreshToken);
-            } else {
+            if (!userRefreshToken) {
                 logger.info(`SWUStatsHandler: Refresh token missing for player (${userId}), aborting refresh...`, lobbyId ? { lobbyId, userId } : { userId });
+                return null;
             }
+            const resultTokens = await this.refreshTokensAsync(userRefreshToken);
+            serverObject.swuStatsTokenMapping.set(userId, resultTokens);
+            playerAccessToken = resultTokens.accessToken;
+            await this.userFactory.addSwuStatsRefreshTokenAsync(userId, resultTokens.refreshToken);
         }
         return playerAccessToken;
     }
