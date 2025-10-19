@@ -15,6 +15,7 @@ const { cards } = require('../../server/game/cards/Index.js');
 const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 const { SnapshotType, PhaseName } = require('../../server/game/core/Constants.js');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
+const { QuickUndoAvailableState } = require('../../server/game/core/snapshot/SnapshotInterfaces.js');
 
 // set to true to run all tests with undo enabled
 const ENABLE_UNDO_ALL_TESTS = false;
@@ -104,7 +105,8 @@ global.integration = function (definitions, enableUndo = false) {
                 },
                 countAvailableActionSnapshots: (playerId) => newContext.game.countAvailableActionSnapshots(playerId),
                 countAvailableManualSnapshots: (playerId) => newContext.game.countAvailableManualSnapshots(playerId),
-                hasAvailableQuickSnapshot: (playerId) => newContext.game.hasAvailableQuickSnapshot(playerId),
+                hasAvailableQuickSnapshot: (playerId) => newContext.game.hasAvailableQuickSnapshot(playerId) === QuickUndoAvailableState.FreeUndoAvailable,
+                availableQuickSnapshotState: (playerId) => newContext.game.hasAvailableQuickSnapshot(playerId),
                 takeManualSnapshot: (playerId) => newContext.game.takeManualSnapshot(playerId),
                 quickRollbackRequiresConfirmation: (playerId) => {
                     const rollbackInformation = newContext.game.snapshotManager.getRollbackInformation({ type: SnapshotType.Quick, playerId });

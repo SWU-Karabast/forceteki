@@ -51,7 +51,7 @@ const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
 const { getAbilityHelper } = require('../AbilityHelper.js');
 const { PhaseInitializeMode } = require('./gameSteps/phases/Phase.js');
 const { Randomness } = require('../core/Randomness.js');
-const { RollbackEntryPointType } = require('./snapshot/SnapshotInterfaces.js');
+const { RollbackEntryPointType, QuickUndoAvailableState } = require('./snapshot/SnapshotInterfaces.js');
 const { Lobby } = require('../../gamenode/Lobby.js');
 const { DiscordDispatcher } = require('./DiscordDispatcher.js');
 const { GameStatisticsLogger } = require('../../gameStatistics/GameStatisticsTracker.js');
@@ -2002,10 +2002,25 @@ class Game extends EventEmitter {
         return this.snapshotManager.countAvailablePhaseSnapshots(phaseName);
     }
 
-    /** @param {string} playerId */
+    /**
+     * @param {string} playerId
+     * @returns {QuickUndoAvailableState}
+     */
     hasAvailableQuickSnapshot(playerId) {
         Contract.assertNotNullLike(playerId);
-        return this.snapshotManager.hasAvailableQuickSnapshot(playerId);
+
+        const player = this.getPlayerById(playerId);
+
+        if (!this.snapshotManager.hasAvailableQuickSnapshot(playerId)) {
+            return QuickUndoAvailableState.NoSnapshotAvailable;
+        }
+
+        const rollbackInformation = this.snapshotManager.getRollbackInformation({ type: SnapshotType.Quick, playerId });
+        if (this.confirmationRequiredForRollback(playerId, rollbackInformation)) {
+            return player.undoRequestsBlocked ? QuickUndoAvailableState.UndoRequestsBlocked : QuickUndoAvailableState.RequestUndoAvailable;
+        }
+
+        return QuickUndoAvailableState.FreeUndoAvailable;
     }
 
     /**
@@ -2033,6 +2048,8 @@ class Game extends EventEmitter {
         if (!this.isUndoEnabled) {
             return false;
         }
+
+        const player = this.getPlayerById(playerId);
 
         const rollbackInformation = this.snapshotManager.getRollbackInformation(settings);
 
@@ -2064,17 +2081,21 @@ class Game extends EventEmitter {
                 return false;
             }
 
-            this.addAlert(AlertType.Notification, '{0} has rolled back to {1}', this.getPlayerById(playerId), message);
+            this.addAlert(AlertType.Notification, '{0} has rolled back to {1}', player, message);
             return true;
         };
 
         if (this.confirmationRequiredForRollback(playerId, rollbackInformation)) {
+            if (player.undoRequestsBlocked) {
+                return false;
+            }
+
             let undoTypePromptMessage = message;
             if (settings.type !== SnapshotType.Quick && settings.type !== SnapshotType.Action) {
                 undoTypePromptMessage = `to ${message}`;
             }
-            this.addAlert(AlertType.Notification, '{0} has requested to undo', this.getPlayerById(playerId));
-            this.queueStep(new UndoConfirmationPrompt(this, this.getPlayerById(playerId).opponent, undoTypePromptMessage, performRollback));
+            this.addAlert(AlertType.Notification, '{0} has requested to undo', player);
+            this.queueStep(new UndoConfirmationPrompt(this, player.opponent, undoTypePromptMessage, performRollback));
 
             return true;
         }

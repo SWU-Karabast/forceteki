@@ -144,3 +144,10 @@ export interface IGameState {
     readonly winnerNames: string[];
     currentPhase: PhaseName | null;
 }
+
+export enum QuickUndoAvailableState {
+    NoSnapshotAvailable = 'noSnapshotAvailable',
+    UndoRequestsBlocked = 'undoRequestsBlocked',
+    FreeUndoAvailable = 'freeUndoAvailable',
+    RequestUndoAvailable = 'requestUndoAvailable',
+}

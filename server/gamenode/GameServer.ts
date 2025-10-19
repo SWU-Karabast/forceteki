@@ -390,6 +390,7 @@ export class GameServer {
                     id: user.getId(),
                     username: user.getUsername(),
                     showWelcomeMessage: user.getShowWelcomeMessage(),
+                    undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     preferences: user.getPreferences(),
                     needsUsernameChange: user.needsUsernameChange(),
                     moderation: user.getModeration(),
@@ -439,6 +440,27 @@ export class GameServer {
             }
         });
 
+        app.put('/api/user/:userId/undo-popup-seen', authMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                // Check if user is authenticated (not an anonymous user)
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (undo-popup-seen): Anonymous user ${user.getId()} is attempting to retrieve undo-popup-seen info`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve undo-popup-seen info'
+                    });
+                }
+                const result = await this.userFactory.setUndoPopupSeenStatus(user.getId());
+                return res.status(200).json({
+                    success: result,
+                });
+            } catch (err) {
+                logger.error('GameServer (undo-popup-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
         app.post('/api/get-change-username-info', authMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
@@ -452,7 +474,7 @@ export class GameServer {
                 }
                 const result = await this.userFactory.canChangeUsernameAsync(user.getId());
                 return res.status(200).json({
-                    succeess: true,
+                    success: true,
                     result: result,
                 });
             } catch (err) {
