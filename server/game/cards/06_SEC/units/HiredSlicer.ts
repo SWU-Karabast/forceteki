@@ -46,7 +46,7 @@ export default class HiredSlicer extends NonLeaderUnitCard {
                 then: {
                     title: 'Put those cards on the bottom of that deck in a random order',
                     immediateEffect: AbilityHelper.immediateEffects.handler({
-                        handler: (_context) => {
+                        handler: () => {
                             const revealedCards = ifYouDoContext.events[0].cards || [];
                             if (revealedCards.length === 0) {
                                 return;
@@ -54,16 +54,16 @@ export default class HiredSlicer extends NonLeaderUnitCard {
 
                             // Determine which deck to put them back to
                             const targetDeck = revealedCards[0].controller.drawDeck;
-                            
+
                             // Remove the revealed cards from the top of the deck
                             const cardsToMove = targetDeck.splice(0, revealedCards.length);
-                            
+
                             // Randomize order (Fisher-Yates shuffle)
                             for (let i = cardsToMove.length - 1; i > 0; i--) {
                                 const j = Math.floor(Math.random() * (i + 1));
                                 [cardsToMove[i], cardsToMove[j]] = [cardsToMove[j], cardsToMove[i]];
                             }
-                            
+
                             // Put on bottom of deck
                             targetDeck.push(...cardsToMove);
                         }
