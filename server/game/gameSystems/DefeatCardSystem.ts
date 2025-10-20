@@ -125,15 +125,23 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         const eventDefeatSource = this.buildDefeatSource(defeatSource, event, card, context);
 
         event.isDefeatedByAttacker = false;
+        event.isDefeatedWhileAttacking = false;
         event.defeatSource = eventDefeatSource;
 
         try {
             if (eventDefeatSource.type === DefeatSourceType.Attack) {
                 event.isDefeatedByAttacker = eventDefeatSource.damageDealtBy.includes(eventDefeatSource.attack.attacker);
-            } else if ((eventDefeatSource.type === DefeatSourceType.Ability || eventDefeatSource.type === DefeatSourceType.NonCombatDamage) && eventDefeatSource.card.isUnit()) {
-                event.isDefeatedByAttacker = eventDefeatSource.card.isInPlay() &&
-                  eventDefeatSource.card.isAttacking() &&
-                  eventDefeatSource.card.activeAttack.targetIsUnit((unit) => unit === card, true);
+                event.isDefeatedWhileAttacking = eventDefeatSource.damageDealtBy.some((unit) =>
+                    eventDefeatSource.attack.getAllTargets().includes(unit)
+                );
+            } else if (eventDefeatSource.type === DefeatSourceType.Ability || eventDefeatSource.type === DefeatSourceType.NonCombatDamage) {
+                if (eventDefeatSource.card.isUnit()) {
+                    event.isDefeatedByAttacker = eventDefeatSource.card.isInPlay() &&
+                      eventDefeatSource.card.isAttacking() &&
+                      eventDefeatSource.card.activeAttack.targetIsUnit((unit) => unit === card, true);
+                }
+
+                event.isDefeatedWhileAttacking = card.isUnit() && card.isAttacking();
             }
         } catch (e) {
             debugger;
