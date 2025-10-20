@@ -16,7 +16,7 @@ export default class DarthVaderVictorSquadronLeader extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers (registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar);
+        this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase();
     }
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {

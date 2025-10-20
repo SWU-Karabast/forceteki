@@ -16,7 +16,7 @@ export default class MedalCeremony extends EventCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper) {
-        this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar);
+        this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase();
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {

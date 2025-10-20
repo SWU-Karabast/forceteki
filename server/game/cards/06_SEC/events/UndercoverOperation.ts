@@ -16,7 +16,7 @@ export default class UndercoverOperation extends EventCard {
     }
 
     protected override setupStateWatchers (registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhase = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar);
+        this.cardsPlayedThisPhase = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {

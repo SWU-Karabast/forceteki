@@ -18,7 +18,7 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar);
+        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
     }
 
     private isFirstUpgradePlayedOnThisCopy(card: Card, adjusterSource: Card): boolean {
