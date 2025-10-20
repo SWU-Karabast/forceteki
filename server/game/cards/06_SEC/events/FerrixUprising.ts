@@ -13,18 +13,9 @@ export default class FerrixUprising extends EventCard {
     }
 
     private getDamageFromContext(context: AbilityContext): number {
-        const target = context.targets.target;
-        if (!target) {
-            return 0;
-        }
-        
-        // Determine which arena the target is in and count units there
-        const targetZone = (target as any).zoneName;
-        const arenaUnits = context.player.getArenaUnits().filter(
-            (card) => (card as any).zoneName === targetZone
-        );
-        
-        return arenaUnits.length * 2;
+        const arenaName = context.target.zoneName;
+        const arena = context.player.getArenaUnits({ arena: arenaName });
+        return arena.length * 2;
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
