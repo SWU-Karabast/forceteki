@@ -26,6 +26,7 @@ export default class KreiasWhispers extends EventCard {
                     },
                     bottomCard: {
                         activePromptTitle: 'Choose a card to put on the bottom of your deck',
+                        dependsOn: 'topCard',
                         mode: TargetMode.Single,
                         controller: RelativePlayer.Self,
                         zoneFilter: ZoneName.Hand,
