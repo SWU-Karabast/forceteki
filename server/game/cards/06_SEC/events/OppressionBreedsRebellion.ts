@@ -21,7 +21,7 @@ export default class OppressionBreedsRebellion extends EventCard {
         registrar.setEventAbility({
             title: 'If a friendly unit was defeated while attacking this phase, draw 3 cards',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
+                condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedWhileAttackingUnitControlledByPlayer(context.player),
                 onTrue: AbilityHelper.immediateEffects.draw({ amount: 3 })
             })
         });
