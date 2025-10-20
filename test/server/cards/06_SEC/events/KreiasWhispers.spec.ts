@@ -96,5 +96,27 @@ describe('Kreia\'s Whispers', function () {
 
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('Kreia\'s Whispers\'s ability should still trigger placement if no cards are drawn and one card is in hand', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['kreias-whispers', 'battlefield-marine'],
+                    deck: [],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.kreiasWhispers);
+
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.battlefieldMarine,
+            ]);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.player1.deck[0]).toBe(context.battlefieldMarine);
+
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

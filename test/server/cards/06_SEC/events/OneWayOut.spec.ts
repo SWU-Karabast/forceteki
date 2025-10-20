@@ -65,5 +65,28 @@ describe('One Way Out', function () {
             expect(context.p2Base.damage).toBe(1);
             expect(context.battlefieldMarine).toBeInZone('discard');
         });
+
+        it('One Way Out\'s ability should initiate an attack, give +1/+0 and Overwhelm, and not freak out when attacking the base', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['one-way-out'],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    groundArena: ['rebel-pathfinder', 'porg'],
+                    hasForceToken: true,
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.oneWayOut);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.porg, context.p2Base]);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(4);
+        });
     });
 });
