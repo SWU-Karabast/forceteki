@@ -164,7 +164,7 @@ describe('Hired Slicer', function() {
                 const { context } = contextRef;
 
                 // Player 1 deck: Battlefield Marine (Trooper), Pyke Sentinel (Underworld)
-                // Wampa has Creature trait, Sundari Peacekeeper has Trooper, Clone Deserter has Trooper
+                // Wampa has Creature trait, Death Star Stormtrooper has Trooper, Enfys Nest Marauder has Underworld
 
                 context.player1.clickCard(context.hiredSlicer);
                 context.player1.clickCard(context.p2Base);
