@@ -15,7 +15,7 @@ describe('Hired Slicer', function() {
                 });
             });
 
-            it('should allow revealing top 2 cards of own deck, exhausting a unit sharing a trait, and putting cards on bottom in random order', async function () {
+            it('should allow revealing top 2 cards of own deck, exhausting a unit sharing a trait, and putting cards on bottom in random order', function () {
                 const { context } = contextRef;
 
                 // Attack with Hired Slicer
@@ -44,7 +44,7 @@ describe('Hired Slicer', function() {
                 expect(bottomTwoCards).toContain(context.pykeSentinel);
             });
 
-            it('should allow revealing top 2 cards of opponent\'s deck', async function () {
+            it('should allow revealing top 2 cards of opponent\'s deck', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.hiredSlicer);
@@ -70,7 +70,7 @@ describe('Hired Slicer', function() {
                 expect(bottomTwoCards).toContain(context.imperialInterceptor);
             });
 
-            it('should be optional and do nothing if declined', async function () {
+            it('should be optional and do nothing if declined', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.hiredSlicer);
@@ -86,7 +86,7 @@ describe('Hired Slicer', function() {
                 expect(context.player1.deck[0]).toBe(context.battlefieldMarine);
             });
 
-            it('should allow declining to exhaust a unit even if valid targets exist', async function () {
+            it('should allow declining to exhaust a unit even if valid targets exist', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.hiredSlicer);
@@ -108,7 +108,7 @@ describe('Hired Slicer', function() {
                 expect(bottomTwoCards).toContain(context.pykeSentinel);
             });
 
-            it('should work when deck has fewer than 2 cards', async function () {
+            it('should work when deck has fewer than 2 cards', function () {
                 const { context } = contextRef;
 
                 // Move all but one card from deck to discard
@@ -134,7 +134,7 @@ describe('Hired Slicer', function() {
                 expect(context.player1.deck[0]).toBe(context.battlefieldMarine);
             });
 
-            it('should handle empty deck gracefully', async function () {
+            it('should handle empty deck gracefully', function () {
                 const { context } = contextRef;
 
                 // Clear the deck by moving all cards to discard
@@ -151,16 +151,16 @@ describe('Hired Slicer', function() {
 
                 // No cards to reveal or put back, but empty deck still has valid exhaust targets
                 expect(context.getChatLogs(2)).not.toContain('reveal');
-                
+
                 // The ability will still prompt for exhaust targets even with no revealed cards
                 // so we need to pass on that
                 expect(context.player1).toHavePrompt('Exhaust a unit that shares a trait with one of those cards');
                 context.player1.clickPrompt('Choose nothing');
-                
+
                 expect(context.player1).toHavePrompt('Waiting for opponent to take an action or pass');
             });
 
-            it('should only allow exhausting units that share a trait with revealed cards', async function () {
+            it('should only allow exhausting units that share a trait with revealed cards', function () {
                 const { context } = contextRef;
 
                 // Player 1 deck: Battlefield Marine (Trooper), Pyke Sentinel (Underworld)
@@ -173,7 +173,7 @@ describe('Hired Slicer', function() {
                 // Should be able to select units with shared traits
                 expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.enfysNestMarauder]);
                 expect(context.player1).not.toBeAbleToSelect(context.wampa);
-                
+
                 // Clean up by choosing nothing
                 context.player1.clickPrompt('Choose nothing');
             });
