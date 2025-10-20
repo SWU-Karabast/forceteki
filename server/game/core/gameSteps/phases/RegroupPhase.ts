@@ -19,7 +19,7 @@ export class RegroupPhase extends Phase {
         const resourceSteps = [];
         if (
             initializeMode !== PhaseInitializeMode.RollbackToEndOfPhase &&
-            snapshotManager.currentSnapshottedTimepoint !== SnapshotTimepoint.RegroupReadyCards
+            snapshotManager.currentSnapshottedTimepointType !== SnapshotTimepoint.RegroupReadyCards
         ) {
             resourceSteps.push(new SimpleStep(game, () => this.drawTwo(initializeMode), 'drawTwo'));
             resourceSteps.push(new SimpleStep(game, () => this.resourcePrompt(), 'resourcePrompt'));
@@ -57,7 +57,7 @@ export class RegroupPhase extends Phase {
     }
 
     private readyAllCards(initializeMode: PhaseInitializeMode) {
-        const checkTakeSnapshot = initializeMode === PhaseInitializeMode.Normal || this.snapshotManager.currentSnapshottedTimepoint !== SnapshotTimepoint.RegroupReadyCards;
+        const checkTakeSnapshot = initializeMode === PhaseInitializeMode.Normal || this.snapshotManager.currentSnapshottedTimepointType !== SnapshotTimepoint.RegroupReadyCards;
         if (checkTakeSnapshot) {
             // reset trackers indicating if a player has been prompted
             this.game.resetPromptedPlayersTracking();

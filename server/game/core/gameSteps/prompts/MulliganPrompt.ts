@@ -36,7 +36,7 @@ export class MulliganPrompt extends AllPlayerPrompt {
 
     public override waitingPrompt() {
         return {
-            menuTitle: 'Waiting for opponent to choose whether to Mulligan or keep hand.'
+            menuTitle: 'Waiting for opponent to choose whether to mulligan'
         };
     }
 

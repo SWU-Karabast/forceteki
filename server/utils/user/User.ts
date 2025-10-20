@@ -35,6 +35,11 @@ export abstract class User {
     public abstract getShowWelcomeMessage(): boolean;
 
     /**
+     * Gets a users welcomeMessage status
+     */
+    public abstract getUndoPopupSeenDate(): Date | null;
+
+    /**
      * Gets the user's preferences
      */
     public abstract getPreferences(): UserPreferences;
@@ -101,6 +106,10 @@ export class AuthenticatedUser extends User {
 
     public getShowWelcomeMessage(): boolean {
         return this.userData.showWelcomeMessage;
+    }
+
+    public getUndoPopupSeenDate(): Date | null {
+        return this.userData.undoPopupSeenDate ? new Date(this.userData.undoPopupSeenDate) : null;
     }
 
     public getUsername(): string {
@@ -201,6 +210,10 @@ export class AnonymousUser extends User {
 
     public override getShowWelcomeMessage(): boolean {
         return false;
+    }
+
+    public override getUndoPopupSeenDate(): Date | null {
+        return null;
     }
 
     public override getSwuStatsRefreshToken(): string | null {
