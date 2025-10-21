@@ -129,5 +129,63 @@ describe('Emperor Palpatine, Galactic Ruler', function() {
             expect(context.atst.damage).toBe(1);
             expect(context.player1.handSize).toBe(1);
         });
+
+        it('Palpatine\'s undeployed ability should trigger whenDefeated abilities of defeated units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'emperor-palpatine#galactic-ruler',
+                    hand: ['lothcat'],
+                    resources: 5
+                },
+                player2: {
+                    leader: 'darth-maul#sith-revealed',
+                    resources: 6
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Loth-Cat to have a unit to defeat
+            context.player1.clickCard(context.lothcat);
+            expect(context.lothcat).toBeInZone('groundArena');
+            expect(context.player1.exhaustedResourceCount).toBe(4);
+
+            // Player 2 deploys Darth Maul
+            expect(context.player2).toBeActivePlayer();
+            context.player2.clickCard(context.darthMaul);
+            context.player2.clickPrompt('Deploy Darth Maul');
+            expect(context.darthMaul).toBeInZone('groundArena');
+
+            // Activate Palpatine's undeployed ability
+            context.player1.clickCard(context.emperorPalpatine);
+
+            // Select Loth-Cat to defeat as cost
+            expect(context.player1).toBeAbleToSelectExactly([context.lothcat]);
+            expect(context.player1).not.toHavePassAbilityButton();
+            context.player1.clickCard(context.lothcat);
+
+            // Verify costs paid
+            expect(context.lothcat).toBeInZone('discard');
+            expect(context.emperorPalpatine.exhausted).toBeTrue();
+            expect(context.player1.exhaustedResourceCount).toBe(5);
+
+            // Select target for Palpatine's damage effect
+            expect(context.player1).toBeAbleToSelectExactly([context.darthMaul]);
+            expect(context.player1).not.toHavePassAbilityButton();
+            context.player1.clickCard(context.darthMaul);
+
+            // Verify Palpatine's effect resolved
+            expect(context.darthMaul.damage).toBe(1);
+            expect(context.player1.handSize).toBe(1);
+
+            // Loth-Cat's whenDefeated ability should trigger, allowing exhausting a ground unit (Maul)
+            expect(context.player1).toBeAbleToSelectExactly([context.darthMaul]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickCard(context.darthMaul);
+
+            // Verify Maul is exhausted
+            expect(context.darthMaul.exhausted).toBeTrue();
+        });
     });
 });
