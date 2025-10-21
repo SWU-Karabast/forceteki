@@ -10,6 +10,8 @@ import type Game from '../Game';
 import * as Contract from '../utils/Contract';
 import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
+import type { Player } from '../Player';
+import type { AbilityContext } from './AbilityContext';
 
 export interface ITriggeredAbillityState extends ICardAbilityState {
     isRegistered: boolean;
@@ -246,6 +248,20 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         const listener = this.when[event.name];
 
         return listener && listener(event, context);
+    }
+
+
+    protected override buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player, parentContext: AbilityContext) {
+        const context = super.buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy, parentContext);
+
+        Contract.assertNotNullLike(this.eventsTriggeredFor);
+        if (this.eventsTriggeredFor.length > 0) {
+            return new TriggeredAbilityContext({
+                ...context.getProps(),
+                event: this.eventsTriggeredFor[0]
+            });
+        }
+        return context;
     }
 
     // STATE TODO: When does this trigger get removed? Do we need to handle it here?

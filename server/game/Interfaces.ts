@@ -439,9 +439,10 @@ export interface IEventRegistration<Handler = () => void> {
 
 // ********************************************** INTERNAL TYPES **********************************************
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
-        'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
+        'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler' | 'then' | 'ifYouDo' | 'ifYouDoNot'
 > {
     replaceWith?: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
+    onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
 }
 
 type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {

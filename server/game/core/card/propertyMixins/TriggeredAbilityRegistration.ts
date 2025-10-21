@@ -8,7 +8,7 @@ import DamagePreventionAbility from '../../ability/DamagePreventionAbility';
 export interface ITriggeredAbilityRegistrar<T extends Card> {
     addTriggeredAbility(properties: ITriggeredAbilityProps<T>): TriggeredAbility;
     addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): ReplacementEffectAbility;
-    addDamagePreventionAbility(properties: IDamagePreventionAbilityProps<T>): ReplacementEffectAbility;
+    addDamagePreventionAbility(properties: IDamagePreventionAbilityProps<T>): DamagePreventionAbility;
     addGainedTriggeredAbility(properties: ITriggeredAbilityProps<T>): string;
     addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): string;
     addGainedDamagePreventionAbility(properties: IDamagePreventionAbilityProps<T>): string;
