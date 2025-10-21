@@ -63,7 +63,7 @@ describe('Umbaran Mobile Cannon', function () {
             expect(context.umbaranMobileCannon.damage).toBe(2);
         });
 
-        it('Umbaran Mobile Cannon\'s ability should prevent the first damage he should take each phase (unpreventable damage)', async function () {
+        it('Umbaran Mobile Cannon\'s ability cannot prevent unpreventable damage (and next damage are taken)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
