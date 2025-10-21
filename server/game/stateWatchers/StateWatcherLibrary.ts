@@ -21,6 +21,12 @@ export class StateWatcherLibrary {
         this.game = game;
     }
 
+    // ////////////////////////////////////////////////////////////////////////////////////////////
+    // ///// WARNING: every non-constructor method in this class is called during test setup
+    // ///// by GameStateBuilder, If we add any methods here that are _not_ intended for
+    // ///// registering a watcher, we need to update that code.
+    // ////////////////////////////////////////////////////////////////////////////////////////////
+
     // CLEANUP TASK: Remove card from the function call and then all of the implementations that use these.
     public attacksThisPhase() {
         return this.game.stateWatcherRegistrar.registerWatcher(
