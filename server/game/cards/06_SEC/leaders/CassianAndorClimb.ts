@@ -17,7 +17,7 @@ export default class CassianAndorClimb extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers (registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.damageDealtWatcher = AbilityHelper.stateWatchers.damageDealtThisPhase(registrar, this);
+        this.damageDealtWatcher = AbilityHelper.stateWatchers.damageDealtThisPhase();
     }
 
     protected override setupLeaderSideAbilities(
