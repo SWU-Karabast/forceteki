@@ -255,6 +255,9 @@ class Game extends EventEmitter {
         this.createdAt = new Date();
         this.preUndoStateForError = null;
 
+        /** @public @type {boolean} */
+        this.undoConfirmationOpen = false;
+
         /** @private @type {boolean} */
         this._serializationFailure = false;
 
@@ -2008,6 +2011,10 @@ class Game extends EventEmitter {
      */
     hasAvailableQuickSnapshot(playerId) {
         Contract.assertNotNullLike(playerId);
+
+        if (this.undoConfirmationOpen) {
+            return QuickUndoAvailableState.WaitingForConfirmation;
+        }
 
         const player = this.getPlayerById(playerId);
 

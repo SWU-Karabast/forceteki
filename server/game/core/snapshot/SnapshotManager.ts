@@ -17,7 +17,7 @@ import { PromptType } from '../gameSteps/PromptInterfaces';
 
 export enum UndoMode {
     Disabled = 'disabled',
-    Request = 'full',
+    Request = 'request',
     Free = 'free',
 }
 
@@ -226,7 +226,10 @@ export class SnapshotManager {
     }
 
     public rollbackTo(settings: IGetSnapshotSettings): IRollbackResult {
-        if (this._undoMode === UndoMode.Disabled) {
+        if (
+            this._undoMode === UndoMode.Disabled ||
+            (this._undoMode === UndoMode.Request && settings.type !== SnapshotType.Quick)
+        ) {
             return { success: false };
         }
 
@@ -402,6 +405,10 @@ export class SnapshotManager {
     }
 
     public countAvailableActionSnapshots(playerId: string): number {
+        if (this._undoMode !== UndoMode.Free) {
+            return 0;
+        }
+
         return this.actionSnapshots.getSnapshotCount(playerId);
     }
 
@@ -410,6 +417,10 @@ export class SnapshotManager {
     }
 
     public countAvailablePhaseSnapshots(phaseName: PhaseName.Action | PhaseName.Regroup): number {
+        if (this._undoMode !== UndoMode.Free) {
+            return 0;
+        }
+
         return this.phaseSnapshots.getSnapshotCount(phaseName);
     }
 

@@ -150,4 +150,5 @@ export enum QuickUndoAvailableState {
     UndoRequestsBlocked = 'undoRequestsBlocked',
     FreeUndoAvailable = 'freeUndoAvailable',
     RequestUndoAvailable = 'requestUndoAvailable',
+    WaitingForConfirmation = 'waitingForConfirmation',
 }
