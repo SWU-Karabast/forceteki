@@ -28,8 +28,11 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             `Replacement effect '${this} resolving in trigger window of type ${triggerWindow.triggerAbilityType}`
         );
 
-        const eventBeingReplaced = event.context.event;
+        if (!this.shouldReplace(event.context, additionalProperties)) {
+            return;
+        }
 
+        const eventBeingReplaced = event.context.event;
         const replacementImmediateEffect = event.replacementImmediateEffect;
         if (replacementImmediateEffect) {
             const eventWindow = eventBeingReplaced.window;
@@ -105,13 +108,16 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
     public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<TProperties>): void {
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
-        const replacementImmediateEffect = this.getReplacementImmediateEffect(event.context, additionalProperties);
-        event.replacementImmediateEffect = replacementImmediateEffect;
+        event.replacementImmediateEffect = this.getReplacementImmediateEffect(event.context, additionalProperties);
     }
 
     protected getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<TProperties> = {}): GameSystem<TContext> {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.replacementImmediateEffect;
+    }
+
+    protected shouldReplace (context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
+        return true;
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}, _mustChangeGameState): boolean {

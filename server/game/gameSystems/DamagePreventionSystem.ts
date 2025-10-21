@@ -1,5 +1,6 @@
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { DamagePreventionType, DamageType } from '../core/Constants';
+import { UnlimitedAbilityLimit } from '../core/ability/AbilityLimit';
 import { MetaEventName } from '../core/Constants';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
@@ -25,14 +26,6 @@ export class DamagePreventionSystem<
         const properties = this.generatePropertiesFromContext(context);
 
         const effectMessage = (): FormatMessage => {
-            if (context.event.isUnpreventable) {
-                // if there is a limit, in case of unpreventable, limit should be updated
-                return {
-                    format: 'cannot prevent unpreventable damage to {0}',
-                    args: [this.getTargetMessage(context.source, context)],
-                };
-            }
-
             switch (properties.preventionType) {
                 case DamagePreventionType.All:
                     return {
@@ -62,17 +55,6 @@ export class DamagePreventionSystem<
     protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<TProperties> = {}): GameSystem<TContext> {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        if (context.event.isUnpreventable) {
-            // if there is a limit, in case of unpreventable, limit should be updated
-            return new DamageSystem((context) => ({
-                target: context.event.card,
-                amount: context.event.amount,
-                source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
-                type: context.event.type,
-                sourceAttack: context.event.damageSource.attack,
-            }));
-        }
-
         switch (properties.preventionType) {
             case DamagePreventionType.All:
                 return null;
@@ -93,5 +75,18 @@ export class DamagePreventionSystem<
             default:
                 Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
         }
+    }
+
+    public override hasLegalTarget (context: TContext, additionalProperties: Partial<TProperties> = {}, _mustChangeGameState): boolean {
+        if (context.event.isUnpreventable) {
+            const limit = context.ability?.limit;
+            // Only allow triggering on unpreventable events if there is a finite limit to be consumed and it has remaining uses.
+            return limit && !(limit instanceof UnlimitedAbilityLimit) && !limit.isAtMax(context.player);
+        }
+        return super.hasLegalTarget(context, additionalProperties, _mustChangeGameState);
+    }
+
+    protected override shouldReplace (context: TContext): boolean {
+        return !context.event.isUnpreventable;
     }
 }
