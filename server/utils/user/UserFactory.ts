@@ -24,7 +24,7 @@ const getDefaultSoundPreferences = () => ({
     muteOpponentFoundSound: false,
 });
 
-const getDefaultPreferences = (): UserPreferences => ({
+export const getDefaultPreferences = (): UserPreferences => ({
     cardback: null,
     sound: getDefaultSoundPreferences()
 });
@@ -98,6 +98,21 @@ export class UserFactory {
             return true;
         } catch (error) {
             logger.error('Error setting showWelcomeMessage status:', { error: { message: error.message, stack: error.stack } });
+            throw error;
+        }
+    }
+
+    public async setUndoPopupSeenStatus(userId: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+            await dbService.updateUserProfileAsync(userId, {
+                undoPopupSeenDate: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            logger.error('Error setting undoPopupSeen status:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -253,7 +268,7 @@ export class UserFactory {
             const dbService = await this.dbServicePromise;
             await dbService.updateUserPreferencesAsync(userId, updatedPreferences);
         } catch (error) {
-            logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack } });
+            logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack, userId: userId } });
             throw error;
         }
     }
@@ -323,7 +338,8 @@ export class UserFactory {
                 preferences: getDefaultPreferences(),
                 needsUsernameChange: false,
                 swuStatsRefreshToken: null,
-                moderation: null
+                moderation: null,
+                undoPopupSeenDate: null,
             };
 
             // Create OAuth link

@@ -16,6 +16,7 @@ import type { Player } from '../core/Player';
 
 export enum DiscloseMode {
     Any = 'any',
+    Some = 'some',
     All = 'all'
 }
 
@@ -87,6 +88,27 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                     onSelectHandler: (cards) => this.updateEventsWithSelectedCards(events, cards),
                     cancelIfNoTargets: true,
                 });
+            case DiscloseMode.Some:
+                return new SelectCardSystem<TContext>({
+                    zoneFilter: ZoneName.Hand,
+                    controller: RelativePlayer.Self,
+                    mode: TargetMode.BetweenVariable,
+                    minNumCardsFunc: (_context) => 1,
+                    maxNumCardsFunc: (_context, selectedCards) => this.numberOfCardsToSelect(properties.aspects, selectedCards),
+                    cardCondition: (card) => properties.aspects.some((aspect) => card.aspects.includes(aspect)),
+                    multiSelectCardCondition: (card, selectedCards, context) =>
+                        this.handCanSatisfyAspects(context.player.hand, properties.aspects, mode) &&
+                        this.cardContainsMissingAspects(card, selectedCards, properties.aspects),
+                    immediateEffect: new RevealSystem<TContext>({
+                        activePromptTitle: `Opponent discloses ${EnumHelpers.aspectString(properties.aspects, Conjunction.AndOr)}`,
+                        promptedPlayer: RelativePlayer.Opponent,
+                        useDisplayPrompt: true,
+                        interactMode: ViewCardInteractMode.ViewOnly
+                    }),
+                    cancelHandler: events ? () => events.forEach((event) => event.cancel()) : null,
+                    onSelectHandler: (cards) => this.updateEventsWithSelectedCards(events, cards),
+                    cancelIfNoTargets: true,
+                });
             case DiscloseMode.All:
                 return new SelectCardSystem<TContext>({
                     zoneFilter: ZoneName.Hand,
@@ -95,7 +117,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                     numCardsFunc: (_context, selectedCards) => this.numberOfCardsToSelect(properties.aspects, selectedCards),
                     cardCondition: (card) => properties.aspects.some((aspect) => card.aspects.includes(aspect)),
                     multiSelectCardCondition: (card, selectedCards, context) =>
-                        this.handCanSatisfyAspects(context.player.hand, properties.aspects) &&
+                        this.handCanSatisfyAspects(context.player.hand, properties.aspects, mode) &&
                         this.cardContainsMissingAspects(card, selectedCards, properties.aspects),
                     immediateEffect: new RevealSystem<TContext>({
                         activePromptTitle: `Opponent discloses ${EnumHelpers.aspectString(properties.aspects)}`,
@@ -118,7 +140,11 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         }
     }
 
-    private handCanSatisfyAspects(hand: Card[], requiredAspects: Aspect[]): boolean {
+    private handCanSatisfyAspects(hand: Card[], requiredAspects: Aspect[], mode: DiscloseMode): boolean {
+        if (mode === DiscloseMode.Some) {
+            return hand.some((card) => requiredAspects.some((aspect) => card.aspects.includes(aspect)));
+        }
+
         return this.aspectsMissing(requiredAspects, hand).length === 0;
     }
 

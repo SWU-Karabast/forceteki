@@ -36,7 +36,7 @@ export class MulliganPrompt extends AllPlayerPrompt {
 
     public override waitingPrompt() {
         return {
-            menuTitle: 'Waiting for opponent to choose whether to Mulligan or keep hand.'
+            menuTitle: 'Waiting for opponent to choose whether to mulligan'
         };
     }
 
@@ -52,12 +52,12 @@ export class MulliganPrompt extends AllPlayerPrompt {
             if (this.completionCondition(player)) {
                 return false;
             }
-            this.game.addMessage('{0} has mulliganed', player);
+            this.game.addMessage('{0} will mulligan', player);
             this.playersDone[player.name] = true;
             this.playerMulligan[player.name] = true;
             return true;
         } else if (arg === 'keep') {
-            this.game.addMessage('{0} has not mulliganed', player);
+            this.game.addMessage('{0} will keep their hand', player);
             this.playersDone[player.name] = true;
             return true;
         }

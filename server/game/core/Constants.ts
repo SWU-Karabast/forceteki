@@ -580,4 +580,5 @@ export enum GameEndReason {
 export enum Conjunction {
     And = 'and',
     Or = 'or',
+    AndOr = 'and/or'
 }

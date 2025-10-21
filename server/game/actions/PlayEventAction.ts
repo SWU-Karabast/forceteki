@@ -6,6 +6,8 @@ import { AbilityResolver } from '../core/gameSteps/AbilityResolver.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { IEventCard } from '../core/card/EventCard.js';
 import type { ITargetResult } from '../core/ability/abilityTargets/TargetResolver.js';
+import type { EventAbility } from '../core/ability/EventAbility';
+import type { Player } from '../core/Player';
 
 export class PlayEventAction extends PlayCardAction {
     private earlyTargetResults?: ITargetResult;
@@ -16,7 +18,7 @@ export class PlayEventAction extends PlayCardAction {
         this.moveEventToDiscard(context);
 
         const eventAbility = context.source.getEventAbility();
-        const abilityContext = eventAbility.createContext();
+        const abilityContext = this.generateEventAbilityContext(eventAbility, context.player);
         abilityContext.playType = context.playType;
         if (this.earlyTargetResults) {
             this.copyContextTargets(context, abilityContext);
@@ -64,7 +66,7 @@ export class PlayEventAction extends PlayCardAction {
             return this.getDefaultTargetResults(context);
         }
 
-        const eventAbilityContext = eventAbility.createContext();
+        const eventAbilityContext = this.generateEventAbilityContext(eventAbility, context.player);
         eventAbilityContext.playType = context.playType;
 
         this.copyContextTargets(context, eventAbilityContext);
@@ -125,5 +127,9 @@ export class PlayEventAction extends PlayCardAction {
         }
 
         context.game.openEventWindow(events);
+    }
+
+    private generateEventAbilityContext(eventAbility: EventAbility, player: Player) {
+        return eventAbility.createContext(player);
     }
 }

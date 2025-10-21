@@ -31,6 +31,7 @@ export default class NabatVillage extends BaseCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.selectCard({
                 activePromptTitle: 'Select 3 cards',
+                waitingPromptTitle: 'Waiting for opponent to use Nabat Village',
                 mode: TargetMode.Exactly,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,

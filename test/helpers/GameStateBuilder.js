@@ -6,6 +6,7 @@ const GameFlowWrapper = require('./GameFlowWrapper.js');
 const fs = require('fs');
 const { UnitTestCardDataGetter } = require('../../server/utils/cardData/UnitTestCardDataGetter');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager');
+const { StateWatcherLibrary } = require('../../server/game/stateWatchers/StateWatcherLibrary');
 
 class GameStateBuilder {
     constructor() {
@@ -52,8 +53,7 @@ class GameStateBuilder {
             router,
             { id: player1Info.id, username: player1Info.username },
             { id: player2Info.id, username: player2Info.username },
-            undoMode,
-            setupTestOptions.enableConfirmationToUndo ?? false
+            undoMode
         );
 
         const testContext = {};
@@ -211,6 +211,8 @@ class GameStateBuilder {
             context.cardPropertyNames.push(card.propertyName);
         });
 
+        this.registerAllStateWatchers(context.game);
+
         Util.refreshGameState(context.game);
 
         if (options.phase !== 'setup') {
@@ -232,6 +234,21 @@ class GameStateBuilder {
         }
 
         this.attachAbbreviatedContextInfo(context, context);
+    }
+
+    /**
+     * Registers all state watchers from the StateWatcherLibrary to stress test them
+     * @param {Game} game
+     */
+    registerAllStateWatchers(game) {
+        const watcherLibrary = new StateWatcherLibrary(game);
+
+        const prototypeMethods = Object.getOwnPropertyNames(StateWatcherLibrary.prototype)
+            .filter((prop) => typeof StateWatcherLibrary.prototype[prop] === 'function' && prop !== 'constructor');
+
+        for (const methodName of prototypeMethods) {
+            watcherLibrary[methodName]();
+        }
     }
 
     /**
