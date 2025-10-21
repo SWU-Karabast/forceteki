@@ -27,7 +27,8 @@ export default class DamagePreventionAbility extends TriggeredAbility {
             return false;
         }
 
-        if (event.isUnpreventable) {
+        if (event.isUnpreventable && !properties.limit) {
+            // if there is a limit, in case of unpreventable, limit should be updated
             return false;
         }
 

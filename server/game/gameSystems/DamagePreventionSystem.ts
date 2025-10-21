@@ -25,6 +25,14 @@ export class DamagePreventionSystem<
         const properties = this.generatePropertiesFromContext(context);
 
         const effectMessage = (): FormatMessage => {
+            if (context.event.isUnpreventable) {
+                // if there is a limit, in case of unpreventable, limit should be updated
+                return {
+                    format: 'cannot prevent unpreventable damage to {0}',
+                    args: [this.getTargetMessage(context.source, context)],
+                };
+            }
+
             switch (properties.preventionType) {
                 case DamagePreventionType.All:
                     return {
@@ -53,6 +61,17 @@ export class DamagePreventionSystem<
 
     protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<TProperties> = {}): GameSystem<TContext> {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        if (context.event.isUnpreventable) {
+            // if there is a limit, in case of unpreventable, limit should be updated
+            return new DamageSystem((context) => ({
+                target: context.event.card,
+                amount: context.event.amount,
+                source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
+                type: context.event.type,
+                sourceAttack: context.event.damageSource.attack,
+            }));
+        }
 
         switch (properties.preventionType) {
             case DamagePreventionType.All:
