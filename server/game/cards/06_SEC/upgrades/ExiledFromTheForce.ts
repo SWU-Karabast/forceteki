@@ -20,7 +20,7 @@ export default class ExiledFromTheForce extends UpgradeCard {
             title: 'Attached unit loses the Force trait and all abilities except Grit',
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.loseTrait(Trait.Force),
-                AbilityHelper.ongoingEffects.loseAllAbilitiesExceptFromSource()
+                AbilityHelper.ongoingEffects.loseAllOtherAbilities({ exceptKeyword: KeywordName.Grit })
             ]
         });
     }

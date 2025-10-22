@@ -21,6 +21,7 @@ export enum DiscloseMode {
 }
 
 export interface IDiscloseAspectsProperties extends IPlayerTargetSystemProperties {
+    activePromptTitle?: string;
     aspects: Aspect[];
     mode?: DiscloseMode;
 }
@@ -81,6 +82,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         switch (mode) {
             case DiscloseMode.Any:
                 return new SelectCardSystem<TContext>({
+                    activePromptTitle: properties.activePromptTitle,
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,
                     mode: TargetMode.Single,
@@ -97,6 +99,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                 });
             case DiscloseMode.Some:
                 return new SelectCardSystem<TContext>({
+                    activePromptTitle: properties.activePromptTitle,
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,
                     mode: TargetMode.BetweenVariable,
@@ -118,6 +121,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                 });
             case DiscloseMode.All:
                 return new SelectCardSystem<TContext>({
+                    activePromptTitle: properties.activePromptTitle,
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,
                     mode: TargetMode.ExactlyVariable,

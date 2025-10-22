@@ -22,6 +22,7 @@ export default class Condemn extends UpgradeCard {
             title: `The defending player discloses ${EnumHelpers.aspectString(aspects)} to give this unit -6/-0 for this attack`,
             gainCondition: (context) => context.source.parentCard?.isAttacking(),
             immediateEffect: AbilityHelper.immediateEffects.disclose((context) => ({
+                activePromptTitle: `Disclose ${EnumHelpers.aspectString(aspects)} to give ${context.source.title} -6/-0 for this attack`,
                 aspects: aspects,
                 target: context.event.attack.getDefendingPlayer()
             })),

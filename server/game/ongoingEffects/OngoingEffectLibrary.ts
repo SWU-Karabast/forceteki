@@ -134,7 +134,9 @@ export = {
         OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => new GainKeyword(game, calculate(target, context))),
     multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
-    loseAllAbilitiesExceptFromSource: () => OngoingEffectBuilder.card.static(EffectName.PartiallyBlank),
+    loseAllOtherAbilities: (properties: { exceptKeyword: KeywordName }) =>
+        OngoingEffectBuilder.card.static(EffectName.BlankExceptKeyword, properties),
+    loseAllAbilitiesExceptFromSource: () => OngoingEffectBuilder.card.static(EffectName.BlankExceptFromSource),
     loseKeyword: (keywordOrKeywords: KeywordName | KeywordName[]) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keywordOrKeywords),
     loseAllKeywords: () => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, Object.values(KeywordName)),
     overridePrintedAttributes: (printedAttributesOverride: PrintedAttributesOverride) => OngoingEffectBuilder.card.static(EffectName.PrintedAttributesOverride, printedAttributesOverride),
