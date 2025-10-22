@@ -82,6 +82,7 @@ export enum EffectName {
     AssignIndirectDamageDealtToOpponents = 'assignIndirectDamageDealtToOpponents',
     AssignIndirectDamageDealtByUnit = 'assignIndirectDamageDealtByUnit',
     Blank = 'blank',
+    BlankNamedCardsForPlayer = 'blankNamedCardsForPlayer',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanAttackMultipleUnitsSimultaneously = 'canAttackMultipleUnitsSimultaneously',
@@ -580,5 +581,4 @@ export enum GameEndReason {
 export enum Conjunction {
     And = 'and',
     Or = 'or',
-    AndOr = 'and/or'
 }
