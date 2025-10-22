@@ -3,6 +3,7 @@ import FormData from 'form-data';
 import { httpPostFormData } from '../../Util';
 import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState } from '../Interfaces';
 import { logger } from '../../logger';
+import * as Helpers from './utils/Helpers';
 
 interface IDiscordFormat {
     content: string;
@@ -451,14 +452,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
      */
     private static formatMessagesToText(messages: ISerializedMessage[], reporter: string, opponent: string): string {
         return messages.map((messageEntry) => {
-            const message = messageEntry.message;
+            let message = messageEntry.message;
 
             // Handle alert messages
             if (typeof message === 'object' && 'alert' in message) {
-                const alertMessage = Array.isArray(message.alert.message)
-                    ? message.alert.message.join(' ')
-                    : message.alert.message;
-                return `[ALERT - ${message.alert.type}] ${alertMessage}`;
+                message = [`[ALERT - ${message.alert.type}] `, ...Helpers.asArray(message.alert.message)];
             }
 
             // Handle regular messages (arrays)
