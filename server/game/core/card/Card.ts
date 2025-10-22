@@ -848,7 +848,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public canGainAbilityFromSource(source: Card): boolean {
-        if (this.isFullyBlanked()) {
+        if (this.isFullyBlanked() || this.hasOngoingEffect(EffectName.BlankExceptKeyword)) {
             return false;
         }
 
