@@ -2013,5 +2013,50 @@ describe('Undo', function() {
                 ]);
             });
         });
+
+        describe('A passed action', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['wampa'],
+                    }
+                });
+            });
+
+            undoIt('should be tracked correctly when the action afterwards is rolled back', function() {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.passAction();
+
+                contextRef.snapshot.quickRollback(context.player2.id);
+                expect(context.player2).toBeActivePlayer();
+
+                context.player2.claimInitiative();
+
+                expect(context.game.currentPhase).toBe('regroup');
+            });
+
+            undoIt('should be tracked correctly when it is rolled back', function() {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.passAction();
+
+                contextRef.snapshot.quickRollback(context.player1.id);
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.claimInitiative();
+
+                // confirm that we are still in the action phase - i.e., the game didn't still think that P1's action was a pass
+                expect(context.game.currentPhase).toBe('action');
+                expect(context.player1).toBeActivePlayer();
+            });
+        });
     });
 });
