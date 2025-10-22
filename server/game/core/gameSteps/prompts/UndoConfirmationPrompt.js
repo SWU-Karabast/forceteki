@@ -17,7 +17,7 @@ class UndoConfirmationPrompt extends HandlerMenuPrompt {
             },
             () => {
                 promptedPlayer.incrementRejectedOpponentUndoRequests();
-                game.addAlert(AlertType.Notification, '{0} has denied the undo request', promptedPlayer.opponent);
+                game.addAlert(AlertType.Notification, '{0} has denied the undo request', promptedPlayer);
             }
         ];
 
@@ -25,7 +25,7 @@ class UndoConfirmationPrompt extends HandlerMenuPrompt {
             choices.push('Deny and Block Requests');
             handlers.push(() => {
                 promptedPlayer.opponent.setUndoRequestsBlocked(true);
-                game.addAlert(AlertType.Warning, '{0} has denied the undo request and blocked further undo requests from {1}', promptedPlayer.opponent, promptedPlayer);
+                game.addAlert(AlertType.Warning, '{0} has denied the undo request and blocked further undo requests from {1}', promptedPlayer, promptedPlayer.opponent);
             });
         }
 
@@ -36,7 +36,20 @@ class UndoConfirmationPrompt extends HandlerMenuPrompt {
             handlers
         };
 
+        game.undoConfirmationOpen = true;
+
         super(game, promptedPlayer, props);
+    }
+
+    /** @override */
+    continue() {
+        return super.continue();
+    }
+
+    /** @override */
+    complete() {
+        this.game.undoConfirmationOpen = false;
+        super.complete();
     }
 
     /** @override */

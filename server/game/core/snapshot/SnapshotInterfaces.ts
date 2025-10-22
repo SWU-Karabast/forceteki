@@ -143,6 +143,7 @@ export interface IGameState {
     lastGameEventId: number;
     readonly winnerNames: string[];
     currentPhase: PhaseName | null;
+    prevActionPhasePlayerPassed: boolean | null;
 }
 
 export enum QuickUndoAvailableState {
@@ -150,4 +151,5 @@ export enum QuickUndoAvailableState {
     UndoRequestsBlocked = 'undoRequestsBlocked',
     FreeUndoAvailable = 'freeUndoAvailable',
     RequestUndoAvailable = 'requestUndoAvailable',
+    WaitingForConfirmation = 'waitingForConfirmation',
 }
