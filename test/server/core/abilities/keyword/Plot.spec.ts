@@ -1,74 +1,74 @@
 describe('Plot keyword', function() {
     integration(function(contextRef) {
         describe('When a leader is deployed', function() {
-            // it('should not allow enemy cards with Plot to be played when deploying friendly leader', async function () {
-            //     await contextRef.setupTestAsync({
-            //         phase: 'action',
-            //         player1: {
-            //             leader: 'cal-kestis#i-cant-keep-hiding',
-            //             resources: 10
-            //         },
-            //         player2: {
-            //             leader: 'chancellor-palpatine#how-liberty-dies',
-            //             resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'dogmatic-shock-squad'],
-            //         }
-            //     });
+            it('should not allow enemy cards with Plot to be played when deploying friendly leader', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cal-kestis#i-cant-keep-hiding',
+                        resources: 10
+                    },
+                    player2: {
+                        leader: 'chancellor-palpatine#how-liberty-dies',
+                        resources: ['wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'dogmatic-shock-squad'],
+                    }
+                });
 
-            //     const { context } = contextRef;
+                const { context } = contextRef;
 
-            //     context.player1.clickCard(context.calKestis);
-            //     context.player1.clickPrompt('Deploy Cal Kestis');
-            //     expect(context.calKestis).toBeInZone('groundArena');
+                context.player1.clickCard(context.calKestis);
+                context.player1.clickPrompt('Deploy Cal Kestis');
+                expect(context.calKestis).toBeInZone('groundArena');
 
-            //     expect(context.player2).toBeActivePlayer();
-            // });
+                expect(context.player2).toBeActivePlayer();
+            });
 
-            // it('a Plot upgrade may be played from resources', async function () {
-            //     await contextRef.setupTestAsync({
-            //         phase: 'action',
-            //         player1: {
-            //             leader: 'cal-kestis#i-cant-keep-hiding',
-            //             resources: ['sneaking-suspicion', 'wampa', 'wampa', 'wampa'],
-            //             deck: ['pyke-sentinel']
-            //         }
-            //     });
+            it('a Plot upgrade may be played from resources', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'cal-kestis#i-cant-keep-hiding',
+                        resources: ['sneaking-suspicion', 'wampa', 'wampa', 'wampa'],
+                        deck: ['pyke-sentinel']
+                    }
+                });
 
-            //     const { context } = contextRef;
+                const { context } = contextRef;
 
-            //     context.player1.clickCard(context.calKestis);
-            //     context.player1.clickPrompt('Deploy Cal Kestis');
-            //     expect(context.player1).toHavePassAbilityPrompt('Play Sneaking Suspicion using Plot');
-            //     context.player1.clickPrompt('Trigger');
-            //     expect(context.player1).toBeAbleToSelectExactly([context.calKestis]);
-            //     context.player1.clickCard(context.calKestis);
-            //     expect(context.sneakingSuspicion).toBeAttachedTo(context.calKestis);
-            //     expect(context.player1.exhaustedResourceCount).toBe(2);
-            //     expect(context.pykeSentinel).toBeInZone('resource');
-            //     expect(context.player2).toBeActivePlayer();
-            // });
+                context.player1.clickCard(context.calKestis);
+                context.player1.clickPrompt('Deploy Cal Kestis');
+                expect(context.player1).toHavePassAbilityPrompt('Play Sneaking Suspicion using Plot');
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.calKestis]);
+                context.player1.clickCard(context.calKestis);
+                expect(context.sneakingSuspicion).toBeAttachedTo(context.calKestis);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+                expect(context.pykeSentinel).toBeInZone('resource');
+                expect(context.player2).toBeActivePlayer();
+            });
 
-            // it('a Plot unit may be played from resources', async function () {
-            //     await contextRef.setupTestAsync({
-            //         phase: 'action',
-            //         player1: {
-            //             leader: 'iden-versio#inferno-squad-commander',
-            //             resources: ['dogmatic-shock-squad', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
-            //             deck: ['pyke-sentinel']
-            //         }
-            //     });
+            it('a Plot unit may be played from resources', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'iden-versio#inferno-squad-commander',
+                        resources: ['dogmatic-shock-squad', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                        deck: ['pyke-sentinel']
+                    }
+                });
 
-            //     const { context } = contextRef;
+                const { context } = contextRef;
 
-            //     context.player1.clickCard(context.idenVersio);
-            //     context.player1.clickPrompt('Deploy Iden Versio');
-            //     context.player1.clickPrompt('Shielded');
-            //     expect(context.player1).toHavePassAbilityPrompt('Play Dogmatic Shock Squad using Plot');
-            //     context.player1.clickPrompt('Trigger');
-            //     expect(context.dogmaticShockSquad).toBeInZone('groundArena');
-            //     expect(context.player1.exhaustedResourceCount).toBe(6);
-            //     expect(context.pykeSentinel).toBeInZone('resource');
-            //     expect(context.player2).toBeActivePlayer();
-            // });
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickPrompt('Deploy Iden Versio');
+                context.player1.clickPrompt('Shielded');
+                expect(context.player1).toHavePassAbilityPrompt('Play Dogmatic Shock Squad using Plot');
+                context.player1.clickPrompt('Trigger');
+                expect(context.dogmaticShockSquad).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(6);
+                expect(context.pykeSentinel).toBeInZone('resource');
+                expect(context.player2).toBeActivePlayer();
+            });
 
             it('a Plot event may be played from resources', async function () {
                 await contextRef.setupTestAsync({
