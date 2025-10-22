@@ -19,24 +19,31 @@ export default class HiredSlicer extends NonLeaderUnitCard {
             targetResolver: {
                 mode: TargetMode.Select,
                 choices: (context) => ({
-                    'Your deck': AbilityHelper.immediateEffects.reveal(() => ({
-                        target: context.player.getTopCardsOfDeck(2)
-                    })),
-                    'Opponent\'s deck': AbilityHelper.immediateEffects.reveal(() => ({
-                        target: context.player.opponent.getTopCardsOfDeck(2)
-                    }))
+                    'Your deck': AbilityHelper.immediateEffects.sequential([
+                        AbilityHelper.immediateEffects.reveal({
+                            target: context.player.getTopCardsOfDeck(2)
+                        }),
+                        AbilityHelper.immediateEffects.moveToBottomOfDeck({
+                            target: context.player.getTopCardsOfDeck(2)
+                        })
+                    ]),
+                    'Opponent\'s deck': AbilityHelper.immediateEffects.sequential([
+                        AbilityHelper.immediateEffects.reveal({
+                            target: context.player.opponent.getTopCardsOfDeck(2)
+                        }),
+                        AbilityHelper.immediateEffects.moveToBottomOfDeck({
+                            target: context.player.opponent.getTopCardsOfDeck(2)
+                        })
+                    ])
                 })
             },
             ifYouDo: (ifYouDoContext) => {
                 const revealedCards = ifYouDoContext.events[0].cards;
 
                 // Collect all unique traits from the revealed cards
-                const revealedTraits = new Set<string>();
-                for (const revealedCard of revealedCards) {
-                    for (const trait of revealedCard.traits) {
-                        revealedTraits.add(trait);
-                    }
-                }
+                const revealedTraits = new Set<string>(
+                    revealedCards.flatMap((card) => Array.from(card.traits))
+                );
 
                 return {
                     title: 'Exhaust a unit that shares a trait with one of those cards',
@@ -44,15 +51,8 @@ export default class HiredSlicer extends NonLeaderUnitCard {
                     targetResolver: {
                         cardTypeFilter: WildcardCardType.Unit,
                         // Target must share at least one trait with the revealed cards
-                        cardCondition: (card) => Array.from(card.traits).some((trait: string) => revealedTraits.has(trait)),
+                        cardCondition: (card) => Array.from(card.traits).some((trait) => revealedTraits.has(trait)),
                         immediateEffect: AbilityHelper.immediateEffects.exhaust()
-                    },
-                    then: {
-                        title: 'Put those cards on the bottom of that deck in a random order',
-                        immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck(() => ({
-                            target: revealedCards,
-                            shuffleMovedCards: true
-                        }))
                     }
                 };
             }
