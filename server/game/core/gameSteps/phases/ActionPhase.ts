@@ -10,9 +10,7 @@ export class ActionPhase extends Phase {
     private readonly getNextActionNumber: () => number;
 
     // each ActionWindow will use this handler to indicate if the window was passed or not
-    private readonly passStatusHandler = (passed: boolean) => this.prevPlayerPassed = passed;
-
-    private prevPlayerPassed = false;
+    private readonly passStatusHandler = (passed: boolean) => this.game.prevActionPhasePlayerPassed = passed;
 
     public constructor(
         game: Game,
@@ -56,12 +54,14 @@ export class ActionPhase extends Phase {
         for (const player of this.game.getPlayers()) {
             player.resetForActionPhase();
         }
+
+        this.game.prevActionPhasePlayerPassed = false;
     }
 
     private queueNextAction(actionNumber: number) {
         this.game.queueStep(new ActionWindow(
             this.game,
-            this.prevPlayerPassed,
+            this.game.prevActionPhasePlayerPassed,
             this.passStatusHandler,
             actionNumber,
             this.snapshotManager
@@ -93,5 +93,6 @@ export class ActionPhase extends Phase {
             player.cleanupFromActionPhase();
         }
         this.game.isInitiativeClaimed = false;
+        this.game.prevActionPhasePlayerPassed = null;
     }
 }
