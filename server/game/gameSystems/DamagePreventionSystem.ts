@@ -13,6 +13,7 @@ export interface IDamagePreventionSystemProperties<TContext extends TriggeredAbi
     preventionType: DamagePreventionType;
     preventionAmount?: number;
     replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
+    onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext>;
 }
 
 export class DamagePreventionSystem<
@@ -43,6 +44,12 @@ export class DamagePreventionSystem<
                         format: '{0} instead of {1} taking damage',
                         args: [replaceMessage, this.getTargetMessage(context.event.card, context)],
                     };
+                // case DamagePreventionType.IfYouDo:
+                //     const onlyIfYouDoEffect = properties.onlyIfYouDoEffect;
+                //     return {
+                //         format: 'prevent damage to {0} if you defeat a friendly unit that shares a trait',
+                //         args: [this.getTargetMessage(context.event.card, context)],
+                //     };
                 default:
                     Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
             }
@@ -53,6 +60,10 @@ export class DamagePreventionSystem<
 
     protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<TProperties> = {}): GameSystem<TContext> {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        if (properties.onlyIfYouDoEffect) {
+            return properties.onlyIfYouDoEffect as GameSystem<TContext>;
+        }
 
         switch (properties.preventionType) {
             case DamagePreventionType.All:

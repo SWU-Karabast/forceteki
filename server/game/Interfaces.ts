@@ -40,7 +40,7 @@ import type { IInPlayCard } from './core/card/baseClasses/InPlayCard';
 /** Interface definition for addTriggeredAbility */
 export type ITriggeredAbilityProps<TSource extends Card = Card> = ITriggeredAbilityWhenProps<TSource> | ITriggeredAbilityAggregateWhenProps<TSource>;
 export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IReplacementEffectAbilityWhenProps<TSource> | IReplacementEffectAbilityAggregateWhenProps<TSource>;
-export type IDamagePreventionAbilityProps<TSource extends Card = Card> = Omit<IReplacementEffectAbilityBaseProps<TSource>, 'when'> & {
+export type IDamagePreventionAbilityProps<TSource extends Card = Card> = Omit<IReplacementEffectAbilityBaseProps<TSource>, 'when' | 'onlyIfYouDoEffect'> & {
     preventionType: DamagePreventionType;
     onlyFromPlayer?: RelativePlayer; // TSTODO - update to accept an array
     damageOfType?: DamageSourceType;
@@ -54,6 +54,11 @@ export type IDamagePreventionAbilityProps<TSource extends Card = Card> = Omit<IR
      * @returns True if the card meets the defined condition
      */
     shouldCardHaveDamagePrevention?: (card: Card, context?: TriggeredAbilityContext) => boolean;
+
+    /**
+     * This is used for damage prevention that requires some other system to resolve before preventing the damage, such as defeating a unit
+     */
+    onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
 };
 
 /** Interface definition for addActionAbility */

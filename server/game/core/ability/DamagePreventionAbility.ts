@@ -1,20 +1,35 @@
+import { DamagePreventionSystem } from '../../gameSystems/DamagePreventionSystem';
 import type { IDamagePreventionAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
-import { DamagePreventionSystem } from '../../gameSystems/DamagePreventionSystem';
-import { AbilityType } from '../Constants';
-import TriggeredAbility from './TriggeredAbility';
 import * as EnumHelpers from '../utils/EnumHelpers';
+import ReplacementAbilityBase from './ReplacementAbilityBase';
 
-export default class DamagePreventionAbility extends TriggeredAbility {
+export default class DamagePreventionAbility extends ReplacementAbilityBase {
     public constructor(game: Game, card: Card, properties: IDamagePreventionAbilityProps) {
-        const triggeredAbilityProps: ITriggeredAbilityProps = {
-            ...properties,
-            immediateEffect: new DamagePreventionSystem(properties),
-            when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) }
-        };
+        const { onlyIfYouDoEffect, ...otherProps } = properties;
+        let triggeredAbilityProps: ITriggeredAbilityProps;
 
-        super(game, card, triggeredAbilityProps, AbilityType.ReplacementEffect);
+        if (onlyIfYouDoEffect) {
+            triggeredAbilityProps = {
+                ...otherProps,
+                immediateEffect: onlyIfYouDoEffect,
+                when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) },
+                ifYouDo: {
+                    title: 'Replace Effect',
+                    ifYouDoCondition: (context) => context.event.card === context.source && (context.event.isUnpreventable !== true),
+                    immediateEffect: new DamagePreventionSystem(otherProps)
+                }
+            };
+        } else {
+            triggeredAbilityProps = {
+                ...otherProps,
+                when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) },
+                immediateEffect: new DamagePreventionSystem(otherProps)
+            };
+        }
+
+        super(game, card, triggeredAbilityProps);
     }
 
     private buildDamagePreventionTrigger(event, context, properties: IDamagePreventionAbilityProps): boolean {
@@ -27,8 +42,10 @@ export default class DamagePreventionAbility extends TriggeredAbility {
             return false;
         }
 
-        if (event.isUnpreventable) {
-            return false;
+        if (properties.onlyIfYouDoEffect == null) {
+            if (event.isUnpreventable) {
+                return false;
+            }
         }
 
         if (properties.damageOfType && event.damageSource.type !== properties.damageOfType) {
