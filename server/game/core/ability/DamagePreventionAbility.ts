@@ -42,11 +42,11 @@ export default class DamagePreventionAbility extends ReplacementAbilityBase {
             return false;
         }
 
-        if (properties.onlyIfYouDoEffect == null) {
-            if (event.isUnpreventable) {
-                return false;
-            }
-        }
+        // if (properties.onlyIfYouDoEffect == null) {
+        //     if (event.isUnpreventable) {
+        //         return false;
+        //     }
+        // }
 
         if (properties.damageOfType && event.damageSource.type !== properties.damageOfType) {
             return false;
