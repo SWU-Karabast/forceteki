@@ -53,12 +53,6 @@ export class DamagePreventionSystem<
                         format: '{0} instead of {1} taking damage',
                         args: [replaceMessage, this.getTargetMessage(context.event.card, context)],
                     };
-                // case DamagePreventionType.IfYouDo:
-                //     const onlyIfYouDoEffect = properties.onlyIfYouDoEffect;
-                //     return {
-                //         format: 'prevent damage to {0} if you defeat a friendly unit that shares a trait',
-                //         args: [this.getTargetMessage(context.event.card, context)],
-                //     };
                 default:
                     Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
             }

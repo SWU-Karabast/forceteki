@@ -9,25 +9,6 @@ export default class DamagePreventionAbility extends ReplacementAbilityBase {
     public constructor(game: Game, card: Card, properties: IDamagePreventionAbilityProps) {
         const { onlyIfYouDoEffect, ...otherProps } = properties;
 
-        // if (onlyIfYouDoEffect) {
-        //     triggeredAbilityProps = {
-        //         ...otherProps,
-        //         immediateEffect: onlyIfYouDoEffect,
-        //         when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) },
-        //         ifYouDo: {
-        //             title: 'Replace Effect',
-        //             ifYouDoCondition: (context) => context.event.card === context.source && (context.event.isUnpreventable !== true),
-        //             immediateEffect: new DamagePreventionSystem(otherProps)
-        //         }
-        //     };
-        // } else {
-        //     triggeredAbilityProps = {
-        //         ...otherProps,
-        //         when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) },
-        //         immediateEffect: new DamagePreventionSystem(otherProps)
-        //     };
-        // }
-
         super(game, card, properties, new DamagePreventionSystem(otherProps), { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) });
     }
 
@@ -40,12 +21,6 @@ export default class DamagePreventionAbility extends ReplacementAbilityBase {
         } else if (event.card !== context.source) {
             return false;
         }
-
-        // if (properties.onlyIfYouDoEffect == null) {
-        //     if (event.isUnpreventable) {
-        //         return false;
-        //     }
-        // }
 
         if (properties.damageOfType && event.damageSource.type !== properties.damageOfType) {
             return false;
