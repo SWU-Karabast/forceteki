@@ -210,6 +210,16 @@ class Game extends EventEmitter {
         return this._serializationFailure;
     }
 
+    /** @type {boolean | null} */
+    get prevActionPhasePlayerPassed() {
+        return this.state.prevActionPhasePlayerPassed;
+    }
+
+    /** @type {boolean | null} */
+    set prevActionPhasePlayerPassed(value) {
+        this.state.prevActionPhasePlayerPassed = value;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -255,6 +265,9 @@ class Game extends EventEmitter {
         this.createdAt = new Date();
         this.preUndoStateForError = null;
 
+        /** @public @type {boolean} */
+        this.undoConfirmationOpen = false;
+
         /** @private @type {boolean} */
         this._serializationFailure = false;
 
@@ -287,6 +300,7 @@ class Game extends EventEmitter {
             winnerNames: [],
             lastGameEventId: 0,
             currentPhase: null,
+            prevActionPhasePlayerPassed: null
         };
 
         this.tokenFactories = null;
@@ -2008,6 +2022,10 @@ class Game extends EventEmitter {
      */
     hasAvailableQuickSnapshot(playerId) {
         Contract.assertNotNullLike(playerId);
+
+        if (this.undoConfirmationOpen) {
+            return QuickUndoAvailableState.WaitingForConfirmation;
+        }
 
         const player = this.getPlayerById(playerId);
 
