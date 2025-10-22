@@ -210,6 +210,16 @@ class Game extends EventEmitter {
         return this._serializationFailure;
     }
 
+    /** @type {boolean | null} */
+    get prevActionPhasePlayerPassed() {
+        return this.state.prevActionPhasePlayerPassed;
+    }
+
+    /** @type {boolean | null} */
+    set prevActionPhasePlayerPassed(value) {
+        this.state.prevActionPhasePlayerPassed = value;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -290,6 +300,7 @@ class Game extends EventEmitter {
             winnerNames: [],
             lastGameEventId: 0,
             currentPhase: null,
+            prevActionPhasePlayerPassed: null
         };
 
         this.tokenFactories = null;
