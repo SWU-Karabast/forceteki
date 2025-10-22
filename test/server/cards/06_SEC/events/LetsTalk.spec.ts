@@ -25,9 +25,41 @@ describe('Let\'s Talk', function () {
             context.player1.readyResources(10);
 
             context.player1.clickCard(context.letsTalk);
+            context.player1.clickCard(context.wampa);
+
             context.player1.clickCard(context.rebelPathfinder);
 
             expect(context.player1.exhaustedResourceCount).toBe(6);
+        });
+
+        it('Let\'s Talk selection order matches capture order', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'data-vault',
+                    groundArena: ['battlefield-marine', 'wampa'],
+                    hand: ['lets-talk']
+                },
+                player2: {
+                    groundArena: ['rebel-pathfinder', 'atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.readyResources(10);
+
+            context.player1.clickCard(context.letsTalk);
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickDone();
+
+            context.player1.clickCard(context.atst);
+            context.player1.clickCard(context.rebelPathfinder);
+
+            expect(context.atst).toBeCapturedBy(context.wampa);
+            expect(context.rebelPathfinder).toBeCapturedBy(context.battlefieldMarine);
+
         });
     });
 });
