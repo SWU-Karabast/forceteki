@@ -195,7 +195,10 @@ export class Lobby {
 
         const previousAuthenticatedStatus = this.previousAuthenticatedStatusByUser.get(user.id);
         if (previousAuthenticatedStatus != null && previousAuthenticatedStatus !== authenticatedStatus) {
-            logger.warn(`Lobby: user ${user.username} authentication status changed from ${previousAuthenticatedStatus} to ${authenticatedStatus}`, { lobbyId: this.id, userName: user.username, userId: user.id });
+            const prevAuthProps = { authenticated: previousAuthenticatedStatus, username: user.username };
+            const newAuthProps = { authenticated: authenticatedStatus, username: user.socket.user.getUsername() };
+
+            logger.warn(`Lobby: user ${user.id} authentication status changed. Previous value: ${JSON.stringify(prevAuthProps)}, new value: ${JSON.stringify(newAuthProps)}`, { lobbyId: this.id, userId: user.id });
         }
 
         this.previousAuthenticatedStatusByUser.set(user.id, authenticatedStatus);
