@@ -24,7 +24,6 @@ export default class ReplacementAbilityBase extends TriggeredAbility {
                 when: whenTrigger,
                 ifYouDo: {
                     title: 'Replace Effect',
-                    ifYouDoCondition: (context) => context.event.card === context.source && (context.event.isUnpreventable !== true),
                     immediateEffect: replacementSystem
                 }
             };
