@@ -393,11 +393,28 @@ export class GameServer {
                     undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     preferences: user.getPreferences(),
                     needsUsernameChange: user.needsUsernameChange(),
-                    swuStatsRefreshToken: user.getSwuStatsRefreshToken(),
                     moderation: user.getModeration(),
                 } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/user/:userId/swustatsLink', authMiddleware('swustatsLink'), async (req, res, next) => {
+            const user = req.user as User;
+            try {
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (swustatsLink): Anonymous user ${user.getId()} is attempting to retrieve swustatsLink`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve swustatsLink'
+                    });
+                }
+                const linked = await this.swuStatsHandler.getAccessTokenAsync(user.getId(), this);
+                res.status(200).json({ linked: !!linked });
+            } catch (err) {
+                logger.error('GameServer (swustatsLink) Server Error: ', err);
                 next(err);
             }
         });

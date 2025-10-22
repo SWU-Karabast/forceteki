@@ -17,7 +17,7 @@ import type { IDecklistInternal, IDeckValidationFailures } from '../utils/deck/D
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
-import type { GameServer, ISwuStatsToken } from './GameServer';
+import type { GameServer } from './GameServer';
 import { AlertType, GameEndReason, GameErrorSeverity } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
@@ -60,9 +60,7 @@ export interface PlayerDetails {
     leaderID: string;
     baseID: string;
     deck: IDecklistInternal;
-    swuStatsRefreshToken: string | null;
     isDeckPresentInDb: boolean;
-    swuStatsToken: ISwuStatsToken;
 }
 
 export enum MatchType {
@@ -197,7 +195,10 @@ export class Lobby {
 
         const previousAuthenticatedStatus = this.previousAuthenticatedStatusByUser.get(user.id);
         if (previousAuthenticatedStatus != null && previousAuthenticatedStatus !== authenticatedStatus) {
-            logger.warn(`Lobby: user ${user.username} authentication status changed from ${previousAuthenticatedStatus} to ${authenticatedStatus}`, { lobbyId: this.id, userName: user.username, userId: user.id });
+            const prevAuthProps = { authenticated: previousAuthenticatedStatus, username: user.username };
+            const newAuthProps = { authenticated: authenticatedStatus, username: user.socket.user.getUsername() };
+
+            logger.warn(`Lobby: user ${user.id} authentication status changed. Previous value: ${JSON.stringify(prevAuthProps)}, new value: ${JSON.stringify(newAuthProps)}`, { lobbyId: this.id, userId: user.id });
         }
 
         this.previousAuthenticatedStatusByUser.set(user.id, authenticatedStatus);
@@ -759,8 +760,6 @@ export class Lobby {
                     deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
                     deck: user.deck.getDecklist(),
                     isDeckPresentInDb: user.decklist.isPresentInDb,
-                    swuStatsRefreshToken: user.socket.user.getSwuStatsRefreshToken(),
-                    swuStatsToken: this.server.swuStatsTokenMapping.get(user.id),
                 });
             });
             await game.initialiseAsync();
@@ -1107,6 +1106,7 @@ export class Lobby {
                 game,
                 player1User,
                 player2User,
+                this.hasSwuStatsSource,
                 this.id,
                 this.server,
             );
@@ -1137,7 +1137,7 @@ export class Lobby {
     /**
      * Private method to check if players deck source is SWUStats
      */
-    private hasSwuStatsSource(playerDetails: PlayerDetails): boolean {
+    public hasSwuStatsSource(playerDetails: PlayerDetails): boolean {
         return playerDetails.deckSource === DeckSource.SWUStats;
     }
 
