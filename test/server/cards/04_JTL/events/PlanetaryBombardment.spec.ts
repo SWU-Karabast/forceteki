@@ -38,6 +38,11 @@ describe('Planetary Bombardment', function() {
                 [context.bobaFett, 2],
                 [context.chirrutImwe, 1],
             ]));
+
+            // TODO these prompts are ambiguous, find a way to remove them
+            context.player2.clickPrompt('If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage');
+            context.player2.clickPrompt('Prevent all damage that would be dealt to it by enemy card abilities');
+
             expect(context.getChatLogs(2)).toContain('player1 uses Planetary Bombardment to deal 4 indirect damage to Wampa, 3 indirect damage to player2\'s base, 2 indirect damage to Lurking TIE Phantom, 2 indirect damage to Boba Fett, and 1 indirect damage to Chirrut Îmwe');
             expect(context.getChatLogs(1)).toContain('player2\'s Lurking TIE Phantom is defeated by player1 due to having no remaining HP');
 

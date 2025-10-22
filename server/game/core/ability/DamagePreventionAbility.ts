@@ -27,10 +27,6 @@ export default class DamagePreventionAbility extends TriggeredAbility {
             return false;
         }
 
-        if (event.isUnpreventable) {
-            return false;
-        }
-
         if (properties.damageOfType && event.damageSource.type !== properties.damageOfType) {
             return false;
         }
