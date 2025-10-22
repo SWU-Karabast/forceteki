@@ -35,6 +35,8 @@ export class PlayUpgradeAction extends PlayCardAction {
         Contract.assertTrue(isUpgrade || isPilot);
         Contract.assertTrue(context.source.canBeInPlay());
 
+        this.checkAndRearrangeResources(context);
+
         const events = [
             new AttachUpgradeSystem({
                 upgrade: context.source,

@@ -1,4 +1,4 @@
-import { ZoneName, RelativePlayer, KeywordName } from '../Constants';
+import { ZoneName, RelativePlayer } from '../Constants';
 import type { Player } from '../Player';
 import { PlayerZone } from './PlayerZone';
 import * as Helpers from '../utils/Helpers.js';
@@ -33,7 +33,7 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
         this.name = ZoneName.Resource;
     }
 
-    public rearrangeResourceExhaustState(context: AbilityContext, prioritizeSmuggle: boolean = false): void {
+    public rearrangeResourceExhaustState(context: AbilityContext, priorityCondition: (resource: IPlayableCard) => boolean = (card) => false): void {
         const exhaustCount = this.exhaustedResourceCount;
         // Cards is an accessor and a copy of the array.
         const cards = this._cards.concat();
@@ -44,14 +44,16 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
 
         let exhausted = 0;
 
-        if (prioritizeSmuggle) {
-            for (let i = 0; i < exhaustCount; i++) {
-                if (cards[i].hasSomeKeyword(KeywordName.Smuggle)) {
-                    cards[i].exhausted = true;
-                    exhausted++;
-                }
+        for (let i = 0; i < this._cards.length; i++) {
+            if (priorityCondition(cards[i])) {
+                cards[i].exhausted = true;
+                exhausted++;
+            }
+            if (exhausted === exhaustCount) {
+                break;
             }
         }
+
         for (let i = 0; i < exhaustCount; i++) {
             if (cards[i].exhausted === false) {
                 cards[i].exhausted = true;
