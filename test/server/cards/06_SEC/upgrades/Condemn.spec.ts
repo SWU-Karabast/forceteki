@@ -121,56 +121,298 @@ describe('Condemn', function () {
                 expect(context.p2Base.damage).toBe(3);
             });
 
-            it('makes the attached unit lose keyword abilities for the duration of the attack', async function () {
+            it('turns off the shield defeat part of Saboteur, but not the target selection part', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        base: {
-                            card: 'chopper-base',
-                            damage: 5
-                        },
                         groundArena: [{
-                            card: 'nihil-marauder',
-                            upgrades: [
-                                'condemn',
-                                'infiltrators-skill',
-                                'devotion'
-                            ]
+                            card: 'resourceful-pursuers',
+                            upgrades: ['condemn']
                         }]
                     },
                     player2: {
                         groundArena: [
                             'niima-outpost-constables',
-                            'battlefield-marine'
+                            { card: 'battlefield-marine', upgrades: ['shield', 'shield'] }
                         ]
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Initiate an attack with Nihil Marauder
+                // Initiate an attack with Resourceful Pursuers
+                context.player1.clickCard(context.resourcefulPursuers);
+
+                // It can still target any ground unit or base because Saboteur's target selection is unaffected
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.niimaOutpostConstables,
+                    context.battlefieldMarine,
+                    context.p2Base
+                ]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // It loses the ability to defeat all shields on attack
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+                expect(context.battlefieldMarine.damage).toBe(0);
+            });
+
+            it('makes the attached unit lose keyword abilities for the duration of the attack', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: {
+                            card: 'maul#a-rival-in-darkness', // Gives Overwhelm to friendly units
+                            deployed: true
+                        },
+                        base: {
+                            card: 'chopper-base',
+                            damage: 5
+                        },
+                        hand: [
+                            'grim-resolve' // Attack with a unit, it gains Grit for the attack
+                        ],
+                        groundArena: [{
+                            card: 'nihil-marauder',
+                            damage: 2,
+                            upgrades: [
+                                'condemn',
+                                'devotion', // Restore 2 and +1/+1
+                            ]
+                        }]
+                    },
+                    player2: {
+                        groundArena: ['ion-cannon', 'battle-droid']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Grim Resolve to initiate an attack with Nihil Marauder
+                context.player1.clickCard(context.grimResolve);
                 context.player1.clickCard(context.nihilMarauder);
+                context.player1.clickCard(context.ionCannon);
 
-                // It loses Saboteur from Infiltrator's Skill, so the sentinel is the only valid target
-                expect(context.player1).toBeAbleToSelectExactly([context.niimaOutpostConstables]);
-                context.player1.clickCard(context.niimaOutpostConstables);
-
-                // It loses Raid 3, so it only deals 3 damage instead of 6
-                expect(context.niimaOutpostConstables.damage).toBe(3);
+                // It loses Raid and does not gain Grit from Grim Resolve, so only deals 2 damage
+                expect(context.ionCannon.damage).toBe(2);
 
                 // It loses Restore from Devotion, so base is not healed
                 expect(context.p1Base.damage).toBe(5);
+
+                // Move to next action phase
+                context.moveToNextActionPhase();
+
+                // Nihil Marauder attacks Battle Droid
+                context.player1.clickCard(context.nihilMarauder);
+                context.player1.clickCard(context.battleDroid);
+
+                // It does not have Overwhelm, so no damage goes to base
+                expect(context.p2Base.damage).toBe(0);
             });
 
-            xit('makes the attached unit lose triggered abilities for the duration of the attack', async function () {});
+            it('makes the attached unit lose triggered abilities for the duration of the attack', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{
+                            card: 'seventh-sister#implacable-inquisitor',
+                            upgrades: [
+                                'condemn',
+                                'fallen-lightsaber'
+                            ]
+                        }]
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force']
+                    }
+                });
 
-            xit('ends the effect in time for post-attack triggers', async function () {});
+                const { context } = contextRef;
 
-            xit('results in full blanking when multiple Condemn upgrades are attached', async function () {});
+                // P1 attacks base with Seventh Sister
+                context.player1.clickCard(context.seventhSister);
+                context.player1.clickCard(context.p2Base);
 
-            xit('results in full blanking when combined with Exiled From the Force', async function () {});
+                // Neither Fallen Lightsaber nor Seventh Sister's triggered ability trigger
+                // Attack ends with no damage dealt to Consular Security Force
+                expect(context.consularSecurityForce.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
 
-            xit('does not affect the attached unit when there is a separate full blanking effect being applied', async function () {});
+            it('makes the attached unit lose When Defeated & Bounty abilities if it is defeated during the attack', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            'consular-security-force',
+                            {
+                                card: 'val#loyal-to-the-end',
+                                upgrades: ['condemn']
+                            }
+                        ]
+                    },
+                    player2: {
+                        groundArena: ['reinforcement-walker']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 attacks Reinforcement Walker with Val
+                context.player1.clickCard(context.val);
+                context.player1.clickCard(context.reinforcementWalker);
+
+                // Val is defeated and does not trigger her When Defeated or Bounty abilities
+                expect(context.val).toBeInZone('discard', context.player1);
+                expect(context.consularSecurityForce.upgrades.length).toBe(0); // No Experience given from When Defeated
+                expect(context.consularSecurityForce.damage).toBe(0); // No damage from Bounty
+                expect(context.reinforcementWalker.damage).toBe(2); // From combat
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('ends the effect in time for post-attack triggers', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        deck: ['resupply'],
+                        groundArena: [{
+                            card: 'ezra-bridger#resourceful-troublemaker',
+                            upgrades: ['condemn']
+                        }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 attacks base with Ezra Bridger
+                context.player1.clickCard(context.ezraBridger);
+                context.player1.clickCard(context.p2Base);
+
+                // Post attack ability triggers, prompting to play/discard/leave Resupply
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.resupply]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
+                context.player1.clickDisplayCardPromptButton(context.resupply.uuid, 'play');
+                expect(context.resupply).toBeInZone('resource', context.player1);
+            });
+
+            it('results in full blanking when multiple Condemn upgrades are attached', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{
+                            card: 'reinforcement-walker',
+                            upgrades: ['condemn']
+                        }]
+                    },
+                    player2: {
+                        hand: ['condemn', 'superlaser-blast'],
+                    }
+                });
+
+                const { context } = contextRef;
+                const p2Condemn = context.player2.findCardByName('condemn');
+
+                // P1 attacks base with Reinforcement Walker
+                context.player1.clickCard(context.reinforcementWalker);
+                context.player1.clickCard(context.p2Base);
+
+                // P2 is prompted to disclose Vigilance/Villainy to give Reinforcement Walker -6/-0
+                expect(context.player2).toHavePrompt(disclosePrompt(context.reinforcementWalker.title));
+                expect(context.player2).toHaveChooseNothingButton();
+                expect(context.player2).toBeAbleToSelectExactly([
+                    p2Condemn,
+                    context.superlaserBlast
+                ]);
+
+                // P2 reveals Condemn
+                context.player2.clickCard(p2Condemn);
+
+                // Cards are revealed to the opponent
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([p2Condemn]);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickDone();
+
+                // Attack resolves
+                expect(context.p2Base.damage).toBe(0); // Reinforcement Walker deals no damage due to -6 power
+                context.player2.claimInitiative();
+                context.moveToNextActionPhase();
+
+                // P2 plays the second Condemn on Reinforcement Walker
+                context.player2.clickCard(p2Condemn);
+                context.player2.clickCard(context.reinforcementWalker);
+
+                // P1 attacks base with Reinforcement Walker again
+                context.player1.clickCard(context.reinforcementWalker);
+                context.player1.clickCard(context.p2Base);
+
+                // P2 is not prompted to disclose Vigilance/Villainy again since Reinforcement Walker is fully blanked
+                expect(context.player2).not.toHavePrompt(disclosePrompt(context.reinforcementWalker.title));
+
+                // Attack resolves with no debuff
+                expect(context.p2Base.damage).toBe(6);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('results in full blanking when combined with Exiled From the Force', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{
+                            card: 'luke-skywalker#jedi-knight',
+                            damage: 4,
+                            upgrades: ['condemn', 'exiled-from-the-force']
+                        }]
+                    },
+                    player2: {
+                        hand: ['superlaser-blast'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 attacks base with Luke Skywalker
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickCard(context.p2Base);
+
+                // P2 is not prompted to disclose Vigilance/Villainy since Luke is fully blanked
+                expect(context.player2).not.toHavePrompt(disclosePrompt(context.lukeSkywalker.title));
+
+                // Attack resolves with no Grit and no debuff
+                expect(context.p2Base.damage).toBe(6);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('does not affect the attached unit when there is a separate full blanking effect being applied', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['superlaser-blast', 'there-is-no-escape'],
+                    },
+                    player2: {
+                        groundArena: [{
+                            card: 'reinforcement-walker',
+                            upgrades: ['condemn']
+                        }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 plays There Is No Escape on Reinforcement Walker to remove all its abilities
+                context.player1.clickCard(context.thereIsNoEscape);
+                context.player1.clickCard(context.reinforcementWalker);
+                context.player1.clickPrompt('Done');
+
+                // P2 attacks base with Reinforcement Walker
+                context.player2.clickCard(context.reinforcementWalker);
+                context.player2.clickCard(context.p1Base);
+
+                // P1 is not prompted to disclose Vigilance/Villainy since Reinforcement Walker is fully blanked
+                expect(context.player1).not.toHavePrompt(disclosePrompt(context.reinforcementWalker.title));
+
+                // Attack resolves with no debuff
+                expect(context.p1Base.damage).toBe(6);
+                expect(context.player1).toBeActivePlayer();
+            });
         });
     });
 });
