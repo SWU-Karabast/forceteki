@@ -1,5 +1,5 @@
 import { DamagePreventionSystem } from '../../gameSystems/DamagePreventionSystem';
-import type { IDamagePreventionAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IDamagePreventionAbilityProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
 import * as EnumHelpers from '../utils/EnumHelpers';
@@ -8,28 +8,27 @@ import ReplacementAbilityBase from './ReplacementAbilityBase';
 export default class DamagePreventionAbility extends ReplacementAbilityBase {
     public constructor(game: Game, card: Card, properties: IDamagePreventionAbilityProps) {
         const { onlyIfYouDoEffect, ...otherProps } = properties;
-        let triggeredAbilityProps: ITriggeredAbilityProps;
 
-        if (onlyIfYouDoEffect) {
-            triggeredAbilityProps = {
-                ...otherProps,
-                immediateEffect: onlyIfYouDoEffect,
-                when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) },
-                ifYouDo: {
-                    title: 'Replace Effect',
-                    ifYouDoCondition: (context) => context.event.card === context.source && (context.event.isUnpreventable !== true),
-                    immediateEffect: new DamagePreventionSystem(otherProps)
-                }
-            };
-        } else {
-            triggeredAbilityProps = {
-                ...otherProps,
-                when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) },
-                immediateEffect: new DamagePreventionSystem(otherProps)
-            };
-        }
+        // if (onlyIfYouDoEffect) {
+        //     triggeredAbilityProps = {
+        //         ...otherProps,
+        //         immediateEffect: onlyIfYouDoEffect,
+        //         when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) },
+        //         ifYouDo: {
+        //             title: 'Replace Effect',
+        //             ifYouDoCondition: (context) => context.event.card === context.source && (context.event.isUnpreventable !== true),
+        //             immediateEffect: new DamagePreventionSystem(otherProps)
+        //         }
+        //     };
+        // } else {
+        //     triggeredAbilityProps = {
+        //         ...otherProps,
+        //         when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) },
+        //         immediateEffect: new DamagePreventionSystem(otherProps)
+        //     };
+        // }
 
-        super(game, card, triggeredAbilityProps);
+        super(game, card, properties, new DamagePreventionSystem(otherProps), { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) });
     }
 
     private buildDamagePreventionTrigger(event, context, properties: IDamagePreventionAbilityProps): boolean {

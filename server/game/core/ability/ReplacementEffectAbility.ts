@@ -1,4 +1,4 @@
-import type { IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IReplacementEffectAbilityProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
 import { ReplacementEffectSystem } from '../../gameSystems/ReplacementEffectSystem';
@@ -6,25 +6,14 @@ import ReplacementAbilityBase from './ReplacementAbilityBase';
 
 export default class ReplacementEffectAbility extends ReplacementAbilityBase {
     public constructor(game: Game, card: Card, properties: IReplacementEffectAbilityProps) {
-        const { replaceWith: cancelProps, onlyIfYouDoEffect, ...otherProps } = properties;
-        let triggeredAbilityProps: ITriggeredAbilityProps;
+        const { replaceWith: cancelProps, ...otherProps } = properties;
 
-        if (onlyIfYouDoEffect) {
-            triggeredAbilityProps = {
-                ...otherProps,
-                immediateEffect: onlyIfYouDoEffect,
-                ifYouDo: {
-                    title: 'Replace Effect',
-                    immediateEffect: new ReplacementEffectSystem(cancelProps)
-                }
-            };
-        } else {
-            triggeredAbilityProps = {
-                ...otherProps,
-                immediateEffect: new ReplacementEffectSystem(cancelProps)
-            };
+        let whenTrigger = undefined;
+
+        if ('when' in properties) {
+            whenTrigger = properties.when;
         }
 
-        super(game, card, triggeredAbilityProps);
+        super(game, card, otherProps, new ReplacementEffectSystem(cancelProps), whenTrigger);
     }
 }
