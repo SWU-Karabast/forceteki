@@ -5,7 +5,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { EventCard } from '../../../core/card/EventCard';
 import { EventName, RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
-import { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
+import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 
 export default class LetsTalk extends EventCard {
     private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
