@@ -5,7 +5,7 @@ import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
 import { GameCardMetric, type IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
-import type { PlayerDetails, IStatsMessageFormat, Lobby } from '../../gamenode/Lobby';
+import type { PlayerDetails, IStatsMessageFormat } from '../../gamenode/Lobby';
 import { StatsSource } from '../../gamenode/Lobby';
 import { StatsSaveStatus } from '../../gamenode/Lobby';
 import type { GameServer, ISwuStatsToken } from '../../gamenode/GameServer';
@@ -105,7 +105,8 @@ export class SwuStatsHandler {
      * @param game The completed game
      * @param player1Details Details about player1
      * @param player2Details Details about player2
-     * @param lobby
+     * @param hasSwuStatsSource the hasSwuStatsSource function from the lobby
+     * @param lobbyId the id of the lobby in string format
      * @param serverObject the server object from where we gain access to the user x accessToken
      * @returns Promise that resolves to true if successful, false otherwise
      */
@@ -113,7 +114,8 @@ export class SwuStatsHandler {
         game: Game,
         player1Details: PlayerDetails,
         player2Details: PlayerDetails,
-        lobby: Lobby,
+        hasSwuStatsSource: (playerDetails: PlayerDetails) => boolean,
+        lobbyId: string,
         serverObject: GameServer,
     ): Promise<IStatsMessageFormat> {
         try {
@@ -123,7 +125,7 @@ export class SwuStatsHandler {
             // Determine winner
             const winner = this.determineWinner(game, player1, player2);
             if (winner === 0) {
-                logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUStats`, { lobbyId: lobby.id });
+                logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUStats`, { lobbyId });
                 return { type: StatsSaveStatus.Warning,
                     source: StatsSource.SwuStats,
                     message: 'draws are currently not supported by SWUStats' };
@@ -137,13 +139,14 @@ export class SwuStatsHandler {
                 player1Details,
                 player2Details,
                 winner,
-                lobby,
+                lobbyId,
+                hasSwuStatsSource,
                 serverObject
             );
             // Log the payload for debugging (excluding API key)
             const { apiKey, p1SWUStatsToken, p2SWUStatsToken, ...payloadForLogging } = payload;
             logger.info(`Sending game result to SWUStats for game ${game.id}`, {
-                lobbyId: lobby.id,
+                lobbyId,
                 gameId: game.id,
                 payload: payloadForLogging
             });
@@ -159,7 +162,7 @@ export class SwuStatsHandler {
                 const errorText = await response.text();
                 throw new Error(`SWUStats API returned error: ${response.status} - ${errorText}`);
             }
-            logger.info(`Successfully sent game result to SWUStats for game ${game.id}`, { lobbyId: lobby.id });
+            logger.info(`Successfully sent game result to SWUStats for game ${game.id}`, { lobbyId });
             return { type: StatsSaveStatus.Success,
                 source: StatsSource.SwuStats,
                 message: 'successfully sent game result to SWUStats' };
@@ -167,7 +170,7 @@ export class SwuStatsHandler {
             logger.error('Failed to send game result to SWUStats', {
                 error: { message: error.message, stack: error.stack },
                 gameId: game.id,
-                lobbyId: lobby.id
+                lobbyId: lobbyId
             });
             throw error;
         }
@@ -300,7 +303,8 @@ export class SwuStatsHandler {
         player1Details: PlayerDetails,
         player2Details: PlayerDetails,
         winner: number,
-        lobby: Lobby,
+        lobbyId: string,
+        hasSwuStatsSource: (playerDetails: PlayerDetails) => boolean,
         serverObject: GameServer
     ): Promise<SWUstatsGameResult> {
         const player1Data = this.buildPlayerData(player1, player2, player1Details.deckLink, game, winner, 1);
@@ -311,11 +315,11 @@ export class SwuStatsHandler {
         const loseHero = winner === 1 ? player2Data.leader : player1Data.leader;
         let p1SWUStatsToken = null;
         let p2SWUStatsToken = null;
-        if (lobby.hasSwuStatsSource(player1Details) && player1Details.user.isAuthenticatedUser()) {
-            p1SWUStatsToken = await this.getAccessTokenAsync(player1Details.user.getId(), serverObject, lobby.id);
+        if (hasSwuStatsSource(player1Details) && player1Details.user.isAuthenticatedUser()) {
+            p1SWUStatsToken = await this.getAccessTokenAsync(player1Details.user.getId(), serverObject, lobbyId);
         }
-        if (lobby.hasSwuStatsSource(player2Details) && player2Details.user.isAuthenticatedUser()) {
-            p2SWUStatsToken = await this.getAccessTokenAsync(player2Details.user.getId(), serverObject, lobby.id);
+        if (hasSwuStatsSource(player2Details) && player2Details.user.isAuthenticatedUser()) {
+            p2SWUStatsToken = await this.getAccessTokenAsync(player2Details.user.getId(), serverObject, lobbyId);
         }
         // Get winner's remaining health
         const winnerPlayer = winner === 1 ? player1 : player2;
@@ -356,7 +360,7 @@ export class SwuStatsHandler {
         // Handle Player swu token
         if (playerTokenData && this.isTokenValid(playerTokenData)) {
             playerAccessToken = playerTokenData.accessToken;
-            logger.info(`SWUStatsHandler: Using existing valid access token for player (${userId})`, lobbyId ? { lobbyId, userId } : { userId });
+            logger.info(`SWUStatsHandler: Using existing valid access token for player (${userId})`, { lobbyId, userId });
         } else {
             // Token is expired or doesn't exist, refresh it
             logger.info(`SWUStatsHandler: Access token expired or missing for player (${userId}), attempting to refreshing...`, lobbyId ? { lobbyId, userId } : { userId });

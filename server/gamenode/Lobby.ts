@@ -1103,7 +1103,8 @@ export class Lobby {
                 game,
                 player1User,
                 player2User,
-                this,
+                this.hasSwuStatsSource,
+                this.id,
                 this.server,
             );
             // Success return message
