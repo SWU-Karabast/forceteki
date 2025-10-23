@@ -21,6 +21,7 @@ export enum DiscloseMode {
 }
 
 export interface IDiscloseAspectsProperties extends IPlayerTargetSystemProperties {
+    activePromptTitle?: string;
     aspects: Aspect[];
     mode?: DiscloseMode;
 }
@@ -42,8 +43,15 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
             }
         }
 
-        this.generateSelectCardSystem(context, additionalProperties, generatedEvents)
-            .queueGenerateEventGameSteps(events, context);
+        for (const target of this.targets(context, additionalProperties)) {
+            if (target.isPlayer()) {
+                // Create new context with the targeted player so the RelativePlayer
+                // is resolved correctly in the SelectCardSystem
+                const newContext = context.copy({ player: target }) as TContext;
+                this.generateSelectCardSystem(newContext, additionalProperties, generatedEvents)
+                    .queueGenerateEventGameSteps(events, newContext);
+            }
+        }
     }
 
     public override defaultTargets(context: TContext): Player[] {
@@ -74,6 +82,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         switch (mode) {
             case DiscloseMode.Any:
                 return new SelectCardSystem<TContext>({
+                    activePromptTitle: properties.activePromptTitle,
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,
                     mode: TargetMode.Single,
@@ -90,6 +99,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                 });
             case DiscloseMode.Some:
                 return new SelectCardSystem<TContext>({
+                    activePromptTitle: properties.activePromptTitle,
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,
                     mode: TargetMode.BetweenVariable,
@@ -111,6 +121,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                 });
             case DiscloseMode.All:
                 return new SelectCardSystem<TContext>({
+                    activePromptTitle: properties.activePromptTitle,
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,
                     mode: TargetMode.ExactlyVariable,

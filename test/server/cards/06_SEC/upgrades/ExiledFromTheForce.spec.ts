@@ -191,5 +191,31 @@ describe('Exiled From the Force', function () {
             context.player1.clickCard(context.p2Base);
             expect(context.p2Base.damage).toBe(4);
         });
+
+        it('still has grit if there are multiple copies of Exiled From the Force attached', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{
+                        card: 'jedi-guardian',
+                        damage: 4,
+                        upgrades: [
+                            'exiled-from-the-force',
+                            'exiled-from-the-force'
+                        ]
+                    }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Jedi Guardian should have Grit from Exiled From the Force
+            expect(context.jediGuardian.getPower()).toBe(8);
+            expect(context.jediGuardian.hasSomeKeyword('grit')).toBeTrue();
+
+            context.player1.clickCard(context.jediGuardian);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(8);
+        });
     });
 });
