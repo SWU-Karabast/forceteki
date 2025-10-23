@@ -121,6 +121,7 @@ describe('Damage Prevention Effects', function() {
                 ]));
 
                 expect(context.lurkingTiePhantom).toBeInZone('discard');
+                expect(context.getChatLogs(3)).toContain('player2 uses Lurking TIE Phantom to try to prevent damage but it cannot prevent unpreventable damage');
                 expect(context.getChatLogs(3)).not.toContain('player2 uses Lurking TIE Phantom to prevent all damage to Lurking TIE Phantom');
             });
 
