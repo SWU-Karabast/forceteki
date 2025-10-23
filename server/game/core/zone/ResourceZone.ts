@@ -54,13 +54,15 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
             }
         }
 
-        for (let i = 0; i < exhaustCount; i++) {
-            if (cards[i].exhausted === false) {
-                cards[i].exhausted = true;
-                exhausted++;
-            }
-            if (exhausted === exhaustCount) {
-                break;
+        if (exhausted < exhaustCount) {
+            for (let i = 0; i < exhaustCount; i++) {
+                if (cards[i].exhausted === false) {
+                    cards[i].exhausted = true;
+                    exhausted++;
+                }
+                if (exhausted === exhaustCount) {
+                    break;
+                }
             }
         }
     }
