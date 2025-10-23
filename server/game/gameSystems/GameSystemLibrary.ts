@@ -155,6 +155,8 @@ import type { ICreateSpyProperties } from './CreateSpySystem';
 import { CreateSpySystem } from './CreateSpySystem';
 import type { IDiscloseAspectsProperties } from './DiscloseAspectsSystem';
 import { DiscloseAspectsSystem } from './DiscloseAspectsSystem';
+import type { IWinGameProperties } from './WinGameSystem';
+import { WinGameSystem } from './WinGameSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -613,6 +615,9 @@ export function entireDeckSearch<TContext extends AbilityContext = AbilityContex
 }
 export function loseGame<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILoseGameProperties, TContext>) {
     return new LoseGameSystem<TContext>(propertyFactory);
+}
+export function winGame<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IWinGameProperties, TContext> = {}) {
+    return new WinGameSystem<TContext>(propertyFactory);
 }
 export function takeControlOfResource<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ITakeControlOfResourceProperties, TContext> = {}) {
     return new TakeControlOfResourceSystem(propertyFactory);

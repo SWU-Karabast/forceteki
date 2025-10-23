@@ -328,6 +328,7 @@ export enum MetaEventName {
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
     GameLost = 'gameLost',
+    GameWon = 'gameWon',
     NoAction = 'noAction',
     Optional = 'optional',
     PayCardPrintedCost = 'payCardPrintedCost',
