@@ -21,14 +21,13 @@ describe('Let\'s Talk', function () {
 
             context.player2.passAction();
 
-            context.player1.readyResources(3); // undo waylay cost
-
             context.player1.clickCard(context.letsTalk);
             context.player1.clickCard(context.wampa);
 
             context.player1.clickCard(context.rebelPathfinder);
 
-            expect(context.player1.exhaustedResourceCount).toBe(6);
+            // reduced cost (6) + waylay (3)
+            expect(context.player1.exhaustedResourceCount).toBe(9);
         });
 
         it('Let\'s Talk selection order matches capture order', async function () {

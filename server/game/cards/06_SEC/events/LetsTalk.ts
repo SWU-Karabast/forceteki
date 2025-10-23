@@ -12,7 +12,7 @@ export default class LetsTalk extends EventCard {
 
     protected override getImplementationId() {
         return {
-            id: 'lets-talk-id',
+            id: '8619707446',
             internalName: 'lets-talk',
         };
     }
