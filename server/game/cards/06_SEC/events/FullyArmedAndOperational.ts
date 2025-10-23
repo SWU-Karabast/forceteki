@@ -30,11 +30,10 @@ export default class FullyArmedAndOperational extends EventCard {
     ) {
         registrar.setEventAbility({
             title: 'If an opponent attacked your base during their previous action this phase, play a unit from your hand. Give it Ambush for this phase.',
-            // cannotTargetFirst: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
                 condition: this.opponentDidAttackBaseLastAction(context),
                 onTrue: AbilityHelper.immediateEffects.selectCard({
-                    // activePromptTitle: 'Play a unit from your hand. Give it ambush for this phase',
+                    activePromptTitle: 'Play a unit from your hand. Give it ambush for this phase',
                     cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,

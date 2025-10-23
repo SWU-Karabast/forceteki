@@ -225,7 +225,7 @@ export class ActionWindow extends UiPrompt {
     public override complete() {
         this.game.emitEvent(EventName.OnActionTaken, null, {
             player: this.activePlayer,
-            number: this.game.actionNumber
+            number: this.actionNumber
         });
 
         // this.teardownBonusActions();
