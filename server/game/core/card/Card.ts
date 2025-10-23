@@ -784,7 +784,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     public isBlank(): boolean {
         return this.hasOngoingEffect(EffectName.Blank) ||
           this.hasOngoingEffect(EffectName.BlankExceptKeyword) ||
-          this.hasOngoingEffect(EffectName.BlankExceptFromSource);
+          this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard);
     }
 
     /**
@@ -804,7 +804,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             return true;
         } else if (this.hasOngoingEffect(EffectName.BlankExceptKeyword)) {
             // Should not overlap with other partial blanking effects
-            if (this.hasOngoingEffect(EffectName.BlankExceptFromSource)) {
+            if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
                 return true;
             }
 
@@ -813,13 +813,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
             // All excluded keywords must be the same for the card to to not be fully blanked
             return excludedKeywords.length === 0 || !excludedKeywords.every((keyword) => keyword === excludedKeywords[0]);
-        } else if (this.hasOngoingEffect(EffectName.BlankExceptFromSource)) {
+        } else if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
             // Should not overlap with other partial blanking effects
             if (this.hasOngoingEffect(EffectName.BlankExceptKeyword)) {
                 return true;
             }
 
-            const blankSources = this.getOngoingEffectSources(EffectName.BlankExceptFromSource);
+            const blankSources = this.getOngoingEffectSources(EffectName.BlankExceptFromSourceCard);
 
             Contract.assertPositiveNonZero(blankSources.length);
 
@@ -852,11 +852,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             return false;
         }
 
-        const partiallyBlankSources = this.getOngoingEffectSources(EffectName.BlankExceptFromSource);
+        const partiallyBlankSources = this.getOngoingEffectSources(EffectName.BlankExceptFromSourceCard);
 
         if (partiallyBlankSources.length === 0) {
             return true;
         }
+
+        Contract.assertArraySize(partiallyBlankSources, 1);
 
         return partiallyBlankSources[0] === source;
     }

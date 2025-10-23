@@ -586,7 +586,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
 
-            if (this.hasOngoingEffect(EffectName.BlankExceptFromSource)) {
+            if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
                 // Only return triggered abilities gained from the source of the blanking effect
                 return triggeredAbilities.filter((ability) => this.canGainAbilityFromSource(ability.gainAbilitySource)) as TriggeredAbility[];
             }

@@ -83,7 +83,7 @@ export enum EffectName {
     AssignIndirectDamageDealtByUnit = 'assignIndirectDamageDealtByUnit',
     Blank = 'blank',
     BlankExceptKeyword = 'blankExceptKeyword',
-    BlankExceptFromSource = 'blankExceptFromSource',
+    BlankExceptFromSourceCard = 'blankExceptFromSourceCard',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanAttackMultipleUnitsSimultaneously = 'canAttackMultipleUnitsSimultaneously',
