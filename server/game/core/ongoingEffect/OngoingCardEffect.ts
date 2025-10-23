@@ -52,9 +52,12 @@ export class OngoingCardEffect extends OngoingEffect<Card> {
             return target === this.context.source;
         }
 
-        if (target.isBlank() && this.impl.type === EffectName.GainAbility) {
-            // If the target is blanked, it cannot gain abilities
-            return false;
+        if (target.isBlank() && this.impl.valueWrapper.isGainAbility()) {
+            const gainSource = this.impl.valueWrapper.gainAbilitySource;
+
+            if (!target.canGainAbilityFromSource(gainSource)) {
+                return false;
+            }
         }
 
         // If the target is blanked, it cannot gain keywords unless it is in an hidden zone,

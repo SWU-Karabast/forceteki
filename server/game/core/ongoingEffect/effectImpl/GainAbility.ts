@@ -19,7 +19,7 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
     public readonly abilityType: AbilityType;
     public readonly properties: IAbilityPropsWithType;
 
-    private get gainAbilitySource() {
+    public get gainAbilitySource() {
         return this.game.getFromRef(this.state.gainAbilitySource);
     }
 
@@ -151,5 +151,9 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
         }
 
         this.state.abilityUuidByTargetCard.delete(target.uuid);
+    }
+
+    public override isGainAbility(): this is GainAbility {
+        return true;
     }
 }
