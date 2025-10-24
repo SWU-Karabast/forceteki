@@ -47,6 +47,8 @@ export interface IDeckStatsEntity {
 
 export interface UserPreferences {
     cardback?: string;
+    background?: string;
+    // TODO: playmat?: string;
     sound?: {
         muteAllSound?: boolean;
         muteCardAndButtonClickSound?: boolean;

@@ -23,6 +23,8 @@ export interface IUser {
         }>;
     }>;
     cardback?: string;
+    background?: string;
+    // TODO: playmat?: string;
 }
 
 export function getUserWithDefaultsSet(user?: Partial<IUser> & Pick<IUser, 'username' | 'id'>): IUser | undefined {

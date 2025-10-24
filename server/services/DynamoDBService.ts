@@ -273,7 +273,7 @@ class DynamoDBService {
             pk: `USER#${userData.id}`,
             sk: 'PROFILE',
             ...userData,
-            preferences: userData.preferences || { cardback: null },
+            preferences: userData.preferences || { cardback: 'Default', background: 'Default' },
         };
         return this.putItemAsync(item);
     }

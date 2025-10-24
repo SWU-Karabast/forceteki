@@ -25,7 +25,9 @@ const getDefaultSoundPreferences = () => ({
 });
 
 export const getDefaultPreferences = (): UserPreferences => ({
-    cardback: null,
+    cardback: 'Default',
+    background: 'Default',
+    // playmat: 'none',
     sound: getDefaultSoundPreferences()
 });
 
