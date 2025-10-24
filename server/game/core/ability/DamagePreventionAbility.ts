@@ -9,7 +9,8 @@ export default class DamagePreventionAbility extends ReplacementAbilityBase {
     public constructor(game: Game, card: Card, properties: IDamagePreventionAbilityProps) {
         const { onlyIfYouDoEffect, ...otherProps } = properties;
 
-        super(game, card, properties, new DamagePreventionSystem(otherProps), { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) });
+        super(game, card, properties, new DamagePreventionSystem(otherProps),
+            { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) });
     }
 
     private buildDamagePreventionTrigger(event, context, properties: IDamagePreventionAbilityProps): boolean {

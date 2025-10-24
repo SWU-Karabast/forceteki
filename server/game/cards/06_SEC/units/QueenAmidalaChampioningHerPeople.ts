@@ -22,7 +22,8 @@ export default class QueenAmidalaChampioningHerPeople extends NonLeaderUnitCard 
             preventionType: DamagePreventionType.All,
             optional: true,
             onlyIfYouDoEffect: AbilityHelper.immediateEffects.selectCard(({
-                cardCondition: (card, context) => card.isUnit() && card.controller === context.player && card !== context.source && Array.from(context.source.traits).some((trait) => card.hasSomeTrait(trait)),
+                cardCondition: (card, context) => card.isUnit() && card.controller === context.player &&
+                  card !== context.source && Array.from(context.source.traits).some((trait) => card.hasSomeTrait(trait)),
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             }))
         });
