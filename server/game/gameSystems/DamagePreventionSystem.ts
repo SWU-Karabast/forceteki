@@ -13,6 +13,7 @@ export interface IDamagePreventionSystemProperties<TContext extends TriggeredAbi
     preventionType: DamagePreventionType;
     preventionAmount?: number;
     replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
+    onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext>;
 }
 
 export class DamagePreventionSystem<
@@ -62,6 +63,10 @@ export class DamagePreventionSystem<
 
     protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<TProperties> = {}): GameSystem<TContext> {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        if (properties.onlyIfYouDoEffect) {
+            return properties.onlyIfYouDoEffect as GameSystem<TContext>;
+        }
 
         switch (properties.preventionType) {
             case DamagePreventionType.All:
