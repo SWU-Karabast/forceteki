@@ -34,7 +34,6 @@ import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/
 import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
-import type { BlankNamedCardsForPlayer } from '../core/ongoingEffect/effectImpl/BlankNamedCard';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -59,7 +58,7 @@ export = {
     // attachmentTraitRestriction: (traits) => OngoingEffectBuilder.card.static(EffectName.AttachmentTraitRestriction, traits),
     // attachmentUniqueRestriction: () => OngoingEffectBuilder.card.static(EffectName.AttachmentUniqueRestriction),
     blankEventCard: () => OngoingEffectBuilder.card.static(EffectName.Blank),
-    blankNamedCardsForPlayer: (effectImpl: BlankNamedCardsForPlayer) => OngoingEffectBuilder.player.static(EffectName.BlankNamedCardsForPlayer, effectImpl),
+    blankNamedCardsForPlayer: () => OngoingEffectBuilder.allCardsForPlayer.static(EffectName.Blank),
     // calculatePrintedMilitarySkill: (func) => OngoingEffectBuilder.card.static(EffectName.CalculatePrintedMilitarySkill, func),
 
     // canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>

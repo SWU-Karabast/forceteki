@@ -12,6 +12,7 @@ import type { IOngoingCardEffectGenerator, IOngoingCardEffectProps } from '../In
 
 export type ICardLastingEffectProperties = DistributiveOmit<ILastingEffectPropertiesBase, 'target' | 'effect'> & Pick<ICardTargetSystemProperties, 'target'> & {
     effect: IOngoingCardEffectGenerator | IOngoingCardEffectGenerator[];
+    targetNewTokensCondition?: (card: Card, context?: AbilityContext) => boolean;
 };
 
 /**
@@ -98,9 +99,30 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     private getEffectFactoriesAndProperties(target: Card[], context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): { effectFactories: IOngoingCardEffectGenerator[]; effectProperties: IOngoingCardEffectProps[] };
     private getEffectFactoriesAndProperties(target: Card | Card[], context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): { effectFactories: IOngoingCardEffectGenerator[]; effectProperties: IOngoingCardEffectProps | IOngoingCardEffectProps[] };
     private getEffectFactoriesAndProperties(target: Card | Card[], context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): { effectFactories: IOngoingCardEffectGenerator[]; effectProperties: IOngoingCardEffectProps | IOngoingCardEffectProps[] } {
-        const { effect, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { effect, targetNewTokensCondition, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const effectProperties: (card: Card) => IOngoingCardEffectProps = (card) => ({ matchTarget: card, sourceZoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties });
+        let matchTarget: Card | Card[] | ((card: Card, context: AbilityContext) => boolean);
+
+        if (targetNewTokensCondition) {
+            matchTarget = (card: Card, abilityContext: AbilityContext) => {
+                if (card.isToken() && targetNewTokensCondition(card, abilityContext)) {
+                    return true;
+                }
+
+                return card === target;
+            };
+        } else {
+            matchTarget = target;
+        }
+
+        const effectProperties: (card: Card) => IOngoingCardEffectProps =
+            (card) => ({
+                matchTarget: card,
+                sourceZoneFilter: WildcardZoneName.Any,
+                isLastingEffect: true,
+                ability: context.ability,
+                ...otherProperties
+            });
 
         if (Array.isArray(target)) {
             return { effectFactories: Helpers.asArray(effect), effectProperties: target.map((card) => effectProperties(card)) };

@@ -5,22 +5,28 @@ import type { Card } from '../card/Card';
 import type { IOngoingPlayerEffectProps } from '../../Interfaces';
 import type { Player } from '../Player';
 import { RelativePlayer, WildcardRelativePlayer } from '../Constants';
+import type { AbilityContext } from '../ability/AbilityContext';
 
 export class OngoingPlayerEffect extends OngoingEffect<Player> {
     public constructor(game: Game, source: Card, properties: IOngoingPlayerEffectProps, effect: OngoingEffectImpl<any>) {
-        super(
-            game,
-            source,
-            {
-                matchTarget: (player) =>
-                    (properties.targetController === RelativePlayer.Opponent ? source.controller.opponent === player
-                        : properties.targetController === RelativePlayer.Self ? source.controller === player
-                            : properties.targetController === WildcardRelativePlayer.Any ? true
-                                : source.controller === player),
-                ...properties
-            },
-            effect
-        );
+        let matchTarget: (target: Player, context: AbilityContext) => boolean;
+
+        switch (properties.targetController) {
+            case RelativePlayer.Opponent:
+                matchTarget = (player) => source.controller.opponent === player;
+                break;
+            case WildcardRelativePlayer.Any:
+                matchTarget = () => true;
+                break;
+            case RelativePlayer.Self:
+            default:
+                matchTarget = (player) => source.controller === player;
+                break;
+        }
+
+        const propsForSuper = { matchTarget, ...properties };
+
+        super(game, source, propsForSuper, effect);
     }
 
     public override isValidTarget(target: Player) {

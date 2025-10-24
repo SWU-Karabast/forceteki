@@ -19,9 +19,9 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
             )) as ICardDataJson
         );
 
-        const allCardTitles = await (await LocalFolderCardDataGetter.readFileAsync(
+        const allNonLeaderCardTitles = await (await LocalFolderCardDataGetter.readFileAsync(
             folderRoot,
-            CardDataGetter.allCardTitlesFileName)
+            CardDataGetter.allNonLeaderCardTitlesFileName)
         ) as string[];
 
         const playableCardTitles = await (await LocalFolderCardDataGetter.readFileAsync(
@@ -34,7 +34,7 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
 
         const leaderNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.leaderNamesFileName)
             .then((data) => data as { name: string; id: string; subtitle?: string }[]);
-        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, allCardTitles, playableCardTitles, setCodeMap, leaderNames);
+        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames);
     }
 
     protected static validateFolderContents(directory: string, isDevelopment: boolean) {
@@ -73,12 +73,12 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         folderRoot: string,
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,
-        allCardTitles: string[],
+        allNonLeaderCardTitles: string[],
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
         leaderNames: { name: string; id: string; subtitle?: string }[],
     ) {
-        super(cardMapJson, tokenData, allCardTitles, playableCardTitles, setCodeMap, leaderNames);
+        super(cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames);
 
         this.folderRoot = folderRoot;
     }

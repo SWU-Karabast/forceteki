@@ -16,7 +16,7 @@ export default class GalenErsoYoullNeverWin extends NonLeaderUnitCard {
             title: 'Name a card',
             targetResolver: {
                 mode: TargetMode.DropdownList,
-                options: this.game.allCardTitles,
+                options: this.game.allNonLeaderCardTitles,
             },
             then: (thenContext) => ({
                 title: `While this is in play, cards named ${thenContext.ability.card.title} cannot be played`,
