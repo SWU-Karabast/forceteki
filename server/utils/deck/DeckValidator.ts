@@ -108,9 +108,11 @@ export class DeckValidator {
         return unimplementedCards;
     }
 
-    public getMinimumSideboardedDeckSize(baseId: string): number {
+    public getMinimumSideboardedDeckSize(baseId: string, allow30CardsInMainBoard: boolean): number {
+        const startingDeckSizeValue = allow30CardsInMainBoard ? 30 : 50;
+
         const baseData = this.getCardCheckData(baseId);
-        return 50 + (baseData.minDeckSizeModifier ?? 0);
+        return startingDeckSizeValue + (baseData.minDeckSizeModifier ?? 0);
     }
 
     // update this function if anything affects the sideboard count
@@ -153,16 +155,16 @@ export class DeckValidator {
     }
 
     // Validate IDecklistInternal
-    public validateInternalDeck(deck: IDecklistInternal, format: SwuGameFormat): IDeckValidationFailures {
+    public validateInternalDeck(deck: IDecklistInternal, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
         // Basic structure check (internal decks have mandatory leader, base, and deck)
         if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
             return { [DeckValidationFailureReason.InvalidDeckData]: true };
         }
-        return this.validateCommonDeck(deck, format);
+        return this.validateCommonDeck(deck, format, allow30CardsInMainBoard);
     }
 
     // Validate the ISwuDbDeckList
-    public validateSwuDbDeck(deck: ISwuDbDecklist, format: SwuGameFormat): IDeckValidationFailures {
+    public validateSwuDbDeck(deck: ISwuDbDecklist, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
         // Basic structure check (SWU‑DB decks use optional properties, so we check them explicitly)
         if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
             return { [DeckValidationFailureReason.InvalidDeckData]: true };
@@ -171,11 +173,13 @@ export class DeckValidator {
         if (deck.secondleader) {
             return { [DeckValidationFailureReason.TooManyLeaders]: true };
         }
-        return this.validateCommonDeck(deck, format);
+        return this.validateCommonDeck(deck, format, allow30CardsInMainBoard);
     }
 
-    private validateCommonDeck(deck: IDecklistInternal | ISwuDbDecklist, format: SwuGameFormat): IDeckValidationFailures {
+    private validateCommonDeck(deck: IDecklistInternal | ISwuDbDecklist, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
         try {
+            Contract.assertFalse(format !== SwuGameFormat.Open && allow30CardsInMainBoard, '30-card setting can only be used in Open format');
+
             const failures: IDeckValidationFailures = {
                 [DeckValidationFailureReason.IllegalInFormat]: [],
                 [DeckValidationFailureReason.TooManyCopiesOfCard]: [],
@@ -187,7 +191,7 @@ export class DeckValidator {
             const deckCards: ISwuDbCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
 
             const baseData = this.getCardCheckData(deck.base.id);
-            const minBoardedSize = this.getMinimumSideboardedDeckSize(deck.base.id);
+            const minBoardedSize = this.getMinimumSideboardedDeckSize(deck.base.id, allow30CardsInMainBoard);
             const decklistCardsCount = this.getTotalCardCount(deckCards);
             const boardedCardsCount = this.getTotalCardCount(deck.deck);
             const sideboardCardsCount = deck.sideboard ? this.getTotalCardCount(deck.sideboard) : 0;
@@ -233,7 +237,7 @@ export class DeckValidator {
                     failures[DeckValidationFailureReason.InvalidDeckData] = true;
                 }
 
-                this.checkMaxCopiesOfCard(card, cardData, format, failures);
+                this.checkMaxCopiesOfCard(card, cardData, format, failures, allow30CardsInMainBoard);
             }
 
             // Remove any failure entries that are empty arrays.
@@ -295,7 +299,18 @@ export class DeckValidator {
         }
     }
 
-    protected checkMaxCopiesOfCard(card: ISwuDbCardEntry, cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
+    protected checkMaxCopiesOfCard(
+        card: ISwuDbCardEntry,
+        cardData: ICardCheckData,
+        format: SwuGameFormat,
+        failures: IDeckValidationFailures,
+        allow30CardsInMainBoard: boolean
+    ) {
+        // bit of a hack to allow limited formats to work using this setting for now
+        if (allow30CardsInMainBoard) {
+            return;
+        }
+
         const maxCount = cardData.maxCopiesOfCardOverride ?? 3;
 
         if (card.count > maxCount) {
