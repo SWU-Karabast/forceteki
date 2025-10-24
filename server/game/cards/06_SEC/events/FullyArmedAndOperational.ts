@@ -54,7 +54,7 @@ export default class FullyArmedAndOperational extends EventCard {
     private opponentDidAttackBaseLastAction(context: AbilityContext): boolean {
         const opponentsLastActionNumber = this.actionsThisPhaseWatcher.previousActionNumberForPlayer(context.player.opponent);
 
-        if (opponentsLastActionNumber === null) {
+        if (opponentsLastActionNumber == null) {
             return false;
         }
 

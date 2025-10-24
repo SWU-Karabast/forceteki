@@ -51,7 +51,7 @@ export class ActionsThisPhaseWatcher extends StateWatcher<ActionEntry> {
             update: (currentState: ActionEntry[], event) =>
                 currentState.concat({
                     player: event.player.getRef(),
-                    actionNumber: event.number
+                    actionNumber: event.actionNumber
                 })
         });
     }
