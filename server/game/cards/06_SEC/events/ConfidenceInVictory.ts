@@ -23,7 +23,9 @@ export default class ConfidenceInVictory extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addPlayRestrictionAbility({
             title: 'Play only as your first action in the action phase',
-            restrictedActionCondition: (context) => this.actionsThisPhaseWatcher.playerHasTakenAction(context.player)
+            restrictedActionCondition: (context, card) =>
+                this.actionsThisPhaseWatcher.playerHasTakenAction(context.player) ||
+                context.source !== card // Ensures it cannot be played by other card effects
         });
 
         registrar.setEventAbility({
