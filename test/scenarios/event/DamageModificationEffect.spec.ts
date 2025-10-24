@@ -1,4 +1,4 @@
-describe('Damage Prevention Effects', function() {
+describe('Damage Modification Effects', function() {
     integration(function(contextRef) {
         describe('A unit that ignores all damage from enemy card abilities', function() {
             it('cannot be damaged by opponent\'s event', async function () {

@@ -111,8 +111,8 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
                 gainedAbilityUuid = target.addGainedReplacementEffectAbility(properties);
                 break;
 
-            case AbilityType.DamagePrevention:
-                gainedAbilityUuid = target.addGainedDamagePreventionAbility(properties);
+            case AbilityType.DamageModification:
+                gainedAbilityUuid = target.addGainedDamageModificationAbility(properties);
                 break;
 
             default:
@@ -142,7 +142,7 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
                 target.removeGainedReplacementEffectAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
                 break;
 
-            case AbilityType.DamagePrevention:
+            case AbilityType.DamageModification:
                 target.removeGainedDamagePreventionAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
                 break;
 

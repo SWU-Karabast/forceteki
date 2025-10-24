@@ -1,6 +1,6 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { DamagePreventionType, RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { DamageModificationType, RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { IAbilityHelper } from '../../../AbilityHelper';
@@ -34,10 +34,10 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
             }),
         });
 
-        registrar.addDamagePreventionAbility({
+        registrar.addDamageModificationAbility({
             title: 'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage',
-            preventionType: DamagePreventionType.All,
-            shouldCardHaveDamagePrevention: (card, context) => this.isDamageFromFriendlyCreatureUnit(card, context),
+            modificationType: DamageModificationType.All,
+            shouldCardHaveDamageModification: (card, context) => this.isDamageFromFriendlyCreatureUnit(card, context),
         });
     }
 

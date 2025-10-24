@@ -1,5 +1,5 @@
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-import { DamagePreventionType, DamageType } from '../core/Constants';
+import { DamageModificationType, DamageType } from '../core/Constants';
 import { MetaEventName } from '../core/Constants';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
@@ -9,16 +9,16 @@ import { DamageSystem } from './DamageSystem';
 import type { FormatMessage } from '../core/chat/GameChat';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 
-export interface IDamagePreventionSystemProperties<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends IReplacementEffectSystemProperties<TContext> {
-    preventionType: DamagePreventionType;
+export interface IDamageModificationSystemProperties<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends IReplacementEffectSystemProperties<TContext> {
+    modificationType: DamageModificationType;
     preventionAmount?: number;
     replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
     onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext>;
 }
 
-export class DamagePreventionSystem<
+export class DamageModificationSystem<
     TContext extends TriggeredAbilityContext = TriggeredAbilityContext,
-    TProperties extends IDamagePreventionSystemProperties<TContext> = IDamagePreventionSystemProperties<TContext>
+    TProperties extends IDamageModificationSystemProperties<TContext> = IDamageModificationSystemProperties<TContext>
 > extends ReplacementEffectSystem<TContext, TProperties> {
     public override readonly eventName = MetaEventName.ReplacementEffect;
 
@@ -35,18 +35,18 @@ export class DamagePreventionSystem<
                 };
             }
 
-            switch (properties.preventionType) {
-                case DamagePreventionType.All:
+            switch (properties.modificationType) {
+                case DamageModificationType.All:
                     return {
                         format: 'prevent all damage to {0}',
                         args: [this.getTargetMessage(context.source, context)],
                     };
-                case DamagePreventionType.Reduce:
+                case DamageModificationType.Reduce:
                     return {
                         format: 'prevent {0} damage to {1}',
                         args: [String(properties.preventionAmount), this.getTargetMessage(context.event.card, context)],
                     };
-                case DamagePreventionType.Replace:
+                case DamageModificationType.Replace:
                     const replaceWith = properties.replaceWithEffect;
                     const replaceMessage = replaceWith.getEffectMessage(context);
                     return {
@@ -54,7 +54,7 @@ export class DamagePreventionSystem<
                         args: [replaceMessage, this.getTargetMessage(context.event.card, context)],
                     };
                 default:
-                    Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
+                    Contract.fail(`Invalid modificationType ${properties.modificationType} for DamageModificationSystem`);
             }
         };
 
@@ -68,11 +68,11 @@ export class DamagePreventionSystem<
             return properties.onlyIfYouDoEffect as GameSystem<TContext>;
         }
 
-        switch (properties.preventionType) {
-            case DamagePreventionType.All:
+        switch (properties.modificationType) {
+            case DamageModificationType.All:
                 return null;
-            case DamagePreventionType.Reduce:
-                Contract.assertPositiveNonZero(properties.preventionAmount, `preventionAmount must be a positive non-zero number for DamagePreventionType.Reduce. Found: ${properties.preventionAmount}`);
+            case DamageModificationType.Reduce:
+                Contract.assertPositiveNonZero(properties.preventionAmount, `preventionAmount must be a positive non-zero number for DamageModificationType.Reduce. Found: ${properties.preventionAmount}`);
                 return new DamageSystem((context) => ({
                     target: context.event.card,
                     amount: Math.max(context.event.amount - properties.preventionAmount, 0),
@@ -80,13 +80,13 @@ export class DamagePreventionSystem<
                     type: context.event.type,
                     sourceAttack: context.event.damageSource.attack,
                 }));
-            case DamagePreventionType.Replace:
+            case DamageModificationType.Replace:
                 const replaceWith = properties.replaceWithEffect;
-                Contract.assertNotNullLike(replaceWith, 'replaceWith must be defined for DamagePreventionType.Replace');
+                Contract.assertNotNullLike(replaceWith, 'replaceWith must be defined for DamageModificationType.Replace');
 
                 return replaceWith as GameSystem<TContext>;
             default:
-                Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
+                Contract.fail(`Invalid modificationType ${properties.modificationType} for DamageModificationSystem`);
         }
     }
 

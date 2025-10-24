@@ -2,7 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { DamageSourceType, DefeatSourceType } from '../../../IDamageOrDefeatSource';
-import { DamagePreventionType, RelativePlayer } from '../../../core/Constants';
+import { DamageModificationType, RelativePlayer } from '../../../core/Constants';
 
 export default class LurkingTIEPhantom extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -26,9 +26,9 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
             }
         });
 
-        registrar.addDamagePreventionAbility({
+        registrar.addDamageModificationAbility({
             title: 'Prevent all damage that would be dealt to it by enemy card abilities',
-            preventionType: DamagePreventionType.All,
+            modificationType: DamageModificationType.All,
             onlyFromPlayer: RelativePlayer.Opponent,
             damageOfType: DamageSourceType.Ability
         });

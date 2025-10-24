@@ -2,7 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import {
     AbilityType,
-    DamagePreventionType,
+    DamageModificationType,
     KeywordName,
     RelativePlayer,
     Trait,
@@ -38,9 +38,9 @@ export default class ShienFlurry extends EventCard {
                                 AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush),
                                 AbilityHelper.ongoingEffects.gainAbility({
                                     title: 'The next time it would be dealt damage this phase prevent 2 of that damage',
-                                    type: AbilityType.DamagePrevention,
-                                    preventionType: DamagePreventionType.Reduce,
-                                    preventionAmount: 2,
+                                    type: AbilityType.DamageModification,
+                                    modificationType: DamageModificationType.Reduce,
+                                    amount: 2,
                                     limit: AbilityHelper.limit.perGame(1)
                                 })
                             ]
