@@ -33,7 +33,7 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
         this.name = ZoneName.Resource;
     }
 
-    public rearrangeResourceExhaustState(context: AbilityContext, priorityCondition: (resource: IPlayableCard) => boolean = (card) => false): void {
+    public rearrangeResourceExhaustState(context: AbilityContext, priorityCondition: (resource: IPlayableCard) => boolean = () => false): void {
         const exhaustCount = this.exhaustedResourceCount;
         // Cards is an accessor and a copy of the array.
         const cards = this._cards.concat();
