@@ -481,7 +481,7 @@ export enum AbilityRestriction {
 export enum DamagePreventionType {
     All = 'all',
     Reduce = 'reduce',
-    Replace = 'replace',
+    Replace = 'replace'
 }
 
 export enum StateWatcherName {
