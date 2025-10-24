@@ -179,6 +179,7 @@ function populateMissingData(attributes, id) {
         case '6015383018': // Sneaking Suspicion
         case '8796918121': // The Wrong Ride
         case '7248761207': // FN Trooper Corps
+        case '5736131351': // Fully Armed and Operational
             attributes.keywords = {
                 data: [{
                     attributes: {

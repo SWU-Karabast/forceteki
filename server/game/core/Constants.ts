@@ -485,6 +485,7 @@ export enum DamagePreventionType {
 }
 
 export enum StateWatcherName {
+    ActionsThisPhase = 'actionsThisPhase',
     AttacksThisPhase = 'attacksThisPhase',
     CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
     CardsDrawnThisPhase = 'cardsDrawnThisPhase',

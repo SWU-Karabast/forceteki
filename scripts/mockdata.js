@@ -2277,20 +2277,6 @@ const mockCards = [
         internalName: 'saw-gerreras-uwing#breaking-the-rules',
     }),
     buildMockCard({
-        title: 'Fully Armed and Operational',
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'villainy'],
-        types: ['event'],
-        traits: ['trick'],
-        setId: {
-            set: 'SEC',
-            number: 194
-        },
-        cost: 1,
-        unique: false,
-        internalName: 'fully-armed-and-operational',
-    }),
-    buildMockCard({
         title: 'Nemik\'s Manifesto',
         hasNonKeywordAbility: true,
         aspects: ['aggression', 'heroism'],
