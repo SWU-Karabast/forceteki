@@ -211,6 +211,157 @@ describe('Queen Amidala, Championing Her People', function() {
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.queenAmidalaChampioningHerPeople).toBeInZone('discard');
             });
+
+            it('should prevent damage from friendly source if the player chooses to defeat a friendly ground unit that shares a trait', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['open-fire'],
+                        groundArena: ['royal-guard-attache', 'queen-amidala#championing-her-people']
+                    },
+                    player2: {
+                        hand: ['torpedo-barrage'],
+                        groundArena: ['wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.openFire);
+                context.player1.clickCard(context.queenAmidalaChampioningHerPeople);
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.royalGuardAttache]);
+                context.player1.clickCard(context.royalGuardAttache);
+
+                expect(context.royalGuardAttache).toBeInZone('discard');
+                expect(context.queenAmidalaChampioningHerPeople.damage).toBe(0);
+            });
+
+            it('should prevent damage just to Amidala from Maul if the player chooses to defeat a friendly ground unit that shares a trait', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['royal-guard-attache', 'queen-amidala#championing-her-people', 'consular-security-force']
+                    },
+                    player2: {
+                        hand: ['open-fire', 'torpedo-barrage'],
+                        groundArena: ['wampa', 'darth-maul#revenge-at-last'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.darthMaulRevengeAtLast);
+                context.player2.clickCard(context.queenAmidalaChampioningHerPeople);
+                context.player2.clickCard(context.consularSecurityForce);
+                context.player2.clickPrompt('Done');
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.royalGuardAttache]);
+                context.player1.clickCard(context.royalGuardAttache);
+
+                expect(context.darthMaulRevengeAtLast).toBeInZone('discard');
+                expect(context.royalGuardAttache).toBeInZone('discard');
+                expect(context.queenAmidalaChampioningHerPeople.damage).toBe(0);
+                expect(context.consularSecurityForce.damage).toBe(5);
+            });
+
+            it('should act correctly with when defeated triggers and when combat damage dealt ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['open-fire'],
+                        groundArena: [{ card: 'queen-amidala#championing-her-people', upgrades: ['perilous-position'] }],
+                        spaceArena: ['jtype-nubian-starship']
+                    },
+                    player2: {
+                        groundArena: ['wampa', { card: 'phaseiii-dark-trooper', upgrades: ['electrostaff'] }],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.phaseiiiDarkTrooper);
+                context.player2.clickCard(context.queenAmidalaChampioningHerPeople);
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.jtypeNubianStarship]);
+                context.player1.clickCard(context.jtypeNubianStarship);
+
+                context.player2.clickPrompt('Opponent');
+
+                context.player1.clickCard(context.openFire);
+
+                expect(context.phaseiiiDarkTrooper.damage).toBe(3);
+                expect(context.phaseiiiDarkTrooper).toHaveExactUpgradeNames(['electrostaff', 'experience']);
+                expect(context.jtypeNubianStarship).toBeInZone('discard');
+                expect(context.queenAmidalaChampioningHerPeople.damage).toBe(0);
+            });
+
+            it('should act correctly with when defeated triggers and other when defeated triggers', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['open-fire', 'power-of-the-dark-side'],
+                        groundArena: ['queen-amidala#championing-her-people'],
+                        spaceArena: ['jtype-nubian-starship']
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'ruthless-raider', upgrades: ['grim-valor'] }],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.powerOfTheDarkSide);
+                context.player2.clickCard(context.ruthlessRaider);
+                context.player2.clickPrompt('Deal 2 damage to an enemy base and 2 damage to an enemy unit');
+                context.player2.clickCard(context.queenAmidalaChampioningHerPeople);
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.jtypeNubianStarship]);
+                context.player1.clickCard(context.jtypeNubianStarship);
+
+                context.player1.clickCard(context.openFire);
+
+                context.player2.clickCard(context.queenAmidalaChampioningHerPeople);
+
+                expect(context.jtypeNubianStarship).toBeInZone('discard');
+                expect(context.ruthlessRaider).toBeInZone('discard');
+                expect(context.queenAmidalaChampioningHerPeople.damage).toBe(0);
+                expect(context.queenAmidalaChampioningHerPeople.exhausted).toBe(true);
+            });
+
+            it('should act correctly with when defeated triggers and other when defeated triggers', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['open-fire', 'power-of-the-dark-side'],
+                        groundArena: ['queen-amidala#championing-her-people', 'jar-jar-binks#mesa-propose'],
+                    },
+                    player2: {
+                        hand: ['saesee-tiin#courageous-warrior'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.saeseeTiinCourageousWarrior);
+                context.player2.clickCard(context.queenAmidalaChampioningHerPeople);
+                context.player2.clickCard(context.jarJarBinksMesaPropose);
+                context.player2.clickPrompt('Done');
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.jarJarBinksMesaPropose]);
+                context.player1.clickCard(context.jarJarBinksMesaPropose);
+
+                expect(context.jarJarBinksMesaPropose).toBeInZone('discard');
+                expect(context.queenAmidalaChampioningHerPeople.damage).toBe(0);
+            });
         });
     });
 });
