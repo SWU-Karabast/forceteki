@@ -222,7 +222,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
         const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
         if (!then.thenCondition || then.thenCondition(context)) {
-            return this.buildSubAbilityStepContext(then, canBeTriggeredBy);
+            return this.buildSubAbilityStepContext(then, canBeTriggeredBy, context);
         }
 
         return null;
@@ -234,7 +234,8 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
             if (this.properties.ifYouDoNot) {
                 return this.buildSubAbilityStepContext(
                     this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context),
-                    context.player
+                    context.player,
+                    context
                 );
             }
 
@@ -250,7 +251,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
             const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
 
             if (conditionalEvent.isResolvedOrReplacementResolved && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
-                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy, context);
             }
         }
 
@@ -259,7 +260,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
             const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
 
             if (!conditionalEvent.isResolvedOrReplacementResolved) {
-                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy, context);
             }
         }
 
@@ -273,7 +274,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         return { ...properties, triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
     }
 
-    private buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player) {
+    protected buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player, parentContex: AbilityContext) {
         return this.buildSubAbilityStep(subAbilityStepProps).createContext(canBeTriggeredBy);
     }
 
