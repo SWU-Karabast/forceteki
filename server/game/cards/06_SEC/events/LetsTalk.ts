@@ -1,4 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import * as Contract from '../../../core/utils/Contract';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { ZoneName } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
@@ -36,7 +39,8 @@ export default class LetsTalk extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: WildcardZoneName.AnyArena,
                 controller: RelativePlayer.Self,
-                numCardsFunc: (context) => context.player.getArenaUnits().length,
+                numCardsFunc: (context) => this.countValidCaptureTargets(context),
+                multiSelectCardCondition: (card, selectedCards, context) => this.countOpponentNonLeaderUnitsInPlay(context, card.zoneName) > this.countSelectedCardsInZone(selectedCards, card.zoneName),
             },
             then: (chosenUnitsContext) => ({
                 title: 'Each friendly unit captures an enemy non-leader unit in the same arena',
@@ -56,6 +60,37 @@ export default class LetsTalk extends EventCard {
             })
         });
     }
+
+    private countValidCaptureTargets(context: AbilityContext): number {
+        const minSpaceUnits = Math.min(
+            context.player.getArenaUnits({ arena: ZoneName.SpaceArena }).length,
+            context.player.opponent.getArenaUnits({
+                arena: ZoneName.SpaceArena,
+                condition: (card) => card.isNonLeaderUnit()
+            }).length
+        );
+        const minGroundUnits = Math.min(
+            context.player.getArenaUnits({ arena: ZoneName.GroundArena }).length,
+            context.player.opponent.getArenaUnits({
+                arena: ZoneName.GroundArena,
+                condition: (card) => card.isNonLeaderUnit()
+            }).length
+        );
+        return minSpaceUnits + minGroundUnits;
+    }
+
+    private countOpponentNonLeaderUnitsInPlay(context: AbilityContext, zoneName: ZoneName | WildcardZoneName.AnyArena): number {
+        Contract.assertTrue(EnumHelpers.isArena(zoneName), `Zone ${zoneName} must be an arena`);
+        return context.player.opponent.getArenaUnits({
+            arena: zoneName,
+            condition: (card) => card.isNonLeaderUnit()
+        }).length;
+    }
+
+    private countSelectedCardsInZone(selectedCards: Card[], zoneName: ZoneName): number {
+        return selectedCards.filter((selectedCard) => selectedCard.zoneName === zoneName).length;
+    }
+
 
     private capturedCardsFromContext(context: AbilityContext): Set<Card> {
         return new Set(context.events.filter((event) => event.name === EventName.OnCardCaptured).map((event) => event.card));

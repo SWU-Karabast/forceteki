@@ -113,20 +113,20 @@ describe('Let\'s Talk', function () {
             context.player1.clickCard(context.letsTalk);
 
             context.player1.clickCard(context.awing);
-            context.player1.clickCard(context.xwing);
+            // unable to select xwing as captor because only 1 valid space capture target
+            expect(context.player1).toBeAbleToSelectExactly([context.awing, context.wampa, context.battlefieldMarine, context.tauntaun]);
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.battlefieldMarine);
-            context.player1.clickCard(context.tauntaun);
+            // unable to select tauntaun as captor because only 2 valid ground capture targets (leader is excluded)
+            expect(context.player1).toBeAbleToSelectExactly([context.awing, context.wampa, context.battlefieldMarine]);
             context.player1.clickDone();
 
             expect(context.player1).toBeAbleToSelectExactly(context.republicYwing);
             context.player1.clickCard(context.republicYwing);
 
-            // x-wing selection is skipped due to no valid space units left to target
             expect(context.player1).toBeAbleToSelectExactly([context.atst, context.rebelPathfinder]);
             context.player1.clickCard(context.atst);
             context.player1.clickCard(context.rebelPathfinder);
-            // tauntaun selection is skipped due to only remaining unselected unit being leader
 
             expect(context.atst).toBeCapturedBy(context.wampa);
             expect(context.rebelPathfinder).toBeCapturedBy(context.battlefieldMarine);
