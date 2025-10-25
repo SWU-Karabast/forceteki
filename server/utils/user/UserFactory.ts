@@ -25,9 +25,9 @@ const getDefaultSoundPreferences = () => ({
 });
 
 const getDefaultCosmeticsPreferences = () => ({
-    cardback: undefined,
-    background: undefined,
-    playmat: undefined,
+    cardback: null,
+    background: null,
+    playmat: null,
     disablePlaymats: false,
 });
 

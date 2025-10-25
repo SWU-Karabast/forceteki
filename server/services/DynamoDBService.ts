@@ -83,11 +83,7 @@ class DynamoDBService {
         }
 
         const dbClient = new DynamoDBClient(dbClientConfig);
-        this.client = DynamoDBDocumentClient.from(dbClient, {
-            marshallOptions: {
-                removeUndefinedValues: true
-            }
-        });
+        this.client = DynamoDBDocumentClient.from(dbClient);
     }
 
     private async validateAndHandleAsync<T>(
@@ -277,7 +273,7 @@ class DynamoDBService {
             pk: `USER#${userData.id}`,
             sk: 'PROFILE',
             ...userData,
-            preferences: userData.preferences || { cardback: 'Default', background: 'Default' },
+            preferences: userData.preferences || getDefaultPreferences(),
         };
         return this.putItemAsync(item);
     }
