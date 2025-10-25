@@ -811,14 +811,12 @@ export class Lobby {
             getUserWithDefaultsSet({
                 id: user.id,
                 username: user.username,
-                cardback: user.socket.user.getPreferences()?.cardback,
-                background: user.socket.user.getPreferences()?.background,
-                // playmat: user.socket.user.getPreferences()?.playmat,
                 settings: {
                     optionSettings: {
                         autoSingleTarget: false,
                     }
-                }
+                },
+                cosmetics: user.socket.user.getPreferences()?.cosmetics,
             })
         );
 

@@ -83,7 +83,11 @@ class DynamoDBService {
         }
 
         const dbClient = new DynamoDBClient(dbClientConfig);
-        this.client = DynamoDBDocumentClient.from(dbClient);
+        this.client = DynamoDBDocumentClient.from(dbClient, {
+            marshallOptions: {
+                removeUndefinedValues: true
+            }
+        });
     }
 
     private async validateAndHandleAsync<T>(

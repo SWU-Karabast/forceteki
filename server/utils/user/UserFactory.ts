@@ -24,11 +24,16 @@ const getDefaultSoundPreferences = () => ({
     muteOpponentFoundSound: false,
 });
 
+const getDefaultCosmeticsPreferences = () => ({
+    cardback: undefined,
+    background: undefined,
+    playmat: undefined,
+    disablePlaymats: false,
+});
+
 export const getDefaultPreferences = (): UserPreferences => ({
-    cardback: 'Default',
-    background: 'Default',
-    // playmat: 'none',
-    sound: getDefaultSoundPreferences()
+    sound: getDefaultSoundPreferences(),
+    cosmetics: getDefaultCosmeticsPreferences(),
 });
 
 

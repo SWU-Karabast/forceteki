@@ -22,9 +22,12 @@ export interface IUser {
             autoSingleTarget: boolean;
         }>;
     }>;
-    cardback?: string;
-    background?: string;
-    // TODO: playmat?: string;
+    cosmetics?: Partial<{
+        cardback: string;
+        background: string;
+        playmat: string;
+        disablePlaymats: boolean;
+    }>;
 }
 
 export function getUserWithDefaultsSet(user?: Partial<IUser> & Pick<IUser, 'username' | 'id'>): IUser | undefined {
