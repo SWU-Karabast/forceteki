@@ -51,7 +51,10 @@ export default class ConfidenceInVictory extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
                 condition: context.player.getArenaUnits({ arena: arena }).length > 0 &&
                   context.player.opponent.getArenaUnits({ arena: arena }).length === 0,
-                onTrue: AbilityHelper.immediateEffects.winGame({ target: context.player })
+                onTrue: AbilityHelper.immediateEffects.winGame({
+                    target: context.player,
+                    winReason: `as the only player with units in the ${arena === ZoneName.SpaceArena ? 'Space' : 'Ground'} Arena`,
+                })
             }))
         });
     }

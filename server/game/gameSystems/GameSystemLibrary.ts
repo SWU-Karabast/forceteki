@@ -616,7 +616,7 @@ export function entireDeckSearch<TContext extends AbilityContext = AbilityContex
 export function loseGame<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILoseGameProperties, TContext>) {
     return new LoseGameSystem<TContext>(propertyFactory);
 }
-export function winGame<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IWinGameProperties, TContext> = {}) {
+export function winGame<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IWinGameProperties, TContext>) {
     return new WinGameSystem<TContext>(propertyFactory);
 }
 export function takeControlOfResource<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ITakeControlOfResourceProperties, TContext> = {}) {

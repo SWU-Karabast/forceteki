@@ -6,7 +6,7 @@ describe('Confidence in Victory', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        leader: 'anakin-skywalker#tempted-by-the-dark-side',
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
                         hasForceToken: true,
                         hand: ['confidence-in-victory', 'resupply'],
                         deck: ['confidence-in-victory', 'atst'],
@@ -120,6 +120,19 @@ describe('Confidence in Victory', function() {
                 expect(context.player1).toHaveExactDisabledDisplayPromptPerCardButtons(['Play it']);
                 context.player1.clickDisplayCardPromptButton(context.confidenceInDeck.uuid, 'leave');
             });
+
+            it('cannot be played if the player uses Kazuda then takes another action', function () {
+                const { context } = contextRef;
+
+                // P1 uses Kazuda to remove abilities from Bib Fortuna
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
+                context.player1.clickCard(context.bibFortuna);
+
+                // P1 cannot play Confidence in Victory as their second action
+                expect(context.player1).toBeActivePlayer();
+                expect(context.player1).not.toBeAbleToSelect(context.confidenceInHand);
+            });
         });
 
         describe('Event ability', function () {
@@ -160,6 +173,10 @@ describe('Confidence in Victory', function() {
                 // P1 should win the game
                 expect(context.game).toBeOver();
                 expect(context.player1).toBeGameWinner();
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Confidence in Victory to win the game as the only player with units in the Space Arena',
+                    'player1 has won the game',
+                ]);
             });
 
             it('wins the game if the player is the only who controls units in the chosen arena at the start of the regroup phase (Ground)', async function () {
@@ -199,6 +216,10 @@ describe('Confidence in Victory', function() {
                 // P1 should win the game
                 expect(context.game).toBeOver();
                 expect(context.player1).toBeGameWinner();
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Confidence in Victory to win the game as the only player with units in the Ground Arena',
+                    'player1 has won the game',
+                ]);
             });
 
             it('does not win the game if the opponent also controls units in the chosen arena at the start of the regroup phase', async function () {

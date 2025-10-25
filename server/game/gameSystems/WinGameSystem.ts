@@ -4,8 +4,9 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 import type { Player } from '../core/Player.js';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IWinGameProperties extends IPlayerTargetSystemProperties { }
+export interface IWinGameProperties extends IPlayerTargetSystemProperties {
+    winReason: string | ((context: AbilityContext) => string);
+}
 
 export class WinGameSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IWinGameProperties> {
     public override readonly name = 'winGame';
@@ -14,9 +15,9 @@ export class WinGameSystem<TContext extends AbilityContext = AbilityContext> ext
 
     public eventHandler(event: any): void {
         const context = event.context;
-        const properties = this.generatePropertiesFromContext(context);
 
-        context.game.endGame(properties.target, event.endGameReason);
+        this.emitGameWinMessage(context, event.player);
+        context.game.endGame(event.player, event.endGameReason);
     }
 
     public override defaultTargets(context: TContext): Player[] {
@@ -26,5 +27,17 @@ export class WinGameSystem<TContext extends AbilityContext = AbilityContext> ext
     protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IWinGameProperties> = {}): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.endGameReason = context.source.title;
+    }
+
+    private emitGameWinMessage(context: AbilityContext, player: Player) {
+        const format = '{0} uses {1} to win the game {2}';
+
+        if (typeof this.properties.winReason === 'function') {
+            const message = this.properties.winReason(context);
+            context.game.addMessage(format, player, context.source, message);
+        } else {
+            const message = this.properties.winReason;
+            context.game.addMessage(format, player, context.source, message);
+        }
     }
 }
