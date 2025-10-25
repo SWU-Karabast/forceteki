@@ -22,6 +22,12 @@ export interface IUser {
             autoSingleTarget: boolean;
         }>;
     }>;
+    cosmetics?: Partial<{
+        cardback: string;
+        background: string;
+        playmat: string;
+        disablePlaymats: boolean;
+    }>;
 }
 
 export function getUserWithDefaultsSet(user?: Partial<IUser> & Pick<IUser, 'username' | 'id'>): IUser | undefined {
