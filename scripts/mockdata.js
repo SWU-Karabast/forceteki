@@ -1951,20 +1951,6 @@ const mockCards = [
         internalName: 'strike-force-xwing',
     }),
     buildMockCard({
-        title: 'Let\'s Talk',
-        hasNonKeywordAbility: true,
-        aspects: ['command'],
-        types: ['event'],
-        traits: ['trick'],
-        setId: {
-            set: 'SEC',
-            number: 131
-        },
-        cost: 9,
-        unique: false,
-        internalName: 'lets-talk',
-    }),
-    buildMockCard({
         title: 'The Eye of Aldhani',
         hasNonKeywordAbility: true,
         aspects: ['vigilance'],
