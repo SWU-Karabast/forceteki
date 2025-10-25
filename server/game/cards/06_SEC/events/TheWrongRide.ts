@@ -13,7 +13,10 @@ export default class TheWrongRide extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Exhaust 2 enemy resources',
-            immediateEffect: abilityHelper.immediateEffects.exhaustResources({ amount: 2, target: this.controller.opponent })
+            immediateEffect: abilityHelper.immediateEffects.exhaustResources((context) => ({
+                amount: Math.min(2, context.player.opponent.readyResourceCount),
+                target: this.controller.opponent
+            }))
         });
     }
 }
