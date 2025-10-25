@@ -1,4 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
+import type { FormatMessage } from '../core/chat/GameChat.js';
 import { MetaEventName } from '../core/Constants.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
@@ -16,7 +17,7 @@ export class WinGameSystem<TContext extends AbilityContext = AbilityContext> ext
     public eventHandler(event: any): void {
         const context = event.context;
 
-        this.emitGameWinMessage(context, event.player);
+        context.game.addMessage(event.gameWinMessage.format, ...event.gameWinMessage.args);
         context.game.endGame(event.player, event.endGameReason);
     }
 
@@ -27,18 +28,25 @@ export class WinGameSystem<TContext extends AbilityContext = AbilityContext> ext
     protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IWinGameProperties> = {}): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.endGameReason = context.source.title;
+        event.gameWinMessage = this.generateGameWinMessage(context, event.player);
     }
 
-    private emitGameWinMessage(context: TContext, player: Player) {
+    private generateGameWinMessage(context: TContext, player: Player): FormatMessage {
         const properties = this.generatePropertiesFromContext(context);
         const format = '{0} uses {1} to win the game {2}';
 
         if (typeof properties.winReason === 'function') {
             const message = properties.winReason(context);
-            context.game.addMessage(format, player, context.source, message);
-        } else {
-            const message = properties.winReason;
-            context.game.addMessage(format, player, context.source, message);
+            return {
+                format: format,
+                args: [player, context.source, message]
+            };
         }
+
+        const message = properties.winReason;
+        return {
+            format: format,
+            args: [player, context.source, message]
+        };
     }
 }
