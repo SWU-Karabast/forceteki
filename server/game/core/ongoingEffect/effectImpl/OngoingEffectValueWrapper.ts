@@ -4,6 +4,7 @@ import type Game from '../../Game';
 import type { IGameObjectBaseState } from '../../GameObjectBase';
 import { GameObjectBase } from '../../GameObjectBase';
 import { registerState } from '../../GameObjectUtils';
+import type { GainAbility } from './GainAbility';
 
 @registerState()
 export class OngoingEffectValueWrapper<TValue, TState extends IGameObjectBaseState = IGameObjectBaseState> extends GameObjectBase<TState> {
@@ -38,5 +39,9 @@ export class OngoingEffectValueWrapper<TValue, TState extends IGameObjectBaseSta
 
     public override getGameObjectName() {
         return 'OngoingEffectValueWrapper';
+    }
+
+    public isGainAbility(): this is GainAbility {
+        return false;
     }
 }

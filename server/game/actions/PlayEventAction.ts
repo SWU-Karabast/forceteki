@@ -15,6 +15,8 @@ export class PlayEventAction extends PlayCardAction {
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isEvent());
 
+        this.checkAndRearrangeResources(context);
+
         this.moveEventToDiscard(context);
 
         const eventAbility = context.source.getEventAbility();

@@ -10,7 +10,7 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
     @undoObject()
     private accessor _valueWrapper: OngoingEffectValueWrapper<TValue>;
 
-    public get valueWrapper() {
+    public override get valueWrapper() {
         return this._valueWrapper;
     }
 

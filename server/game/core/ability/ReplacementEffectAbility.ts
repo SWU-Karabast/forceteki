@@ -1,16 +1,19 @@
-import { AbilityType } from '../Constants';
-import type { IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IReplacementEffectAbilityProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
-import TriggeredAbility from './TriggeredAbility';
 import { ReplacementEffectSystem } from '../../gameSystems/ReplacementEffectSystem';
+import ReplacementAbilityBase from './ReplacementAbilityBase';
 
-export default class ReplacementEffectAbility extends TriggeredAbility {
+export default class ReplacementEffectAbility extends ReplacementAbilityBase {
     public constructor(game: Game, card: Card, properties: IReplacementEffectAbilityProps) {
         const { replaceWith: cancelProps, ...otherProps } = properties;
-        const triggeredAbilityProps: ITriggeredAbilityProps =
-            Object.assign(otherProps, { immediateEffect: new ReplacementEffectSystem(cancelProps) });
 
-        super(game, card, triggeredAbilityProps, AbilityType.ReplacementEffect);
+        let whenTrigger = undefined;
+
+        if ('when' in properties) {
+            whenTrigger = properties.when;
+        }
+
+        super(game, card, otherProps, new ReplacementEffectSystem(cancelProps), whenTrigger);
     }
 }

@@ -17,7 +17,7 @@ import type { IDecklistInternal, IDeckValidationFailures } from '../utils/deck/D
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
-import type { GameServer, ISwuStatsToken } from './GameServer';
+import type { GameServer } from './GameServer';
 import { AlertType, GameEndReason, GameErrorSeverity } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
@@ -43,6 +43,7 @@ export interface LobbyUser extends LobbySpectator {
     importDeckValidationErrors?: IDeckValidationFailures;
     reportedBugs: number;
 }
+
 export enum DeckSource {
     SWUStats = 'swuStats',
     SWUDB = 'swuDb',
@@ -60,9 +61,7 @@ export interface PlayerDetails {
     leaderID: string;
     baseID: string;
     deck: IDecklistInternal;
-    swuStatsRefreshToken: string | null;
     isDeckPresentInDb: boolean;
-    swuStatsToken: ISwuStatsToken;
 }
 
 export enum MatchType {
@@ -108,6 +107,7 @@ export class Lobby {
     private readonly swuStatsEnabled: boolean = true;
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
+    private readonly allow30CardsInMainBoard: boolean;
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
@@ -131,6 +131,7 @@ export class Lobby {
         lobbyName: string,
         lobbyGameType: MatchType,
         lobbyGameFormat: SwuGameFormat,
+        allow30CardsInMainBoard: boolean,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         gameServer: GameServer,
@@ -154,6 +155,7 @@ export class Lobby {
         this.server = gameServer;
         this.discordDispatcher = discordDispatcher;
         this.undoMode = lobbyGameType === MatchType.Private ? UndoMode.Free : UndoMode.Request;
+        this.allow30CardsInMainBoard = allow30CardsInMainBoard;
     }
 
     public get id(): string {
@@ -186,6 +188,7 @@ export class Lobby {
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
+            allow30CardsInMainBoard: this.allow30CardsInMainBoard,
             settings: {
                 requestUndo: this.undoMode === UndoMode.Request,
             },
@@ -197,7 +200,10 @@ export class Lobby {
 
         const previousAuthenticatedStatus = this.previousAuthenticatedStatusByUser.get(user.id);
         if (previousAuthenticatedStatus != null && previousAuthenticatedStatus !== authenticatedStatus) {
-            logger.warn(`Lobby: user ${user.username} authentication status changed from ${previousAuthenticatedStatus} to ${authenticatedStatus}`, { lobbyId: this.id, userName: user.username, userId: user.id });
+            const prevAuthProps = { authenticated: previousAuthenticatedStatus, username: user.username };
+            const newAuthProps = { authenticated: authenticatedStatus, username: user.socket.user.getUsername() };
+
+            logger.warn(`Lobby: user ${user.id} authentication status changed. Previous value: ${JSON.stringify(prevAuthProps)}, new value: ${JSON.stringify(newAuthProps)}`, { lobbyId: this.id, userId: user.id });
         }
 
         this.previousAuthenticatedStatusByUser.set(user.id, authenticatedStatus);
@@ -217,7 +223,7 @@ export class Lobby {
             deckErrors: user.deckValidationErrors,
             importDeckErrors: user.importDeckValidationErrors,
             unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(user.deck?.getDecklist()),
-            minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id) : 50,
+            minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id, this.allow30CardsInMainBoard) : 50,
             maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format),
         } : {
             deck: user.deck?.getLeaderBase(),
@@ -266,7 +272,9 @@ export class Lobby {
             state: null,
             ready: false,
             socket: null,
-            deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
+            deckValidationErrors: deck
+                ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat, this.allow30CardsInMainBoard)
+                : {},
             deck,
             decklist,
             reportedBugs: 0
@@ -495,14 +503,17 @@ export class Lobby {
         const activeUser = this.users.find((u) => u.id === socket.user.getId());
 
         // we check if the deck is valid.
-        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], this.gameFormat);
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], this.gameFormat, this.allow30CardsInMainBoard);
 
         // if the deck doesn't have any errors set it as active.
         if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
             activeUser.decklist = args[0];
-            activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(activeUser.deck.getDecklist(),
-                this.gameFormat);
+            activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
+                activeUser.deck.getDecklist(),
+                this.gameFormat,
+                this.allow30CardsInMainBoard
+            );
             activeUser.importDeckValidationErrors = null;
         }
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
@@ -525,7 +536,11 @@ export class Lobby {
             userDeck.moveToDeck(cardId);
         }
         // check deck for deckValidationErrors
-        user.deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
+        user.deckValidationErrors = this.deckValidator.validateInternalDeck(
+            userDeck.getDecklist(),
+            this.gameFormat,
+            this.allow30CardsInMainBoard
+        );
         // we need to clear any importDeckValidation errors otherwise they can persist
         user.importDeckValidationErrors = null;
 
@@ -759,8 +774,6 @@ export class Lobby {
                     deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
                     deck: user.deck.getDecklist(),
                     isDeckPresentInDb: user.decklist.isPresentInDb,
-                    swuStatsRefreshToken: user.socket.user.getSwuStatsRefreshToken(),
-                    swuStatsToken: this.server.swuStatsTokenMapping.get(user.id),
                 });
             });
             await game.initialiseAsync();
@@ -1110,6 +1123,7 @@ export class Lobby {
                 game,
                 player1User,
                 player2User,
+                this.hasSwuStatsSource,
                 this.id,
                 this.server,
             );
@@ -1140,7 +1154,7 @@ export class Lobby {
     /**
      * Private method to check if players deck source is SWUStats
      */
-    private hasSwuStatsSource(playerDetails: PlayerDetails): boolean {
+    public hasSwuStatsSource(playerDetails: PlayerDetails): boolean {
         return playerDetails.deckSource === DeckSource.SWUStats;
     }
 

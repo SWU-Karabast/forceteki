@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { GameStateChangeRequired, EventName } from '../core/Constants';
+import { GameStateChangeRequired, EventName, KeywordName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
@@ -62,7 +62,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
         event.newController = player;
 
-        player.opponent.resourceZone.rearrangeResourceExhaustState(context, true);
+        player.opponent.resourceZone.rearrangeResourceExhaustState(context, (card) => card.hasSomeKeyword(KeywordName.Smuggle));
         const opponentReadyResources = player.opponent.resources.filter((resource) => !resource.exhausted);
 
         if (opponentReadyResources.length === 1) {

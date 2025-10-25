@@ -13,6 +13,7 @@ export interface IDamagePreventionSystemProperties<TContext extends TriggeredAbi
     preventionType: DamagePreventionType;
     preventionAmount?: number;
     replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
+    onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext>;
 }
 
 export class DamagePreventionSystem<
@@ -24,7 +25,16 @@ export class DamagePreventionSystem<
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
 
+
         const effectMessage = (): FormatMessage => {
+            if (context.event.isUnpreventable) {
+                // if there is a limit, in case of unpreventable, limit should be updated
+                return {
+                    format: 'try to prevent damage but it cannot prevent unpreventable damage',
+                    args: [this.getTargetMessage(context.source, context)],
+                };
+            }
+
             switch (properties.preventionType) {
                 case DamagePreventionType.All:
                     return {
@@ -54,6 +64,10 @@ export class DamagePreventionSystem<
     protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<TProperties> = {}): GameSystem<TContext> {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
+        if (properties.onlyIfYouDoEffect) {
+            return properties.onlyIfYouDoEffect as GameSystem<TContext>;
+        }
+
         switch (properties.preventionType) {
             case DamagePreventionType.All:
                 return null;
@@ -74,5 +88,9 @@ export class DamagePreventionSystem<
             default:
                 Contract.fail(`Invalid preventionType ${properties.preventionType} for DamagePreventionSystem`);
         }
+    }
+
+    protected override shouldReplace (context: TContext): boolean {
+        return !context.event.isUnpreventable;
     }
 }

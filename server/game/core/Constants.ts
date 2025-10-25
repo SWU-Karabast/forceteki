@@ -82,6 +82,8 @@ export enum EffectName {
     AssignIndirectDamageDealtToOpponents = 'assignIndirectDamageDealtToOpponents',
     AssignIndirectDamageDealtByUnit = 'assignIndirectDamageDealtByUnit',
     Blank = 'blank',
+    BlankExceptKeyword = 'blankExceptKeyword',
+    BlankExceptFromSourceCard = 'blankExceptFromSourceCard',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanAttackMultipleUnitsSimultaneously = 'canAttackMultipleUnitsSimultaneously',
@@ -113,7 +115,6 @@ export enum EffectName {
     MustAttack = 'mustAttack',
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
-    PartiallyBlank = 'partiallyBlank',
     PrintedAttributesOverride = 'printedAttributesOverride',
     RescuedUnitsEnterPlayReady = 'rescuedUnitsEnterPlayReady',
     SetPower = 'setPower',
@@ -480,10 +481,11 @@ export enum AbilityRestriction {
 export enum DamagePreventionType {
     All = 'all',
     Reduce = 'reduce',
-    Replace = 'replace',
+    Replace = 'replace'
 }
 
 export enum StateWatcherName {
+    ActionsThisPhase = 'actionsThisPhase',
     AttacksThisPhase = 'attacksThisPhase',
     CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
     CardsDrawnThisPhase = 'cardsDrawnThisPhase',

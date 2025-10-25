@@ -1,20 +1,16 @@
-import type { IDamagePreventionAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import { DamagePreventionSystem } from '../../gameSystems/DamagePreventionSystem';
+import type { IDamagePreventionAbilityProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
-import { DamagePreventionSystem } from '../../gameSystems/DamagePreventionSystem';
-import { AbilityType } from '../Constants';
-import TriggeredAbility from './TriggeredAbility';
 import * as EnumHelpers from '../utils/EnumHelpers';
+import ReplacementAbilityBase from './ReplacementAbilityBase';
 
-export default class DamagePreventionAbility extends TriggeredAbility {
+export default class DamagePreventionAbility extends ReplacementAbilityBase {
     public constructor(game: Game, card: Card, properties: IDamagePreventionAbilityProps) {
-        const triggeredAbilityProps: ITriggeredAbilityProps = {
-            ...properties,
-            immediateEffect: new DamagePreventionSystem(properties),
-            when: { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) }
-        };
+        const { onlyIfYouDoEffect, ...otherProps } = properties;
 
-        super(game, card, triggeredAbilityProps, AbilityType.ReplacementEffect);
+        super(game, card, properties, new DamagePreventionSystem(otherProps),
+            { onDamageDealt: (event, context) => this.buildDamagePreventionTrigger(event, context, properties) });
     }
 
     private buildDamagePreventionTrigger(event, context, properties: IDamagePreventionAbilityProps): boolean {
@@ -24,10 +20,6 @@ export default class DamagePreventionAbility extends TriggeredAbility {
                 return false;
             }
         } else if (event.card !== context.source) {
-            return false;
-        }
-
-        if (event.isUnpreventable) {
             return false;
         }
 
