@@ -29,14 +29,15 @@ export class WinGameSystem<TContext extends AbilityContext = AbilityContext> ext
         event.endGameReason = context.source.title;
     }
 
-    private emitGameWinMessage(context: AbilityContext, player: Player) {
+    private emitGameWinMessage(context: TContext, player: Player) {
+        const properties = this.generatePropertiesFromContext(context);
         const format = '{0} uses {1} to win the game {2}';
 
-        if (typeof this.properties.winReason === 'function') {
-            const message = this.properties.winReason(context);
+        if (typeof properties.winReason === 'function') {
+            const message = properties.winReason(context);
             context.game.addMessage(format, player, context.source, message);
         } else {
-            const message = this.properties.winReason;
+            const message = properties.winReason;
             context.game.addMessage(format, player, context.source, message);
         }
     }
