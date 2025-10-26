@@ -77,7 +77,7 @@ interface SwuTestContext {
 
     advancePhases(endphase);
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];
-    getAllCardTitles();
+    getAllNonLeaderCardTitles();
     getPlayableCardTitles();
     getChatLog(numbBack = 0);
     getChatLogs(numbBack = 1, inOrder = false);
