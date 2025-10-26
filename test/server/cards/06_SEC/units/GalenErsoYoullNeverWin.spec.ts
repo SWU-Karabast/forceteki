@@ -19,7 +19,7 @@ describe('Galen Erso - You\'ll Never Win', function() {
             context.player1.clickPrompt('Trigger');
             expect(context.galenErso).toBeInZone('groundArena');
             expect(context.moistureFarmer).toBeInZone('resource');
-            expect(context.player1).toHaveExactDropdownListOptions(context.getAllCardTitles());
+            expect(context.player1).toHaveExactDropdownListOptions(context.getAllNonLeaderCardTitles());
             context.player1.chooseListOption('Luke Skywalker');
         });
 
