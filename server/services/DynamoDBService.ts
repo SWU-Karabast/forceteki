@@ -14,6 +14,7 @@ import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity, UserPre
 import { z } from 'zod';
 import { iDeckDataEntitySchema, iDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
+import { type CosmeticOption, type CosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -630,6 +631,87 @@ class DynamoDBService {
                 }
             }
         }, 'Error updating user preferences');
+    }
+
+    // Cosmetics Methods
+    public getCosmeticsAsync(): Promise<CosmeticOption[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync('COSMETICS', { beginsWith: 'ITEM#' });
+            return (result.Items || []).map((item) => ({
+                id: item.id as string,
+                title: item.title as string,
+                type: item.type as CosmeticType,
+                path: item.path as string,
+                darkened: item.darkened as boolean | undefined
+            }));
+        }, 'Error getting cosmetics data');
+    }
+
+    public saveCosmeticAsync(cosmeticData: CosmeticOption) {
+        return this.executeDbOperationAsync(() => {
+            const item = {
+                pk: 'COSMETICS',
+                sk: `ITEM#${cosmeticData.id}`,
+                ...cosmeticData,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            return this.putItemAsync(item);
+        }, 'Error saving cosmetic item');
+    }
+
+    public initializeCosmeticsAsync(cosmetics: CosmeticOption[]) {
+        return this.executeDbOperationAsync(async () => {
+            const savePromises = cosmetics.map((cosmetic) => this.saveCosmeticAsync(cosmetic));
+            await Promise.all(savePromises);
+            return { initializedCount: cosmetics.length };
+        }, 'Error initializing cosmetics data');
+    }
+
+    public deleteCosmeticAsync(cosmeticId: string) {
+        if (!this.isLocalMode) {
+            throw new Error('Cosmetic deletion is only allowed in local mode');
+        }
+
+        return this.executeDbOperationAsync(() => {
+            return this.deleteItemAsync('COSMETICS', `ITEM#${cosmeticId}`);
+        }, 'Error deleting cosmetic item');
+    }
+
+    public clearAllCosmeticsAsync() {
+        if (!this.isLocalMode) {
+            throw new Error('Cosmetic cleanup is only allowed in local mode');
+        }
+
+        return this.executeDbOperationAsync(async () => {
+            // Get all cosmetics first
+            const cosmetics = await this.getCosmeticsAsync();
+
+            // Delete each cosmetic
+            const deletePromises = cosmetics.map((cosmetic) =>
+                this.deleteCosmeticAsync(cosmetic.id)
+            );
+
+            await Promise.all(deletePromises);
+
+            return { deletedCount: cosmetics.length };
+        }, 'Error clearing all cosmetics');
+    }
+
+    public resetCosmeticsToDefaultAsync() {
+        if (!this.isLocalMode) {
+            throw new Error('Cosmetic reset is only allowed in local mode');
+        }
+
+        return this.executeDbOperationAsync(async () => {
+            // First clear all existing cosmetics
+            const clearResult = await this.clearAllCosmeticsAsync();
+
+            return {
+                message: 'Cosmetics cleared. Defaults will be reinitialized on next fetch.',
+                deletedCount: clearResult.deletedCount
+            };
+        }, 'Error resetting cosmetics to default');
     }
 
     // Clear all data (for testing purposes only)
