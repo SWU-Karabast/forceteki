@@ -25,7 +25,6 @@ export class DamageModificationSystem<
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
 
-
         const effectMessage = (): FormatMessage => {
             if (context.event.isUnpreventable) {
                 // if there is a limit, in case of unpreventable, limit should be updated
@@ -92,6 +91,7 @@ export class DamageModificationSystem<
                     amount: context.event.amount + properties.amount,
                     source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
                     type: context.event.type,
+                    isIndirect: context.event.isIndirect,
                     isUnpreventable: context.event.isUnpreventable,
                     sourceAttack: context.event.damageSource.attack,
                 }));
@@ -106,6 +106,10 @@ export class DamageModificationSystem<
     }
 
     protected override shouldReplace (context: TContext): boolean {
+        const properties = this.generatePropertiesFromContext(context);
+        if (properties.modificationType === DamageModificationType.Increase) {
+            return true;
+        }
         return !context.event.isUnpreventable;
     }
 }

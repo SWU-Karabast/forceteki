@@ -16,14 +16,14 @@ export default class VigilSecuringTheFuture extends NonLeaderUnitCard {
             title: 'Increase all damage dealt to Vigil by another card by 1',
             modificationType: DamageModificationType.Increase,
             amount: 1,
-            shouldCardHaveDamageModification: (card, context) => card === context.source && context.event.damageSource.card !== context.source,
+            shouldCardHaveDamageModification: (card, context) => card === context.source && card.isUnit() && context.event.damageSource.card !== context.source,
         });
 
         registrar.addDamageModificationAbility({
             title: 'Reduce all damage dealt to friendly non-Vigil units by 1',
             modificationType: DamageModificationType.Reduce,
             amount: 1,
-            shouldCardHaveDamageModification: (card, context) => card.controller === context.source.controller && card !== context.source
+            shouldCardHaveDamageModification: (card, context) => card !== context.source && card.isUnit() && card.controller === context.source.controller
         });
     }
 }
