@@ -68,7 +68,7 @@ export class AllCardsForPlayerLastingEffectSystem<TContext extends AbilityContex
                 return false;
             }
 
-            return includeLeaders || !target.isLeader;
+            return includeLeaders || !target.isLeader();
         };
 
         const effectProperties: (target: Player) => IOngoingAllCardsForPlayerEffectProps = (target) => ({

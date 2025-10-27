@@ -24,7 +24,7 @@ export default class GalenErsoYoullNeverWin extends NonLeaderUnitCard {
                 immediateEffect: abilityHelper.immediateEffects.allCardsForPlayerLastingEffect((context) => ({
                     duration: Duration.WhileSourceInPlay,
                     target: context.player.opponent,
-                    cardTargetMode: AllCardsTargetMode.OwnedOrControlled,
+                    cardTargetMode: AllCardsTargetMode.OnlyOwned,
                     cardTitle: thenContext.select,
                     effect: abilityHelper.ongoingEffects.blankAllCardsForPlayer(),
                 }))
