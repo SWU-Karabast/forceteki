@@ -328,6 +328,7 @@ export enum MetaEventName {
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
     GameLost = 'gameLost',
+    GameWon = 'gameWon',
     NoAction = 'noAction',
     Optional = 'optional',
     PayCardPrintedCost = 'payCardPrintedCost',
@@ -481,10 +482,11 @@ export enum AbilityRestriction {
 export enum DamagePreventionType {
     All = 'all',
     Reduce = 'reduce',
-    Replace = 'replace',
+    Replace = 'replace'
 }
 
 export enum StateWatcherName {
+    ActionsThisPhase = 'actionsThisPhase',
     AttacksThisPhase = 'attacksThisPhase',
     CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
     CardsDrawnThisPhase = 'cardsDrawnThisPhase',

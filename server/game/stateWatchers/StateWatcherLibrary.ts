@@ -12,6 +12,7 @@ import { ForceUsedThisPhaseWatcher } from './ForceUsedThisPhaseWatcher';
 import type Game from '../core/Game';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
+import { ActionsThisPhaseWatcher } from './ActionsThisPhaseWatcher';
 
 
 export class StateWatcherLibrary {
@@ -32,6 +33,13 @@ export class StateWatcherLibrary {
         return this.game.stateWatcherRegistrar.registerWatcher(
             StateWatcherName.AttacksThisPhase,
             (registrar: StateWatcherRegistrar) => new AttacksThisPhaseWatcher(this.game, registrar)
+        );
+    }
+
+    public actionsThisPhase() {
+        return this.game.stateWatcherRegistrar.registerWatcher(
+            StateWatcherName.ActionsThisPhase,
+            (registrar: StateWatcherRegistrar) => new ActionsThisPhaseWatcher(this.game, registrar)
         );
     }
 
