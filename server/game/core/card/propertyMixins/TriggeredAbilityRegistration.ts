@@ -34,6 +34,10 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
          * “When Defeated,” and “On Attack” abilities
          */
         public getTriggeredAbilities(): TriggeredAbility[] {
+            if (this.isFullyBlanked()) {
+                return [];
+            }
+
             return this.triggeredAbilities as TriggeredAbility[];
         }
 

@@ -31,6 +31,7 @@ import type { ISnapshotSettingsBase } from './core/snapshot/SnapshotInterfaces';
 import type { Lobby } from '../gamenode/Lobby';
 import type { DamageSourceType } from './IDamageOrDefeatSource';
 import type { IInPlayCard } from './core/card/baseClasses/InPlayCard';
+import type { IOngoingAllCardsForPlayerEffectProps, OngoingAllCardsForPlayerEffect } from './core/ongoingEffect/OngoingAllCardsForPlayerEffect';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -302,6 +303,7 @@ export type IOngoingCardOrPlayerEffectGenerator<TTarget extends Card | Player> =
 export type IOngoingCardEffectGenerator = IOngoingCardOrPlayerEffectGenerator<Card>;
 export type IOngoingPlayerEffectGenerator = IOngoingCardOrPlayerEffectGenerator<Player>;
 export type IOngoingEffectGenerator = IOngoingCardEffectGenerator | IOngoingPlayerEffectGenerator;
+export type IOngoingAllCardsForPlayerEffectGenerator = (game: Game, source: Card, props: IOngoingAllCardsForPlayerEffectProps) => OngoingAllCardsForPlayerEffect;
 
 export type IOngoingEffectFactory<TTarget> = IOngoingEffectProps<TTarget> & {
     ongoingEffect: any; // IOngoingEffectGenerator | IOngoingEffectGenerator[]

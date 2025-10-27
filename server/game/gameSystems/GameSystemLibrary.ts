@@ -155,6 +155,7 @@ import type { ICreateSpyProperties } from './CreateSpySystem';
 import { CreateSpySystem } from './CreateSpySystem';
 import type { IDiscloseAspectsProperties } from './DiscloseAspectsSystem';
 import { DiscloseAspectsSystem } from './DiscloseAspectsSystem';
+import { AllCardsForPlayerLastingEffectSystem, type IAllCardsForPlayerLastingEffectProperties } from './AllCardsForPlayerLastingEffectSystem';
 import type { IWinGameProperties } from './WinGameSystem';
 import { WinGameSystem } from './WinGameSystem';
 
@@ -514,6 +515,10 @@ export function whenSourceLeavesPlayDelayedCardEffect<TContext extends AbilityCo
 // //////////////
 // // PLAYER
 // //////////////
+export function allCardsForPlayerLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IAllCardsForPlayerLastingEffectProperties, TContext>) {
+    return new AllCardsForPlayerLastingEffectSystem<TContext>(propertyFactory);
+}
+
 export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDiscardCardsFromHandProperties, 'choosingPlayer'>, TContext>) {
     const wrappedPropertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext> = (context: TContext) => {
         const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;

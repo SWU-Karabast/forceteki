@@ -308,6 +308,7 @@ class Game extends EventEmitter {
         this.movedCards = [];
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
+        this.allNonLeaderCardTitles = this.cardDataGetter.allNonLeaderCardTitles;
 
         /** @public @readonly @type {import('../../gameStatistics/GameStatisticsTracker.js').IGameStatisticsTracker} */
         this.statsTracker = new GameStatisticsLogger(this);

@@ -11,6 +11,7 @@ export abstract class CardDataGetter {
     public readonly cardMap: ICardMap;
 
     private readonly knownCardInternalNames: Set<string>;
+    private readonly _allNonLeaderCardTitles: string[];
     private readonly _playableCardTitles: string[];
     private readonly _setCodeMap: Map<string, string>;
     private readonly _tokenData: ITokenCardsData;
@@ -18,11 +19,16 @@ export abstract class CardDataGetter {
 
     protected static readonly setCodeMapFileName = '_setCodeMap.json';
     protected static readonly cardMapFileName = '_cardMap.json';
+    protected static readonly allNonLeaderCardTitlesFileName = '_allNonLeaderCardTitles.json';
     protected static readonly playableCardTitlesFileName = '_playableCardTitles.json';
     protected static readonly leaderNamesFileName = '_leaderNames.json';
 
     public get cardIds(): string[] {
         return Array.from(this.cardMap.keys());
+    }
+
+    public get allNonLeaderCardTitles(): string[] {
+        return this._allNonLeaderCardTitles;
     }
 
     public get playableCardTitles(): string[] {
@@ -44,6 +50,7 @@ export abstract class CardDataGetter {
     public constructor(
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,
+        allNonLeaderCardTitles: string[],
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
         leaderNames: { name: string; id: string; subtitle?: string }[],
@@ -56,6 +63,7 @@ export abstract class CardDataGetter {
             this.knownCardInternalNames.add(cardMapEntry.internalName);
         }
 
+        this._allNonLeaderCardTitles = allNonLeaderCardTitles;
         this._playableCardTitles = playableCardTitles;
         this._setCodeMap = new Map(Object.entries(setCodeMap));
         this._tokenData = tokenData;

@@ -421,7 +421,18 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * don’t have any special text styling
      */
     public getConstantAbilities(): ConstantAbility[] {
-        return this.constantAbilities as ConstantAbility[];
+        if (this.isFullyBlanked()) {
+            return [];
+        }
+
+        const constantAbilities = this.constantAbilities as ConstantAbility[];
+
+        if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
+            // Only return triggered abilities gained from the source of the blanking effect
+            return constantAbilities.filter((ability) => this.canGainAbilityFromSource(ability.sourceCard));
+        }
+
+        return constantAbilities;
     }
 
     public getPrintedConstantAbilities(): ConstantAbility[] {
@@ -794,6 +805,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
           this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard);
     }
 
+    public isBlankOutOfPlay(): boolean {
+        return this.getOngoingEffectValues(EffectName.Blank)
+            .some((effect) => effect.includeOutOfPlay);
+    }
+
     /**
      * Whether or not this card is fully blanked, meaning it has lost all abilities and
      * cannot gain any new ones.
@@ -837,12 +853,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return false;
     }
 
-    public hasKeywordRemoved(keyword: KeywordName): boolean {
+    public hasKeywordRemoved(keyword: KeywordName, isOutOfPlay = false): boolean {
+        if (isOutOfPlay && !this.isBlankOutOfPlay()) {
+            return false;
+        }
+
         if (this.isFullyBlanked()) {
             return true;
         }
 
-        const isBlank = this.isBlank();
         const keywordExcludedFromBlankEffect = this.getOngoingEffectValues(EffectName.BlankExceptKeyword)
             .map((value) => value.exceptKeyword)
             .includes(keyword);
@@ -851,7 +870,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             .flatMap((x) => Helpers.asArray(x))
             .includes(keyword);
 
-        return isSpecificallyRemoved || (isBlank && !keywordExcludedFromBlankEffect);
+        return isSpecificallyRemoved || (this.isBlank() && !keywordExcludedFromBlankEffect);
     }
 
     public canGainAbilityFromSource(source: Card): boolean {

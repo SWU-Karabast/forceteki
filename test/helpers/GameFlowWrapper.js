@@ -4,6 +4,7 @@ const Game = require('../../server/game/core/Game.js');
 const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
 const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');
+const allNonLeaderCardTitles = require('../json/_allNonLeaderCardTitles.json');
 const playableCardTitles = require('../json/_playableCardTitles.json');
 const Util = require('./Util.js');
 const { GameMode } = require('../../server/GameMode.js');
@@ -47,6 +48,10 @@ class GameFlowWrapper {
         this.allPlayers = [this.player1, this.player2];
 
         this.snapshotManager = this.game.snapshotManager;
+    }
+
+    getAllNonLeaderCardTitles() {
+        return allNonLeaderCardTitles;
     }
 
     getPlayableCardTitles() {

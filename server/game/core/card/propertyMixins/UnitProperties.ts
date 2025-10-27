@@ -609,7 +609,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override getConstantAbilities(): ConstantAbility[] {
-            if (this.isBlank()) {
+            if (this.isFullyBlanked()) {
                 return [];
             }
 
