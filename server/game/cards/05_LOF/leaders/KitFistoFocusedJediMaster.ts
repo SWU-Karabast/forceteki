@@ -28,7 +28,8 @@ export default class KitFistoFocusedJediMaster extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({
                         controller: context.player,
-                        filter: (attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Jedi)
+                        filter: (attack) => context.source !== attack.attacker &&
+                          attack.attackerAttributes.traits.has(Trait.Jedi)
                     }),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                 })

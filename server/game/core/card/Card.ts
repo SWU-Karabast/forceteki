@@ -4,7 +4,8 @@ import type {
     ISetId,
     Zone,
     ITriggeredAbilityProps,
-    ISerializedCardState
+    ISerializedCardState,
+    ICardAttributes
 } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
@@ -182,6 +183,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         }
 
         return this._printedType;
+    }
+
+    public get attributes(): ICardAttributes {
+        return {
+            // TODO: Add more attributes as needed
+            traits: this.traits
+        };
     }
 
     // ******************************************** PROPERTY GETTERS ********************************************
@@ -765,7 +773,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     public hasEveryTrait(traits: Set<Trait> | Trait[]): boolean {
         return this.hasEvery(traits, this.traits);
     }
-
 
     // ******************************************* ASPECT HELPERS *******************************************
     public hasSomeAspect(aspects: Set<Aspect> | Aspect | Aspect[]): boolean {
