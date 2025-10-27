@@ -425,7 +425,14 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             return [];
         }
 
-        return this.constantAbilities as ConstantAbility[];
+        const constantAbilities = this.constantAbilities as ConstantAbility[];
+
+        if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
+            // Only return triggered abilities gained from the source of the blanking effect
+            return constantAbilities.filter((ability) => this.canGainAbilityFromSource(ability.sourceCard));
+        }
+
+        return constantAbilities;
     }
 
     public getPrintedConstantAbilities(): ConstantAbility[] {
