@@ -24,7 +24,7 @@ describe('Galen Erso - You\'ll Never Win', function() {
         });
 
         describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, named enemy leaders', function() {
-            it('should not be blanked when their title is named', async function () {
+            it('should not be blanked when their title is named and they are not deployed', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -49,7 +49,7 @@ describe('Galen Erso - You\'ll Never Win', function() {
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
             });
 
-            it('should not be blanked when their title is named', async function () {
+            it('should not be blanked when their title is named and they are deployed', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {

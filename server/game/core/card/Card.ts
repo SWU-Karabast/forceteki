@@ -413,7 +413,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * don’t have any special text styling
      */
     public getConstantAbilities(): ConstantAbility[] {
-        if (this.isBlank()) {
+        if (this.isFullyBlanked()) {
             return [];
         }
 
