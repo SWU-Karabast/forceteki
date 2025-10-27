@@ -118,13 +118,13 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     }
 
 
-    private addDamagePreventionAbilityTargetingAttached(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
+    private addDamageModificationAbilityTargetingAttached(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: OngoingEffectLibrary.gainDamagePreventionAbility({ type: AbilityType.DamageModification, ...gainedAbilityProperties })
+            ongoingEffect: OngoingEffectLibrary.gainDamageModificationAbility({ type: AbilityType.DamageModification, ...gainedAbilityProperties })
         }, registrar);
     }
 
@@ -219,7 +219,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             addGainConstantAbilityTargetingAttached: (properties) => this.addGainConstantAbilityTargetingAttached(properties, registrar),
             addGainTriggeredAbilityTargetingAttached: (properties) => this.addGainTriggeredAbilityTargetingAttached(properties, registrar),
             addReplacementEffectAbilityTargetingAttached: (properties) => this.addReplacementEffectAbilityTargetingAttached(properties, registrar),
-            addDamagePreventionAbilityTargetingAttached: (properties) => this.addDamagePreventionAbilityTargetingAttached(properties, registrar),
+            addDamageModificationAbilityTargetingAttached: (properties) => this.addDamageModificationAbilityTargetingAttached(properties, registrar),
             addGainActionAbilityTargetingAttached: (properties) => this.addGainActionAbilityTargetingAttached(properties, registrar),
             addGainOnAttackAbilityTargetingAttached: (properties) => this.addGainOnAttackAbilityTargetingAttached(properties, registrar),
             addGainWhenDefeatedAbilityTargetingAttached: (properties) => this.addGainWhenDefeatedAbilityTargetingAttached(properties, registrar),

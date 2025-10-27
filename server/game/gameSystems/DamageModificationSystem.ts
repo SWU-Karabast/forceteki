@@ -11,7 +11,7 @@ import * as ChatHelpers from '../core/chat/ChatHelpers';
 
 export interface IDamageModificationSystemProperties<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends IReplacementEffectSystemProperties<TContext> {
     modificationType: DamageModificationType;
-    preventionAmount?: number;
+    amount?: number;
     replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
     onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext>;
 }
@@ -44,7 +44,12 @@ export class DamageModificationSystem<
                 case DamageModificationType.Reduce:
                     return {
                         format: 'prevent {0} damage to {1}',
-                        args: [String(properties.preventionAmount), this.getTargetMessage(context.event.card, context)],
+                        args: [String(properties.amount), this.getTargetMessage(context.event.card, context)],
+                    };
+                case DamageModificationType.Increase:
+                    return {
+                        format: 'increase damage to {0} by {1}',
+                        args: [this.getTargetMessage(context.event.card, context), String(properties.amount)],
                     };
                 case DamageModificationType.Replace:
                     const replaceWith = properties.replaceWithEffect;
@@ -72,12 +77,22 @@ export class DamageModificationSystem<
             case DamageModificationType.All:
                 return null;
             case DamageModificationType.Reduce:
-                Contract.assertPositiveNonZero(properties.preventionAmount, `preventionAmount must be a positive non-zero number for DamageModificationType.Reduce. Found: ${properties.preventionAmount}`);
+                Contract.assertPositiveNonZero(properties.amount, `preventionAmount must be a positive non-zero number for DamageModificationType.Reduce. Found: ${properties.amount}`);
                 return new DamageSystem((context) => ({
                     target: context.event.card,
-                    amount: Math.max(context.event.amount - properties.preventionAmount, 0),
+                    amount: Math.max(context.event.amount - properties.amount, 0),
                     source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
                     type: context.event.type,
+                    sourceAttack: context.event.damageSource.attack,
+                }));
+            case DamageModificationType.Increase:
+                Contract.assertPositiveNonZero(properties.amount, `amount must be a positive non-zero number for DamageModificationType.Increase. Found: ${properties.amount}`);
+                return new DamageSystem((context) => ({
+                    target: context.event.card,
+                    amount: context.event.amount + properties.amount,
+                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
+                    type: context.event.type,
+                    isUnpreventable: context.event.isUnpreventable,
                     sourceAttack: context.event.damageSource.attack,
                 }));
             case DamageModificationType.Replace:

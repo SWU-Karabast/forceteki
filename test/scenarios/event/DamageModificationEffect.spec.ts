@@ -532,6 +532,8 @@ describe('Damage Modification Effects', function() {
                     expect(context.tielnFighter).toBeInZone('discard');
                 });
             });
+
+            // TODO: increase damage tests
         });
     });
 });

@@ -143,7 +143,7 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
                 break;
 
             case AbilityType.DamageModification:
-                target.removeGainedDamagePreventionAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
+                target.removeGainedDamageModificationAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
                 break;
 
             default:
