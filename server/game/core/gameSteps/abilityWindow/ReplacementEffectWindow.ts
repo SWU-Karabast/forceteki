@@ -43,8 +43,11 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
     }
 
     public override addTriggeredAbilityToWindow(context: TriggeredAbilityContext) {
-        const replacement = context.event.findEventInReplacements();
-        if (replacement && replacement.context.ability === context.ability) {
+        const triggeringEvent = context.event;
+        if (
+            triggeringEvent.isReplacementEvent &&
+            triggeringEvent.context.ability === context.ability
+        ) {
             return;
         }
         super.addTriggeredAbilityToWindow(context);
