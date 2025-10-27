@@ -813,14 +813,13 @@ export class GameServer {
 
         app.post('/api/create-lobby', authMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, lobbyName, enableUndo } = req.body;
+                const { deck, format, isPrivate, lobbyName, allow30CardsInMainBoard } = req.body;
                 const user = req.user;
 
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     // TODO shouldn't return 403
                     logger.error(`GameServer (create-lobby): Error in create-lobby User ${user.getId()} attempted to create a different lobby while already being in a lobby`);
-                    logger.info(`enableUndo value: '${enableUndo}'`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'
@@ -832,8 +831,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, isPrivate, enableUndo);
+                await this.processDeckValidation(deck, format, allow30CardsInMainBoard, res, () => {
+                    this.createLobby(lobbyName, user, deck, format, isPrivate, allow30CardsInMainBoard);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -935,7 +934,7 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, res, () => {
+                await this.processDeckValidation(deck, format, false, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
@@ -1023,10 +1022,11 @@ export class GameServer {
     private async processDeckValidation(
         deck: ISwuDbDecklist,
         format: SwuGameFormat,
+        allow30CardsInMainBoard: boolean,
         res: express.Response,
         onValid: () => Promise<void> | void
     ): Promise<void> {
-        const validationResults = this.deckValidator.validateSwuDbDeck(deck, format);
+        const validationResults = this.deckValidator.validateSwuDbDeck(deck, format, allow30CardsInMainBoard);
         if (Object.keys(validationResults).length > 0) {
             res.status(400).json({
                 success: false,
@@ -1114,7 +1114,7 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean, enableUndo = false) {
+    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean, allow30CardsInMainBoard: boolean = false) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -1127,6 +1127,7 @@ export class GameServer {
             lobbyName,
             isPrivate ? MatchType.Private : MatchType.Custom,
             format,
+            allow30CardsInMainBoard,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -1144,6 +1145,7 @@ export class GameServer {
             'Test Game',
             MatchType.Custom,
             SwuGameFormat.Open,
+            false,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -1425,6 +1427,7 @@ export class GameServer {
             'Quick Game',
             MatchType.Quick,
             format,
+            false,
             this.cardDataGetter,
             this.deckValidator,
             this,

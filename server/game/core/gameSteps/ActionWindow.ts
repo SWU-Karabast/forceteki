@@ -223,7 +223,10 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override complete() {
-        this.game.emitEvent(EventName.OnActionTaken, null, { player: this.activePlayer });
+        this.game.emitEvent(EventName.OnActionTaken, null, {
+            player: this.activePlayer,
+            actionNumber: this.actionNumber
+        });
 
         // this.teardownBonusActions();
         super.complete();
