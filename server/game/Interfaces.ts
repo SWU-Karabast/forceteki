@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { Aspect, DamagePreventionType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType } from './core/Constants';
+import type { Aspect, DamagePreventionType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, Trait } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
@@ -555,3 +555,8 @@ export type NumericKeywordName =
   | KeywordName.Raid
   | KeywordName.Restore
   | KeywordName.Exploit;
+
+export interface ICardAttributes {
+    // TODO: Add more attributes as needed
+    traits: Set<Trait>;
+}

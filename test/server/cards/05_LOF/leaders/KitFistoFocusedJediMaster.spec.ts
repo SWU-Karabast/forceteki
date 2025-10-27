@@ -6,14 +6,27 @@ describe('Kit Fisto, Focused Jedi Master', function() {
                     phase: 'action',
                     player1: {
                         hand: ['change-of-heart'],
-                        groundArena: ['yoda#old-master', 'battlefield-marine', 'jedi-guardian'],
+                        groundArena: [
+                            'yoda#old-master',
+                            'battlefield-marine',
+                            'jedi-guardian',
+                            {
+                                card: 'secretive-sage', // Force, but not Jedi
+                                upgrades: [
+                                    'shield',
+                                    'jedi-trials',      // Gives Jedi trait while unit has 4+ upgrades
+                                    'experience',
+                                    'experience'
+                                ]
+                            }
+                        ],
                         spaceArena: ['anakins-interceptor#where-the-fun-begins'],
                         leader: 'kit-fisto#focused-jedi-master'
                     },
                     player2: {
                         groundArena: ['count-dooku#fallen-jedi'],
                         spaceArena: ['alliance-xwing', 'padawan-starfighter'],
-                        hand: ['traitorous']
+                        hand: ['traitorous', 'confiscate']
                     }
                 });
             });
@@ -31,7 +44,7 @@ describe('Kit Fisto, Focused Jedi Master', function() {
                 context.player1.clickPrompt('If you attacked with a Jedi unit this phase, deal 2 damage to a unit');
 
                 // Only units are selectable, deals 2 damage to the selected unit
-                expect(context.player1).toBeAbleToSelectExactly([context.yoda, context.battlefieldMarine, context.jediGuardian, context.countDooku, context.allianceXwing, context.padawanStarfighter, context.anakinsInterceptor]);
+                expect(context.player1).toBeAbleToSelectExactly([context.yoda, context.battlefieldMarine, context.jediGuardian, context.secretiveSage, context.countDooku, context.allianceXwing, context.padawanStarfighter, context.anakinsInterceptor]);
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.countDooku);
 
@@ -58,7 +71,7 @@ describe('Kit Fisto, Focused Jedi Master', function() {
                 context.player1.clickCard(context.kitFisto);
                 context.player1.clickPrompt('If you attacked with a Jedi unit this phase, deal 2 damage to a unit');
 
-                expect(context.player1).toBeAbleToSelectExactly([context.yoda, context.battlefieldMarine, context.jediGuardian, context.countDooku, context.allianceXwing, context.padawanStarfighter, context.anakinsInterceptor]);
+                expect(context.player1).toBeAbleToSelectExactly([context.yoda, context.battlefieldMarine, context.jediGuardian, context.secretiveSage, context.countDooku, context.allianceXwing, context.padawanStarfighter, context.anakinsInterceptor]);
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.allianceXwing);
 
@@ -118,6 +131,38 @@ describe('Kit Fisto, Focused Jedi Master', function() {
                 context.player1.clickPrompt('Use it anyway');
 
                 expect(context.kitFisto.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+
+            it('works if a unit with the Jedi trait loses the Jedi trait after attacking', function () {
+                const { context } = contextRef;
+
+                // P1 attacks with Secretive Sage (has Jedi trait because of Jedi Trials)
+                context.player1.clickCard(context.secretiveSage);
+                context.player1.clickCard(context.p2Base);
+
+                // P2 plays Confiscate to remove Jedi Trials
+                context.player2.clickCard(context.confiscate);
+                context.player2.clickCard(context.jediTrials);
+
+                // Use Kit Fisto's ability
+                context.player1.clickCard(context.kitFisto);
+                context.player1.clickPrompt('If you attacked with a Jedi unit this phase, deal 2 damage to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.yoda,
+                    context.battlefieldMarine,
+                    context.jediGuardian,
+                    context.secretiveSage,
+                    context.countDooku,
+                    context.allianceXwing,
+                    context.padawanStarfighter,
+                    context.anakinsInterceptor
+                ]);
+                expect(context.player1).not.toHavePassAbilityButton();
+                context.player1.clickCard(context.allianceXwing);
+
+                expect(context.kitFisto.exhausted).toBeTrue();
+                expect(context.allianceXwing.damage).toBe(2);
                 expect(context.player1.exhaustedResourceCount).toBe(1);
             });
         });

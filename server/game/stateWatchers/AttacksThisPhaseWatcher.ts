@@ -7,10 +7,12 @@ import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import type { ICardAttributes } from '../Interfaces';
 
 export interface AttackEntry {
     attacker: GameObjectRef<IUnitCard>;
     attackerInPlayId: number;
+    attackerAttributes: ICardAttributes;
     attackingPlayer: GameObjectRef<Player>;
     targets: GameObjectRef<IAttackableCard>[];
     targetInPlayId?: number;
@@ -29,6 +31,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
         return stateValue.map((x) => ({
             attacker: this.game.getFromRef(x.attacker),
             attackerInPlayId: x.attackerInPlayId,
+            attackerAttributes: x.attackerAttributes,
             attackingPlayer: this.game.getFromRef(x.attackingPlayer),
             targets: x.targets.map((y) => this.game.getFromRef(y)),
             targetInPlayId: x.targetInPlayId,
@@ -88,6 +91,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
                 currentState.concat({
                     attacker: event.attack.attacker.getRef(),
                     attackerInPlayId: event.attack.attacker.inPlayId,
+                    attackerAttributes: event.attack.attacker.attributes,
                     attackingPlayer: event.attack.attacker.controller.getRef(),
                     targets: event.attack.getAllTargets().map((x) => x.getRef()),
                     targetInPlayId: event.attack.targetInPlayId,
