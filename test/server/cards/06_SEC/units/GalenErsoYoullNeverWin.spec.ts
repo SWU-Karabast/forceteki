@@ -1218,5 +1218,108 @@ describe('Galen Erso - You\'ll Never Win', function() {
                 expect(context.player1.hasTheForce).toBeTrue();
             });
         });
+
+        describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, if Shield is named,', function() {
+            it('enemy shields already in play should have no effect', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        groundArena: ['wampa']
+                    },
+                    player2: {
+                        groundArena: [{ card: 'atst', upgrades: ['shield', 'shield'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Shield');
+
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.wampa);
+                expect(context.atst.damage).toBe(4);
+                expect(context.atst).toHaveExactUpgradeNames(['shield', 'shield']);
+            });
+
+            it('enemy shields created afterwards should have no effect', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        groundArena: ['wampa']
+                    },
+                    player2: {
+                        hand: ['moment-of-peace'],
+                        groundArena: ['atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Shield');
+
+                context.player2.clickCard(context.momentOfPeace);
+                context.player2.clickCard(context.atst);
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.atst);
+                expect(context.atst.damage).toBe(4);
+                expect(context.atst).toHaveExactUpgradeNames(['shield']);
+            });
+
+            it('friendly shields already in play should work as normal', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        groundArena: [{ card: 'wampa', upgrades: ['shield', 'shield'] }]
+                    },
+                    player2: {
+                        groundArena: ['atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Shield');
+
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.wampa).toHaveExactUpgradeNames(['shield']);
+            });
+
+            it('friendly shields created afterwards should have work as normal', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win', 'moment-of-peace'],
+                        groundArena: ['wampa']
+                    },
+                    player2: {
+                        groundArena: ['atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Shield');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.momentOfPeace);
+                context.player1.clickCard(context.wampa);
+
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.wampa.isUpgraded()).toBeFalse();
+            });
+        });
     });
 });
