@@ -6,7 +6,7 @@ import { AbilityRestriction } from '../../../core/Constants';
 export default class DrydenVosIGetAllWorkedUp extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'dryden-vos#i-get-all-worked-up-id',
+            id: '8544724262',
             internalName: 'dryden-vos#i-get-all-worked-up',
         };
     }

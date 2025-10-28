@@ -6,7 +6,7 @@ import { Trait, WildcardCardType } from '../../../core/Constants';
 export default class ContemptForCulture extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'contempt-for-culture-id',
+            id: '8056594889',
             internalName: 'contempt-for-culture',
         };
     }

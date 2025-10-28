@@ -8,7 +8,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class TheGalleonMaraudingPirateShip extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-galleon#marauding-pirate-ship-id',
+            id: '8897596897',
             internalName: 'the-galleon#marauding-pirate-ship',
         };
     }

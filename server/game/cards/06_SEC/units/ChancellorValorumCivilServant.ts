@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class ChancellorValorumCivilServant extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'chancellor-valorum#civil-servant-id',
+            id: '4883643256',
             internalName: 'chancellor-valorum#civil-servant',
         };
     }

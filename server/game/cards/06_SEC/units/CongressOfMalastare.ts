@@ -12,7 +12,7 @@ export default class CongressOfMalastare extends NonLeaderUnitCard {
 
     protected override getImplementationId () {
         return {
-            id: 'congress-of-malastare-id',
+            id: '1629192496',
             internalName: 'congress-of-malastare',
         };
     }

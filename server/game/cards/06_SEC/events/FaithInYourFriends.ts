@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class FaithInYourFriends extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'faith-in-your-friends-id',
+            id: '3851348876',
             internalName: 'faith-in-your-friends',
         };
     }

@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class NemiksManifesto extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'nemiks-manifesto-id',
+            id: '9242248347',
             internalName: 'nemiks-manifesto',
         };
     }
