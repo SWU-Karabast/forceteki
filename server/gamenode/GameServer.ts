@@ -199,6 +199,9 @@ export class GameServer {
         });
 
         this.setupAppRoutes(app);
+        if (process.env.ENVIRONMENT === 'development') {
+            this.setupDevAppRoutes(app);
+        }
         app.use((err, req, res, _next) => {
             logger.error('GameServer: Error in API route:', err);
             res.status(err.status || 500).json({
@@ -973,21 +976,7 @@ export class GameServer {
         // Cosmetics API endpoints
         app.get('/api/cosmetics', async (req, res, next) => {
             try {
-                let cosmetics = await this.cosmeticsService.getCosmeticsAsync();
-
-                if (cosmetics.length === 0) {
-                    try {
-                        // Load fallback cosmetics from file
-                        const fallbackCosmetics = await getFallbackCosmetics(logger);
-                        await this.cosmeticsService.initializeCosmeticsAsync(fallbackCosmetics);
-                        cosmetics = fallbackCosmetics;
-                        logger.info('Initialized cosmetics database with fallback data');
-                    } catch (initError) {
-                        logger.error('Failed to initialize cosmetics with fallback data:', initError);
-                        // Return empty array if initialization fails
-                        cosmetics = [];
-                    }
-                }
+                const cosmetics = await this.cosmeticsService.getCosmeticsAsync();
 
                 return res.status(200).json({
                     success: true,
@@ -1062,19 +1051,13 @@ export class GameServer {
                 next(error);
             }
         });
+    }
 
-        // Cleanup endpoints for development use only
-        app.delete('/api/cosmetics/cleanup/all', authMiddleware('admin-cosmetics'), async (req, res, next) => {
+    // dev only endpoints
+    private setupDevAppRoutes(app: express.Application) {
+        // deletes all cosmetics from the database
+        app.delete('/api/cosmetics', authMiddleware('admin-cosmetics'), async (req, res, next) => {
             try {
-                if (process.env.ENVIRONMENT !== 'development') {
-                    return res.status(404).json({
-                        success: false,
-                        error: 'Not found'
-                    });
-                }
-
-                const user = req.user;
-
                 const result = await this.cosmeticsService.clearAllCosmeticsAsync();
                 return res.status(200).json({
                     success: true,
@@ -1086,16 +1069,9 @@ export class GameServer {
             }
         });
 
-        app.delete('/api/cosmetics/cleanup/reset', authMiddleware('admin-cosmetics'), async (req, res, next) => {
+        // resets cosmetics to the default set from file
+        app.post('/api/cosmetics-reset', authMiddleware('admin-cosmetics'), async (req, res, next) => {
             try {
-                if (process.env.ENVIRONMENT !== 'development') {
-                    return res.status(404).json({
-                        success: false,
-                        error: 'Not found'
-                    });
-                }
-                const user = req.user;
-                // Load fallback cosmetics from file
                 const fallbackCosmetics = await getFallbackCosmetics(logger);
                 const result = await this.cosmeticsService.resetCosmeticsAsync(fallbackCosmetics);
                 return res.status(200).json({

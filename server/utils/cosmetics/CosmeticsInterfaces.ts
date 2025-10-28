@@ -1,20 +1,13 @@
-export enum CosmeticType {
+export enum RegisteredCosmeticType {
     Cardback = 'cardback',
     Background = 'background',
     Playmat = 'playmat'
 }
 
-export interface CosmeticOption {
+export interface IRegisteredCosmeticOption {
     id: string;
     title: string;
-    type: CosmeticType;
+    type: RegisteredCosmeticType;
     path: string;
-    darkened?: boolean; // Only applicable for backgrounds
+    darkened?: boolean;
 }
-
-export interface Cosmetics {
-    cardbacks: CosmeticOption[];
-    backgrounds: CosmeticOption[];
-    playmats: CosmeticOption[];
-}
-

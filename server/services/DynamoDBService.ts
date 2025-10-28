@@ -14,7 +14,8 @@ import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity, UserPre
 import { z } from 'zod';
 import { iDeckDataEntitySchema, iDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
-import { type CosmeticOption, type CosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
+import { type IRegisteredCosmeticOption, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
+import { getFallbackCosmetics } from '../utils/cosmetics/cosmeticUtil';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -633,21 +634,33 @@ class DynamoDBService {
         }, 'Error updating user preferences');
     }
 
-    // Cosmetics Methods
-    public getCosmeticsAsync(): Promise<CosmeticOption[]> {
+    // Registered Cosmetics Methods
+    public getCosmeticsAsync(): Promise<IRegisteredCosmeticOption[]> {
         return this.executeDbOperationAsync(async () => {
             const result = await this.queryItemsAsync('COSMETICS', { beginsWith: 'ITEM#' });
+            if (result.Items.length === 0) {
+                try {
+                    const fallbackCosmetics = await getFallbackCosmetics(logger);
+                    await this.initializeCosmeticsAsync(fallbackCosmetics);
+
+                    logger.info('Initialized cosmetics database with fallback data');
+
+                    return fallbackCosmetics;
+                } catch (initError) {
+                    logger.error('Failed to initialize cosmetics with fallback data:', initError);
+                }
+            }
             return (result.Items || []).map((item) => ({
                 id: item.id as string,
                 title: item.title as string,
-                type: item.type as CosmeticType,
+                type: item.type as RegisteredCosmeticType,
                 path: item.path as string,
                 darkened: item.darkened as boolean | undefined
             }));
         }, 'Error getting cosmetics data');
     }
 
-    public saveCosmeticAsync(cosmeticData: CosmeticOption) {
+    public saveCosmeticAsync(cosmeticData: IRegisteredCosmeticOption) {
         return this.executeDbOperationAsync(() => {
             const item = {
                 pk: 'COSMETICS',
@@ -660,7 +673,7 @@ class DynamoDBService {
         }, 'Error saving cosmetic item');
     }
 
-    public initializeCosmeticsAsync(cosmetics: CosmeticOption[]) {
+    public initializeCosmeticsAsync(cosmetics: IRegisteredCosmeticOption[]) {
         return this.executeDbOperationAsync(async () => {
             const savePromises = cosmetics.map((cosmetic) => this.saveCosmeticAsync(cosmetic));
             await Promise.all(savePromises);

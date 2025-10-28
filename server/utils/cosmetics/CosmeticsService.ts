@@ -1,5 +1,5 @@
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
-import { type CosmeticOption } from './CosmeticsInterfaces';
+import { type IRegisteredCosmeticOption } from './CosmeticsInterfaces';
 
 
 export class CosmeticsService {
@@ -10,12 +10,12 @@ export class CosmeticsService {
         return dbService.getCosmeticsAsync();
     }
 
-    public async initializeCosmeticsAsync(cosmetics: CosmeticOption[]) {
+    public async initializeCosmeticsAsync(cosmetics: IRegisteredCosmeticOption[]) {
         const dbService = await this.dbServicePromise;
         return dbService.initializeCosmeticsAsync(cosmetics);
     }
 
-    public async saveCosmeticAsync(cosmeticData: CosmeticOption) {
+    public async saveCosmeticAsync(cosmeticData: IRegisteredCosmeticOption) {
         const dbService = await this.dbServicePromise;
         return dbService.saveCosmeticAsync(cosmeticData);
     }
@@ -31,7 +31,7 @@ export class CosmeticsService {
         return dbService.clearAllCosmeticsAsync();
     }
 
-    public async resetCosmeticsAsync(defaultCosmetics: CosmeticOption[]) {
+    public async resetCosmeticsAsync(defaultCosmetics: IRegisteredCosmeticOption[]) {
         const dbService = await this.dbServicePromise;
         const deletedResult = await dbService.clearAllCosmeticsAsync();
         const initializedResult = await dbService.initializeCosmeticsAsync(defaultCosmetics);
