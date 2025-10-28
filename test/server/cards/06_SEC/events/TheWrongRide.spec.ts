@@ -85,8 +85,9 @@ describe('The Wrong Ride', function () {
             context.player2.clickCard(context.resupply);
 
             context.player1.clickCard(context.theWrongRide);
-            expect(context.player1).toHavePrompt('Playing The Wrong Ride will have no effect. Are you sure you want to play it?');
-            context.player1.clickPrompt('Cancel');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.theWrongRide).toBeInZone('discard', context.player1);
         });
 
         it('The Wrong Ride\'s ability should exhaust 2 enemy resources when played with plot', async function () {
