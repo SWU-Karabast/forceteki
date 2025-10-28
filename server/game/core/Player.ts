@@ -1410,14 +1410,14 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             const groundArenaCards = this.game.groundArena.getCards({ controller: this });
             if (groundArenaCards.length > 0) {
                 state.groundArena = groundArenaCards
-                    .filter((card) => !card.isLeaderUnit())
+                    .filter((card) => !card.isLeaderUnit() && !card.isAttached())
                     .map((card) => Helpers.safeSerialize(this.game, () => card.captureCardState(), card.internalName));
             }
             // Space arena units
             const spaceArenaCards = this.game.spaceArena.getCards({ controller: this });
             if (spaceArenaCards.length > 0) {
                 state.spaceArena = spaceArenaCards
-                    .filter((card) => !card.isLeaderUnit())
+                    .filter((card) => !card.isLeaderUnit() && !card.isAttached())
                     .map((card) => Helpers.safeSerialize(this.game, () => card.captureCardState(), card.internalName));
             }
             // Discard pile
