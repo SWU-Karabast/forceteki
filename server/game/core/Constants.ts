@@ -480,7 +480,7 @@ export enum AbilityRestriction {
 }
 
 export enum DamageModificationType {
-    All = 'all',
+    PreventAll = 'all',
     Increase = 'increase',
     Reduce = 'reduce',
     Replace = 'replace'

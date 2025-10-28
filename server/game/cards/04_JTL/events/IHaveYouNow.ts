@@ -19,7 +19,7 @@ export default class IHaveYouNow extends EventCard {
                 attackerLastingEffects: [{ effect: AbilityHelper.ongoingEffects.gainAbility({
                     title: 'Prevent all damage that would be dealt to it during this attack',
                     type: AbilityType.DamageModification,
-                    modificationType: DamageModificationType.All
+                    modificationType: DamageModificationType.PreventAll
                 }) }]
             }
         });

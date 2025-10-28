@@ -35,7 +35,7 @@ export class DamageModificationSystem<
             }
 
             switch (properties.modificationType) {
-                case DamageModificationType.All:
+                case DamageModificationType.PreventAll:
                     return {
                         format: 'prevent all damage to {0}',
                         args: [this.getTargetMessage(context.source, context)],
@@ -73,7 +73,7 @@ export class DamageModificationSystem<
         }
 
         switch (properties.modificationType) {
-            case DamageModificationType.All:
+            case DamageModificationType.PreventAll:
                 return null;
             case DamageModificationType.Reduce:
                 Contract.assertPositiveNonZero(properties.amount, `preventionAmount must be a positive non-zero number for DamageModificationType.Reduce. Found: ${properties.amount}`);

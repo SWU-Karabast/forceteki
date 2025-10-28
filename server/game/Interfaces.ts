@@ -194,7 +194,7 @@ export type IConstantAbilityPropsWithType<TSource extends Card = Card> = IConsta
     type: AbilityType.Constant;
 };
 
-export type IReplacementEffectAbilityPropsWithType<TSource extends Card = Card> = IReplacementEffectAbilityProps<TSource> & {
+export type IReplacementEffectAbilityPropsWithType<TSource extends Card = Card> = Omit<IReplacementEffectAbilityProps<TSource>, 'type'> & {
     type: AbilityType.ReplacementEffect;
 };
 

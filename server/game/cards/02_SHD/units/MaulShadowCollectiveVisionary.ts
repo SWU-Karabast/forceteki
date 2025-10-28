@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, DamageModificationType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { DamageModificationType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
@@ -27,7 +27,6 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
                         target: maulContext.source,
                         effect: AbilityHelper.ongoingEffects.gainDamageModificationAbility({
                             title: 'Redirect combat damage to another Underworld unit',
-                            type: AbilityType.DamageModification,
                             modificationType: DamageModificationType.Replace,
                             damageOfType: DamageSourceType.Attack,
                             replaceWithEffect: AbilityHelper.immediateEffects.combatDamage((damageContext) => ({

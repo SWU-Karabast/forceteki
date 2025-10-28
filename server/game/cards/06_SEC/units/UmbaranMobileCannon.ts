@@ -14,7 +14,7 @@ export default class UmbaranMobileCannon extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addDamageModificationAbility({
             title: 'The first time this unit would take damage each phase, prevent that damage',
-            modificationType: DamageModificationType.All,
+            modificationType: DamageModificationType.PreventAll,
             limit: abilityHelper.limit.perPhase(1)
         });
     }
