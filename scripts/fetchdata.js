@@ -328,6 +328,7 @@ function getCardData(page, progressBar) {
 function buildCardLists(cards) {
     const cardMap = [];
     const setCodeMap = {};
+    const allNonLeaderCardTitlesSet = new Set();
     const playableCardTitlesSet = new Set();
     const seenNames = [];
     const leaderNames = [];
@@ -374,8 +375,12 @@ function buildCardLists(cards) {
         seenNames.push(card.internalName);
         cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle, cost: card.cost });
 
-        if (!card.types.includes('token') && !card.types.includes('leader') && !card.types.includes('base')) {
-            playableCardTitlesSet.add(card.title);
+        if (!card.types.includes('leader')) {
+            allNonLeaderCardTitlesSet.add(card.title);
+
+            if (!card.types.includes('token') && !card.types.includes('base')) {
+                playableCardTitlesSet.add(card.title);
+            }
         }
 
         uniqueCardsMap.set(card.internalName, card);
@@ -386,11 +391,14 @@ function buildCardLists(cards) {
         }
     }
 
+    const allNonLeaderCardTitles = Array.from(allNonLeaderCardTitlesSet);
+    allNonLeaderCardTitles.sort();
+
     const playableCardTitles = Array.from(playableCardTitlesSet);
     playableCardTitles.sort();
 
     const uniqueCards = [...uniqueCardsMap].map(([internalName, card]) => card);
-    return { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames };
+    return { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames };
 }
 
 async function main() {
@@ -429,7 +437,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames } = buildCardLists(cards);
+    const { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames } = buildCardLists(cards);
 
     cards.map((card) => delete card.debugObject);
 
@@ -450,6 +458,7 @@ async function main() {
     // }
 
     fs.writeFile(path.join(pathToJSON, '_cardMap.json'), JSON.stringify(cardMap, null, 2));
+    fs.writeFile(path.join(pathToJSON, '_allNonLeaderCardTitles.json'), JSON.stringify(allNonLeaderCardTitles, null, 2));
     fs.writeFile(path.join(pathToJSON, '_playableCardTitles.json'), JSON.stringify(playableCardTitles, null, 2));
     fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_mockCardNames.json'), JSON.stringify(mockCardNames, null, 2));

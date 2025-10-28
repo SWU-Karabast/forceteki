@@ -1173,6 +1173,46 @@ var customMatchers = {
             }
         };
     },
+    toBeOver: function () {
+        return {
+            compare: function (game) {
+                var result = {};
+
+                result.pass = game.finishedAt != null && game.winnerNames.length > 0;
+
+                if (result.pass) {
+                    result.message = 'Expected game not to be over but it is';
+                } else {
+                    result.message = 'Expected game to be over but it is not';
+                }
+
+                return result;
+            }
+        };
+    },
+    toBeGameWinner: function () {
+        return {
+            compare: function (player) {
+                var result = {};
+
+                if (player.game.finishedAt == null || player.game.winnerNames.length === 0) {
+                    result.pass = false;
+                    result.message = 'Expected game to be over to check for a winner but it is not';
+                    return result;
+                }
+
+                result.pass = player.game.winnerNames.includes(player.name);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to be a game winner but they are`;
+                } else {
+                    result.message = `Expected ${player.name} to be a game winner but they are not. Winners: ${player.game.winnerNames.join(', ')}`;
+                }
+
+                return result;
+            }
+        };
+    },
 
     /**
      * Checks if the actual array contains at least the elements of the expected array. Required for the new UndoArray class.

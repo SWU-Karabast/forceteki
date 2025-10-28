@@ -328,6 +328,7 @@ export enum MetaEventName {
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
     GameLost = 'gameLost',
+    GameWon = 'gameWon',
     NoAction = 'noAction',
     Optional = 'optional',
     PayCardPrintedCost = 'payCardPrintedCost',
@@ -582,5 +583,5 @@ export enum GameEndReason {
 export enum Conjunction {
     And = 'and',
     Or = 'or',
-    AndOr = 'and/or'
+    AndOr = 'and/or',
 }
