@@ -6,7 +6,7 @@ import { RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName } from '
 export default class GrandAdmiralThrawnGrandSchemer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'grand-admiral-thrawn#grand-schemer-id',
+            id: '2232791747',
             internalName: 'grand-admiral-thrawn#grand-schemer',
         };
     }

@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class NalaSeChiefMedicalScientist extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'nala-se#chief-medical-scientist-id',
+            id: '0644276722',
             internalName: 'nala-se#chief-medical-scientist',
         };
     }

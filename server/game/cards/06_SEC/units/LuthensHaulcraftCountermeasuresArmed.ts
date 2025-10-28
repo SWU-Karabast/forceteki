@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class LuthensHaulcraftCountermeasuresArmed extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'luthens-haulcraft#countermeasures-armed-id',
+            id: '7243187516',
             internalName: 'luthens-haulcraft#countermeasures-armed',
         };
     }

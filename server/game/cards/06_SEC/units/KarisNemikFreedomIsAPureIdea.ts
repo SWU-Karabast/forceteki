@@ -7,7 +7,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class KarisNemikFreedomIsAPureIdea extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'karis-nemik#freedom-is-a-pure-idea-id',
+            id: '0994241595',
             internalName: 'karis-nemik#freedom-is-a-pure-idea',
         };
     }

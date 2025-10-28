@@ -7,7 +7,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class TalaDurithICanGetYouInside extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'tala-durith#i-can-get-you-inside-id',
+            id: '1369084772',
             internalName: 'tala-durith#i-can-get-you-inside'
         };
     }

@@ -5,7 +5,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 export default class ColonelYularenThisIsWhyWePlan extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'colonel-yularen#this-is-why-we-plan-id',
+            id: '2334944054',
             internalName: 'colonel-yularen#this-is-why-we-plan',
         };
     }

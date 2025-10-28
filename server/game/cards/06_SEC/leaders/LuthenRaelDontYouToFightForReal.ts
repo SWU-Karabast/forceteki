@@ -8,7 +8,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 export default class LuthenRaelDontYouToFightForReal extends LeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'luthen-rael#dont-you-want-to-fight-for-real-id',
+            id: '8780923793',
             internalName: 'luthen-rael#dont-you-want-to-fight-for-real',
         };
     }

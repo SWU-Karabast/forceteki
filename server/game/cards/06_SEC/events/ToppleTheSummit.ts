@@ -5,7 +5,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 export default class ToppleTheSummit extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'topple-the-summit-id',
+            id: '8401985446',
             internalName: 'topple-the-summit',
         };
     }

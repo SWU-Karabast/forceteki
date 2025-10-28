@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class CoronetStatelyVessel extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'coronet#stately-vessel-id',
+            id: '7898942239',
             internalName: 'coronet#stately-vessel',
         };
     }
