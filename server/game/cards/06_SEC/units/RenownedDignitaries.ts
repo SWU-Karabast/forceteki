@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class RenownedDignitaries extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'renowned-dignitaries-id',
+            id: '3914945208',
             internalName: 'renowned-dignitaries',
         };
     }

@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class BelovedOrator extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'beloved-orator-id',
+            id: '9315383504',
             internalName: 'beloved-orator',
         };
     }

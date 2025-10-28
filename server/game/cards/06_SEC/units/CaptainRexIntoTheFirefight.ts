@@ -6,7 +6,7 @@ import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Con
 export default class CaptainRexIntoTheFirefight extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'captain-rex#into-the-firefight-id',
+            id: '1768040578',
             internalName: 'captain-rex#into-the-firefight',
         };
     }

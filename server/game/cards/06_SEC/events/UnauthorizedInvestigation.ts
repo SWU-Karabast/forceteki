@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class UnauthorizedInvestigation extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'unauthorized-investigation-id',
+            id: '3260156899',
             internalName: 'unauthorized-investigation',
         };
     }

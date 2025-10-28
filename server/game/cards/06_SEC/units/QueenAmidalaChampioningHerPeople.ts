@@ -6,7 +6,7 @@ import { DamageModificationType } from '../../../core/Constants';
 export default class QueenAmidalaChampioningHerPeople extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'queen-amidala#championing-her-people-id',
+            id: '2638173987',
             internalName: 'queen-amidala#championing-her-people'
         };
     }

@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class KazudaXionoImNotASpy extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'kazuda-xiono#im-not-a-spy-id',
+            id: '4297412862',
             internalName: 'kazuda-xiono#im-not-a-spy',
         };
     }

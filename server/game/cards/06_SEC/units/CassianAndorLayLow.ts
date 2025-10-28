@@ -7,7 +7,7 @@ import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 export default class CassianAndorLayLow extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'cassian-andor#lay-low-id',
+            id: '5613349384',
             internalName: 'cassian-andor#lay-low',
         };
     }

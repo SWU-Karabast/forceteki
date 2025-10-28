@@ -7,7 +7,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 export default class RestoreFreedom extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'restore-freedom-id',
+            id: '0192246543',
             internalName: 'restore-freedom',
         };
     }

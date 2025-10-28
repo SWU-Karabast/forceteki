@@ -5,11 +5,19 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['mandalorian-warrior', 'battlefield-marine'],
                         leader: 'bokatan-kryze#princess-in-exile',
-                        resources: 4 // making leader undeployable makes testing the activated ability's condition smoother
+                        resources: 4, // making leader undeployable makes testing the activated ability's condition smoother
+                        groundArena: [
+                            'mandalorian-warrior',
+                            'battlefield-marine',
+                            {
+                                card: 'crafty-smuggler',
+                                upgrades: ['foundling']
+                            }
+                        ],
                     },
                     player2: {
+                        hand: ['confiscate'],
                         groundArena: ['protector-of-the-throne'],
                         spaceArena: ['alliance-xwing'],
                     }
@@ -61,12 +69,33 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 // attack was done with mandalorian, ability should have an effect
                 context.player2.passAction();
                 context.player1.clickCard(context.bokatanKryze);
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.protectorOfTheThrone, context.allianceXwing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.protectorOfTheThrone, context.allianceXwing, context.craftySmuggler]);
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.allianceXwing);
                 expect(context.protectorOfTheThrone.damage).toBe(0);
                 expect(context.allianceXwing.damage).toBe(1);
                 expect(context.bokatanKryze.exhausted).toBeTrue();
+            });
+
+            it('should count units that had the Mandalorian trait when they attacked even if they no longer have it', function () {
+                const { context } = contextRef;
+
+                // P1 attacks with crafty smuggler
+                context.player1.clickCard(context.craftySmuggler);
+                context.player1.clickCard(context.p2Base);
+
+                // P2 plays Confiscate to remove Foundling from Crafty Smuggler
+                context.player2.clickCard(context.confiscate);
+                context.player2.clickCard(context.foundling);
+
+                // P1 uses bo katan's ability
+                context.player1.clickCard(context.bokatanKryze);
+                expect(context.player1).toHavePrompt('If you attacked with a Mandalorian unit this phase, deal 1 damage to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.protectorOfTheThrone, context.allianceXwing, context.craftySmuggler]);
+                context.player1.clickCard(context.protectorOfTheThrone);
+                expect(context.protectorOfTheThrone.damage).toBe(1);
+                expect(context.bokatanKryze.exhausted).toBeTrue();
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
@@ -75,10 +104,18 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['mandalorian-warrior', 'battlefield-marine'],
                         leader: { card: 'bokatan-kryze#princess-in-exile', deployed: true },
+                        groundArena: [
+                            'mandalorian-warrior',
+                            'battlefield-marine',
+                            {
+                                card: 'crafty-smuggler',
+                                upgrades: ['foundling']
+                            }
+                        ],
                     },
                     player2: {
+                        hand: ['confiscate'],
                         groundArena: ['protector-of-the-throne', 'jedha-agitator'],
                         spaceArena: ['alliance-xwing'],
                     }
@@ -91,7 +128,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 // first attack : only 1 damage
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator, context.craftySmuggler]);
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.protectorOfTheThrone);
                 expect(context.p2Base.damage).toBe(4);
@@ -103,7 +140,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator, context.craftySmuggler]);
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.bokatanKryze);
                 expect(context.player2).toBeActivePlayer();
@@ -116,7 +153,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 context.readyCard(context.bokatanKryze);
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator, context.craftySmuggler]);
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.bokatanKryze);
                 expect(context.player2).toBeActivePlayer();
@@ -131,11 +168,11 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 // 2 triggers as we attack with another mandalorian (1 damage to 2 different unit)
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator, context.craftySmuggler]);
                 expect(context.player1).toHaveChooseNothingButton();
                 // prompt does not change between 2 effects of bo katan ability
                 context.player1.clickCardNonChecking(context.protectorOfTheThrone);
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator, context.craftySmuggler]);
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.allianceXwing);
                 expect(context.allianceXwing.damage).toBe(1);
@@ -148,11 +185,11 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator, context.craftySmuggler]);
                 expect(context.player1).toHaveChooseNothingButton();
                 // prompt does not change between 2 effects of bo katan ability
                 context.player1.clickCardNonChecking(context.battlefieldMarine);
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator, context.craftySmuggler]);
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.damage).toBe(2);
@@ -162,11 +199,11 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator, context.craftySmuggler]);
                 expect(context.player1).toHaveChooseNothingButton();
                 // prompt does not change between 2 effects of bo katan ability
                 context.player1.clickCard(context.jedhaAgitator);
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.craftySmuggler]);
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.bokatanKryze);
                 expect(context.jedhaAgitator.zoneName).toBe('discard');
@@ -177,11 +214,11 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.craftySmuggler]);
                 expect(context.player1).toHaveChooseNothingButton();
                 // prompt does not change between 2 effects of bo katan ability
                 context.player1.clickPrompt('Choose nothing');
-                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.craftySmuggler]);
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.bokatanKryze);
                 expect(context.player2).toBeActivePlayer();
@@ -207,7 +244,8 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                     context.bokatanKryze,
                     context.protectorOfTheThrone,
                     context.allianceXwing,
-                    context.jedhaAgitator
+                    context.jedhaAgitator,
+                    context.craftySmuggler
                 ]);
                 context.player1.clickCard(context.jedhaAgitator);
                 expect(context.jedhaAgitator).toBeInZone('discard');
@@ -219,7 +257,8 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                     context.battlefieldMarine,
                     context.bokatanKryze,
                     context.protectorOfTheThrone,
-                    context.allianceXwing
+                    context.allianceXwing,
+                    context.craftySmuggler
                 ]);
                 context.player1.clickPrompt('Choose nothing');
 
@@ -229,6 +268,33 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.bokatanKryze.damage).toBe(0);
                 expect(context.protectorOfTheThrone.damage).toBe(0);
                 expect(context.allianceXwing.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should count units that had the Mandalorian trait when they attacked even if they no longer have it', function () {
+                const { context } = contextRef;
+
+                // P1 attacks with crafty smuggler
+                context.player1.clickCard(context.craftySmuggler);
+                context.player1.clickCard(context.p2Base);
+
+                // P2 plays Confiscate to remove Foundling from Crafty Smuggler
+                context.player2.clickCard(context.confiscate);
+                context.player2.clickCard(context.foundling);
+
+                // P1 attacks with Bo-Katan to activate her ability
+                context.player1.clickCard(context.bokatanKryze);
+                context.player1.clickCard(context.p2Base);
+
+                // First damage prompt
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator, context.craftySmuggler]);
+                context.player1.clickCardNonChecking(context.protectorOfTheThrone);
+                expect(context.protectorOfTheThrone.damage).toBe(1);
+
+                // Second damage prompt
+                expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator, context.craftySmuggler]);
+                context.player1.clickCard(context.allianceXwing);
+                expect(context.allianceXwing.damage).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
         });

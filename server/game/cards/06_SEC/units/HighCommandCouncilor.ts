@@ -6,7 +6,7 @@ import { KeywordName, Trait } from '../../../core/Constants';
 export default class HighCommandCouncilor extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'high-command-councilor-id',
+            id: '9716623420',
             internalName: 'high-command-councilor',
         };
     }

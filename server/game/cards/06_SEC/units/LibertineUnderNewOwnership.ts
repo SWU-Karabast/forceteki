@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../cor
 export default class LibertineUnderNewOwnership extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'libertine#under-new-ownership-id',
+            id: '9716433103',
             internalName: 'libertine#under-new-ownership',
         };
     }

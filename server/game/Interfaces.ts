@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType } from './core/Constants';
+import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, Trait } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
@@ -31,6 +31,7 @@ import type { ISnapshotSettingsBase } from './core/snapshot/SnapshotInterfaces';
 import type { Lobby } from '../gamenode/Lobby';
 import type { DamageSourceType } from './IDamageOrDefeatSource';
 import type { IInPlayCard } from './core/card/baseClasses/InPlayCard';
+import type { IOngoingAllCardsForPlayerEffectProps, OngoingAllCardsForPlayerEffect } from './core/ongoingEffect/OngoingAllCardsForPlayerEffect';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -302,6 +303,7 @@ export type IOngoingCardOrPlayerEffectGenerator<TTarget extends Card | Player> =
 export type IOngoingCardEffectGenerator = IOngoingCardOrPlayerEffectGenerator<Card>;
 export type IOngoingPlayerEffectGenerator = IOngoingCardOrPlayerEffectGenerator<Player>;
 export type IOngoingEffectGenerator = IOngoingCardEffectGenerator | IOngoingPlayerEffectGenerator;
+export type IOngoingAllCardsForPlayerEffectGenerator = (game: Game, source: Card, props: IOngoingAllCardsForPlayerEffectProps) => OngoingAllCardsForPlayerEffect;
 
 export type IOngoingEffectFactory<TTarget> = IOngoingEffectProps<TTarget> & {
     ongoingEffect: any; // IOngoingEffectGenerator | IOngoingEffectGenerator[]
@@ -555,3 +557,8 @@ export type NumericKeywordName =
   | KeywordName.Raid
   | KeywordName.Restore
   | KeywordName.Exploit;
+
+export interface ICardAttributes {
+    // TODO: Add more attributes as needed
+    traits: Set<Trait>;
+}

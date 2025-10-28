@@ -6,7 +6,7 @@ import { TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants'
 export default class AATIncinerator extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'aat-incinerator-id',
+            id: '6702516903',
             internalName: 'aat-incinerator',
         };
     }

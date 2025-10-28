@@ -6,7 +6,7 @@ import { KeywordName, WildcardCardType } from '../../../core/Constants';
 export default class PunishingOneTakesNoPrisoners extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'punishing-one#takes-no-prisoners-id',
+            id: '6096782465',
             internalName: 'punishing-one#takes-no-prisoners',
         };
     }

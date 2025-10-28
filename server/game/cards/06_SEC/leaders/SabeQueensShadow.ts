@@ -9,7 +9,7 @@ import { DamageType } from '../../../core/Constants';
 export default class SabeQueensShadow extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sabe#queens-shadow-id',
+            id: '0316612761',
             internalName: 'sabe#queens-shadow'
         };
     }

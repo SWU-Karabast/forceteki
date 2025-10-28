@@ -10,11 +10,9 @@ export class KeywordInstance {
     private readonly card: Card;
 
     public get isBlank() {
-        if (EnumHelpers.isHiddenFromOpponent(this.card.zoneName, RelativePlayer.Self) && this.hasCostValue()) {
-            return false;
-        }
+        const isOutOfPlay = EnumHelpers.isHiddenFromOpponent(this.card.zoneName, RelativePlayer.Self) && this.hasCostValue();
 
-        return this.card.hasKeywordRemoved(this.name);
+        return this.card.hasKeywordRemoved(this.name, isOutOfPlay);
     }
 
     /*

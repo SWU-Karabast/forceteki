@@ -7,7 +7,7 @@ import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 export default class TheMandalorianCleaningUpNevarro extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-mandalorian#cleaning-up-nevarro-id',
+            id: '7522568119',
             internalName: 'the-mandalorian#cleaning-up-nevarro',
         };
     }

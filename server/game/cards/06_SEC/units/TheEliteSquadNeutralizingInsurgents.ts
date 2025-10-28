@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class TheEliteSquadNeutralizingInsurgents extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-elite-squad#neutralizing-insurgents-id',
+            id: '2221908324',
             internalName: 'the-elite-squad#neutralizing-insurgents',
         };
     }

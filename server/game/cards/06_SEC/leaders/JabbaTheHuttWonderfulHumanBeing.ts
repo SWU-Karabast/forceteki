@@ -9,7 +9,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class JabbaTheHuttWonderfulHumanBeing extends LeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'jabba-the-hutt#wonderful-human-being-id',
+            id: '7937866555',
             internalName: 'jabba-the-hutt#wonderful-human-being'
         };
     }

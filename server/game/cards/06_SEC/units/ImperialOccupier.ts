@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class ImperialOccupier extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'imperial-occupier-id',
+            id: '0874389236',
             internalName: 'imperial-occupier',
         };
     }
