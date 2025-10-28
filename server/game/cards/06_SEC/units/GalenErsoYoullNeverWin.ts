@@ -7,7 +7,7 @@ import { AllCardsTargetMode } from '../../../core/ongoingEffect/OngoingAllCardsF
 export default class GalenErsoYoullNeverWin extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'galen-erso#youll-never-win-id',
+            id: '2792329893',
             internalName: 'galen-erso#youll-never-win',
         };
     }

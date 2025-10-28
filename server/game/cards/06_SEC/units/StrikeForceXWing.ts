@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class StrikeForceXWing extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'strike-force-xwing-id',
+            id: '1501441701',
             internalName: 'strike-force-xwing',
         };
     }

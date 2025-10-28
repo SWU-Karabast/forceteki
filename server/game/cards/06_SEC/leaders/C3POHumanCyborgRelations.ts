@@ -9,7 +9,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class C3POHumanCyborgRelations extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'c3po#humancyborg-relations-id',
+            id: '8365538125',
             internalName: 'c3po#humancyborg-relations',
         };
     }

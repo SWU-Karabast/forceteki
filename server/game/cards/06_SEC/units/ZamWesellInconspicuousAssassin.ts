@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class ZamWesellInconspicuousAssassin extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'zam-wesell#inconspicuous-assassin-id',
+            id: '4825308717',
             internalName: 'zam-wesell#inconspicuous-assassin',
         };
     }

@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class TradeFederationDelegates extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'trade-federation-delegates-id',
+            id: '2466259309',
             internalName: 'trade-federation-delegates',
         };
     }

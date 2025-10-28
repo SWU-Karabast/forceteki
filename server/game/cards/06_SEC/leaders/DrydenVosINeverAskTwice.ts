@@ -10,7 +10,7 @@ import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSys
 export default class DrydenVosINeverAskTwice extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'dryden-vos#i-never-ask-twice-id',
+            id: '1988563155',
             internalName: 'dryden-vos#i-never-ask-twice',
         };
     }

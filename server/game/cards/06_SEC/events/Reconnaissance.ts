@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class Reconnaissance extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'reconnaissance-id',
+            id: '7947982615',
             internalName: 'reconnaissance',
         };
     }

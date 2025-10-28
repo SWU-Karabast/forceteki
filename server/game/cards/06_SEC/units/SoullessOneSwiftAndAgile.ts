@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class SoullessOneSwiftAndAgile extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'soulless-one#swift-and-agile-id',
+            id: '3595837658',
             internalName: 'soulless-one#swift-and-agile',
         };
     }

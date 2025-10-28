@@ -4,7 +4,7 @@ describe('Director Krennic, I Lose Nothing But Time', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['director-krennic#i-lose-nothing-but-me'],
+                    groundArena: ['director-krennic#i-lose-nothing-but-time'],
                     deck: ['battlefield-marine'],
                 },
                 player2: {
@@ -29,7 +29,7 @@ describe('Director Krennic, I Lose Nothing But Time', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['director-krennic#i-lose-nothing-but-me'],
+                    groundArena: ['director-krennic#i-lose-nothing-but-time'],
                     deck: ['protector'],
                 },
                 player2: {
@@ -51,7 +51,7 @@ describe('Director Krennic, I Lose Nothing But Time', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['director-krennic#i-lose-nothing-but-me'],
+                    groundArena: ['director-krennic#i-lose-nothing-but-time'],
                     deck: ['resupply'],
                 },
                 player2: {
@@ -73,7 +73,7 @@ describe('Director Krennic, I Lose Nothing But Time', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['director-krennic#i-lose-nothing-but-me'],
+                    groundArena: ['director-krennic#i-lose-nothing-but-time'],
                     deck: [],
                 },
                 player2: {
