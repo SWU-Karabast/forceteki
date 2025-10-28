@@ -100,7 +100,15 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         this.context.stage = Stage.PreTarget;
 
-        if (this.context.ability.meetsRequirements(this.context, this.ignoredRequirements, true) !== '') {
+        const blockedRequirements = this.context.ability.meetsRequirements(
+            this.context,
+            {
+                ignoredRequirements: this.ignoredRequirements,
+                thisStepOnly: true
+            }
+        );
+
+        if (blockedRequirements !== '') {
             this.cancelled = true;
             this.resolutionComplete = true;
             return;

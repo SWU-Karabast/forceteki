@@ -13,6 +13,7 @@ import * as Contract from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';
 import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
+import type { IMeetsRequirementsProperties } from './PlayerOrCardAbility';
 import type Game from '../Game';
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
@@ -144,21 +145,21 @@ export abstract class PlayCardAction extends PlayerAction {
 
     public abstract clone(overrideProperties: Partial<IPlayCardActionProperties>): PlayCardAction;
 
-    public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
+    public override meetsRequirements(context = this.createContext(), props: IMeetsRequirementsProperties = {}): string {
         if (
-            !ignoredRequirements.includes('phase') &&
+            !props.ignoredRequirements?.includes('phase') &&
             context.game.currentPhase !== PhaseName.Action
         ) {
             return 'phase';
         }
         if (
-            !ignoredRequirements.includes('zone') && !this.canPlayFromAnyZone &&
+            !props.ignoredRequirements?.includes('zone') && !this.canPlayFromAnyZone &&
             !context.player.isCardInPlayableZone(context.source, this.playType)
         ) {
             return 'zone';
         }
         if (
-            !ignoredRequirements.includes('cannotTrigger') &&
+            !props.ignoredRequirements?.includes('cannotTrigger') &&
             !context.source.canPlay(context, this.playType)
         ) {
             return 'cannotTrigger';
@@ -172,7 +173,7 @@ export abstract class PlayCardAction extends PlayerAction {
         if (PlayType.Smuggle === this.playType && !context.source.hasSomeKeyword(KeywordName.Smuggle)) {
             return 'smuggleKeyword';
         }
-        return super.meetsRequirements(context, ignoredRequirements);
+        return super.meetsRequirements(context, props);
     }
 
     public override getContextProperties(player: Player, event: any) {

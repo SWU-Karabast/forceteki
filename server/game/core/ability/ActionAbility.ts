@@ -6,6 +6,7 @@ import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
 import type { ITargetResult } from './abilityTargets/TargetResolver.js';
 import * as Contract from '../utils/Contract';
+import type { IMeetsRequirementsProperties } from './PlayerOrCardAbility';
 
 /**
  * Represents an action ability provided by card text.
@@ -52,20 +53,20 @@ export class ActionAbility extends CardAbility {
         Contract.assertTrue(card.canRegisterActionAbilities(), `Card '${card.internalName}' cannot have action abilities`);
     }
 
-    public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = [], thisStepOnly = false) {
-        if (!ignoredRequirements.includes('zone') && !this.isInValidZone(context)) {
+    public override meetsRequirements(context: AbilityContext = this.createContext(), props: IMeetsRequirementsProperties = {}): string {
+        if (!props.ignoredRequirements?.includes('zone') && !this.isInValidZone(context)) {
             return 'zone';
         }
 
-        if (!ignoredRequirements.includes('phase') && this.phase !== 'any' && this.phase !== this.game.currentPhase) {
+        if (!props.ignoredRequirements?.includes('phase') && this.phase !== 'any' && this.phase !== this.game.currentPhase) {
             return 'phase';
         }
 
-        if (!ignoredRequirements.includes('condition') && this.condition && !this.condition(context)) {
+        if (!props.ignoredRequirements?.includes('condition') && this.condition && !this.condition(context)) {
             return 'condition';
         }
 
-        return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
+        return super.meetsRequirements(context, props);
     }
 
     public override resolveEarlyTargets(context: AbilityContext, passHandler?: any, canCancel: boolean = false): ITargetResult {
@@ -76,11 +77,19 @@ export class ActionAbility extends CardAbility {
                 return;
             }
 
-            const requirements = this.meetsRequirements(context, [], true);
+            const requirements = this.meetsRequirements(
+                context,
+                {
+                    ignoredRequirements: [],
+                    thisStepOnly: true
+                }
+            );
 
             // We consider the action ability to have an effect if it meets the requirements and it has no costs or a legal effect.
             // Otherwise, we prompt the player to confirm that they didn't trigger it by mistake.
-            if (requirements === '' && ((this.getCosts(context).length === 0 && !this.isEpicAction) || this.hasAnyLegalEffects(context, SubStepCheck.ThenIfYouDo))) {
+            if (requirements === '' && (
+                (this.getCosts(context).length === 0 && !this.isEpicAction) || this.hasAnyLegalEffects(context, { includeSubSteps: SubStepCheck.ThenIfYouDo })
+            )) {
                 return;
             }
 

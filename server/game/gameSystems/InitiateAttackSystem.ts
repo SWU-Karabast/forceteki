@@ -63,7 +63,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         const attackAbility = this.generateAttackAbilityNoTarget(card, properties, context.source);
         const newContext = attackAbility.createContext(context.player);
 
-        return !attackAbility.meetsRequirements(newContext, properties.ignoredRequirements) &&
+        return !attackAbility.meetsRequirements(newContext, { ignoredRequirements: properties.ignoredRequirements }) &&
           attackAbility.hasSomeLegalTarget(newContext);
     }
 

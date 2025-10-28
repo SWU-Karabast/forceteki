@@ -152,7 +152,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             const newContext = action.createContext(context.player);
             return this.checkActionPlayType(properties.playType, action.playType) &&
               this.checkActionPlayAsType(card, action.playType, properties.playAsType, action) &&
-              action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
+              action.meetsRequirements(newContext, { ignoredRequirements: properties.ignoredRequirements }) === '';
         });
     }
 

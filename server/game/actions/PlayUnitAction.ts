@@ -8,6 +8,7 @@ import type Game from '../core/Game.js';
 import type { FormatMessage } from '../core/chat/GameChat.js';
 import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
+import type { IMeetsRequirementsProperties } from '../core/ability/PlayerOrCardAbility.js';
 
 export type IPlayUnitActionProperties = IPlayCardActionProperties & {
     entersReady?: boolean;
@@ -62,7 +63,7 @@ export class PlayUnitAction extends PlayCardAction {
         return new PlayUnitAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
-    public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
+    public override meetsRequirements(context = this.createContext(), props: IMeetsRequirementsProperties = {}): string {
         if (
             context.player.hasRestriction(AbilityRestriction.PlayUnit, context) ||
             context.player.hasRestriction(AbilityRestriction.PutIntoPlay, context) ||
@@ -70,6 +71,6 @@ export class PlayUnitAction extends PlayCardAction {
         ) {
             return 'restriction';
         }
-        return super.meetsRequirements(context, ignoredRequirements);
+        return super.meetsRequirements(context, props);
     }
 }

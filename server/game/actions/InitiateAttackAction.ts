@@ -11,6 +11,7 @@ import { ExhaustSystem } from '../gameSystems/ExhaustSystem.js';
 import type Game from '../core/Game.js';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties.js';
 import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker.js';
+import type { IMeetsRequirementsProperties } from '../core/ability/PlayerOrCardAbility.js';
 
 interface IInitiateAttackProperties extends IAttackProperties {
     allowExhaustedAttacker?: boolean;
@@ -46,12 +47,12 @@ export class InitiateAttackAction extends PlayerAction {
         this.initiateAttackSource = initiateAttackSource;
     }
 
-    public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
+    public override meetsRequirements(context = this.createContext(), props: IMeetsRequirementsProperties = {}): string {
         if (context.player !== context.source.controller) {
             return 'player';
         }
         if (
-            !ignoredRequirements.includes('zone') &&
+            !props.ignoredRequirements?.includes('zone') &&
             !EnumHelpers.isArena(context.source.zoneName)
         ) {
             return 'zone';
@@ -63,7 +64,7 @@ export class InitiateAttackAction extends PlayerAction {
             return 'target';
         }
 
-        return super.meetsRequirements(context, ignoredRequirements);
+        return super.meetsRequirements(context, props);
     }
 
     public override executeHandler(context: AbilityContext): void {
