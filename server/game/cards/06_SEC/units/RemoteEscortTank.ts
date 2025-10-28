@@ -6,7 +6,7 @@ import { KeywordName, WildcardCardType } from '../../../core/Constants';
 export default class RemoteEscortTank extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'remote-escort-tank-id',
+            id: '3206848209',
             internalName: 'remote-escort-tank'
         };
     }

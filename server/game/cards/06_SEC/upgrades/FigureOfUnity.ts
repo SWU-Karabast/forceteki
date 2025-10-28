@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class FigureOfUnity extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'figure-of-unity-id',
+            id: '8467899467',
             internalName: 'figure-of-unity',
         };
     }

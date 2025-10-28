@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class GrassrootsResistance extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'grassroots-resistance-id',
+            id: '7249575408',
             internalName: 'grassroots-resistance',
         };
     }

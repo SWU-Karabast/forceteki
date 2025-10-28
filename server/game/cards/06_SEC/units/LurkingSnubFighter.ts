@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class LurkingSnubFighter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'lurking-snub-fighter-id',
+            id: '9755584844',
             internalName: 'lurking-snub-fighter',
         };
     }

@@ -6,7 +6,7 @@ import { DamageType, KeywordName } from '../../../core/Constants';
 export default class PopulistAdvisor extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'populist-advisor-id',
+            id: '5037262613',
             internalName: 'populist-advisor',
         };
     }

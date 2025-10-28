@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class JuniorSenator extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'junior-senator-id',
+            id: '1213577854',
             internalName: 'junior-senator'
         };
     }

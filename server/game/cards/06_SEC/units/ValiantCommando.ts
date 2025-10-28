@@ -6,7 +6,7 @@ import { DamageType } from '../../../core/Constants';
 export default class ValiantCommando extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'valiant-commando-id',
+            id: '7315775303',
             internalName: 'valiant-commando',
         };
     }

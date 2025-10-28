@@ -6,7 +6,7 @@ import { TargetMode, ZoneName } from '../../../core/Constants';
 export default class LightmakerIHaveAnIdea extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'lightmaker#i-have-an-idea-id',
+            id: '2808340732',
             internalName: 'lightmaker#i-have-an-idea',
         };
     }

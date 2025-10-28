@@ -6,7 +6,7 @@ import { PhaseName, RelativePlayer, TargetMode, WildcardCardType } from '../../.
 export default class TheEyeOfAldhani extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'the-eye-of-aldhani-id',
+            id: '3828763910',
             internalName: 'the-eye-of-aldhani',
         };
     }

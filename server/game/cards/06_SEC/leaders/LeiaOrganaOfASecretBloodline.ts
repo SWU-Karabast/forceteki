@@ -11,7 +11,7 @@ import type { Card } from '../../../core/card/Card';
 export default class LeiaOrganaOfASecretBloodline extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'leia-organa#of-a-secret-bloodline-id',
+            id: '2281320807',
             internalName: 'leia-organa#of-a-secret-bloodline',
         };
     }

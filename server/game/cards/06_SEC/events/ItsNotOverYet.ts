@@ -12,7 +12,7 @@ export default class ItsNotOverYet extends EventCard {
 
     protected override getImplementationId() {
         return {
-            id: 'its-not-over-yet-id',
+            id: '1126903253',
             internalName: 'its-not-over-yet',
         };
     }
