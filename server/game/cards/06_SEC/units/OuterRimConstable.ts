@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class OuterRimConstable extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'outer-rim-constable-id',
+            id: '6387581059',
             internalName: 'outer-rim-constable'
         };
     }

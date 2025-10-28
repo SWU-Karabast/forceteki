@@ -7,7 +7,7 @@ import * as Helpers from '../../../core/utils/Helpers';
 export default class EliaKaneFalseConvert extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'elia-kane#false-convert-id',
+            id: '9039562488',
             internalName: 'elia-kane#false-convert'
         };
     }

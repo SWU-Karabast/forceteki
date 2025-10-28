@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class CrucibleCenturiesOfWisdom extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'crucible#centuries-of-wisdom-id',
+            id: '9372674583',
             internalName: 'crucible#centuries-of-wisdom',
         };
     }

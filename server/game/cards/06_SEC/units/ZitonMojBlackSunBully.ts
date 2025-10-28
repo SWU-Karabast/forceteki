@@ -6,7 +6,7 @@ import { CardType } from '../../../core/Constants';
 export default class ZitonMojBlackSunBully extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ziton-moj#black-sun-bully-id',
+            id: '4206987146',
             internalName: 'ziton-moj#black-sun-bully',
         };
     }

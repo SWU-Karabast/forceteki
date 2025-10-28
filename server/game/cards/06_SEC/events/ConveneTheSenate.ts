@@ -6,7 +6,7 @@ import { TargetMode, Trait } from '../../../core/Constants';
 export default class ConveneTheSenate extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'convene-the-senate-id',
+            id: '5001969384',
             internalName: 'convene-the-senate',
         };
     }

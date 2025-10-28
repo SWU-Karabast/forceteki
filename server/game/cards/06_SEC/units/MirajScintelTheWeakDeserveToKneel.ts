@@ -6,7 +6,7 @@ import { KeywordName, WildcardCardType } from '../../../core/Constants';
 export default class MirajScintelTheWeakDeserveToKneel extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'miraj-scintel#the-weak-deserve-to-kneel-id',
+            id: '7275929811',
             internalName: 'miraj-scintel#the-weak-deserve-to-kneel',
         };
     }

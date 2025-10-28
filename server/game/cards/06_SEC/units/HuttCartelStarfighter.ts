@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class HuttCartelStarfighter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'hutt-cartel-starfighter-id',
+            id: '4052082238',
             internalName: 'hutt-cartel-starfighter',
         };
     }
