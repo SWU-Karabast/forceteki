@@ -576,7 +576,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
-            if (this.isBlank()) {
+            if (this.isFullyBlanked()) {
                 return [];
             }
 
@@ -585,6 +585,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
+
+            if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
+                // Only return triggered abilities gained from the source of the blanking effect
+                return triggeredAbilities.filter((ability) => this.canGainAbilityFromSource(ability.gainAbilitySource)) as TriggeredAbility[];
+            }
 
             // add any temporarily registered attack abilities from keywords
             if (this.state.attackKeywordAbilities != null) {
@@ -604,7 +609,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override getConstantAbilities(): ConstantAbility[] {
-            if (this.isBlank()) {
+            if (this.isFullyBlanked()) {
                 return [];
             }
 

@@ -20,6 +20,7 @@ import type { GameObjectRef } from '../GameObjectBase';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
+import type { ConstantAbility } from '../ability/ConstantAbility';
 
 // STATE TODO: This needs the eventAbility to be converted to state.
 const EventCardParent = WithCost(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard<IEventCardState>)));
@@ -63,6 +64,14 @@ export class EventCard extends EventCardParent implements IEventCard {
 
     public override isPlayable(): this is IPlayableCard {
         return true;
+    }
+
+    public override getConstantAbilities(): ConstantAbility[] {
+        if (this.isBlankOutOfPlay()) {
+            return [];
+        }
+
+        return this.constantAbilities as ConstantAbility[];
     }
 
     /** Ability of event card when played. Will be a "blank" ability with no effect if this card is disabled by an effect. */
