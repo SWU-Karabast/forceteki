@@ -659,6 +659,32 @@ export class GameServer {
             }
         });
 
+        app.put('/api/get-deck/:deckId/rename', authMiddleware('rename-deck'), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                const { deckId } = req.params;
+                const { newName } = req.body;
+
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (rename-deck): Authentication error for anonymous user ${user.getId()}`);
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Server error'
+                    });
+                }
+                try {
+                    const renameResponse = await this.deckService.updateDeckNameAsync(user.getId(), deckId, newName);
+                    return res.status(200).json({ success: renameResponse });
+                } catch (err) {
+                    logger.error(`GameServer (rename-deck): Error in getting a users ${user.getId()} decks: `, err);
+                    next(err);
+                }
+            } catch (err) {
+                logger.error('GameServer (rename-deck) Server error: ', err);
+                next(err);
+            }
+        });
+
         // Add this to the setupAppRoutes method in GameServer.ts
         app.post('/api/get-deck/:deckId', authMiddleware(), async (req, res, next) => {
             try {

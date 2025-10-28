@@ -241,16 +241,19 @@ class DynamoDBService {
         }, 'DynamoDB queryItems error');
     }
 
-    public updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>) {
+    public updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>, expressionAttributeNames?: Record<string, string>) {
         return this.executeDbOperationAsync(() => {
-            const command = new UpdateCommand({
+            const commandParams: any = {
                 TableName: this.tableName,
                 Key: { pk, sk },
                 UpdateExpression: updateExpression,
                 ExpressionAttributeValues: expressionAttributeValues,
                 ReturnValues: 'ALL_NEW'
-            });
-
+            };
+            if (expressionAttributeNames) {
+                commandParams.ExpressionAttributeNames = expressionAttributeNames;
+            }
+            const command = new UpdateCommand(commandParams);
             return this.client.send(command);
         }, 'DynamoDB updateItem error');
     }
@@ -395,6 +398,27 @@ class DynamoDBService {
         }, 'Error getting deck');
     }
 
+    /**
+     * Update deck name
+     * @param userId User ID
+     * @param deckId Deck ID
+     * @param newName New name for the deck
+     * @returns Updated deck record
+     */
+    public updateDeckNameAsync(userId: string, deckId: string, newName: string) {
+        return this.executeDbOperationAsync(() => {
+            return this.updateItemAsync(
+                `USER#${userId}`,
+                `DECK#${deckId}`,
+                'SET #deckAttr.#nameAttr = :newName',
+                { ':newName': newName },
+                {
+                    '#deckAttr': 'deck',
+                    '#nameAttr': 'name'
+                }
+            );
+        }, `Error updating deck name for deck ${deckId}, user ${userId}`);
+    }
 
     /**
      * Find a deck by its deckLink property
