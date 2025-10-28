@@ -6,7 +6,7 @@ import { DamageModificationType } from '../../../core/Constants';
 export default class VigilSecuringTheFuture extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'vigil#securing-the-future-id',
+            id: '1970175552',
             internalName: 'vigil#securing-the-future'
         };
     }
