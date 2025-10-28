@@ -18,6 +18,7 @@ class GameStateBuilder {
         this.proxiedGameFlowWrapperMethods = [
             'advancePhases',
             'allPlayersInInitiativeOrder',
+            'getAllNonLeaderCardTitles',
             'getPlayableCardTitles',
             'getChatLog',
             'getChatLogs',

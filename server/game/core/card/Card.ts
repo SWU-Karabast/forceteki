@@ -4,7 +4,8 @@ import type {
     ISetId,
     Zone,
     ITriggeredAbilityProps,
-    ISerializedCardState
+    ISerializedCardState,
+    ICardAttributes
 } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
@@ -182,6 +183,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         }
 
         return this._printedType;
+    }
+
+    public get attributes(): ICardAttributes {
+        return {
+            // TODO: Add more attributes as needed
+            traits: this.traits
+        };
     }
 
     // ******************************************** PROPERTY GETTERS ********************************************
@@ -413,7 +421,18 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * don’t have any special text styling
      */
     public getConstantAbilities(): ConstantAbility[] {
-        return this.constantAbilities as ConstantAbility[];
+        if (this.isFullyBlanked()) {
+            return [];
+        }
+
+        const constantAbilities = this.constantAbilities as ConstantAbility[];
+
+        if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
+            // Only return triggered abilities gained from the source of the blanking effect
+            return constantAbilities.filter((ability) => this.canGainAbilityFromSource(ability.sourceCard));
+        }
+
+        return constantAbilities;
     }
 
     public getPrintedConstantAbilities(): ConstantAbility[] {
@@ -762,7 +781,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.hasEvery(traits, this.traits);
     }
 
-
     // ******************************************* ASPECT HELPERS *******************************************
     public hasSomeAspect(aspects: Set<Aspect> | Aspect | Aspect[]): boolean {
         return this.hasSome(aspects, this.aspects);
@@ -783,7 +801,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      */
     public isBlank(): boolean {
         return this.hasOngoingEffect(EffectName.Blank) ||
-          this.hasOngoingEffect(EffectName.PartiallyBlank);
+          this.hasOngoingEffect(EffectName.BlankExceptKeyword) ||
+          this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard);
+    }
+
+    public isBlankOutOfPlay(): boolean {
+        return this.getOngoingEffectValues(EffectName.Blank)
+            .some((effect) => effect.includeOutOfPlay);
     }
 
     /**
@@ -791,8 +815,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * cannot gain any new ones.
      *
      * A card with a partial blanking effect may still be fully blanked if there is also a full
-     * blanking effect present, or if multiple partial blanking effects do not have overlapping
-     * exceptions.
+     * blanking effect present, or if there are multiple partial blanking effects cancelling
+     * each other out.
      *
      * @returns {boolean} `true` if the card is fully blanked, `false` otherwise.
      */
@@ -801,22 +825,44 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             return false;
         } else if (this.hasOngoingEffect(EffectName.Blank)) {
             return true;
+        } else if (this.hasOngoingEffect(EffectName.BlankExceptKeyword)) {
+            // Should not overlap with other partial blanking effects
+            if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
+                return true;
+            }
+
+            const excludedKeywords = this.getOngoingEffectValues(EffectName.BlankExceptKeyword)
+                .map((value) => value.exceptKeyword);
+
+            // All excluded keywords must be the same for the card to to not be fully blanked
+            return excludedKeywords.length === 0 || !excludedKeywords.every((keyword) => keyword === excludedKeywords[0]);
+        } else if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
+            // Should not overlap with other partial blanking effects
+            if (this.hasOngoingEffect(EffectName.BlankExceptKeyword)) {
+                return true;
+            }
+
+            const blankSources = this.getOngoingEffectSources(EffectName.BlankExceptFromSourceCard);
+
+            Contract.assertPositiveNonZero(blankSources.length);
+
+            // All blank sources must be the same for the card to to not be fully blanked
+            return !blankSources.every((source) => source === blankSources[0]);
         }
 
-        const excludedKeywords = this.getOngoingEffectValues(EffectName.PartiallyBlank)
-            .map((value) => value.exceptKeyword);
-
-        // All excluded keywords must be the same for the card to to not be fully blanked
-        return excludedKeywords.length === 0 || !excludedKeywords.every((keyword) => keyword === excludedKeywords[0]);
+        return false;
     }
 
-    public hasKeywordRemoved(keyword: KeywordName): boolean {
+    public hasKeywordRemoved(keyword: KeywordName, isOutOfPlay = false): boolean {
+        if (isOutOfPlay && !this.isBlankOutOfPlay()) {
+            return false;
+        }
+
         if (this.isFullyBlanked()) {
             return true;
         }
 
-        const isBlank = this.isBlank();
-        const keywordExcludedFromBlankEffect = this.getOngoingEffectValues(EffectName.PartiallyBlank)
+        const keywordExcludedFromBlankEffect = this.getOngoingEffectValues(EffectName.BlankExceptKeyword)
             .map((value) => value.exceptKeyword)
             .includes(keyword);
 
@@ -824,7 +870,23 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             .flatMap((x) => Helpers.asArray(x))
             .includes(keyword);
 
-        return isSpecificallyRemoved || (isBlank && !keywordExcludedFromBlankEffect);
+        return isSpecificallyRemoved || (this.isBlank() && !keywordExcludedFromBlankEffect);
+    }
+
+    public canGainAbilityFromSource(source: Card): boolean {
+        if (this.isFullyBlanked() || this.hasOngoingEffect(EffectName.BlankExceptKeyword)) {
+            return false;
+        }
+
+        const partiallyBlankSources = this.getOngoingEffectSources(EffectName.BlankExceptFromSourceCard);
+
+        if (partiallyBlankSources.length === 0) {
+            return true;
+        }
+
+        Contract.assertArraySize(partiallyBlankSources, 1);
+
+        return partiallyBlankSources[0] === source;
     }
 
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {

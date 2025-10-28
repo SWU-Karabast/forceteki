@@ -1951,20 +1951,6 @@ const mockCards = [
         internalName: 'strike-force-xwing',
     }),
     buildMockCard({
-        title: 'Let\'s Talk',
-        hasNonKeywordAbility: true,
-        aspects: ['command'],
-        types: ['event'],
-        traits: ['trick'],
-        setId: {
-            set: 'SEC',
-            number: 131
-        },
-        cost: 9,
-        unique: false,
-        internalName: 'lets-talk',
-    }),
-    buildMockCard({
         title: 'The Eye of Aldhani',
         hasNonKeywordAbility: true,
         aspects: ['vigilance'],
@@ -2275,20 +2261,6 @@ const mockCards = [
         unique: true,
         arena: 'space',
         internalName: 'saw-gerreras-uwing#breaking-the-rules',
-    }),
-    buildMockCard({
-        title: 'Fully Armed and Operational',
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'villainy'],
-        types: ['event'],
-        traits: ['trick'],
-        setId: {
-            set: 'SEC',
-            number: 194
-        },
-        cost: 1,
-        unique: false,
-        internalName: 'fully-armed-and-operational',
     }),
     buildMockCard({
         title: 'Nemik\'s Manifesto',
