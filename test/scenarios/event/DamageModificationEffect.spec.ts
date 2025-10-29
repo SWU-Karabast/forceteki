@@ -645,41 +645,54 @@ describe('Damage Modification Effects', function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            groundArena: [{ card: 'boba-fett#disintegrator', upgrades: ['boba-fetts-armor', 'shield'] }],
+                            groundArena: ['finn#on-the-run', { card: 'boba-fett#disintegrator', upgrades: ['boba-fetts-armor', 'shield'] }],
                             spaceArena: ['vigil#securing-the-future', 'cartel-spacer']
                         },
                         player2: {
-                            hand: ['detention-block-rescue']
+                            hand: ['open-fire']
                         }
                     });
 
                     const { context } = contextRef;
 
-                    context.player1.passAction();
+                    context.player1.clickCard(context.finn);
+                    context.player1.clickCard(context.p2Base);
 
-                    context.player2.clickCard(context.detentionBlockRescue);
+                    // Use Finn to protect Boba Fett
+                    context.player1.clickCard(context.bobaFett);
+
+                    context.player2.clickCard(context.openFire);
                     context.player2.clickCard(context.bobaFett);
 
                     expect(context.player1).toHaveExactPromptButtons([
                         'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
                         'Defeat shield to prevent attached unit from taking damage',
-                        'Reduce all damage dealt to friendly non-Vigil units by 1'
+                        'Reduce all damage dealt to friendly non-Vigil units by 1',
+                        'For this phase, if damage would be dealt to that unit, prevent 1 of that damage'
                     ]);
 
                     context.player1.clickPrompt('If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage');
                     expect(context.player1).toHaveExactPromptButtons([
                         'Defeat shield to prevent attached unit from taking damage',
-                        'Reduce all damage dealt to friendly non-Vigil units by 1'
+                        'Reduce all damage dealt to friendly non-Vigil units by 1',
+                        'For this phase, if damage would be dealt to that unit, prevent 1 of that damage'
                     ]);
 
                     context.player1.clickPrompt('Reduce all damage dealt to friendly non-Vigil units by 1');
+
+                    expect(context.player1).toHaveExactPromptButtons([
+                        'Defeat shield to prevent attached unit from taking damage',
+                        'For this phase, if damage would be dealt to that unit, prevent 1 of that damage'
+                    ]);
+
+                    context.player1.clickPrompt('For this phase, if damage would be dealt to that unit, prevent 1 of that damage');
 
                     expect(context.player1).toBeActivePlayer();
                     expect(context.bobaFett.damage).toBe(0);
                     expect(context.bobaFett.upgrades.length).toBe(2);
                 });
 
-                it('should stop once all damage has been prevented', async function () {
+                it('should stop once all damage has been replaced', async function () {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {

@@ -57,16 +57,12 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
     private getAllReplacedAbilities(context: TriggeredAbilityContext, event: GameEvent): Set<PlayerOrCardAbility> {
         const replacedAbilities = new Set<PlayerOrCardAbility>();
 
-        if (event.isReplacementEvent) {
-            if (event.context.ability === context.ability) {
-                replacedAbilities.add(event.context.ability);
+        let currentEvent = event;
+        while (currentEvent.isReplacementEvent) {
+            if (currentEvent.context.ability === context.ability) {
+                replacedAbilities.add(currentEvent.context.ability);
             }
-
-            if (event.replacesEvent) {
-                this.getAllReplacedAbilities(context, event.replacesEvent).forEach((ability) => {
-                    replacedAbilities.add(ability);
-                });
-            }
+            currentEvent = currentEvent.replacesEvent;
         }
 
         return replacedAbilities;
