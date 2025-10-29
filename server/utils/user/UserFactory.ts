@@ -9,7 +9,7 @@ import type { ParsedUrlQuery } from 'node:querystring';
 import type {
     IUserDataEntity,
     IUserProfileDataEntity,
-    UserPreferences
+    IUserPreferences
 } from '../../services/DynamoDBInterfaces';
 import {
     ModerationType
@@ -31,7 +31,7 @@ const getDefaultCosmeticsPreferences = () => ({
     disablePlaymats: false,
 });
 
-export const getDefaultPreferences = (): UserPreferences => ({
+export const getDefaultPreferences = (): IUserPreferences => ({
     sound: getDefaultSoundPreferences(),
     cosmetics: getDefaultCosmeticsPreferences(),
 });

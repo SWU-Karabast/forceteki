@@ -1,6 +1,7 @@
+import type winston from 'winston';
 import { type IRegisteredCosmeticOption } from './CosmeticsInterfaces';
 
-export const getFallbackCosmetics = async (logger: any): Promise<IRegisteredCosmeticOption[]> => {
+export const getFallbackCosmetics = async (logger: winston.Logger): Promise<IRegisteredCosmeticOption[]> => {
     try {
         const fs = await import('fs');
         const path = await import('path');

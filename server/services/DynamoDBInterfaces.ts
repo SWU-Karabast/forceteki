@@ -13,7 +13,7 @@ export interface IModerationAction {
 export interface IUserDataEntity {
     id: string;
     username: string;
-    preferences?: UserPreferences;
+    preferences?: IUserPreferences;
     swuStatsRefreshToken?: string;
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
@@ -45,7 +45,7 @@ export interface IDeckStatsEntity {
 }
 
 
-export interface UserPreferences {
+export interface IUserPreferences {
     sound?: {
         muteAllSound?: boolean;
         muteCardAndButtonClickSound?: boolean;
@@ -68,7 +68,7 @@ export interface IUserProfileDataEntity extends IUserDataEntity {
     lastLogin: string;
     createdAt: string;
     usernameLastUpdatedAt?: string; // When username was set/changed
-    preferences?: UserPreferences;
+    preferences?: IUserPreferences;
 }
 
 export interface ILocalStorageDeckData {

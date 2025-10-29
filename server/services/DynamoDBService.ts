@@ -10,7 +10,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 import * as Contract from '../game/core/utils/Contract';
-import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity, UserPreferences } from './DynamoDBInterfaces';
+import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity, IUserPreferences } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import { iDeckDataEntitySchema, iDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
@@ -514,7 +514,7 @@ class DynamoDBService {
      * @param userId the users ID
      * @param defaultPreferences preference object
      */
-    private async checkValidationExceptionAsync(userId: string, defaultPreferences: UserPreferences): Promise<boolean> {
+    private async checkValidationExceptionAsync(userId: string, defaultPreferences: IUserPreferences): Promise<boolean> {
         const getCommand = new GetCommand({
             TableName: this.tableName,
             Key: { pk: `USER#${userId}`, sk: 'PROFILE' }
@@ -540,7 +540,7 @@ class DynamoDBService {
      * @param userId User ID
      * @param preferences Partial preferences to update
      */
-    public updateUserPreferencesAsync(userId: string, preferences: Partial<UserPreferences>): Promise<void> {
+    public updateUserPreferencesAsync(userId: string, preferences: Partial<IUserPreferences>): Promise<void> {
         return this.executeDbOperationAsync(async () => {
             const updateExpressions: string[] = [];
             const expressionAttributeValues: Record<string, any> = {};
