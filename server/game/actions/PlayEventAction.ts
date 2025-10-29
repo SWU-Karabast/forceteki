@@ -1,4 +1,4 @@
-import { AbilityRestriction, EffectName, PlayType, RelativePlayer, ZoneName } from '../core/Constants.js';
+import { AbilityRestriction, EffectName, GameStateChangeRequired, PlayType, RelativePlayer, ZoneName } from '../core/Constants.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
@@ -8,6 +8,7 @@ import type { IEventCard } from '../core/card/EventCard.js';
 import type { ITargetResult } from '../core/ability/abilityTargets/TargetResolver.js';
 import type { EventAbility } from '../core/ability/EventAbility';
 import type { Player } from '../core/Player';
+import type { IMeetsRequirementsProperties } from '../core/ability/PlayerOrCardAbility.js';
 
 export class PlayEventAction extends PlayCardAction {
     private earlyTargetResults?: ITargetResult;
@@ -41,14 +42,14 @@ export class PlayEventAction extends PlayCardAction {
         return new PlayEventAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
-    public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
+    public override meetsRequirements(context = this.createContext(), props: IMeetsRequirementsProperties = {}): string {
         if (
             context.player.hasRestriction(AbilityRestriction.PlayEvent, context) ||
             context.source.hasRestriction(AbilityRestriction.Play, context)
         ) {
             return 'restriction';
         }
-        return super.meetsRequirements(context, ignoredRequirements);
+        return super.meetsRequirements(context, props);
     }
 
     /** Override that allows doing the card selection / prompting for an event card _before_ it is moved to discard for play so we can present a cancel option */
@@ -81,7 +82,14 @@ export class PlayEventAction extends PlayCardAction {
                 return;
             }
 
-            const requirements = eventAbility.meetsRequirements(eventAbilityContext, ['player', 'zone'], true);
+            const requirements = eventAbility.meetsRequirements(
+                eventAbilityContext,
+                {
+                    ignoredRequirements: ['player', 'zone'],
+                    thisStepOnly: true,
+                    gameStateChangeRequired: GameStateChangeRequired.MustFullyOrPartiallyResolve
+                }
+            );
             if (requirements === '' && !context.source.isBlank() && context.source.isImplemented) {
                 return;
             }

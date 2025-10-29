@@ -4,6 +4,7 @@ import { ActionAbility } from '../core/ability/ActionAbility';
 import type { Card } from '../core/card/Card';
 import type Game from '../core/Game';
 import type { IEpicActionProps } from '../Interfaces';
+import type { IMeetsRequirementsProperties } from '../core/ability/PlayerOrCardAbility';
 
 export class EpicActionAbility extends ActionAbility {
     public constructor(game: Game, card: Card, properties: IEpicActionProps) {
@@ -17,7 +18,12 @@ export class EpicActionAbility extends ActionAbility {
         return true;
     }
 
-    public override meetsRequirements(context: AbilityContext, ignoredRequirements: string[] = [], thisStepOnly: boolean = false): string {
-        return super.meetsRequirements(context, [...ignoredRequirements, 'gameStateChange'], thisStepOnly);
+    public override meetsRequirements(context: AbilityContext, props: IMeetsRequirementsProperties = {}): string {
+        const ignoredRequirements = [...(props.ignoredRequirements ?? []), 'gameStateChange'];
+        const adjustedProps = {
+            ...props,
+            ignoredRequirements
+        };
+        return super.meetsRequirements(context, adjustedProps);
     }
 }

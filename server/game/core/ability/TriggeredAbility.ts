@@ -189,8 +189,8 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         });
     }
 
-    public override checkGameActionsForPotential(context) {
-        return this.immediateEffect.hasLegalTarget(context, {}, this.mustChangeGameState);
+    public override checkGameActionsForPotential(context: AbilityContext, gameStateChangeRequired?: GameStateChangeRequired) {
+        return this.immediateEffect.hasLegalTarget(context, {}, gameStateChangeRequired ?? this.mustChangeGameState);
     }
 
     protected override buildTargetResolver(name: string, properties: ITriggeredAbilityTargetResolver) {

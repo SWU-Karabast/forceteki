@@ -8,6 +8,7 @@ import type Game from '../core/Game';
 import * as Contract from '../core/utils/Contract';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
+import type { IMeetsRequirementsProperties } from '../core/ability/PlayerOrCardAbility';
 
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
@@ -62,7 +63,7 @@ export class PlayUpgradeAction extends PlayCardAction {
         return new PlayUpgradeAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
-    public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
+    public override meetsRequirements(context = this.createContext(), props: IMeetsRequirementsProperties = {}): string {
         if (
             context.player.hasRestriction(AbilityRestriction.PlayUpgrade, context) ||
             context.player.hasRestriction(AbilityRestriction.PutIntoPlay, context)
@@ -74,7 +75,7 @@ export class PlayUpgradeAction extends PlayCardAction {
             return 'attachTarget';
         }
 
-        return super.meetsRequirements(context, ignoredRequirements);
+        return super.meetsRequirements(context, props);
     }
 
     public override displayMessage(context: AbilityContext) {

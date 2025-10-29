@@ -6,7 +6,7 @@ import type { Card } from '../card/Card';
 import type Game from '../Game';
 import { CardAbilityStep } from './CardAbilityStep';
 import type { AbilityContext } from './AbilityContext';
-import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility';
+import type { IPlayerOrCardAbilityState, IMeetsRequirementsProperties } from './PlayerOrCardAbility';
 import { UnlimitedAbilityLimit } from './AbilityLimit';
 
 export interface ICardAbilityState extends IPlayerOrCardAbilityState {
@@ -72,13 +72,13 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
         }
     }
 
-    public override meetsRequirements(context, ignoredRequirements: string[] = [], thisStepOnly = false) {
-        if (!ignoredRequirements.includes('player') && !this.controllerMeetsRequirements(context)) {
+    public override meetsRequirements(context, props: IMeetsRequirementsProperties = {}): string {
+        if (!props.ignoredRequirements?.includes('player') && !this.controllerMeetsRequirements(context)) {
             return 'player';
         }
 
         if (
-            (this.isActivatedAbility() && !this.card.canTriggerAbilities(context, ignoredRequirements)) ||
+            (this.isActivatedAbility() && !this.card.canTriggerAbilities(context, props.ignoredRequirements)) ||
             (this.card.isEvent() && !this.card.canPlay(context, context.playType))
         ) {
             return 'cannotTrigger';
@@ -88,11 +88,11 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
             return 'cannotInitiate';
         }
 
-        if (!ignoredRequirements.includes('limit') && this.limit.isAtMax(context.player)) {
+        if (!props.ignoredRequirements?.includes('limit') && this.limit.isAtMax(context.player)) {
             return 'limit';
         }
 
-        return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
+        return super.meetsRequirements(context, props);
     }
 
     public getAdjustedCost(context: AbilityContext) {

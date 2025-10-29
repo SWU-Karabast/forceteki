@@ -35,6 +35,17 @@ export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilit
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
 
+export interface IMeetsRequirementsProperties {
+    ignoredRequirements?: string[];
+    thisStepOnly?: boolean;
+    gameStateChangeRequired?: GameStateChangeRequired;
+}
+
+export interface IHasAnyLegalEffectsProperties {
+    includeSubSteps?: SubStepCheck;
+    gameStateChangeRequired?: GameStateChangeRequired;
+}
+
 /**
  * Base class representing an ability that can be done by the player
  * or triggered by card text. This includes card actions, reactions,
@@ -181,11 +192,11 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
         }
     }
 
-    public meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = [], thisStepOnly = false): string {
+    public meetsRequirements(context = this.createContext(), props: IMeetsRequirementsProperties = {}): string {
         // check legal targets exist
         // check costs can be paid
         // check for potential to change game state
-        if (!ignoredRequirements.includes('cost') && !this.canPayCosts(context)) {
+        if (!props.ignoredRequirements?.includes('cost') && !this.canPayCosts(context)) {
             return 'cost';
         }
 
@@ -202,19 +213,22 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
             }
         }
 
-        if (!ignoredRequirements.includes('gameStateChange') && !this.hasAnyLegalEffects(context, SubStepCheck.ThenIfYouDo)) {
+        if (
+            !props.ignoredRequirements?.includes('gameStateChange') &&
+            !this.hasAnyLegalEffects(context, { includeSubSteps: SubStepCheck.ThenIfYouDo, gameStateChangeRequired: props.gameStateChangeRequired })
+        ) {
             return 'gameStateChange';
         }
 
         return '';
     }
 
-    public hasAnyLegalEffects(context: AbilityContext, includeSubSteps = SubStepCheck.None) {
+    public hasAnyLegalEffects(context: AbilityContext, props: IHasAnyLegalEffectsProperties = {}) {
         return true;
     }
 
-    public checkGameActionsForPotential(context) {
-        return this.immediateEffect.hasLegalTarget(context);
+    public checkGameActionsForPotential(context: AbilityContext, gameStateChangeRequired?: GameStateChangeRequired) {
+        return this.immediateEffect.hasLegalTarget(context, {}, gameStateChangeRequired);
     }
 
     /**

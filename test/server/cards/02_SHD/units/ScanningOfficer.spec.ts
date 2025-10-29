@@ -105,7 +105,7 @@ describe('Scanning Officer', function () {
             context.player1.clickCard(context.scanningOfficer);
 
             // Resources were shuffled
-            expect(context.wampa.exhausted).toBe(false);
+            expect(context.pykeSentinel.exhausted).toBe(false);
 
             expect(context.player1).toHaveExactViewableDisplayPromptCards([context.wampa, context.recklessGunslinger, context.armedToTheTeeth]);
             expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);

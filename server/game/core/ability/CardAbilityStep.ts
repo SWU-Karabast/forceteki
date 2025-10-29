@@ -1,5 +1,6 @@
-import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility.js';
+import type { IPlayerOrCardAbilityState, IMeetsRequirementsProperties, IHasAnyLegalEffectsProperties } from './PlayerOrCardAbility.js';
 import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
+import { GameStateChangeRequired } from '../Constants.js';
 import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck, PlayType } from '../Constants.js';
 import * as AttackHelper from '../attack/AttackHelpers.js';
 import * as Helpers from '../utils/Helpers.js';
@@ -44,8 +45,9 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         this.game.queueSimpleStep(() => this.game.resolveGameState(), 'resolveState');
     }
 
-    public override hasAnyLegalEffects(context: AbilityContext, includeSubSteps = SubStepCheck.None) {
-        if (this.immediateEffect && this.checkGameActionsForPotential(context)) {
+    public override hasAnyLegalEffects(context: AbilityContext, props: IHasAnyLegalEffectsProperties = {}) {
+        const gameStateChangeRequired = props.gameStateChangeRequired ?? GameStateChangeRequired.None;
+        if (this.immediateEffect && this.checkGameActionsForPotential(context, gameStateChangeRequired)) {
             return true;
         }
 
@@ -53,26 +55,32 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
             return true;
         }
 
+        const includeSubSteps = props.includeSubSteps ?? SubStepCheck.None;
         if (includeSubSteps === SubStepCheck.All || (includeSubSteps === SubStepCheck.ThenIfYouDo && (this.properties.then || this.properties.ifYouDo))) {
             const subAbilityStepContext = this.getSubAbilityStepContext(context);
-            return subAbilityStepContext && subAbilityStepContext.ability.hasAnyLegalEffects(subAbilityStepContext);
+            return subAbilityStepContext && subAbilityStepContext.ability.hasAnyLegalEffects(subAbilityStepContext, props);
         }
 
         return false;
     }
 
-    public override meetsRequirements(context: AbilityContext, ignoredRequirements: string[] = [], thisStepOnly = false) {
+    public override meetsRequirements(context: AbilityContext, props: IMeetsRequirementsProperties = {}): string {
         // if there is an ifYouDoNot clause, then lack of game state change just means we go down the "if you do not" path
         // (unless thisStepOnly is true, in which case we ignore sub-steps)
-        if (this.properties.ifYouDoNot && !thisStepOnly) {
-            ignoredRequirements.push('gameStateChange');
+        if (this.properties.ifYouDoNot && !props.thisStepOnly) {
+            const ignoredRequirements = [...(props.ignoredRequirements ?? []), 'gameStateChange'];
+            const adjustedProps = {
+                ...props,
+                ignoredRequirements
+            };
+            return super.meetsRequirements(context, adjustedProps);
         }
 
-        return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
+        return super.meetsRequirements(context, props);
     }
 
-    public override checkGameActionsForPotential(context: AbilityContext) {
-        if (super.checkGameActionsForPotential(context)) {
+    public override checkGameActionsForPotential(context: AbilityContext, gameStateChangeRequired?: GameStateChangeRequired) {
+        if (super.checkGameActionsForPotential(context, gameStateChangeRequired)) {
             return true;
         } else if (this.immediateEffect.isOptional(context) && this.properties.then) {
             const then =

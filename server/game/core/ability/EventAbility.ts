@@ -5,6 +5,7 @@ import type { IEventAbilityProps } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
+import type { IMeetsRequirementsProperties } from './PlayerOrCardAbility.js';
 
 export class EventAbility extends CardAbility {
     protected anyPlayer: boolean;
@@ -21,15 +22,15 @@ export class EventAbility extends CardAbility {
         super(game, card, adjustedProperties, AbilityType.Event);
     }
 
-    public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = [], thisStepOnly = false) {
-        if (!ignoredRequirements.includes('zone') && this.card.zoneName !== ZoneName.Discard) {
+    public override meetsRequirements(context: AbilityContext = this.createContext(), props: IMeetsRequirementsProperties = {}): string {
+        if (!props.ignoredRequirements?.includes('zone') && this.card.zoneName !== ZoneName.Discard) {
             return 'zone';
         }
 
-        if (!ignoredRequirements.includes('phase') && this.game.currentPhase !== PhaseName.Action) {
+        if (!props.ignoredRequirements?.includes('phase') && this.game.currentPhase !== PhaseName.Action) {
             return 'phase';
         }
 
-        return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
+        return super.meetsRequirements(context, props);
     }
 }
