@@ -1,6 +1,6 @@
 import type { IPlayerOrCardAbilityState, IMeetsRequirementsProperties, IHasAnyLegalEffectsProperties } from './PlayerOrCardAbility.js';
 import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
-import type { GameStateChangeRequired } from '../Constants.js';
+import { GameStateChangeRequired } from '../Constants.js';
 import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck, PlayType } from '../Constants.js';
 import * as AttackHelper from '../attack/AttackHelpers.js';
 import * as Helpers from '../utils/Helpers.js';
@@ -46,7 +46,8 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
     }
 
     public override hasAnyLegalEffects(context: AbilityContext, props: IHasAnyLegalEffectsProperties = {}) {
-        if (this.immediateEffect && this.checkGameActionsForPotential(context)) {
+        const gameStateChangeRequired = props.gameStateChangeRequired ?? GameStateChangeRequired.None;
+        if (this.immediateEffect && this.checkGameActionsForPotential(context, gameStateChangeRequired)) {
             return true;
         }
 
@@ -57,7 +58,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         const includeSubSteps = props.includeSubSteps ?? SubStepCheck.None;
         if (includeSubSteps === SubStepCheck.All || (includeSubSteps === SubStepCheck.ThenIfYouDo && (this.properties.then || this.properties.ifYouDo))) {
             const subAbilityStepContext = this.getSubAbilityStepContext(context);
-            return subAbilityStepContext && subAbilityStepContext.ability.hasAnyLegalEffects(subAbilityStepContext);
+            return subAbilityStepContext && subAbilityStepContext.ability.hasAnyLegalEffects(subAbilityStepContext, props);
         }
 
         return false;

@@ -1,4 +1,4 @@
-import { AbilityRestriction, EffectName, PlayType, RelativePlayer, ZoneName } from '../core/Constants.js';
+import { AbilityRestriction, EffectName, GameStateChangeRequired, PlayType, RelativePlayer, ZoneName } from '../core/Constants.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
@@ -86,7 +86,8 @@ export class PlayEventAction extends PlayCardAction {
                 eventAbilityContext,
                 {
                     ignoredRequirements: ['player', 'zone'],
-                    thisStepOnly: true
+                    thisStepOnly: true,
+                    gameStateChangeRequired: GameStateChangeRequired.MustFullyOrPartiallyResolve
                 }
             );
             if (requirements === '' && !context.source.isBlank() && context.source.isImplemented) {

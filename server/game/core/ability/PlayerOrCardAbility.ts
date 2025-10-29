@@ -213,7 +213,10 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
             }
         }
 
-        if (!props.ignoredRequirements?.includes('gameStateChange') && !this.hasAnyLegalEffects(context, { includeSubSteps: SubStepCheck.ThenIfYouDo })) {
+        if (
+            !props.ignoredRequirements?.includes('gameStateChange') &&
+            !this.hasAnyLegalEffects(context, { includeSubSteps: SubStepCheck.ThenIfYouDo, gameStateChangeRequired: props.gameStateChangeRequired })
+        ) {
             return 'gameStateChange';
         }
 

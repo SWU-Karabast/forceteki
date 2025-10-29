@@ -85,6 +85,7 @@ describe('The Wrong Ride', function () {
             context.player2.clickCard(context.resupply);
 
             context.player1.clickCard(context.theWrongRide);
+            context.player1.clickPrompt('Play anyway');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.theWrongRide).toBeInZone('discard', context.player1);
