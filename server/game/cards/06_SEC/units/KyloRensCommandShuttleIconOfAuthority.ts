@@ -6,7 +6,7 @@ import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../.
 export default class KyloRensCommandShuttleIconOfAuthority extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'kylo-rens-command-shuttle#icon-of-authority-id',
+            id: '9396057440',
             internalName: 'kylo-rens-command-shuttle#icon-of-authority',
         };
     }

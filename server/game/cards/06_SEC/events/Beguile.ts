@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class Beguile extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'beguile-id',
+            id: '9220461668',
             internalName: 'beguile',
         };
     }

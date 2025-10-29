@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class HyperspaceDisaster extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'hyperspace-disaster-id',
+            id: '3871116724',
             internalName: 'hyperspace-disaster',
         };
     }

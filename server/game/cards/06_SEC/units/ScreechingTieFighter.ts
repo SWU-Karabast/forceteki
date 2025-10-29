@@ -6,7 +6,7 @@ import { WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class ScreechingTieFighter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'screeching-tie-fighter-id',
+            id: '1332323952',
             internalName: 'screeching-tie-fighter',
         };
     }

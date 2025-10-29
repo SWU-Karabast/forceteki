@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class DiplomaticImmunity extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'diplomatic-immunity-id',
+            id: '4446525648',
             internalName: 'diplomatic-immunity',
         };
     }

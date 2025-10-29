@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class ArihndaPryceOnTheRoadToPower extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'arihnda-pryce#on-the-road-to-power-id',
+            id: '6876928415',
             internalName: 'arihnda-pryce#on-the-road-to-power',
         };
     }
