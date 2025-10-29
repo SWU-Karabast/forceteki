@@ -6,7 +6,7 @@ import { TargetMode, WildcardCardType } from '../../../core/Constants';
 export default class EmergencyPowers extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'emergency-powers-id',
+            id: '6782724617',
             internalName: 'emergency-powers',
         };
     }

@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class UnrulyAstromech extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'unruly-astromech-id',
+            id: '1521329961',
             internalName: 'unruly-astromech',
         };
     }

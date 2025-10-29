@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class ChargedWithEspionage extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'charged-with-espionage-id',
+            id: '5521821831',
             internalName: 'charged-with-espionage',
         };
     }

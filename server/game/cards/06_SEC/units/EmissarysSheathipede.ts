@@ -6,7 +6,7 @@ import { RelativePlayer } from '../../../core/Constants';
 export default class EmissarysSheathipede extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'emissarys-sheathipede-id',
+            id: '2511177657',
             internalName: 'emissarys-sheathipede',
         };
     }

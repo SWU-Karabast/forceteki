@@ -149,6 +149,7 @@ function populateMissingData(attributes, id) {
             };
             break;
         case '8826807979': // Dressellian Commandos
+        case '7394847809': // First Light
             attributes.keywords = {
                 data: [
                     {
@@ -180,6 +181,12 @@ function populateMissingData(attributes, id) {
         case '8796918121': // The Wrong Ride
         case '7248761207': // FN Trooper Corps
         case '5736131351': // Fully Armed and Operational
+        case '2276001210': // Garindan
+        case '1970175552': // Vigil
+        case '2792329893': // Galen Erso
+        case '3206848209': // Remote Escort Tank
+        case '1501441701': // Strike Force X-Wing
+        case '9755584844': // Lurking Snub Fighter
             attributes.keywords = {
                 data: [{
                     attributes: {

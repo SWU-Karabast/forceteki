@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class PreMorPersonnelCarrier extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'premor-personnel-carrier-id',
+            id: '0388707918',
             internalName: 'premor-personnel-carrier',
         };
     }

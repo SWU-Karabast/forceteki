@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class BardottanOrnithopter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bardottan-ornithopter-id',
+            id: '6928341517',
             internalName: 'bardottan-ornithopter',
         };
     }

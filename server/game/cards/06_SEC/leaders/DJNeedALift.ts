@@ -8,7 +8,7 @@ import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectB
 export default class DJNeedALift extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'dj#need-a-lift-id',
+            id: '6210710937',
             internalName: 'dj#need-a-lift'
         };
     }

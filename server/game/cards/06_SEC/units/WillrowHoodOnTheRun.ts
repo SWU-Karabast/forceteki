@@ -6,7 +6,7 @@ import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 export default class WillrowHoodOnTheRun extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'willrow-hood#on-the-run-id',
+            id: '1904193703',
             internalName: 'willrow-hood#on-the-run',
         };
     }

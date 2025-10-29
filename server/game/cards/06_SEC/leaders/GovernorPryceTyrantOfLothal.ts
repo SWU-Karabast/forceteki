@@ -6,7 +6,7 @@ import { CardType } from '../../../core/Constants';
 export default class GovernorPryceTyrantOfLothal extends LeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'governor-pryce#tyrant-of-lothal-id',
+            id: '3669925252',
             internalName: 'governor-pryce#tyrant-of-lothal',
         };
     }

@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class TheedSecurity extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'theed-security-id',
+            id: '9857313649',
             internalName: 'theed-security',
         };
     }
