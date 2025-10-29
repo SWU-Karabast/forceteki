@@ -35,9 +35,11 @@ import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { requireEnvVars } from '../env';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
-import { checkAdminPrivileges } from '../utils/adminUtils';
+import { checkAdminUserPrivilegesAsync } from '../utils/adminUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { getFallbackCosmetics } from '../utils/cosmetics/cosmeticUtil';
+import { AdminUsersService } from '../utils/user/AdminUsersService';
+import { AdminRole } from '../services/DynamoDBInterfaces';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -157,6 +159,7 @@ export class GameServer {
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
     public readonly cosmeticsService: CosmeticsService = new CosmeticsService();
+    public readonly adminUsersService: AdminUsersService = new AdminUsersService();
     public readonly swuStatsHandler: SwuStatsHandler;
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
@@ -989,23 +992,16 @@ export class GameServer {
             }
         });
 
-        app.post('/api/cosmetics', authMiddleware('admin-cosmetics'), async (req, res, next) => {
+        app.post('/api/cosmetics', authMiddleware('post-cosmetics'), async (req, res, next) => {
             try {
                 const { cosmetic } = req.body;
                 const user = req.user;
 
-                // Check if user is authenticated and has admin privileges
-                if (!user || user.isAnonymousUser()) {
-                    return res.status(401).json({
+                const authError = await checkAdminUserPrivilegesAsync(user, AdminRole.Moderator);
+                if (authError) {
+                    return res.status(authError.status).json({
                         success: false,
-                        error: 'Authentication required'
-                    });
-                }
-
-                if (!checkAdminPrivileges(user)) {
-                    return res.status(403).json({
-                        success: false,
-                        error: 'Admin privileges required'
+                        error: authError.error
                     });
                 }
 
@@ -1021,23 +1017,17 @@ export class GameServer {
             }
         });
 
-        app.delete('/api/cosmetics/:cosmeticId', authMiddleware('admin-cosmetics'), async (req, res, next) => {
+        app.delete('/api/cosmetics/:cosmeticId', authMiddleware('delete-cosmetics-by-id'), async (req, res, next) => {
             try {
                 const { cosmeticId } = req.params;
                 const user = req.user;
 
                 // Check if user is authenticated and has admin privileges
-                if (!user || user.isAnonymousUser()) {
-                    return res.status(401).json({
+                const authError = await checkAdminUserPrivilegesAsync(user, AdminRole.Developer);
+                if (authError) {
+                    return res.status(authError.status).json({
                         success: false,
-                        error: 'Authentication required'
-                    });
-                }
-
-                if (!checkAdminPrivileges(user)) {
-                    return res.status(403).json({
-                        success: false,
-                        error: 'Admin privileges required'
+                        error: authError.error
                     });
                 }
 
@@ -1051,12 +1041,76 @@ export class GameServer {
                 next(error);
             }
         });
+
+        // Admin user check endpoint
+        app.get('/api/user-is-admin', authMiddleware('user-is-admin'), async (req, res, next) => {
+            try {
+                // Check if user is authenticated and has admin privileges
+                const authError = await checkAdminUserPrivilegesAsync(req.user.getId(), AdminRole.Admin);
+                if (authError) {
+                    return res.status(authError.status).json({
+                        success: false,
+                        error: authError.error,
+                    });
+                }
+
+                return res.status(200).json({
+                    success: true,
+                });
+            } catch (error) {
+                logger.error('GameServer (user-is-admin) Server error:', error);
+                next(error);
+            }
+        });
+
+        // Dev user check endpoint
+        app.get('/api/user-is-dev', authMiddleware('user-is-dev'), async (req, res, next) => {
+            try {
+                // Check if user is authenticated and has dev privileges or higher
+                const authError = await checkAdminUserPrivilegesAsync(req.user.getId(), AdminRole.Developer);
+                if (authError) {
+                    return res.status(authError.status).json({
+                        success: false,
+                        error: authError.error,
+                    });
+                }
+
+                return res.status(200).json({
+                    success: true,
+                });
+            } catch (error) {
+                logger.error('GameServer (user-is-dev) Server error:', error);
+                next(error);
+            }
+        });
+
+        // Mod user check endpoint
+        app.get('/api/user-is-mod', authMiddleware('user-is-mod'), async (req, res, next) => {
+            try {
+                // Check if user is authenticated and has mod privileges or higher
+                const authError = await checkAdminUserPrivilegesAsync(req.user.getId(), AdminRole.Moderator);
+
+                if (authError) {
+                    return res.status(authError.status).json({
+                        success: false,
+                        error: authError.error,
+                    });
+                }
+
+                return res.status(200).json({
+                    success: true,
+                });
+            } catch (error) {
+                logger.error('GameServer (user-is-mod) Server error:', error);
+                next(error);
+            }
+        });
     }
 
     // dev only endpoints
     private setupDevAppRoutes(app: express.Application) {
         // deletes all cosmetics from the database
-        app.delete('/api/cosmetics', authMiddleware('admin-cosmetics'), async (req, res, next) => {
+        app.delete('/api/cosmetics', authMiddleware(), async (req, res, next) => {
             try {
                 const result = await this.cosmeticsService.clearAllCosmeticsAsync();
                 return res.status(200).json({
@@ -1070,7 +1124,7 @@ export class GameServer {
         });
 
         // resets cosmetics to the default set from file
-        app.post('/api/cosmetics-reset', authMiddleware('admin-cosmetics'), async (req, res, next) => {
+        app.post('/api/cosmetics-reset', authMiddleware(), async (req, res, next) => {
             try {
                 const fallbackCosmetics = await getFallbackCosmetics(logger);
                 const result = await this.cosmeticsService.resetCosmeticsAsync(fallbackCosmetics);

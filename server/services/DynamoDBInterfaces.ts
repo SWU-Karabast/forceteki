@@ -113,3 +113,15 @@ export interface IGameRecordEntity {
     timestampStart: Date;
     timestampEnd: Date;
 }
+
+export enum AdminRole {
+    Admin = 'admin',
+    Developer = 'dev',
+    Moderator = 'mod',
+}
+
+export interface IAdminUserListsEntity {
+    admin: string[];
+    dev: string[];
+    mod: string[];
+}

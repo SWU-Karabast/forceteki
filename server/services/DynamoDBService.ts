@@ -10,7 +10,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 import * as Contract from '../game/core/utils/Contract';
-import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity, IUserPreferences } from './DynamoDBInterfaces';
+import { type IDeckDataEntity, type IDeckStatsEntity, type IUserProfileDataEntity, type IUserPreferences, type IAdminUserListsEntity } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import { iDeckDataEntitySchema, iDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
@@ -725,6 +725,26 @@ class DynamoDBService {
                 deletedCount: clearResult.deletedCount
             };
         }, 'Error resetting cosmetics to default');
+    }
+
+    // Admin user methods
+    public getAdminUsersAsync(): Promise<IAdminUserListsEntity> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.getItemAsync('ADMIN_USERS', 'ROLES');
+            if (!result.Item) {
+                return {
+                    admin: [],
+                    dev: [],
+                    mod: []
+                };
+            }
+
+            return {
+                admin: result.Item.admin || [],
+                dev: result.Item.dev || [],
+                mod: result.Item.mod || []
+            };
+        }, 'Error getting admin users');
     }
 
     // Clear all data (for testing purposes only)

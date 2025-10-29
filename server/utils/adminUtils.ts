@@ -1,30 +1,65 @@
-import { logger } from '../logger';
+import { AdminRole } from '../services/DynamoDBInterfaces';
+import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
 
-// List of allowed user IDs for admin access - must match exactly what NextAuth provides
-const allowedAdminUsers = [
-    '4644b207-9307-4b78-8df7-69493f97c920', // ninin
-];
+async function isAdminAsync(userId: string): Promise<boolean> {
+    const db = await getDynamoDbServiceAsync();
+    const adminUsers = await db.getAdminUsersAsync();
 
-export function isAdminUser(userId?: string | null): boolean {
-    return Boolean(process.env.ENVIRONMENT === 'development' ||
-      (userId && allowedAdminUsers.includes(userId)));
+    return adminUsers.admin.some((adminUserId) => adminUserId === userId);
 }
 
-/**
- * Check if a user from JWT token has admin privileges
- */
-export function checkAdminPrivileges(user: unknown): boolean {
-    if (!user) {
-        return false;
-    }
+async function isDeveloperAsync(userId: string): Promise<boolean> {
+    const db = await getDynamoDbServiceAsync();
+    const adminUsers = await db.getAdminUsersAsync();
 
-    // Check if user has admin privileges using the user ID
-    const userId = (user as any)?.id || (user as any)?.userId;
-    const isAdmin = isAdminUser(userId);
-
-    if (!isAdmin) {
-        logger.warn(`Non-admin user ${userId || 'unknown'} attempted to access admin function`);
-    }
-
-    return isAdmin;
+    return adminUsers.dev.some((devUserId) => devUserId === userId);
 }
+
+async function isModeratorAsync(userId: string): Promise<boolean> {
+    const db = await getDynamoDbServiceAsync();
+    const adminUsers = await db.getAdminUsersAsync();
+    return adminUsers.mod.some((modUserId) => modUserId === userId);
+}
+
+interface IAuthError {
+    status: number;
+    error: string;
+}
+
+export const checkAdminUserPrivilegesAsync = async (userId: string, role: AdminRole): Promise<IAuthError | null> => {
+    if (!userId) {
+        return {
+            status: 401,
+            error: 'Authentication required'
+        };
+    }
+
+    switch (role) {
+        case AdminRole.Admin:
+            if (!await isAdminAsync(userId)) {
+                return {
+                    status: 403,
+                    error: 'Admin privileges required'
+                };
+            }
+            break;
+        case AdminRole.Developer:
+            if (!await isAdminAsync(userId) && !await isDeveloperAsync(userId)) {
+                return {
+                    status: 403,
+                    error: 'Developer privileges or higher required'
+                };
+            }
+            break;
+        case AdminRole.Moderator:
+            if (!await isAdminAsync(userId) && !await isDeveloperAsync(userId) && !await isModeratorAsync(userId)) {
+                return {
+                    status: 403,
+                    error: 'Moderator privileges or higher required'
+                };
+            }
+            break;
+    }
+
+    return null;
+};
