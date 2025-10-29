@@ -674,7 +674,10 @@ export class GameServer {
                 }
                 try {
                     const renameResponse = await this.deckService.updateDeckNameAsync(user.getId(), deckId, newName);
-                    return res.status(200).json({ success: renameResponse });
+                    if (renameResponse) {
+                        return res.status(200).json({ success: renameResponse });
+                    }
+                    return res.status(500).json({ success: renameResponse });
                 } catch (err) {
                     logger.error(`GameServer (rename-deck): Error in getting a users ${user.getId()} decks: `, err);
                     next(err);
