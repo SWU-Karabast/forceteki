@@ -96,12 +96,31 @@ describe('Vigil, Securing the Future', function() {
                 context.player2.clickCard(context.torpedoBarrage);
                 context.player2.clickPrompt('Deal indirect damage to opponent');
                 context.player1.setDistributeIndirectDamagePromptState(new Map([
-                    [context.p1Base, 3],
+                    [context.p1Base, 2],
                     [context.cartelSpacer, 2],
+                    [context.vigil, 1]
                 ]));
 
+                context.player1.clickPrompt('Increase all damage dealt to Vigil by another card by 1');
+
                 expect(context.cartelSpacer.damage).toBe(2);
-                expect(context.p1Base.damage).toBe(3);
+                expect(context.p1Base.damage).toBe(2);
+                expect(context.vigil.damage).toBe(2);
+            });
+
+            it('should not increase damage dealt to Vigil by itself', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: [{ card: 'vigil#securing-the-future', upgrades: ['paige-tico#dropping-the-hammer'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.vigil);
+                context.player1.clickCard(context.p2Base);
+                expect(context.vigil.damage).toBe(1);
             });
 
             it('should increase combat damage dealt to Vigil by 1', async function () {
