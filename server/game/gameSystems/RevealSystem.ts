@@ -39,20 +39,6 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         return false;
     }
 
-    public override getMessageArgs(event: any, context: TContext, additionalProperties: Partial<IRevealProperties>): any[] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
-            properties.player || event.context.player,
-            this.getTargetMessage(event.cards, context),
-            event.context.source
-        ];
-        return messageArgs;
-    }
-
-    protected override getChatMessage(_useDisplayPrompt): string | null {
-        return '{0} reveals {1} due to {2}';
-    }
-
     protected override getPromptedPlayer(properties: IRevealProperties, context: TContext): Player {
         if (!properties.promptedPlayer) {
             return context.player;

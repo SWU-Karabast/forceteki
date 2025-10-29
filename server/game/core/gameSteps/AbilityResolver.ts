@@ -122,7 +122,10 @@ export class AbilityResolver extends BaseStepWithPipeline {
             return;
         }
 
-        if (!this.context.ability.cannotTargetFirst) {
+        if (
+            !this.context.ability.cannotTargetFirst &&
+            !this.context.ability.hasTargetsChosenByPlayer(this.context, this.context.player.opponent)
+        ) {
             // if the opponent is the one choosing whether to pass or not, we don't include the pass handler in the target resolver
             const passAbilityHandler = this.passAbilityHandler?.playerChoosing === this.context.player ? this.passAbilityHandler : null;
 
@@ -278,9 +281,11 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         this.resolutionComplete = true;
         if (this.costResults.determineCostEvents.length > 0) {
+            this.context.player.hasResolvedAbilityThisTimepoint = true;
             this.game.openEventWindow(this.costResults.determineCostEvents);
         }
         if (this.costResults.payCostEvents.length > 0) {
+            this.context.player.hasResolvedAbilityThisTimepoint = true;
             this.game.openEventWindow(this.costResults.payCostEvents);
         }
     }
@@ -303,6 +308,10 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         const ability = this.context.ability;
 
+        if (ability.hasTargetsChosenByPlayer(this.context, this.context.player.opponent)) {
+            this.context.player.hasResolvedAbilityThisTimepoint = true;
+        }
+
         if (this.context.ability.hasTargets() && !ability.hasSomeLegalTarget(this.context) && !ability.canResolveWithoutLegalTargets) {
             // Ability cannot resolve, so display a message and cancel it
             this.game.addMessage('{0} attempted to use {1}, but there are insufficient legal targets', this.context.player, this.context.source);
@@ -324,6 +333,8 @@ export class AbilityResolver extends BaseStepWithPipeline {
             }
             return;
         }
+
+        this.context.player.hasResolvedAbilityThisTimepoint = true;
 
         // Increment limits (limits aren't used up on cards in hand)
         if (this.context.ability.limit && this.context.source.zoneName !== ZoneName.Hand &&

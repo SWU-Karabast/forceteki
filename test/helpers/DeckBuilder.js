@@ -68,8 +68,10 @@ class DeckBuilder {
         // A player could potentially capture their own units (after a take control) - so we have to check all arenas for both
         // players and check ownership. By default, we assume that the opponent is the owner of a captured card if undefined
         let capturedCards = [
+            ...this.getCapturedUnitsFromCard(playerOptions.base, (owner) => owner?.endsWith(playerNumber)),
             ...this.getCapturedUnitsFromArena(playerOptions.groundArena, (owner) => owner?.endsWith(playerNumber)),
             ...this.getCapturedUnitsFromArena(playerOptions.spaceArena, (owner) => owner?.endsWith(playerNumber)),
+            ...this.getCapturedUnitsFromCard(oppOptions.base, (owner) => owner === undefined || owner.endsWith(playerNumber)),
             ...this.getCapturedUnitsFromArena(oppOptions.groundArena, (owner) => owner === undefined || owner.endsWith(playerNumber)),
             ...this.getCapturedUnitsFromArena(oppOptions.spaceArena, (owner) => owner === undefined || owner.endsWith(playerNumber)),
         ];
@@ -321,19 +323,28 @@ class DeckBuilder {
         }
         let capturedUnits = [];
         for (const card of arenaList) {
-            if (typeof card !== 'string' && card.capturedUnits) {
-                for (const capturedUnit of card.capturedUnits) {
-                    this.validateCapturedUnitProperties(capturedUnit);
-                    let capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
-                    if (ownerFilter(capturedUnit?.owner)) {
-                        capturedUnits.push(capturedUnitName);
-                    }
+            capturedUnits = capturedUnits.concat(this.getCapturedUnitsFromCard(card, ownerFilter));
+        }
+        return capturedUnits;
+    }
+
+    getCapturedUnitsFromCard(card, ownerFilter = () => true) {
+        if (!card) {
+            return [];
+        }
+
+        let capturedUnits = [];
+        if (typeof card !== 'string' && card.capturedUnits) {
+            for (const capturedUnit of card.capturedUnits) {
+                this.validateCapturedUnitProperties(capturedUnit);
+                let capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
+                if (ownerFilter(capturedUnit?.owner)) {
+                    capturedUnits.push(capturedUnitName);
                 }
             }
         }
         return capturedUnits;
     }
-
 
     getCardsForResources(resources) {
         let resourceCards = [];

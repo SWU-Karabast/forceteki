@@ -162,6 +162,10 @@ class PlayerInteractionWrapper {
         var baseCard = this.player.base;
         baseCard.damage = baseOptions.damage || 0;
 
+        if (baseOptions.capturedUnits) {
+            this.setCapturedUnits(baseCard, baseOptions.capturedUnits);
+        }
+
         Util.refreshGameState(this.game);
     }
 
@@ -705,7 +709,7 @@ class PlayerInteractionWrapper {
 
         if (expectChange && !this.currentActionTargets.includes(card)) {
             throw new TestSetupError(
-                `Couldn't click on '${card.internalName}' for ${this.player.name}. The card is not selectable!`
+                `Couldn't click on '${card.internalName}' for ${this.player.name}. The card is not selectable!\nCurrent prompts:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
         }
 

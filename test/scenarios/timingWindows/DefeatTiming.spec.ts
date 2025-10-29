@@ -60,7 +60,7 @@ describe('Defeat timing', function() {
 
                 context.player2.clickCard(context.vanguardInfantry);
                 expect(context.player2).toHavePrompt('Choose an ability to resolve:');
-                expect(context.player1).toHavePrompt('Waiting for opponent to use Choose Triggered Ability Resolution Order');
+                expect(context.player1).toHavePrompt('Waiting for opponent');
                 expect(context.vanguardInfantry).toBeInZone('discard');
 
                 context.player2.clickPrompt('Give an Experience token to a unit');

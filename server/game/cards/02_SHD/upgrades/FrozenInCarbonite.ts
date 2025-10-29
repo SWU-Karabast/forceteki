@@ -1,5 +1,4 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { Card } from '../../../core/card/Card';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { AbilityRestriction } from '../../../core/Constants';
@@ -13,7 +12,7 @@ export default class FrozenInCarbonite extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card: Card) => card.isNonLeaderUnit());
+        registrar.setAttachCondition((context) => context.attachTarget.isNonLeaderUnit());
 
         registrar.addWhenPlayedAbility({
             title: 'Exhaust attached unit',

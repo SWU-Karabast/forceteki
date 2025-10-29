@@ -148,7 +148,11 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         if (effectTriggers.length > 0) {
             // TODO Implement the correct trigger window. We may need a subclass of TriggeredAbilityWindow for multiple simultaneous effects
             effectTriggers.forEach((trigger) => {
-                trigger.handler();
+                try {
+                    trigger.handler();
+                } catch (err) {
+                    this.game.reportError(err);
+                }
             });
         }
 

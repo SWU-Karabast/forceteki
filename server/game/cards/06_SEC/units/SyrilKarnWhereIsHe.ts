@@ -1,8 +1,8 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, TargetMode, WildcardCardType } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
@@ -16,20 +16,26 @@ export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Aggression, Aspect.Aggression, Aspect.Villainy];
         registrar.addOnAttackAbility({
-            title: `Disclose ${Helpers.aspectString(aspects)} to choose a unit. Deal 2 damage to that unit unless its controller discards a card from their hand`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects)} to choose a unit. Deal 2 damage to that unit unless its controller discards a card from their hand`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Choose a unit to deal 2 damage unless its controller discard a card',
                 targetResolvers: {
                     targetUnit: {
-                        cardTypeFilter: WildcardCardType.Unit
+                        cardTypeFilter: WildcardCardType.Unit,
+                        immediateEffect: abilityHelper.immediateEffects.conditional({
+                            condition: (context) => context.targets.targetUnit.controller.hand.length === 0,
+                            onTrue: abilityHelper.immediateEffects.damage({ amount: 2 }),
+                            onFalse: abilityHelper.immediateEffects.noAction({ hasLegalTarget: true }),
+                        })
                     },
                     controllerChoice: {
                         mode: TargetMode.Select,
                         dependsOn: 'targetUnit',
+                        condition: (context) => context.targets.targetUnit.controller.hand.length > 0,
                         choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
                         choices: (context) => ({
-                            [`${context.targets.targetUnit.title} takes 2 damage`]: abilityHelper.immediateEffects.damage({
+                            [`${this.buildCardName(context.targets.targetUnit)} takes 2 damage`]: abilityHelper.immediateEffects.damage({
                                 target: context.targets.targetUnit,
                                 amount: 2
                             }),
@@ -42,5 +48,9 @@ export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
                 }
             }
         });
+    }
+
+    private buildCardName(card: Card): string {
+        return `${card.title}${card.subtitle ? ', ' + card.subtitle : ''}`;
     }
 }

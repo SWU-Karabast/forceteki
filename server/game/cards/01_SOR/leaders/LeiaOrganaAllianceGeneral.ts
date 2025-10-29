@@ -28,13 +28,10 @@ export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addTriggeredAbility({
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
+        registrar.addOnAttackCompletedAbility({
             title: 'Attack with another Rebel unit',
             optional: true,
-            when: {
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source
-            },
             initiateAttack: {
                 attackerCondition: (card, context) => card.hasSomeTrait(Trait.Rebel) && card !== context.source
             }

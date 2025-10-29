@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class RotundaSenateGuards extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'rotunda-senate-guards-id',
+            id: '9206238000',
             internalName: 'rotunda-senate-guards',
         };
     }

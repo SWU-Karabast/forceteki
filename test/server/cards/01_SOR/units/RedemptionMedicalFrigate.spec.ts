@@ -54,7 +54,10 @@ describe('Redemption Medical Frigate', function() {
             expect(context.atst.damage).toBe(2);
 
             expect(context.redemption.damage).toBe(8);
-            expect(context.getChatLogs(1)).toContain('player1 uses Redemption to distribute 2 healing to Yoda, 1 healing to Han Solo, 1 healing to Alliance X-Wing, 1 healing to their own base, 2 healing to player2\'s base, and 1 healing to AT-ST');
+            expect(context.getChatLogs(2)).toEqual([
+                'player1 uses Redemption to distribute 2 healing to Yoda, 1 healing to Han Solo, 1 healing to Alliance X-Wing, 1 healing to their own base, 2 healing to player2\'s base, and 1 healing to AT-ST',
+                'player1 uses Redemption to deal 8 damage to Redemption',
+            ]);
 
             // Reset Redemption with Waylay
             context.player2.clickCard(context.waylay);
@@ -72,7 +75,10 @@ describe('Redemption Medical Frigate', function() {
             expect(context.p1Base.damage).toBe(2);
 
             expect(context.redemption.damage).toBe(5);
-            expect(context.getChatLogs(1)).toContain('player1 uses Redemption to distribute 3 healing to Han Solo and 2 healing to their own base');
+            expect(context.getChatLogs(2)).toEqual([
+                'player1 uses Redemption to distribute 3 healing to Han Solo and 2 healing to their own base',
+                'player1 uses Redemption to deal 5 damage to Redemption',
+            ]);
 
             // Reset Redemption with Cantina Bouncer
             context.player2.clickCard(context.cantinaBouncer);

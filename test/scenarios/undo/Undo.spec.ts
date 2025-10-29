@@ -1689,6 +1689,109 @@ describe('Undo', function() {
 
                 expect(context.player1.deck[0]).toBe(topDeck);
             });
+
+            it('should draw the same starting hand after mulligan', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'setup',
+                    player1: {
+                        deck: [
+                            'death-trooper',
+                            'armed-to-the-teeth',
+                            'collections-starhopper',
+                            'covert-strength',
+                            'chewbacca#pykesbane',
+                            'tieln-fighter',
+                            'death-trooper',
+                            '21b-surgical-droid',
+                            'r2d2#ignoring-protocol',
+                            'death-trooper',
+                            'c3po#protocol-droid',
+                            'pyke-sentinel',
+                            'cartel-spacer',
+                            'wolffe#suspicious-veteran',
+                        ],
+                    },
+                    player2: {
+                        deck: [
+                            'moisture-farmer',
+                            '21b-surgical-droid',
+                            'r2d2#ignoring-protocol',
+                            'atst',
+                            'cartel-spacer',
+                            'pyke-sentinel',
+                            'wolffe#suspicious-veteran',
+                            'atst',
+                            'wampa',
+                            'death-trooper',
+                            'armed-to-the-teeth',
+                            'chewbacca#pykesbane',
+                            'tieln-fighter',
+                            'death-trooper',
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.game.setRandomSeed(123456);
+
+                // Determine the first player
+                context.selectInitiativePlayer(context.player1);
+
+                // Draw starting hands
+                expect(context.player1.handSize).toBe(6);
+                expect(context.player2.handSize).toBe(6);
+                const player1StartingHandBeforeMulligan = context.player1.hand;
+                const player2StartingHandBeforeMulligan = context.player2.hand;
+                const player1DeckBeforeMulligan = context.player1.deck.concat();
+                const player2DeckBeforeMulligan = context.player2.deck.concat();
+
+                // Choose whether to take a mulligan
+                context.player1.clickPrompt('Mulligan');
+                context.player2.clickPrompt('Mulligan');
+                const player1StartingHandAfterMulligan = context.player1.hand;
+                const player2StartingHandAfterMulligan = context.player2.hand;
+                const player1DeckAfterMulligan = context.player1.deck.concat();
+                const player2DeckAfterMulligan = context.player2.deck.concat();
+
+                // Rollback to the mulligan decision
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player2.id,
+                    actionOffset: -1,
+                });
+                expect(context.player1.hand).toEqualArray(player1StartingHandBeforeMulligan);
+                expect(context.player2.hand).toEqualArray(player2StartingHandBeforeMulligan);
+                expect(context.player1.deck).toEqualArray(player1DeckBeforeMulligan);
+                expect(context.player2.deck).toEqualArray(player2DeckBeforeMulligan);
+
+                // Choose whether to take a mulligan
+                context.player1.clickPrompt('Mulligan');
+                context.player2.clickPrompt('Mulligan');
+                expect(context.player1.hand).toEqualArray(player1StartingHandAfterMulligan);
+                expect(context.player2.hand).toEqualArray(player2StartingHandAfterMulligan);
+                expect(context.player1.deck).toEqualArray(player1DeckAfterMulligan);
+                expect(context.player2.deck).toEqualArray(player2DeckAfterMulligan);
+
+                // Rollback to the mulligan decision
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player2.id,
+                    actionOffset: -1,
+                });
+                expect(context.player1.hand).toEqualArray(player1StartingHandBeforeMulligan);
+                expect(context.player2.hand).toEqualArray(player2StartingHandBeforeMulligan);
+                expect(context.player1.deck).toEqualArray(player1DeckBeforeMulligan);
+                expect(context.player2.deck).toEqualArray(player2DeckBeforeMulligan);
+
+                // Choose whether to take a mulligan
+                context.player1.clickPrompt('Keep');
+                context.player2.clickPrompt('Mulligan');
+                expect(context.player1.hand).toEqualArray(player1StartingHandBeforeMulligan);
+                expect(context.player2.hand).toEqualArray(player2StartingHandAfterMulligan);
+                expect(context.player1.deck).toEqualArray(player1DeckBeforeMulligan);
+                expect(context.player2.deck).toEqualArray(player2DeckAfterMulligan);
+            });
         });
 
         describe('Action Phase Claim/Pass Cases', function() {
@@ -1908,6 +2011,51 @@ describe('Undo', function() {
                     context.player2.discarded(context.waylay),
                     context.player2.drew(context.wampa),
                 ]);
+            });
+        });
+
+        describe('A passed action', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['wampa'],
+                    }
+                });
+            });
+
+            undoIt('should be tracked correctly when the action afterwards is rolled back', function() {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.passAction();
+
+                contextRef.snapshot.quickRollback(context.player2.id);
+                expect(context.player2).toBeActivePlayer();
+
+                context.player2.claimInitiative();
+
+                expect(context.game.currentPhase).toBe('regroup');
+            });
+
+            undoIt('should be tracked correctly when it is rolled back', function() {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.passAction();
+
+                contextRef.snapshot.quickRollback(context.player1.id);
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.claimInitiative();
+
+                // confirm that we are still in the action phase - i.e., the game didn't still think that P1's action was a pass
+                expect(context.game.currentPhase).toBe('action');
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });

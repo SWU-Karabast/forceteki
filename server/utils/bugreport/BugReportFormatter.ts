@@ -39,6 +39,7 @@ export function formatBugReport(
     opponent: User,
     messages: { date: Date; message: MessageText | { alert: { type: string; message: string | string[] } } }[],
     lobbyId: string,
+    gameStepsSinceLastUndo?: number,
     gameId?: string,
     screenResolution?: { width: number; height: number } | null,
     viewport?: { width: number; height: number } | null
@@ -60,7 +61,8 @@ export function formatBugReport(
         gameId,
         messages,
         timestamp: new Date().toISOString(),
-        screenResolution: screenResolution,
-        viewport: viewport
+        screenResolution,
+        viewport,
+        gameStepsSinceLastUndo: gameStepsSinceLastUndo == null ? 'N/A' : gameStepsSinceLastUndo.toString()
     };
 }

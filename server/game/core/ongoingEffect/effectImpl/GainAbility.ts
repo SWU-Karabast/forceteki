@@ -19,7 +19,7 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
     public readonly abilityType: AbilityType;
     public readonly properties: IAbilityPropsWithType;
 
-    private get gainAbilitySource() {
+    public get gainAbilitySource() {
         return this.game.getFromRef(this.state.gainAbilitySource);
     }
 
@@ -111,6 +111,10 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
                 gainedAbilityUuid = target.addGainedReplacementEffectAbility(properties);
                 break;
 
+            case AbilityType.DamagePrevention:
+                gainedAbilityUuid = target.addGainedDamagePreventionAbility(properties);
+                break;
+
             default:
                 Contract.fail(`Unknown ability type: ${this.abilityType}`);
         }
@@ -138,10 +142,18 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
                 target.removeGainedReplacementEffectAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
                 break;
 
+            case AbilityType.DamagePrevention:
+                target.removeGainedDamagePreventionAbility(this.state.abilityUuidByTargetCard.get(target.uuid));
+                break;
+
             default:
                 Contract.fail(`Unknown ability type: ${this.abilityType}`);
         }
 
         this.state.abilityUuidByTargetCard.delete(target.uuid);
+    }
+
+    public override isGainAbility(): this is GainAbility {
+        return true;
     }
 }

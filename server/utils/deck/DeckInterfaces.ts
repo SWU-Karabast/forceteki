@@ -45,9 +45,16 @@ export interface ICardIdAndName {
     name: string;
 }
 
+export enum DecklistLocation {
+    Leader = 'leader',
+    Base = 'base',
+    Deck = 'deck'
+}
+
 export enum DeckValidationFailureReason {
     IllegalInFormat = 'illegalInFormat',
     TooManyLeaders = 'tooManyLeaders',
+    InvalidDecklistLocation = 'invalidCardLocation',
     InvalidDeckData = 'invalidDeckData',
     MinDecklistSizeNotMet = 'minDecklistSizeNotMet',
     MinMainboardSizeNotMet = 'minMainboardSizeNotMet',
@@ -59,6 +66,7 @@ export enum DeckValidationFailureReason {
 export interface IDeckValidationFailures {
     [DeckValidationFailureReason.IllegalInFormat]?: ICardIdAndName[];
     [DeckValidationFailureReason.TooManyLeaders]?: boolean;
+    [DeckValidationFailureReason.InvalidDecklistLocation]?: { card: ICardIdAndName; location: DecklistLocation }[];
     [DeckValidationFailureReason.InvalidDeckData]?: boolean;
     [DeckValidationFailureReason.MinDecklistSizeNotMet]?: { minDecklistSize: number; actualDecklistSize: number };
     [DeckValidationFailureReason.MinMainboardSizeNotMet]?: { minBoardedSize: number; actualBoardedSize: number };

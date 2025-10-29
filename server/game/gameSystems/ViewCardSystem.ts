@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MsgArg } from '../core/chat/GameChat';
+import { ZoneName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -63,15 +64,11 @@ export type IViewCardProperties = IViewCardOnlyProperties | IViewAndSelectCardsP
 
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IViewCardProperties = IViewCardProperties> extends CardTargetSystem<TContext, TProperties> {
     public override eventHandler(event): void {
-        const context = event.context;
-        context.game.addMessage(this.getMessage(event.message, context), ...event.messageArgs);
-
         if (event.promptHandler) {
             event.promptHandler();
         }
     }
 
-    protected abstract getChatMessage(useDisplayPrompt: boolean, context: TContext, additionalProperties: Partial<TProperties>): string;
     protected abstract getPromptedPlayer(properties: IViewCardProperties, context: TContext): Player;
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
@@ -83,6 +80,12 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         const event = this.createEvent(null, context, additionalProperties);
         this.updateEvent(event, cards, context, additionalProperties);
         events.push(event);
+
+        const isViewingOpponentCards = cards.some((card) => card.controller !== context.player);
+        const isViewingOwnDeck = cards.some((card) => card.zoneName === ZoneName.Deck && card.controller === context.player);
+        if (isViewingOpponentCards || isViewingOwnDeck) {
+            context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
+        }
     }
 
     public override addPropertiesToEvent(event, cards, context: TContext, additionalProperties): void {
@@ -103,8 +106,6 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         Contract.assertFalse(!useDisplayPrompt && properties.interactMode !== ViewCardInteractMode.ViewOnly, 'Cannot disable display prompt for non-basic view card prompts');
 
         event.cards = cards;
-        event.message = this.getChatMessage(useDisplayPrompt, context, additionalProperties);
-        event.messageArgs = this.getMessageArgs(event, context, additionalProperties);
         event.displayTextByCardUuid = properties.displayTextByCardUuid;
         event.promptHandler = useDisplayPrompt ? this.buildPromptHandler(cards, properties, context) : null;
     }
@@ -214,15 +215,6 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
                 onComplete
             });
     }
-
-    public getMessage(message, context: TContext): string {
-        if (typeof message === 'function') {
-            return message(context);
-        }
-        return message;
-    }
-
-    public abstract getMessageArgs(event: any, context: TContext, additionalProperties);
 
     private addOnSelectEffectMessage(
         context: TContext,

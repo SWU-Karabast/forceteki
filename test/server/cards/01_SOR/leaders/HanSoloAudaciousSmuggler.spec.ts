@@ -37,7 +37,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 expect(context.aggression).toBeInZone('discard', context.player1);
                 expect(context.player1.readyResourceCount).toBe(5);
                 expect(context.getChatLogs(1)).toEqual([
-                    'player1 uses Han Solo to defeat Aggression',
+                    'player1 uses Han Solo to defeat a ready Aggression',
                 ]);
             });
 
@@ -143,7 +143,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1.readyResourceCount).toBe(7);
                 expect(context.wampa).toBeInZone('resource', context.player1);
-                expect(context.getChatLog()).toEqual('player1 uses Han Solo to move a card to their resources and to defeat a resource at the start of the next action phase');
+                expect(context.getChatLog()).toEqual('player1 uses Han Solo to move a card to their resources and to ready it and to defeat a resource at the start of the next action phase');
 
                 context.player2.claimInitiative();
                 context.player1.passAction();

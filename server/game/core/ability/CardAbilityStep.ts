@@ -1,6 +1,6 @@
 import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility.js';
 import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
-import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck } from '../Constants.js';
+import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck, PlayType } from '../Constants.js';
 import * as AttackHelper from '../attack/AttackHelpers.js';
 import * as Helpers from '../utils/Helpers.js';
 import * as Contract from '../utils/Contract.js';
@@ -13,6 +13,8 @@ import type { AbilityContext } from './AbilityContext.js';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
 import type Game from '../Game.js';
 import { GameCardMetric } from '../../../gameStatistics/GameStatisticsTracker.js';
+import type { FormatMessage, MsgArg } from '../chat/GameChat.js';
+import * as ChatHelpers from '../chat/ChatHelpers';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
@@ -81,24 +83,75 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         return false;
     }
 
-    public override displayMessage(context: AbilityContext) {
-        if ('message' in this.properties) {
-            let message = this.properties.message;
-            if (typeof message === 'function') {
-                message = message(context);
+    public override displayMessage(context: AbilityContext, messageVerb = 'uses') {
+        if ('message' in this.properties && this.properties.message) {
+            let messageArgs = 'messageArgs' in this.properties ? this.properties.messageArgs : [];
+            if (typeof messageArgs === 'function') {
+                messageArgs = messageArgs(context);
             }
-            if (message) {
-                let messageArgs = [context.player, context.source, context.target];
-                if ('messageArgs' in this.properties && this.properties.messageArgs) {
-                    let args = this.properties.messageArgs;
-                    if (typeof args === 'function') {
-                        args = args(context);
-                    }
-                    messageArgs = messageArgs.concat(args);
-                }
-                this.game.addMessage(message, ...messageArgs);
+            if (!Array.isArray(messageArgs)) {
+                messageArgs = [messageArgs];
             }
+            this.game.addMessage(this.properties.message, ...(messageArgs as any[]));
+            return;
         }
+
+        const gainAbilitySource = context.ability && context.ability.isCardAbility() && context.ability.gainAbilitySource;
+
+        const messageArgs: MsgArg[] = [context.player, ` ${messageVerb} `, context.source];
+        if (gainAbilitySource) {
+            if (gainAbilitySource !== context.source) {
+                messageArgs.push('\'s gained ability from ', gainAbilitySource);
+            }
+        } else if (messageVerb === 'plays' && context.playType === PlayType.Smuggle) {
+            messageArgs.push(' using Smuggle');
+        }
+        const costMessages = this.getCostsMessages(context);
+
+        if (costMessages.length > 0) {
+            // ,
+            messageArgs.push(', ');
+            // paying 3 honor
+            messageArgs.push(costMessages);
+        }
+
+        let effectMessage = this.properties.effect;
+        let effectArgs = [];
+        let extraArgs = null;
+        if (!effectMessage) {
+            const gameActions: GameSystem[] = this.getGameSystems(context).filter((gameSystem: GameSystem) => gameSystem.hasLegalTarget(context));
+            if (gameActions.length === 1) {
+                [effectMessage, extraArgs] = gameActions[0].getEffectMessage(context);
+            } else if (gameActions.length > 1) {
+                effectMessage = ChatHelpers.formatWithLength(gameActions.length, 'to ');
+                extraArgs = gameActions.map((gameAction): FormatMessage => {
+                    const [message, args] = gameAction.getEffectMessage(context);
+                    return { format: message, args: Helpers.asArray(args) };
+                });
+            }
+        } else {
+            effectArgs.push(context.target || context.source);
+            extraArgs = this.properties.effectArgs;
+        }
+
+        if (extraArgs) {
+            if (typeof extraArgs === 'function') {
+                extraArgs = extraArgs(context);
+            }
+            effectArgs = effectArgs.concat(extraArgs);
+        }
+
+        if (effectMessage) {
+            // to
+            messageArgs.push(' to ');
+            // discard Stoic Gunso
+            messageArgs.push({ format: effectMessage, args: effectArgs });
+        } else if (messageVerb === 'uses' && costMessages.length === 0) {
+            // If verb is "uses" and there's no effect or cost message, don't log anything
+            return;
+        }
+
+        this.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }
 
     protected getGameSystems(context: AbilityContext): GameSystem[] {
@@ -169,7 +222,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
         const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
         if (!then.thenCondition || then.thenCondition(context)) {
-            return this.buildSubAbilityStepContext(then, canBeTriggeredBy);
+            return this.buildSubAbilityStepContext(then, canBeTriggeredBy, context);
         }
 
         return null;
@@ -181,7 +234,8 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
             if (this.properties.ifYouDoNot) {
                 return this.buildSubAbilityStepContext(
                     this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context),
-                    context.player
+                    context.player,
+                    context
                 );
             }
 
@@ -197,7 +251,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
             const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
 
             if (conditionalEvent.isResolvedOrReplacementResolved && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
-                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy, context);
             }
         }
 
@@ -206,7 +260,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
             const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
 
             if (!conditionalEvent.isResolvedOrReplacementResolved) {
-                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy, context);
             }
         }
 
@@ -220,7 +274,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         return { ...properties, triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
     }
 
-    private buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player) {
+    protected buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player, parentContex: AbilityContext) {
         return this.buildSubAbilityStep(subAbilityStepProps).createContext(canBeTriggeredBy);
     }
 

@@ -35,8 +35,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                 ]);
 
                 // confirm that there is no chat message for the cards
-                expect(context.getChatLogs(1)[0]).not.toContain(context.rivalsFall.title);
-                expect(context.getChatLogs(1)[0]).not.toContain(context.specforceSoldier.title);
+                expect(context.getChatLogs(1)[0]).toEqual('player1 uses Grand Admiral Thrawn to look at 2 cards');
                 context.player1.clickDone();
 
                 expect(context.player1).toBeActivePlayer();

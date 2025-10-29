@@ -20,11 +20,8 @@ export default class UWingLander extends NonLeaderUnitCard {
             })),
         });
 
-        registrar.addTriggeredAbility({
+        registrar.addOnAttackCompletedAbility({
             title: 'Attach an upgrade on this unit to another eligible friendly Vehicle unit',
-            when: {
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source,
-            },
             optional: true,
             targetResolvers: {
                 chooseUpgrade: {

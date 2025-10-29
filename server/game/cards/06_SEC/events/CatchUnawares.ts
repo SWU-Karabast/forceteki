@@ -5,7 +5,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 export default class CatchUnawares extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'catch-unawares-id',
+            id: '9742037939',
             internalName: 'catch-unawares',
         };
     }

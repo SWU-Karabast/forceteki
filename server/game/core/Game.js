@@ -21,7 +21,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint, GameErrorSeverity } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint, GameErrorSeverity, GameEndReason } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -51,11 +51,14 @@ const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
 const { getAbilityHelper } = require('../AbilityHelper.js');
 const { PhaseInitializeMode } = require('./gameSteps/phases/Phase.js');
 const { Randomness } = require('../core/Randomness.js');
-const { RollbackEntryPointType } = require('./snapshot/SnapshotInterfaces.js');
+const { RollbackEntryPointType, QuickUndoAvailableState } = require('./snapshot/SnapshotInterfaces.js');
 const { Lobby } = require('../../gamenode/Lobby.js');
 const { DiscordDispatcher } = require('./DiscordDispatcher.js');
 const { GameStatisticsLogger } = require('../../gameStatistics/GameStatisticsTracker.js');
 const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
+const { QuickRollbackPoint } = require('./snapshot/container/MetaSnapshotArray.js');
+const { PerGameUndoLimit, UnlimitedUndoLimit } = require('./snapshot/UndoLimit.js');
+const UndoConfirmationPrompt = require('./gameSteps/prompts/UndoConfirmationPrompt.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -127,7 +130,7 @@ class Game extends EventEmitter {
     }
 
     get isUndoEnabled() {
-        return this.snapshotManager.undoMode === UndoMode.Full;
+        return this.snapshotManager.undoMode !== UndoMode.Disabled;
     }
 
     get actionNumber() {
@@ -199,6 +202,24 @@ class Game extends EventEmitter {
         return this._router.id;
     }
 
+    get gameStepsSinceLastUndo() {
+        return this.snapshotManager.gameStepsSinceLastUndo;
+    }
+
+    get serializationFailure() {
+        return this._serializationFailure;
+    }
+
+    /** @type {boolean | null} */
+    get prevActionPhasePlayerPassed() {
+        return this.state.prevActionPhasePlayerPassed;
+    }
+
+    /** @type {boolean | null} */
+    set prevActionPhasePlayerPassed(value) {
+        this.state.prevActionPhasePlayerPassed = value;
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -220,9 +241,6 @@ class Game extends EventEmitter {
         /** @private @readonly @type {Lobby} */
         this._router = options.router;
 
-        /** @public @readonly @type {import('./DiscordDispatcher.js').IDiscordDispatcher} */
-        this.discordDispatcher = new DiscordDispatcher();
-
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
         /** @type {import('../AbilityHelper.js').IAbilityHelper} */
@@ -234,12 +252,24 @@ class Game extends EventEmitter {
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
+
+        /** @private @type {import('./snapshot/UndoLimit.js').UndoLimit} */
+        this.freeUndoLimit = details.undoMode === UndoMode.Request
+            ? new PerGameUndoLimit(1)
+            : new UnlimitedUndoLimit();
+
         this.owner = details.owner;
         this.started = false;
         this.statsUpdated = false;
         this.playStarted = false;
         this.createdAt = new Date();
         this.preUndoStateForError = null;
+
+        /** @public @type {boolean} */
+        this.undoConfirmationOpen = false;
+
+        /** @private @type {boolean} */
+        this._serializationFailure = false;
 
         this.playerHasBeenPrompted = new Map();
 
@@ -270,6 +300,7 @@ class Game extends EventEmitter {
             winnerNames: [],
             lastGameEventId: 0,
             currentPhase: null,
+            prevActionPhasePlayerPassed: null
         };
 
         this.tokenFactories = null;
@@ -277,6 +308,7 @@ class Game extends EventEmitter {
         this.movedCards = [];
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
+        this.allNonLeaderCardTitles = this.cardDataGetter.allNonLeaderCardTitles;
 
         /** @public @readonly @type {import('../../gameStatistics/GameStatisticsTracker.js').IGameStatisticsTracker} */
         this.statsTracker = new GameStatisticsLogger(this);
@@ -316,11 +348,31 @@ class Game extends EventEmitter {
 
     /**
      * Reports errors from the game engine back to the router, optionally halting the game if the error is severe.
-     * @param {Error} e
+     * @param {Error} error
      * @param {GameErrorSeverity} severity
      */
-    reportError(e, severity = GameErrorSeverity.Normal) {
-        this._router.handleError(this, e, severity);
+    reportError(error, severity = GameErrorSeverity.Normal) {
+        this._router.handleError(this, error, severity);
+    }
+
+    /**
+     * Reports that game state serialization failed.
+     * Sends an error report and cleans up the game, as the game is now in an invalid state.
+     * @param {Error} error
+     * @returns {never}
+     */
+    reportSerializationFailure(error) {
+        // if we've already seen a serialization failure, we may be in an infinite loop while try to report it, so just throw
+        if (this._serializationFailure) {
+            throw error;
+        }
+
+        this._serializationFailure = true;
+
+        this._router.handleSerializationFailure(this, error);
+
+        // we won't reach here, this is just to make TS happy about the return type
+        throw error;
     }
 
     /**
@@ -431,8 +483,11 @@ class Game extends EventEmitter {
      * @returns {Array}
      */
     getAllCapturedCards(player) {
-        return this.findAnyCardsInPlay((card) => card.isUnit() && card.owner === player)
+        const cardsCapturedByUnits = this
+            .findAnyCardsInPlay((card) => card.isUnit() && card.owner === player)
             .flatMap((card) => card.capturedUnits);
+
+        return cardsCapturedByUnits.concat(player.base.capturedUnits);
     }
 
     /**
@@ -695,6 +750,12 @@ class Game extends EventEmitter {
     //     }
     // }
 
+    resetForNewTimepoint() {
+        for (const player of this.getPlayers()) {
+            player.hasResolvedAbilityThisTimepoint = false;
+        }
+    }
+
     restartAllActionTimers() {
         this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
     }
@@ -807,9 +868,9 @@ class Game extends EventEmitter {
     checkWinCondition() {
         const losingPlayers = this.getPlayers().filter((player) => player.base.damage >= player.base.getHp());
         if (losingPlayers.length === 1) {
-            this.endGame(losingPlayers[0].opponent, 'base destroyed');
+            this.endGame(losingPlayers[0].opponent, GameEndReason.GameRules);
         } else if (losingPlayers.length === 2) { // draw game
-            this.endGame(losingPlayers, 'both bases destroyed');
+            this.endGame(losingPlayers, GameEndReason.GameRules);
         }
     }
 
@@ -817,9 +878,11 @@ class Game extends EventEmitter {
      * Display message declaring victory for one player, and record stats for
      * the game
      * @param {Player[]|Player} winnerPlayers
-     * @param {String} reason
+     * @param {GameEndReason} reasonCode
      */
-    endGame(winnerPlayers, reason) {
+    endGame(winnerPlayers, reasonCode) {
+        this.gameEndReason = reasonCode;
+
         if (this.state.winnerNames.length > 0) {
             // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
@@ -827,6 +890,8 @@ class Game extends EventEmitter {
 
         for (const player of this.getPlayers()) {
             player.actionTimer.stop();
+
+            this.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(player.id);
         }
 
         /**
@@ -843,7 +908,7 @@ class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers);
         }
         this.finishedAt = new Date();
-        this.gameEndReason = reason;
+        this._router.handleGameEnd();
         // this._router.gameWon(this, reason, winner);
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
@@ -928,7 +993,7 @@ class Game extends EventEmitter {
         var otherPlayer = this.getOtherPlayer(player);
 
         if (otherPlayer) {
-            this.endGame(otherPlayer, 'concede');
+            this.endGame(otherPlayer, GameEndReason.Concede);
         }
     }
 
@@ -1862,41 +1927,76 @@ class Game extends EventEmitter {
     //  * This information is sent to the client
     //  */
     getState(notInactivePlayerId) {
-        let activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
-        let playerState = {};
-        if (this.started) {
-            for (const player of this.getPlayers()) {
-                playerState[player.id] = player.getStateSummary(activePlayer);
+        try {
+            const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
+
+            if (this._serializationFailure) {
+                return {
+                    messages: [`A severe server error has occurred and made this game unplayable. This incident has been reported to the dev team. Please feel free to reach out in the Karabast discord to provide additional details so we can resolve this faster (game id ${this.id}).`],
+                    playerUpdate: activePlayer.name,
+                    id: this.id,
+                    owner: this.owner,
+                    players: {},
+                    phase: this.currentPhase,
+                    initiativeClaimed: this.isInitiativeClaimed,
+                    clientUIProperties: {},
+                    spectators: {},
+                    winners: [],
+                };
             }
 
-            const gameState = {
-                playerUpdate: activePlayer.name,
-                id: this.id,
-                manualMode: this.manualMode,
-                owner: this.owner,
-                players: playerState,
-                phase: this.currentPhase,
-                messages: this.gameChat.messages,
-                initiativeClaimed: this.isInitiativeClaimed,
-                clientUIProperties: this.clientUIProperties,
-                spectators: this.getSpectators().map((spectator) => {
-                    return {
-                        id: spectator.id,
-                        name: spectator.name
-                    };
-                }),
-                started: this.started,
-                gameMode: this.gameMode,
-                winners: this.winnerNames,
-                undoEnabled: this.isUndoEnabled,
-            };
+            let playerState = {};
+            if (this.started) {
+                for (const player of this.getPlayers()) {
+                    playerState[player.id] = player.getStateSummary(activePlayer);
+                }
 
-            // clean out any properies that are null or undefined to reduce the message size
-            Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
+                const gameState = {
+                    playerUpdate: activePlayer.name,
+                    id: this.id,
+                    manualMode: this.manualMode,
+                    owner: this.owner,
+                    players: playerState,
+                    phase: this.currentPhase,
+                    messages: this.gameChat.messages,
+                    initiativeClaimed: this.isInitiativeClaimed,
+                    clientUIProperties: this.clientUIProperties,
+                    spectators: this.getSpectators().map((spectator) => {
+                        return {
+                            id: spectator.id,
+                            name: spectator.name
+                        };
+                    }),
+                    started: this.started,
+                    gameMode: this.gameMode,
+                    winners: this.winnerNames,
+                    undoEnabled: this.isUndoEnabled,
+                };
 
-            return gameState;
+                // clean out any properies that are null or undefined to reduce the message size
+                Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
+
+                return gameState;
+            }
+            return {};
+        } catch (e) {
+            this.reportSerializationFailure(e);
         }
-        return {};
+    }
+
+    /** @param {boolean} enabled */
+    setUndoConfirmationRequired(enabled) {
+        if (
+            enabled && this.snapshotManager.undoMode === UndoMode.Request ||
+            !enabled && this.snapshotManager.undoMode !== UndoMode.Request
+        ) {
+            return;
+        }
+
+        this.snapshotManager.setUndoConfirmationRequired(enabled);
+        this.freeUndoLimit = enabled
+            ? new PerGameUndoLimit(1)
+            : new UnlimitedUndoLimit();
     }
 
     /** @param {string} playerId */
@@ -1917,10 +2017,29 @@ class Game extends EventEmitter {
         return this.snapshotManager.countAvailablePhaseSnapshots(phaseName);
     }
 
-    /** @param {string} playerId */
+    /**
+     * @param {string} playerId
+     * @returns {QuickUndoAvailableState}
+     */
     hasAvailableQuickSnapshot(playerId) {
         Contract.assertNotNullLike(playerId);
-        return this.snapshotManager.hasAvailableQuickSnapshot(playerId);
+
+        if (this.undoConfirmationOpen) {
+            return QuickUndoAvailableState.WaitingForConfirmation;
+        }
+
+        const player = this.getPlayerById(playerId);
+
+        if (!this.snapshotManager.hasAvailableQuickSnapshot(playerId)) {
+            return QuickUndoAvailableState.NoSnapshotAvailable;
+        }
+
+        const rollbackInformation = this.snapshotManager.getRollbackInformation({ type: SnapshotType.Quick, playerId });
+        if (this.confirmationRequiredForRollback(playerId, rollbackInformation)) {
+            return player.undoRequestsBlocked ? QuickUndoAvailableState.UndoRequestsBlocked : QuickUndoAvailableState.RequestUndoAvailable;
+        }
+
+        return QuickUndoAvailableState.FreeUndoAvailable;
     }
 
     /**
@@ -1940,18 +2059,106 @@ class Game extends EventEmitter {
     /**
      * Attempts to restore the designated snapshot
      *
+     * @param {string} playerId - The ID of the player requesting the rollback
      * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
-     * @returns True if a snapshot was restored, false otherwise
+     * @return True if the rollback was successful or we prompted the opponent to confirm, false otherwise
      */
     rollbackToSnapshot(playerId, settings) {
-        const result = this.rollbackToSnapshotInternal(settings);
+        if (!this.isUndoEnabled) {
+            return false;
+        }
+
+        const player = this.getPlayerById(playerId);
+
+        const rollbackInformation = this.snapshotManager.getRollbackInformation(settings);
+
+        let message;
+        switch (settings.type) {
+            case SnapshotType.Manual:
+                message = 'a previous bookmark';
+                break;
+            case SnapshotType.Phase:
+                message = `the start of the ${settings.phaseName} phase (round ${this.roundNumber})`;
+                break;
+            case SnapshotType.Quick:
+                message = `their ${rollbackInformation.isSameTimepoint ? 'current' : 'previous'} action`;
+                break;
+            case SnapshotType.Action:
+                message = 'their previous action';
+                break;
+            default:
+                // @ts-expect-error this is here in case we add a new value for SnapshotType
+                Contract.fail(`Unknown snapshot type: ${settings.type}`);
+        }
+
+        const rollbackHandler = this._snapshotManager.buildRollbackHandler(settings);
+
+        const performRollback = () => {
+            const result = this.rollbackToSnapshotInternal(settings, rollbackHandler);
+
+            if (!result) {
+                return false;
+            }
+
+            this.addAlert(AlertType.Notification, '{0} has rolled back to {1}', player, message);
+            return true;
+        };
+
+        if (this.confirmationRequiredForRollback(playerId, rollbackInformation)) {
+            if (player.undoRequestsBlocked) {
+                return false;
+            }
+
+            let undoTypePromptMessage = message;
+            if (settings.type !== SnapshotType.Quick && settings.type !== SnapshotType.Action) {
+                undoTypePromptMessage = `to ${message}`;
+            }
+            this.addAlert(AlertType.Notification, '{0} has requested to undo', player);
+            this.queueStep(new UndoConfirmationPrompt(this, player.opponent, undoTypePromptMessage, performRollback));
+
+            return true;
+        }
+
+        const result = performRollback();
 
         if (result) {
-            this.addAlert(AlertType.Notification, '{0} has rolled back to a previous action', this.getPlayerById(playerId));
+            this.freeUndoLimit.incrementUses(playerId);
         }
+
+        return result;
     }
 
-    rollbackToSnapshotInternal(settings) {
+    /**
+     * @param {string} playerId - The ID of the player requesting the rollback
+     * @param {import('./snapshot/SnapshotInterfaces.js').ICanRollBackResult} rollbackInformation
+     * @returns {boolean}
+     */
+    confirmationRequiredForRollback(playerId, rollbackInformation) {
+        if (this.snapshotManager.undoMode !== UndoMode.Request) {
+            return false;
+        }
+
+        if (rollbackInformation.requiresConfirmation || this.freeUndoLimit.hasReachedLimit(playerId)) {
+            return true;
+        }
+
+        // check if opponent has revealed information on their turn
+        const player = this.getPlayerById(playerId);
+        const opponent = player.opponent;
+
+        // if it's the undoing player's action, no risk of revealed information
+        if (this.currentPhase === PhaseName.Action && this.actionPhaseActivePlayer === player) {
+            return false;
+        }
+
+        return !!opponent.hasResolvedAbilityThisTimepoint;
+    }
+
+    /**
+     * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings
+     * @returns True if a snapshot was restored, false otherwise
+     */
+    rollbackToSnapshotInternal(settings, rollbackHandler = null) {
         if (!this.isUndoEnabled) {
             return false;
         }
@@ -1962,11 +2169,13 @@ class Game extends EventEmitter {
         try {
             this.preUndoStateForError = { gameState: this.captureGameState('any'), settings };
 
-            rollbackResult = this._snapshotManager.rollbackTo(settings);
+            rollbackResult = rollbackHandler ? rollbackHandler() : this._snapshotManager.rollbackTo(settings);
 
             if (!rollbackResult.success) {
                 return false;
             }
+
+            this._actionsSinceLastUndo = 0;
 
             this.postRollbackOperations(rollbackResult.entryPoint);
 
@@ -1987,6 +2196,8 @@ class Game extends EventEmitter {
                     gameStates
                 });
             }
+
+            return rollbackResult.success;
         } catch (error) {
             if (process.env.NODE_ENV !== 'test') {
                 this.reportSevereRollbackFailure(error);
@@ -1996,8 +2207,6 @@ class Game extends EventEmitter {
         } finally {
             this.preUndoStateForError = null;
         }
-
-        return true;
     }
 
     reportSevereRollbackFailure(error) {
@@ -2063,22 +2272,18 @@ class Game extends EventEmitter {
     /**
      * Captures the current game state for a bug report
      * @param {string} reportingPlayer
-     * @returns A simplified game state representation
+     * @returns {import('../Interfaces').ISerializedGameState} A simplified game state representation
      */
     captureGameState(reportingPlayer) {
         if (!this) {
             return {
-                phase: 'unknown',
-                player1: {},
-                player2: {}
+                error: 'game not found'
             };
         }
         const players = this.getPlayers();
         if (players.length !== 2) {
             return {
-                phase: this.currentPhase,
-                player1: {},
-                player2: {}
+                error: `invalid number of players: ${players.length}`
             };
         }
         let player1, player2;
@@ -2099,10 +2304,11 @@ class Game extends EventEmitter {
             default:
                 Contract.fail(`Reporting player ${reportingPlayer} is not a player in this game`);
         }
+
         return {
             phase: this.currentPhase,
-            player1: player1.capturePlayerState('player1'),
-            player2: player2.capturePlayerState('player2'),
+            player1: Helpers.safeSerialize(this, () => player1.capturePlayerState('player1'), null),
+            player2: Helpers.safeSerialize(this, () => player2.capturePlayerState('player2'), null),
         };
     }
 

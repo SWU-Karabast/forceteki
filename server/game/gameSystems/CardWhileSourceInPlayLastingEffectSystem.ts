@@ -27,8 +27,8 @@ export class CardWhileSourceInPlayLastingEffectSystem<TContext extends AbilityCo
         super(propertyWithDurationType);
     }
 
-    protected override filterApplicableEffects(card: Card, effects: any[]) {
-        return super.filterApplicableEffects(card, effects)
+    protected override filterApplicableEffects(card: Card, effects: any[], context?: TContext) {
+        return super.filterApplicableEffects(card, effects, context)
             .filter((effect) => this.whileSourceInPlayCondition(effect));
     }
 

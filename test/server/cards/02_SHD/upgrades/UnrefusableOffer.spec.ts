@@ -205,6 +205,67 @@ describe('Unrefusable Offer', function () {
             expect(context.wampa).toBeInZone('groundArena');
         });
 
+        it('should not bug if the unit is defeated because of the uniqueness rule', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['unrefusable-offer'],
+                    groundArena: ['sabine-wren#explosives-artist'],
+                },
+                player2: {
+                    groundArena: ['sabine-wren#explosives-artist']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.p1SabineWren = context.player1.findCardByName('sabine-wren#explosives-artist');
+            context.p2SabineWren = context.player2.findCardByName('sabine-wren#explosives-artist');
+
+            context.player1.clickCard(context.unrefusableOffer);
+            context.player1.clickCard(context.p2SabineWren);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.p1SabineWren);
+            context.player1.clickCard(context.p2SabineWren);
+            context.player1.clickCard(context.p2SabineWren);
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
+            context.player1.clickPrompt('Trigger');
+
+            context.player1.clickCard(context.p2SabineWren); // Choose to defeat the one played with Unrefusable Offer
+            expect(context.p2SabineWren).toBeInZone('discard');
+
+            context.moveToNextActionPhase();
+        });
+
+        it('should do nothing if the bounty is not collected', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['unrefusable-offer'],
+                    groundArena: ['wampa'],
+                },
+                player2: {
+                    groundArena: ['sabine-wren#explosives-artist'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.unrefusableOffer);
+            context.player1.clickCard(context.sabineWren);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.sabineWren);
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
+            context.player1.clickPrompt('Pass');
+
+            expect(context.sabineWren).toBeInZone('discard');
+        });
+
         // TODO FIX MULTIPLE TRIGGER WHICH PLAY THE SAME CARD
         // it('Unrefusable Offer\'s Bounty ability should play defeated unit (enters ready) and defeat it at the start of regroup phase', async function () {
         //     await contextRef.setupTestAsync({

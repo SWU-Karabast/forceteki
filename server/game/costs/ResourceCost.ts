@@ -71,9 +71,13 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
             context.costs.resources = amount;
 
             event.context.player.markUsedAdjusters(context.playType, event.context.source, context, event.context.target);
-            let priorityExhaustList = [];
-            if (context.playType === PlayType.Plot) {
-                priorityExhaustList = priorityExhaustList.concat(event.context.source);
+            const priorityExhaustList = [];
+
+            // For Smuggle and Plot, we need to ensure that the card being played is switched to being exhausted first, and then used as a priority pay resource
+            if (context.playType === PlayType.Smuggle || context.playType === PlayType.Plot) {
+                if (event.context.source.canBeExhausted() && !event.context.source.exhausted) {
+                    priorityExhaustList.push(event.context.source);
+                }
             }
             event.context.player.exhaustResources(amount, priorityExhaustList);
 

@@ -17,7 +17,8 @@ export default class SpecForceSoldier extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    effect: AbilityHelper.ongoingEffects.loseKeyword(KeywordName.Sentinel)
+                    effect: AbilityHelper.ongoingEffects.loseKeyword(KeywordName.Sentinel),
+                    ongoingEffectDescription: 'remove Sentinel from'
                 })
             }
         });

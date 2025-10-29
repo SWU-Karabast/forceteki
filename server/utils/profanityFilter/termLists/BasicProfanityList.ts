@@ -23,6 +23,7 @@ type EnglishProfaneWord =
   | 'chingchong'
   | 'chink'
   | 'cock'
+  | 'coloredboy'
   | 'cuck'
   | 'cum'
   | 'cunt'
@@ -437,4 +438,14 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
             .addPattern(pattern`kukluxklan`)
             .addPattern(pattern`ku klux klan`)
             .addPattern(pattern`|klan`)
+    )
+    .addPhrase((phrase) =>
+        phrase
+            .setMetadata({ originalWord: 'coloredboy' })
+            .addPattern(pattern`col[o][u]red[ ]boy`)
+            .addPattern(pattern`col[o][u]red[ ]man`)
+            .addPattern(pattern`col[o][u]red[ ]guy`)
+            .addPattern(pattern`col[o][u]red[ ]girl`)
+            .addPattern(pattern`col[o][u]red[ ]woman`)
+            .addPattern(pattern`col[o][u]red[ ]person`)
     );

@@ -124,7 +124,6 @@ describe('Emergency Powers', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.emergencyPowers);
-            context.player1.clickPrompt('Play anyway');
 
             expect(context.emergencyPowers).toBeInZone('discard', context.player1);
             expect(context.player2).toBeActivePlayer();

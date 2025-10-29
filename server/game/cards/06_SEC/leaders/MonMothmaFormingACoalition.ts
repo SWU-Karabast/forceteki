@@ -9,7 +9,7 @@ import { Aspect, RelativePlayer, Trait, WildcardCardType } from '../../../core/C
 export default class MonMothmaFormingACoalition extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mon-mothma#forming-a-coalition-id',
+            id: '1834623213',
             internalName: 'mon-mothma#forming-a-coalition',
         };
     }

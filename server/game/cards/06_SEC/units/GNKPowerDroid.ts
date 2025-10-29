@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class GNKPowerDroid extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'gnk-power-droid-id',
+            id: '3989459429',
             internalName: 'gnk-power-droid',
         };
     }

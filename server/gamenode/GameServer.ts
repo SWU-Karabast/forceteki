@@ -34,6 +34,7 @@ import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { requireEnvVars } from '../env';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
+import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -153,6 +154,7 @@ export class GameServer {
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
     public readonly swuStatsHandler: SwuStatsHandler;
+    private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
 
     private constructor(
@@ -362,6 +364,8 @@ export class GameServer {
             }
         });
 
+        // *** Start of User Object calls ***
+
         app.post('/api/get-user', authMiddleware('get-user'), (req, res, next) => {
             try {
                 // const { decks, preferences } = req.body;
@@ -386,13 +390,31 @@ export class GameServer {
                     id: user.getId(),
                     username: user.getUsername(),
                     showWelcomeMessage: user.getShowWelcomeMessage(),
+                    undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     preferences: user.getPreferences(),
                     needsUsernameChange: user.needsUsernameChange(),
-                    swuStatsRefreshToken: user.getSwuStatsRefreshToken(),
                     moderation: user.getModeration(),
                 } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/user/:userId/swustatsLink', authMiddleware('swustatsLink'), async (req, res, next) => {
+            const user = req.user as User;
+            try {
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (swustatsLink): Anonymous user ${user.getId()} is attempting to retrieve swustatsLink`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve swustatsLink'
+                    });
+                }
+                const linked = await this.swuStatsHandler.getAccessTokenAsync(user.getId(), this);
+                res.status(200).json({ linked: !!linked });
+            } catch (err) {
+                logger.error('GameServer (swustatsLink) Server Error: ', err);
                 next(err);
             }
         });
@@ -418,6 +440,27 @@ export class GameServer {
             }
         });
 
+        app.put('/api/user/:userId/undo-popup-seen', authMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                // Check if user is authenticated (not an anonymous user)
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (undo-popup-seen): Anonymous user ${user.getId()} is attempting to retrieve undo-popup-seen info`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve undo-popup-seen info'
+                    });
+                }
+                const result = await this.userFactory.setUndoPopupSeenStatus(user.getId());
+                return res.status(200).json({
+                    success: result,
+                });
+            } catch (err) {
+                logger.error('GameServer (undo-popup-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
         app.post('/api/get-change-username-info', authMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
@@ -431,7 +474,7 @@ export class GameServer {
                 }
                 const result = await this.userFactory.canChangeUsernameAsync(user.getId());
                 return res.status(200).json({
-                    succeess: true,
+                    success: true,
                     result: result,
                 });
             } catch (err) {
@@ -491,7 +534,6 @@ export class GameServer {
             }
         });
 
-        // Add this new route for setting moderation as seen:
         app.post('/api/set-moderation-seen', authMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
@@ -517,33 +559,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/save-sound-preferences', authMiddleware(), async (req, res, next) => {
-            try {
-                const { soundPreferences } = req.body;
-                const user = req.user as User;
-
-                // Check if user is authenticated
-                if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences to dynamodb`);
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Error attempting to save sound preferences'
-                    });
-                }
-
-                // Update user preferences with sound preferences
-                await this.userFactory.updateUserPreferencesAsync(user.getId(), { sound: soundPreferences });
-
-                return res.status(200).json({
-                    success: true,
-                    message: 'Sound preferences saved successfully'
-                });
-            } catch (err) {
-                logger.error('GameServer (save-sound-preferences) Server error:', err);
-                next(err);
-            }
-        });
-
+        // SWUSTATS
         // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
         app.post('/api/link-swustats', async (req, res, next) => {
             try {
@@ -593,6 +609,30 @@ export class GameServer {
                 next(err);
             }
         });
+
+        app.put('/api/user/:userId/preferences', authMiddleware('PUT-preferences'), async (req, res, next) => {
+            try {
+                const { preferences } = req.body;
+                const { userId } = req.params;
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (PUT-preferences): Anonymous user ${user.getId()} attempted to save preferences to dynamodb`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Error attempting to save preferences'
+                    });
+                }
+                await this.userFactory.updateUserPreferencesAsync(userId, preferences);
+                return res.status(200).json({
+                    success: true,
+                    message: 'Preferences saved successfully',
+                });
+            } catch (err) {
+                logger.error('GameServer (PUT-preferences) Server error:', err);
+                next(err);
+            }
+        });
+        // *** End of User Object calls ***
 
         // user DECKS
         app.post('/api/get-decks', authMiddleware('get-decks'), async (req, res, next) => {
@@ -773,14 +813,13 @@ export class GameServer {
 
         app.post('/api/create-lobby', authMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, lobbyName, enableUndo } = req.body;
+                const { deck, format, isPrivate, lobbyName, allow30CardsInMainBoard } = req.body;
                 const user = req.user;
 
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     // TODO shouldn't return 403
                     logger.error(`GameServer (create-lobby): Error in create-lobby User ${user.getId()} attempted to create a different lobby while already being in a lobby`);
-                    logger.info(`enableUndo value: '${enableUndo}'`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'
@@ -792,8 +831,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, isPrivate, enableUndo);
+                await this.processDeckValidation(deck, format, allow30CardsInMainBoard, res, () => {
+                    this.createLobby(lobbyName, user, deck, format, isPrivate, allow30CardsInMainBoard);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -895,7 +934,7 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, res, () => {
+                await this.processDeckValidation(deck, format, false, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
@@ -983,10 +1022,11 @@ export class GameServer {
     private async processDeckValidation(
         deck: ISwuDbDecklist,
         format: SwuGameFormat,
+        allow30CardsInMainBoard: boolean,
         res: express.Response,
         onValid: () => Promise<void> | void
     ): Promise<void> {
-        const validationResults = this.deckValidator.validateSwuDbDeck(deck, format);
+        const validationResults = this.deckValidator.validateSwuDbDeck(deck, format, allow30CardsInMainBoard);
         if (Object.keys(validationResults).length > 0) {
             res.status(400).json({
                 success: false,
@@ -1074,7 +1114,7 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean, enableUndo = false) {
+    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean, allow30CardsInMainBoard: boolean = false) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -1087,11 +1127,12 @@ export class GameServer {
             lobbyName,
             isPrivate ? MatchType.Private : MatchType.Custom,
             format,
+            allow30CardsInMainBoard,
             this.cardDataGetter,
             this.deckValidator,
             this,
-            this.testGameBuilder,
-            enableUndo
+            this.discordDispatcher,
+            this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
         lobby.createLobbyUser(user, deck);
@@ -1104,11 +1145,12 @@ export class GameServer {
             'Test Game',
             MatchType.Custom,
             SwuGameFormat.Open,
+            false,
             this.cardDataGetter,
             this.deckValidator,
             this,
-            this.testGameBuilder,
-            true
+            this.discordDispatcher,
+            this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
         const order66 = this.userFactory.createAnonymousUser('exe66', 'Order66');
@@ -1237,7 +1279,13 @@ export class GameServer {
             if (lobby.gameType === MatchType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
-                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
+                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, {
+                        ...lobbyUser.deck.getDecklist(),
+                        deckID: lobbyUser.deck.id,
+                        deckLink: lobbyUser.decklist.deckLink,
+                        deckSource: lobbyUser.decklist.deckSource,
+                        isPresentInDb: lobbyUser.decklist.isPresentInDb,
+                    }));
                 }
             }
 
@@ -1379,9 +1427,11 @@ export class GameServer {
             'Quick Game',
             MatchType.Quick,
             format,
+            false,
             this.cardDataGetter,
             this.deckValidator,
-            this
+            this,
+            this.discordDispatcher
         );
 
         this.lobbies.set(lobby.id, lobby);
@@ -1415,7 +1465,6 @@ export class GameServer {
 
         await lobby.addLobbyUserAsync(player.user, socket);
         socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket.socket, player));
-
         if (!socket.eventContainsListener('requeue')) {
             socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck));
         }

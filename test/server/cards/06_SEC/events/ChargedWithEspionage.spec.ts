@@ -31,11 +31,10 @@ describe('Charged With Espionage', function () {
                 });
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
-                // Card names should not be revealed in chat
-                expect(context.getChatLogs(1)[0]).not.toContain(context.battlefieldMarine.title);
-                expect(context.getChatLogs(1)[0]).not.toContain(context.infernoFour.title);
-                expect(context.getChatLogs(1)[0]).not.toContain(context.vigilance.title);
-                expect(context.getChatLogs(1)[0]).not.toContain(context.protector.title);
+                // Card names should be revealed in chat
+                expect(context.getChatLogs(1)[0]).toEqual(
+                    'player1 uses Charged with Espionage to look at the opponent\'s hand and sees Battlefield Marine, Vigilance, Protector, and Inferno Four',
+                );
 
                 // Discard one of the units
                 context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);

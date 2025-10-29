@@ -27,7 +27,8 @@ export class PayCardPrintedCostSystem<TContext extends AbilityContext = AbilityC
         }
 
         const canPayCost = card.cost === 0 || new ExhaustResourcesSystem({
-            amount: card.cost
+            amount: card.cost,
+            isCost: true,
         }).canAffect(properties.player, context, {}, mustChangeGameState);
 
         return canPayCost && super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);

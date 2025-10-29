@@ -59,6 +59,28 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                 );
             });
 
+            it('should work when there is a "damage dealt this phase" watcher active', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['salacious-crumb#obnoxious-pet'],
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper'],
+                        hand: ['decimator-of-dissidents'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.salaciousCrumb);
+                context.player1.clickPrompt('Deal 1 damage to a ground unit');
+                context.player1.clickCard(context.deathStarStormtrooper);
+
+                expect(context.deathStarStormtrooper).toBeInZone('discard');
+                expect(context.salaciousCrumb).toBeInZone('hand');
+            });
+
             it('should not be available if Crumb is exhausted', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

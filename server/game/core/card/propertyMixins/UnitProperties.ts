@@ -25,6 +25,7 @@ import type { GameEvent } from '../../event/GameEvent';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
+import type { ICaptorCard, ICardWithCaptureZone } from '../../zone/CaptureZone';
 import { CaptureZone } from '../../zone/CaptureZone';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { Player } from '../../Player';
@@ -71,6 +72,7 @@ type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extend
 
 export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardAbilityRegistrar<T> {
     addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
+    addOnAttackCompletedAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
     addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<T>, 'canBeTriggeredBy'>): void;
     addCoordinateAbility(properties: IAbilityPropsWithType<T>): void;
     addPilotingAbility(properties: IAbilityPropsWithType<T>): void;
@@ -80,15 +82,13 @@ export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardA
     addPilotingGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<T, IUnitCard>): void;
 }
 
-export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty {
+export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone {
     get defaultArena(): Arena;
-    get capturedUnits(): IUnitCard[];
-    get captureZone(): CaptureZone;
     get lastPlayerToModifyHp(): Player;
     get isClonedUnit(): boolean;
     readonly upgrades: IUpgradeCard[];
     isClone(): this is Clone;
-    getCaptor(): IUnitCard | null;
+    getCaptor(): ICaptorCard | null;
     isAttacking(): boolean;
     isCaptured(): boolean;
     isUpgraded(): boolean;
@@ -240,7 +240,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return false;
         }
 
-        public getCaptor(): IUnitCard | null {
+        public getCaptor(): ICaptorCard | null {
             if (this.zone.name !== ZoneName.Capture) {
                 return null;
             }
@@ -315,8 +315,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
             }
 
-            this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase(this.owner.game.stateWatcherRegistrar, this);
-            this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase(this.owner.game.stateWatcherRegistrar, this);
+            this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
+            this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
 
             this.defaultAttackAction = new InitiateAttackAction(this.game, this);
         }
@@ -423,6 +423,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return {
                 ...registrar,
                 addOnAttackAbility: (properties) => this.addOnAttackAbility(properties, registrar),
+                addOnAttackCompletedAbility: (properties) => this.addOnAttackCompletedAbility(properties, registrar),
                 addBountyAbility: (properties) => this.addBountyAbility(properties),
                 addCoordinateAbility: (properties) => this.addCoordinateAbility(properties),
                 addPilotingAbility: (properties) => this.addPilotingAbility(properties),
@@ -451,6 +452,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         private addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
             const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.OnAttack]: true };
+            registar.addTriggeredAbility({ ...properties, when });
+        }
+
+        private addOnAttackCompletedAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
+            const when: WhenTypeOrStandard = { [EventName.OnAttackCompleted]: (event, context) => event.attack.attacker === context.source };
             registar.addTriggeredAbility({ ...properties, when });
         }
 
@@ -570,7 +576,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
-            if (this.isBlank()) {
+            if (this.isFullyBlanked()) {
                 return [];
             }
 
@@ -579,6 +585,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
+
+            if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
+                // Only return triggered abilities gained from the source of the blanking effect
+                return triggeredAbilities.filter((ability) => this.canGainAbilityFromSource(ability.gainAbilitySource)) as TriggeredAbility[];
+            }
 
             // add any temporarily registered attack abilities from keywords
             if (this.state.attackKeywordAbilities != null) {
@@ -598,7 +609,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override getConstantAbilities(): ConstantAbility[] {
-            if (this.isBlank()) {
+            if (this.isFullyBlanked()) {
                 return [];
             }
 

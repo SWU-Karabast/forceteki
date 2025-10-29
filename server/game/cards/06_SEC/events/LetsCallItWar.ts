@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class LetsCallItWar extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'lets-call-it-war-id',
+            id: '8330828981',
             internalName: 'lets-call-it-war',
         };
     }

@@ -1,4 +1,4 @@
-import type { CardTypeFilter, ZoneFilter, MoveZoneDestination } from '../Constants';
+import type { CardTypeFilter, ZoneFilter, MoveZoneDestination, Aspect, Conjunction } from '../Constants';
 import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
 import type { Player } from '../Player';
 import * as Helpers from './Helpers';
@@ -253,3 +253,16 @@ export const asConcretePlayer = (player: Player | RelativePlayer, contextPlayer:
 export const asRelativePlayer = (player: Player, otherPlayer: Player): RelativePlayer => {
     return player === otherPlayer ? RelativePlayer.Self : RelativePlayer.Opponent;
 };
+
+export function aspectString(
+    aspects: Aspect[],
+    conjunction: Conjunction | null = null
+): string {
+    return aspects
+        .map((aspect, index) => {
+            return (conjunction && aspects.length > 1 && index === aspects.length - 1)
+                ? `${conjunction} ${Helpers.capitalize(aspect)}`
+                : Helpers.capitalize(aspect);
+        })
+        .join((!conjunction || aspects.length > 2) ? ', ' : ' ');
+}

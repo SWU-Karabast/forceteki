@@ -26,6 +26,8 @@ export class PlayUnitAction extends PlayCardAction {
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isUnit());
 
+        this.checkAndRearrangeResources(context);
+
         const events = [
             new PutIntoPlaySystem({
                 target: context.source,
