@@ -108,6 +108,40 @@ describe('Vigil, Securing the Future', function() {
                 expect(context.vigil.damage).toBe(2);
             });
 
+            it('should not increase damage dealt to Vigil if the damage was reduced to 0 first', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['finn#on-the-run'],
+                        spaceArena: ['vigil#securing-the-future']
+                    },
+                    player2: {
+                        spaceArena: ['concord-dawn-interceptors']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.finn);
+                context.player1.clickCard(context.p2Base);
+
+                // Use Finn to protect Vigil
+                context.player1.clickCard(context.vigil);
+
+                context.player2.clickCard(context.concordDawnInterceptors);
+                context.player2.clickCard(context.vigil);
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'For this phase, if damage would be dealt to that unit, prevent 1 of that damage',
+                    'Increase all damage dealt to Vigil by another card by 1'
+                ]);
+
+                context.player1.clickPrompt('For this phase, if damage would be dealt to that unit, prevent 1 of that damage');
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.vigil.damage).toBe(0);
+            });
+
             it('should not increase damage dealt to Vigil by itself', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
