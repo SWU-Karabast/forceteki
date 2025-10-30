@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
+import { GameStateChangeRequired, RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
 
 export default class KreiasWhispers extends EventCard {
     protected override getImplementationId() {
@@ -22,13 +22,14 @@ export default class KreiasWhispers extends EventCard {
                         activePromptTitle: 'Choose a card to put on top of your deck',
                         mode: TargetMode.Single,
                         controller: RelativePlayer.Self,
-                        zoneFilter: ZoneName.Hand,
+                        zoneFilter: ZoneName.Hand
                     },
                     bottomCard: {
                         activePromptTitle: 'Choose a card to put on the bottom of your deck',
                         mode: TargetMode.Single,
                         controller: RelativePlayer.Self,
                         zoneFilter: ZoneName.Hand,
+                        mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                         cardCondition: (card, context) => context.targets.topCard !== card,
                         immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => ([
                             AbilityHelper.immediateEffects.moveToTopOfDeck({ target: context.targets.topCard }),
