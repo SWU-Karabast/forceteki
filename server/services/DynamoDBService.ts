@@ -10,12 +10,11 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 import * as Contract from '../game/core/utils/Contract';
-import { type IDeckDataEntity, type IDeckStatsEntity, type IUserProfileDataEntity, type IUserPreferences, type IAdminUserListsEntity } from './DynamoDBInterfaces';
+import { type IDeckDataEntity, type IDeckStatsEntity, type IUserProfileDataEntity, type IUserPreferences, type IServerRoleUsersListsEntity } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import { iDeckDataEntitySchema, iDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
 import { type IRegisteredCosmeticOption, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
-import { getFallbackCosmetics } from '../utils/cosmetics/cosmeticUtil';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -638,18 +637,7 @@ class DynamoDBService {
     public getCosmeticsAsync(): Promise<IRegisteredCosmeticOption[]> {
         return this.executeDbOperationAsync(async () => {
             const result = await this.queryItemsAsync('COSMETICS', { beginsWith: 'ITEM#' });
-            if (result.Items.length === 0) {
-                try {
-                    const fallbackCosmetics = await getFallbackCosmetics(logger);
-                    await this.initializeCosmeticsAsync(fallbackCosmetics);
 
-                    logger.info('Initialized cosmetics database with fallback data');
-
-                    return fallbackCosmetics;
-                } catch (initError) {
-                    logger.error('Failed to initialize cosmetics with fallback data:', initError);
-                }
-            }
             return (result.Items || []).map((item) => ({
                 id: item.id as string,
                 title: item.title as string,
@@ -728,21 +716,21 @@ class DynamoDBService {
     }
 
     // Admin user methods
-    public getAdminUsersAsync(): Promise<IAdminUserListsEntity> {
+    public getServerRoleUsersAsync(): Promise<IServerRoleUsersListsEntity> {
         return this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync('ADMIN_USERS', 'ROLES');
             if (!result.Item) {
                 return {
-                    admin: [],
-                    dev: [],
-                    mod: []
+                    admins: [],
+                    developers: [],
+                    moderators: []
                 };
             }
 
             return {
-                admin: result.Item.admin || [],
-                dev: result.Item.dev || [],
-                mod: result.Item.mod || []
+                admins: result.Item.admins || [],
+                developers: result.Item.developers || [],
+                moderators: result.Item.moderators || []
             };
         }, 'Error getting admin users');
     }

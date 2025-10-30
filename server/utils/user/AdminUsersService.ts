@@ -5,6 +5,6 @@ export class AdminUsersService {
 
     public async getAdminUsersAsync() {
         const dbService = await this.dbServicePromise;
-        return dbService.getAdminUsersAsync();
+        return dbService.getServerRoleUsersAsync();
     }
 }

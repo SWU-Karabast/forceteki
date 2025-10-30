@@ -114,14 +114,14 @@ export interface IGameRecordEntity {
     timestampEnd: Date;
 }
 
-export enum AdminRole {
+export enum ServerRole {
     Admin = 'admin',
-    Developer = 'dev',
-    Moderator = 'mod',
+    Developer = 'developer',
+    Moderator = 'moderator',
 }
 
-export interface IAdminUserListsEntity {
-    admin: string[];
-    dev: string[];
-    mod: string[];
+export interface IServerRoleUsersListsEntity {
+    admins: string[];
+    developers: string[];
+    moderators: string[];
 }
