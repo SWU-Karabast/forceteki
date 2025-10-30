@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { Aspect, DamagePreventionType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, Trait } from './core/Constants';
+import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, Trait } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
@@ -41,23 +41,23 @@ import type { IOngoingAllCardsForPlayerEffectProps, OngoingAllCardsForPlayerEffe
 /** Interface definition for addTriggeredAbility */
 export type ITriggeredAbilityProps<TSource extends Card = Card> = ITriggeredAbilityWhenProps<TSource> | ITriggeredAbilityAggregateWhenProps<TSource>;
 export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IReplacementEffectAbilityWhenProps<TSource> | IReplacementEffectAbilityAggregateWhenProps<TSource>;
-export type IDamagePreventionAbilityProps<TSource extends Card = Card> = Omit<IReplacementEffectAbilityBaseProps<TSource>, 'when' | 'onlyIfYouDoEffect'> & {
-    preventionType: DamagePreventionType;
+export type IDamageModificationAbilityProps<TSource extends Card = Card> = Omit<IReplacementEffectAbilityBaseProps<TSource>, 'when' | 'onlyIfYouDoEffect'> & {
+    modificationType: DamageModificationType;
     onlyFromPlayer?: RelativePlayer; // TSTODO - update to accept an array
     damageOfType?: DamageSourceType;
-    preventionAmount?: number;
+    amount?: number;
     replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
 
     /**
-     * This can be used to override the default assumption that prevention applies to context.sourcea
+     * This can be used to override the default assumption that modification applies to context.source
      * @param card
      * @param context
      * @returns True if the card meets the defined condition
      */
-    shouldCardHaveDamagePrevention?: (card: Card, context?: TriggeredAbilityContext) => boolean;
+    shouldCardHaveDamageModification?: (card: Card, context?: TriggeredAbilityContext) => boolean;
 
     /**
-     * This is used for damage prevention that requires some other system to resolve before preventing the damage, such as defeating a unit
+     * This is used for damage modification that requires some other system to resolve before modifying the damage, such as defeating a unit
      */
     onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
 };
@@ -198,8 +198,8 @@ export type IReplacementEffectAbilityPropsWithType<TSource extends Card = Card> 
     type: AbilityType.ReplacementEffect;
 };
 
-export type IDamagePreventionEffectAbilityPropsWithType<TSource extends Card = Card> = IDamagePreventionAbilityProps<TSource> & {
-    type: AbilityType.DamagePrevention;
+export type IDamageModificationEffectAbilityPropsWithType<TSource extends Card = Card> = IDamageModificationAbilityProps<TSource> & {
+    type: AbilityType.DamageModification;
 };
 
 export interface IPlayRestrictionAbilityProps {
@@ -213,14 +213,14 @@ export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard
 export type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
 export type IActionAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
 export type IReplacementEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IReplacementEffectAbilityProps<TTarget> & IGainCondition<TSource>;
-export type IDamagePreventionEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IDamagePreventionAbilityProps<TTarget> & IGainCondition<TSource>;
+export type IDamageModificationEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IDamageModificationAbilityProps<TTarget> & IGainCondition<TSource>;
 
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
   IActionAbilityPropsWithType<TSource> |
   IConstantAbilityPropsWithType<TSource> |
   IReplacementEffectAbilityPropsWithType<TSource> |
-  IDamagePreventionEffectAbilityPropsWithType<TSource>;
+  IDamageModificationEffectAbilityPropsWithType<TSource>;
 
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
 export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
