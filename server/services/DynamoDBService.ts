@@ -718,7 +718,7 @@ class DynamoDBService {
     // Admin user methods
     public getServerRoleUsersAsync(): Promise<IServerRoleUsersListsEntity> {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync('ADMIN_USERS', 'ROLES');
+            const result = await this.getItemAsync('SERVER_ROLE_USERS', 'ROLES');
             if (!result.Item) {
                 return {
                     admins: [],

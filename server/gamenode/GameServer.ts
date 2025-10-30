@@ -1900,12 +1900,12 @@ const devFallback: IRegisteredCosmeticOption[] = [
         id: randomUUID(),
         title: 'Default',
         type: RegisteredCosmeticType.Cardback,
-        path: ''
+        path: 'https://karabast-data.s3.amazonaws.com/game/swu-cardback.webp'
     },
     {
         id: randomUUID(),
         title: 'Default',
         type: RegisteredCosmeticType.Background,
-        path: ''
+        path: 'https://karabast-data.s3.amazonaws.com/ui/board-background-1.webp'
     }
 ];
