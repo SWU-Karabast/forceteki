@@ -2,7 +2,7 @@ import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterface
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
-import { DamagePreventionType } from '../../../core/Constants';
+import { DamageModificationType } from '../../../core/Constants';
 import type { Player } from '../../../core/Player';
 
 export default class Shield extends TokenUpgradeCard {
@@ -31,15 +31,10 @@ export default class Shield extends TokenUpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addDamagePreventionAbility({
+        registrar.addDamageModificationAbility({
             title: 'Defeat shield to prevent attached unit from taking damage',
-            preventionType: DamagePreventionType.Replace,
-            shouldCardHaveDamagePrevention(card, context) {
-                if (context.source.isUpgrade() && card === context.source.parentCard) {
-                    return true;
-                }
-                return false;
-            },
+            modificationType: DamageModificationType.Replace,
+            shouldCardHaveDamageModification: (card, context) => context.source.isUpgrade() && card === context.source.parentCard,
             replaceWithEffect: AbilityHelper.immediateEffects.defeat({
                 target: this
             }),

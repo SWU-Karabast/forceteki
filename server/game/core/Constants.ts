@@ -344,7 +344,7 @@ export enum MetaEventName {
 export enum AbilityType {
     Action = 'action',
     Constant = 'constant',
-    DamagePrevention = 'damagePrevention',
+    DamageModification = 'damageModification',
     DelayedEffect = 'delayedEffect',
     Event = 'event',
     ReplacementEffect = 'replacementEffect',
@@ -479,8 +479,9 @@ export enum AbilityRestriction {
     ReturnToHand = 'returnToHand',
 }
 
-export enum DamagePreventionType {
-    All = 'all',
+export enum DamageModificationType {
+    PreventAll = 'all',
+    Increase = 'increase',
     Reduce = 'reduce',
     Replace = 'replace'
 }
