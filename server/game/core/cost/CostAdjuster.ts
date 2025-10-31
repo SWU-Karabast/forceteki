@@ -13,6 +13,7 @@ import type { ResourceCost } from '../../costs/ResourceCost';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, undoObject } from '../GameObjectUtils';
+import { CostAdjustStage } from './CostInterfaces';
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -106,9 +107,12 @@ export interface ICostAdjusterState extends IGameObjectBaseState {
 
 @registerState()
 export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
+    public readonly costAdjustStage: CostAdjustStage = CostAdjustStage.Standard_0;
     public readonly costAdjustType: CostAdjustType;
     public readonly ignoredAspect: Aspect;
+
     protected readonly limit: AbilityLimit | null;
+
     private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext, currentAmount?: number) => number);
     private readonly match?: (card: Card, adjusterSource: Card) => boolean;
     private readonly cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
@@ -160,7 +164,7 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         return false;
     }
 
-    public canAdjust(card: Card, context: AbilityContext, adjustParams?: ICanAdjustProperties): boolean {
+    protected canAdjust(card: Card, context: AbilityContext, adjustParams?: ICanAdjustProperties): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
         } else if (this.ignoredAspect && this.ignoredAspect !== adjustParams?.penaltyAspect) {

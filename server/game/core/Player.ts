@@ -864,7 +864,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * @param target
      * @param properties Additional parameters for determining cost adjustment
      */
-    public runAdjustersForCost(baseCost: number, card, context, properties: IRunCostAdjustmentProperties) {
+    private runAdjustersForCost(baseCost: number, card, context, properties: IRunCostAdjustmentProperties) {
         const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
         const costIncreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
