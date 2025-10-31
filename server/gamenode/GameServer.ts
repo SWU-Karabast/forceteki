@@ -668,16 +668,15 @@ export class GameServer {
                 if (user.isAnonymousUser()) {
                     logger.error(`GameServer (rename-deck): Authentication error for anonymous user ${user.getId()}`);
                     return res.status(403).json({
-                        success: false,
                         message: 'Server error'
                     });
                 }
                 try {
                     const renameResponse = await this.deckService.updateDeckNameAsync(user.getId(), deckId, newName);
                     if (renameResponse) {
-                        return res.status(200).json({ success: renameResponse });
+                        return res.status(200).json({});
                     }
-                    return res.status(500).json({ success: renameResponse });
+                    return res.status(500).json({ message: 'Server error when renameing deck' });
                 } catch (err) {
                     logger.error(`GameServer (rename-deck): Error in getting a users ${user.getId()} decks: `, err);
                     next(err);
