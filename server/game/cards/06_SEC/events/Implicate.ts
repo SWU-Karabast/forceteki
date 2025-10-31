@@ -6,7 +6,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 export default class Implicate extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'implicate-id',
+            id: '7737958693',
             internalName: 'implicate',
         };
     }

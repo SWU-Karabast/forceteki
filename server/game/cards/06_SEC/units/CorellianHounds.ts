@@ -6,7 +6,7 @@ import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectB
 export default class CorellianHounds extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'corellian-hounds-id',
+            id: '1475870465',
             internalName: 'corellian-hounds',
         };
     }

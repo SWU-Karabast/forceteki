@@ -9,7 +9,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class SlyMooreCipherInTheDark extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sly-moore#cipher-in-the-dark-id',
+            id: '4672831370',
             internalName: 'sly-moore#cipher-in-the-dark',
         };
     }

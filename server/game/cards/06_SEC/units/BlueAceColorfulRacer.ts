@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class BlueAceColorfulRacer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'blue-ace#colorful-racer-id',
+            id: '6889697488',
             internalName: 'blue-ace#colorful-racer',
         };
     }

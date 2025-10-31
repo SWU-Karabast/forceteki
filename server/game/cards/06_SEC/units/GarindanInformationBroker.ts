@@ -6,7 +6,7 @@ import { TargetMode } from '../../../core/Constants';
 export default class GarindanInformationBroker extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'garindan#information-broker-id',
+            id: '2276001210',
             internalName: 'garindan#information-broker',
         };
     }

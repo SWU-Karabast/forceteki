@@ -10,7 +10,7 @@ export default class TempestAssault extends EventCard {
 
     protected override getImplementationId() {
         return {
-            id: 'tempest-assault-id',
+            id: '2302358538',
             internalName: 'tempest-assault',
         };
     }

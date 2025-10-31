@@ -6,7 +6,7 @@ import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants
 export default class GrandMoffTarkinTakingKrennicsAchievement extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'grand-moff-tarkin#taking-krennics-achievement-id',
+            id: '4893108887',
             internalName: 'grand-moff-tarkin#taking-krennics-achievement',
         };
     }

@@ -5,7 +5,7 @@ import { Aspect } from '../../../core/Constants';
 export default class SawGerrerasUWingBreakingTheRules extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'saw-gerreras-uwing#breaking-the-rules-id',
+            id: '4593742143',
             internalName: 'saw-gerreras-uwing#breaking-the-rules',
         };
     }

@@ -1,12 +1,12 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { DamagePreventionType } from '../../../core/Constants';
+import { DamageModificationType } from '../../../core/Constants';
 
 export default class QueenAmidalaChampioningHerPeople extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'queen-amidala#championing-her-people-id',
+            id: '2638173987',
             internalName: 'queen-amidala#championing-her-people'
         };
     }
@@ -17,9 +17,9 @@ export default class QueenAmidalaChampioningHerPeople extends NonLeaderUnitCard 
             immediateEffect: AbilityHelper.immediateEffects.createSpy({ amount: 2 })
         });
 
-        registrar.addDamagePreventionAbility({
+        registrar.addDamageModificationAbility({
             title: 'Defeat a friendly unit that shares a trait with Queen Amidala to prevent all damage to her',
-            preventionType: DamagePreventionType.All,
+            modificationType: DamageModificationType.PreventAll,
             optional: true,
             onlyIfYouDoEffect: AbilityHelper.immediateEffects.selectCard(({
                 cardCondition: (card, context) => card.isUnit() && card.controller === context.player &&

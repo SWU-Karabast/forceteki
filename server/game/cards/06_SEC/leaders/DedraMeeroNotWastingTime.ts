@@ -9,7 +9,7 @@ import { KeywordName, RelativePlayer, TargetMode, WildcardCardType } from '../..
 export default class DedraMeeroNotWastingTime extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'dedra-meero#not-wasting-time-id',
+            id: '0955276339',
             internalName: 'dedra-meero#not-wasting-time'
         };
     }

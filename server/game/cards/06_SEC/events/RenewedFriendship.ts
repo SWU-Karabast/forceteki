@@ -6,7 +6,7 @@ import { RelativePlayer, CardType, ZoneName } from '../../../core/Constants';
 export default class RenewedFriendship extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'renewed-friendship-id',
+            id: '1744140192',
             internalName: 'renewed-friendship',
         };
     }

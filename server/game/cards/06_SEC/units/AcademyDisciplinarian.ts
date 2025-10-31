@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class AcademyDisciplinarian extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'academy-disciplinarian-id',
+            id: '0409503639',
             internalName: 'academy-disciplinarian',
         };
     }

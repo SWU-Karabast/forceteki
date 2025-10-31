@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class InnerRimCoalition extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'inner-rim-coalition-id',
+            id: '7585037197',
             internalName: 'inner-rim-coalition'
         };
     }

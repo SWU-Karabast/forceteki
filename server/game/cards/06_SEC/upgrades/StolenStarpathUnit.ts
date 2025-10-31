@@ -6,7 +6,7 @@ import { TargetMode } from '../../../core/Constants';
 export default class StolenStarpathUnit extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'stolen-starpath-unit-id',
+            id: '4966696528',
             internalName: 'stolen-starpath-unit',
         };
     }

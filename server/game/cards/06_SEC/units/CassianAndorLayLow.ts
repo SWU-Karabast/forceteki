@@ -1,13 +1,13 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { DamagePreventionType, RelativePlayer } from '../../../core/Constants';
+import { DamageModificationType, RelativePlayer } from '../../../core/Constants';
 import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class CassianAndorLayLow extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'cassian-andor#lay-low-id',
+            id: '5613349384',
             internalName: 'cassian-andor#lay-low',
         };
     }
@@ -21,12 +21,12 @@ export default class CassianAndorLayLow extends NonLeaderUnitCard {
 
         });
 
-        registrar.addDamagePreventionAbility({
+        registrar.addDamageModificationAbility({
             title: 'If an enemy card ability would do damage to this unit, prevent 2 of that damage',
-            preventionType: DamagePreventionType.Reduce,
+            modificationType: DamageModificationType.Reduce,
             onlyFromPlayer: RelativePlayer.Opponent,
             damageOfType: DamageSourceType.Ability,
-            preventionAmount: 2
+            amount: 2
         });
     }
 }

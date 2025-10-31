@@ -7,7 +7,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 export default class FirstLightThreateningElegance extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'first-light#threatening-elegance-id',
+            id: '7394847809',
             internalName: 'first-light#threatening-elegance'
         };
     }
