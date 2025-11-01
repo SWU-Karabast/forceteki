@@ -10,10 +10,11 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 import * as Contract from '../game/core/utils/Contract';
-import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity, UserPreferences } from './DynamoDBInterfaces';
+import { type IDeckDataEntity, type IDeckStatsEntity, type IUserProfileDataEntity, type IUserPreferences, type IServerRoleUsersListsEntity } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import { iDeckDataEntitySchema, iDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
+import { type IRegisteredCosmeticOption, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -276,7 +277,7 @@ class DynamoDBService {
             pk: `USER#${userData.id}`,
             sk: 'PROFILE',
             ...userData,
-            preferences: userData.preferences || { cardback: null },
+            preferences: userData.preferences || getDefaultPreferences(),
         };
         return this.putItemAsync(item);
     }
@@ -536,7 +537,7 @@ class DynamoDBService {
      * @param userId the users ID
      * @param defaultPreferences preference object
      */
-    private async checkValidationExceptionAsync(userId: string, defaultPreferences: UserPreferences): Promise<boolean> {
+    private async checkValidationExceptionAsync(userId: string, defaultPreferences: IUserPreferences): Promise<boolean> {
         const getCommand = new GetCommand({
             TableName: this.tableName,
             Key: { pk: `USER#${userId}`, sk: 'PROFILE' }
@@ -562,7 +563,7 @@ class DynamoDBService {
      * @param userId User ID
      * @param preferences Partial preferences to update
      */
-    public updateUserPreferencesAsync(userId: string, preferences: Partial<UserPreferences>): Promise<void> {
+    public updateUserPreferencesAsync(userId: string, preferences: Partial<IUserPreferences>): Promise<void> {
         return this.executeDbOperationAsync(async () => {
             const updateExpressions: string[] = [];
             const expressionAttributeValues: Record<string, any> = {};
@@ -654,6 +655,108 @@ class DynamoDBService {
                 }
             }
         }, 'Error updating user preferences');
+    }
+
+    // Registered Cosmetics Methods
+    public getCosmeticsAsync(): Promise<IRegisteredCosmeticOption[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync('COSMETICS', { beginsWith: 'ITEM#' });
+
+            return (result.Items || []).map((item) => ({
+                id: item.id as string,
+                title: item.title as string,
+                type: item.type as RegisteredCosmeticType,
+                path: item.path as string,
+                darkened: item.darkened as boolean | undefined
+            }));
+        }, 'Error getting cosmetics data');
+    }
+
+    public saveCosmeticAsync(cosmeticData: IRegisteredCosmeticOption) {
+        return this.executeDbOperationAsync(() => {
+            const item = {
+                pk: 'COSMETICS',
+                sk: `ITEM#${cosmeticData.id}`,
+                ...cosmeticData,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            return this.putItemAsync(item);
+        }, 'Error saving cosmetic item');
+    }
+
+    public initializeCosmeticsAsync(cosmetics: IRegisteredCosmeticOption[]) {
+        return this.executeDbOperationAsync(async () => {
+            const savePromises = cosmetics.map((cosmetic) => this.saveCosmeticAsync(cosmetic));
+            await Promise.all(savePromises);
+            return { initializedCount: cosmetics.length };
+        }, 'Error initializing cosmetics data');
+    }
+
+    public deleteCosmeticAsync(cosmeticId: string) {
+        if (!this.isLocalMode) {
+            throw new Error('Cosmetic deletion is only allowed in local mode');
+        }
+
+        return this.executeDbOperationAsync(() => {
+            return this.deleteItemAsync('COSMETICS', `ITEM#${cosmeticId}`);
+        }, 'Error deleting cosmetic item');
+    }
+
+    public clearAllCosmeticsAsync() {
+        if (!this.isLocalMode) {
+            throw new Error('Cosmetic cleanup is only allowed in local mode');
+        }
+
+        return this.executeDbOperationAsync(async () => {
+            // Get all cosmetics first
+            const cosmetics = await this.getCosmeticsAsync();
+
+            // Delete each cosmetic
+            const deletePromises = cosmetics.map((cosmetic) =>
+                this.deleteCosmeticAsync(cosmetic.id)
+            );
+
+            await Promise.all(deletePromises);
+
+            return { deletedCount: cosmetics.length };
+        }, 'Error clearing all cosmetics');
+    }
+
+    public resetCosmeticsToDefaultAsync() {
+        if (!this.isLocalMode) {
+            throw new Error('Cosmetic reset is only allowed in local mode');
+        }
+
+        return this.executeDbOperationAsync(async () => {
+            // First clear all existing cosmetics
+            const clearResult = await this.clearAllCosmeticsAsync();
+
+            return {
+                message: 'Cosmetics cleared. Defaults will be reinitialized on next fetch.',
+                deletedCount: clearResult.deletedCount
+            };
+        }, 'Error resetting cosmetics to default');
+    }
+
+    // Admin user methods
+    public getServerRoleUsersAsync(): Promise<IServerRoleUsersListsEntity> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.getItemAsync('SERVER_ROLE_USERS', 'ROLES');
+            if (!result.Item) {
+                return {
+                    admins: [],
+                    developers: [],
+                    moderators: []
+                };
+            }
+
+            return {
+                admins: result.Item.admins || [],
+                developers: result.Item.developers || [],
+                moderators: result.Item.moderators || []
+            };
+        }, 'Error getting admin users');
     }
 
     // Clear all data (for testing purposes only)
