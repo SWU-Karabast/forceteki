@@ -40,13 +40,11 @@ describe('Always Two', function () {
 
             context.player1.clickCard(context.emperorPalpatine);
             context.player1.clickCard(context.scimitar);
-
-            // With 2 units selected (the maximum), Done button is enabled
-            // Note: Other units still appear in the UI but clicking them does nothing (already at max)
+            context.player1.clickCardNonChecking(context.darthVader);
             expect(context.player1).toHaveEnabledPromptButton('Done');
 
             // Confirm the selection
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // Check that the selected units received 2 Shield and 2 Experience tokens
             const expectedUpgrades = ['shield', 'shield', 'experience', 'experience'];
@@ -62,7 +60,7 @@ describe('Always Two', function () {
             expect(context.darthTyranus).toBeInZone('groundArena', context.player2);
         });
 
-        it('defeats all friendly units when only 1 unique Sith unit is available to select', async function () {
+        it('defeats all friendly units even if less than 2 unique Sith units are in play', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -88,14 +86,12 @@ describe('Always Two', function () {
             // Player 1 plays Always Two
             context.player1.clickCard(context.alwaysTwo);
 
-            // Player 1 can select up to 2 units, but only 1 is available
+            // Player 1 can select the one available unique Sith unit
             expect(context.player1).toHavePrompt(prompt);
             expect(context.player1).toBeAbleToSelectExactly([context.scimitar]);
-            expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
 
-            // Select the one available unit
             context.player1.clickCard(context.scimitar);
-            context.player1.clickPrompt('Done');
+            context.player1.clickDone();
 
             // The selected unit gets buffs
             const expectedUpgrades = ['shield', 'shield', 'experience', 'experience'];
