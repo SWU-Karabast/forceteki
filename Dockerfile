@@ -1,4 +1,3 @@
-
 FROM caddy:2.7.6-alpine
 
 # Install Node.js and npm
@@ -12,7 +11,7 @@ WORKDIR /app
 # Copy built app and runtime code from builder stage
 COPY ./build /app/app
 COPY ./server /app/server
-COPY ./test/json /app/test/json
+COPY ./test/json /app/data
 COPY ./node_modules /app/node_modules
 COPY ./package*.json /app/
 COPY ./Caddyfile /etc/caddy/Caddyfile
