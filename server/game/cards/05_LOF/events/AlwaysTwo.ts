@@ -15,7 +15,7 @@ export default class AlwaysTwo extends EventCard {
         registrar.setEventAbility({
             title: 'Choose 2 friendly unique Sith units. Give 2 Shield tokens and 2 Experience tokens to each chosen unit.',
             targetResolver: {
-                mode: TargetMode.Exactly,
+                mode: TargetMode.UpTo,
                 numCards: 2,
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
