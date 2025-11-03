@@ -135,7 +135,8 @@ describe('Always Two', function () {
             // Choose nothing
             context.player1.clickPrompt('Choose nothing');
 
-            // No units get buffs (check happens before defeat, so we just skip checking upgrades)
+            // No units get buffs because exactly 2 weren't selected, but we can't verify this
+            // since the defeat happens immediately and upgrades can't be checked in discard
 
             // All friendly units are defeated
             expect(context.emperorPalpatine).toBeInZone('discard', context.player1);
