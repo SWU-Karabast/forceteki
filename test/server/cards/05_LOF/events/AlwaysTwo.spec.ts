@@ -93,9 +93,8 @@ describe('Always Two', function () {
             context.player1.clickCard(context.scimitar);
             context.player1.clickDone();
 
-            // The selected unit gets buffs
-            const expectedUpgrades = ['shield', 'shield', 'experience', 'experience'];
-            expect(context.scimitar).toHaveExactUpgradeNames(expectedUpgrades);
+            // The selected unit does NOT get buffs because exactly 2 weren't selected
+            expect(context.scimitar).toHaveExactUpgradeNames([]);
 
             // All other friendly units are defeated
             expect(context.sithTrooper).toBeInZone('discard', context.player1);

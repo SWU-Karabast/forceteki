@@ -21,14 +21,18 @@ export default class AlwaysTwo extends EventCard {
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.unique && card.hasSomeTrait(Trait.Sith),
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.simultaneous([
-                        AbilityHelper.immediateEffects.giveShield({
-                            amount: 2
-                        }),
-                        AbilityHelper.immediateEffects.giveExperience({
-                            amount: 2
-                        }),
-                    ]),
+                    AbilityHelper.immediateEffects.conditional({
+                        condition: (context) => context.target.length === 2,
+                        onTrue: AbilityHelper.immediateEffects.simultaneous([
+                            AbilityHelper.immediateEffects.giveShield({
+                                amount: 2
+                            }),
+                            AbilityHelper.immediateEffects.giveExperience({
+                                amount: 2
+                            }),
+                        ]),
+                        onFalse: AbilityHelper.immediateEffects.noAction()
+                    }),
                     AbilityHelper.immediateEffects.defeat((context) => ({
                         target: context.player.getArenaUnits({
                             condition: (card) => !context.target.includes(card)
