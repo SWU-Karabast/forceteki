@@ -5,7 +5,7 @@ import { GameStateChangeRequired, RelativePlayer, TargetMode, WildcardCardType, 
 import type { Card } from '../../../core/card/Card';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
-import type { IAbilityProps, IThenAbilityPropsWithSystems } from '../../../Interfaces';
+import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 
 export default class EndlessLegions extends EventCard {
     protected override getImplementationId() {
@@ -33,11 +33,6 @@ export default class EndlessLegions extends EventCard {
     }
 
     private playRevealedCard(playedCards: Card[], revealedCardsContext: AbilityContext, AbilityHelper: IAbilityHelper): IThenAbilityPropsWithSystems<AbilityContext> {
-        let then: IAbilityProps<AbilityContext>['then'];
-        if (playedCards.length < revealedCardsContext.target?.length - 1) {
-            then = (context) => this.playRevealedCard([...playedCards, context.target], revealedCardsContext, AbilityHelper);
-        }
-
         return {
             title: 'Play a revealed unit for free',
             targetResolver: {
@@ -53,7 +48,7 @@ export default class EndlessLegions extends EventCard {
                     nested: true,
                 })
             },
-            then
+            ifYouDo: (context) => this.playRevealedCard([...playedCards, context.target], revealedCardsContext, AbilityHelper)
         };
     }
 }
