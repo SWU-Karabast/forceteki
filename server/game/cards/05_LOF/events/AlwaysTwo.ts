@@ -17,36 +17,27 @@ export default class AlwaysTwo extends EventCard {
         registrar.setEventAbility({
             title: 'Choose 2 friendly unique Sith units. Give 2 Shield tokens and 2 Experience tokens to each chosen unit.',
             targetResolver: {
-                mode: TargetMode.UpTo,
+                mode: TargetMode.Exactly,
                 numCards: 2,
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
-                cardCondition: (card) => card.unique && card.hasSomeTrait(Trait.Sith)
+                cardCondition: (card) => card.unique && card.hasSomeTrait(Trait.Sith),
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                    AbilityHelper.immediateEffects.giveShield(() => ({
+                        amount: 2
+                    })),
+                    AbilityHelper.immediateEffects.giveExperience(() => ({
+                        amount: 2
+                    })),
+                ])
             },
             then: (selectedUnitsContext) => ({
-                title: 'Give Shield and Experience tokens if 2 units were chosen',
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: () => selectedUnitsContext.target.length === 2,
-                    onTrue: AbilityHelper.immediateEffects.simultaneous([
-                        AbilityHelper.immediateEffects.giveShield(() => ({
-                            amount: 2,
-                            target: selectedUnitsContext.target
-                        })),
-                        AbilityHelper.immediateEffects.giveExperience(() => ({
-                            amount: 2,
-                            target: selectedUnitsContext.target
-                        })),
-                    ]),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
-                }),
-                then: {
-                    title: 'Defeat all other friendly units',
-                    immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({
-                        target: context.player.getArenaUnits({
-                            condition: (card) => !selectedUnitsContext.target.includes(card)
-                        })
-                    }))
-                }
+                title: 'Defeat all other friendly units',
+                immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({
+                    target: context.player.getArenaUnits({
+                        condition: (card) => !selectedUnitsContext.target?.includes(card)
+                    })
+                }))
             })
         });
     }
