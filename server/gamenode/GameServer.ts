@@ -20,6 +20,7 @@ import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
+import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
@@ -74,6 +75,8 @@ interface GCPerformanceEntry {
 }
 
 export class GameServer {
+    private static readonly DOCKER_CARD_DATA_PATH = '/app/data';
+
     public static async createAsync(): Promise<GameServer> {
         let cardDataGetter: CardDataGetter;
         let testGameBuilder: any = null;
@@ -87,7 +90,20 @@ export class GameServer {
                 ? await GameServer.buildRemoteCardDataGetter()
                 : testGameBuilder.cardDataGetter;
         } else {
-            cardDataGetter = await GameServer.buildRemoteCardDataGetter();
+            try {
+                cardDataGetter = await LocalFolderCardDataGetter.createAsync(
+                    GameServer.DOCKER_CARD_DATA_PATH,
+                    false  // isDevelopment - skip validation warnings in production
+                );
+            } catch (error) {
+                logger.error(`SETUP: Failed to load card data from Docker image at ${GameServer.DOCKER_CARD_DATA_PATH}. This indicates a build problem - card data may not have been copied into the image correctly.`, {
+                    error: {
+                        message: error.message,
+                        stack: error.stack
+                    }
+                });
+                throw error; // Re-throw to crash the server - can't run without card data
+            }
         }
 
         // downloads all card data to build deck validator
