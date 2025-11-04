@@ -34,7 +34,7 @@ export default class MonMothmaClingingToHope extends NonLeaderUnitCard {
                     allowExhaustedAttacker: true,
                 })
             },
-            then: (context) => ({
+            ifYouDo: (context) => ({
                 title: 'Attack with a unit even if it is exhausted. It can\'t attack bases for this attack',
                 ...this.attackWithUnitAbility([...chosenCards, context.target], AbilityHelper),
             }),
