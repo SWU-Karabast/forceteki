@@ -154,8 +154,6 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private completeAttack() {
-        this.checkUnsetActiveAttack(this.attack.attacker);
-        this.attack.getAllTargets().forEach((target) => this.checkUnsetActiveAttack(target));
         this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, this.context, {
             attack: this.attack,
         }, TriggerHandlingMode.ResolvesTriggers);
@@ -163,6 +161,8 @@ export class AttackFlow extends BaseStepWithPipeline {
 
     private cleanUpAttack() {
         this.game.currentAttack = this.attack.previousAttack;
+        this.checkUnsetActiveAttack(this.attack.attacker);
+        this.attack.getAllTargets().forEach((target) => this.checkUnsetActiveAttack(target));
     }
 
     private checkUnsetActiveAttack(card: IAttackableCard) {
