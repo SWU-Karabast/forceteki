@@ -138,7 +138,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         }
 
         if (targetResolverProperties.waitingPromptTitle == null && context.source.isCard()) {
-            targetResolverProperties.waitingPromptTitle = `Waiting for opponent to use ${context.source.title}`;
+            targetResolverProperties.waitingPromptTitle = 'Waiting for opponent';
         }
 
         return new CardTargetResolver(properties.name, targetResolverProperties, context.ability);

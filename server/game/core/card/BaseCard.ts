@@ -75,7 +75,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     }
 
     public override getActionAbilities(): ActionAbility[] {
-        if (this._epicActionAbility) {
+        if (!this.isFullyBlanked() && this._epicActionAbility) {
             return super.getActionAbilities().concat(this._epicActionAbility);
         }
 

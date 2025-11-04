@@ -1,28 +1,28 @@
-import type { IDamagePreventionAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IDamageModificationAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import type { Card, CardConstructor, ICardState } from '../Card';
 import * as Contract from '../../utils/Contract';
-import DamagePreventionAbility from '../../ability/DamagePreventionAbility';
+import DamageModificationAbility from '../../ability/DamageModificationAbility';
 import { registerState } from '../../GameObjectUtils';
 
 export interface ITriggeredAbilityRegistrar<T extends Card> {
     addTriggeredAbility(properties: ITriggeredAbilityProps<T>): TriggeredAbility;
     addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): ReplacementEffectAbility;
-    addDamagePreventionAbility(properties: IDamagePreventionAbilityProps<T>): ReplacementEffectAbility;
+    addDamageModificationAbility(properties: IDamageModificationAbilityProps<T>): DamageModificationAbility;
     addGainedTriggeredAbility(properties: ITriggeredAbilityProps<T>): string;
     addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): string;
-    addGainedDamagePreventionAbility(properties: IDamagePreventionAbilityProps<T>): string;
+    addGainedDamageModificationAbility(properties: IDamageModificationAbilityProps<T>): string;
 }
 
 export interface ICardWithTriggeredAbilities<T extends Card> {
     addGainedTriggeredAbility(properties: ITriggeredAbilityProps<T>): string;
     addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): string;
-    addGainedDamagePreventionAbility(properties: IDamagePreventionAbilityProps<T>): string;
+    addGainedDamageModificationAbility(properties: IDamageModificationAbilityProps<T>): string;
     getTriggeredAbilities(): TriggeredAbility[];
     removeGainedTriggeredAbility(removeAbilityUuid: string): void;
     removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
-    removeGainedDamagePreventionAbility(removeAbilityUuid: string): void;
+    removeGainedDamageModificationAbility(removeAbilityUuid: string): void;
     removePrintedTriggeredAbility(removeAbilityUuid: string): void;
 }
 
@@ -36,6 +36,10 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
          * “When Defeated,” and “On Attack” abilities
          */
         public getTriggeredAbilities(): TriggeredAbility[] {
+            if (this.isFullyBlanked()) {
+                return [];
+            }
+
             return this.triggeredAbilities as TriggeredAbility[];
         }
 
@@ -53,10 +57,10 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
             const registrar: ITriggeredAbilityRegistrar<this> = {
                 addTriggeredAbility: (properties: ITriggeredAbilityProps<this>) => this.addTriggeredAbility(properties),
                 addReplacementEffectAbility: (properties: IReplacementEffectAbilityProps<this>) => this.addReplacementEffectAbility(properties),
-                addDamagePreventionAbility: (properties: IDamagePreventionAbilityProps<this>) => this.addDamagePreventionAbility(properties),
+                addDamageModificationAbility: (properties: IDamageModificationAbilityProps<this>) => this.addDamageModificationAbility(properties),
                 addGainedTriggeredAbility: (properties: ITriggeredAbilityProps<this>) => this.addGainedTriggeredAbility(properties),
                 addGainedReplacementEffectAbility: (properties: IReplacementEffectAbilityProps<this>) => this.addGainedReplacementEffectAbility(properties),
-                addGainedDamagePreventionAbility: (properties: IDamagePreventionAbilityProps<this>) => this.addGainedDamagePreventionAbility(properties)
+                addGainedDamageModificationAbility: (properties: IDamageModificationAbilityProps<this>) => this.addGainedDamageModificationAbility(properties)
             };
 
             return {
@@ -78,17 +82,17 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
             return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
         }
 
-        private addDamagePreventionAbility(properties: IDamagePreventionAbilityProps<this>): DamagePreventionAbility {
-            const ability = this.createDamagePreventionAbility({ ...properties, printedAbility: true });
+        private addDamageModificationAbility(properties: IDamageModificationAbilityProps<this>): DamageModificationAbility {
+            const ability = this.createDamageModificationAbility({ ...properties, printedAbility: true });
 
-            // for initialization and tracking purposes, a DamagePrevention is basically a Triggered ability
+            // for initialization and tracking purposes, a DamageModification is basically a Triggered ability
             this.triggeredAbilities.push(ability);
 
             return ability;
         }
 
-        public createDamagePreventionAbility<TSource extends Card = this>(properties: IDamagePreventionAbilityProps<TSource>): DamagePreventionAbility {
-            return new DamagePreventionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
+        public createDamageModificationAbility<TSource extends Card = this>(properties: IDamageModificationAbilityProps<TSource>): DamageModificationAbility {
+            return new DamageModificationAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
         }
 
         // ******************************************** ABILITY STATE MANAGEMENT ********************************************
@@ -119,12 +123,12 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
         }
 
         /**
-         * Adds a dynamically gained damage prevention ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+         * Adds a dynamically gained damage modification ability to the card and immediately registers its triggers. Used for "gain ability" effects.
          *
          * @returns The uuid of the created triggered ability
          */
-        public addGainedDamagePreventionAbility<TSource extends Card = this>(properties: IDamagePreventionAbilityProps<TSource>): string {
-            const addedAbility = this.createDamagePreventionAbility({ ...properties });
+        public addGainedDamageModificationAbility<TSource extends Card = this>(properties: IDamageModificationAbilityProps<TSource>): string {
+            const addedAbility = this.createDamageModificationAbility({ ...properties });
             this.triggeredAbilities.push(addedAbility);
             addedAbility.registerEvents();
 
@@ -140,7 +144,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
             this.removeGainedTriggeredAbility(removeAbilityUuid);
         }
 
-        public removeGainedDamagePreventionAbility(removeAbilityUuid: string): void {
+        public removeGainedDamageModificationAbility(removeAbilityUuid: string): void {
             this.removeGainedTriggeredAbility(removeAbilityUuid);
         }
 

@@ -300,8 +300,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
             }
 
-            this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase(this.owner.game.stateWatcherRegistrar, this);
-            this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase(this.owner.game.stateWatcherRegistrar, this);
+            this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
+            this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
 
             this.defaultAttackAction = new InitiateAttackAction(this.game, this);
         }
@@ -551,7 +551,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
-            if (this.isBlank()) {
+            if (this.isFullyBlanked()) {
                 return [];
             }
 
@@ -560,6 +560,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
+
+            if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
+                // Only return triggered abilities gained from the source of the blanking effect
+                return triggeredAbilities.filter((ability) => this.canGainAbilityFromSource(ability.gainAbilitySource)) as TriggeredAbility[];
+            }
 
             // add any temporarily registered attack abilities from keywords
             if (this._attackKeywordAbilities != null) {
@@ -579,7 +584,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override getConstantAbilities(): ConstantAbility[] {
-            if (this.isBlank()) {
+            if (this.isFullyBlanked()) {
                 return [];
             }
 

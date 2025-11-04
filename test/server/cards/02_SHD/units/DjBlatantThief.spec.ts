@@ -141,7 +141,7 @@ describe('DJ, Blatant Thief', function() {
                 player1: {
                     base: 'echo-base',
                     leader: 'han-solo#audacious-smuggler',
-                    hand: ['village-tender'],
+                    hand: ['battlefield-marine'],
                     groundArena: ['dj#blatant-thief', 'tech#source-of-insight'],
                     // 10 resources total
                     resources: [
@@ -157,13 +157,16 @@ describe('DJ, Blatant Thief', function() {
 
             const { context } = contextRef;
 
+            // Play Clone for 9 resources
             context.player1.clickCard(context.clone);
             context.player1.clickCard(context.djBlatantThief);
 
+            // Clone-DJ steals a ready resource from Player 2, putting P1 to 2 ready resources
             expect(context.player1.resources.length).toBe(11);
+            expect(context.player1.readyResourceCount).toBe(2);
+            expect(context.player1.exhaustedResourceCount).toBe(9);
+
             expect(context.player2.resources.length).toBe(9);
-            expect(context.player1.readyResourceCount).toBe(1);
-            expect(context.player1.exhaustedResourceCount).toBe(10);
             expect(context.player2.readyResourceCount).toBe(9);
             expect(context.player2.exhaustedResourceCount).toBe(0);
             expect(context.getChatLogs(2)).toContain(
@@ -178,9 +181,9 @@ describe('DJ, Blatant Thief', function() {
 
             // confirm that player1 can spend with it
             context.player2.passAction();
-            expect(context.player1.readyResourceCount).toBe(1);
-            context.player1.clickCard(context.villageTender);
-            expect(context.villageTender).toBeInZone('groundArena');
+            expect(context.player1.readyResourceCount).toBe(2);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.battlefieldMarine).toBeInZone('groundArena');
             expect(context.player1.exhaustedResourceCount).toBe(11);
             expect(stolenResource.exhausted).toBeTrue();
 

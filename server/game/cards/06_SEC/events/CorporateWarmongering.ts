@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class CorporateWarmongering extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'corporate-warmongering-id',
+            id: '9502538432',
             internalName: 'corporate-warmongering',
         };
     }

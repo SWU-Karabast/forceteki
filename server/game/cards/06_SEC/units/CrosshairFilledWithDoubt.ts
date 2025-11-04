@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class CrosshairFilledWithDoubt extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'crosshair#filled-with-doubt-id',
+            id: '0854786900',
             internalName: 'crosshair#filled-with-doubt',
         };
     }

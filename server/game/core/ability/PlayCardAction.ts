@@ -205,6 +205,16 @@ export abstract class PlayCardAction extends PlayerAction {
         return costs;
     }
 
+    /**
+     * This method will rearrange resources when playing a card using Plot or Smuggle to ensure the card leaving the resources is exhausted first
+     * @param context The PlayCardContext
+     */
+    protected checkAndRearrangeResources(context: PlayCardContext) {
+        if (context.playType === PlayType.Smuggle || context.playType === PlayType.Plot) {
+            context.player.resourceZone.rearrangeResourceExhaustState(context, (card) => card === context.source);
+        }
+    }
+
     protected addSmuggleEvent(events: any[], context: PlayCardContext) {
         if (context.player.drawDeck.length === 0) {
             return;
@@ -213,8 +223,7 @@ export abstract class PlayCardAction extends PlayerAction {
         Contract.assertTrue(this.card.canBeExhausted(), `${this.card.title} cannot be smuggled!`);
 
         const smuggleEvent = resourceCard({
-            target: context.player.getTopCardOfDeck(),
-            readyResource: !this.card.exhausted,
+            target: context.player.getTopCardOfDeck()
         }).generateEvent(context);
 
         events.push(smuggleEvent);

@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class SynaraSanHarboringASecret extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'synara-san#harboring-a-secret-id',
+            id: '7111202788',
             internalName: 'synara-san#harboring-a-secret',
         };
     }

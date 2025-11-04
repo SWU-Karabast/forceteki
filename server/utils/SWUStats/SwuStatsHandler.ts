@@ -105,7 +105,8 @@ export class SwuStatsHandler {
      * @param game The completed game
      * @param player1Details Details about player1
      * @param player2Details Details about player2
-     * @param lobbyId the lobby id
+     * @param hasSwuStatsSource the hasSwuStatsSource function from the lobby
+     * @param lobbyId the id of the lobby in string format
      * @param serverObject the server object from where we gain access to the user x accessToken
      * @returns Promise that resolves to true if successful, false otherwise
      */
@@ -113,6 +114,7 @@ export class SwuStatsHandler {
         game: Game,
         player1Details: PlayerDetails,
         player2Details: PlayerDetails,
+        hasSwuStatsSource: (playerDetails: PlayerDetails) => boolean,
         lobbyId: string,
         serverObject: GameServer,
     ): Promise<IStatsMessageFormat> {
@@ -138,6 +140,7 @@ export class SwuStatsHandler {
                 player2Details,
                 winner,
                 lobbyId,
+                hasSwuStatsSource,
                 serverObject
             );
             // Log the payload for debugging (excluding API key)
@@ -167,7 +170,7 @@ export class SwuStatsHandler {
             logger.error('Failed to send game result to SWUStats', {
                 error: { message: error.message, stack: error.stack },
                 gameId: game.id,
-                lobbyId
+                lobbyId: lobbyId
             });
             throw error;
         }
@@ -301,6 +304,7 @@ export class SwuStatsHandler {
         player2Details: PlayerDetails,
         winner: number,
         lobbyId: string,
+        hasSwuStatsSource: (playerDetails: PlayerDetails) => boolean,
         serverObject: GameServer
     ): Promise<SWUstatsGameResult> {
         const player1Data = this.buildPlayerData(player1, player2, player1Details.deckLink, game, winner, 1);
@@ -309,8 +313,14 @@ export class SwuStatsHandler {
         const firstPlayer = player1Data.firstPlayer === 1 ? 1 : 2;
         const winHero = winner === 1 ? player1Data.leader : player2Data.leader;
         const loseHero = winner === 1 ? player2Data.leader : player1Data.leader;
-        const p1SWUStatsToken = await this.getAccessTokenAsync(player1Details, lobbyId, serverObject);
-        const p2SWUStatsToken = await this.getAccessTokenAsync(player2Details, lobbyId, serverObject);
+        let p1SWUStatsToken = null;
+        let p2SWUStatsToken = null;
+        if (hasSwuStatsSource(player1Details) && player1Details.user.isAuthenticatedUser()) {
+            p1SWUStatsToken = await this.getAccessTokenAsync(player1Details.user.getId(), serverObject, lobbyId);
+        }
+        if (hasSwuStatsSource(player2Details) && player2Details.user.isAuthenticatedUser()) {
+            p2SWUStatsToken = await this.getAccessTokenAsync(player2Details.user.getId(), serverObject, lobbyId);
+        }
         // Get winner's remaining health
         const winnerPlayer = winner === 1 ? player1 : player2;
         const winnerHealth = winnerPlayer.base?.remainingHp || 0;
@@ -335,30 +345,34 @@ export class SwuStatsHandler {
 
     /**
      * Get access tokens for players who have refresh tokens
-     * @param playerDetails details on the player id, deckId, decklist etc...
+     * @param userId
      * @param lobbyId
      * @param serverObject
      * @returns Promise that resolves to an access token for the player or null if no token and no refresh token is present.
      */
-    private async getAccessTokenAsync(
-        playerDetails: PlayerDetails,
-        lobbyId: string,
-        serverObject: GameServer
+    public async getAccessTokenAsync(
+        userId: string,
+        serverObject: GameServer,
+        lobbyId?: string,
     ): Promise<string | null> {
-        let playerAccessToken: string = null;
+        let playerAccessToken = null;
+        const playerTokenData = serverObject.swuStatsTokenMapping.get(userId);
         // Handle Player swu token
-        if (playerDetails.swuStatsToken && this.isTokenValid(playerDetails.swuStatsToken)) {
-            playerAccessToken = playerDetails.swuStatsToken.accessToken;
-            logger.info(`SWUStatsHandler: Using existing valid access token for player (${playerDetails.user.getId()})`, { lobbyId, userId: playerDetails.user.getId() });
-        } else if (playerDetails.swuStatsRefreshToken) {
+        if (playerTokenData && this.isTokenValid(playerTokenData)) {
+            playerAccessToken = playerTokenData.accessToken;
+            logger.info(`SWUStatsHandler: Using existing valid access token for player (${userId})`, { lobbyId, userId });
+        } else {
             // Token is expired or doesn't exist, refresh it
-            logger.info(`SWUStatsHandler: Access token expired or missing for player (${playerDetails.user.getId()}), refreshing...`, { lobbyId, userId: playerDetails.user.getId() });
-            const resultTokens = await this.refreshTokensAsync(playerDetails.swuStatsRefreshToken);
-            serverObject.swuStatsTokenMapping.set(playerDetails.user.getId(), resultTokens);
+            logger.info(`SWUStatsHandler: Access token expired or missing for player (${userId}), attempting to refreshing...`, lobbyId ? { lobbyId, userId } : { userId });
+            const userRefreshToken = await this.userFactory.getUserSwuStatsRefreshTokenAsync(userId);
+            if (!userRefreshToken) {
+                logger.info(`SWUStatsHandler: Refresh token missing for player (${userId}), aborting refresh...`, lobbyId ? { lobbyId, userId } : { userId });
+                return null;
+            }
+            const resultTokens = await this.refreshTokensAsync(userRefreshToken);
+            serverObject.swuStatsTokenMapping.set(userId, resultTokens);
             playerAccessToken = resultTokens.accessToken;
-            await this.userFactory.addSwuStatsRefreshTokenAsync(playerDetails.user.getId(), resultTokens.refreshToken);
-            // set the refresh token to correct one
-            playerDetails.user.setRefreshToken(resultTokens.refreshToken);
+            await this.userFactory.addSwuStatsRefreshTokenAsync(userId, resultTokens.refreshToken);
         }
         return playerAccessToken;
     }

@@ -52,6 +52,7 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
     public readonly targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     public readonly cardName?: string;
     public readonly ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
+    public readonly sourceCard: Card;
 
     @undoArray(false)
     public accessor registeredEffects: OngoingEffect[] = [];
@@ -65,6 +66,7 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
         this.duration = Duration.Persistent;
         this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
         this.printedAbility = properties.printedAbility ?? true;
+        this.sourceCard = card;
 
         // This object is destructured later and these properties will be to override defaults when the OngoingEffect is created. If these fields exist at all, even if undefined, it'll override the defaults when they shouldn't be.
         if (properties.condition) {

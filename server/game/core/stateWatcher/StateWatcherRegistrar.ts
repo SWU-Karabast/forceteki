@@ -28,10 +28,10 @@ export class StateWatcherRegistrar extends GameObjectBase {
         return this.watchers.has(watcherName);
     }
 
-    public registerWatcher<TWatcher extends StateWatcher>(name: StateWatcherName, watcherFactory: () => TWatcher): TWatcher {
+    public registerWatcher<TWatcher extends StateWatcher>(name: StateWatcherName, watcherFactory: (registrar: StateWatcherRegistrar) => TWatcher): TWatcher {
         let watcher = this.watchers.get(name) as TWatcher;
         if (!watcher) {
-            watcher = watcherFactory();
+            watcher = watcherFactory(this);
             this.watchers.set(name, watcher);
         }
         return watcher;

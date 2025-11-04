@@ -4,6 +4,7 @@ const Game = require('../../server/game/core/Game.js');
 const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
 const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');
+const allNonLeaderCardTitles = require('../json/_allNonLeaderCardTitles.json');
 const playableCardTitles = require('../json/_playableCardTitles.json');
 const Util = require('./Util.js');
 const { GameMode } = require('../../server/GameMode.js');
@@ -17,7 +18,7 @@ class GameFlowWrapper {
      * @param {UndoMode} undoMode
      * @param {boolean} enableConfirmationToUndo
      */
-    constructor(cardDataGetter, router, player1Info, player2Info, undoMode = UndoMode.Disabled, enableConfirmationToUndo = false) {
+    constructor(cardDataGetter, router, player1Info, player2Info, undoMode = UndoMode.Free) {
         /** @type {import('../../server/game/core/GameInterfaces.js').GameConfiguration} */
         var details = {
             name: `${player1Info.username}'s game`,
@@ -33,8 +34,7 @@ class GameFlowWrapper {
             pushUpdate: () => true,
             buildSafeTimeout: () => undefined,
             userTimeoutDisconnect: () => undefined,
-            undoMode,
-            enableConfirmationToUndo
+            undoMode
         };
 
         this.game = new Game(details, { router });
@@ -48,6 +48,10 @@ class GameFlowWrapper {
         this.allPlayers = [this.player1, this.player2];
 
         this.snapshotManager = this.game.snapshotManager;
+    }
+
+    getAllNonLeaderCardTitles() {
+        return allNonLeaderCardTitles;
     }
 
     getPlayableCardTitles() {

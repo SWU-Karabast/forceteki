@@ -5,7 +5,7 @@ import { UpgradeCard } from '../../../core/card/UpgradeCard';
 export default class AmbitionsReward extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'ambitions-reward-id',
+            id: '8243760282',
             internalName: 'ambitions-reward',
         };
     }

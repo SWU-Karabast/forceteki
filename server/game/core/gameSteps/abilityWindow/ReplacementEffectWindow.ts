@@ -7,6 +7,8 @@ import type Game from '../../Game';
 import type { Player } from '../../Player';
 import { TriggerWindowBase } from './TriggerWindowBase';
 import type Shield from '../../../cards/01_SOR/tokens/Shield';
+import type { GameEvent } from '../../event/GameEvent';
+import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 
 export class ReplacementEffectWindow extends TriggerWindowBase {
     // starts as true so that we will do the trigger cleanup and initial prompt setup on the first pass
@@ -43,11 +45,27 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
     }
 
     public override addTriggeredAbilityToWindow(context: TriggeredAbilityContext) {
-        const replacement = context.event.findEventInReplacements();
-        if (replacement && replacement.context.ability === context.ability) {
+        const replacedAbilities = this.getAllReplacedAbilities(context, context.event);
+
+        if (replacedAbilities.has(context.ability)) {
             return;
         }
+
         super.addTriggeredAbilityToWindow(context);
+    }
+
+    private getAllReplacedAbilities(context: TriggeredAbilityContext, event: GameEvent): Set<PlayerOrCardAbility> {
+        const replacedAbilities = new Set<PlayerOrCardAbility>();
+
+        let currentEvent = event;
+        while (currentEvent.isReplacementEvent) {
+            if (currentEvent.context.ability === context.ability) {
+                replacedAbilities.add(currentEvent.context.ability);
+            }
+            currentEvent = currentEvent.replacesEvent;
+        }
+
+        return replacedAbilities;
     }
 
     protected override cleanUpTriggers(): void {

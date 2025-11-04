@@ -21,4 +21,8 @@ export class ReplacementEffectContext<TSource extends Card = Card> extends Trigg
     public override getProps() {
         return Object.assign(super.getProps(), { replacementEffectWindow: this.replacementEffectWindow });
     }
+
+    public override isReplacement(): this is ReplacementEffectContext<TSource> {
+        return true;
+    }
 }
