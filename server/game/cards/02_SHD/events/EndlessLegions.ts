@@ -34,7 +34,7 @@ export default class EndlessLegions extends EventCard {
 
     private playRevealedCard(playedCards: Card[], revealedCardsContext: AbilityContext, AbilityHelper: IAbilityHelper): IThenAbilityPropsWithSystems<AbilityContext> {
         return {
-            title: 'Play a revelead unit for free',
+            title: 'Play a revealed unit for free',
             targetResolver: {
                 activePromptTitle: 'Choose a unit to play for free',
                 zoneFilter: ZoneName.Resource,
@@ -48,7 +48,7 @@ export default class EndlessLegions extends EventCard {
                     nested: true,
                 })
             },
-            then: (context) => this.playRevealedCard([...playedCards, context.target], revealedCardsContext, AbilityHelper),
+            ifYouDo: (context) => this.playRevealedCard([...playedCards, context.target], revealedCardsContext, AbilityHelper)
         };
     }
 }
