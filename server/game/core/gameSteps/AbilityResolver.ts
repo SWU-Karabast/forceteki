@@ -154,7 +154,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
     private openInitiateAbilityEventWindow() {
         if (this.cancelled) {
-            this.checkResolveIfYouDoNot();
+            this.checkResolveThenIfYouDoNot();
             return;
         }
         let eventName = EventName.OnAbilityResolverInitiated;
@@ -177,15 +177,18 @@ export class AbilityResolver extends BaseStepWithPipeline {
     }
 
     // if there is an "if you do not" part of this ability, we need to resolve it if the main ability doesn't resolve
-    private checkResolveIfYouDoNot() {
+    private checkResolveThenIfYouDoNot() {
         if (!this.cancelled || !this.resolutionComplete) {
             return;
         }
 
-        if (this.context.ability.isCardAbilityStep() && this.context.ability.properties?.ifYouDoNot) {
-            const ifYouDoNotAbilityContext = this.context.ability.getSubAbilityStepContext(this.context);
-            if (ifYouDoNotAbilityContext) {
-                this.game.resolveAbility(ifYouDoNotAbilityContext);
+        if (
+            this.context.ability.isCardAbilityStep() &&
+            (this.context.ability.properties?.ifYouDoNot || this.context.ability.properties?.then)
+        ) {
+            const subAbilityStepContext = this.context.ability.getSubAbilityStepContext(this.context);
+            if (subAbilityStepContext) {
+                this.game.resolveAbility(subAbilityStepContext);
             }
         }
     }
@@ -323,7 +326,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
     private executeHandler() {
         if (this.cancelled) {
-            this.checkResolveIfYouDoNot();
+            this.checkResolveThenIfYouDoNot();
             for (const event of this.events) {
                 event.cancel();
             }
