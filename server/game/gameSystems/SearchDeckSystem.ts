@@ -230,7 +230,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
             properties.selectedCardsHandler(context, event, selectedCards);
         }
 
-        if (this.shouldShuffle(this.properties.shuffleWhenDone, context)) {
+        if (this.shouldShuffle(properties.shuffleWhenDone, context)) {
             context.game.openEventWindow([
                 new ShuffleDeckSystem({}).generateEvent(context)
             ]);
