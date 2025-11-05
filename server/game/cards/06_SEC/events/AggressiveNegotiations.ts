@@ -14,12 +14,12 @@ export default class AggressiveNegotiations extends EventCard {
         registrar.setEventAbility({
             title: 'Attack with a unit. For this attack, it gets +1/+0 for each card in your hand',
             initiateAttack: {
-                attackerLastingEffects: {
-                    effect: abilityHelper.ongoingEffects.modifyStats((_, context) => ({
+                attackerLastingEffects: (context) => ({
+                    effect: abilityHelper.ongoingEffects.modifyStats({
                         power: context.player.hand.length,
                         hp: 0,
-                    }))
-                }
+                    })
+                })
             }
         });
     }
