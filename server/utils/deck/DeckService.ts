@@ -343,6 +343,26 @@ export class DeckService {
     }
 
     /**
+     * Update a deck's name
+     * @param userId User ID
+     * @param deckId Deck ID
+     * @param newName New name for the deck
+     * @returns Promise that resolves to the updated deck
+     */
+    public async updateDeckNameAsync(userId: string, deckId: string, newName: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            await dbService.updateDeckNameAsync(userId, deckId, newName);
+            logger.info(`DeckService: Updated name for deck ${deckId}, user ${userId}, new name: ${newName}`);
+            return true;
+        } catch (error) {
+            logger.error(`Error updating deck name for deck ${deckId}, user ${userId}:`, { error: { message: error.message, stack: error.stack }, userId });
+            throw error;
+        }
+    }
+
+
+    /**
      * Converts all opponent stats' internal names to card IDs
      * @param deck The deck data to process
      * @param cardDataGetter
