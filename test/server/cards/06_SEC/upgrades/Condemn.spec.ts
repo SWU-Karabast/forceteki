@@ -269,7 +269,7 @@ describe('Condemn', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('ends the effect in time for post-attack triggers', async function () {
+            it('also blanks post-attack triggers', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -287,11 +287,8 @@ describe('Condemn', function () {
                 context.player1.clickCard(context.ezraBridger);
                 context.player1.clickCard(context.p2Base);
 
-                // Post attack ability triggers, prompting to play/discard/leave Resupply
-                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.resupply]);
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
-                context.player1.clickDisplayCardPromptButton(context.resupply.uuid, 'play');
-                expect(context.resupply).toBeInZone('resource', context.player1);
+                // No post-attack trigger, it is now P2's turn
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('results in full blanking when multiple Condemn upgrades are attached', async function () {
