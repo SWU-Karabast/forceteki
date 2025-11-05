@@ -20,22 +20,19 @@ export default class AlwaysTwo extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.unique && card.hasSomeTrait(Trait.Sith),
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.simultaneous([
-                        AbilityHelper.immediateEffects.giveShield({
-                            amount: 2
-                        }),
-                        AbilityHelper.immediateEffects.giveExperience({
-                            amount: 2
-                        }),
-                    ]),
-                    AbilityHelper.immediateEffects.defeat((context) => ({
-                        target: context.player.getArenaUnits({
-                            condition: (card) => !context.target.includes(card)
-                        })
-                    }))
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                    AbilityHelper.immediateEffects.giveShield({ amount: 2 }),
+                    AbilityHelper.immediateEffects.giveExperience({ amount: 2 })
                 ])
-            }
+            },
+            then: (selectedUnitsContext) => ({
+                title: 'Defeat all other friendly units',
+                immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({
+                    target: context.player.getArenaUnits({
+                        condition: (card) => !selectedUnitsContext.target?.includes(card)
+                    })
+                }))
+            })
         });
     }
 }
