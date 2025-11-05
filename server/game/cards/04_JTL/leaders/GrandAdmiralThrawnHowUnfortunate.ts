@@ -12,10 +12,13 @@ export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
     }
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        const title = 'Exhaust Grand Admiral Thrawn to use the When Defeated ability again';
+
         registrar.addTriggeredAbility({
-            title: (context) => (context
-                ? `Exhaust ${context.source.title} to use ${context.event.card.title}'s When Defeated ability again`
-                : 'Exhaust Grand Admiral Thrawn to use the When Defeated ability again'),
+            title: title,
+            contextTitle: (context) => (context.event
+                ? `Exhaust ${context.source.title} to use ${context.event.card.title}'s "When Defeated" ability again`
+                : title),
             optional: true,
             when: {
                 onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated && (event.ability.eventsTriggeredFor.some((event) => (event.name === EventName.OnCardDefeated)) || event.context.event.name === EventName.OnCardDefeated)
@@ -34,10 +37,12 @@ export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        const title = 'Use the When Defeated ability again';
         registrar.addTriggeredAbility({
-            title: (context) => (context
-                ? `Use ${context.event.card.title}'s When Defeated ability again`
-                : 'Use the When Defeated ability again'),
+            title: title,
+            contextTitle: (context) => (context.event
+                ? `Use ${context.event.card.title}'s "When Defeated" ability again`
+                : title),
             optional: true,
             when: {
                 onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated && (event.ability.eventsTriggeredFor.some((event) => (event.name === EventName.OnCardDefeated)) || event.context.event.name === EventName.OnCardDefeated)

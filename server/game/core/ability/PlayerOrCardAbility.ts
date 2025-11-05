@@ -46,7 +46,8 @@ export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
  * ability is generated from.
  */
 export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends GameObjectBase<T> {
-    private _title: string | ((context?: AbilityContext) => string);
+    private _title: string;
+    private _contextTitle?: (context: AbilityContext) => string;
     public limit?: AbilityLimit;
     public canResolveWithoutLegalTargets: boolean;
     public targetResolvers: TargetResolver<any>[];
@@ -72,6 +73,8 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
     public constructor(game: Game, card: Card, properties: IPlayerOrCardAbilityProps<AbilityContext>, type = AbilityType.Action) {
         super(game);
 
+        Contract.assertStringValue(properties.title, 'Ability must have a title');
+
         const hasImmediateEffect = properties.immediateEffect != null;
         const hasTargetResolver = properties.targetResolver != null;
         const hasTargetResolvers = properties.targetResolvers != null;
@@ -83,6 +86,7 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
         Contract.assertFalse(systemTypesCount > 1, 'Cannot create ability with multiple system initialization properties');
 
         this._title = properties.title;
+        this._contextTitle = properties.contextTitle;
         this.type = type;
         this.optional = !!properties.optional;
         this.immediateEffect = properties.immediateEffect;
@@ -132,9 +136,11 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
     }
 
     public getTitle<T extends AbilityContext>(context?: T): string {
-        return typeof this._title === 'function'
-            ? this._title(context)
-            : this._title;
+        if (this._contextTitle && context) {
+            return this._contextTitle(context);
+        }
+
+        return this._title;
     }
 
     public override getGameObjectName() {

@@ -2,7 +2,7 @@
 describe('Grand Admiral Thrawn, How Unfortunate', function() {
     integration(function(contextRef) {
         describe('Grand Admiral Thrawn, How Unfortunate\'s undeployed ability', function() {
-            const whenDefeatedPrompt = (cardTitle: string) => `Exhaust Grand Admiral Thrawn to use ${cardTitle}'s When Defeated ability again`;
+            const whenDefeatedPrompt = (cardTitle: string) => `Exhaust Grand Admiral Thrawn to use ${cardTitle}'s "When Defeated" ability again`;
             it('should do nothing when an enemy When Defeated is used', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -630,7 +630,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
         });
 
         describe('Grand Admiral Thrawn, How Unfortunate\'s deployed ability', function() {
-            const whenDefeatedPrompt = (cardTitle: string) => `Use ${cardTitle}'s When Defeated ability again`;
+            const whenDefeatedPrompt = (cardTitle: string) => `Use ${cardTitle}'s "When Defeated" ability again`;
             it('should allow a When Defeated ability to be used a second time', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

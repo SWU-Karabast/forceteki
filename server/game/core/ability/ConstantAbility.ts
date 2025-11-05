@@ -38,7 +38,8 @@ export interface IConstantAbilityState extends IGameObjectBaseState {
  */
 @registerState()
 export class ConstantAbility extends GameObjectBase<IConstantAbilityState> implements IConstantAbility {
-    public readonly title: string | ((context?: AbilityContext) => string);
+    public readonly title: string;
+    public readonly contextTitle?: (context: AbilityContext) => string;
     public readonly abilityIdentifier?: string;
     public readonly printedAbility: boolean;
 
@@ -56,7 +57,6 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
 
     @undoArray(false)
     public accessor registeredEffects: OngoingEffect[] = [];
-
 
     public constructor(game: Game, card: Card, properties: IConstantAbilityProps) {
         super(game);
@@ -93,8 +93,10 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
     }
 
     public getTitle<T extends AbilityContext>(context?: T): string {
-        return typeof this.title === 'function'
-            ? this.title(context)
-            : this.title;
+        if (this.contextTitle && context) {
+            return this.contextTitle(context);
+        }
+
+        return this.title;
     }
 }
