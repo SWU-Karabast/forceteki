@@ -110,7 +110,7 @@ export interface IOngoingCardEffectProps extends IOngoingEffectProps<Card> {
 // for example, there's ambiguity between IAbilityProps and ITriggeredAbilityProps at the level of PlayerOrCardAbility
 /** Base interface for triggered and action ability definitions */
 export interface IAbilityProps<TContext extends AbilityContext> {
-    title: string;
+    title: string | ((context?: TContext) => string);
     zoneFilter?: ZoneFilter | ZoneFilter[];
     limit?: any;
     cardName?: string;
@@ -165,7 +165,7 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
 
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
-    title: string;
+    title: string | ((context?: AbilityContext<TSource>) => string);
     sourceZoneFilter?: ZoneFilter | ZoneFilter[];
 
     /** A handler to enable or disable the ability's effects depending on game context */

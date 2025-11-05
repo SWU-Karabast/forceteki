@@ -38,7 +38,7 @@ export interface IConstantAbilityState extends IGameObjectBaseState {
  */
 @registerState()
 export class ConstantAbility extends GameObjectBase<IConstantAbilityState> implements IConstantAbility {
-    public readonly title: string;
+    public readonly title: string | ((context?: AbilityContext) => string);
     public readonly abilityIdentifier?: string;
     public readonly printedAbility: boolean;
 
@@ -90,5 +90,11 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
         if (properties.ongoingEffect) {
             this.ongoingEffect = properties.ongoingEffect;
         }
+    }
+
+    public getTitle<T extends AbilityContext>(context?: T): string {
+        return typeof this.title === 'function'
+            ? this.title(context)
+            : this.title;
     }
 }

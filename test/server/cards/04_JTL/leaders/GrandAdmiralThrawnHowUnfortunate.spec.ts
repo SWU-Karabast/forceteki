@@ -1,6 +1,7 @@
 
 describe('Grand Admiral Thrawn, How Unfortunate', function() {
     integration(function(contextRef) {
+        const whenDefeatedPrompt = (cardTitle: string) => `Use ${cardTitle}'s When Defeated ability again`;
         describe('Grand Admiral Thrawn, How Unfortunate\'s undeployed ability', function() {
             it('should do nothing when an enemy When Defeated is used', async function () {
                 await contextRef.setupTestAsync({
@@ -40,7 +41,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 context.player2.clickCard(context.rivalsFall);
                 context.player2.clickCard(context.wampa);
 
-                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).not.toHavePassAbilityPrompt(whenDefeatedPrompt(context.wampa.title));
 
                 expect(context.player1).toBeActivePlayer();
             });
@@ -66,7 +67,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 // Ruthless Raider resolves, prompting Thrawn
                 expect(context.p2Base.damage).toBe(2);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.ruthlessRaider.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.grandAdmiralThrawn.exhausted).toBe(true);
                 expect(context.p2Base.damage).toBe(4);
@@ -100,7 +101,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(2);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.clone.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.grandAdmiralThrawn.exhausted).toBe(true);
 
@@ -122,7 +123,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.ruthlessRaider);
-                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).not.toHavePassAbilityPrompt(whenDefeatedPrompt(context.ruthlessRaider.title));
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -156,7 +157,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 context.player2.clickCard(context.p1Base);
                 expect(context.p1Base.damage).toBe(1);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.ruthlessRaider.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.p2Base.damage).toBe(4);
 
@@ -193,7 +194,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 context.player2.clickCard(context.p1Base);
                 expect(context.p1Base.damage).toBe(1);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.ruthlessRaider.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.p2Base.damage).toBe(4);
 
@@ -246,7 +247,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.findCardsByName('battle-droid').length).toBe(1);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.wampa.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1.findCardsByName('battle-droid').length).toBe(2);
             });
@@ -273,7 +274,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 context.player1.clickPrompt('Trigger');
                 expect(context.wampa).toBeInZone('hand');
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.battlefieldMarine.title));
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.moistureFarmer).toBeInZone('hand');
@@ -300,7 +301,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(1);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.padawanStarfighter.title));
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
@@ -331,12 +332,12 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(battleDroid.length).toBe(1);
 
                 // Now, we should be prompted to use the ability again
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.rhokaiGunship.title));
                 context.player1.clickPrompt('Pass');
 
                 // Use the other When Defeated - will then prompt Thrawn
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.rhokaiGunship.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1).toHavePrompt('Deal 1 damage to a unit or base');
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, battleDroid[0]]);
@@ -370,7 +371,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.superlaserTechnician).toBeInZone('resource');
                 expect(context.superlaserTechnician.exhausted).toBe(false);
                 expect(context.player1.readyResourceCount).toBe(readyResources + 1);
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.superlaserTechnician.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.superlaserTechnician).toBeInZone('resource');
                 expect(context.superlaserTechnician.exhausted).toBe(false);
@@ -438,7 +439,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.shield).toBeAttachedTo(context.battlefieldMarine);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.shuttleSt149.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.shield, context.experience]);
                 context.player1.clickCard(context.experience);
@@ -465,12 +466,12 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
 
                 context.player1.passAction();
                 context.player2.clickCard(context.rivalsFall);
-                context.player2.clickCard(context.raddusHoldosFinalCommand);
+                context.player2.clickCard(context.raddus);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.kraytDragon, context.annihilator]);
                 context.player1.clickCard(context.kraytDragon);
                 expect(context.kraytDragon.damage).toBe(9);
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.raddus.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.kraytDragon, context.annihilator]);
                 context.player1.clickCard(context.annihilator);
@@ -509,7 +510,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.wampa.damage).toBe(1);
                 expect(context.p2Base.damage).toBe(1);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.zygerrianStarhopper.title));
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHaveEnabledPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent']);
@@ -554,7 +555,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 context.player1.clickCard(roger);
                 expect(context.rogerRoger).toBeAttachedTo(roger);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.rogerRoger.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([roger, otherRoger]);
                 context.player1.clickCard(otherRoger);
@@ -586,7 +587,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toHaveExactUpgradeNames(['experience', 'experience']);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.val.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
                 context.player1.clickCard(context.wampa);
@@ -618,7 +619,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.wampa.damage).toBe(1);
 
                 // Use it again
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.rhokaiGunship.title));
                 context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.wampa);
                 expect(context.grandAdmiralThrawn.exhausted).toBe(true);
@@ -650,7 +651,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 // Ruthless Raider resolves, prompting Thrawn
                 expect(context.p2Base.damage).toBe(2);
 
-                expect(context.player1).toHavePassAbilityPrompt('Use When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.ruthlessRaider.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.p2Base.damage).toBe(4);
 
@@ -678,7 +679,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 // Ruthless Raider resolves, prompting Thrawn
                 expect(context.p2Base.damage).toBe(2);
 
-                expect(context.player1).toHavePassAbilityPrompt('Use When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.ruthlessRaider.title));
                 context.player1.clickPrompt('Trigger');
                 expect(context.p2Base.damage).toBe(4);
 
