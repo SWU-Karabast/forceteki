@@ -553,7 +553,6 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     public isCardInPlayableZone(card: Card, playingType: PlayType = null) {
         // Check if card can be legally played by this player out of discard from an ongoing effect
         if (
-            playingType === PlayType.PlayFromOutOfPlay &&
             card.zoneName === ZoneName.Discard &&
             card.hasOngoingEffect(EffectName.CanPlayFromDiscard)
         ) {
