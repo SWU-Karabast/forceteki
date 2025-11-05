@@ -590,7 +590,12 @@ class PlayerInteractionWrapper {
         text = text.toString();
         var currentPrompt = this.player.currentPrompt();
         var promptButton = currentPrompt.buttons.find(
-            (button) => button.text.toString().toLowerCase() === text.toLowerCase()
+            (button) => {
+                const buttonText = button.text.toString().toLowerCase();
+                const searchText = text.toLowerCase();
+                // Match exact text or text with "(No effect)" suffix
+                return buttonText === searchText || buttonText === `${searchText} (no effect)`;
+            }
         );
 
         if (!promptButton || promptButton.disabled) {

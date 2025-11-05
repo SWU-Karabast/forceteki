@@ -36,16 +36,18 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
                 return;
             }
 
-            // Generate choice labels with "(No effect)" annotation where applicable
-            const choiceLabels = Object.entries(listOfAvailableEffects).map(([label, system]) => {
+            // Create a mapping of original labels to annotated display labels
+            const choiceMapping = new Map<string, string>();
+            Object.entries(listOfAvailableEffects).forEach(([label, system]) => {
                 const hasEffect = this.modalChoiceHasAnyLegalEffect(system, context);
-                return hasEffect ? label : `${label} (No effect)`;
+                const displayLabel = hasEffect ? label : `${label} (No effect)`;
+                choiceMapping.set(label, displayLabel);
             });
 
             // setup the choices for the modal card
             context.game.promptWithHandlerMenu(player, {
                 activePromptTitle: `Choose ${amountOfRemainingChoices} of the following`,
-                choices: choiceLabels,
+                choices: Array.from(choiceMapping.values()),
                 handlers: Object.entries(listOfAvailableEffects).map((selectedEffect: [string, GameSystem]) => () => this.pushEvent(
                     events,
                     selectedEffect[0],
