@@ -76,7 +76,7 @@ var customMatchers = {
                             const buttonText = button.text.toString().toLowerCase();
                             const expectedText = expected.toString().toLowerCase();
                             return util.equals(button.text, expected, customEqualityMatchers) ||
-                                   buttonText === `${expectedText} (no effect)`;
+                              buttonText === `${expectedText} (no effect)`;
                         }
                     );
 
