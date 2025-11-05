@@ -51,14 +51,14 @@ describe('Arihnda Pryce, On The Road To Power', function () {
 
             // can exhaust thrawn to trigger again arihnda
             expect(context.player1).toHaveExactPromptButtons([
-                'Exhaust this leader to use the When Defeated ability again',
+                'Exhaust Grand Admiral Thrawn to use Arihnda Pryce\'s When Defeated ability again',
                 'Put Superlaser Technician into play as a resource and ready it'
             ]);
 
             // choose thrawn ability
-            context.player1.clickPrompt('Exhaust this leader to use the When Defeated ability again');
+            context.player1.clickPrompt('Exhaust Grand Admiral Thrawn to use Arihnda Pryce\'s When Defeated ability again');
             // trigger it
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust Grand Admiral Thrawn to use Arihnda Pryce\'s When Defeated ability again');
             context.player1.clickPrompt('Trigger');
 
             // choose oom series
