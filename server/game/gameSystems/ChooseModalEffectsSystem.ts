@@ -38,11 +38,11 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
 
             // Create a mapping of original labels to annotated display labels
             const choiceMapping = new Map<string, string>();
-            Object.entries(listOfAvailableEffects).forEach(([label, system]) => {
+            for (const [label, system] of Object.entries(listOfAvailableEffects)) {
                 const hasEffect = this.modalChoiceHasAnyLegalEffect(system, context);
-                const displayLabel = hasEffect ? label : `${label} (No effect)`;
+                const displayLabel = hasEffect ? label : `(No effect) ${label}`;
                 choiceMapping.set(label, displayLabel);
-            });
+            }
 
             // setup the choices for the modal card
             context.game.promptWithHandlerMenu(player, {
@@ -108,13 +108,7 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
         context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }
 
-    private modalChoiceHasAnyLegalEffect(systemOrFunction: GameSystem | ((context: TContext) => boolean), context: TContext): boolean {
-        if (typeof systemOrFunction === 'function') {
-            return systemOrFunction(context);
-        }
-
-        const system = systemOrFunction;
-
+    private modalChoiceHasAnyLegalEffect(system: GameSystem, context: TContext): boolean {
         return system.hasLegalTarget(context);
     }
 }

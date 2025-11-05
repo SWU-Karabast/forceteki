@@ -593,8 +593,8 @@ class PlayerInteractionWrapper {
             (button) => {
                 const buttonText = button.text.toString().toLowerCase();
                 const searchText = text.toLowerCase();
-                // Match exact text or text with "(No effect)" suffix
-                return buttonText === searchText || buttonText === `${searchText} (no effect)`;
+                // Match exact text or text with "(No effect)" prefix
+                return buttonText === searchText || buttonText === `(no effect) ${searchText}`;
             }
         );
 

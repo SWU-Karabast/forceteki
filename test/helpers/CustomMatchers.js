@@ -72,11 +72,11 @@ var customMatchers = {
                             if (button.disabled) {
                                 return false;
                             }
-                            // Match exact text or text with "(No effect)" suffix
+                            // Match exact text or text with "(No effect)" prefix
                             const buttonText = button.text.toString().toLowerCase();
                             const expectedText = expected.toString().toLowerCase();
                             return util.equals(button.text, expected, customEqualityMatchers) ||
-                              buttonText === `${expectedText} (no effect)`;
+                              buttonText === `(no effect) ${expectedText}`;
                         }
                     );
 
@@ -869,10 +869,10 @@ var customMatchers = {
 
                 const expectedButtons = [...buttons];
 
-                // Helper to normalize button text (strip "(No effect)" suffix for comparison)
+                // Helper to normalize button text (strip "(No effect)" prefix for comparison)
                 const normalizeForComparison = (text) => {
                     const str = text.toString().toLowerCase();
-                    return str.replace(/ \(no effect\)$/, '');
+                    return str.replace(/^\(no effect\) /, '');
                 };
 
                 // Compare normalized button sets
