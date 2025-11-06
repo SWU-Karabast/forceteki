@@ -32,4 +32,9 @@ export class EventAbility extends CardAbility {
 
         return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
     }
+
+    /** No-op since any custom confirmation will have been handled already by PlayEventAction */
+    public override promptCustomConfirmation(_context: AbilityContext, _cancelHandler: () => void) {
+        return;
+    }
 }

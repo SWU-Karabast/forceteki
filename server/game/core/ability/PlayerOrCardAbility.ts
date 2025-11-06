@@ -64,6 +64,7 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
     public readonly triggerHandlingMode: TriggerHandlingMode;
     protected readonly cost: ICost<AbilityContext>[] | ((context: AbilityContext) => ICost<AbilityContext> | ICost<AbilityContext>[]);
     public readonly nonDependentTargets: TargetResolver<any>[];
+    public readonly customConfirmation?: (context: AbilityContext) => string | null;
 
     /** Return the controller of ability, can be different from card's controller (with bounty for example) */
     public get controller(): Player {
@@ -92,6 +93,7 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
         this.immediateEffect = properties.immediateEffect;
         this.canResolveWithoutLegalTargets = false;
         this.canBeTriggeredBy = properties.canBeTriggeredBy ?? RelativePlayer.Self;
+        this.customConfirmation = properties.customConfirmation;
 
         Contract.assertFalse(
             !this.optional && (properties.playerChoosingOptional !== undefined || properties.optionalButtonTextOverride !== undefined),
@@ -145,6 +147,24 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
 
     public override getGameObjectName() {
         return 'PlayerOrCardAbility';
+    }
+
+    public promptCustomConfirmation(context: AbilityContext, cancelHandler: () => void) {
+        if (this.customConfirmation) {
+            const confirmationMessage = this.customConfirmation(context);
+            if (!confirmationMessage) {
+                return;
+            }
+
+            this.game.promptWithHandlerMenu(context.player, {
+                activePromptTitle: confirmationMessage,
+                choices: ['Continue', 'Cancel'],
+                handlers: [
+                    () => undefined,
+                    () => cancelHandler()
+                ]
+            });
+        }
     }
 
     protected buildCost(cost: ICost<AbilityContext> | ICost<AbilityContext>[] | ((context: AbilityContext) => ICost<AbilityContext> | ICost<AbilityContext>[])) {

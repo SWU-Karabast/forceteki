@@ -154,6 +154,8 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
     immediateEffect?: GameSystem<TContext>;
     handler?: (context: TContext) => void;
 
+    customConfirmation?: (context: TContext) => string | null;
+
     /**
      * Indicates that an attack should be triggered from a friendly unit.
      * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.

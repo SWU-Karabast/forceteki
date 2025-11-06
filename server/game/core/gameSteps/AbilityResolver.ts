@@ -84,10 +84,10 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
     private initialise() {
         this.pipeline.initialise([
-            // new SimpleStep(this.game, () => this.createSnapshot()),
             new SimpleStep(this.game, () => this.checkAbility(), 'checkAbility'),
             new SimpleStep(this.game, () => this.resolveEarlyTargets(), 'resolveEarlyTargets'),
             new SimpleStep(this.game, () => this.checkForCancelOrPass(), 'checkForCancelOrPass'),
+            new SimpleStep(this.game, () => this.checkCustomConfirmation(), 'checkCustomConfirmation'),
             new SimpleStep(this.game, () => this.openInitiateAbilityEventWindow(), 'openInitiateAbilityEventWindow'),
             new SimpleStep(this.game, () => this.resetGameAbilityResolver(), 'resetGameAbilityResolver')
         ]);
@@ -143,6 +143,15 @@ export class AbilityResolver extends BaseStepWithPipeline {
         if (!this.cancelled && this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
             this.checkForPass();
         }
+    }
+
+    private checkCustomConfirmation() {
+        this.context.ability.promptCustomConfirmation(
+            this.context,
+            () => {
+                this.cancelled = true;
+            }
+        );
     }
 
     // TODO: figure out our story for snapshots
