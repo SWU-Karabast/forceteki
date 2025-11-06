@@ -270,7 +270,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
         if (context.overrideTitle) {
             return context.overrideTitle;
         }
-        return context.ability.title;
+        return context.ability.getTitle(context);
     }
 
     private payCosts() {

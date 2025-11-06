@@ -67,12 +67,19 @@ export class ActionWindow extends UiPrompt {
                 return true;
             }
         }
+
         this.game.promptWithHandlerMenu(player, {
             activePromptTitle: (EnumHelpers.isArena(card.zoneName) ? 'Choose an ability:' : 'Play ' + card.title + ':'),
             source: card,
-            choices: legalActions.map((action) => action.title).concat('Cancel'),
+            choices: legalActions
+                .map((action) => {
+                    const context = action.createContext(player);
+                    return action.getTitle(context);
+                })
+                .concat('Cancel'),
             handlers: legalActions.map((action) => (() => this.resolveAbility(action.createContext(player)))).concat(() => true)
         });
+
         return true;
     }
 

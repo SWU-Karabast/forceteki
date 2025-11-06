@@ -111,6 +111,7 @@ export interface IOngoingCardEffectProps extends IOngoingEffectProps<Card> {
 /** Base interface for triggered and action ability definitions */
 export interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
+    contextTitle?: (context: TContext) => string;
     zoneFilter?: ZoneFilter | ZoneFilter[];
     limit?: any;
     cardName?: string;
@@ -166,6 +167,7 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
+    contextTitle?: (context: AbilityContext<TSource>) => string;
     sourceZoneFilter?: ZoneFilter | ZoneFilter[];
 
     /** A handler to enable or disable the ability's effects depending on game context */

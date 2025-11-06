@@ -63,7 +63,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             event.context.game.promptWithHandlerMenu(event.context.player, {
                 activePromptTitle: `Choose an option for playing ${event.card.title}`,
                 source: event.card,
-                choices: availablePlayCardAbilities.map((action) => action.title),
+                choices: availablePlayCardAbilities.map((action) => action.getTitle(event.context)),
                 handlers: availablePlayCardAbilities.map((action) => (() => this.resolvePlayCardAbility(action, event)))
             });
         } else {
