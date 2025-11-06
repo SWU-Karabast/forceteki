@@ -183,7 +183,7 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     private getChoiceTitle(context: TriggeredAbilityContext, isMultiSelectAbility: boolean) {
-        let title = isMultiSelectAbility ? this.getOverrideTitle(context) : context.ability.title;
+        let title = isMultiSelectAbility ? this.getOverrideTitle(context) : context.ability.getTitle(context);
         if (!context.ability.hasAnyLegalEffects(context, SubStepCheck.All)) {
             title = `(No effect) ${title}`;
         }
@@ -192,7 +192,7 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     private getOverrideTitle(context: TriggeredAbilityContext) {
-        return `${context.ability.title}: ${context.event.card.title}`;
+        return `${context.ability.getTitle(context)}: ${context.event.card.title}`;
     }
 
     private isMultiSelectAbility(abilitiesToResolve: TriggeredAbilityContext[], resolvedAbilities: TriggeredAbility[]) {

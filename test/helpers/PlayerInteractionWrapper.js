@@ -106,7 +106,7 @@ class PlayerInteractionWrapper {
             leaderCard.deploy({ type: DeployType.LeaderUnit });
 
             // mark the deploy epic action as used
-            const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.title.includes('Deploy'));
+            const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.getTitle().includes('Deploy'));
             deployAbility.limit.increment(this.player);
 
             leaderCard.damage = leaderOptions.damage || 0;

@@ -51,6 +51,28 @@ export class PlayEventAction extends PlayCardAction {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
+    public override promptCustomConfirmation(context: PlayCardContext, cancelHandler: () => void) {
+        Contract.assertTrue(context.source.isEvent());
+
+        const eventAbility = context.source.getEventAbility();
+
+        if (eventAbility.customConfirmation) {
+            const confirmationMessage = eventAbility.customConfirmation(context);
+            if (!confirmationMessage) {
+                return;
+            }
+
+            this.game.promptWithHandlerMenu(context.player, {
+                activePromptTitle: confirmationMessage,
+                choices: ['Continue', 'Cancel'],
+                handlers: [
+                    () => undefined,
+                    () => cancelHandler()
+                ]
+            });
+        }
+    }
+
     /** Override that allows doing the card selection / prompting for an event card _before_ it is moved to discard for play so we can present a cancel option */
     public override resolveEarlyTargets(context: PlayCardContext, passHandler = null, canCancel = false) {
         Contract.assertTrue(context.source.isEvent());

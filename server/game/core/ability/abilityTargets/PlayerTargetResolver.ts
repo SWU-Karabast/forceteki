@@ -123,7 +123,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
     }
 
     private getDefaultPromptTitle(context: AbilityContext, isMultiSelect = false) {
-        const abilityTitleStr = context.ability?.title ? ` for ability '${context.ability.title}'` : '';
+        const abilityTitleStr = context.ability?.getTitle(context) ? ` for ability '${context.ability.getTitle(context)}'` : '';
 
         return isMultiSelect ? `Choose any number of players to target${abilityTitleStr}` : `Choose a player to target${abilityTitleStr}`;
     }
