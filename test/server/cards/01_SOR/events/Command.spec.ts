@@ -102,17 +102,17 @@ describe('Command', function() {
             context.player1.clickCard(context.command);
             expect(context.player1).toHaveEnabledPromptButtons([
                 'Give 2 Experience tokens to a unit.',
-                'A friendly unit deals damage equal to its power to a non-unique enemy unit.',
+                '(No effect) A friendly unit deals damage equal to its power to a non-unique enemy unit.',
                 'Put this event into play as a resource.',
-                'Return a unit from your discard pile to your hand.'
+                '(No effect) Return a unit from your discard pile to your hand.'
             ]);
 
-            context.player1.clickPrompt('A friendly unit deals damage equal to its power to a non-unique enemy unit.');
+            context.player1.clickPrompt('(No effect) A friendly unit deals damage equal to its power to a non-unique enemy unit.');
 
             expect(context.player1).toHaveEnabledPromptButtons([
                 'Give 2 Experience tokens to a unit.',
                 'Put this event into play as a resource.',
-                'Return a unit from your discard pile to your hand.'
+                '(No effect) Return a unit from your discard pile to your hand.'
             ]);
 
             // since we only clicked one option
@@ -135,17 +135,17 @@ describe('Command', function() {
             context.player1.clickCard(context.command);
             expect(context.player1).toHaveEnabledPromptButtons([
                 'Give 2 Experience tokens to a unit.',
-                'A friendly unit deals damage equal to its power to a non-unique enemy unit.',
+                '(No effect) A friendly unit deals damage equal to its power to a non-unique enemy unit.',
                 'Put this event into play as a resource.',
-                'Return a unit from your discard pile to your hand.'
+                '(No effect) Return a unit from your discard pile to your hand.'
             ]);
 
-            context.player1.clickPrompt('A friendly unit deals damage equal to its power to a non-unique enemy unit.');
+            context.player1.clickPrompt('(No effect) A friendly unit deals damage equal to its power to a non-unique enemy unit.');
 
             expect(context.player1).toHaveEnabledPromptButtons([
                 'Give 2 Experience tokens to a unit.',
                 'Put this event into play as a resource.',
-                'Return a unit from your discard pile to your hand.'
+                '(No effect) Return a unit from your discard pile to your hand.'
             ]);
 
             // since we only clicked one option

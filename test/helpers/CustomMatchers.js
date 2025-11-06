@@ -68,16 +68,7 @@ var customMatchers = {
 
                 for (let expected of expecteds) {
                     result.pass = buttons.some(
-                        (button) => {
-                            if (button.disabled) {
-                                return false;
-                            }
-                            // Match exact text or text with "(No effect)" prefix
-                            const buttonText = button.text.toString().toLowerCase();
-                            const expectedText = expected.toString().toLowerCase();
-                            return util.equals(button.text, expected, customEqualityMatchers) ||
-                              buttonText === `(no effect) ${expectedText}`;
-                        }
+                        (button) => !button.disabled && util.equals(button.text, expected, customEqualityMatchers)
                     );
 
                     if (result.pass) {
@@ -869,17 +860,7 @@ var customMatchers = {
 
                 const expectedButtons = [...buttons];
 
-                // Helper to normalize button text (strip "(No effect)" prefix for comparison)
-                const normalizeForComparison = (text) => {
-                    const str = text.toString().toLowerCase();
-                    return str.replace(/^\(no effect\) /, '');
-                };
-
-                // Compare normalized button sets
-                const normalizedActual = actualButtons.map(normalizeForComparison).sort();
-                const normalizedExpected = expectedButtons.map(normalizeForComparison).sort();
-
-                result.pass = stringArraysEqual(normalizedActual, normalizedExpected);
+                result.pass = stringArraysEqual(actualButtons, expectedButtons);
 
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have this exact set of buttons but it does: ${expectedButtons.join(', ')}`;
