@@ -1,10 +1,12 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, PlayType } from '../core/Constants';
+import { EventName, PlayType, Stage } from '../core/Constants';
 import type { ICost, ICostResult } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
-import type { CostAdjuster } from '../core/cost/CostAdjuster';
+import { CostAdjustType, type CostAdjuster, type ICanAdjustProperties } from '../core/cost/CostAdjuster';
 import type { Card } from '../core/card/Card';
+import type { IGetMatchingCostAdjusterProperties, IRunCostAdjustmentProperties } from '../core/cost/CostInterfaces';
+import type { IUpgradeCard } from '../core/card/CardInterfaces';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -34,10 +36,6 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         return context.player.readyResourceCount >= minCost;
     }
 
-    protected getMatchingCostAdjusters(context: AbilityContext<TCard>): CostAdjuster[] {
-        return context.player.getMatchingCostAdjusters(context);
-    }
-
     public resolve(context: AbilityContext<TCard>, result: ICostResult): void {
         const availableResources = context.player.readyResourceCount;
         const adjustedCost = this.getAdjustedCost(context);
@@ -47,8 +45,15 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         }
     }
 
+    /**
+     * Checks if any Cost Adjusters on the relevant player apply to the passed card/target, and returns the cost if they are used.
+     * Accounts for aspect penalties and any modifiers to those specifically
+     * @param cost
+     * @param context
+     * @param properties Additional parameters for determining cost adjustment
+     */
     public getAdjustedCost(context: AbilityContext<TCard>): number {
-        return context.player.getAdjustedPlayCardCost(this.resources, [], context);
+        return this.runAdjustersForCost(this.resources, context.source, context);
     }
 
     public queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext<TCard>, result: ICostResult) {
@@ -86,5 +91,76 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
                 this.afterPayHook(event);
             }
         });
+    }
+
+    /**
+     * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
+     * @param baseCost
+     * @param card
+     * @param target
+     * @param properties Additional parameters for determining cost adjustment
+     */
+    protected runAdjustersForCost(baseCost: number, card, context, properties: IRunCostAdjustmentProperties = {}) {
+        const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
+        const costIncreases = matchingAdjusters
+            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
+            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, context.player, context), 0);
+        const costDecreases = matchingAdjusters
+            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Decrease)
+            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, context.player, context), 0);
+
+        baseCost += costIncreases;
+        let reducedCost = baseCost - costDecreases;
+
+        if (matchingAdjusters.some((adjuster) => adjuster.costAdjustType === CostAdjustType.Free)) {
+            reducedCost = 0;
+        }
+
+        // run any cost adjusters that affect the "pay costs" stage last
+        const payStageAdjustment = matchingAdjusters
+            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.ModifyPayStage)
+            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, context.player, context, reducedCost), 0);
+
+        reducedCost += payStageAdjustment;
+
+        return Math.max(reducedCost, 0);
+    }
+
+
+    /**
+     * @param context
+     * @param properties Additional parameters for determining cost adjustment
+     */
+    protected getMatchingCostAdjusters(context: AbilityContext, properties: IGetMatchingCostAdjusterProperties = null): CostAdjuster[] {
+        const canAdjustProps: ICanAdjustProperties = { ...properties, isAbilityCost: !context.ability.isPlayCardAbility() };
+        const allAdjusters = context.player.getCostAdjusters().concat(properties?.additionalCostAdjusters ?? []);
+
+        if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
+            return this.getMatchingCostAdjustersForUpgrade(context, context.source, allAdjusters, canAdjustProps);
+        }
+
+        const matchingAdjusters: CostAdjuster[] = [];
+        for (const adjuster of allAdjusters) {
+            if (adjuster.canAdjust(context.source, context, { attachTarget: context.target, ...canAdjustProps })) {
+                matchingAdjusters.push(adjuster);
+            }
+        }
+        return matchingAdjusters;
+    }
+
+    private getMatchingCostAdjustersForUpgrade(context: AbilityContext, upgrade: IUpgradeCard, allAdjusters: CostAdjuster[], properties: ICanAdjustProperties): CostAdjuster[] {
+        const matchingAdjusters: CostAdjuster[] = [];
+        for (const adjuster of allAdjusters) {
+            for (const unit of context.game.getArenaUnits()) {
+                if (
+                    upgrade.canAttach(unit, context, context.player) &&
+                    adjuster.canAdjust(upgrade, context, { attachTarget: unit, ...properties })
+                ) {
+                    matchingAdjusters.push(adjuster);
+                    break;
+                }
+            }
+        }
+        return matchingAdjusters;
     }
 }

@@ -1,8 +1,7 @@
 import type { IGameObjectState } from './GameObject';
 import { GameObject } from './GameObject';
 import type { Deck, IDeckList as IDeckList } from '../../utils/deck/Deck.js';
-import type { CostAdjuster, ICanAdjustProperties } from './cost/CostAdjuster';
-import { CostAdjustType } from './cost/CostAdjuster';
+import type { CostAdjuster } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
 import { PlayerPromptState } from './PlayerPromptState.js';
 import * as Contract from './utils/Contract';
@@ -15,7 +14,6 @@ import {
     PhaseName,
     PlayType,
     RelativePlayer,
-    Stage,
     TokenCardName,
     WildcardCardType,
     WildcardRelativePlayer,
@@ -34,7 +32,6 @@ import { BaseZone } from './zone/BaseZone';
 import type Game from './Game';
 import type { ZoneAbstract } from './zone/ZoneAbstract';
 import type { Card } from './card/Card';
-import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
 import type { IUser } from '../../Settings';
 import type {
     IAllArenasForPlayerCardFilterProperties,
@@ -43,7 +40,6 @@ import type {
 import type { IInPlayCard } from './card/baseClasses/InPlayCard';
 import type { ICardWithExhaustProperty, IPlayableCard } from './card/baseClasses/PlayableOrDeployableCard';
 import type { IPlayerSerializedState, Zone } from '../Interfaces';
-import type { IGetMatchingCostAdjusterProperties, IRunCostAdjustmentProperties } from './cost/CostInterfaces';
 import type { GameObjectRef } from './GameObjectBase';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
@@ -815,141 +811,8 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return penaltyAspects;
     }
 
-    /**
-     * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
-     * Accounts for aspect penalties and any modifiers to those specifically
-     * @param cost
-     * @param aspects
-     * @param context
-     * @param properties Additional parameters for determining cost adjustment
-     */
-    public getAdjustedPlayCardCost(cost: number, aspects: Aspect[], context: AbilityContext, properties: IRunCostAdjustmentProperties = null) {
-        Contract.assertNonNegative(cost);
-
-        const card = context.source;
-
-        // if any aspect penalties, check modifiers for them separately
-        let aspectPenaltiesTotal = 0;
-
-        const penaltyAspects = this.getPenaltyAspects(aspects);
-        for (const penaltyAspect of penaltyAspects) {
-            const penaltyAspectParams = { ...properties, penaltyAspect };
-            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(2, context, penaltyAspectParams);
-        }
-
-        const penalizedCost = cost + aspectPenaltiesTotal;
-        return this.runAdjustersForCost(penalizedCost, card, context, properties);
-    }
-
-    /**
-     * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
-     * Accounts for aspect penalties and any modifiers to those specifically
-     * @param cost
-     * @param context
-     * @param properties Additional parameters for determining cost adjustment
-     */
-    public getAdjustedAbilityCost(cost: number, context: AbilityContext, properties: IRunCostAdjustmentProperties = null) {
-        Contract.assertNonNegative(cost);
-
-        const card = context.source;
-
-        return this.runAdjustersForCost(cost, card, context, properties);
-    }
-
-    /**
-     * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
-     * @param baseCost
-     * @param card
-     * @param target
-     * @param properties Additional parameters for determining cost adjustment
-     */
-    public runAdjustersForCost(baseCost: number, card, context, properties: IRunCostAdjustmentProperties) {
-        const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
-        const costIncreases = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
-            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context), 0);
-        const costDecreases = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Decrease)
-            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context), 0);
-
-        baseCost += costIncreases;
-        let reducedCost = baseCost - costDecreases;
-
-        if (matchingAdjusters.some((adjuster) => adjuster.costAdjustType === CostAdjustType.Free)) {
-            reducedCost = 0;
-        }
-
-        // run any cost adjusters that affect the "pay costs" stage last
-        const payStageAdjustment = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.ModifyPayStage)
-            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context, reducedCost), 0);
-
-        reducedCost += payStageAdjustment;
-
-        return Math.max(reducedCost, 0);
-    }
-
-
-    /**
-     * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
-     * @param baseCost
-     * @param properties Additional parameters for determining cost adjustment
-     */
-    public runAdjustersForAspectPenalties(baseCost: number, context, properties: IRunCostAdjustmentProperties) {
-        const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
-
-        const ignoreAllAspectPenalties = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects).length > 0;
-
-        const ignoreSpecificAspectPenalty = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreSpecificAspects).length > 0;
-
-        let cost = baseCost;
-        if (ignoreAllAspectPenalties || ignoreSpecificAspectPenalty) {
-            cost -= 2;
-        }
-
-        return Math.max(cost, 0);
-    }
-
-    /**
-     * @param context
-     * @param properties Additional parameters for determining cost adjustment
-     */
-    public getMatchingCostAdjusters(context: AbilityContext, properties: IGetMatchingCostAdjusterProperties = null): CostAdjuster[] {
-        const canAdjustProps: ICanAdjustProperties = { ...properties, isAbilityCost: !context.ability.isPlayCardAbility() };
-
-        const allMatchingAdjusters = this.costAdjusters.concat(properties?.additionalCostAdjusters ?? [])
-            .filter((adjuster) => {
-                // TODO: Make this work with Piloting
-                if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
-                    const upgrade = context.source;
-                    return context.game.getArenaUnits()
-                        .filter((unit) => upgrade.canAttach(unit, context, this))
-                        .some((unit) => adjuster.canAdjust(upgrade, context, { attachTarget: unit, ...canAdjustProps }));
-                }
-
-                return adjuster.canAdjust(context.source, context, { attachTarget: context.target, ...canAdjustProps });
-            });
-
-        if (properties?.ignoreExploit) {
-            return allMatchingAdjusters.filter((adjuster) => !adjuster.isExploit());
-        }
-
-        const { trueAra: exploitAdjusters, falseAra: nonExploitAdjusters } =
-                    Helpers.splitArray(allMatchingAdjusters, (adjuster) => adjuster.isExploit());
-
-        // if there are multiple Exploit adjusters, generate a single merged one to represent the total Exploit value
-        const costAdjusters = nonExploitAdjusters;
-        if (exploitAdjusters.length > 1) {
-            Contract.assertTrue(exploitAdjusters.every((adjuster) => adjuster.isExploit()));
-            Contract.assertTrue(context.source.hasCost());
-            costAdjusters.unshift(new MergedExploitCostAdjuster(exploitAdjusters, context.source, context));
-        } else {
-            costAdjusters.unshift(...exploitAdjusters);
-        }
-
-        return costAdjusters;
+    public getCostAdjusters(): CostAdjuster[] {
+        return [...this.costAdjusters];
     }
 
     /**
