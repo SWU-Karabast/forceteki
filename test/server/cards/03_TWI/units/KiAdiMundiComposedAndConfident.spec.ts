@@ -121,10 +121,6 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                 // Play Battlefield Marine from discard
                 context.player1.clickCard(context.battlefieldMarine);
 
-                // TODO: This currently double-triggers Ki-Adi's ability, but should only resolve one instance
-                expect(context.player2).toHavePrompt('Choose an ability to resolve:');
-                expect(context.player2).toHaveExactPromptButtons(['Draw 2 cards', 'Draw 2 cards']);
-                context.player2.clickPrompt('Draw 2 cards');
                 context.player2.clickPrompt('Trigger');
 
                 // Two cards were drawn because only one trigger was resolved
@@ -171,10 +167,6 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                 // Play Battlefield Marine from discard
                 context.player1.clickCard(context.battlefieldMarine);
 
-                // TODO: This currently double-triggers Ki-Adi's ability, but should only resolve one instance
-                expect(context.player2).toHavePrompt('Choose an ability to resolve:');
-                expect(context.player2).toHaveExactPromptButtons(['Draw 2 cards', 'Draw 2 cards']);
-                context.player2.clickPrompt('Draw 2 cards');
                 context.player2.clickPrompt('Trigger');
 
                 // Two cards were drawn because only one trigger was resolved
