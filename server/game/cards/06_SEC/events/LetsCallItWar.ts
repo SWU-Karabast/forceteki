@@ -1,7 +1,9 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { WildcardCardType } from '../../../core/Constants';
+import { EventName, WildcardCardType } from '../../../core/Constants';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { Card } from '../../../core/card/Card';
 
 export default class LetsCallItWar extends EventCard {
     protected override getImplementationId() {
@@ -24,10 +26,18 @@ export default class LetsCallItWar extends EventCard {
                 optional: true,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card, _) => card !== thenContext.target && card.zoneName === thenContext.target.zoneName,
+                    cardCondition: (card, _) => card !== thenContext.target && this.isUnitInSameArena(card, thenContext),
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                 }
             })
         });
+    }
+
+    private isUnitInSameArena(card: Card, context: AbilityContext): boolean {
+        const damageEvent = context.events.filter((event) => event.name === EventName.OnDamageDealt)[0];
+        if (damageEvent.lastKnownInformation) {
+            return damageEvent.lastKnownInformation.arena === card.zoneName;
+        }
+        return damageEvent.card.zoneName === card.zoneName;
     }
 }
