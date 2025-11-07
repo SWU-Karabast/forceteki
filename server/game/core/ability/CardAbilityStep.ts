@@ -4,7 +4,6 @@ import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck, Play
 import * as AttackHelper from '../attack/AttackHelpers.js';
 import * as Helpers from '../utils/Helpers.js';
 import * as Contract from '../utils/Contract.js';
-import { TriggerHandlingMode } from '../event/EventWindow.js';
 import type { Card } from '../card/Card.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
 import type { GameEvent } from '../event/GameEvent.js';
@@ -271,7 +270,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         const properties = typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
 
         // sub-steps will always pass to a parent window
-        return { ...properties, triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
+        return { ...properties, triggerHandlingMode: this.triggerHandlingMode };
     }
 
     protected buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player, parentContex: AbilityContext) {
