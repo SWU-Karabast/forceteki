@@ -35,10 +35,19 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
             if (amountOfRemainingChoices === 0) {
                 return;
             }
+
+            // Create a mapping of original labels to annotated display labels
+            const choiceMapping = new Map<string, string>();
+            for (const [label, system] of Object.entries(listOfAvailableEffects)) {
+                const hasEffect = this.modalChoiceHasAnyLegalEffect(system, context);
+                const displayLabel = hasEffect ? label : `(No effect) ${label}`;
+                choiceMapping.set(label, displayLabel);
+            }
+
             // setup the choices for the modal card
             context.game.promptWithHandlerMenu(player, {
                 activePromptTitle: `Choose ${amountOfRemainingChoices} of the following`,
-                choices: Object.keys(listOfAvailableEffects),
+                choices: Array.from(choiceMapping.values()),
                 handlers: Object.entries(listOfAvailableEffects).map((selectedEffect: [string, GameSystem]) => () => this.pushEvent(
                     events,
                     selectedEffect[0],
@@ -97,5 +106,9 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
 
         const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
         context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
+    }
+
+    private modalChoiceHasAnyLegalEffect(system: GameSystem, context: TContext): boolean {
+        return system.hasLegalTarget(context);
     }
 }

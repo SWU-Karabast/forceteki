@@ -342,5 +342,50 @@ describe('Obi-Wan Kenobi, Finding What Doesn\'t Exist', function() {
             // can not play it again
             expect(context.arquitensAssaultCruiser).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
+
+        it('allows the player to play a Piloting card as an upgrade on a friendly vehicle unit without a pilot on it', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'padme-amidala#what-do-you-have-to-hide',
+                    base: 'echo-base',
+                    groundArena: ['obiwan-kenobi#finding-what-doesnt-exist'],
+                    spaceArena: ['stolen-athauler']
+                },
+                player2: {
+                    deck: ['darth-vader#scourge-of-squadrons'],
+                    spaceArena: ['ruthless-raider']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 attacks P2 base with Obi-Wan
+            context.player1.clickCard(context.obiwanKenobi);
+            context.player1.clickCard(context.p2Base);
+
+            // P2's top deck card (Darth Vader) is discarded
+            expect(context.darthVader).toBeInZone('discard', context.player2);
+
+            // P2 does not have the ability to play Darth Vader
+            expect(context.darthVader).not.toHaveAvailableActionWhenClickedBy(context.player2);
+            context.player2.passAction();
+
+            // P1 can play Darth Vader from P2's discard as a unit or Pilot
+            expect(context.darthVader).toHaveAvailableActionWhenClickedBy(context.player1);
+            expect(context.player1).toHaveExactPromptButtons([
+                'Play Darth Vader',
+                'Play Darth Vader with Piloting',
+                'Cancel'
+            ]);
+
+            context.player1.clickPrompt('Play Darth Vader with Piloting');
+
+            expect(context.player1).toBeAbleToSelectExactly(context.stolenAthauler);
+            context.player1.clickCard(context.stolenAthauler);
+
+            expect(context.stolenAthauler).toHaveExactUpgradeNames(['darth-vader#scourge-of-squadrons']);
+            expect(context.player1.exhaustedResourceCount).toBe(3); // Piloting cost is 3, ignoring aspect penalties
+        });
     });
 });

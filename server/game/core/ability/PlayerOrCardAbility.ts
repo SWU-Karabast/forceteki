@@ -46,7 +46,8 @@ export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
  * ability is generated from.
  */
 export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends GameObjectBase<T> {
-    public title: string;
+    private _title: string;
+    private _contextTitle?: (context: AbilityContext) => string;
     public limit?: AbilityLimit;
     public canResolveWithoutLegalTargets: boolean;
     public targetResolvers: TargetResolver<any>[];
@@ -63,6 +64,7 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
     public readonly triggerHandlingMode: TriggerHandlingMode;
     protected readonly cost: ICost<AbilityContext>[] | ((context: AbilityContext) => ICost<AbilityContext> | ICost<AbilityContext>[]);
     public readonly nonDependentTargets: TargetResolver<any>[];
+    public readonly customConfirmation?: (context: AbilityContext) => string | null;
 
     /** Return the controller of ability, can be different from card's controller (with bounty for example) */
     public get controller(): Player {
@@ -71,7 +73,8 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
 
     public constructor(game: Game, card: Card, properties: IPlayerOrCardAbilityProps<AbilityContext>, type = AbilityType.Action) {
         super(game);
-        Contract.assertStringValue(properties.title);
+
+        Contract.assertStringValue(properties.title, 'Ability must have a title');
 
         const hasImmediateEffect = properties.immediateEffect != null;
         const hasTargetResolver = properties.targetResolver != null;
@@ -83,12 +86,14 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
 
         Contract.assertFalse(systemTypesCount > 1, 'Cannot create ability with multiple system initialization properties');
 
-        this.title = properties.title;
+        this._title = properties.title;
+        this._contextTitle = properties.contextTitle;
         this.type = type;
         this.optional = !!properties.optional;
         this.immediateEffect = properties.immediateEffect;
         this.canResolveWithoutLegalTargets = false;
         this.canBeTriggeredBy = properties.canBeTriggeredBy ?? RelativePlayer.Self;
+        this.customConfirmation = properties.customConfirmation;
 
         Contract.assertFalse(
             !this.optional && (properties.playerChoosingOptional !== undefined || properties.optionalButtonTextOverride !== undefined),
@@ -128,12 +133,38 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
 
     public override toString() {
         return this.properties.cardName
-            ? `'${this.properties.cardName} ability: ${this.title}'`
-            : `'Ability: ${this.title}'`;
+            ? `'${this.properties.cardName} ability: ${this.getTitle()}'`
+            : `'Ability: ${this.getTitle()}'`;
+    }
+
+    public getTitle<T extends AbilityContext>(context?: T): string {
+        if (this._contextTitle && context) {
+            return this._contextTitle(context);
+        }
+
+        return this._title;
     }
 
     public override getGameObjectName() {
         return 'PlayerOrCardAbility';
+    }
+
+    public promptCustomConfirmation(context: AbilityContext, cancelHandler: () => void) {
+        if (this.customConfirmation) {
+            const confirmationMessage = this.customConfirmation(context);
+            if (!confirmationMessage) {
+                return;
+            }
+
+            this.game.promptWithHandlerMenu(context.player, {
+                activePromptTitle: confirmationMessage,
+                choices: ['Continue', 'Cancel'],
+                handlers: [
+                    () => undefined,
+                    () => cancelHandler()
+                ]
+            });
+        }
     }
 
     protected buildCost(cost: ICost<AbilityContext> | ICost<AbilityContext>[] | ((context: AbilityContext) => ICost<AbilityContext> | ICost<AbilityContext>[])) {

@@ -111,6 +111,7 @@ export interface IOngoingCardEffectProps extends IOngoingEffectProps<Card> {
 /** Base interface for triggered and action ability definitions */
 export interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
+    contextTitle?: (context: TContext) => string;
     zoneFilter?: ZoneFilter | ZoneFilter[];
     limit?: any;
     cardName?: string;
@@ -153,6 +154,8 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
     immediateEffect?: GameSystem<TContext>;
     handler?: (context: TContext) => void;
 
+    customConfirmation?: (context: TContext) => string | null;
+
     /**
      * Indicates that an attack should be triggered from a friendly unit.
      * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.
@@ -166,6 +169,7 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
+    contextTitle?: (context: AbilityContext<TSource>) => string;
     sourceZoneFilter?: ZoneFilter | ZoneFilter[];
 
     /** A handler to enable or disable the ability's effects depending on game context */

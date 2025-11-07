@@ -94,11 +94,11 @@ describe('Impossible Escape ability', function () {
 
             context.player1.clickPrompt('Trigger');
             expect(context.player1).toHaveEnabledPromptButtons([
-                'Use the Force',
+                '(No effect) Use the Force',
                 'Exhaust a friendly unit',
             ]);
 
-            context.player1.clickPrompt('Use the Force');
+            context.player1.clickPrompt('(No effect) Use the Force');
             expect(context.player1.hasTheForce).toBeFalse();
             expect(context.atst.exhausted).toBeFalse();
             expect(context.battlefieldMarine.exhausted).toBeFalse();
@@ -126,10 +126,10 @@ describe('Impossible Escape ability', function () {
             context.player1.clickPrompt('Trigger');
             expect(context.player1).toHaveEnabledPromptButtons([
                 'Use the Force',
-                'Exhaust a friendly unit',
+                '(No effect) Exhaust a friendly unit',
             ]);
 
-            context.player1.clickPrompt('Exhaust a friendly unit');
+            context.player1.clickPrompt('(No effect) Exhaust a friendly unit');
             expect(context.player1.hasTheForce).toBeTrue();
             expect(context.battlefieldMarine.exhausted).toBeFalse();
             expect(context.wampa).toBeInZone('deck', context.player1);
@@ -213,7 +213,7 @@ describe('Impossible Escape ability', function () {
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1).toHaveEnabledPromptButtons([
                     'Use the Force',
-                    'Exhaust a friendly unit',
+                    '(No effect) Exhaust a friendly unit',
                 ]);
 
                 context.player1.clickPrompt('Use the Force');
