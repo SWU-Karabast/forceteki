@@ -98,9 +98,13 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         } else if (handlers.length > 1) {
             const baseProperties = this.getDefaultProperties(context);
             const activePromptTitleConcrete = (baseProperties.activePromptTitle && typeof baseProperties.activePromptTitle === 'function') ? (baseProperties.activePromptTitle as (context: AbilityContext) => string)(context) : baseProperties.activePromptTitle || 'Select one';
-            const selectedCards = this.properties.dependsOn ? Helpers.asArray(context.targets[this.properties.dependsOn]) : [];
+            const selectedCards = Helpers.asArray(
+                typeof this.properties.highlightCards === 'function'
+                    ? this.properties.highlightCards(context)
+                    : this.properties.highlightCards
+            );
 
-            const promptProperties = Object.assign(baseProperties, {
+            let promptProperties = Object.assign(baseProperties, {
                 activePromptTitle: activePromptTitleConcrete,
                 choices,
                 handlers,

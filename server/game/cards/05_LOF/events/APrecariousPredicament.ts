@@ -25,11 +25,12 @@ export default class APrecariousPredicament extends EventCard {
                     dependsOn: 'targetUnit',
                     choosingPlayer: RelativePlayer.Opponent,
                     showUnresolvable: true,
+                    activePromptTitle: (context) => `Return ${context.targets.targetUnit.title} to ${context.targets.targetUnit.owner === context.player ? 'opponent\'s' : 'your'} hand or Opponent can play It\'s Worse from their hand or resources for free`,
                     choices: (context) => ({
-                        [`Return ${context.targets.targetUnit.title} to ${context.targets.targetUnit.owner === context.player ? 'opponent\'s' : 'your'} hand`]: AbilityHelper.immediateEffects.returnToHand({
+                        ['Bounce']: AbilityHelper.immediateEffects.returnToHand({
                             target: context.targets.targetUnit,
                         }),
-                        ['Opponent can play It\'s Worse from their hand or resources for free']: AbilityHelper.immediateEffects.selectCard({
+                        ['Play']: AbilityHelper.immediateEffects.selectCard({
                             controller: RelativePlayer.Self,
                             zoneFilter: [ZoneName.Hand, ZoneName.Resource],
                             cardCondition: (card) => card.title === 'It\'s Worse',
@@ -40,7 +41,8 @@ export default class APrecariousPredicament extends EventCard {
                                 playType: context.target?.zoneName === ZoneName.Resource ? PlayType.PlayFromOutOfPlay : PlayType.PlayFromHand,
                             })),
                         })
-                    })
+                    }),
+                    highlightCards: (context) => context.targets.targetUnit,
                 }
             }
         });
