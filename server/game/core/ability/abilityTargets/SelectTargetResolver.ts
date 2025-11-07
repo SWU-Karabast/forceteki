@@ -8,6 +8,7 @@ import { SelectChoice } from './SelectChoice';
 import { Stage } from '../../Constants';
 import type { Player } from '../../Player';
 import type { IPassAbilityHandler } from '../../gameSteps/AbilityResolver';
+import * as Helpers from '../../utils/Helpers';
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
 export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<AbilityContext>> {
@@ -97,11 +98,13 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         } else if (handlers.length > 1) {
             const baseProperties = this.getDefaultProperties(context);
             const activePromptTitleConcrete = (baseProperties.activePromptTitle && typeof baseProperties.activePromptTitle === 'function') ? (baseProperties.activePromptTitle as (context: AbilityContext) => string)(context) : baseProperties.activePromptTitle || 'Select one';
+            const selectedCards = this.properties.dependsOn ? Helpers.asArray(context.targets[this.properties.dependsOn]) : [];
 
             const promptProperties = Object.assign(baseProperties, {
                 activePromptTitle: activePromptTitleConcrete,
                 choices,
-                handlers
+                handlers,
+                selectedCards,
             });
             context.game.promptWithHandlerMenu(player, promptProperties);
         }
