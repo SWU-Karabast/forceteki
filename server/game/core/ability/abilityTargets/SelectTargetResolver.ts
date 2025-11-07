@@ -104,7 +104,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
                     : this.properties.highlightCards
             );
 
-            let promptProperties = Object.assign(baseProperties, {
+            const promptProperties = Object.assign(baseProperties, {
                 activePromptTitle: activePromptTitleConcrete,
                 choices,
                 handlers,
