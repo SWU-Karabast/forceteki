@@ -65,8 +65,6 @@ export abstract class DistributeAmongTargetsSystem<
             (event.individualEvents as GameEvent[])
                 .flatMap((event) => event.resolvedEvents.filter((resolvedEvent) => resolvedEvent.name === event.name))
                 .reduce((total, individualEvent) => total + this.getDistributedAmountFromEvent(individualEvent), 0);
-
-        this.generateDistributedEffectMessage(event.individualEvents || [], context, event.additionalProperties);
     }
 
     protected getChatMessage(): string {
@@ -170,7 +168,9 @@ export abstract class DistributeAmongTargetsSystem<
 
         // auto-select if there's only one legal target and the player isn't allowed to choose 0 targets
         if ((!properties.canChooseNoTargets && !context.ability.optional) && legalTargets.length === 1) {
-            events.push(this.generateEffectEvent(legalTargets[0], distributeEvent, context, amountToDistribute));
+            const event = this.generateEffectEvent(legalTargets[0], distributeEvent, context, amountToDistribute);
+            this.generateDistributedEffectMessage([event], context, additionalProperties, false);
+            events.push(event);
             return;
         }
 
@@ -186,7 +186,11 @@ export abstract class DistributeAmongTargetsSystem<
             resultsHandler: (results: IDistributeAmongTargetsPromptMapResults) => {
                 const individualEvents = Array.from(results.valueDistribution.entries())
                     .map(([card, amount]) => this.generateEffectEvent(card, distributeEvent, context, amount));
+
+                // Immediately log the distributed effect message after selection so players resolving replacement effects
+                // can see the amounts and make decisions accordingly.
                 this.generateDistributedEffectMessage(individualEvents, context, additionalProperties, false);
+
                 events.push(...individualEvents);
             }
         };
