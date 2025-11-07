@@ -66,18 +66,29 @@ export abstract class DistributeAmongTargetsSystem<
                 .flatMap((event) => event.resolvedEvents.filter((resolvedEvent) => resolvedEvent.name === event.name))
                 .reduce((total, individualEvent) => total + this.getDistributedAmountFromEvent(individualEvent), 0);
 
-        context.game.addMessage(this.getChatMessage(), ...this.getChatMessageArgs(event, context, event.additionalProperties));
+        this.generateDistributedEffectMessage(event.individualEvents || [], context, event.additionalProperties);
     }
 
     protected getChatMessage(): string {
         return `{0} uses {1} to ${this.getDistributionVerb()} {2}`;
     }
 
-    protected getChatMessageArgs(event: any, context: TContext, additionalProperties: Partial<TProperties>): any[] {
+    protected getChatMessageArgs(
+        individualEvents: any[],
+        context: TContext,
+        additionalProperties: Partial<TProperties>,
+        enforceResolvedEvents: boolean = true
+    ): any[] {
         const targets: FormatMessage[] = [];
-        const individualEvents: any[] = event.individualEvents || [];
-        for (const individualEvent of individualEvents.flatMap((event) => event.resolvedEvents.filter((resolvedEvent: GameEvent) => resolvedEvent.name === event.name))) {
-            const amount = this.getDistributedAmountFromEvent(individualEvent);
+        const eventsToConsider = enforceResolvedEvents
+            ? individualEvents.flatMap((event) => event.resolvedEvents.filter((resolvedEvent: GameEvent) => resolvedEvent.name === event.name))
+            : individualEvents;
+
+        for (const individualEvent of eventsToConsider) {
+            const amount = enforceResolvedEvents
+                ? this.getDistributedAmountFromEvent(individualEvent)
+                : individualEvent.amount;
+
             if (amount !== 0) {
                 targets.push({
                     format: '{0} {1} to {2}',
@@ -98,6 +109,15 @@ export abstract class DistributeAmongTargetsSystem<
             context.source,
             targets,
         ];
+    }
+
+    private generateDistributedEffectMessage(
+        individualEvents: GameEvent[],
+        context: TContext,
+        additionalProperties: Partial<TProperties>,
+        enforceResolvedEvents: boolean = true
+    ) {
+        context.game.addMessage(this.getChatMessage(), ...this.getChatMessageArgs(individualEvents, context, additionalProperties, enforceResolvedEvents));
     }
 
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<TProperties>): [string, any[]] {
@@ -163,8 +183,12 @@ export abstract class DistributeAmongTargetsSystem<
             maxTargets: properties.maxTargets,
             source: context.source,
             amount: amountToDistribute,
-            resultsHandler: (results: IDistributeAmongTargetsPromptMapResults) =>
-                results.valueDistribution.forEach((amount, card) => events.push(this.generateEffectEvent(card, distributeEvent, context, amount)))
+            resultsHandler: (results: IDistributeAmongTargetsPromptMapResults) => {
+                const individualEvents = Array.from(results.valueDistribution.entries())
+                    .map(([card, amount]) => this.generateEffectEvent(card, distributeEvent, context, amount));
+                this.generateDistributedEffectMessage(individualEvents, context, additionalProperties, false);
+                events.push(...individualEvents);
+            }
         };
 
         context.game.promptDistributeAmongTargets(player, promptProperties);
