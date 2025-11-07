@@ -124,6 +124,13 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         }
     }
 
+    public override getTitle(context?: AbilityContext): string {
+        if (context?.isTriggered() && context.overrideTitle) {
+            return context.overrideTitle;
+        }
+        return super.getTitle(context);
+    }
+
     private parseStandardTriggerTypes(when: WhenTypeOrStandard): {
         when: WhenType;
         standardTriggerTypes: StandardTriggeredAbilityType[];

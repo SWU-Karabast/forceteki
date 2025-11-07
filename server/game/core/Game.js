@@ -424,8 +424,8 @@ class Game extends EventEmitter {
     /**
      * returns last 30 gameChat log messages excluding player chat messages.
      */
-    getLogMessages() {
-        const filteredMessages = this.gameChat.messages.filter((messageEntry) => {
+    getLogMessages(maxEntries = 100) {
+        let filteredMessages = this.gameChat.messages.filter((messageEntry) => {
             const message = messageEntry.message;
 
             // Check if it's an alert message (these should be included)
@@ -442,7 +442,13 @@ class Game extends EventEmitter {
             }
             return true;
         });
-        return filteredMessages.slice(-30);
+
+        if (maxEntries != null) {
+            Contract.assertPositiveNonZero(maxEntries);
+            filteredMessages = filteredMessages.slice(-maxEntries);
+        }
+
+        return filteredMessages;
     }
 
     /**
