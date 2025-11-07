@@ -13,6 +13,8 @@ import type { ResourceCost } from '../../costs/ResourceCost';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, undoObject } from '../GameObjectUtils';
+import type { ICostAdjustEvaluationResult } from './CostInterfaces';
+import { CostAdjustStage } from './CostInterfaces';
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -106,15 +108,17 @@ export interface ICostAdjusterState extends IGameObjectBaseState {
 
 @registerState()
 export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
+    public readonly costAdjustStage: CostAdjustStage;
     public readonly costAdjustType: CostAdjustType;
     public readonly ignoredAspect: Aspect;
+
     protected readonly limit: AbilityLimit | null;
+
     private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext, currentAmount?: number) => number);
     private readonly match?: (card: Card, adjusterSource: Card) => boolean;
     private readonly cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     private readonly playType?: PlayType;
     private readonly attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
-    private readonly costStage: CostStage;
     private readonly matchAbilityCosts: boolean;
 
     @undoObject()
@@ -129,6 +133,7 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
 
         this.source = source;
 
+        this.costAdjustStage = this.getCostStage(properties.costAdjustType);
         this.costAdjustType = properties.costAdjustType;
         if (properties.costAdjustType === CostAdjustType.Increase ||
           properties.costAdjustType === CostAdjustType.Decrease ||
@@ -156,10 +161,27 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         this.matchAbilityCosts = !!properties.matchAbilityCosts;
     }
 
+    protected getCostStage(costAdjustType: CostAdjustType): CostAdjustStage {
+        switch (costAdjustType) {
+            case CostAdjustType.Increase:
+                Contract.fail(`Adjuster mode '${CostAdjustType.Increase}' must be used with IncreaseCostAdjuster`);
+            case CostAdjustType.ModifyPayStage:
+                return CostAdjustStage.PayStage_3;
+            case CostAdjustType.Decrease:
+            case CostAdjustType.Free:
+            case CostAdjustType.IgnoreAllAspects:
+            case CostAdjustType.IgnoreSpecificAspects:
+                return CostAdjustStage.Standard_0;
+            default:
+                Contract.fail(`Unknown cost adjust type: ${costAdjustType}`);
+        }
+    }
+
     public isExploit(): this is ExploitCostAdjuster {
         return false;
     }
 
+    // protected
     public canAdjust(card: Card, context: AbilityContext, adjustParams?: ICanAdjustProperties): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
@@ -182,9 +204,34 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
           this.checkAttachTargetCondition(context, adjustParams?.attachTarget);
     }
 
+    public resolveCostAdjustment(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult) {
+        if (!this.canAdjust(card, context)) {
+            return;
+        }
+
+        // this adjuster will be triggered, add it to the list for the current stage
+        evaluationResult.adjustersToTrigger.get(this.costAdjustStage).push(this);
+
+        if (evaluationResult.remainingCost === 0) {
+            return;
+        }
+
+        evaluationResult.remainingCost = this.applyAdjustmentAmount(card, context, evaluationResult);
+    }
+
+    protected applyAdjustmentAmount(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult): number {
+        const thisAdjustAmount = this.getAmount(card, context.player, context, evaluationResult.remainingCost);
+        return this.subtractCostZeroFloor(evaluationResult.remainingCost, thisAdjustAmount);
+    }
+
+    protected subtractCostZeroFloor(currentCost: number, amountToSubtract: number): number {
+        return Math.max(currentCost - amountToSubtract, 0);
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public queueGenerateEventGameSteps(events: any[], context: AbilityContext, resourceCost: ResourceCost, result?: ICostResult): void {}
 
+    // protected
     public getAmount(card: Card, player: Player, context: AbilityContext, currentAmount: number = null): number {
         Contract.assertFalse(this.costAdjustType === CostAdjustType.ModifyPayStage && currentAmount === null, 'currentAmount must be provided for ModifyPayStage cost adjusters');
 

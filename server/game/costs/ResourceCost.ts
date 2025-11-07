@@ -5,8 +5,9 @@ import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
 import { CostAdjustType, type CostAdjuster, type ICanAdjustProperties } from '../core/cost/CostAdjuster';
 import type { Card } from '../core/card/Card';
-import type { IGetMatchingCostAdjusterProperties, IRunCostAdjustmentProperties } from '../core/cost/CostInterfaces';
+import { CostAdjustStage, type ICostAdjustEvaluationResult, type IGetMatchingCostAdjusterProperties, type IRunCostAdjustmentProperties } from '../core/cost/CostInterfaces';
 import type { IUpgradeCard } from '../core/card/CardInterfaces';
+import * as CostHelpers from '../core/cost/CostHelpers';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -53,7 +54,30 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
      * @param properties Additional parameters for determining cost adjustment
      */
     public getAdjustedCost(context: AbilityContext<TCard>): number {
-        return this.runAdjustersForCost(this.resources, context.source, context);
+        // return this.runAdjustersForCost(this.resources, context.source, context);
+
+        const evaluationResult = this.resolveNew(context);
+        return evaluationResult.remainingCost;
+    }
+
+    protected resolveNew(context: AbilityContext<TCard>): ICostAdjustEvaluationResult {
+        const adjustersByStage = this.getCostAdjustersByStage(context);
+
+        const evaluationResult: ICostAdjustEvaluationResult = this.initializeEvaluationResult(context, adjustersByStage);
+
+        for (const stage of CostHelpers.getCostAdjustStagesInEvaluationOrder()) {
+            evaluationResult.adjustStage = stage;
+            evaluationResult.remainingCostAtStage.set(stage, evaluationResult.remainingCost);
+            evaluationResult.adjustersToTrigger.set(stage, []);
+
+            const adjustersForStage = adjustersByStage.get(stage);
+
+            for (const costAdjuster of adjustersForStage) {
+                costAdjuster.resolveCostAdjustment(context.source, context, evaluationResult);
+            }
+        }
+
+        return evaluationResult;
     }
 
     public queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext<TCard>, result: ICostResult) {
@@ -69,6 +93,32 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
                 events.push(this.getExhaustResourceEvent(context));
             }
         }, `generate exhaust resources event for ${context.source.internalName}`);
+    }
+
+    protected initializeEvaluationResult(
+        _context: AbilityContext<TCard>,
+        _costAdjustersByStage: Map<CostAdjustStage, CostAdjuster[]>
+    ): ICostAdjustEvaluationResult {
+        return {
+            remainingCost: this.resources,
+            adjustStage: CostAdjustStage.Increase_4,
+            adjustersToTrigger: new Map<CostAdjustStage, CostAdjuster[]>(),
+            remainingCostAtStage: new Map<CostAdjustStage, number>()
+        };
+    }
+
+    protected getCostAdjustersByStage(context: AbilityContext, properties: IRunCostAdjustmentProperties = null): Map<CostAdjustStage, CostAdjuster[]> {
+        const allAdjusters = context.player.getCostAdjusters().concat(properties?.additionalCostAdjusters ?? []);
+
+        const adjustersByStage: Map<CostAdjustStage, CostAdjuster[]> = new Map<CostAdjustStage, CostAdjuster[]>(
+            CostHelpers.getCostAdjustStagesInEvaluationOrder().map((stage) => [stage, [] as CostAdjuster[]])
+        );
+
+        for (const adjuster of allAdjusters) {
+            adjustersByStage.get(adjuster.costAdjustStage).push(adjuster);
+        }
+
+        return adjustersByStage;
     }
 
     protected getExhaustResourceEvent(context: AbilityContext<TCard>): GameEvent {

@@ -5,7 +5,8 @@ import * as Contract from '../core/utils/Contract.js';
 import { CostAdjustType, type CostAdjuster } from '../core/cost/CostAdjuster';
 import type { ICardWithCostProperty } from '../core/card/propertyMixins/Cost';
 import { ResourceCost } from './ResourceCost';
-import type { IGetMatchingCostAdjusterProperties, IRunCostAdjustmentProperties } from '../core/cost/CostInterfaces';
+import type { ICostAdjustEvaluationResult, IGetMatchingCostAdjusterProperties, IRunCostAdjustmentProperties } from '../core/cost/CostInterfaces';
+import { CostAdjustStage } from '../core/cost/CostInterfaces';
 import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
 import * as Helpers from '../core/utils/Helpers';
 
@@ -64,6 +65,33 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
 
         const penalizedCost = this.resources + aspectPenaltiesTotal;
         return this.runAdjustersForCost(penalizedCost, context.source, context, costAdjustmentProperties);
+    }
+
+    protected override initializeEvaluationResult(
+        context: AbilityContext<ICardWithCostProperty>,
+        adjustersByStage: Map<CostAdjustStage, CostAdjuster[]>
+    ): ICostAdjustEvaluationResult {
+        const result = super.initializeEvaluationResult(context, adjustersByStage);
+
+        // if there are any cost adjusters that require targeting among friendly units, build the target set
+        if (
+            adjustersByStage.get(CostAdjustStage.Exploit_1).length > 0 ||
+            adjustersByStage.get(CostAdjustStage.ExhaustUnits_2).length > 0
+        ) {
+            result.costAdjusterTargets = {
+                targets: context.player.getArenaUnits().map((unit) => ({ unit })),
+                targetsAreOrdered: false
+            };
+        }
+
+        // apply any aspect penalties to the cost
+        const penaltyAspects = context.player.getPenaltyAspects(this.aspects);
+        if (penaltyAspects.length > 0) {
+            result.penaltyAspectsApplied = penaltyAspects;
+            result.remainingCost += penaltyAspects.length * 2;
+        }
+
+        return result;
     }
 
     /**
