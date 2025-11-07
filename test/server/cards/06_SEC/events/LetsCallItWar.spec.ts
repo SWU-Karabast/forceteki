@@ -17,11 +17,11 @@ describe('Let\'s Call It War', function() {
             context.player1.clickCard(context.letsCallItWar);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tielnFighter]);
-            expect(context.player1).not.toHaveChooseNothingButton();
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
             expect(context.player1).toBeAbleToSelectExactly([context.atst]);
-            expect(context.player1).toHaveChooseNothingButton();
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.atst);
 
             expect(context.player2).toBeActivePlayer();
@@ -48,7 +48,7 @@ describe('Let\'s Call It War', function() {
             context.player1.clickCard(context.letsCallItWar);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tielnFighter]);
-            expect(context.player1).not.toHaveChooseNothingButton();
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
             expect(context.player2).toBeActivePlayer();
@@ -76,7 +76,7 @@ describe('Let\'s Call It War', function() {
             context.player1.clickCard(context.letsCallItWar);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tielnFighter]);
-            expect(context.player1).not.toHaveChooseNothingButton();
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
             expect(context.player2).toBeActivePlayer();
@@ -101,11 +101,11 @@ describe('Let\'s Call It War', function() {
             context.player1.clickCard(context.letsCallItWar);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tielnFighter]);
-            expect(context.player1).not.toHaveChooseNothingButton();
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
             expect(context.player1).toBeAbleToSelectExactly([context.atst]);
-            expect(context.player1).toHaveChooseNothingButton();
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.atst);
 
             expect(context.player2).toBeActivePlayer();
@@ -132,11 +132,11 @@ describe('Let\'s Call It War', function() {
             context.player1.clickCard(context.letsCallItWar);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tielnFighter]);
-            expect(context.player1).not.toHaveChooseNothingButton();
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
             expect(context.player1).toBeAbleToSelectExactly([context.atst]);
-            expect(context.player1).toHaveChooseNothingButton();
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.atst);
 
             expect(context.player2).toBeActivePlayer();
@@ -163,11 +163,11 @@ describe('Let\'s Call It War', function() {
             context.player1.clickCard(context.letsCallItWar);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.gladiatorStarDestroyer, context.strafingGunship]);
-            expect(context.player1).not.toHaveChooseNothingButton();
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.strafingGunship);
 
             expect(context.player1).toBeAbleToSelectExactly([context.gladiatorStarDestroyer]);
-            expect(context.player1).toHaveChooseNothingButton();
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.gladiatorStarDestroyer);
 
             expect(context.player2).toBeActivePlayer();
@@ -194,16 +194,48 @@ describe('Let\'s Call It War', function() {
             context.player1.clickCard(context.letsCallItWar);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.gladiatorStarDestroyer, context.strafingGunship]);
-            expect(context.player1).not.toHaveChooseNothingButton();
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.strafingGunship);
 
             expect(context.player1).toBeAbleToSelectExactly([context.gladiatorStarDestroyer]);
-            expect(context.player1).toHaveChooseNothingButton();
-            context.player1.clickPrompt('Choose Nothing');
+            expect(context.player1).toHavePassAbilityButton();
+            expect(context.player1).toHavePrompt('Deal 2 damage to another unit in the same arena');
+            context.player1.clickPrompt('Pass');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.gladiatorStarDestroyer.damage).toBe(0);
             expect(context.strafingGunship.damage).toBe(3);
+        });
+
+        it('Let\'s Call It War\'s ability should allow replacing the first damage effect before selecting the second target', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hasInitiative: true,
+                    hand: ['lets-call-it-war']
+                },
+                player2: {
+                    groundArena: ['queen-amidala#championing-her-people', 'spy', 'wampa']
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.letsCallItWar);
+
+            context.player1.clickCard(context.queenAmidala);
+            expect(context.player2).toHavePassAbilityPrompt('Defeat a friendly unit that shares a trait with Queen Amidala to prevent all damage to her');
+            context.player2.clickPrompt('Trigger');
+
+            context.player2.clickCard(context.spy);
+            expect(context.spy).toBeInZone('outsideTheGame');
+
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.queenAmidala.damage).toBe(0);
+            expect(context.wampa.damage).toBe(2);
         });
     });
 });

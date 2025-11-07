@@ -326,6 +326,9 @@ class PlayerInteractionWrapper {
             case 'clone-trooper':
                 tokenClassName = 'cloneTrooper';
                 break;
+            case 'spy':
+                tokenClassName = 'spy';
+                break;
             case 'tie-fighter':
                 tokenClassName = 'tieFighter';
                 break;
