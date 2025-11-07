@@ -29,6 +29,35 @@ describe('Let\'s Call It War', function() {
             expect(context.wampa.damage).toBe(3);
         });
 
+        it('Let\'s Call It War\'s ability should deal 3 damage to an enemy unit, then allow dealing 2 damage to another unit in the same arena when played with initiative when the first unit is defeated by the damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hasInitiative: true,
+                    hand: ['lets-call-it-war'],
+                },
+                player2: {
+                    groundArena: ['pyke-sentinel', 'atst'],
+                    spaceArena: ['tieln-fighter']
+                },
+            });
+
+            const { context } = contextRef;
+            context.player1.clickCard(context.letsCallItWar);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.tielnFighter]);
+            expect(context.player1).not.toHavePassAbilityButton();
+            context.player1.clickCard(context.pykeSentinel);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickCard(context.atst);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.atst.damage).toBe(2);
+            expect(context.pykeSentinel).toBeInZone('discard');
+        });
+
         it('Let\'s Call It War\'s ability should deal 3 damage to an enemy unit, but not allow dealing 2 damage to another unit when played without initiative', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -56,6 +85,7 @@ describe('Let\'s Call It War', function() {
             expect(context.tielnFighter.damage).toBe(0);
             expect(context.wampa.damage).toBe(3);
         });
+
         it('Let\'s Call It War\'s ability should deal 3 damage to a friendly unit, but not allow dealing 2 damage to another unit when played without initiative', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
