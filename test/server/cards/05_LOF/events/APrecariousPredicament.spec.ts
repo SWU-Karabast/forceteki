@@ -19,9 +19,9 @@ describe('A Precarious Predicament', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player2).toHaveEnabledPromptButtons(['Return Battlefield Marine to its owner\'s hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
+                expect(context.player2).toHaveEnabledPromptButtons(['Bounce', 'Play']);
 
-                context.player2.clickPrompt('Return Battlefield Marine to opponent\'s hand');
+                context.player2.clickPrompt('Bounce');
                 expect(context.battlefieldMarine).toBeInZone('hand', context.player1);
             });
 
@@ -43,9 +43,9 @@ describe('A Precarious Predicament', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.wampa);
-                expect(context.player2).toHaveEnabledPromptButtons(['Return Wampa to your hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
+                expect(context.player2).toHaveEnabledPromptButtons(['Bounce', 'Play']);
 
-                context.player2.clickPrompt('Return Wampa to your hand');
+                context.player2.clickPrompt('Bounce');
                 expect(context.wampa).toBeInZone('hand', context.player2);
             });
         });
@@ -74,9 +74,9 @@ describe('A Precarious Predicament', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player2).toHaveEnabledPromptButtons(['Return Battlefield Marine to opponent\'s hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
+                expect(context.player2).toHaveEnabledPromptButtons(['Bounce', 'Play']);
 
-                context.player2.clickPrompt('Opponent can play It\'s Worse from their hand or resources for free');
+                context.player2.clickPrompt('Play');
                 expect(context.player1).toBeAbleToSelectExactly([itsWorseHand, itsWorseResource]);
                 expect(context.player1).toHaveChooseNothingButton();
 
@@ -110,9 +110,9 @@ describe('A Precarious Predicament', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player2).toHaveEnabledPromptButtons(['Return Battlefield Marine to opponent\'s hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
+                expect(context.player2).toHaveEnabledPromptButtons(['Bounce', 'Play']);
 
-                context.player2.clickPrompt('Opponent can play It\'s Worse from their hand or resources for free');
+                context.player2.clickPrompt('Play');
                 expect(context.player1).toBeAbleToSelectExactly([itsWorseHand, itsWorseResource]);
                 expect(context.player1).toHaveChooseNothingButton();
 
@@ -146,9 +146,9 @@ describe('A Precarious Predicament', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player2).toHaveEnabledPromptButtons(['Return Battlefield Marine to opponent\'s hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
+                expect(context.player2).toHaveEnabledPromptButtons(['Bounce', 'Play']);
 
-                context.player2.clickPrompt('Opponent can play It\'s Worse from their hand or resources for free');
+                context.player2.clickPrompt('Play');
                 expect(context.player1).toBeAbleToSelectExactly([itsWorseHand, itsWorseResource]);
                 expect(context.player1).toHaveChooseNothingButton();
 
