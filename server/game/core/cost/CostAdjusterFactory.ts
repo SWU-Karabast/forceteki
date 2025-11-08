@@ -7,7 +7,7 @@ import { CostAdjustType } from './CostAdjuster';
 import { IncreaseCostAdjuster } from './IncreaseCostAdjuster';
 import { ModifyPayStageCostAdjuster } from './ModifyPayStageCostAdjuster';
 
-export function create(source: Card, game: Game, properties: ICostAdjusterProperties): CostAdjuster {
+export function create(game: Game, source: Card, properties: ICostAdjusterProperties): CostAdjuster {
     switch (properties.costAdjustType) {
         case CostAdjustType.Increase:
             return new IncreaseCostAdjuster(game, source, properties);

@@ -15,7 +15,7 @@ export class IncreaseCostAdjuster extends CostAdjuster {
     ) {
         const propsWithType: ICostAdjusterProperties = {
             ...properties,
-            costAdjustType: CostAdjustType.Increase
+            costAdjustType: CostAdjustType.Free
         };
         super(game, source, propsWithType);
     }
