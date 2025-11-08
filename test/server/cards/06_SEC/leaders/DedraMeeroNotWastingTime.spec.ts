@@ -27,7 +27,7 @@ describe('Dedra Meero, Not Wasting Time', function () {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 // Opponent should now have a choice between damaging that unit or letting P1 draw
-                expect(context.player2).toHaveExactPromptButtons(['Damage','Draw']);
+                expect(context.player2).toHaveExactPromptButtons(['Damage', 'Draw']);
                 context.player2.clickPrompt('Damage');
 
                 // Damage is applied and costs are paid (1 resource, exhaust leader)
