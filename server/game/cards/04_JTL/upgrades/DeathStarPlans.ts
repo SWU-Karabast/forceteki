@@ -20,16 +20,18 @@ export default class DeathStarPlans extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'The attacking player takes control of this upgrade and attaches it to a unit they control',
+            title: 'Take control of Death Star Plans and attach it to a unit you control',
+            canBeTriggeredBy: RelativePlayer.Opponent,
             when: {
-                onAttackDeclared: (event, context) => context.source.isAttached() && event.attack.getAllTargets().includes(context.source.parentCard),
+                onAttackDeclared: (event, context) =>
+                    context.source.isAttached() &&
+                    event.attack.getAllTargets().includes(context.source.parentCard),
             },
             targetResolver: {
-                choosingPlayer: RelativePlayer.Opponent,
-                controller: RelativePlayer.Opponent,
+                controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.attachUpgrade((context) => ({
-                    newController: RelativePlayer.Opponent,
+                    newController: RelativePlayer.Self,
                     upgrade: context.source,
                     target: context.target,
                 }))
