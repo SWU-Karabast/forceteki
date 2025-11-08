@@ -23,7 +23,7 @@ export default class LookTheOtherWay extends EventCard {
                     mode: TargetMode.Select,
                     dependsOn: 'targetUnit',
                     choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
-                    activePromptTitle: (context) => `Exhaust ${context.targets.targetUnit.title} or Pay 2 resources`,
+                    activePromptTitle: (context) => `[Exhaust] ${context.targets.targetUnit.title} or [Pay] 2 resources`,
                     choices: (context) => ({
                         ['Exhaust']: AbilityHelper.immediateEffects.exhaust({
                             target: context.targets.targetUnit,
