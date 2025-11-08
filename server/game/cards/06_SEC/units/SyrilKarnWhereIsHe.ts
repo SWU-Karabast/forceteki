@@ -34,7 +34,7 @@ export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
                         dependsOn: 'targetUnit',
                         condition: (context) => context.targets.targetUnit.controller.hand.length > 0,
                         choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
-                        activePromptTitle: (context) => `${this.buildCardName(context.targets.targetUnit)} takes 2 damage or Discard a card`,
+                        activePromptTitle: (context) => `${this.buildCardName(context.targets.targetUnit)} takes 2 [Damage] or [Discard] a card`,
                         choices: (context) => ({
                             ['Damage']: abilityHelper.immediateEffects.damage({
                                 target: context.targets.targetUnit,

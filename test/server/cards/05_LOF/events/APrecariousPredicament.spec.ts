@@ -19,9 +19,9 @@ describe('A Precarious Predicament', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player2).toHaveEnabledPromptButtons(['Bounce', 'Play']);
+                expect(context.player2).toHaveEnabledPromptButtons(['Return', 'Play']);
 
-                context.player2.clickPrompt('Bounce');
+                context.player2.clickPrompt('Return');
                 expect(context.battlefieldMarine).toBeInZone('hand', context.player1);
             });
 
@@ -43,9 +43,9 @@ describe('A Precarious Predicament', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.wampa);
-                expect(context.player2).toHaveEnabledPromptButtons(['Bounce', 'Play']);
+                expect(context.player2).toHaveEnabledPromptButtons(['Return', 'Play']);
 
-                context.player2.clickPrompt('Bounce');
+                context.player2.clickPrompt('Return');
                 expect(context.wampa).toBeInZone('hand', context.player2);
             });
         });
@@ -74,7 +74,7 @@ describe('A Precarious Predicament', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player2).toHaveEnabledPromptButtons(['Bounce', 'Play']);
+                expect(context.player2).toHaveEnabledPromptButtons(['Return', 'Play']);
 
                 context.player2.clickPrompt('Play');
                 expect(context.player1).toBeAbleToSelectExactly([itsWorseHand, itsWorseResource]);
@@ -110,7 +110,7 @@ describe('A Precarious Predicament', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player2).toHaveEnabledPromptButtons(['Bounce', 'Play']);
+                expect(context.player2).toHaveEnabledPromptButtons(['Return', 'Play']);
 
                 context.player2.clickPrompt('Play');
                 expect(context.player1).toBeAbleToSelectExactly([itsWorseHand, itsWorseResource]);
@@ -146,7 +146,7 @@ describe('A Precarious Predicament', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player2).toHaveEnabledPromptButtons(['Bounce', 'Play']);
+                expect(context.player2).toHaveEnabledPromptButtons(['Return', 'Play']);
 
                 context.player2.clickPrompt('Play');
                 expect(context.player1).toBeAbleToSelectExactly([itsWorseHand, itsWorseResource]);

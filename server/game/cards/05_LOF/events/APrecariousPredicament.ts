@@ -25,9 +25,9 @@ export default class APrecariousPredicament extends EventCard {
                     dependsOn: 'targetUnit',
                     choosingPlayer: RelativePlayer.Opponent,
                     showUnresolvable: true,
-                    activePromptTitle: (context) => `Return ${context.targets.targetUnit.title} to ${context.targets.targetUnit.owner === context.player ? 'opponent\'s' : 'your'} hand or Opponent can play It\'s Worse from their hand or resources for free`,
+                    activePromptTitle: (context) => `[Return] ${context.targets.targetUnit.title} to ${context.targets.targetUnit.owner === context.player ? 'opponent\'s' : 'your'} hand or Opponent can [Play] It\'s Worse from their hand or resources for free`,
                     choices: (context) => ({
-                        ['Bounce']: AbilityHelper.immediateEffects.returnToHand({
+                        ['Return']: AbilityHelper.immediateEffects.returnToHand({
                             target: context.targets.targetUnit,
                         }),
                         ['Play']: AbilityHelper.immediateEffects.selectCard({

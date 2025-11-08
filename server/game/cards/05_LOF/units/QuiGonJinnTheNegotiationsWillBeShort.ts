@@ -24,7 +24,7 @@ export default class QuiGonJinnTheNegotiationsWillBeShort extends NonLeaderUnitC
                     mode: TargetMode.Select,
                     dependsOn: 'unit',
                     choosingPlayer: (context) => (context.targets.unit.owner === context.player ? RelativePlayer.Self : RelativePlayer.Opponent),
-                    activePromptTitle: (context) => `Move ${context.targets.unit.title} to top or bottom of your deck`,
+                    activePromptTitle: (context) => `Move ${context.targets.unit.title} to [Top] or [Bottom] of your deck`,
                     choices: (context) => ({
                         ['Top']: AbilityHelper.immediateEffects.moveToTopOfDeck({ target: context.targets.unit }),
                         ['Bottom']: AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.targets.unit }),
