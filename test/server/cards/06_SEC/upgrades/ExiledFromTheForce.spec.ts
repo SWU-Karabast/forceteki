@@ -31,7 +31,7 @@ describe('Exiled From the Force', function () {
             context.player1.clickCard(context.younglingPadawan);
         });
 
-        it('removes all abilities except Grit from the attached unit', async function () {
+        it('removes all keyword abilities except Grit from the attached unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -85,6 +85,75 @@ describe('Exiled From the Force', function () {
             expect(context.p1Base.damage).toBe(6); // No damage restored
             expect(context.homeOne.upgrades.length).toBe(0); // No experience given from Inspiring Mentor's ability
             expect(context.player2).toBeActivePlayer();
+        });
+
+        it('removes all constant abilities from the attached unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [
+                        {
+                            card: 'oggdo-bogdo#bogano-brute',
+                            upgrades: [
+                                'exiled-from-the-force',
+                                'shadowed-intentions'
+                            ]
+                        }
+                    ]
+                },
+                player2: {
+                    hand: ['vanquish']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Oggdo Bogdo can attack without any damage on him
+            context.player1.clickCard(context.oggdoBogdo);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(5);
+
+            // Oggdo Bogdo can be defeated because the gained ability from Shadowed Intentions is removed
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.oggdoBogdo);
+            expect(context.oggdoBogdo).toBeInZone('discard');
+        });
+
+        it('removes all triggered abilities from the attached unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['heroic-sacrifice'],
+                    deck: ['resupply', 'emperors-royal-guard'],
+                    groundArena: [
+                        {
+                            card: 'reinforcement-walker',
+                            upgrades: [
+                                'exiled-from-the-force',
+                                'ruthlessness'
+                            ]
+                        }
+                    ]
+                },
+                player2: {
+                    groundArena: [
+                        'war-juggernaut'
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Heroic Sacrifice to draw a card then attack with Reinforcement Walker
+            context.player1.clickCard(context.heroicSacrifice);
+            context.player1.clickCard(context.reinforcementWalker);
+            context.player1.clickCard(context.warJuggernaut);
+
+            // Attack is over, no ability triggered
+            expect(context.player2).toBeActivePlayer();
+            expect(context.reinforcementWalker).toBeInZone('groundArena'); // No Heroic Sacrifice defeat
+            expect(context.p2Base.damage).toBe(0); // No Ruthlessness damage
+            expect(context.emperorsRoyalGuard).toBeInZone('deck'); // No Walker draw/discard
         });
 
         it('does not give Grit if the the unit loses all abilities from another effect', async function () {
