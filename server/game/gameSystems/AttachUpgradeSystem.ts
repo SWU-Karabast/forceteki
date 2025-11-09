@@ -37,6 +37,12 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
+        const finalController = this.getFinalController(properties, context);
+
+        if (properties.upgrade && properties.upgrade.isInPlay() && properties.upgrade.controller !== finalController) {
+            return ['take control of {1} and attach it to {0}', [this.getTargetMessage(properties.target, context), properties.upgrade]];
+        }
+
         return ['attach {1} to {0}', [this.getTargetMessage(properties.target, context), properties.upgrade]];
     }
 
