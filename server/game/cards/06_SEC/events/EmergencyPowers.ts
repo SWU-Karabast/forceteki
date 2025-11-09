@@ -6,7 +6,7 @@ import { TargetMode, WildcardCardType } from '../../../core/Constants';
 export default class EmergencyPowers extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'emergency-powers-id',
+            id: '6782724617',
             internalName: 'emergency-powers',
         };
     }
@@ -20,7 +20,7 @@ export default class EmergencyPowers extends EventCard {
             then: (thenContext) => ({
                 title: 'Pay any number of resources. Give an Experience token to that unit for each resource paid.',
                 thenCondition: (context) =>
-                    context.player.readyResourceCount > 0,
+                    context.player.readyResourceCount > 0 && context.player.hasSomeArenaUnit(),
                 targetResolver: {
                     mode: TargetMode.DropdownList,
                     options: (context) => Array.from({ length: context.player.readyResourceCount + 1 }, (_x, i) => `${i}`),

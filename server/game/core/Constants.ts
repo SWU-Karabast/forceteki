@@ -82,6 +82,8 @@ export enum EffectName {
     AssignIndirectDamageDealtToOpponents = 'assignIndirectDamageDealtToOpponents',
     AssignIndirectDamageDealtByUnit = 'assignIndirectDamageDealtByUnit',
     Blank = 'blank',
+    BlankExceptKeyword = 'blankExceptKeyword',
+    BlankExceptFromSourceCard = 'blankExceptFromSourceCard',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanAttackMultipleUnitsSimultaneously = 'canAttackMultipleUnitsSimultaneously',
@@ -114,6 +116,7 @@ export enum EffectName {
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
     PrintedAttributesOverride = 'printedAttributesOverride',
+    RescuedUnitsEnterPlayReady = 'rescuedUnitsEnterPlayReady',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
     SuppressEffects = 'suppressEffects',
@@ -325,6 +328,7 @@ export enum MetaEventName {
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
     GameLost = 'gameLost',
+    GameWon = 'gameWon',
     NoAction = 'noAction',
     Optional = 'optional',
     PayCardPrintedCost = 'payCardPrintedCost',
@@ -340,6 +344,7 @@ export enum MetaEventName {
 export enum AbilityType {
     Action = 'action',
     Constant = 'constant',
+    DamageModification = 'damageModification',
     DelayedEffect = 'delayedEffect',
     Event = 'event',
     ReplacementEffect = 'replacementEffect',
@@ -474,7 +479,15 @@ export enum AbilityRestriction {
     ReturnToHand = 'returnToHand',
 }
 
+export enum DamageModificationType {
+    PreventAll = 'all',
+    Increase = 'increase',
+    Reduce = 'reduce',
+    Replace = 'replace'
+}
+
 export enum StateWatcherName {
+    ActionsThisPhase = 'actionsThisPhase',
     AttacksThisPhase = 'attacksThisPhase',
     CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
     CardsDrawnThisPhase = 'cardsDrawnThisPhase',
@@ -566,4 +579,10 @@ export enum GameEndReason {
     Concede = 'concede',
     GameRules = 'gameRules',
     PlayerLeft = 'playerLeft',
+}
+
+export enum Conjunction {
+    And = 'and',
+    Or = 'or',
+    AndOr = 'and/or',
 }

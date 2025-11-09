@@ -17,10 +17,11 @@ import type { IDecklistInternal, IDeckValidationFailures } from '../utils/deck/D
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
-import type { GameServer, ISwuStatsToken } from './GameServer';
+import type { GameServer } from './GameServer';
 import { AlertType, GameEndReason, GameErrorSeverity } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
+import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 
 interface LobbySpectator {
     id: string;
@@ -30,7 +31,7 @@ interface LobbySpectator {
 }
 
 enum LobbySettingKeys {
-    UndoEnabled = 'undoEnabled',
+    RequestUndo = 'requestUndo',
 }
 
 export interface LobbyUser extends LobbySpectator {
@@ -42,6 +43,7 @@ export interface LobbyUser extends LobbySpectator {
     importDeckValidationErrors?: IDeckValidationFailures;
     reportedBugs: number;
 }
+
 export enum DeckSource {
     SWUStats = 'swuStats',
     SWUDB = 'swuDb',
@@ -59,9 +61,7 @@ export interface PlayerDetails {
     leaderID: string;
     baseID: string;
     deck: IDecklistInternal;
-    swuStatsRefreshToken: string | null;
     isDeckPresentInDb: boolean;
-    swuStatsToken: ISwuStatsToken;
 }
 
 export enum MatchType {
@@ -105,6 +105,9 @@ export class Lobby {
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
     private readonly swuStatsEnabled: boolean = true;
+    private readonly discordDispatcher: DiscordDispatcher;
+    private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
+    private readonly allow30CardsInMainBoard: boolean;
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
@@ -128,11 +131,12 @@ export class Lobby {
         lobbyName: string,
         lobbyGameType: MatchType,
         lobbyGameFormat: SwuGameFormat,
+        allow30CardsInMainBoard: boolean,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         gameServer: GameServer,
-        testGameBuilder?: any,
-        enableUndo = false
+        discordDispatcher: DiscordDispatcher,
+        testGameBuilder?: any
     ) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
@@ -149,7 +153,9 @@ export class Lobby {
         this.deckValidator = deckValidator;
         this.gameFormat = lobbyGameFormat;
         this.server = gameServer;
-        this.undoMode = process.env.ENVIRONMENT === 'development' || enableUndo ? UndoMode.Full : UndoMode.CurrentSnapshotOnly;
+        this.discordDispatcher = discordDispatcher;
+        this.undoMode = lobbyGameType === MatchType.Private ? UndoMode.Free : UndoMode.Request;
+        this.allow30CardsInMainBoard = allow30CardsInMainBoard;
     }
 
     public get id(): string {
@@ -182,19 +188,32 @@ export class Lobby {
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
+            allow30CardsInMainBoard: this.allow30CardsInMainBoard,
             settings: {
-                undoEnabled: this.undoMode === UndoMode.Full,
+                requestUndo: this.undoMode === UndoMode.Request,
             },
         };
     }
 
     private buildLobbyUserData(user: LobbyUser, fullData = false) {
+        const authenticatedStatus = user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser();
+
+        const previousAuthenticatedStatus = this.previousAuthenticatedStatusByUser.get(user.id);
+        if (previousAuthenticatedStatus != null && previousAuthenticatedStatus !== authenticatedStatus) {
+            const prevAuthProps = { authenticated: previousAuthenticatedStatus, username: user.username };
+            const newAuthProps = { authenticated: authenticatedStatus, username: user.socket.user.getUsername() };
+
+            logger.warn(`Lobby: user ${user.id} authentication status changed. Previous value: ${JSON.stringify(prevAuthProps)}, new value: ${JSON.stringify(newAuthProps)}`, { lobbyId: this.id, userId: user.id });
+        }
+
+        this.previousAuthenticatedStatusByUser.set(user.id, authenticatedStatus);
+
         const basicData = {
             id: user.id,
             username: user.username,
             state: user.state,
             ready: user.ready,
-            authenticated: user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser(),
+            authenticated: authenticatedStatus,
             chatDisabled: !!user.socket?.user.getModeration(),
         };
 
@@ -204,7 +223,7 @@ export class Lobby {
             deckErrors: user.deckValidationErrors,
             importDeckErrors: user.importDeckValidationErrors,
             unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(user.deck?.getDecklist()),
-            minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id) : 50,
+            minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id, this.allow30CardsInMainBoard) : 50,
             maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format),
         } : {
             deck: user.deck?.getLeaderBase(),
@@ -253,7 +272,9 @@ export class Lobby {
             state: null,
             ready: false,
             socket: null,
-            deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
+            deckValidationErrors: deck
+                ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat, this.allow30CardsInMainBoard)
+                : {},
             deck,
             decklist,
             reportedBugs: 0
@@ -439,7 +460,6 @@ export class Lobby {
             return;
         }
 
-        logger.info(`Lobby: user ${existingUser.username} sent chat message: ${args[0]}`, { lobbyId: this.id, userName: existingUser.username, userId: existingUser.id });
         this.gameChat.addChatMessage(existingUser, args[0]);
         this.sendLobbyState();
     }
@@ -475,6 +495,7 @@ export class Lobby {
         this.users.forEach((user) => {
             user.ready = false;
         });
+        this.playersDetails = [];
         this.sendLobbyState();
     }
 
@@ -482,14 +503,17 @@ export class Lobby {
         const activeUser = this.users.find((u) => u.id === socket.user.getId());
 
         // we check if the deck is valid.
-        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], this.gameFormat);
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], this.gameFormat, this.allow30CardsInMainBoard);
 
         // if the deck doesn't have any errors set it as active.
         if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
             activeUser.decklist = args[0];
-            activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(activeUser.deck.getDecklist(),
-                this.gameFormat);
+            activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
+                activeUser.deck.getDecklist(),
+                this.gameFormat,
+                this.allow30CardsInMainBoard
+            );
             activeUser.importDeckValidationErrors = null;
         }
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
@@ -512,7 +536,11 @@ export class Lobby {
             userDeck.moveToDeck(cardId);
         }
         // check deck for deckValidationErrors
-        user.deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
+        user.deckValidationErrors = this.deckValidator.validateInternalDeck(
+            userDeck.getDecklist(),
+            this.gameFormat,
+            this.allow30CardsInMainBoard
+        );
         // we need to clear any importDeckValidation errors otherwise they can persist
         user.importDeckValidationErrors = null;
 
@@ -678,7 +706,7 @@ export class Lobby {
             router,
             { id: 'exe66', username: 'Order66' },
             { id: 'th3w4y', username: 'ThisIsTheWay' },
-            UndoMode.Full
+            UndoMode.Free
         );
 
         this.game = game;
@@ -734,23 +762,20 @@ export class Lobby {
 
             // For each user, if they have a deck, select it in the game
             this.users.forEach((user) => {
-                if (user.deck) {
-                    game.selectDeck(user.id, user.deck);
-                    this.playersDetails.push({
-                        user: user.socket.user,
-                        baseID: user.deck.base.id,
-                        leaderID: user.deck.leader.id,
-                        deckID: user.deck.id,
-                        deckLink: user.decklist.deckLink,
-                        deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
-                        deck: user.deck.getDecklist(),
-                        isDeckPresentInDb: user.decklist.isPresentInDb,
-                        swuStatsRefreshToken: user.socket.user.getSwuStatsRefreshToken(),
-                        swuStatsToken: this.server.swuStatsTokenMapping.get(user.id),
-                    });
-                }
-            });
+                Contract.assertNotNullLike(user.deck, `User ${user.id} doesn't have a deck assigned at game start for lobby ${this.id}`);
 
+                game.selectDeck(user.id, user.deck);
+                this.playersDetails.push({
+                    user: user.socket.user,
+                    baseID: user.deck.base.id,
+                    leaderID: user.deck.leader.id,
+                    deckID: user.deck.id,
+                    deckLink: user.decklist.deckLink,
+                    deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
+                    deck: user.deck.getDecklist(),
+                    isDeckPresentInDb: user.decklist.isPresentInDb,
+                });
+            });
             await game.initialiseAsync();
             this.sendGameState(game);
         } catch (error) {
@@ -760,6 +785,14 @@ export class Lobby {
                     { error: { message: error.message, stack: error.stack }, lobbyId: this.id }
                 );
                 this.matchmakingFailed(error);
+
+                this.discordDispatcher?.formatAndSendGameStartErrorAsync(
+                    'Game failed to start, lobby closed',
+                    error,
+                    this.id
+                ).catch((e) => {
+                    logger.error('Lobby: error sending game start error to discord', { error: { message: e.message, stack: e.stack }, lobbyId: this.id });
+                });
             }
         }
     }
@@ -945,13 +978,13 @@ export class Lobby {
     }
 
     public handleError(game: Game, error: Error, severity = GameErrorSeverity.Normal) {
-        logger.error('Game: handleError', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+        logger.error('Lobby: handleError', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
 
         let maxErrorCountExceeded = false;
 
         this.gameMessageErrorCount++;
         if (this.gameMessageErrorCount > Lobby.MaxGameMessageErrors) {
-            logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
+            logger.error('Lobby: too many errors for request, halting', { lobbyId: this.id });
             severity = GameErrorSeverity.SevereHaltGame;
             maxErrorCountExceeded = true;
         }
@@ -963,11 +996,9 @@ export class Lobby {
 
             const [player1Id, player2Id] = game.getPlayers().map((p) => p.id);
 
-            // TODO: re-enable once game state capture has error guards
-            // const gameState = this.game.captureGameState(player1Id);
-            const gameState = { captureError: 'Game state capture not implemented yet for server error reports' } as any;
+            const gameState = this.game.captureGameState(player1Id);
 
-            game.discordDispatcher.formatAndSendServerErrorAsync(
+            this.discordDispatcher.formatAndSendServerErrorAsync(
                 discordMessage,
                 error,
                 gameState,
@@ -991,6 +1022,31 @@ export class Lobby {
                 throw error;
             }
         }
+    }
+
+    public handleSerializationFailure(game: Game, error: Error): never {
+        logger.error('Lobby: handleSerializationFailure', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+
+        const [player1Id, player2Id] = game.getPlayers().map((p) => p.id);
+
+        const gameState = this.game.captureGameState(player1Id);
+
+        this.discordDispatcher.formatAndSendServerErrorAsync(
+            'Error during game state serialization, game is an unrecoverable state',
+            error,
+            gameState,
+            this.game.getLogMessages(),
+            this.id,
+            player1Id,
+            player2Id,
+            this.game.gameStepsSinceLastUndo
+        )
+            .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
+
+        // send a failure game state to the players
+        this.sendGameState(this.game);
+
+        throw error;
     }
 
     /**
@@ -1064,6 +1120,7 @@ export class Lobby {
                 game,
                 player1User,
                 player2User,
+                this.hasSwuStatsSource,
                 this.id,
                 this.server,
             );
@@ -1094,7 +1151,7 @@ export class Lobby {
     /**
      * Private method to check if players deck source is SWUStats
      */
-    private hasSwuStatsSource(playerDetails: PlayerDetails): boolean {
+    public hasSwuStatsSource(playerDetails: PlayerDetails): boolean {
         return playerDetails.deckSource === DeckSource.SWUStats;
     }
 
@@ -1255,20 +1312,20 @@ export class Lobby {
         socket.socket.send('lobbystate', this.getLobbyState());
     }
 
-    public sendGameState(game: Game, forceSend = false): void {
-        // we check here if the game ended and update the stats.
-        if (game.winnerNames.length > 0 && game.finishedAt) {
-            if (game.statsUpdated) {
-                this.sendRepeatedEndGameUpdateStatsMessages(game);
-            } else {
-                // Update deck stats asynchronously
-                game.statsUpdated = true;
-                this.endGameUpdateStatsAsync(game).catch((error) => {
-                    logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-                });
-            }
+    public handleGameEnd(): void {
+        if (this.game.statsUpdated) {
+            this.sendRepeatedEndGameUpdateStatsMessages(this.game);
+        } else {
+            // Update deck stats asynchronously
+            this.game.statsUpdated = true;
+            this.endGameUpdateStatsAsync(this.game).catch((error) => {
+                logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+            });
         }
+    }
 
+
+    public sendGameState(game: Game, forceSend = false): void {
         // we send the game state to all users and spectators
         // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
@@ -1311,10 +1368,10 @@ export class Lobby {
         Contract.assertTrue(user.id === this.lobbyOwnerId, `User ${user.id} attempted to change lobby settings but is not the lobby owner (${this.lobbyOwnerId})`);
 
         switch (settingName) {
-            case LobbySettingKeys.UndoEnabled:
+            case LobbySettingKeys.RequestUndo:
                 this.assertSettingType(settingName, settingValue, 'boolean');
-                this.undoMode = settingValue ? UndoMode.Full : UndoMode.Disabled;
-                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo`);
+                this.undoMode = settingValue ? UndoMode.Request : UndoMode.Free;
+                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo confirmation`);
                 break;
             default:
                 Contract.fail(`Unknown setting name: ${settingName}`);
@@ -1370,7 +1427,7 @@ export class Lobby {
             );
 
             // Send to Discord
-            const success = await this.game.discordDispatcher.formatAndSendBugReportAsync(bugReport);
+            const success = await this.discordDispatcher.formatAndSendBugReportAsync(bugReport);
             if (!success) {
                 throw new Error('Bug report failed to send to discord. See logs for details.');
             }

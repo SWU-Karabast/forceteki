@@ -55,6 +55,10 @@ export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityCo
                 continue;
             }
 
+            if (player !== context.player) {
+                context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
+            }
+
             // Discard each card in the player's hand
             for (const card of player.getCardsInZone(ZoneName.Hand)) {
                 const discardCardEvent = new DiscardSpecificCardSystem({ target: card }).generateEvent(context);

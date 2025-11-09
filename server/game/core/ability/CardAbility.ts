@@ -1,13 +1,9 @@
 import type { ZoneFilter } from '../Constants';
-import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, PlayType } from '../Constants';
+import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as Contract from '../utils/Contract';
-import * as Helpers from '../utils/Helpers';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
-import type { FormatMessage, MsgArg } from '../chat/GameChat';
-import type { GameSystem } from '../gameSystem/GameSystem';
-import * as ChatHelpers from '../chat/ChatHelpers';
 import { CardAbilityStep } from './CardAbilityStep';
 import type { AbilityContext } from './AbilityContext';
 import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility';
@@ -123,74 +119,7 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
     }
 
     public override displayMessage(context: AbilityContext, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
-        if ('message' in this.properties && this.properties.message) {
-            let messageArgs = 'messageArgs' in this.properties ? this.properties.messageArgs : [];
-            if (typeof messageArgs === 'function') {
-                messageArgs = messageArgs(context);
-            }
-            if (!Array.isArray(messageArgs)) {
-                messageArgs = [messageArgs];
-            }
-            this.game.addMessage(this.properties.message, ...(messageArgs as any[]));
-            return;
-        }
-
-        const gainAbilitySource = context.ability && context.ability.isCardAbility() && context.ability.gainAbilitySource;
-
-        const messageArgs: MsgArg[] = [context.player, ` ${messageVerb} `, context.source];
-        if (gainAbilitySource) {
-            if (gainAbilitySource !== context.source) {
-                messageArgs.push('\'s gained ability from ', gainAbilitySource);
-            }
-        } else if (messageVerb === 'plays' && context.playType === PlayType.Smuggle) {
-            messageArgs.push(' using Smuggle');
-        }
-        const costMessages = this.getCostsMessages(context);
-
-        if (costMessages.length > 0) {
-            // ,
-            messageArgs.push(', ');
-            // paying 3 honor
-            messageArgs.push(costMessages);
-        }
-
-        let effectMessage = this.properties.effect;
-        let effectArgs = [];
-        let extraArgs = null;
-        if (!effectMessage) {
-            const gameActions: GameSystem[] = this.getGameSystems(context).filter((gameSystem: GameSystem) => gameSystem.hasLegalTarget(context));
-            if (gameActions.length === 1) {
-                [effectMessage, extraArgs] = gameActions[0].getEffectMessage(context);
-            } else if (gameActions.length > 1) {
-                effectMessage = ChatHelpers.formatWithLength(gameActions.length, 'to ');
-                extraArgs = gameActions.map((gameAction): FormatMessage => {
-                    const [message, args] = gameAction.getEffectMessage(context);
-                    return { format: message, args: Helpers.asArray(args) };
-                });
-            }
-        } else {
-            effectArgs.push(context.target || context.source);
-            extraArgs = this.properties.effectArgs;
-        }
-
-        if (extraArgs) {
-            if (typeof extraArgs === 'function') {
-                extraArgs = extraArgs(context);
-            }
-            effectArgs = effectArgs.concat(extraArgs);
-        }
-
-        if (effectMessage) {
-            // to
-            messageArgs.push(' to ');
-            // discard Stoic Gunso
-            messageArgs.push({ format: effectMessage, args: effectArgs });
-        } else if (messageVerb === 'uses' && costMessages.length === 0) {
-            // If verb is "uses" and there's no effect or cost message, don't log anything
-            return;
-        }
-
-        this.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
+        super.displayMessage(context, messageVerb);
     }
 
     public override isActivatedAbility() {

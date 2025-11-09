@@ -17,6 +17,7 @@ export type ISelectCardProperties<TContext extends AbilityContext = AbilityConte
   & {
       player?: RelativePlayer;
       cancelHandler?: () => void;
+      onSelectHandler?: (card: Card | Card[]) => void;
       optional?: boolean;
       name?: string;
       effect?: string;
@@ -95,7 +96,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
                     this.addOnSelectEffectMessage(context, properties);
                 }
-
+                properties.onSelectHandler?.(context.target);
                 properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
             }
         }, `Execute immediate effect for select card system "${properties.name}"`);
@@ -137,7 +138,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         }
 
         if (targetResolverProperties.waitingPromptTitle == null && context.source.isCard()) {
-            targetResolverProperties.waitingPromptTitle = `Waiting for opponent to use ${context.source.title}`;
+            targetResolverProperties.waitingPromptTitle = 'Waiting for opponent';
         }
 
         return new CardTargetResolver(properties.name, targetResolverProperties, context.ability);

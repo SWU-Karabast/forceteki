@@ -6,7 +6,7 @@ import { RelativePlayer } from '../../../core/Constants';
 export default class VelSarthaOnePathOneChoice extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'vel-sartha#one-path-one-choice-id',
+            id: '0165690736',
             internalName: 'vel-sartha#one-path-one-choice',
         };
     }

@@ -79,7 +79,7 @@ export class SelectCardPrompt extends UiPrompt {
         }
 
         if (!properties.waitingPromptTitle) {
-            properties.waitingPromptTitle = 'Waiting for opponent to use ' + properties.source.name;
+            properties.waitingPromptTitle = 'Waiting for opponent';
         }
 
         this.source = properties.source;

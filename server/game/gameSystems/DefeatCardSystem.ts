@@ -1,9 +1,11 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { Card } from '../core/card/Card';
+import { Card } from '../core/card/Card';
 import type { IUpgradeCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import type { MsgArg } from '../core/chat/GameChat';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import type { PlayerOrCard } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
@@ -84,6 +86,21 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         }
     }
 
+    public override getTargetMessage(targets: PlayerOrCard | PlayerOrCard[], context: TContext): MsgArg[] {
+        return super.getTargetMessage(targets, context).map((target) => {
+            if (target instanceof Card && target.canBeExhausted() && target.zoneName === ZoneName.Resource) {
+                return {
+                    format: '{0} {1}',
+                    args: [
+                        target.exhausted ? 'an exhausted' : 'a ready',
+                        target,
+                    ]
+                };
+            }
+            return target;
+        });
+    }
+
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
             return false;
@@ -108,18 +125,19 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         const eventDefeatSource = this.buildDefeatSource(defeatSource, event, card, context);
 
         event.isDefeatedByAttacker = false;
+        event.isDefeatedWhileAttacking = false;
         event.defeatSource = eventDefeatSource;
 
-        try {
-            if (eventDefeatSource.type === DefeatSourceType.Attack) {
-                event.isDefeatedByAttacker = eventDefeatSource.damageDealtBy.includes(eventDefeatSource.attack.attacker);
-            } else if ((eventDefeatSource.type === DefeatSourceType.Ability || eventDefeatSource.type === DefeatSourceType.NonCombatDamage) && eventDefeatSource.card.isUnit()) {
+        event.isDefeatedWhileAttacking = card.isUnit() && card.isInPlay() && card.isAttacking();
+
+        if (eventDefeatSource.type === DefeatSourceType.Attack) {
+            event.isDefeatedByAttacker = eventDefeatSource.damageDealtBy.includes(eventDefeatSource.attack.attacker);
+        } else if (eventDefeatSource.type === DefeatSourceType.Ability || eventDefeatSource.type === DefeatSourceType.NonCombatDamage) {
+            if (eventDefeatSource.card.isUnit()) {
                 event.isDefeatedByAttacker = eventDefeatSource.card.isInPlay() &&
                   eventDefeatSource.card.isAttacking() &&
                   eventDefeatSource.card.activeAttack.targetIsUnit((unit) => unit === card, true);
             }
-        } catch (e) {
-            debugger;
         }
     }
 

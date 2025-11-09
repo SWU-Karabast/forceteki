@@ -39,5 +39,30 @@ describe('Foresight', function () {
             context.player1.clickDone();
             expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
         });
+
+        it('Foresight ability should work correctly if the deck is empty', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{ card: 'wampa', upgrades: ['foresight'] }],
+                    deck: []
+                },
+            });
+
+            const { context } = contextRef;
+
+            // move to regroup phase
+            context.player1.passAction();
+            context.player2.passAction();
+
+            // should name a card
+            expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
+            context.player1.chooseListOption('Millennium Falcon');
+            context.player1.clickDone();
+            expect(context.getChatLogs(3)).toContain('player1 names Millennium Falcon using Foresight');
+
+            // move to the action phase
+            context.player2.clickDone();
+        });
     });
 });

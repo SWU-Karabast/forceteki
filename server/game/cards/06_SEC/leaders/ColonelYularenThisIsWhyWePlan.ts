@@ -5,7 +5,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 export default class ColonelYularenThisIsWhyWePlan extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'colonel-yularen#this-is-why-we-plan-id',
+            id: '2334944054',
             internalName: 'colonel-yularen#this-is-why-we-plan',
         };
     }
@@ -28,12 +28,9 @@ export default class ColonelYularenThisIsWhyWePlan extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
-        registrar.addTriggeredAbility({
+        registrar.addOnAttackCompletedAbility({
             title: 'Attack with another unit that costs 4 or less',
             optional: true,
-            when: {
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source
-            },
             initiateAttack: {
                 attackerCondition: (card) => card.isUnit() && card.cost <= 4,
             }

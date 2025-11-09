@@ -242,7 +242,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     private promptForSingleOptionalTarget(context: AbilityContext, target: Card) {
-        const effectName = this.properties.activePromptTitle ? this.properties.activePromptTitle : context.ability.title;
+        const effectName = this.properties.activePromptTitle ? this.properties.activePromptTitle : context.ability.getTitle(context);
 
         const activePromptTitle = `Trigger the effect '${effectName}' on target '${target.title}' or pass${this.selector.appendToDefaultTitle ? ' ' + this.selector.appendToDefaultTitle : ''}`;
 

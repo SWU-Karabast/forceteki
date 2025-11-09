@@ -106,7 +106,7 @@ class PlayerInteractionWrapper {
             leaderCard.deploy({ type: DeployType.LeaderUnit });
 
             // mark the deploy epic action as used
-            const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.title.includes('Deploy'));
+            const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.getTitle().includes('Deploy'));
             deployAbility.limit.increment(this.player);
 
             leaderCard.damage = leaderOptions.damage || 0;
@@ -161,6 +161,10 @@ class PlayerInteractionWrapper {
 
         var baseCard = this.player.base;
         baseCard.damage = baseOptions.damage || 0;
+
+        if (baseOptions.capturedUnits) {
+            this.setCapturedUnits(baseCard, baseOptions.capturedUnits);
+        }
 
         Util.refreshGameState(this.game);
     }
@@ -321,6 +325,9 @@ class PlayerInteractionWrapper {
                 break;
             case 'clone-trooper':
                 tokenClassName = 'cloneTrooper';
+                break;
+            case 'spy':
+                tokenClassName = 'spy';
                 break;
             case 'tie-fighter':
                 tokenClassName = 'tieFighter';
@@ -705,7 +712,7 @@ class PlayerInteractionWrapper {
 
         if (expectChange && !this.currentActionTargets.includes(card)) {
             throw new TestSetupError(
-                `Couldn't click on '${card.internalName}' for ${this.player.name}. The card is not selectable!`
+                `Couldn't click on '${card.internalName}' for ${this.player.name}. The card is not selectable!\nCurrent prompts:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
         }
 

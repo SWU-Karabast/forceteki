@@ -100,7 +100,7 @@ describe('Scanning Officer', function () {
             });
 
             const { context } = contextRef;
-            context.game.setRandomSeed('123456');
+            context.game.setRandomSeed('abcdefgh');
 
             context.player1.clickCard(context.scanningOfficer);
 
@@ -117,6 +117,11 @@ describe('Scanning Officer', function () {
             expect(context.armedToTheTeeth).toBeInZone('discard');
             expect(context.player2.resources.length).toBe(6);
             expect(context.player2.readyResourceCount).toBe(3);
+            expect(context.getChatLogs(3)).toEqual([
+                'player1 plays Scanning Officer',
+                'player1 uses Scanning Officer to randomly select 3 cards, and to reveal Reckless Gunslinger, Armed to the Teeth, and Wampa',
+                'player1 uses Scanning Officer to defeat a ready Reckless Gunslinger and an exhausted Armed to the Teeth and to move 2 cards to player2\'s resources',
+            ]);
         });
 
         it('should reveal and defeat all chosen resources if the opponent has Tech on the board', async function () {

@@ -24,9 +24,10 @@ describe('Ahsoka Tano, Chasing Whispers', function() {
             context.player1.clickCard(context.atst);
             expect(context.atst.exhausted).toBe(true);
 
-            expect(context.getChatLogs(2)).toEqual([
+            expect(context.getChatLogs(3)).toEqual([
                 'player1 uses Ahsoka Tano to make player2 discard a card',
                 'player2 discards Restored ARC-170 from their hand due to Ahsoka Tano',
+                'player1 uses Ahsoka Tano to exhaust AT-ST',
             ]);
         });
 

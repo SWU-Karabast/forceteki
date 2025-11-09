@@ -37,9 +37,6 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
             return false;
         }
         const choice = this.getChoices(context)[key];
-        if (typeof choice === 'function') {
-            return choice(contextCopy);
-        }
         return choice.hasLegalTarget(contextCopy);
     }
 

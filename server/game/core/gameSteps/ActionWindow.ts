@@ -27,8 +27,7 @@ export class ActionWindow extends UiPrompt {
         prevPlayerPassed: boolean,
         setPassStatus: (passed: boolean) => boolean,
         actionNumber: number,
-        snapshotManager: SnapshotManager,
-        activePlayer?: Player
+        snapshotManager: SnapshotManager
     ) {
         super(game);
         this.prevPlayerPassed = prevPlayerPassed;
@@ -36,7 +35,7 @@ export class ActionWindow extends UiPrompt {
         this.snapshotManager = snapshotManager;
         this.actionNumber = actionNumber;
 
-        this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
+        this.activePlayer = this.game.actionPhaseActivePlayer;
         this.activePlayer.actionTimer.stop();
 
         Contract.assertNotNullLike(this.activePlayer);
@@ -68,12 +67,19 @@ export class ActionWindow extends UiPrompt {
                 return true;
             }
         }
+
         this.game.promptWithHandlerMenu(player, {
             activePromptTitle: (EnumHelpers.isArena(card.zoneName) ? 'Choose an ability:' : 'Play ' + card.title + ':'),
             source: card,
-            choices: legalActions.map((action) => action.title).concat('Cancel'),
+            choices: legalActions
+                .map((action) => {
+                    const context = action.createContext(player);
+                    return action.getTitle(context);
+                })
+                .concat('Cancel'),
             handlers: legalActions.map((action) => (() => this.resolveAbility(action.createContext(player)))).concat(() => true)
         });
+
         return true;
     }
 
@@ -114,7 +120,7 @@ export class ActionWindow extends UiPrompt {
     // TODO: see if there's better logic for determining when and how to advance the turn, take new snapshots, etc.
     private checkUpdateSnapshot() {
         if (
-            this.snapshotManager.currentSnapshottedTimepoint !== SnapshotTimepoint.Action ||
+            this.snapshotManager.currentSnapshottedTimepointType !== SnapshotTimepoint.Action ||
             this.snapshotManager.currentSnapshottedAction !== this.actionNumber
         ) {
             this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.Action);
@@ -224,7 +230,10 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override complete() {
-        this.game.emitEvent(EventName.OnActionTaken, null, { player: this.activePlayer });
+        this.game.emitEvent(EventName.OnActionTaken, null, {
+            player: this.activePlayer,
+            actionNumber: this.actionNumber
+        });
 
         // this.teardownBonusActions();
         super.complete();

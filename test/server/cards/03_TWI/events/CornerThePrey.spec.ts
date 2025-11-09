@@ -20,6 +20,10 @@ describe('Corner The Prey', function () {
                 context.player1.clickCard(context.cornerThePrey);
                 context.player1.clickCard(context.consularSecurityForce);
                 context.player1.clickCard(context.chewbacca);
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Corner the Prey to initiate an attack with Consular Security Force',
+                    'player1 attacks Chewbacca with Consular Security Force and uses Corner the Prey to give +2/+0 to Consular Security Force for this attack',
+                ]);
 
                 // The Consular Security Force should have +2 power for this attack
                 expect(context.consularSecurityForce.getPower()).toBe(6);

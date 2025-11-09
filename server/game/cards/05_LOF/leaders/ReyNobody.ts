@@ -1,7 +1,10 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type {
+    ILeaderUnitAbilityRegistrar,
+    ILeaderUnitLeaderSideAbilityRegistrar
+} from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { Trait, WildcardCardType } from '../../../core/Constants';
+import { CardType, Trait, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
@@ -16,7 +19,7 @@ export default class ReyNobody extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
+        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
     }
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -52,7 +55,7 @@ export default class ReyNobody extends LeaderUnitCard {
         return this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
             playedCardEntry.playedBy === context.player &&
             playedCardEntry.card.hasSomeTrait(Trait.Force) &&
-            !playedCardEntry.card.isUnit()
+            playedCardEntry.playedAsType !== CardType.BasicUnit
         );
     }
 }

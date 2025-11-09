@@ -3,6 +3,7 @@ import FormData from 'form-data';
 import { httpPostFormData } from '../../Util';
 import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState } from '../Interfaces';
 import { logger } from '../../logger';
+import * as Helpers from './utils/Helpers';
 
 interface IDiscordFormat {
     content: string;
@@ -43,6 +44,19 @@ export interface IDiscordDispatcher {
         player1Id: string,
         player2Id: string,
         gameStepsSinceLastUndo?: number
+    ): Promise<EitherPostResponseOrBoolean>;
+
+    /**
+     * Format and send a server error report to Discord indicating that a game failed to start and the lobby was closed
+     * @param description A brief description of the error context
+     * @param error The error object to report
+     * @param lobbyId The lobby ID associated with the error
+     * @returns Promise that returns the response body as a string if successful, throws an error otherwise
+     */
+    formatAndSendGameStartErrorAsync(
+        description: string,
+        error: Error,
+        lobbyId: string
     ): Promise<EitherPostResponseOrBoolean>;
 }
 
@@ -208,10 +222,10 @@ export class DiscordDispatcher implements IDiscordDispatcher {
 
     private addGameMessagesToForm(formData: FormData, messages: ISerializedMessage[], lobbyId: string, reporterId: string, opponentId: string, timestamp: number): void {
         const messagesText = DiscordDispatcher.formatMessagesToText(messages, reporterId, opponentId);
-        const fileName = `bug-report-messages-${lobbyId}-${timestamp}.json`;
+        const fileName = `bug-report-messages-${lobbyId}-${timestamp}.txt`;
         formData.append('files[1]', Buffer.from(messagesText), {
             filename: fileName,
-            contentType: 'application/json',
+            contentType: 'text/plain',
         });
     }
 
@@ -371,6 +385,65 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         return httpPostFormData(this._serverErrorWebhookUrl, formData);
     }
 
+    public formatAndSendGameStartErrorAsync(
+        description: string,
+        error: Error,
+        lobbyId: string
+    ): Promise<EitherPostResponseOrBoolean> {
+        if (!this._serverErrorWebhookUrl) {
+            // If no webhook URL is configured, just log it
+            if (process.env.NODE_ENV !== 'test') {
+                logger.warn('Server error could not be sent to Discord: No webhook URL configured for server errors');
+            }
+            return Promise.resolve(false);
+        }
+
+        // Truncate description if it's too long for Discord embeds
+        const embedDescription = description.length > 1024
+            ? description.substring(0, 1021) + '...'
+            : description;
+
+        const fields = [
+            {
+                name: 'Lobby ID',
+                value: lobbyId,
+                inline: true,
+            },
+            {
+                name: 'Error Message',
+                value: error.message,
+                inline: false,
+            },
+        ];
+
+        const data: IDiscordFormat = {
+            content: `Server error in Lobby **${lobbyId}**!`,
+            embeds: [
+                {
+                    title: 'Server Error Report',
+                    color: 0xFF0000, // Red color
+                    description: embedDescription,
+                    fields,
+                    timestamp: new Date().toISOString(),
+                },
+            ]
+        };
+
+        const formData = new FormData();
+        // Add the message payload
+        formData.append('payload_json', JSON.stringify(data));
+
+        const timestamp = new Date().getTime();
+
+        const fileName = `server-error-stack-trace-${lobbyId}-${timestamp}.txt`;
+        formData.append('files[0]', Buffer.from(error.stack || ''), {
+            filename: fileName,
+            contentType: 'text/plain',
+        });
+
+        return httpPostFormData(this._serverErrorWebhookUrl, formData);
+    }
+
     /**
      * Formats game messages into a readable text format
      * @param messages Array of message objects
@@ -379,14 +452,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
      */
     private static formatMessagesToText(messages: ISerializedMessage[], reporter: string, opponent: string): string {
         return messages.map((messageEntry) => {
-            const message = messageEntry.message;
+            let message = messageEntry.message;
 
             // Handle alert messages
             if (typeof message === 'object' && 'alert' in message) {
-                const alertMessage = Array.isArray(message.alert.message)
-                    ? message.alert.message.join(' ')
-                    : message.alert.message;
-                return `[ALERT - ${message.alert.type}] ${alertMessage}`;
+                message = [`[ALERT - ${message.alert.type}] `, ...Helpers.asArray(message.alert.message)];
             }
 
             // Handle regular messages (arrays)

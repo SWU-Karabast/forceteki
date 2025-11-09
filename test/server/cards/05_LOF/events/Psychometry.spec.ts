@@ -15,7 +15,7 @@ describe('Psychometry', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should choose a card, even if there is an empty deck', async function () {
+            it('should do nothing when there is an empty deck', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -27,8 +27,9 @@ describe('Psychometry', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.psychometry);
-                expect(context.player1).toBeAbleToSelectExactly([context.forceThrow]);
-                context.player1.clickCard(context.forceThrow);
+
+                // TODO: once we fix the engine to correctly check for events that will do nothing, uncomment the below
+                // context.player1.clickPrompt('Play anyway');
 
                 expect(context.psychometry).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();

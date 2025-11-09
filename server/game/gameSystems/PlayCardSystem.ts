@@ -6,7 +6,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers';
-import { CardType, KeywordName, MetaEventName, PlayType, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, CardType, KeywordName, MetaEventName, PlayType, WildcardCardType } from '../core/Constants';
 import type { PlayCardAction } from '../core/ability/PlayCardAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
 import type { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
@@ -63,7 +63,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             event.context.game.promptWithHandlerMenu(event.context.player, {
                 activePromptTitle: `Choose an option for playing ${event.card.title}`,
                 source: event.card,
-                choices: availablePlayCardAbilities.map((action) => action.title),
+                choices: availablePlayCardAbilities.map((action) => action.getTitle(event.context)),
                 handlers: availablePlayCardAbilities.map((action) => (() => this.resolvePlayCardAbility(action, event)))
             });
         } else {
@@ -127,6 +127,10 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         let availableCardPlayActions: PlayCardAction[] = [];
 
+        if (card.hasRestriction(AbilityRestriction.Play, context)) {
+            return availableCardPlayActions;
+        }
+
         switch (properties.playType) {
             case PlayType.PlayFromOutOfPlay:
                 availableCardPlayActions = card.getPlayCardFromOutOfPlayActions(overrideProperties);
@@ -146,7 +150,8 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         // filter out actions that don't match the expected playType or aren't legal in the current play context (e.g. can't be paid for)
         return availableCardPlayActions.filter((action) => {
             const newContext = action.createContext(context.player);
-            return this.checkActionPlayType(properties.playType, action.playType) && this.checkActionPlayAsType(card, action.playType, properties.playAsType, action) &&
+            return this.checkActionPlayType(properties.playType, action.playType) &&
+              this.checkActionPlayAsType(card, action.playType, properties.playAsType, action) &&
               action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
         });
     }

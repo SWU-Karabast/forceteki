@@ -6,7 +6,7 @@ import { KeywordName, TargetMode, ZoneName } from '../../../core/Constants';
 export default class AlexsandrKallusWithNewPurpose extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'alexsandr-kallus#with-new-purpose-id',
+            id: '6009912241',
             internalName: 'alexsandr-kallus#with-new-purpose',
         };
     }

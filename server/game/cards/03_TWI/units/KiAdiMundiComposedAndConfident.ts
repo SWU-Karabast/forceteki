@@ -16,7 +16,7 @@ export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
+        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -24,6 +24,7 @@ export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
             title: 'Draw 2 cards',
             type: AbilityType.Triggered,
             optional: true,
+            collectiveTrigger: true, // TODO: this is a bit of hack until we fix the double-triggering issue when one card plays another card
             immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 2 }),
             when: {
                 onCardPlayed: (event, context) => this.isSecondCardPlayedByOpponentThisPhase(event, context)

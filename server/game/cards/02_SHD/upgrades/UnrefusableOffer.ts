@@ -13,7 +13,7 @@ export default class UnrefusableOffer extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card) => !card.isLeaderUnit());
+        registrar.setAttachCondition((context) => !context.attachTarget.isLeaderUnit());
 
         registrar.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
@@ -31,10 +31,10 @@ export default class UnrefusableOffer extends UpgradeCard {
                 }),
                 ifYouDo: (ifYouDoContext) => ({
                     title: 'At the start of the regroup phase, defeat it',
-                    ifYouDoCondition: (context) => context.events.filter((e) => e.name === 'playCard').length > 0,
+                    ifYouDoCondition: (context) => context.source.isInPlay(),
                     immediateEffect: AbilityHelper.immediateEffects.delayedCardEffect({
-                        title: 'Defeat it',
-                        target: ifYouDoContext.events[0].card,
+                        title: `Defeat ${ifYouDoContext.source.title}`,
+                        target: ifYouDoContext.source,
                         when: {
                             onPhaseStarted: (context) => context.phase === PhaseName.Regroup
                         },

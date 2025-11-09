@@ -24,7 +24,9 @@ interface IInitiateAttackProperties extends IAttackProperties {
  * See {@link GameSystemLibrary.initiateAttack} for using it in abilities.
  */
 export class InitiateAttackAction extends PlayerAction {
-    public constructor(game: Game, card: Card, private attackProperties?: IInitiateAttackProperties) {
+    public readonly initiateAttackSource?: Card;
+
+    public constructor(game: Game, card: Card, private attackProperties?: IInitiateAttackProperties, initiateAttackSource?: Card) {
         const exhaustCost = attackProperties?.allowExhaustedAttacker
             ? new GameSystemCost(new ExhaustSystem({ isCost: true }), true)
             : exhaustSelf();
@@ -40,6 +42,8 @@ export class InitiateAttackAction extends PlayerAction {
             attackTargetingHighlightAttacker: card,
             activePromptTitle: 'Choose a target for attack'
         });
+
+        this.initiateAttackSource = initiateAttackSource;
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

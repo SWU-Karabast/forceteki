@@ -6,7 +6,7 @@ import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Con
 export default class RebelPropagandist extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'rebel-propagandist-id',
+            id: '2292355369',
             internalName: 'rebel-propagandist',
         };
     }
