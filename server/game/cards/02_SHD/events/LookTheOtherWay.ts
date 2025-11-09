@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { TargetMode, WildcardCardType } from '../../../core/Constants';
+import { NamedAction, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class LookTheOtherWay extends EventCard {
     protected override getImplementationId() {
@@ -25,10 +25,10 @@ export default class LookTheOtherWay extends EventCard {
                     choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
                     activePromptTitle: (context) => `[Exhaust] ${context.targets.targetUnit.title} or [Pay] 2 resources`,
                     choices: (context) => ({
-                        ['Exhaust']: AbilityHelper.immediateEffects.exhaust({
+                        [NamedAction.Exhaust]: AbilityHelper.immediateEffects.exhaust({
                             target: context.targets.targetUnit,
                         }),
-                        ['Pay']: AbilityHelper.immediateEffects.payResourceCost({
+                        [NamedAction.Pay]: AbilityHelper.immediateEffects.payResourceCost({
                             target: context.targets.targetUnit.controller,
                             amount: 2
                         })

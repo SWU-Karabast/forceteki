@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { NamedAction, RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class IAmYourFather extends EventCard {
     protected override getImplementationId() {
@@ -23,13 +23,13 @@ export default class IAmYourFather extends EventCard {
                     mode: TargetMode.Select,
                     dependsOn: 'targetUnit',
                     choosingPlayer: RelativePlayer.Opponent,
-                    activePromptTitle: (context) => `${context.targets.targetUnit.title} takes 7 [Damage] or Opponent [Draw]s 3 cards`,
+                    activePromptTitle: (context) => `${context.targets.targetUnit.title} takes 7 [Damage] or opponent [Draw]s 3 cards`,
                     choices: (context) => ({
-                        ['Damage']: AbilityHelper.immediateEffects.damage({
+                        [NamedAction.Damage]: AbilityHelper.immediateEffects.damage({
                             target: context.targets.targetUnit,
                             amount: 7
                         }),
-                        ['Draw']: AbilityHelper.immediateEffects.draw({ amount: 3 })
+                        [NamedAction.Draw]: AbilityHelper.immediateEffects.draw({ amount: 3 })
                     }),
                     highlightCards: (context) => context.targets.targetUnit,
                 }

@@ -4,7 +4,7 @@ import type {
     ILeaderUnitLeaderSideAbilityRegistrar
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { KeywordName, RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { KeywordName, NamedAction, RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class DedraMeeroNotWastingTime extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -29,11 +29,11 @@ export default class DedraMeeroNotWastingTime extends LeaderUnitCard {
                     choosingPlayer: RelativePlayer.Opponent,
                     activePromptTitle: (context) => `${context.targets.targetUnit.title} takes 2 [Damage] or Opponent [Draw]s a card`,
                     choices: (context) => ({
-                        ['Damage']: abilityHelper.immediateEffects.damage({
+                        [NamedAction.Damage]: abilityHelper.immediateEffects.damage({
                             target: context.targets.targetUnit,
                             amount: 2
                         }),
-                        ['Draw']: abilityHelper.immediateEffects.draw({ amount: 1 })
+                        [NamedAction.Draw]: abilityHelper.immediateEffects.draw({ amount: 1 })
                     }),
                     highlightCards: (context) => context.targets.targetUnit,
                 }
