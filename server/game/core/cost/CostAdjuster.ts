@@ -9,12 +9,12 @@ import * as Contract from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type { ICostResult } from './ICost';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import type { ResourceCost } from '../../costs/ResourceCost';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, undoObject } from '../GameObjectUtils';
-import type { ICostAdjustEvaluationResult } from './CostInterfaces';
-import { CostAdjustStage } from './CostInterfaces';
+import { ResourceCostType, type ICostAdjustEvaluationResult, type ICostAdjustTriggerResult } from './CostInterfaces';
+import type { CostAdjustStage } from './CostInterfaces';
+import * as CostHelpers from './CostHelpers';
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -22,7 +22,8 @@ export enum CostAdjustType {
     Free = 'free',
     IgnoreAllAspects = 'ignoreAllAspects',
     IgnoreSpecificAspects = 'ignoreSpecificAspect',
-    ModifyPayStage = 'modifyPayStage'
+    ModifyPayStage = 'modifyPayStage',
+    Exploit = 'exploit'
 }
 
 /**
@@ -70,6 +71,10 @@ export interface IForFreeCostAdjusterProperties extends ICostAdjusterPropertiesB
     costAdjustType: CostAdjustType.Free;
 }
 
+export interface IExploitCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.Exploit;
+}
+
 export interface IIgnoreAllAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.IgnoreAllAspects;
 }
@@ -93,10 +98,11 @@ export type ICostAdjusterProperties =
   | IIncreaseOrDecreaseCostAdjusterProperties
   | IForFreeCostAdjusterProperties
   | IIgnoreSpecificAspectsCostAdjusterProperties
-  | IModifyPayStageCostAdjusterProperties;
+  | IModifyPayStageCostAdjusterProperties
+  | IExploitCostAdjusterProperties;
 
 export interface ICanAdjustProperties {
-    attachTarget?: Card;
+    attachTargets?: Card[];
     penaltyAspect?: Aspect;
     costStage?: CostStage;
     isAbilityCost?: boolean;
@@ -107,7 +113,7 @@ export interface ICostAdjusterState extends IGameObjectBaseState {
 }
 
 @registerState()
-export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
+export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     public readonly costAdjustStage: CostAdjustStage;
     public readonly costAdjustType: CostAdjustType;
     public readonly ignoredAspect: Aspect;
@@ -161,35 +167,21 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         this.matchAbilityCosts = !!properties.matchAbilityCosts;
     }
 
-    protected getCostStage(costAdjustType: CostAdjustType): CostAdjustStage {
-        switch (costAdjustType) {
-            case CostAdjustType.Increase:
-                Contract.fail(`Adjuster mode '${CostAdjustType.Increase}' must be used with IncreaseCostAdjuster`);
-            case CostAdjustType.ModifyPayStage:
-                return CostAdjustStage.PayStage_3;
-            case CostAdjustType.Decrease:
-            case CostAdjustType.Free:
-            case CostAdjustType.IgnoreAllAspects:
-            case CostAdjustType.IgnoreSpecificAspects:
-                return CostAdjustStage.Standard_0;
-            default:
-                Contract.fail(`Unknown cost adjust type: ${costAdjustType}`);
-        }
-    }
+    protected abstract getCostStage(costAdjustType: CostAdjustType): CostAdjustStage;
+    public abstract applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustTriggerResult): void;
 
     public isExploit(): this is ExploitCostAdjuster {
         return false;
     }
 
-    // protected
-    public canAdjust(card: Card, context: AbilityContext, adjustParams?: ICanAdjustProperties): boolean {
+    protected canAdjust(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
-        } else if (this.ignoredAspect && this.ignoredAspect !== adjustParams?.penaltyAspect) {
+        } else if (this.ignoredAspect && !evaluationResult.penaltyAspects?.includes(this.ignoredAspect)) {
             return false;
         }
 
-        if (adjustParams?.isAbilityCost && !this.matchAbilityCosts) {
+        if (evaluationResult.resourceCostType === ResourceCostType.Ability && !this.matchAbilityCosts) {
             return false;
         }
 
@@ -201,11 +193,11 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
 
         return EnumHelpers.cardTypeMatches(cardType, this.cardTypeFilter) &&
           this.checkMatch(card) &&
-          this.checkAttachTargetCondition(context, adjustParams?.attachTarget);
+          this.checkAttachTargetCondition(context);
     }
 
     public resolveCostAdjustment(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult) {
-        if (!this.canAdjust(card, context)) {
+        if (!this.canAdjust(card, context, evaluationResult)) {
             return;
         }
 
@@ -216,20 +208,35 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
             return;
         }
 
-        evaluationResult.remainingCost = this.applyAdjustmentAmount(card, context, evaluationResult);
-    }
-
-    protected applyAdjustmentAmount(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult): number {
-        const thisAdjustAmount = this.getAmount(card, context.player, context, evaluationResult.remainingCost);
-        return this.subtractCostZeroFloor(evaluationResult.remainingCost, thisAdjustAmount);
+        this.applyMaxAdjustmentAmount(card, context, evaluationResult);
     }
 
     protected subtractCostZeroFloor(currentCost: number, amountToSubtract: number): number {
         return Math.max(currentCost - amountToSubtract, 0);
     }
 
+    protected getMinimumPossibleRemainingCost(context: AbilityContext, adjustResult: ICostAdjustTriggerResult): number {
+        const adjustResultCopy = { ...adjustResult };
+
+        const triggerStages = CostHelpers.getCostAdjustStagesInTriggerOrder();
+        const remainingStages = triggerStages.slice(triggerStages.indexOf(adjustResult.adjustStage) + 1);
+
+        for (const stage of remainingStages) {
+            const adjustersForStage = adjustResultCopy.adjustersToTrigger.get(stage) || [];
+            for (const adjuster of adjustersForStage) {
+                adjuster.applyMaxAdjustmentAmount(context.source, context, adjustResultCopy);
+
+                if (adjustResultCopy.remainingCost === 0) {
+                    break;
+                }
+            }
+        }
+
+        return adjustResultCopy.remainingCost;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public queueGenerateEventGameSteps(events: any[], context: AbilityContext, resourceCost: ResourceCost, result?: ICostResult): void {}
+    public queueGenerateEventGameSteps(events: any[], context: AbilityContext, costAdjustTriggerResult: ICostAdjustTriggerResult, result?: ICostResult): void {}
 
     // protected
     public getAmount(card: Card, player: Player, context: AbilityContext, currentAmount: number = null): number {
@@ -255,6 +262,22 @@ export class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     }
 
     private checkAttachTargetCondition(context: AbilityContext, target?: Card) {
-        return !this.attachTargetCondition || (target && this.attachTargetCondition(target, this.source, context));
+        if (!this.attachTargetCondition) {
+            return true;
+        }
+
+        const upgrade = context.source;
+        Contract.assertTrue(upgrade.isUpgrade(), `attachTargetCondition can only be used with upgrade cards, attempting to use with '${upgrade.title}'`);
+
+        for (const unit of context.game.getArenaUnits()) {
+            if (
+                upgrade.canAttach(unit, context, context.player) &&
+                this.attachTargetCondition(unit, this.source, context)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

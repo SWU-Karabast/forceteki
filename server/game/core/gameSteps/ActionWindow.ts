@@ -86,7 +86,7 @@ export class ActionWindow extends UiPrompt {
     private resolveAbility(context: AbilityContext) {
         const resolver = this.game.resolveAbility(context);
         this.game.queueSimpleStep(() => {
-            if (resolver.resolutionComplete) {
+            if (resolver.resolutionMustComplete) {
                 this.postResolutionUpdate(resolver);
             }
         }, `Check and pass priority for ${resolver.context.ability}`);

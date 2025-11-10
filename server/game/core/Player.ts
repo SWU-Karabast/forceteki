@@ -816,24 +816,6 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     }
 
     /**
-     * Mark all cost adjusters which are valid for this card/target/playingType as used, and remove them if they have no uses remaining
-     * @param {PlayType} playingType
-     * @param {Card} card DrawCard
-     * @param {AbilityContext} context
-     * @param {Card=} target BaseCard
-     * @param {Aspect=} aspects
-     */
-    public markUsedAdjusters(playingType: PlayType, card: Card, context: AbilityContext, target: Card | undefined = null, aspects: Aspect | undefined = null) {
-        const matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(card, context, { attachTarget: target, penaltyAspect: aspects }));
-        matchingAdjusters.forEach((adjuster) => {
-            adjuster.markUsed();
-            if (adjuster.isExpired()) {
-                this.removeCostAdjuster(adjuster);
-            }
-        });
-    }
-
-    /**
      * Called at the start of the Action Phase.  Resets some of the single round parameters
      */
     public resetForActionPhase() {

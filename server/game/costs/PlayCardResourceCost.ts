@@ -2,13 +2,12 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Aspect } from '../core/Constants';
 import type { PlayType } from '../core/Constants';
 import * as Contract from '../core/utils/Contract.js';
-import { CostAdjustType, type CostAdjuster } from '../core/cost/CostAdjuster';
+import { type CostAdjuster } from '../core/cost/CostAdjuster';
 import type { ICardWithCostProperty } from '../core/card/propertyMixins/Cost';
 import { ResourceCost } from './ResourceCost';
-import type { ICostAdjustEvaluationResult, IGetMatchingCostAdjusterProperties, IRunCostAdjustmentProperties } from '../core/cost/CostInterfaces';
+import type { ICostAdjustEvaluationResult } from '../core/cost/CostInterfaces';
 import { CostAdjustStage } from '../core/cost/CostInterfaces';
 import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
-import * as Helpers from '../core/utils/Helpers';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -27,14 +26,7 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
     }
 
     public usesExploit(context: AbilityContext<ICardWithCostProperty>): boolean {
-        return this.getMatchingCostAdjusters(context).some((adjuster) => adjuster.isExploit());
-    }
-
-    private buildCostAdjustmentProperties(context: AbilityContext<ICardWithCostProperty>, ignoreExploit = false): IRunCostAdjustmentProperties {
-        return {
-            ignoreExploit,
-            additionalCostAdjusters: this.getCostAdjustersFromAbility(context)
-        };
+        return this.getCostAdjustersByStage(context).get(CostAdjustStage.Exploit_1).length > 0;
     }
 
     public override canPay(context: AbilityContext<ICardWithCostProperty>): boolean {
@@ -51,20 +43,22 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
         return context.ability.costAdjusters;
     }
 
-    public override getAdjustedCost(context: AbilityContext<ICardWithCostProperty>, ignoreExploit = false) {
-        const costAdjustmentProperties = this.buildCostAdjustmentProperties(context, ignoreExploit);
+    protected override getCostAdjustersByStage(context: AbilityContext<ICardWithCostProperty>, additionalCostAdjusters: CostAdjuster[] = null): Map<CostAdjustStage, CostAdjuster[]> {
+        const costAdjustersByStage = super.getCostAdjustersByStage(
+            context,
+            (additionalCostAdjusters ?? []).concat(this.getCostAdjustersFromAbility(context))
+        );
 
-        // if any aspect penalties, check modifiers for them separately
-        let aspectPenaltiesTotal = 0;
-
-        const penaltyAspects = context.player.getPenaltyAspects(this.aspects);
-        for (const penaltyAspect of penaltyAspects) {
-            const penaltyAspectParams = { ...costAdjustmentProperties, penaltyAspect };
-            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(2, context, penaltyAspectParams);
+        // if there are multiple Exploit adjusters, generate a single merged one to represent the total Exploit value
+        const exploitAdjusters = costAdjustersByStage.get(CostAdjustStage.Exploit_1);
+        if (exploitAdjusters.length > 1) {
+            Contract.assertTrue(exploitAdjusters.every((adjuster) => adjuster.isExploit()));
+            Contract.assertTrue(context.source.hasCost());
+            const mergedExploitAdjuster = new MergedExploitCostAdjuster(exploitAdjusters, context.source, context);
+            costAdjustersByStage.set(CostAdjustStage.Exploit_1, [mergedExploitAdjuster]);
         }
 
-        const penalizedCost = this.resources + aspectPenaltiesTotal;
-        return this.runAdjustersForCost(penalizedCost, context.source, context, costAdjustmentProperties);
+        return costAdjustersByStage;
     }
 
     protected override initializeEvaluationResult(
@@ -87,60 +81,10 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
         // apply any aspect penalties to the cost
         const penaltyAspects = context.player.getPenaltyAspects(this.aspects);
         if (penaltyAspects.length > 0) {
-            result.penaltyAspectsApplied = penaltyAspects;
+            result.penaltyAspects = penaltyAspects;
             result.remainingCost += penaltyAspects.length * 2;
         }
 
         return result;
-    }
-
-    /**
-     * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
-     * @param baseCost
-     * @param properties Additional parameters for determining cost adjustment
-     */
-    private runAdjustersForAspectPenalties(baseCost: number, context: AbilityContext<ICardWithCostProperty>, properties: IRunCostAdjustmentProperties) {
-        const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
-
-        const ignoreAllAspectPenalties = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects).length > 0;
-
-        const ignoreSpecificAspectPenalty = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreSpecificAspects).length > 0;
-
-        let cost = baseCost;
-        if (ignoreAllAspectPenalties || ignoreSpecificAspectPenalty) {
-            cost -= 2;
-        }
-
-        return Math.max(cost, 0);
-    }
-
-    protected override getMatchingCostAdjusters(context: AbilityContext<ICardWithCostProperty>, properties: IGetMatchingCostAdjusterProperties = null): CostAdjuster[] {
-        const adjustPropsWithAbilityAdjusters: IGetMatchingCostAdjusterProperties = { ...properties };
-        if (!adjustPropsWithAbilityAdjusters?.additionalCostAdjusters) {
-            adjustPropsWithAbilityAdjusters.additionalCostAdjusters = this.getCostAdjustersFromAbility(context);
-        }
-
-        const allMatchingAdjusters = super.getMatchingCostAdjusters(context, adjustPropsWithAbilityAdjusters);
-
-        if (properties?.ignoreExploit) {
-            return allMatchingAdjusters.filter((adjuster) => !adjuster.isExploit());
-        }
-
-        const { trueAra: exploitAdjusters, falseAra: nonExploitAdjusters } =
-                    Helpers.splitArray(allMatchingAdjusters, (adjuster) => adjuster.isExploit());
-
-        // if there are multiple Exploit adjusters, generate a single merged one to represent the total Exploit value
-        const matchingAdjusters = nonExploitAdjusters;
-        if (exploitAdjusters.length > 1) {
-            Contract.assertTrue(exploitAdjusters.every((adjuster) => adjuster.isExploit()));
-            Contract.assertTrue(context.source.hasCost());
-            matchingAdjusters.unshift(new MergedExploitCostAdjuster(exploitAdjusters, context.source, context));
-        } else {
-            matchingAdjusters.unshift(...exploitAdjusters);
-        }
-
-        return matchingAdjusters;
     }
 }

@@ -25,8 +25,8 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
         return CostAdjustStage.PayStage_3;
     }
 
-    protected override applyAdjustmentAmount(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult): number {
-        const thisAdjustAmount = this.getAmount(card, context.player, context, evaluationResult.remainingCost);
-        return evaluationResult.remainingCost + thisAdjustAmount;
+    public override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustEvaluationResult) {
+        const thisAdjustAmount = this.getAmount(card, context.player, context, result.remainingCost);
+        result.remainingCost = result.remainingCost + thisAdjustAmount;
     }
 }

@@ -131,7 +131,7 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
         const resolver = this.game.resolveAbility(replacementEffectContext);
 
         this.game.queueSimpleStep(() => {
-            if (resolver.resolutionComplete) {
+            if (resolver.resolutionMustComplete) {
                 this.postResolutionUpdate(resolver);
             }
         }, `Check resolution of replacement effect ${resolver.context.ability}`);

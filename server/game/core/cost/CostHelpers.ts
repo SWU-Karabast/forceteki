@@ -11,6 +11,16 @@ export function getCostAdjustStagesInEvaluationOrder(): CostAdjustStage[] {
     ];
 }
 
+export function getCostAdjustStagesInTriggerOrder(): CostAdjustStage[] {
+    return [
+        CostAdjustStage.Standard_0,
+        CostAdjustStage.Exploit_1,
+        CostAdjustStage.ExhaustUnits_2,
+        CostAdjustStage.PayStage_3,
+        // we do not run the increase step during triggering / payment, it was added on during the evaluation pass
+    ];
+}
+
 export function isTargetedCostAdjusterStage(stage: CostAdjustStage): boolean {
     switch (stage) {
         case CostAdjustStage.Exploit_1:

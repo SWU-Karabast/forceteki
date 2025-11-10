@@ -7,7 +7,7 @@ import { CostAdjuster, CostAdjustType } from './CostAdjuster';
 import type { ICostAdjustTriggerResult } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
-export class FreeCostAdjuster extends CostAdjuster {
+export class SimpleCostAdjuster extends CostAdjuster {
     public constructor(
         game: Game,
         source: Card,
@@ -15,17 +15,18 @@ export class FreeCostAdjuster extends CostAdjuster {
     ) {
         const propsWithType: ICostAdjusterProperties = {
             ...properties,
-            costAdjustType: CostAdjustType.Free
+            costAdjustType: CostAdjustType.Decrease
         };
         super(game, source, propsWithType);
     }
 
     protected override getCostStage(costAdjustType: CostAdjustType): CostAdjustStage {
-        Contract.assertTrue(costAdjustType === CostAdjustType.Free, `FreeCostAdjuster must have costAdjustType of '${CostAdjustType.Free}', instead got '${costAdjustType}'`);
+        Contract.assertTrue(costAdjustType === CostAdjustType.Decrease, `SimpleCostAdjuster must have costAdjustType of '${CostAdjustType.Decrease}', instead got '${costAdjustType}'`);
         return CostAdjustStage.Standard_0;
     }
 
-    public override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustTriggerResult) {
-        result.remainingCost = 0;
+    public override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustTriggerResult) {
+        const thisAdjustAmount = this.getAmount(card, context.player, context, result.remainingCost);
+        result.remainingCost = this.subtractCostZeroFloor(result.remainingCost, thisAdjustAmount);
     }
 }

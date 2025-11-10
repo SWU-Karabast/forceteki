@@ -22,6 +22,14 @@ export class GameSystemCost<TContext extends AbilityContext = AbilityContext> im
         return false;
     }
 
+    public isGameSystemCost(): this is GameSystemCost {
+        return true;
+    }
+
+    public getName(): string {
+        return this.gameSystem.name;
+    }
+
     public getActionName(context: TContext): string {
         return this.gameSystem.name;
     }
