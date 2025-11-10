@@ -25,7 +25,7 @@ describe('Grand Inquisitor, You\'re Right to Be Afraid', function() {
             player2.clickCard(context.p1Base);
         });
 
-        it('Grand Inquisitor\'s ability should give Seventh Sister Hidden', async function () {
+        it('units that have Hidden on their own should not lose it when Grand Inquisitor is removed from play', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
