@@ -24,6 +24,10 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
         return this.gameSystem.hasLegalTarget(context);
     }
 
+    public override isMetaActionCost(): this is MetaActionCost {
+        return true;
+    }
+
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: ICostResult): void {
         const properties = this.gameSystem.generatePropertiesFromContext(context);
 

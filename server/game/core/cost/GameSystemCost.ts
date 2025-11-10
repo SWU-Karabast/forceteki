@@ -3,6 +3,7 @@ import type { ICost, ICostResult } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { GameEvent } from '../event/GameEvent';
 import type { ResourceCost } from '../../costs/ResourceCost';
+import type { MetaActionCost } from './MetaActionCost';
 
 /**
  * Class that wraps a {@link GameSystem} so it can be represented as an action cost
@@ -22,8 +23,8 @@ export class GameSystemCost<TContext extends AbilityContext = AbilityContext> im
         return false;
     }
 
-    public isGameSystemCost(): this is GameSystemCost {
-        return true;
+    public isMetaActionCost(): this is MetaActionCost {
+        return false;
     }
 
     public getName(): string {

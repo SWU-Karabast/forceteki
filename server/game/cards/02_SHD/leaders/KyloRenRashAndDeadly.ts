@@ -15,8 +15,8 @@ export default class KyloRenRashAndDeadly extends LeaderUnitCard {
         registrar.addActionAbility({
             title: 'Discard a card from your hand, give a unit +2/+0 for this phase',
             cost: [
-                AbilityHelper.costs.discardCardFromOwnHand(),
                 AbilityHelper.costs.exhaustSelf(),
+                AbilityHelper.costs.discardCardFromOwnHand(),
             ],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

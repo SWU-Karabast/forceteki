@@ -4,7 +4,7 @@ import type { GameEvent } from '../event/GameEvent';
 import type { Player } from '../Player.js';
 import type { ResourceCost } from '../../costs/ResourceCost';
 import type { ICostAdjustmentProperties } from './CostInterfaces';
-import type { GameSystemCost } from './GameSystemCost';
+import type { MetaActionCost } from './MetaActionCost';
 
 export interface ICostResult {
     canCancel: boolean;
@@ -35,5 +35,5 @@ export interface ICost<TContext extends AbilityContext = AbilityContext> {
     resolve?(context: TContext, result: ICostResult): void;
 
     isResourceCost(): this is ResourceCost;
-    isGameSystemCost(): this is GameSystemCost;
+    isMetaActionCost(): this is MetaActionCost;
 }

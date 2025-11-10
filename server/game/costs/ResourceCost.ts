@@ -8,7 +8,7 @@ import type { Card } from '../core/card/Card';
 import type { ICostAdjustmentProperties, ICostAdjustTriggerResult } from '../core/cost/CostInterfaces';
 import { CostAdjustStage, ResourceCostType, type ICostAdjustEvaluationResult } from '../core/cost/CostInterfaces';
 import * as CostHelpers from '../core/cost/CostHelpers';
-import type { GameSystemCost } from '../core/cost/GameSystemCost';
+import type { MetaActionCost } from '../core/cost/MetaActionCost';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -30,7 +30,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         return true;
     }
 
-    public isGameSystemCost(): this is GameSystemCost {
+    public isMetaActionCost(): this is MetaActionCost {
         return false;
     }
 
@@ -115,6 +115,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
 
         let currentStage = remainingStagesCopy.shift();
         while (currentStage) {
+            triggerResult.adjustStage = currentStage;
             const adjustersForStage = triggerResult.adjustersToTrigger.get(currentStage);
 
             // if there are targeted adjusters, stop and queue the steps for the player to choose targets
@@ -146,7 +147,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         const adjustEvents = [];
 
         adjuster.queueGenerateEventGameSteps(adjustEvents, context, triggerResult, abilityCostResult);
-        context.game.openEventWindow(adjustEvents);
+        context.game.queueSimpleStep(() => context.game.openEventWindow(adjustEvents), 'resolve events for cost adjsuter');
     }
 
     protected initializeEvaluationResult(
