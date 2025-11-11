@@ -265,8 +265,14 @@
     "darkened": true
   },
   {
-    "id": "eabf26d3-a85c-4999-a045-abf143518faf",
+    "id": "eabf26d3-a85c-4999-a045-dcf1eaabe5aa",
     "title": "Default",
+    "type": "background",
+    "path": "https://karabast-data.s3.amazonaws.com/ui/board-background-1.webp"
+  },
+  {
+    "id": "eabf26d3-a85c-4999-a045-abf143518faf",
+    "title": "Petra-default",
     "type": "background",
     "path": "/default-background.webp"
   },
