@@ -1028,6 +1028,9 @@ export class GameServer {
                 if (process.env.ENVIRONMENT === 'development') {
                     if (process.env.USE_LOCAL_DYNAMODB === 'true') {
                         cosmetics = await this.cosmeticsService.getCosmeticsAsync();
+                        if (cosmetics.length === 0) {
+                            cosmetics = defaultCosmetics;
+                        }
                     }
                     return res.status(200).json({
                         success: true,
