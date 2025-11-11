@@ -25,7 +25,7 @@ export class SimpleCostAdjuster extends CostAdjuster {
         return CostAdjustStage.Standard_0;
     }
 
-    public override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustTriggerResult) {
+    protected override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustTriggerResult) {
         const thisAdjustAmount = this.getAmount(card, context.player, context, result.remainingCost);
         result.remainingCost = this.subtractCostZeroFloor(result.remainingCost, thisAdjustAmount);
     }

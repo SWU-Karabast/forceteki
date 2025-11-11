@@ -29,7 +29,7 @@ export class IgnoreAspectCostAdjuster extends CostAdjuster {
         return CostAdjustStage.Standard_0;
     }
 
-    public override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustTriggerResult) {
+    protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustTriggerResult) {
         let matchingAspects: Aspect[];
 
         switch (this.costAdjustType) {

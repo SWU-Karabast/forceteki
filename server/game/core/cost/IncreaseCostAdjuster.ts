@@ -25,7 +25,7 @@ export class IncreaseCostAdjuster extends CostAdjuster {
         return CostAdjustStage.Increase_4;
     }
 
-    public override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustTriggerResult) {
+    protected override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustTriggerResult) {
         const thisAdjustAmount = this.getAmount(card, context.player, context, result.remainingCost);
         result.remainingCost += thisAdjustAmount;
         result.totalResourceCost = result.remainingCost;
