@@ -53,6 +53,7 @@ export interface ISelectTargetResolver<TContext extends AbilityContext> extends 
     condition?: (context: TContext) => boolean;
     checkTarget?: boolean;
     showUnresolvable?: boolean;
+    highlightCards?: Card | Card[] | ((context: TContext) => (Card | Card[]));
 }
 
 export interface IDropdownListTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
@@ -83,7 +84,7 @@ export interface IPlayerTargetResolver<TContext extends AbilityContext> extends 
     immediateEffect?: PlayerTargetSystem<TContext> | AggregateSystem<TContext>;
 }
 
-export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> = Record<string, ((context: TContext) => boolean) | GameSystem<TContext>>;
+export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> = Record<string, GameSystem<TContext>>;
 
 // ********************************************** INTERNAL TYPES **********************************************
 interface ICardTargetResolverBase<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {

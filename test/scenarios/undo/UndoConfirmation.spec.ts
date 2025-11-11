@@ -482,7 +482,7 @@ describe('Undo confirmation', function() {
             context.player1.clickCard(context.iAmYourFather);
             context.player1.clickCard(context.viperProbeDroid);
 
-            context.player2.clickPrompt('Viper Probe Droid takes 7 damage');
+            context.player2.clickPrompt('Damage');
 
             expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
             expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player2.id)).toBeTrue();

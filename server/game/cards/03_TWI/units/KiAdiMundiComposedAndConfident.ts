@@ -24,6 +24,7 @@ export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
             title: 'Draw 2 cards',
             type: AbilityType.Triggered,
             optional: true,
+            collectiveTrigger: true, // TODO: this is a bit of hack until we fix the double-triggering issue when one card plays another card
             immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 2 }),
             when: {
                 onCardPlayed: (event, context) => this.isSecondCardPlayedByOpponentThisPhase(event, context)

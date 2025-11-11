@@ -30,8 +30,8 @@ describe('Qui-Gon Jinn, The Negotiations Will Be Short', () => {
                 context.player1.clickCard(context.wampa);
 
                 // Player 2 should be prompted to choose top or bottom of deck
-                expect(context.player2).toHaveExactPromptButtons(['Move Wampa to top of your deck', 'Move Wampa to bottom of your deck']);
-                context.player2.clickPrompt('Move Wampa to top of your deck');
+                expect(context.player2).toHaveExactPromptButtons(['Top', 'Bottom']);
+                context.player2.clickPrompt('Top');
 
                 // Verify Wampa is on top of player2's deck
                 expect(context.player2.deck[0]).toBe(context.wampa);
@@ -50,8 +50,8 @@ describe('Qui-Gon Jinn, The Negotiations Will Be Short', () => {
                 context.player1.clickCard(context.wampa);
 
                 // Player 2 should be prompted to choose top or bottom of deck
-                expect(context.player2).toHaveExactPromptButtons(['Move Wampa to top of your deck', 'Move Wampa to bottom of your deck']);
-                context.player2.clickPrompt('Move Wampa to bottom of your deck');
+                expect(context.player2).toHaveExactPromptButtons(['Top', 'Bottom']);
+                context.player2.clickPrompt('Bottom');
 
                 // Verify Wampa is on top of player2's deck
                 expect(context.wampa).toBeInBottomOfDeck(context.player2, 1);
@@ -70,8 +70,8 @@ describe('Qui-Gon Jinn, The Negotiations Will Be Short', () => {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 // Player 1 should be prompted to choose top or bottom of deck
-                expect(context.player1).toHaveExactPromptButtons(['Move Battlefield Marine to top of your deck', 'Move Battlefield Marine to bottom of your deck']);
-                context.player1.clickPrompt('Move Battlefield Marine to bottom of your deck');
+                expect(context.player1).toHaveExactPromptButtons(['Top', 'Bottom']);
+                context.player1.clickPrompt('Bottom');
 
                 // Verify Wampa is on top of player2's deck
                 expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 1);
@@ -102,8 +102,8 @@ describe('Qui-Gon Jinn, The Negotiations Will Be Short', () => {
             context.player1.clickCard(context.wampa);
 
             // Player 2 should be prompted to choose top or bottom of deck
-            expect(context.player2).toHaveExactPromptButtons(['Move Wampa to top of your deck', 'Move Wampa to bottom of your deck']);
-            context.player2.clickPrompt('Move Wampa to bottom of your deck');
+            expect(context.player2).toHaveExactPromptButtons(['Top', 'Bottom']);
+            context.player2.clickPrompt('Bottom');
 
             // Verify Wampa is on top of player2's deck
             expect(context.wampa).toBeInBottomOfDeck(context.player2, 1);
@@ -131,8 +131,8 @@ describe('Qui-Gon Jinn, The Negotiations Will Be Short', () => {
             context.player1.clickCard(context.wampa);
 
             // Player 1 should be prompted to choose top or bottom of deck since they are the owner of Wampa
-            expect(context.player1).toHaveExactPromptButtons(['Move Wampa to top of your deck', 'Move Wampa to bottom of your deck']);
-            context.player1.clickPrompt('Move Wampa to bottom of your deck');
+            expect(context.player1).toHaveExactPromptButtons(['Top', 'Bottom']);
+            context.player1.clickPrompt('Bottom');
 
             // Verify Wampa is on bottom of player1's deck
             expect(context.wampa).toBeInBottomOfDeck(context.player1, 1);

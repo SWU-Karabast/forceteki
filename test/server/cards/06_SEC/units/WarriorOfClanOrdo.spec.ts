@@ -76,6 +76,33 @@ describe('Warrior of Clan Ordo', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('Warrior of Clan Ordo\'s ability automatically applies the 2 damage if you cannot disclose the required aspects and triggers Boba', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'boba-fett#any-methods-necessary',
+                    groundArena: ['warrior-of-clan-ordo'],
+                    hand: ['salvage']
+                },
+                player2: {
+                    hand: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.warriorOfClanOrdo);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickPrompt('Deal indirect damage to opponent');
+
+            expect(context.p1Base.damage).toBe(2);
+            expect(context.p2Base.damage).toBe(4);
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('Warrior of Clan Ordo\'s ability automatically applies the 2 damage if you do not have any card in hand', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { Aspect, NamedAction, TargetMode, WildcardCardType } from '../../../core/Constants';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
@@ -34,16 +34,18 @@ export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
                         dependsOn: 'targetUnit',
                         condition: (context) => context.targets.targetUnit.controller.hand.length > 0,
                         choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
+                        activePromptTitle: (context) => `${this.buildCardName(context.targets.targetUnit)} takes 2 [Damage] or [Discard] a card`,
                         choices: (context) => ({
-                            [`${this.buildCardName(context.targets.targetUnit)} takes 2 damage`]: abilityHelper.immediateEffects.damage({
+                            [NamedAction.Damage]: abilityHelper.immediateEffects.damage({
                                 target: context.targets.targetUnit,
                                 amount: 2
                             }),
-                            ['Discard a card']: abilityHelper.immediateEffects.discardCardsFromOwnHand({
+                            [NamedAction.Discard]: abilityHelper.immediateEffects.discardCardsFromOwnHand({
                                 target: context.targets.targetUnit.controller,
                                 amount: 1
                             })
-                        })
+                        }),
+                        highlightCards: (context) => context.targets.targetUnit,
                     }
                 }
             }

@@ -22,8 +22,8 @@ describe('Look the Other Way', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.wampa]);
                 context.player1.clickCard(context.viperProbeDroid);
 
-                expect(context.player2).toHaveEnabledPromptButtons(['Exhaust Viper Probe Droid', 'Pay 2 resources']);
-                context.player2.clickPrompt('Exhaust Viper Probe Droid');
+                expect(context.player2).toHaveEnabledPromptButtons(['Exhaust', 'Pay']);
+                context.player2.clickPrompt('Exhaust');
                 expect(context.viperProbeDroid.exhausted).toBeTrue();
                 expect(context.player2.exhaustedResourceCount).toBe(0);
             });
@@ -35,8 +35,8 @@ describe('Look the Other Way', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.wampa]);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.player1).toHaveEnabledPromptButtons(['Exhaust Wampa', 'Pay 2 resources']);
-                context.player1.clickPrompt('Exhaust Wampa');
+                expect(context.player1).toHaveEnabledPromptButtons(['Exhaust', 'Pay']);
+                context.player1.clickPrompt('Exhaust');
                 expect(context.wampa.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(0);
             });
@@ -48,8 +48,8 @@ describe('Look the Other Way', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.wampa]);
                 context.player1.clickCard(context.viperProbeDroid);
 
-                expect(context.player2).toHaveEnabledPromptButtons(['Exhaust Viper Probe Droid', 'Pay 2 resources']);
-                context.player2.clickPrompt('Pay 2 resources');
+                expect(context.player2).toHaveEnabledPromptButtons(['Exhaust', 'Pay']);
+                context.player2.clickPrompt('Pay');
                 expect(context.viperProbeDroid.exhausted).toBeFalse();
                 expect(context.player2.exhaustedResourceCount).toBe(2);
             });
@@ -61,8 +61,8 @@ describe('Look the Other Way', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.wampa]);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.player1).toHaveEnabledPromptButtons(['Exhaust Wampa', 'Pay 2 resources']);
-                context.player1.clickPrompt('Pay 2 resources');
+                expect(context.player1).toHaveEnabledPromptButtons(['Exhaust', 'Pay']);
+                context.player1.clickPrompt('Pay');
                 expect(context.wampa.exhausted).toBeFalse();
                 expect(context.player1.exhaustedResourceCount).toBe(2);
             });

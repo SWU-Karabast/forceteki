@@ -576,7 +576,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
-            if (this.isFullyBlanked()) {
+            if (this.isFullyBlanked() || this.hasOngoingEffect(EffectName.BlankExceptKeyword)) {
                 return [];
             }
 
@@ -609,7 +609,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override getConstantAbilities(): ConstantAbility[] {
-            if (this.isFullyBlanked()) {
+            if (this.isBlank()) {
                 return [];
             }
 
