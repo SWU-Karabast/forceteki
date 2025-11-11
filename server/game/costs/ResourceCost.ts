@@ -98,10 +98,9 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
 
         this.triggerNextAdjustmentStages(context, costAdjustTriggerResult, abilityCostResult, remainingStages);
 
-        const usedAdjusters: CostAdjuster[] = Array.from(costAdjustTriggerResult.triggeredAdjusters);
         context.game.queueSimpleStep(() => {
             if (!abilityCostResult.cancelled) {
-                events.push(this.getExhaustResourceEvent(context, usedAdjusters));
+                events.push(this.getExhaustResourceEvent(context, costAdjustTriggerResult));
             }
         }, `generate exhaust resources event for ${context.source.internalName}`);
     }
@@ -188,11 +187,12 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         return adjustersByStage;
     }
 
-    protected getExhaustResourceEvent(context: AbilityContext<TCard>, usedAdjusters: CostAdjuster[]): GameEvent {
+    protected getExhaustResourceEvent(context: AbilityContext<TCard>, adjustResult: ICostAdjustTriggerResult): GameEvent {
         return new GameEvent(EventName.OnExhaustResources, context, { amount: this.getAdjustedCost(context) }, (event) => {
-            const amount = this.getAdjustedCost(context);
+            const amount = adjustResult.remainingCost;
             context.costs.resources = amount;
 
+            const usedAdjusters: CostAdjuster[] = Array.from(adjustResult.triggeredAdjusters);
             for (const adjuster of usedAdjusters) {
                 adjuster.markUsed();
                 if (adjuster.isExpired()) {

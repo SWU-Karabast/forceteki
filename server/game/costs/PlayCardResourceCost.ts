@@ -83,6 +83,7 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
         if (penaltyAspects.length > 0) {
             result.penaltyAspects = penaltyAspects;
             result.remainingCost += penaltyAspects.length * 2;
+            result.totalResourceCost += penaltyAspects.length * 2;
         }
 
         return result;
