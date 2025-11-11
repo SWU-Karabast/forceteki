@@ -1,5 +1,8 @@
 describe('Savage Opress, Imbued with Hate', () => {
     integration(function (contextRef) {
+        const useTheForce = 'player1 uses Savage Opress to not take damage by using the Force';
+        const doNotUseTheForce = 'player1 uses Savage Opress to deal 9 damage to their own base';
+
         describe('Savage Opress\' when played ability', () => {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
@@ -24,6 +27,7 @@ describe('Savage Opress, Imbued with Hate', () => {
 
                 expect(context.player1.hasTheForce).toBe(false);
                 expect(context.player1.base.damage).toBe(0);
+                expect(context.getChatLog()).toBe(useTheForce);
             });
 
             it('if player chooses not to use the force, deals 9 damage to their base', () => {
@@ -38,6 +42,7 @@ describe('Savage Opress, Imbued with Hate', () => {
 
                 expect(context.player1.hasTheForce).toBe(true);
                 expect(context.player1.base.damage).toBe(9);
+                expect(context.getChatLog()).toBe(doNotUseTheForce);
             });
 
             it('if player does not have a force token, deals 9 damage to their base', () => {
@@ -50,6 +55,7 @@ describe('Savage Opress, Imbued with Hate', () => {
 
                 // No prompt should appear since the player doesn't have the Force token
                 expect(context.player1.base.damage).toBe(9);
+                expect(context.getChatLog()).toBe(doNotUseTheForce);
             });
         });
 
@@ -83,6 +89,7 @@ describe('Savage Opress, Imbued with Hate', () => {
                 // Ensure the Force was used
                 expect(context.player1.hasTheForce).toBe(false);
                 expect(context.player1.base.damage).toBe(0);
+                expect(context.getChatLog()).toBe(useTheForce);
             });
 
             it('if player chooses not to use the force when defeated, deals 9 damage to their base', () => {
@@ -99,6 +106,7 @@ describe('Savage Opress, Imbued with Hate', () => {
                 // Ensure the Force was not used
                 expect(context.player1.hasTheForce).toBe(true);
                 expect(context.player1.base.damage).toBe(9);
+                expect(context.getChatLog()).toBe(doNotUseTheForce);
             });
 
             it('if player does not have a force token when defeated, deals 9 damage to their base', () => {
@@ -111,6 +119,7 @@ describe('Savage Opress, Imbued with Hate', () => {
 
                 // No prompt should appear since the player doesn't have the Force token
                 expect(context.player1.base.damage).toBe(9);
+                expect(context.getChatLog()).toBe(doNotUseTheForce);
             });
         });
 
@@ -147,6 +156,7 @@ describe('Savage Opress, Imbued with Hate', () => {
                 expect(context.player1.base.damage).toBe(0);
                 expect(context.player2.hasTheForce).toBe(true);
                 expect(context.player2.base.damage).toBe(0);
+                expect(context.getChatLog()).toBe(useTheForce);
             });
 
             it('if player chooses not to use the force when defeated, deals 9 damage to their base', () => {
@@ -165,6 +175,7 @@ describe('Savage Opress, Imbued with Hate', () => {
                 expect(context.player1.base.damage).toBe(9);
                 expect(context.player2.hasTheForce).toBe(true);
                 expect(context.player2.base.damage).toBe(0);
+                expect(context.getChatLog()).toBe(doNotUseTheForce);
             });
 
             it('if player does not have a force token when defeated, deals 9 damage to their base', () => {
@@ -179,6 +190,7 @@ describe('Savage Opress, Imbued with Hate', () => {
                 expect(context.player1.base.damage).toBe(9);
                 expect(context.player2.hasTheForce).toBe(true);
                 expect(context.player2.base.damage).toBe(0);
+                expect(context.getChatLog()).toBe(doNotUseTheForce);
             });
         });
     });
