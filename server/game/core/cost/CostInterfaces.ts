@@ -25,18 +25,22 @@ export interface ICostAdjusterEvaluationTarget {
     opportunityCost?: Map<CostAdjustStage, number>;
 }
 
-export interface ICostAdjustmentProperties {
+export interface IAbilityCostAdjustmentProperties {
     totalResourceCost: number;
-    adjustersToTrigger: Map<CostAdjustStage, CostAdjuster[]>;
+    matchingAdjusters: Map<CostAdjustStage, CostAdjuster[]>;
     penaltyAspects?: Aspect[];
     resourceCostType: ResourceCostType;
 }
 
-export interface ICostAdjustTriggerResult extends ICostAdjustmentProperties {
+export interface ICostAdjustmentResolutionProperties extends IAbilityCostAdjustmentProperties {
     remainingCost: number;
     adjustStage: CostAdjustStage;
 }
 
-export interface ICostAdjustEvaluationResult extends ICostAdjustTriggerResult {
+export interface ICostAdjustTriggerResult extends ICostAdjustmentResolutionProperties {
+    triggeredAdjusters: Set<CostAdjuster>;
+}
+
+export interface ICostAdjustEvaluationResult extends ICostAdjustmentResolutionProperties {
     costAdjusterTargets?: ICostAdjusterEvaluationTargetSet;
 }

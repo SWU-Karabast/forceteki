@@ -2,7 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { AbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter } from '../Constants';
-import { CardType, PlayType, WildcardCardType } from '../Constants';
+import { CardType, PlayType, Stage, WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../../core/utils/Contract';
@@ -13,7 +13,7 @@ import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, undoObject } from '../GameObjectUtils';
 import { ResourceCostType, type ICostAdjustEvaluationResult, type ICostAdjustTriggerResult } from './CostInterfaces';
-import type { CostAdjustStage } from './CostInterfaces';
+import type { CostAdjustStage, ICostAdjustmentResolutionProperties } from './CostInterfaces';
 import * as CostHelpers from './CostHelpers';
 
 export enum CostAdjustType {
@@ -168,13 +168,13 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     }
 
     protected abstract getCostStage(costAdjustType: CostAdjustType): CostAdjustStage;
-    public abstract applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustTriggerResult): void;
+    protected abstract applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustmentResolutionProperties): void;
 
     public isExploit(): this is ExploitCostAdjuster {
         return false;
     }
 
-    protected canAdjust(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult): boolean {
+    protected canAdjust(card: Card, context: AbilityContext, evaluationResult: ICostAdjustmentResolutionProperties): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
         } else if (this.ignoredAspect && !evaluationResult.penaltyAspects?.includes(this.ignoredAspect)) {
@@ -201,14 +201,32 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
             return;
         }
 
-        // this adjuster will be triggered, add it to the list for the current stage
-        evaluationResult.adjustersToTrigger.get(this.costAdjustStage).push(this);
+        // this adjuster is eligible to be triggered, add it to the list for the current stage
+        evaluationResult.matchingAdjusters.get(this.costAdjustStage).push(this);
 
         if (evaluationResult.remainingCost === 0) {
             return;
         }
 
         this.applyMaxAdjustmentAmount(card, context, evaluationResult);
+    }
+
+    public checkApplyCostAdjustment(card: Card, context: AbilityContext, triggerResult: ICostAdjustTriggerResult) {
+        Contract.assertFalse(CostHelpers.isTargetedCostAdjusterStage(this.costAdjustStage), `Targeted cost adjuster stages should not use checkApplyCostAdjustment: '${this.costAdjustStage}'`);
+
+        if (!this.canAdjust(card, context, triggerResult)) {
+            return;
+        }
+
+        // track that this adjuster has been triggered for limit purposes
+        this.checkAddAdjusterToTriggerList(card, triggerResult);
+
+        this.applyMaxAdjustmentAmount(card, context, triggerResult);
+    }
+
+    protected checkAddAdjusterToTriggerList(card: Card, triggerResult: ICostAdjustTriggerResult) {
+        Contract.assertFalse(triggerResult.triggeredAdjusters.has(this), `Cost adjuster has already been triggered for cost adjustment of '${card.internalName}'`);
+        triggerResult.triggeredAdjusters.add(this);
     }
 
     protected subtractCostZeroFloor(currentCost: number, amountToSubtract: number): number {
@@ -222,7 +240,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         const remainingStages = triggerStages.slice(triggerStages.indexOf(adjustResult.adjustStage) + 1);
 
         for (const stage of remainingStages) {
-            const adjustersForStage = adjustResultCopy.adjustersToTrigger.get(stage) || [];
+            const adjustersForStage = adjustResultCopy.matchingAdjusters.get(stage) || [];
             for (const adjuster of adjustersForStage) {
                 adjuster.applyMaxAdjustmentAmount(context.source, context, adjustResultCopy);
 
@@ -235,6 +253,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         return adjustResultCopy.remainingCost;
     }
 
+    // TODO: move this to subclasses
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public queueGenerateEventGameSteps(events: any[], context: AbilityContext, costAdjustTriggerResult: ICostAdjustTriggerResult, result?: ICostResult): void {}
 
@@ -261,7 +280,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         return !this.match || this.match(card, this.source);
     }
 
-    private checkAttachTargetCondition(context: AbilityContext, target?: Card) {
+    private checkAttachTargetCondition(context: AbilityContext) {
         if (!this.attachTargetCondition) {
             return true;
         }
@@ -269,6 +288,11 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         const upgrade = context.source;
         Contract.assertTrue(upgrade.isUpgrade(), `attachTargetCondition can only be used with upgrade cards, attempting to use with '${upgrade.title}'`);
 
+        if (context.stage === Stage.Cost && context.target != null) {
+            return this.attachTargetCondition(context.target, this.source, context);
+        }
+
+        // if we're not yet at the "pay cost" stage, evaluate whether any unit on the field meets the attach condition
         for (const unit of context.game.getArenaUnits()) {
             if (
                 upgrade.canAttach(unit, context, context.player) &&
