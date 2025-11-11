@@ -169,7 +169,8 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
             adjustStage: CostAdjustStage.Standard_0,
             matchingAdjusters: evaluationResult.matchingAdjusters,
             resourceCostType: evaluationResult.resourceCostType,
-            triggeredAdjusters: new Set<CostAdjuster>()
+            triggeredAdjusters: new Set<CostAdjuster>(),
+            penaltyAspects: evaluationResult.penaltyAspects
         };
     }
 
