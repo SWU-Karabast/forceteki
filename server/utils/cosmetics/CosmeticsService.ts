@@ -3,10 +3,10 @@ import { type IRegisteredCosmeticOption, RegisteredCosmeticType } from './Cosmet
 
 export const defaultCosmetics: IRegisteredCosmeticOption[] = [
     {
-        id: 'eabf26d3-a85c-4999-a045-abf143518faf',
+        id: 'eabf26d3-a85c-4999-a045-dcf1eaabe5aa',
         title: 'Default',
         type: RegisteredCosmeticType.Background,
-        path: '/default-background.webp',
+        path: 'https://karabast-data.s3.amazonaws.com/ui/board-background-1.webp',
         darkened: undefined
     },
     {
