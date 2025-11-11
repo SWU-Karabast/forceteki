@@ -19,7 +19,7 @@ export default class SavageOpressImbuedWithHate extends NonLeaderUnitCard {
             },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
-            effect: 'not take damage by using the Force',
+            effect: 'not damage their base by instead using the Force',
             ifYouDoNot: {
                 title: 'Deal 9 damage to your base',
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
