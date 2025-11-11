@@ -23,8 +23,8 @@ describe('I Am Your Father', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.darthVader]); // can target only opponent's units, including leaders
                 context.player1.clickCard(context.darthVader);
 
-                expect(context.player2).toHaveEnabledPromptButtons(['Darth Vader takes 7 damage', 'Opponent draws 3 cards']);
-                context.player2.clickPrompt('Darth Vader takes 7 damage');
+                expect(context.player2).toHaveEnabledPromptButtons(['Damage', 'Draw']);
+                context.player2.clickPrompt('Damage');
                 expect(context.darthVader.damage).toEqual(7);
             });
 
@@ -34,7 +34,7 @@ describe('I Am Your Father', function() {
                 context.player1.clickCard(context.iAmYourFather);
                 context.player1.clickCard(context.darthVader);
 
-                context.player2.clickPrompt('Opponent draws 3 cards');
+                context.player2.clickPrompt('Draw');
                 expect(context.darthVader.damage).toEqual(0);
                 expect(context.player1.hand.length).toEqual(3);
                 expect(context.player2.hand.length).toEqual(0);
