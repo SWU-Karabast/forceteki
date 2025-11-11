@@ -37,7 +37,7 @@ import { requireEnvVars } from '../env';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import { checkServerRoleUserPrivilegesAsync } from '../utils/authUtils';
-import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
+import { CosmeticsService, defaultCosmetics } from '../utils/cosmetics/CosmeticsService';
 import { AdminUsersService } from '../utils/user/AdminUsersService';
 import { ServerRole } from '../services/DynamoDBInterfaces';
 import { randomUUID } from 'crypto';
@@ -1024,8 +1024,21 @@ export class GameServer {
         // Cosmetics API endpoints
         app.get('/api/cosmetics', async (req, res, next) => {
             try {
-                const cosmetics = await this.cosmeticsService.getCosmeticsAsync();
-
+                let cosmetics = defaultCosmetics;
+                if (process.env.ENVIRONMENT === 'development') {
+                    if (process.env.USE_LOCAL_DYNAMODB === 'true') {
+                        cosmetics = await this.cosmeticsService.getCosmeticsAsync();
+                    }
+                    return res.status(200).json({
+                        success: true,
+                        cosmetics,
+                        count: cosmetics.length
+                    });
+                }
+                cosmetics = await this.cosmeticsService.getCosmeticsAsync();
+                if (cosmetics.length === 0) {
+                    cosmetics = defaultCosmetics;
+                }
                 return res.status(200).json({
                     success: true,
                     cosmetics,
