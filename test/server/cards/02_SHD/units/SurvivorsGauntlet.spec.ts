@@ -1,6 +1,6 @@
 describe('Survivors Gauntlet', function() {
     integration(function(contextRef) {
-        describe('Survivors Gauntle\'s ability', function() {
+        describe('Survivors Gauntlet\'s ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -132,13 +132,47 @@ describe('Survivors Gauntlet', function() {
                 context.player2.clickCard(context.wampa);
                 context.player2.passAction();
 
-
                 context.player1.clickCard(context.survivorsGauntlet);
                 // We can't select the Electrostaff because there is no eligible unit to attach it to
                 expect(context.player1).toBeAbleToSelectExactly([context.frozenInCarbonite, context.experience]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Pass');
             });
+        });
+
+        it('Survivors Gauntlet\'s ability should trigger On Attack ability from the upgrade he moves on him during an attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['paige-tico#dropping-the-hammer'],
+                    spaceArena: ['survivors-gauntlet', 'awing']
+                },
+            });
+
+            const { context } = contextRef;
+
+            // play paige tico as pilot
+            context.player1.clickCard(context.paigeTico);
+            context.player1.clickPrompt('Play Paige Tico with Piloting');
+            context.player1.clickCard(context.awing);
+
+            context.player2.passAction();
+
+            // attack with survivors gauntlet
+            context.player1.clickCard(context.survivorsGauntlet);
+            context.player1.clickCard(context.p2Base);
+
+            // move paige tico on him
+            expect(context.player1).toBeAbleToSelectExactly([context.paigeTico]);
+            context.player1.clickCard(context.paigeTico);
+            context.player1.clickCard(context.survivorsGauntlet);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p2Base.damage).toBe(6);
+
+            // should not have experience and damage from paige tico's ability
+            expect(context.survivorsGauntlet.damage).toBe(0);
+            expect(context.survivorsGauntlet).toHaveExactUpgradeNames(['paige-tico#dropping-the-hammer']);
         });
     });
 });
