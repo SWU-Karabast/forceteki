@@ -15,6 +15,9 @@ import { registerState, undoObject } from '../GameObjectUtils';
 import { ResourceCostType, type ICostAdjustEvaluationResult, type ICostAdjustTriggerResult } from './CostInterfaces';
 import type { CostAdjustStage, ICostAdjustmentResolutionProperties } from './CostInterfaces';
 import * as CostHelpers from './CostHelpers';
+import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
+
+// TODO: move all these enums + interfaces to CostInterfaces.ts
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -23,16 +26,8 @@ export enum CostAdjustType {
     IgnoreAllAspects = 'ignoreAllAspects',
     IgnoreSpecificAspects = 'ignoreSpecificAspect',
     ModifyPayStage = 'modifyPayStage',
-    Exploit = 'exploit'
-}
-
-/**
- * Technically there are two stages of the cost step in SWU: calculating and paying.
- * Almost all cost adjustments happen at the calculate stage, but some (like Starhawk) happen at the pay stage.
- */
-export enum CostStage {
-    Calculate = 'calculate',
-    Pay = 'pay'
+    Exploit = 'exploit',
+    ExhaustUnits = 'exhaustUnits'
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
@@ -73,6 +68,12 @@ export interface IForFreeCostAdjusterProperties extends ICostAdjusterPropertiesB
 
 export interface IExploitCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.Exploit;
+    exploitKeywordAmount: number;
+}
+
+export interface IExhaustUnitsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.ExhaustUnits;
+    canExhaustUnitCondition: (card: IUnitCard, context: AbilityContext) => boolean;
 }
 
 export interface IIgnoreAllAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
@@ -99,12 +100,12 @@ export type ICostAdjusterProperties =
   | IForFreeCostAdjusterProperties
   | IIgnoreSpecificAspectsCostAdjusterProperties
   | IModifyPayStageCostAdjusterProperties
-  | IExploitCostAdjusterProperties;
+  | IExploitCostAdjusterProperties
+  | IExhaustUnitsCostAdjusterProperties;
 
 export interface ICanAdjustProperties {
     attachTargets?: Card[];
     penaltyAspect?: Aspect;
-    costStage?: CostStage;
     isAbilityCost?: boolean;
 }
 

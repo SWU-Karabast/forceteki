@@ -283,6 +283,7 @@ export enum EventName {
     OnEffectApplied = 'onEffectApplied',
     OnEntireHandDiscarded = 'onEntireHandDiscarded',
     OnExhaustResources = 'onExhaustResources',
+    OnExhaustUnitsToPayCost = 'onExhaustUnitsToPayCost',
     OnExploitUnits = 'onExploitUnits',
     OnForceUsed = 'onForceUsed',
     OnIndirectDamageDealtToPlayer = 'onIndirectDamageDealtToPlayer',
