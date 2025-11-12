@@ -22,6 +22,8 @@ export class ExhaustUnitsCostAdjuster extends CostAdjuster {
     private readonly exhaustSystem: ExhaustSystem;
     private readonly canExhaustUnitCondition: (card: IUnitCard, context: AbilityContext) => boolean;
 
+    private minimumExhaustCount?: number = null;
+
     public constructor(
         game: Game,
         source: ICardWithCostProperty,
@@ -38,8 +40,9 @@ export class ExhaustUnitsCostAdjuster extends CostAdjuster {
         this.canExhaustUnitCondition = properties.canExhaustUnitCondition;
         this.targetResolver = new CardTargetResolver(
             'exhaustUnitsCostAdjuster', {
-                mode: TargetMode.UpToVariable,
-                numCardsFunc: (context) => this.getMaxExhaustableCount(context),
+                mode: TargetMode.BetweenVariable,
+                minNumCardsFunc: () => this.minimumExhaustCount ?? 1,
+                maxNumCardsFunc: (context) => this.getMaxExhaustableCount(context),
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => card.isUnit() && this.canExhaustUnitCondition(card, context),
                 immediateEffect: this.exhaustSystem,
@@ -64,6 +67,7 @@ export class ExhaustUnitsCostAdjuster extends CostAdjuster {
         costAdjustTriggerResult: ICostAdjustTriggerResult,
         abilityCostResult?: ICostResult
     ) {
+        Contract.assertIsNullLike(this.minimumExhaustCount);
         Contract.assertIsNullLike(this.numExhaustedUnits);
 
         // TODO: move this up to triggered adjuster base class so it always happens
@@ -75,12 +79,14 @@ export class ExhaustUnitsCostAdjuster extends CostAdjuster {
 
         const maxExhaustableCount = this.getMaxExhaustableCount(context);
 
-        // if no exhaustable units, shortcut past exploit prompt
+        // if no exhaustable units, shortcut past exhaust prompt
         if (maxExhaustableCount === 0) {
             this.numExhaustedUnits = 0;
             return;
         }
 
+        const minimumExhaustRequiredToPay = Math.max(0, preAdjustedCost - context.player.readyResourceCount);
+        this.minimumExhaustCount = Math.max(1, minimumExhaustRequiredToPay);
         const canPlayWithoutExhausting = preAdjustedCost <= context.player.readyResourceCount;
 
         // If exhausting units is the only way the player can pay the cost, skip straight to unit selection

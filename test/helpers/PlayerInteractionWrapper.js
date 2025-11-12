@@ -561,6 +561,20 @@ class PlayerInteractionWrapper {
         Util.refreshGameState(this.game);
     }
 
+    setExactReadyResources(number) {
+        const availableResources = this.player.resources.length;
+
+        if (number > availableResources) {
+            throw new TestSetupError(`Cannot set ready resources to ${number} as only ${availableResources} resources are available`);
+        }
+
+        this.player.readyResources(availableResources);
+
+        const resourcesToExhaust = availableResources - number;
+        this.player.exhaustResources(resourcesToExhaust);
+        Util.refreshGameState(this.game);
+    }
+
     hasPrompt(title) {
         var currentPrompt = this.player.currentPrompt();
 
