@@ -15,15 +15,12 @@ import type { MetaActionCost } from '../core/cost/MetaActionCost';
  * any cost adjusters in play that increase or decrease the play cost for the relevant card.
  */
 export abstract class ResourceCost<TCard extends Card = Card> implements ICost<AbilityContext<TCard>> {
-    public readonly resources: number;
+    public readonly resourceCostAmount: number;
 
-    public abstract readonly isPlayCost;
+    public abstract readonly isPlayCost: boolean;
 
-    // used for extending this class if any cards have unique after pay hooks
-    protected afterPayHook?: ((event: any) => void) = null;
-
-    public constructor(resources: number) {
-        this.resources = resources;
+    public constructor(resourceCostAmount: number) {
+        this.resourceCostAmount = resourceCostAmount;
     }
 
     public isResourceCost(): this is ResourceCost {
@@ -38,14 +35,21 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         return 'resourceCost';
     }
 
+    /** Returns true if context.player has enough ready resources to pay the cost, accounting for adjustments */
     public canPay(context: AbilityContext<TCard>): boolean {
-        // get the minimum cost we could possibly pay for this card to see if we have the resources available
-        // (aspect penalty is included in this calculation, if relevant)
         const minCost = this.getAdjustedCost(context);
-
         return context.player.readyResourceCount >= minCost;
     }
 
+    /**
+     * Works through the flow of all cost adjusters and builds up a {@link ICostAdjustEvaluationResult} with information about the adjusters
+     * that will be triggered and the final cost after all adjustments. This will be set as `abilityCostResult.costAdjustments` during resolution
+     * if the cost can be paid.
+     *
+     * The same `abilityCostResult` parameter must be used when calling {@link queueGameStepsForAdjustmentsAndPayment} to pay the cost.
+     *
+     * If the cost cannot be paid, e.g. due to lack of resources, this will set `abilityCostResult.cancelled` to true.
+     */
     public resolve(context: AbilityContext<TCard>, abilityCostResult: ICostResult): void {
         Contract.assertIsNullLike(abilityCostResult.costAdjustments, 'Expected cost adjustment results to be null before resolving ResourceCost');
 
@@ -59,18 +63,19 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         }
     }
 
-    /**
-     * Checks if any Cost Adjusters on the relevant player apply to the passed card/target, and returns the cost if they are used.
-     * Accounts for aspect penalties and any modifiers to those specifically
-     * @param cost
-     * @param context
-     * @param properties Additional parameters for determining cost adjustment
-     */
+    /** Returns the lowest possible cost that could be paid, accounting for all cost adjustments */
     public getAdjustedCost(context: AbilityContext<TCard>): number {
         const evaluationResult = this.resolveCostAdjustments(context);
         return evaluationResult.remainingCost;
     }
 
+    /**
+     * Works through the flow of all cost adjusters and builds up a {@link ICostAdjustEvaluationResult} with information about the adjusters
+     * that will be triggered and the final cost after all adjustments.
+     *
+     * It will flow _backwards_ through the cost adjust stages so that latter stages can add information that earlier stages
+     * can leverage for determining what the most cost-effective adjustments are (mostly relevant for Exploit).
+     */
     protected resolveCostAdjustments(context: AbilityContext<TCard>): ICostAdjustEvaluationResult {
         const adjustersByStage = this.getCostAdjustersByStage(context);
 
@@ -90,7 +95,14 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         return evaluationResult;
     }
 
-    public queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext<TCard>, abilityCostResult: ICostResult) {
+    /**
+     * This method will apply all cost adjustments and pay the cost by exhausting resources. It will queue any necessary game steps.
+     *
+     * At a minimum, it will apply all non-targeted cost adjustments inline and then queue an event window to exhaust the
+     * required resources. If there are any "targeted" adjusters (such as Exploit), it will first apply the standard adjusters,
+     * then queue steps to have the player choose targets before continuing with remaining adjustments and payment.
+     */
+    public queueGameStepsForAdjustmentsAndPayment(events: GameEvent[], context: AbilityContext<TCard>, abilityCostResult: ICostResult) {
         Contract.assertNotNullLike(abilityCostResult.costAdjustments, 'Expected cost adjustment results to be populated before generating ResourceCost events');
 
         const costAdjustTriggerResult = this.initializeTriggerResult(abilityCostResult.costAdjustments);
@@ -105,7 +117,18 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         }, `generate exhaust resources event for ${context.source.internalName}`);
     }
 
-    protected triggerNextAdjustmentStages(context: AbilityContext<TCard>, triggerResult: ICostAdjustTriggerResult, abilityCostResult: ICostResult, remainingStages: CostAdjustStage[]) {
+    /**
+     * Iterates through the remaining cost adjustment stages in `remainingStages`. For each stage:
+     * - If there are non-targeted adjusters at that stage, it will apply them and continue looping
+     * - If there are targeted adjusters at that stage, it will queue steps for the player to choose targets and then
+     * queue a recursive call to this method to continue processing
+     */
+    protected triggerNextAdjustmentStages(
+        context: AbilityContext<TCard>,
+        triggerResult: ICostAdjustTriggerResult,
+        abilityCostResult: ICostResult,
+        remainingStages: CostAdjustStage[]
+    ) {
         if (remainingStages.length === 0 || abilityCostResult.cancelled) {
             return;
         }
@@ -133,6 +156,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         }
     }
 
+    /** Queues the steps for resolving a targeted cost adjuster such as Exploit */
     private queueStepsForTargetedAdjusterStage(
         context: AbilityContext<TCard>,
         triggerResult: ICostAdjustTriggerResult,
@@ -149,19 +173,21 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         context.game.queueSimpleStep(() => context.game.openEventWindow(adjustEvents), 'resolve events for cost adjsuter');
     }
 
+    /** Builds a new {@link ICostAdjustEvaluationResult} for starting a resolve pass */
     protected initializeEvaluationResult(
         _context: AbilityContext<TCard>,
         _costAdjustersByStage: Map<CostAdjustStage, CostAdjuster[]>
     ): ICostAdjustEvaluationResult {
         return {
-            totalResourceCost: this.resources,
-            remainingCost: this.resources,
+            totalResourceCost: this.resourceCostAmount,
+            remainingCost: this.resourceCostAmount,
             adjustStage: CostAdjustStage.Increase_4,
             matchingAdjusters: new Map<CostAdjustStage, CostAdjuster[]>(),
             resourceCostType: this.isPlayCost ? ResourceCostType.PlayCard : ResourceCostType.Ability
         };
     }
 
+    /** Builds a new {@link ICostAdjustTriggerResult} for starting an adjust + payment pass */
     protected initializeTriggerResult(evaluationResult: IAbilityCostAdjustmentProperties): ICostAdjustTriggerResult {
         return {
             totalResourceCost: evaluationResult.totalResourceCost,
@@ -174,6 +200,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         };
     }
 
+    /** Constructs a map of all cost adjusters for a player + ability grouped by their stage */
     protected getCostAdjustersByStage(context: AbilityContext, additionalCostAdjusters: CostAdjuster[] = null): Map<CostAdjustStage, CostAdjuster[]> {
         const allAdjusters = context.player.getCostAdjusters().concat(additionalCostAdjusters ?? []);
 
@@ -188,6 +215,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         return adjustersByStage;
     }
 
+    /** Builds an event to exhaust the remaining resources to pay the cost after adjustments have been applied */
     protected getExhaustResourceEvent(context: AbilityContext<TCard>, adjustResult: ICostAdjustTriggerResult): GameEvent {
         return new GameEvent(EventName.OnExhaustResources, context, { amount: this.getAdjustedCost(context) }, (event) => {
             const amount = adjustResult.remainingCost;
@@ -210,10 +238,6 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
                 }
             }
             event.context.player.exhaustResources(amount, priorityExhaustList);
-
-            if (this.afterPayHook) {
-                this.afterPayHook(event);
-            }
         });
     }
 }
