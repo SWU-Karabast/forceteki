@@ -3,22 +3,35 @@ import type { Card } from '../card/Card';
 import type { Aspect } from '../Constants';
 import type Game from '../Game';
 import * as Contract from '../utils/Contract';
-import type { ICostAdjusterProperties } from './CostAdjuster';
+import type { IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties } from './CostAdjuster';
 import { CostAdjuster, CostAdjustType } from './CostAdjuster';
 import type { ICostAdjustTriggerResult } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
-export type IAspectCostAdjusterProperties = ICostAdjusterProperties & {
-    costAdjustType: CostAdjustType.IgnoreAllAspects | CostAdjustType.IgnoreSpecificAspects;
-};
-
 export class IgnoreAspectCostAdjuster extends CostAdjuster {
+    public readonly ignoredAspect?: Aspect;
+
     public constructor(
         game: Game,
         source: Card,
-        properties: IAspectCostAdjusterProperties
+        properties: IIgnoreAllAspectsCostAdjusterProperties | IIgnoreSpecificAspectsCostAdjusterProperties
     ) {
         super(game, source, properties);
+
+        if (properties.costAdjustType === CostAdjustType.IgnoreSpecificAspects) {
+            if (Array.isArray(properties.ignoredAspect)) {
+                Contract.assertTrue(properties.ignoredAspect.length > 0, 'Ignored Aspect array is empty');
+            }
+            this.ignoredAspect = properties.ignoredAspect;
+        }
+    }
+
+    protected override canAdjust(card: Card, context: AbilityContext, evaluationResult: ICostAdjustTriggerResult): boolean {
+        if (this.ignoredAspect && !evaluationResult.penaltyAspects?.includes(this.ignoredAspect)) {
+            return false;
+        }
+
+        return super.canAdjust(card, context, evaluationResult);
     }
 
     protected override getCostStage(costAdjustType: CostAdjustType): CostAdjustStage {

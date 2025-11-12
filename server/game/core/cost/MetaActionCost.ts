@@ -28,7 +28,7 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
         return true;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: ICostResult): void {
+    public override queueGameStepsForAdjustmentsAndPayment(events: GameEvent[], context: TContext, result: ICostResult): void {
         const properties = this.gameSystem.generatePropertiesFromContext(context);
 
         const additionalProps = {

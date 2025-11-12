@@ -117,7 +117,6 @@ export interface ICostAdjusterState extends IGameObjectBaseState {
 export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     public readonly costAdjustStage: CostAdjustStage;
     public readonly costAdjustType: CostAdjustType;
-    public readonly ignoredAspect: Aspect;
 
     protected readonly limit: AbilityLimit | null;
 
@@ -148,13 +147,6 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
             this.amount = properties.amount || 1;
         }
 
-        if (properties.costAdjustType === CostAdjustType.IgnoreSpecificAspects) {
-            if (Array.isArray(properties.ignoredAspect)) {
-                Contract.assertTrue(properties.ignoredAspect.length > 0, 'Ignored Aspect array is empty');
-            }
-            this.ignoredAspect = properties.ignoredAspect;
-        }
-
         this.match = properties.match;
         this.cardTypeFilter = properties.cardTypeFilter ?? WildcardCardType.Any;
         this.playType = properties.playType ?? null;
@@ -177,8 +169,6 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
 
     protected canAdjust(card: Card, context: AbilityContext, evaluationResult: ICostAdjustmentResolutionProperties): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
-            return false;
-        } else if (this.ignoredAspect && !evaluationResult.penaltyAspects?.includes(this.ignoredAspect)) {
             return false;
         }
 

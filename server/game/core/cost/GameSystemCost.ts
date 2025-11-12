@@ -45,7 +45,7 @@ export class GameSystemCost<TContext extends AbilityContext = AbilityContext> im
         return this.ifPossible || this.gameSystem.hasLegalTarget(context);
     }
 
-    public queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: ICostResult): void {
+    public queueGameStepsForAdjustmentsAndPayment(events: GameEvent[], context: TContext, result: ICostResult): void {
         // if the game system has no target but payment is optional, just return
         if (!this.gameSystem.hasLegalTarget(context) && this.ifPossible) {
             return;

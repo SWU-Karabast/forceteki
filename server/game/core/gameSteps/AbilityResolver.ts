@@ -282,7 +282,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
         }
 
         const costEvents = [];
-        cost.queueGenerateEventGameSteps(costEvents, this.context, this.costResults);
+        cost.queueGameStepsForAdjustmentsAndPayment(costEvents, this.context, this.costResults);
 
         this.game.queueSimpleStep(() => {
             if (this.costResults.cancelled) {
