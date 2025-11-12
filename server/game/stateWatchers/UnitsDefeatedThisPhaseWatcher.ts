@@ -40,20 +40,13 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
         return super.getCurrentValue();
     }
 
-    /** Get the list of the specified player's units that were defeated */
-    public getDefeatedUnitsControlledByPlayer(controller: Player): IUnitCard[] {
-        return this.getCurrentValue()
-            .filter((entry) => entry.controlledBy === controller)
-            .map((entry) => entry.unit);
-    }
-
     /** Get the list of the units that were defeated this phase */
     public someUnitDefeatedThisPhase(filter: (entry: UnwrapRef<DefeatedUnitEntry>) => boolean): boolean {
         return this.getCurrentValue().filter(filter).length > 0;
     }
 
     /** Get the list of the specified player's units that were defeated */
-    public getDefeatedUnitsControlledByPlayerNew(controller: Player): InPlayUnit[] {
+    public getDefeatedUnitsControlledByPlayer(controller: Player): InPlayUnit[] {
         return this.getCurrentValue()
             .filter((entry) => entry.controlledBy === controller)
             .map((entry) => ({ unit: entry.unit, inPlayId: entry.inPlayId }));
