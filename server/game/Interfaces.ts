@@ -28,10 +28,11 @@ import type { IUpgradeCard } from './core/card/CardInterfaces';
 import type { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
 import type { FormatMessage } from './core/chat/GameChat';
 import type { ISnapshotSettingsBase } from './core/snapshot/SnapshotInterfaces';
-import type { Lobby } from '../gamenode/Lobby';
+import type { Lobby, MatchType } from '../gamenode/Lobby';
 import type { DamageSourceType } from './IDamageOrDefeatSource';
 import type { IInPlayCard } from './core/card/baseClasses/InPlayCard';
 import type { IOngoingAllCardsForPlayerEffectProps, OngoingAllCardsForPlayerEffect } from './core/ongoingEffect/OngoingAllCardsForPlayerEffect';
+import type { SwuGameFormat } from '../SwuGameFormat';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -434,6 +435,8 @@ export interface ISerializedReportState {
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;
     viewport?: { width: number; height: number } | null;
+    gameFormat: SwuGameFormat;
+    matchType: MatchType;
 }
 
 export interface ISerializedUndoFailureState {
