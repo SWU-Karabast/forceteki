@@ -31,7 +31,7 @@ export class PlayEventAction extends PlayCardAction {
         context.game.queueStep(abilityResolver);
         context.game.queueSimpleStep(() => {
             // If the ability was cancelled it won't appears in the chat log so we need to log the message here
-            if (abilityResolver.cancelled && abilityResolver.resolutionComplete) {
+            if (abilityResolver.cancelled && abilityResolver.resolutionCommitted) {
                 this.game.addMessage('{0} plays {1}', context.player, context.source);
             }
         }, 'log play event action for cancelled resolutions');
