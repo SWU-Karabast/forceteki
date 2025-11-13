@@ -27,7 +27,7 @@ export default class DedraMeeroNotWastingTime extends LeaderUnitCard {
                     mode: TargetMode.Select,
                     dependsOn: 'targetUnit',
                     choosingPlayer: RelativePlayer.Opponent,
-                    activePromptTitle: (context) => `${context.targets.targetUnit.title} takes 2 [Damage] or Opponent [Draw]s a card`,
+                    activePromptTitle: (context) => `${context.targets.targetUnit.title} takes 2 [Damage] or Opponent [Draws] a card`,
                     choices: (context) => ({
                         [NamedAction.Damage]: abilityHelper.immediateEffects.damage({
                             target: context.targets.targetUnit,
