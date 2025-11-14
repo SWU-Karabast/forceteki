@@ -1,53 +1,59 @@
 describe('Chirrut Îmwe, One with the Force', function() {
     integration(function(contextRef) {
-        it('Chirrut\'s undeployed ability', async function() {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    leader: 'chirrut-imwe#one-with-the-force',
-                    groundArena: ['death-star-stormtrooper'],
-                    resources: 4
-                },
-                player2: {
-                    spaceArena: ['tieln-fighter'],
-                    hand: ['daring-raid']
-                }
+        describe('Chirrut\'s undeployed ability', function() {
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'chirrut-imwe#one-with-the-force',
+                        groundArena: ['death-star-stormtrooper'],
+                        resources: 4
+                    },
+                    player2: {
+                        hand: ['daring-raid'],
+                        spaceArena: ['tieln-fighter'],
+                    }
+                });
             });
 
-            const { context } = contextRef;
+            it('should give +0/+2 to unit for the phase (can die at the end of phase if unit takes more damage than printed hp)', function() {
+                const { context } = contextRef;
 
-            // apply +2/+2 effect to Death Star Stormtrooper
-            context.player1.clickCard(context.chirrutImwe);
-            expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.tielnFighter]);
-            context.player1.clickCard(context.deathStarStormtrooper);
+                // apply +2/+2 effect to Death Star Stormtrooper
+                context.player1.clickCard(context.chirrutImwe);
+                expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.tielnFighter]);
+                context.player1.clickCard(context.deathStarStormtrooper);
 
-            expect(context.deathStarStormtrooper.getPower()).toBe(3);
-            expect(context.deathStarStormtrooper.getHp()).toBe(3);
-            expect(context.tielnFighter.getPower()).toBe(2);
-            expect(context.tielnFighter.getHp()).toBe(1);
-            expect(context.chirrutImwe.exhausted).toBeTrue();
+                expect(context.deathStarStormtrooper.getPower()).toBe(3);
+                expect(context.deathStarStormtrooper.getHp()).toBe(3);
+                expect(context.chirrutImwe.exhausted).toBeTrue();
 
-            // deal 2 damage to stormtrooper so it will be defeated when the effect expires
-            context.player2.clickCard(context.daringRaid);
-            context.player2.clickCard(context.deathStarStormtrooper);
+                // deal 2 damage to stormtrooper so it will be defeated when the effect expires
+                context.player2.clickCard(context.daringRaid);
+                context.player2.clickCard(context.deathStarStormtrooper);
 
-            // give the +2 effect to the TIE/LN Fighter as well
-            context.readyCard(context.chirrutImwe);
-            context.player1.clickCard(context.chirrutImwe);
-            expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.tielnFighter]);
-            context.player1.clickCard(context.tielnFighter);
+                // move to regroup phase, confirm effects have expired
+                context.moveToRegroupPhase();
+                expect(context.deathStarStormtrooper).toBeInZone('discard');
+            });
 
-            expect(context.deathStarStormtrooper.getPower()).toBe(3);
-            expect(context.deathStarStormtrooper.getHp()).toBe(3);
-            expect(context.tielnFighter.getPower()).toBe(2);
-            expect(context.tielnFighter.getHp()).toBe(3);
-            expect(context.chirrutImwe.exhausted).toBeTrue();
+            it('should give +0/+2 to unit for the phase (enemy unit)', function () {
+                const { context } = contextRef;
 
-            // move to regroup phase, confirm effects have expired
-            context.moveToRegroupPhase();
-            expect(context.deathStarStormtrooper).toBeInZone('discard');
-            expect(context.tielnFighter.getPower()).toBe(2);
-            expect(context.tielnFighter.getHp()).toBe(1);
+                // apply +2/+2 effect to Tie/LN Fighter
+                context.player1.clickCard(context.chirrutImwe);
+                expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.tielnFighter]);
+                context.player1.clickCard(context.tielnFighter);
+
+                expect(context.tielnFighter.getPower()).toBe(2);
+                expect(context.tielnFighter.getHp()).toBe(3);
+                expect(context.chirrutImwe.exhausted).toBeTrue();
+
+                // move to regroup phase, confirm effects have expired
+                context.moveToRegroupPhase();
+                expect(context.tielnFighter.getPower()).toBe(2);
+                expect(context.tielnFighter.getHp()).toBe(1);
+            });
         });
 
         describe('Chirrut\'s deployed ability', function() {
@@ -59,8 +65,8 @@ describe('Chirrut Îmwe, One with the Force', function() {
                         leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
                     },
                     player2: {
+                        hand: ['daring-raid'],
                         groundArena: ['mercenary-company'],
-                        hand: ['daring-raid']
                     }
                 });
 
@@ -137,8 +143,36 @@ describe('Chirrut Îmwe, One with the Force', function() {
                 // Chirrut is defeated at the end of the phase
                 context.moveToRegroupPhase();
                 expect(context.chirrutImwe).toBeInZone('base');
+            });
 
-                // TODO: once Luke is implemented, try his effect to send Chirrut max HP below 0 and confirm he still survives
+            it('prevents him from being defeated by HP reduction effects during the action phase (-6-/-6 from luke skywalker)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['takedown'],
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
+                    },
+                    player2: {
+                        hand: ['luke-skywalker#jedi-knight'],
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                context.player2.clickCard(context.lukeSkywalker);
+                context.player2.clickCard(context.chirrutImwe);
+
+                expect(context.chirrutImwe).toBeInZone('groundArena');
+                expect(context.chirrutImwe.getPower()).toBe(0);
+                expect(context.chirrutImwe.getHp()).toBe(0);
+
+                context.moveToRegroupPhase();
+                expect(context.chirrutImwe).toBeInZone('groundArena');
+                expect(context.chirrutImwe.getPower()).toBe(3);
+                expect(context.chirrutImwe.getHp()).toBe(5);
             });
         });
     });
