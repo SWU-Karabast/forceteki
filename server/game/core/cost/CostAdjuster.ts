@@ -7,7 +7,6 @@ import type Game from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
-import type { ICostResult } from './ICost';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
@@ -15,6 +14,7 @@ import { registerState, undoObject } from '../GameObjectUtils';
 import { ResourceCostType, type ICostAdjustEvaluationResult, type ICostAdjustTriggerResult } from './CostInterfaces';
 import type { CostAdjustStage, ICostAdjustmentResolutionProperties } from './CostInterfaces';
 import * as CostHelpers from './CostHelpers';
+import type { TargetedCostAdjuster } from './TargetedCostAdjuster';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 
 // TODO: move all these enums + interfaces to CostInterfaces.ts
@@ -103,6 +103,10 @@ export type ICostAdjusterProperties =
   | IExploitCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties;
 
+export type ITargetedCostAdjusterProperties =
+  | IExploitCostAdjusterProperties
+  | IExhaustUnitsCostAdjusterProperties;
+
 export interface ICanAdjustProperties {
     attachTargets?: Card[];
     penaltyAspect?: Aspect;
@@ -118,7 +122,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     public readonly costAdjustStage: CostAdjustStage;
     public readonly costAdjustType: CostAdjustType;
 
-    protected readonly limit: AbilityLimit | null;
+    protected readonly limit?: AbilityLimit;
 
     private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext, currentAmount?: number) => number);
     private readonly match?: (card: Card, adjusterSource: Card) => boolean;
@@ -141,9 +145,12 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
 
         this.costAdjustStage = this.getCostStage(properties.costAdjustType);
         this.costAdjustType = properties.costAdjustType;
-        if (properties.costAdjustType === CostAdjustType.Increase ||
-          properties.costAdjustType === CostAdjustType.Decrease ||
-          properties.costAdjustType === CostAdjustType.ModifyPayStage) {
+
+        if (
+            properties.costAdjustType === CostAdjustType.Increase ||
+            properties.costAdjustType === CostAdjustType.Decrease ||
+            properties.costAdjustType === CostAdjustType.ModifyPayStage
+        ) {
             this.amount = properties.amount || 1;
         }
 
@@ -164,6 +171,10 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     protected abstract applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustmentResolutionProperties): void;
 
     public isExploit(): this is ExploitCostAdjuster {
+        return false;
+    }
+
+    public isTargeted(): this is TargetedCostAdjuster {
         return false;
     }
 
@@ -244,12 +255,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         return adjustResultCopy.remainingCost;
     }
 
-    // TODO: move this to subclasses
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public queueGenerateEventGameSteps(events: any[], context: AbilityContext, costAdjustTriggerResult: ICostAdjustTriggerResult, result?: ICostResult): void {}
-
-    // protected
-    public getAmount(card: Card, player: Player, context: AbilityContext, currentAmount: number = null): number {
+    protected getAmount(card: Card, player: Player, context: AbilityContext, currentAmount: number = null): number {
         Contract.assertFalse(this.costAdjustType === CostAdjustType.ModifyPayStage && currentAmount === null, 'currentAmount must be provided for ModifyPayStage cost adjusters');
 
         return typeof this.amount === 'function' ? this.amount(card, player, context, currentAmount) : this.amount;

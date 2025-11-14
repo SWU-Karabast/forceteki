@@ -1,4 +1,7 @@
+import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
+import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
 import * as Contract from '../utils/Contract';
+import * as Helpers from '../utils/Helpers';
 import { CostAdjustStage } from './CostInterfaces';
 
 export function getCostAdjustStagesInEvaluationOrder(): CostAdjustStage[] {
@@ -33,4 +36,8 @@ export function isTargetedCostAdjusterStage(stage: CostAdjustStage): boolean {
         default:
             Contract.fail(`Unknown CostAdjustStage value: ${stage}`);
     }
+}
+
+export function getExploitedUnits(playEvent: any): ILastKnownInformation[] {
+    return Helpers.asArray(playEvent.costs[ExploitCostAdjuster.contextPropertyName]?.selectedTargets ?? []);
 }

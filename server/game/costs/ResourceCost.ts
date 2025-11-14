@@ -169,6 +169,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         const adjuster = adjustersForStage[0];
         const adjustEvents = [];
 
+        Contract.assertTrue(adjuster.isTargeted(), `Expected cost adjuster at stage ${CostAdjustStage[currentStage]} to be targeted but it is of type '${adjuster.constructor.name}'`);
         adjuster.queueGenerateEventGameSteps(adjustEvents, context, triggerResult, abilityCostResult);
         context.game.queueSimpleStep(() => context.game.openEventWindow(adjustEvents), 'resolve events for cost adjsuter');
     }
