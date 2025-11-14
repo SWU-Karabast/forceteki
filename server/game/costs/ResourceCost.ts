@@ -3,12 +3,13 @@ import { EventName, PlayType } from '../core/Constants';
 import type { ICost, ICostResult } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
-import type { CostAdjuster } from '../core/cost/CostAdjuster';
+import { CostAdjustResolutionMode, type CostAdjuster } from '../core/cost/CostAdjuster';
 import type { Card } from '../core/card/Card';
-import type { IAbilityCostAdjustmentProperties, ICostAdjustTriggerResult } from '../core/cost/CostInterfaces';
+import type { IAbilityCostAdjustmentProperties, ICostAdjusterEvaluationTargetSet, ICostAdjustTriggerResult } from '../core/cost/CostInterfaces';
 import { CostAdjustStage, ResourceCostType, type ICostAdjustEvaluationResult } from '../core/cost/CostInterfaces';
 import * as CostHelpers from '../core/cost/CostHelpers';
 import type { MetaActionCost } from '../core/cost/MetaActionCost';
+import { AdjustedCostEvaluator, SimpleAdjustedCost } from '../core/cost/AdjustedCostEvaluator';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -56,7 +57,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         const costAdjustmentEvaluation = this.resolveCostAdjustments(context);
 
         const availableResources = context.player.readyResourceCount;
-        if (costAdjustmentEvaluation.remainingCost > availableResources) {
+        if (costAdjustmentEvaluation.adjustedCost.value > availableResources) {
             abilityCostResult.cancelled = true;
         } else {
             abilityCostResult.costAdjustments = costAdjustmentEvaluation;
@@ -66,7 +67,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     /** Returns the lowest possible cost that could be paid, accounting for all cost adjustments */
     public getAdjustedCost(context: AbilityContext<TCard>): number {
         const evaluationResult = this.resolveCostAdjustments(context);
-        return evaluationResult.remainingCost;
+        return evaluationResult.adjustedCost.value;
     }
 
     /**
@@ -176,23 +177,31 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
 
     /** Builds a new {@link ICostAdjustEvaluationResult} for starting a resolve pass */
     protected initializeEvaluationResult(
-        _context: AbilityContext<TCard>,
+        context: AbilityContext<TCard>,
         _costAdjustersByStage: Map<CostAdjustStage, CostAdjuster[]>
     ): ICostAdjustEvaluationResult {
+        const costAdjusterTargets: ICostAdjusterEvaluationTargetSet = {
+            targets: context.player.getArenaUnits().map((unit) => ({ unit })),
+            targetsAreOrdered: false
+        };
+
         return {
+            resolutionMode: CostAdjustResolutionMode.Evaluate,
             totalResourceCost: this.resourceCostAmount,
-            remainingCost: this.resourceCostAmount,
+            adjustedCost: new AdjustedCostEvaluator(this.resourceCostAmount),
             adjustStage: CostAdjustStage.Increase_4,
             matchingAdjusters: new Map<CostAdjustStage, CostAdjuster[]>(),
-            resourceCostType: this.isPlayCost ? ResourceCostType.PlayCard : ResourceCostType.Ability
+            resourceCostType: this.isPlayCost ? ResourceCostType.PlayCard : ResourceCostType.Ability,
+            costAdjusterTargets
         };
     }
 
     /** Builds a new {@link ICostAdjustTriggerResult} for starting an adjust + payment pass */
     protected initializeTriggerResult(evaluationResult: IAbilityCostAdjustmentProperties): ICostAdjustTriggerResult {
         return {
+            resolutionMode: CostAdjustResolutionMode.Trigger,
             totalResourceCost: evaluationResult.totalResourceCost,
-            remainingCost: evaluationResult.totalResourceCost,
+            adjustedCost: new SimpleAdjustedCost(evaluationResult.totalResourceCost),
             adjustStage: CostAdjustStage.Standard_0,
             matchingAdjusters: evaluationResult.matchingAdjusters,
             resourceCostType: evaluationResult.resourceCostType,
@@ -219,7 +228,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     /** Builds an event to exhaust the remaining resources to pay the cost after adjustments have been applied */
     protected getExhaustResourceEvent(context: AbilityContext<TCard>, adjustResult: ICostAdjustTriggerResult): GameEvent {
         return new GameEvent(EventName.OnExhaustResources, context, { amount: this.getAdjustedCost(context) }, (event) => {
-            const amount = adjustResult.remainingCost;
+            const amount = adjustResult.adjustedCost.value;
             context.costs.resources = amount;
 
             const usedAdjusters: CostAdjuster[] = Array.from(adjustResult.triggeredAdjusters);

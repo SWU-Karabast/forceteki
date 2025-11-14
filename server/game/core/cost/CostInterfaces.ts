@@ -1,6 +1,7 @@
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { Aspect } from '../Constants';
-import type { CostAdjuster } from './CostAdjuster';
+import type { AdjustedCostEvaluator, DynamicOpportunityCost, SimpleAdjustedCost } from './AdjustedCostEvaluator';
+import type { CostAdjuster, CostAdjustResolutionMode } from './CostAdjuster';
 
 export enum CostAdjustStage {
     Standard_0 = 'standard_0',
@@ -17,12 +18,14 @@ export enum ResourceCostType {
 
 export interface ICostAdjusterEvaluationTargetSet {
     targets: ICostAdjusterEvaluationTarget[];
+
+    // TODO THIS PR: remove
     targetsAreOrdered: boolean;
 }
 
 export interface ICostAdjusterEvaluationTarget {
     unit: IUnitCard;
-    opportunityCost?: Map<CostAdjustStage, number>;
+    maxOpportunityCost?: Map<CostAdjustStage, number | DynamicOpportunityCost>;
 }
 
 export interface IAbilityCostAdjustmentProperties {
@@ -33,14 +36,21 @@ export interface IAbilityCostAdjustmentProperties {
 }
 
 export interface ICostAdjustmentResolutionProperties extends IAbilityCostAdjustmentProperties {
-    remainingCost: number;
+    adjustedCost: SimpleAdjustedCost;
     adjustStage: CostAdjustStage;
+    costAdjusterTargets?: ICostAdjusterEvaluationTargetSet;
 }
 
 export interface ICostAdjustTriggerResult extends ICostAdjustmentResolutionProperties {
+    resolutionMode: CostAdjustResolutionMode.Trigger;
     triggeredAdjusters: Set<CostAdjuster>;
 }
 
+// TODO THIS PR: remove if no longer needed
+
 export interface ICostAdjustEvaluationResult extends ICostAdjustmentResolutionProperties {
-    costAdjusterTargets?: ICostAdjusterEvaluationTargetSet;
+    resolutionMode: CostAdjustResolutionMode.Evaluate;
+    adjustedCost: AdjustedCostEvaluator;
 }
+
+export type ICostAdjustResult = ICostAdjustTriggerResult | ICostAdjustEvaluationResult;

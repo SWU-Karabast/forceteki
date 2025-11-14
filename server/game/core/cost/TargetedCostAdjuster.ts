@@ -1,5 +1,4 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { CardTargetResolver } from '../ability/abilityTargets/CardTargetResolver';
 import type { Card } from '../card/Card';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
@@ -15,6 +14,7 @@ import type { ITargetedCostAdjusterProperties } from './CostAdjuster';
 import { CostAdjuster } from './CostAdjuster';
 import type { ICostAdjustEvaluationResult, ICostAdjustTriggerResult } from './CostInterfaces';
 import type { ICostResult } from './ICost';
+import { CardTargetResolver } from '../ability/abilityTargets/CardTargetResolver';
 
 export type ITargetedCostAdjusterInitializationProperties = ITargetedCostAdjusterProperties & {
     targetCondition?: (card: IUnitCard, context: AbilityContext) => boolean;
@@ -31,6 +31,11 @@ interface IContextCostProps {
     selectedTargets?: IUnitCard[];
 }
 
+interface IOpportunityCostTarget {
+    unit: IUnitCard;
+    maxOpportunityCost: number;
+}
+
 export abstract class TargetedCostAdjuster extends CostAdjuster {
     private readonly effectSystem: GameSystem<AbilityContext<IUnitCard>>;
     private readonly targetResolver: CardTargetResolver;
@@ -41,6 +46,8 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     protected readonly eventName: EventName;
     protected readonly promptSuffix: string;
     protected readonly useAdjusterButtonText: string;
+
+    protected readonly targetCondition?: (card: IUnitCard, context: AbilityContext) => boolean;
 
     public constructor(
         game: Game,
@@ -70,6 +77,8 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
                 cardCondition: properties.targetCondition
             }
         );
+
+        this.targetCondition = properties.targetCondition;
     }
 
     protected abstract buildEffectSystem(): GameSystem<AbilityContext<IUnitCard>>;
@@ -159,8 +168,40 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
 
     protected override applyMaxAdjustmentAmount(_card: Card, context: AbilityContext, result: ICostAdjustTriggerResult) {
         const adjustAmount = this.getMaxTargetableCount(context) * this.adjustAmountPerTarget;
-        result.remainingCost -= adjustAmount;
+        result.adjustedCost.applyStaticDecrease(adjustAmount);
     }
+
+    // protected override applyMaxAdjustmentAmount(_card: Card, context: AbilityContext, result: ICostAdjustmentResolutionProperties) {
+    //     Contract.assertNotNullLike(result.costAdjusterTargets, 'TargetedCostAdjuster requires costAdjusterTargets to be set in the adjustment result');
+
+    //     const targets = this.getSortedTargets(result, context);
+    //     const numTargets = Math.min(targets.length, this.getMaxTargetableCount(context));
+
+    //     const adjustAmount = 0;
+    //     for (let i = 0; i < numTargets; i++) {
+    //         if (targets[i].maxOpportunityCost)
+    //     }
+
+    //     result.remainingCost -= adjustAmount;
+    // }
+
+    // protected getSortedTargets(result: ICostAdjustmentResolutionProperties, context: AbilityContext): IOpportunityCostTarget[] {
+    //     const targets: IOpportunityCostTarget[] = [];
+
+    //     for (const { unit, maxOpportunityCost } of result.costAdjusterTargets.targets) {
+    //         if (this.targetCondition && !this.targetCondition(unit, context)) {
+    //             continue;
+    //         }
+
+    //         const effectiveOpportunityCost = maxOpportunityCost?.get(this.costAdjustStage) ?? 0;
+
+    //         targets.push({ unit, maxOpportunityCost: effectiveOpportunityCost });
+    //     }
+
+    //     targets.sort((a, b) => a.maxOpportunityCost - b.maxOpportunityCost);
+
+    //     return targets;
+    // }
 
     private triggerAdjustment(
         events: any[],
@@ -174,7 +215,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         // step 2: generate the cost reduction event (which in turn emits the individual events for each targeted unit)
         context.game.queueSimpleStep(() => {
             if (!abilityCostResult.cancelled) {
-                costAdjustTriggerResult.remainingCost -= this.getSelectedUnitsCount(context) * this.adjustAmountPerTarget;
+                costAdjustTriggerResult.adjustedCost.applyStaticDecrease(this.getSelectedUnitsCount(context) * this.adjustAmountPerTarget);
                 events.push(this.buildTargetsEffectEvent(context));
             }
         }, `generate ${this.costPropertyName} event for ${context.source.internalName}`);

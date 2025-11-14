@@ -2,22 +2,24 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
 import * as Contract from '../utils/Contract';
-import type { ICostAdjusterProperties } from './CostAdjuster';
+import { DynamicOpportunityCost } from './AdjustedCostEvaluator';
+import type { IModifyPayStageCostAdjusterProperties } from './CostAdjuster';
+import { CostAdjustResolutionMode } from './CostAdjuster';
 import { CostAdjuster, CostAdjustType } from './CostAdjuster';
-import type { ICostAdjustEvaluationResult } from './CostInterfaces';
+import type { ICostAdjustEvaluationResult, ICostAdjustResult } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
 export class ModifyPayStageCostAdjuster extends CostAdjuster {
+    private readonly payStageAmountAfterDiscount: (currentAmount: number) => number;
+
     public constructor(
         game: Game,
         source: Card,
-        properties: Omit<ICostAdjusterProperties, 'costAdjustType'>
+        properties: IModifyPayStageCostAdjusterProperties
     ) {
-        const propsWithType: ICostAdjusterProperties = {
-            ...properties,
-            costAdjustType: CostAdjustType.ModifyPayStage
-        };
-        super(game, source, propsWithType);
+        super(game, source, properties);
+
+        this.payStageAmountAfterDiscount = properties.payStageAmount;
     }
 
     protected override getCostStage(costAdjustType: CostAdjustType): CostAdjustStage {
@@ -25,8 +27,28 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
         return CostAdjustStage.PayStage_3;
     }
 
-    protected override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustEvaluationResult) {
-        const thisAdjustAmount = this.getAmount(card, context.player, context, result.remainingCost);
-        result.remainingCost = result.remainingCost + thisAdjustAmount;
+    protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustResult) {
+        Contract.assertTrue(result.resolutionMode === CostAdjustResolutionMode.Trigger, `Must only be called at Trigger stage, instead got ${result.resolutionMode}`);
+
+        const amountAfterDiscount = this.payStageAmountAfterDiscount(result.adjustedCost.value);
+        result.adjustedCost.setRemainingToDiscountedValue(amountAfterDiscount);
+    }
+
+
+    public override resolveCostAdjustmentInternal(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult) {
+        const dynamicCost = new DynamicOpportunityCost((remainingCost: number) => this.payStageAmountAfterDiscount(remainingCost));
+        evaluationResult.adjustedCost.applyDynamicOffset(dynamicCost);
+
+        const adjustSourceEntry = evaluationResult.costAdjusterTargets.targets.find(
+            (t) => t.unit === this.source
+        );
+
+        Contract.assertNotNullLike(adjustSourceEntry, `Source card ${this.source.internalName} of ModifyPayStageCostAdjuster not found in costAdjusterTargets`);
+
+        this.setOrAddOpportunityCost(
+            adjustSourceEntry,
+            dynamicCost,
+            CostAdjustStage.PayStage_3,
+        );
     }
 }

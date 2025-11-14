@@ -5,7 +5,7 @@ import type Game from '../Game';
 import * as Contract from '../utils/Contract';
 import type { IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties } from './CostAdjuster';
 import { CostAdjuster, CostAdjustType } from './CostAdjuster';
-import type { ICostAdjustTriggerResult } from './CostInterfaces';
+import type { ICostAdjustmentResolutionProperties, ICostAdjustTriggerResult } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
 export class IgnoreAspectCostAdjuster extends CostAdjuster {
@@ -42,7 +42,7 @@ export class IgnoreAspectCostAdjuster extends CostAdjuster {
         return CostAdjustStage.Standard_0;
     }
 
-    protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustTriggerResult) {
+    protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustmentResolutionProperties) {
         let matchingAspects: Aspect[];
 
         switch (this.costAdjustType) {
@@ -56,6 +56,6 @@ export class IgnoreAspectCostAdjuster extends CostAdjuster {
                 throw new Error(`Unsupported cost adjust type for IgnoreAspectCostAdjuster: ${this.costAdjustType}`);
         }
 
-        result.remainingCost -= matchingAspects.length * 2;
+        result.adjustedCost.applyStaticDecrease(matchingAspects.length * 2);
     }
 }

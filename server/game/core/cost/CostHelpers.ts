@@ -1,4 +1,3 @@
-import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
@@ -39,5 +38,5 @@ export function isTargetedCostAdjusterStage(stage: CostAdjustStage): boolean {
 }
 
 export function getExploitedUnits(playEvent: any): ILastKnownInformation[] {
-    return Helpers.asArray(playEvent.costs[ExploitCostAdjuster.contextPropertyName]?.selectedTargets ?? []);
+    return Helpers.asArray(playEvent.costs['exploit']?.selectedTargets ?? []);
 }

@@ -4,7 +4,7 @@ import type Game from '../Game';
 import * as Contract from '../utils/Contract';
 import type { ICostAdjusterProperties } from './CostAdjuster';
 import { CostAdjuster, CostAdjustType } from './CostAdjuster';
-import type { ICostAdjustTriggerResult } from './CostInterfaces';
+import type { ICostAdjustmentResolutionProperties } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
 export class FreeCostAdjuster extends CostAdjuster {
@@ -25,7 +25,7 @@ export class FreeCostAdjuster extends CostAdjuster {
         return CostAdjustStage.Standard_0;
     }
 
-    protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustTriggerResult) {
-        result.remainingCost = 0;
+    protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustmentResolutionProperties) {
+        result.adjustedCost.setRemainingToDiscountedValue(0);
     }
 }
