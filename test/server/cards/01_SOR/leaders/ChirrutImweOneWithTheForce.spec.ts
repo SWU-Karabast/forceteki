@@ -19,7 +19,7 @@ describe('Chirrut Îmwe, One with the Force', function() {
             it('should give +0/+2 to unit for the phase (can die at the end of phase if unit takes more damage than printed hp)', function() {
                 const { context } = contextRef;
 
-                // apply +2/+2 effect to Death Star Stormtrooper
+                // apply +0/+2 effect to Death Star Stormtrooper
                 context.player1.clickCard(context.chirrutImwe);
                 expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.tielnFighter]);
                 context.player1.clickCard(context.deathStarStormtrooper);
@@ -40,7 +40,7 @@ describe('Chirrut Îmwe, One with the Force', function() {
             it('should give +0/+2 to unit for the phase (enemy unit)', function () {
                 const { context } = contextRef;
 
-                // apply +2/+2 effect to Tie/LN Fighter
+                // apply +0/+2 effect to Tie/LN Fighter
                 context.player1.clickCard(context.chirrutImwe);
                 expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.tielnFighter]);
                 context.player1.clickCard(context.tielnFighter);
