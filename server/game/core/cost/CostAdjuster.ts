@@ -115,6 +115,7 @@ export interface ICanAdjustProperties {
 
 export interface ICostAdjusterState extends IGameObjectBaseState {
     source: GameObjectRef<Card>;
+    isCancelled: boolean;
 }
 
 @registerState()
@@ -133,6 +134,15 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
 
     @undoObject()
     protected accessor source: Card;
+
+    // TODO THIS PR: will the decorators work here?
+    protected get isCancelled(): boolean {
+        return this.state.isCancelled;
+    }
+
+    protected set isCancelled(value: boolean) {
+        this.state.isCancelled = value;
+    }
 
     public constructor(
         game: Game,
@@ -216,7 +226,10 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     public checkApplyCostAdjustment(card: Card, context: AbilityContext, triggerResult: ICostAdjustTriggerResult) {
         Contract.assertFalse(CostHelpers.isTargetedCostAdjusterStage(this.costAdjustStage), `Targeted cost adjuster stages should not use checkApplyCostAdjustment: '${this.costAdjustStage}'`);
 
-        if (!this.canAdjust(card, context, triggerResult)) {
+        if (
+            this.isCancelled ||
+            !this.canAdjust(card, context, triggerResult)
+        ) {
             return;
         }
 
@@ -269,7 +282,8 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         return !!this.limit && this.limit.isAtMax(this.source.controller) && !this.limit.isRepeatable();
     }
 
-    public unregisterEvents(): void {
+    public cancel(): void {
+        this.isCancelled = true;
         this.limit?.unregisterEvents();
     }
 

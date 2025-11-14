@@ -1,5 +1,4 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { PerPlayerPerGameAbilityLimit } from '../ability/AbilityLimit';
 import { CardTargetResolver } from '../ability/abilityTargets/CardTargetResolver';
 import type { Card } from '../card/Card';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
@@ -48,12 +47,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         source: ICardWithCostProperty,
         properties: ITargetedCostAdjusterInitializationProperties
     ) {
-        super(game, source,
-            {
-                ...properties,
-                limit: new PerPlayerPerGameAbilityLimit(game, 1)
-            }
-        );
+        super(game, source, properties);
 
         this.adjustAmountPerTarget = properties.adjustAmountPerTarget;
         this.costPropertyName = properties.costPropertyName;
@@ -104,6 +98,10 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         abilityCostResult?: ICostResult
     ) {
         Contract.assertIsNullLike(context.costs[this.costPropertyName]);
+
+        if (this.isCancelled) {
+            return;
+        }
 
         const costProps: IContextCostProps = {};
         context.costs[this.costPropertyName] = costProps;
