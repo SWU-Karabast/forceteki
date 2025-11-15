@@ -155,17 +155,25 @@ describe('Cost adjuster combinations', function() {
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
                 expect(context.player1).toBeAbleToSelectExactly([context.cloneTrooper, context.battleDroid]);
                 context.player1.clickCard(context.cloneTrooper);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                // unselect battle droid to confirm that target filtering updates correctly
+                context.player1.clickCard(context.battleDroid);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                expect(context.player1).toBeAbleToSelectExactly([context.cloneTrooper, context.separatistCommando, context.battleDroid]);
+                context.player1.clickCard(context.separatistCommando);
                 context.player1.clickPrompt('Done');
 
                 context.player1.clickPrompt('Pay cost by exhausting units');
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
-                expect(context.player1).toBeAbleToSelectExactly([context.separatistCommando]);
-                context.player1.clickCard(context.separatistCommando);
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid]);
+                context.player1.clickCard(context.battleDroid);
                 context.player1.clickPrompt('Done');
 
                 expect(context.player1.readyResourceCount).toBe(0);
                 expect(context.hailfireTank).toBeInZone('groundArena');
-                expect(context.battleDroid).toBeInZone('outsideTheGame');
+                expect(context.separatistCommando).toBeInZone('discard');
+                expect(context.battleDroid.exhausted).toBeTrue();
             });
         });
     });
