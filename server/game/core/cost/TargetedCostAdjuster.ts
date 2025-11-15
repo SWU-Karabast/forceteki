@@ -10,7 +10,7 @@ import type { GameSystem } from '../gameSystem/GameSystem';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
-import type { ITargetedCostAdjusterProperties } from './CostAdjuster';
+import type { ITargetedCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjuster } from './CostAdjuster';
 import type { ICostAdjustEvaluationIntermediateResult, ICostAdjustEvaluationResult, ICostAdjustResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { ICostResult } from './ICost';
@@ -159,13 +159,20 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         });
     }
 
-    protected override applyMaxAdjustmentAmount(_card: Card, context: AbilityContext, result: ICostAdjustResult) {
+    protected override applyMaxAdjustmentAmount(_card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]) {
         const targetResolver = this.buildEvaluationStageTargetResolver();
-        const adjustAmount = this.getNumberOfLegalTargets(targetResolver, context) * this.adjustAmountPerTarget;
+
+        const numRemovedTargets = previousTargetSelections ? this.getNumberOfRemovedTargets(previousTargetSelections) : 0;
+
+        const adjustAmount = (this.getNumberOfLegalTargets(targetResolver, context) - numRemovedTargets) * this.adjustAmountPerTarget;
         result.adjustedCost.applyStaticDecrease(adjustAmount);
     }
 
-    public override resolveCostAdjustmentInternal(_card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
+    protected getNumberOfRemovedTargets(previousTargetSelections: ITriggerStageTargetSelection[]): number {
+        return 0;
+    }
+
+    protected override resolveCostAdjustmentInternal(_card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
         const targetResolver = this.buildEvaluationStageTargetResolver();
 
         const targets = this.getSortedTargets(evaluationResult, context);

@@ -3,6 +3,7 @@ import type { Aspect } from '../Constants';
 import type { AdjustedCostEvaluator, DynamicOpportunityCost, SimpleAdjustedCost } from './AdjustedCostEvaluator';
 import type { CostAdjuster, CostAdjustResolutionMode } from './CostAdjuster';
 
+// TODO THIS PR: reverse exhaust and pay stage order
 export enum CostAdjustStage {
     Standard_0 = 'standard_0',
     Exploit_1 = 'exploit_1',

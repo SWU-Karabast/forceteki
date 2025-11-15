@@ -38,8 +38,7 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
         result.adjustedCost.setRemainingToDiscountedValue(amountAfterDiscount);
     }
 
-
-    public override resolveCostAdjustmentInternal(_card: Card, _context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
+    protected override resolveCostAdjustmentInternal(_card: Card, _context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
         const dynamicCost = new DynamicOpportunityCost((remainingCost: number) => this.payStageAmountAfterDiscount(remainingCost));
         evaluationResult.adjustedCost.applyDynamicOffset(dynamicCost);
 

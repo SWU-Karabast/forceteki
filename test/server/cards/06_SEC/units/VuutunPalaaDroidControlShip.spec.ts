@@ -1,5 +1,7 @@
 describe('Vuutun Palaa, Droid Control Ship', function() {
     integration(function(contextRef) {
+        // TODO THIS PR: test its own cost decrease ability
+
         describe('Vuutun Palaa\'s constant ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
