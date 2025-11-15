@@ -789,7 +789,9 @@ export class Lobby {
                 this.discordDispatcher?.formatAndSendGameStartErrorAsync(
                     'Game failed to start, lobby closed',
                     error,
-                    this.id
+                    this.id,
+                    this.gameFormat,
+                    this.gameType
                 ).catch((e) => {
                     logger.error('Lobby: error sending game start error to discord', { error: { message: e.message, stack: e.stack }, lobbyId: this.id });
                 });
@@ -1006,6 +1008,8 @@ export class Lobby {
                 this.id,
                 player1Id,
                 player2Id,
+                this.gameFormat,
+                this.gameType,
                 this.game.gameStepsSinceLastUndo
             )
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
@@ -1039,6 +1043,8 @@ export class Lobby {
             this.id,
             player1Id,
             player2Id,
+            this.gameFormat,
+            this.gameType,
             this.game.gameStepsSinceLastUndo
         )
             .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
@@ -1420,6 +1426,8 @@ export class Lobby {
                 opponent.socket.user,
                 gameMessages,
                 this.id,
+                this.gameFormat,
+                this.gameType,
                 this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
