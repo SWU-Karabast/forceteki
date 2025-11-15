@@ -1,4 +1,4 @@
-import type { IModerationAction, IUserDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
+import type { IModerationAction, IUserDataEntity, IUserPreferences } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class
@@ -42,12 +42,12 @@ export abstract class User {
     /**
      * Gets the user's preferences
      */
-    public abstract getPreferences(): UserPreferences;
+    public abstract getPreferences(): IUserPreferences;
 
     /**
      * Sets the user's preferences
      */
-    public abstract setPreferences(preferences: UserPreferences): void;
+    public abstract setPreferences(preferences: IUserPreferences): void;
 
     /**
      * Gets the object representation of the user for sending to the client
@@ -101,11 +101,11 @@ export class AuthenticatedUser extends User {
         return this.userData.username;
     }
 
-    public getPreferences(): UserPreferences {
+    public getPreferences(): IUserPreferences {
         return this.userData.preferences;
     }
 
-    public setPreferences(preferences: UserPreferences) {
+    public setPreferences(preferences: IUserPreferences) {
         this.userData.preferences = preferences;
     }
 
@@ -169,11 +169,11 @@ export class AnonymousUser extends User {
         return this.username;
     }
 
-    public getPreferences(): UserPreferences {
+    public getPreferences(): IUserPreferences {
         return null;
     }
 
-    public setPreferences(_preferences: UserPreferences) {
+    public setPreferences(_preferences: IUserPreferences) {
         throw new Error('Anonymous users do not support preferences.');
     }
 

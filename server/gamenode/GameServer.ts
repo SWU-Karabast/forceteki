@@ -36,6 +36,12 @@ import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { requireEnvVars } from '../env';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import { checkServerRoleUserPrivilegesAsync } from '../utils/authUtils';
+import { CosmeticsService, defaultCosmetics } from '../utils/cosmetics/CosmeticsService';
+import { AdminUsersService } from '../utils/user/AdminUsersService';
+import { ServerRole } from '../services/DynamoDBInterfaces';
+import { randomUUID } from 'crypto';
+import { type IRegisteredCosmeticOption, RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -169,6 +175,8 @@ export class GameServer {
 
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
+    public readonly cosmeticsService: CosmeticsService = new CosmeticsService();
+    public readonly adminUsersService: AdminUsersService = new AdminUsersService();
     public readonly swuStatsHandler: SwuStatsHandler;
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
@@ -211,7 +219,10 @@ export class GameServer {
         });
 
         this.setupAppRoutes(app);
-        app.use((err, req, res, next) => {
+        if (process.env.ENVIRONMENT === 'development') {
+            this.setupDevAppRoutes(app);
+        }
+        app.use((err, req, res, _next) => {
             logger.error('GameServer: Error in API route:', err);
             res.status(err.status || 500).json({
                 success: false,
@@ -1007,6 +1018,131 @@ export class GameServer {
             } catch (err) {
                 logger.error('GameServer (all-leaders) Server error: ', err);
                 next(err);
+            }
+        });
+
+        // Cosmetics API endpoints
+        app.get('/api/cosmetics', async (req, res, next) => {
+            try {
+                let cosmetics = defaultCosmetics;
+                if (process.env.ENVIRONMENT === 'development') {
+                    if (process.env.USE_LOCAL_DYNAMODB === 'true') {
+                        cosmetics = await this.cosmeticsService.getCosmeticsAsync();
+                        if (cosmetics.length === 0) {
+                            cosmetics = defaultCosmetics;
+                        }
+                    }
+                    return res.status(200).json({
+                        success: true,
+                        cosmetics,
+                        count: cosmetics.length
+                    });
+                }
+                cosmetics = await this.cosmeticsService.getCosmeticsAsync();
+                if (cosmetics.length === 0) {
+                    cosmetics = defaultCosmetics;
+                }
+                return res.status(200).json({
+                    success: true,
+                    cosmetics,
+                    count: cosmetics.length
+                });
+            } catch (error) {
+                logger.error('GameServer (cosmetics) Server error:', error);
+                next(error);
+            }
+        });
+
+        app.post('/api/cosmetics', authMiddleware('post-cosmetics', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const { cosmetic } = req.body;
+
+                await this.cosmeticsService.saveCosmeticAsync(cosmetic);
+                return res.status(201).json({
+                    success: true,
+                    message: 'Cosmetic saved successfully',
+                    cosmetic
+                });
+            } catch (error) {
+                logger.error('GameServer (save-cosmetic) Server error:', error);
+                next(error);
+            }
+        });
+
+        app.delete('/api/cosmetics/:cosmeticId', authMiddleware('delete-cosmetics-by-id', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const { cosmeticId } = req.params;
+
+                await this.cosmeticsService.deleteCosmeticAsync(cosmeticId);
+                return res.status(200).json({
+                    success: true,
+                    message: 'Cosmetic deleted successfully'
+                });
+            } catch (error) {
+                logger.error('GameServer (delete-cosmetic) Server error:', error);
+                next(error);
+            }
+        });
+
+        // Admin user check endpoint
+        app.get('/api/user-is-admin', authMiddleware('user-is-admin'), async (req, res, next) => {
+            try {
+                return res.json(await checkServerRoleUserPrivilegesAsync(req.path, req.user.getId(), ServerRole.Admin));
+            } catch (error) {
+                logger.error('GameServer (user-is-admin) Server error:', error);
+                next(error);
+            }
+        });
+
+        // Dev user check endpoint
+        app.get('/api/user-is-developer', authMiddleware('user-is-developer'), async (req, res, next) => {
+            try {
+                return res.json(await checkServerRoleUserPrivilegesAsync(req.path, req.user.getId(), ServerRole.Developer));
+            } catch (error) {
+                logger.error('GameServer (user-is-developer) Server error:', error);
+                next(error);
+            }
+        });
+
+        // Mod user check endpoint
+        app.get('/api/user-is-moderator', authMiddleware('user-is-moderator'), async (req, res, next) => {
+            try {
+                return res.json(await checkServerRoleUserPrivilegesAsync(req.path, req.user.getId(), ServerRole.Moderator));
+            } catch (error) {
+                logger.error('GameServer (user-is-moderator) Server error:', error);
+                next(error);
+            }
+        });
+    }
+
+    // dev only endpoints
+    private setupDevAppRoutes(app: express.Application) {
+        // deletes all cosmetics from the database
+        app.delete('/api/cosmetics', authMiddleware(), async (req, res, next) => {
+            try {
+                const result = await this.cosmeticsService.clearAllCosmeticsAsync();
+                return res.status(200).json({
+                    success: true,
+                    deletedCount: result.deletedCount
+                });
+            } catch (error) {
+                logger.error('GameServer (clear-all-cosmetics) Server error:', error);
+                next(error);
+            }
+        });
+
+        // resets cosmetics to the default set from file
+        app.post('/api/cosmetics-reset', authMiddleware(), async (req, res, next) => {
+            try {
+                const result = await this.cosmeticsService.resetCosmeticsAsync(devFallback);
+                return res.status(200).json({
+                    success: true,
+                    message: `Cosmetics reset to defaults (${result.deletedCount.deletedCount} items cleared, ${result.initializedCount.initializedCount} items initialized)`,
+                    deletedCount: result.deletedCount.deletedCount
+                });
+            } catch (error) {
+                logger.error('GameServer (reset-cosmetics) Server error:', error);
+                next(error);
             }
         });
     }
@@ -1819,3 +1955,17 @@ export class GameServer {
     }
 }
 
+const devFallback: IRegisteredCosmeticOption[] = [
+    {
+        id: randomUUID(),
+        title: 'Default',
+        type: RegisteredCosmeticType.Cardback,
+        path: 'https://karabast-data.s3.amazonaws.com/game/swu-cardback.webp'
+    },
+    {
+        id: randomUUID(),
+        title: 'Default',
+        type: RegisteredCosmeticType.Background,
+        path: 'https://karabast-data.s3.amazonaws.com/ui/board-background-1.webp'
+    }
+];
