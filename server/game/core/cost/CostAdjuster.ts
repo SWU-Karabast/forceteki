@@ -12,12 +12,11 @@ import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, undoObject } from '../GameObjectUtils';
 import { ResourceCostType, type ICostAdjustEvaluationResult, type ICostAdjustTriggerResult } from './CostInterfaces';
-import type { ICostAdjusterEvaluationTarget, ICostAdjustmentResolutionProperties, ICostAdjustResult } from './CostInterfaces';
+import type { ICostAdjusterEvaluationTarget, ICostAdjustmentResolutionProperties, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { CostAdjustStage } from './CostInterfaces';
 import * as CostHelpers from './CostHelpers';
 import type { TargetedCostAdjuster } from './TargetedCostAdjuster';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
-import type { DynamicOpportunityCost } from './AdjustedCostEvaluator';
 
 // TODO: move all these enums + interfaces to CostInterfaces.ts
 
@@ -258,37 +257,25 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
 
     protected setOrAddOpportunityCost(
         target: ICostAdjusterEvaluationTarget,
-        opportunityCostAmount: number | DynamicOpportunityCost,
+        additionalOpportunityCost: IEvaluationOpportunityCost,
         stage: CostAdjustStage
     ) {
-        if (typeof opportunityCostAmount === 'number') {
-            Contract.assertPositiveNonZero(opportunityCostAmount, `opportunityCostAmount must be a positive non-zero number, instead got ${opportunityCostAmount}`);
-        }
-
-        let opportunityCostForSource = target.maxOpportunityCost;
+        let opportunityCostForSource = target.opportunityCost;
         if (!opportunityCostForSource) {
-            opportunityCostForSource = new Map<CostAdjustStage, number>();
-            target.maxOpportunityCost = opportunityCostForSource;
+            opportunityCostForSource = new Map<CostAdjustStage, IEvaluationOpportunityCost>();
+            target.opportunityCost = opportunityCostForSource;
         }
 
-        const currentOpportunityCost = opportunityCostForSource.get(stage) || 0;
-
-        if (typeof currentOpportunityCost !== 'number') {
-            Contract.assertTrue(typeof opportunityCostAmount === 'number', 'Cannot add DynamicOpportunityCost to existing DynamicOpportunityCost');
-            currentOpportunityCost.addAlternateDiscount(opportunityCostAmount);
+        const currentOpportunityCost = opportunityCostForSource.get(stage);
+        if (!currentOpportunityCost) {
+            opportunityCostForSource.set(stage, additionalOpportunityCost);
             return;
         }
 
-        if (typeof opportunityCostAmount !== 'number') {
-            if (currentOpportunityCost > 0) {
-                opportunityCostAmount.addAlternateDiscount(currentOpportunityCost);
-            }
-            opportunityCostForSource.set(stage, opportunityCostAmount);
-            return;
-        }
+        Contract.assertIsNullLike(additionalOpportunityCost.dynamic, 'Cannot add DynamicOpportunityCost on top of existing opportunity cost');
+        Contract.assertIsNullLike(currentOpportunityCost.dynamic, 'Cannot add opportunity cost on top of existing dynamic opportunity cost');
 
-        const finalAmount = currentOpportunityCost + opportunityCostAmount;
-        opportunityCostForSource.set(stage, finalAmount);
+        currentOpportunityCost.max += additionalOpportunityCost.max;
     }
 
     protected subtractCostZeroFloor(currentCost: number, amountToSubtract: number): number {

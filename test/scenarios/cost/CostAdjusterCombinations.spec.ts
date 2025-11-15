@@ -1,8 +1,19 @@
 describe('Cost adjuster combinations', function() {
     integration(function (contextRef) {
-        describe('Exploit + Starhawk', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+        describe('Exploit + Starhawk:', function () {
+            // beforeEach(function () {
+            //     return contextRef.setupTestAsync({
+            //         phase: 'action',
+            //         player1: {
+            //             hand: ['hailfire-tank'],
+            //             spaceArena: ['the-starhawk#prototype-battleship'],
+            //             groundArena: ['battle-droid', 'clone-trooper']
+            //         }
+            //     });
+            // });
+
+            it('Starhawk cost adjustment should not trigger at pay time if it is exploited away', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['hailfire-tank'],
@@ -10,9 +21,7 @@ describe('Cost adjuster combinations', function() {
                         groundArena: ['battle-droid', 'clone-trooper']
                     }
                 });
-            });
 
-            it('should not trigger Starhawk cost adjustment if it is Exploited away', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.hailfireTank);
@@ -24,6 +33,22 @@ describe('Cost adjuster combinations', function() {
 
                 expect(context.player1.exhaustedResourceCount).toBe(4);
                 expect(context.hailfireTank).toBeInZone('groundArena');
+            });
+
+            it('opportunity cost for exploiting Starhawk should be calculated correctly (unit cannot be played)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['hailfire-tank'],
+                        spaceArena: ['the-starhawk#prototype-battleship'],
+                        groundArena: ['battle-droid'],
+                        resources: 2
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.player1).not.toBeAbleToSelect(context.hailfireTank);
             });
         });
     });

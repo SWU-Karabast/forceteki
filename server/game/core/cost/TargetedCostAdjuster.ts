@@ -12,7 +12,7 @@ import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import type { ITargetedCostAdjusterProperties } from './CostAdjuster';
 import { CostAdjuster } from './CostAdjuster';
-import type { ICostAdjustEvaluationResult, ICostAdjustTriggerResult } from './CostInterfaces';
+import type { ICostAdjustEvaluationResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 import { CardTargetResolver } from '../ability/abilityTargets/CardTargetResolver';
 
@@ -33,7 +33,7 @@ interface IContextCostProps {
 
 interface IOpportunityCostTarget {
     unit: IUnitCard;
-    maxOpportunityCost: number;
+    opportunityCost: IEvaluationOpportunityCost;
 }
 
 export abstract class TargetedCostAdjuster extends CostAdjuster {
@@ -171,37 +171,43 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         result.adjustedCost.applyStaticDecrease(adjustAmount);
     }
 
-    // protected override applyMaxAdjustmentAmount(_card: Card, context: AbilityContext, result: ICostAdjustmentResolutionProperties) {
-    //     Contract.assertNotNullLike(result.costAdjusterTargets, 'TargetedCostAdjuster requires costAdjusterTargets to be set in the adjustment result');
+    public override resolveCostAdjustmentInternal(_card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult) {
+        const targets = this.getSortedTargets(evaluationResult, context);
+        const numTargets = Math.min(targets.length, this.getMaxTargetableCount(context));
 
-    //     const targets = this.getSortedTargets(result, context);
-    //     const numTargets = Math.min(targets.length, this.getMaxTargetableCount(context));
+        for (let i = 0; i < numTargets; i++) {
+            const opportunityCost = targets[i].opportunityCost;
+            if (opportunityCost.dynamic != null) {
+                opportunityCost.dynamic.addAlternateDiscount(this.adjustAmountPerTarget);
+                continue;
+            }
 
-    //     const adjustAmount = 0;
-    //     for (let i = 0; i < numTargets; i++) {
-    //         if (targets[i].maxOpportunityCost)
-    //     }
+            const fixedOpportunityCost = opportunityCost.max;
+            if (fixedOpportunityCost >= this.adjustAmountPerTarget) {
+                continue;
+            }
 
-    //     result.remainingCost -= adjustAmount;
-    // }
+            evaluationResult.adjustedCost.applyStaticDecrease(this.adjustAmountPerTarget - fixedOpportunityCost);
+        }
+    }
 
-    // protected getSortedTargets(result: ICostAdjustmentResolutionProperties, context: AbilityContext): IOpportunityCostTarget[] {
-    //     const targets: IOpportunityCostTarget[] = [];
+    protected getSortedTargets(result: ICostAdjustEvaluationResult, context: AbilityContext): IOpportunityCostTarget[] {
+        const targets: IOpportunityCostTarget[] = [];
 
-    //     for (const { unit, maxOpportunityCost } of result.costAdjusterTargets.targets) {
-    //         if (this.targetCondition && !this.targetCondition(unit, context)) {
-    //             continue;
-    //         }
+        for (const { unit, opportunityCost: opportunityCostMap } of result.costAdjusterTargets.targets) {
+            if (this.targetCondition && !this.targetCondition(unit, context)) {
+                continue;
+            }
 
-    //         const effectiveOpportunityCost = maxOpportunityCost?.get(this.costAdjustStage) ?? 0;
+            const opportunityCost = opportunityCostMap?.get(this.costAdjustStage) ?? { max: 0 };
 
-    //         targets.push({ unit, maxOpportunityCost: effectiveOpportunityCost });
-    //     }
+            targets.push({ unit, opportunityCost });
+        }
 
-    //     targets.sort((a, b) => a.maxOpportunityCost - b.maxOpportunityCost);
+        targets.sort((a, b) => a.opportunityCost.max - b.opportunityCost.max);
 
-    //     return targets;
-    // }
+        return targets;
+    }
 
     private triggerAdjustment(
         events: any[],

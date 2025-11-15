@@ -16,6 +16,11 @@ export enum ResourceCostType {
     PlayCard = 'playCard'
 }
 
+export interface IEvaluationOpportunityCost {
+    max: number;
+    dynamic?: DynamicOpportunityCost;
+}
+
 export interface ICostAdjusterEvaluationTargetSet {
     targets: ICostAdjusterEvaluationTarget[];
 
@@ -25,7 +30,7 @@ export interface ICostAdjusterEvaluationTargetSet {
 
 export interface ICostAdjusterEvaluationTarget {
     unit: IUnitCard;
-    maxOpportunityCost?: Map<CostAdjustStage, number | DynamicOpportunityCost>;
+    opportunityCost?: Map<CostAdjustStage, IEvaluationOpportunityCost>;
 }
 
 export interface IAbilityCostAdjustmentProperties {
@@ -38,7 +43,6 @@ export interface IAbilityCostAdjustmentProperties {
 export interface ICostAdjustmentResolutionProperties extends IAbilityCostAdjustmentProperties {
     adjustedCost: SimpleAdjustedCost;
     adjustStage: CostAdjustStage;
-    costAdjusterTargets?: ICostAdjusterEvaluationTargetSet;
 }
 
 export interface ICostAdjustTriggerResult extends ICostAdjustmentResolutionProperties {
@@ -51,6 +55,7 @@ export interface ICostAdjustTriggerResult extends ICostAdjustmentResolutionPrope
 export interface ICostAdjustEvaluationResult extends ICostAdjustmentResolutionProperties {
     resolutionMode: CostAdjustResolutionMode.Evaluate;
     adjustedCost: AdjustedCostEvaluator;
+    costAdjusterTargets: ICostAdjusterEvaluationTargetSet;
 }
 
 export type ICostAdjustResult = ICostAdjustTriggerResult | ICostAdjustEvaluationResult;
