@@ -6,7 +6,7 @@ import * as Contract from '../core/utils/Contract.js';
 import { CostAdjustResolutionMode, type CostAdjuster } from '../core/cost/CostAdjuster';
 import type { Card } from '../core/card/Card';
 import type { IAbilityCostAdjustmentProperties, ICostAdjusterEvaluationTargetSet, ICostAdjustTriggerResult } from '../core/cost/CostInterfaces';
-import { CostAdjustStage, ResourceCostType, type ICostAdjustEvaluationResult } from '../core/cost/CostInterfaces';
+import { CostAdjustStage, ResourceCostType, type ICostAdjustEvaluationIntermediateResult } from '../core/cost/CostInterfaces';
 import * as CostHelpers from '../core/cost/CostHelpers';
 import type { MetaActionCost } from '../core/cost/MetaActionCost';
 import { AdjustedCostEvaluator, SimpleAdjustedCost } from '../core/cost/AdjustedCostEvaluator';
@@ -43,7 +43,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     }
 
     /**
-     * Works through the flow of all cost adjusters and builds up a {@link ICostAdjustEvaluationResult} with information about the adjusters
+     * Works through the flow of all cost adjusters and builds up a {@link ICostAdjustEvaluationIntermediateResult} with information about the adjusters
      * that will be triggered and the final cost after all adjustments. This will be set as `abilityCostResult.costAdjustments` during resolution
      * if the cost can be paid.
      *
@@ -71,16 +71,16 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     }
 
     /**
-     * Works through the flow of all cost adjusters and builds up a {@link ICostAdjustEvaluationResult} with information about the adjusters
+     * Works through the flow of all cost adjusters and builds up a {@link ICostAdjustEvaluationIntermediateResult} with information about the adjusters
      * that will be triggered and the final cost after all adjustments.
      *
      * It will flow _backwards_ through the cost adjust stages so that latter stages can add information that earlier stages
      * can leverage for determining what the most cost-effective adjustments are (mostly relevant for Exploit).
      */
-    protected resolveCostAdjustments(context: AbilityContext<TCard>): ICostAdjustEvaluationResult {
+    protected resolveCostAdjustments(context: AbilityContext<TCard>): ICostAdjustEvaluationIntermediateResult {
         const adjustersByStage = this.getCostAdjustersByStage(context);
 
-        const evaluationResult: ICostAdjustEvaluationResult = this.initializeEvaluationResult(context, adjustersByStage);
+        const evaluationResult: ICostAdjustEvaluationIntermediateResult = this.initializeEvaluationResult(context, adjustersByStage);
 
         for (const stage of CostHelpers.getCostAdjustStagesInEvaluationOrder()) {
             evaluationResult.adjustStage = stage;
@@ -175,11 +175,11 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         context.game.queueSimpleStep(() => context.game.openEventWindow(adjustEvents), 'resolve events for cost adjsuter');
     }
 
-    /** Builds a new {@link ICostAdjustEvaluationResult} for starting a resolve pass */
+    /** Builds a new {@link ICostAdjustEvaluationIntermediateResult} for starting a resolve pass */
     protected initializeEvaluationResult(
         context: AbilityContext<TCard>,
         _costAdjustersByStage: Map<CostAdjustStage, CostAdjuster[]>
-    ): ICostAdjustEvaluationResult {
+    ): ICostAdjustEvaluationIntermediateResult {
         const costAdjusterTargets: ICostAdjusterEvaluationTargetSet = {
             targets: context.player.getArenaUnits().map((unit) => ({ unit })),
             targetsAreOrdered: false

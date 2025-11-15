@@ -36,8 +36,8 @@ export interface ICostAdjusterEvaluationTarget {
 export interface IAbilityCostAdjustmentProperties {
     totalResourceCost: number;
     matchingAdjusters: Map<CostAdjustStage, CostAdjuster[]>;
-    penaltyAspects?: Aspect[];
     resourceCostType: ResourceCostType;
+    penaltyAspects?: Aspect[];
 }
 
 export interface ICostAdjustmentResolutionProperties extends IAbilityCostAdjustmentProperties {
@@ -50,12 +50,14 @@ export interface ICostAdjustTriggerResult extends ICostAdjustmentResolutionPrope
     triggeredAdjusters: Set<CostAdjuster>;
 }
 
-// TODO THIS PR: remove if no longer needed
-
 export interface ICostAdjustEvaluationResult extends ICostAdjustmentResolutionProperties {
+    costAdjusterTargets: ICostAdjusterEvaluationTargetSet;
+}
+
+export interface ICostAdjustEvaluationIntermediateResult extends ICostAdjustmentResolutionProperties {
     resolutionMode: CostAdjustResolutionMode.Evaluate;
     adjustedCost: AdjustedCostEvaluator;
     costAdjusterTargets: ICostAdjusterEvaluationTargetSet;
 }
 
-export type ICostAdjustResult = ICostAdjustTriggerResult | ICostAdjustEvaluationResult;
+export type ICostAdjustResult = ICostAdjustTriggerResult | ICostAdjustEvaluationIntermediateResult;

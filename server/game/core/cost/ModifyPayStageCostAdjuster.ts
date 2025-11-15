@@ -6,7 +6,7 @@ import { DynamicOpportunityCost } from './AdjustedCostEvaluator';
 import type { IModifyPayStageCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjustResolutionMode } from './CostAdjuster';
 import { CostAdjuster, CostAdjustType } from './CostAdjuster';
-import type { ICostAdjustEvaluationResult, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
+import type { ICostAdjustEvaluationIntermediateResult, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
 export class ModifyPayStageCostAdjuster extends CostAdjuster {
@@ -39,7 +39,7 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
     }
 
 
-    public override resolveCostAdjustmentInternal(_card: Card, _context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult) {
+    public override resolveCostAdjustmentInternal(_card: Card, _context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
         const dynamicCost = new DynamicOpportunityCost((remainingCost: number) => this.payStageAmountAfterDiscount(remainingCost));
         evaluationResult.adjustedCost.applyDynamicOffset(dynamicCost);
 

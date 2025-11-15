@@ -12,7 +12,7 @@ import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import type { ITargetedCostAdjusterProperties } from './CostAdjuster';
 import { CostAdjuster } from './CostAdjuster';
-import type { ICostAdjustEvaluationResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
+import type { ICostAdjustEvaluationIntermediateResult, ICostAdjustEvaluationResult, ICostAdjustResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 
 export type ITargetedCostAdjusterInitializationProperties = ITargetedCostAdjusterProperties & {
@@ -23,6 +23,7 @@ export type ITargetedCostAdjusterInitializationProperties = ITargetedCostAdjuste
     adjustAmountPerTarget: number;
     eventName: EventName;
     promptSuffix: string;
+    maxTargetCount?: number;
 };
 
 interface IContextCostProps {
@@ -42,6 +43,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     protected readonly costPropertyName: string;
     protected readonly doNotUseAdjusterButtonText: string;
     protected readonly eventName: EventName;
+    protected readonly maxTargetCount?: number;
     protected readonly promptSuffix: string;
     protected readonly useAdjusterButtonText: string;
 
@@ -60,6 +62,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         this.doNotUseAdjusterButtonText = properties.doNotUseAdjusterButtonText;
         this.eventName = properties.eventName;
         this.promptSuffix = properties.promptSuffix;
+        this.maxTargetCount = properties.maxTargetCount;
 
         this.effectSystem = this.buildEffectSystem();
 
@@ -72,9 +75,11 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         return true;
     }
 
-    protected override canAdjust(card: Card, context: AbilityContext<ICardWithCostProperty>, evaluationResult: ICostAdjustEvaluationResult) {
+    protected override canAdjust(card: Card, context: AbilityContext<ICardWithCostProperty>, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
+        const targetResolver = this.buildEvaluationStageTargetResolver();
+
         // check available legal targets
-        if (!this.targetResolver.hasLegalTarget(context)) {
+        if (!targetResolver.hasLegalTarget(context)) {
             return false;
         }
 
@@ -82,7 +87,8 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     }
 
     public override getAmount(card: Card, player: Player, context: AbilityContext, currentAmount: number = null): number {
-        return this.getMaxTargetableCount(context) * this.adjustAmountPerTarget;
+        const targetResolver = this.buildEvaluationStageTargetResolver();
+        return this.getNumberOfLegalTargets(targetResolver, context) * this.adjustAmountPerTarget;
     }
 
     public queueGenerateEventGameSteps(
@@ -102,10 +108,12 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
 
         this.checkAddAdjusterToTriggerList(context.source, costAdjustTriggerResult);
 
+        const targetResolver = this.buildTriggerStageTargetResolver(abilityCostResult.costAdjustments, costAdjustTriggerResult, context);
+
         // calculate available downstream adjustments so we can determine how many targets we are required to select
         const preAdjustedCost = this.getMinimumPossibleRemainingCost(context, costAdjustTriggerResult);
 
-        const maxTargetableUnitsCount = this.getMaxTargetableCount(context);
+        const maxTargetableUnitsCount = this.getNumberOfLegalTargets(targetResolver, context);
         const minimumTargetsRequiredToPay = Math.max(0, Math.ceil((preAdjustedCost - context.player.readyResourceCount) / this.adjustAmountPerTarget));
         costProps.minimumTargets = Math.max(1, minimumTargetsRequiredToPay);
 
@@ -122,13 +130,13 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         // TODO: once we have a real cancel flow, enable cancel here in the case of a card being played via another card's ability
         // if using the adjuster is the only option that would be shown, just go directly to target selection
         if (!abilityCostResult.canCancel && !canPlayWithoutAdjuster) {
-            this.triggerAdjustment(events, context, costAdjustTriggerResult, abilityCostResult);
+            this.triggerAdjustment(events, context, costAdjustTriggerResult, abilityCostResult, targetResolver);
             return;
         }
 
         const choices = [this.useAdjusterButtonText];
         const handlers = [
-            () => this.triggerAdjustment(events, context, costAdjustTriggerResult, abilityCostResult)
+            () => this.triggerAdjustment(events, context, costAdjustTriggerResult, abilityCostResult, targetResolver)
         ];
 
         if (abilityCostResult.canCancel) {
@@ -151,14 +159,17 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         });
     }
 
-    protected override applyMaxAdjustmentAmount(_card: Card, context: AbilityContext, result: ICostAdjustTriggerResult) {
-        const adjustAmount = this.getMaxTargetableCount(context) * this.adjustAmountPerTarget;
+    protected override applyMaxAdjustmentAmount(_card: Card, context: AbilityContext, result: ICostAdjustResult) {
+        const targetResolver = this.buildEvaluationStageTargetResolver();
+        const adjustAmount = this.getNumberOfLegalTargets(targetResolver, context) * this.adjustAmountPerTarget;
         result.adjustedCost.applyStaticDecrease(adjustAmount);
     }
 
-    public override resolveCostAdjustmentInternal(_card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult) {
+    public override resolveCostAdjustmentInternal(_card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
+        const targetResolver = this.buildEvaluationStageTargetResolver();
+
         const targets = this.getSortedTargets(evaluationResult, context);
-        const numTargets = Math.min(targets.length, this.getMaxTargetableCount(context));
+        const numTargets = Math.min(targets.length, this.getNumberOfLegalTargets(targetResolver, context));
 
         for (let i = 0; i < numTargets; i++) {
             const opportunityCost = targets[i].opportunityCost;
@@ -198,22 +209,21 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         card: Card,
         selectedCards: Card[],
         context: AbilityContext,
-        maxTargetable: number,
         selectableCardsSorted: Card[],
-        costResult: ICostAdjustTriggerResult
+        costResult: ICostAdjustTriggerResult,
+        maxTargetable?: number,
     ): boolean {
-        const numSelected = selectedCards.length;
-
-        const currentDiscountAmount = numSelected * this.adjustAmountPerTarget;
-        const remainingCostToPay = Math.max(0, costResult.adjustedCost.value - currentDiscountAmount);
-
-        if (remainingCostToPay === 0) {
+        const availableResources = context.player.readyResourceCount;
+        const currentAdjustedCost = costResult.adjustedCost.value;
+        if (this.canPayWithTargetSet(selectedCards.length, availableResources, currentAdjustedCost)) {
             return true;
         }
 
+        const maxTargetableConcrete = maxTargetable ?? selectableCardsSorted.length;
+
         const potentialTargetSet = selectedCards.map((card) => ({ card, stage: this.costAdjustStage }));
         const availableCards = [card, ...selectableCardsSorted];
-        while (potentialTargetSet.length < maxTargetable) {
+        while (potentialTargetSet.length < maxTargetableConcrete) {
             let nextCard: Card;
             do {
                 nextCard = availableCards.shift();
@@ -225,7 +235,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             const minimumPossibleRemainingCost =
                 this.getMinimumPossibleRemainingCost(context, costResult, potentialTargetSet);
 
-            if (minimumPossibleRemainingCost <= context.player.readyResourceCount) {
+            if (this.canPayWithTargetSet(potentialTargetSet.length, availableResources, minimumPossibleRemainingCost)) {
                 return true;
             }
         }
@@ -233,14 +243,22 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         return false;
     }
 
+    private canPayWithTargetSet(numTargets: number, availableResources: number, currentAdjustedCost: number): boolean {
+        const currentDiscountAmount = numTargets * this.adjustAmountPerTarget;
+        const remainingCostToPay = Math.max(0, currentAdjustedCost - currentDiscountAmount);
+
+        return remainingCostToPay <= availableResources;
+    }
+
     private triggerAdjustment(
         events: any[],
         context: AbilityContext,
         costAdjustTriggerResult: ICostAdjustTriggerResult,
-        abilityCostResult: ICostResult
+        abilityCostResult: ICostResult,
+        targetResolver: CardTargetResolver
     ) {
         // step 1: ask player to choose targets
-        this.targetResolver.resolve(context, abilityCostResult);
+        targetResolver.resolve(context, abilityCostResult);
 
         // step 2: generate the cost reduction event (which in turn emits the individual events for each targeted unit)
         context.game.queueSimpleStep(() => {
@@ -298,37 +316,61 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         return fullCostAdjustEffectEvent;
     }
 
-    private buildTargetResolver(evaluationResult: ICostAdjustEvaluationResult, context: AbilityContext): CardTargetResolver {
+    private buildEvaluationStageTargetResolver(): CardTargetResolver {
+        return this.buildTargetResolverCommon();
+    }
+
+    private buildTriggerStageTargetResolver(
+        evaluationResult: ICostAdjustEvaluationResult,
+        triggerResult: ICostAdjustTriggerResult,
+        context: AbilityContext
+    ): CardTargetResolver {
         const sortedTargets =
             this.getSortedTargets(evaluationResult, context)
                 .map((t) => t.unit);
+
+        const multiSelectCardCondition = (card: Card, selectedCards: Card[], context?: AbilityContext) =>
+            this.evaluateTargetable(
+                card,
+                selectedCards,
+                context,
+                sortedTargets,
+                triggerResult,
+                this.maxTargetCount,
+            );
+
+        return this.buildTargetResolverCommon(multiSelectCardCondition);
+    }
+
+    private buildTargetResolverCommon(
+        multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: AbilityContext) => boolean
+    ): CardTargetResolver {
+        const maxNumCardsFunc = this.maxTargetCount
+            ? () => this.maxTargetCount
+            : null;
 
         return new CardTargetResolver(
             this.costPropertyName, {
                 mode: TargetMode.BetweenVariable,
                 minNumCardsFunc: (context) => context.costs[this.costPropertyName]?.minimumTargets ?? 1,
-                maxNumCardsFunc: (context) => this.getMaxTargetableCount(context),
+                maxNumCardsFunc,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: this.effectSystem,
                 controller: RelativePlayer.Self,
                 appendToDefaultTitle: this.promptSuffix,
-                cardCondition: (card: Card, context: AbilityContext) => this.targetCondition(card, context),
-                multiSelectCardCondition: (card: Card, selectedCards: Card[], context?: AbilityContext) =>
-                    this.evaluateTargetable(
-                        card,
-                        selectedCards,
-                        context,
-                        this.getMaxTargetableCount(context),
-                        sortedTargets,
-                        context.costs[this.costPropertyName]
-                    )
+                cardCondition: this.targetCondition,
+                multiSelectCardCondition
             }
         );
     }
 
     // by default, can choose as many targets as meet the condition
-    protected getMaxTargetableCount(context: AbilityContext) {
-        return this.targetResolver.getAllLegalTargets(context).length;
+    protected getNumberOfLegalTargets(targetResolver: CardTargetResolver, context: AbilityContext) {
+        const availableTargetsCount = targetResolver.getAllLegalTargets(context).length;
+
+        return this.maxTargetCount == null
+            ? availableTargetsCount
+            : Math.min(this.maxTargetCount, availableTargetsCount);
     }
 
     private getSelectedUnitsCount(context: AbilityContext): number {

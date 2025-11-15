@@ -11,7 +11,7 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, undoObject } from '../GameObjectUtils';
-import { ResourceCostType, type ICostAdjustEvaluationResult, type ICostAdjustTriggerResult } from './CostInterfaces';
+import { ResourceCostType, type ICostAdjustEvaluationIntermediateResult, type ICostAdjustTriggerResult } from './CostInterfaces';
 import type { ICostAdjusterEvaluationTarget, ICostAdjustmentResolutionProperties, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { CostAdjustStage } from './CostInterfaces';
 import * as CostHelpers from './CostHelpers';
@@ -221,7 +221,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
           this.checkAttachTargetCondition(context);
     }
 
-    public resolveCostAdjustment(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult) {
+    public resolveCostAdjustment(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
         if (!this.canAdjust(card, context, evaluationResult)) {
             return;
         }
@@ -252,7 +252,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         this.applyMaxAdjustmentAmount(card, context, triggerResult);
     }
 
-    protected resolveCostAdjustmentInternal(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationResult) {
+    protected resolveCostAdjustmentInternal(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
         this.applyMaxAdjustmentAmount(card, context, evaluationResult);
     }
 

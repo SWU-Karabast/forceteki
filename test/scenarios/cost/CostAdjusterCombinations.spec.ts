@@ -67,8 +67,16 @@ describe('Cost adjuster combinations', function() {
                 expect(context.player1).toBeAbleToSelect(context.hailfireTank);
                 context.player1.clickCard(context.hailfireTank);
 
+                context.player1.clickPrompt('Trigger Exploit');
                 expect(context.player1).toBeAbleToSelectExactly([context.battleDroid]);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCard(context.battleDroid);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.hailfireTank).toBeInZone('groundArena');
+                expect(context.battleDroid).toBeInZone('outsideTheGame');
             });
         });
     });
