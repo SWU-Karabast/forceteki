@@ -50,6 +50,26 @@ describe('Cost adjuster combinations', function() {
 
                 expect(context.player1).not.toBeAbleToSelect(context.hailfireTank);
             });
+
+            it('optimal play cost should be computed correctly and triggered', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['hailfire-tank'],
+                        spaceArena: ['the-starhawk#prototype-battleship'],
+                        groundArena: ['battle-droid'],
+                        resources: 3
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.player1).toBeAbleToSelect(context.hailfireTank);
+                context.player1.clickCard(context.hailfireTank);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+            });
         });
     });
 });

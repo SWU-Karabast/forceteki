@@ -1,9 +1,9 @@
 import type { AbilityContext } from '../ability/AbilityContext';
+import { CardTargetResolver } from '../ability/abilityTargets/CardTargetResolver';
 import type { Card } from '../card/Card';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
-import type { EventName } from '../Constants';
-import { RelativePlayer, TargetMode, WildcardCardType } from '../Constants';
+import { RelativePlayer, TargetMode, WildcardCardType, type EventName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type Game from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
@@ -14,7 +14,6 @@ import type { ITargetedCostAdjusterProperties } from './CostAdjuster';
 import { CostAdjuster } from './CostAdjuster';
 import type { ICostAdjustEvaluationResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { ICostResult } from './ICost';
-import { CardTargetResolver } from '../ability/abilityTargets/CardTargetResolver';
 
 export type ITargetedCostAdjusterInitializationProperties = ITargetedCostAdjusterProperties & {
     targetCondition?: (card: IUnitCard, context: AbilityContext) => boolean;
@@ -38,7 +37,6 @@ interface IOpportunityCostTarget {
 
 export abstract class TargetedCostAdjuster extends CostAdjuster {
     private readonly effectSystem: GameSystem<AbilityContext<IUnitCard>>;
-    private readonly targetResolver: CardTargetResolver;
 
     protected readonly adjustAmountPerTarget: number;
     protected readonly costPropertyName: string;
@@ -47,7 +45,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     protected readonly promptSuffix: string;
     protected readonly useAdjusterButtonText: string;
 
-    protected readonly targetCondition?: (card: IUnitCard, context: AbilityContext) => boolean;
+    protected readonly targetCondition?: (card: Card, context: AbilityContext) => boolean;
 
     public constructor(
         game: Game,
@@ -64,19 +62,6 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         this.promptSuffix = properties.promptSuffix;
 
         this.effectSystem = this.buildEffectSystem();
-
-        this.targetResolver = new CardTargetResolver(
-            this.costPropertyName, {
-                mode: TargetMode.BetweenVariable,
-                minNumCardsFunc: (context) => context.costs[this.costPropertyName]?.minimumTargets ?? 1,
-                maxNumCardsFunc: (context) => this.getMaxTargetableCount(context),
-                cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: this.effectSystem,
-                controller: RelativePlayer.Self,
-                appendToDefaultTitle: this.promptSuffix,
-                cardCondition: properties.targetCondition
-            }
-        );
 
         this.targetCondition = properties.targetCondition;
     }
@@ -209,6 +194,45 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         return targets;
     }
 
+    private evaluateTargetable(
+        card: Card,
+        selectedCards: Card[],
+        context: AbilityContext,
+        maxTargetable: number,
+        selectableCardsSorted: Card[],
+        costResult: ICostAdjustTriggerResult
+    ): boolean {
+        const numSelected = selectedCards.length;
+
+        const currentDiscountAmount = numSelected * this.adjustAmountPerTarget;
+        const remainingCostToPay = Math.max(0, costResult.adjustedCost.value - currentDiscountAmount);
+
+        if (remainingCostToPay === 0) {
+            return true;
+        }
+
+        const potentialTargetSet = selectedCards.map((card) => ({ card, stage: this.costAdjustStage }));
+        const availableCards = [card, ...selectableCardsSorted];
+        while (potentialTargetSet.length < maxTargetable) {
+            let nextCard: Card;
+            do {
+                nextCard = availableCards.shift();
+                Contract.assertNotNullLike(nextCard, 'Ran out of available cards while evaluating targetable units for cost adjuster');
+            } while (selectedCards.includes(nextCard));
+
+            potentialTargetSet.push({ card: nextCard, stage: this.costAdjustStage });
+
+            const minimumPossibleRemainingCost =
+                this.getMinimumPossibleRemainingCost(context, costResult, potentialTargetSet);
+
+            if (minimumPossibleRemainingCost <= context.player.readyResourceCount) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private triggerAdjustment(
         events: any[],
         context: AbilityContext,
@@ -272,6 +296,34 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         });
 
         return fullCostAdjustEffectEvent;
+    }
+
+    private buildTargetResolver(evaluationResult: ICostAdjustEvaluationResult, context: AbilityContext): CardTargetResolver {
+        const sortedTargets =
+            this.getSortedTargets(evaluationResult, context)
+                .map((t) => t.unit);
+
+        return new CardTargetResolver(
+            this.costPropertyName, {
+                mode: TargetMode.BetweenVariable,
+                minNumCardsFunc: (context) => context.costs[this.costPropertyName]?.minimumTargets ?? 1,
+                maxNumCardsFunc: (context) => this.getMaxTargetableCount(context),
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: this.effectSystem,
+                controller: RelativePlayer.Self,
+                appendToDefaultTitle: this.promptSuffix,
+                cardCondition: (card: Card, context: AbilityContext) => this.targetCondition(card, context),
+                multiSelectCardCondition: (card: Card, selectedCards: Card[], context?: AbilityContext) =>
+                    this.evaluateTargetable(
+                        card,
+                        selectedCards,
+                        context,
+                        this.getMaxTargetableCount(context),
+                        sortedTargets,
+                        context.costs[this.costPropertyName]
+                    )
+            }
+        );
     }
 
     // by default, can choose as many targets as meet the condition

@@ -119,6 +119,12 @@ export interface ICostAdjusterState extends IGameObjectBaseState {
     isCancelled: boolean;
 }
 
+export interface ITriggerStageTargetSelection {
+    card: Card;
+    stage: CostAdjustStage;
+}
+
+
 export enum CostAdjustResolutionMode {
     Evaluate = 'evaluate',
     Trigger = 'trigger'
@@ -185,7 +191,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
 
     // TODO THIS PR: can we remove getCostStage?
     protected abstract getCostStage(costAdjustType: CostAdjustType): CostAdjustStage;
-    protected abstract applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustResult): void;
+    protected abstract applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]): void;
 
     public isExploit(): this is ExploitCostAdjuster {
         return false;
@@ -282,7 +288,11 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         return Math.max(currentCost - amountToSubtract, 0);
     }
 
-    protected getMinimumPossibleRemainingCost(context: AbilityContext, adjustResult: ICostAdjustTriggerResult): number {
+    protected getMinimumPossibleRemainingCost(
+        context: AbilityContext,
+        adjustResult: ICostAdjustTriggerResult,
+        previousTargetSelections?: ITriggerStageTargetSelection[]
+    ): number {
         const adjustResultCopy = { ...adjustResult, adjustedCost: adjustResult.adjustedCost.copy() };
 
         const triggerStages = CostHelpers.getCostAdjustStagesInTriggerOrder();
@@ -291,7 +301,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         for (const stage of remainingStages) {
             const adjustersForStage = adjustResultCopy.matchingAdjusters.get(stage) || [];
             for (const adjuster of adjustersForStage) {
-                adjuster.applyMaxAdjustmentAmount(context.source, context, adjustResultCopy);
+                adjuster.applyMaxAdjustmentAmount(context.source, context, adjustResultCopy, previousTargetSelections);
 
                 if (adjustResultCopy.adjustedCost.value === 0) {
                     break;

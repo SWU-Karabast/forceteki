@@ -3,7 +3,7 @@ import type { Card } from '../card/Card';
 import type Game from '../Game';
 import * as Contract from '../utils/Contract';
 import { DynamicOpportunityCost } from './AdjustedCostEvaluator';
-import type { IModifyPayStageCostAdjusterProperties } from './CostAdjuster';
+import type { IModifyPayStageCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjustResolutionMode } from './CostAdjuster';
 import { CostAdjuster, CostAdjustType } from './CostAdjuster';
 import type { ICostAdjustEvaluationResult, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
@@ -27,8 +27,12 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
         return CostAdjustStage.PayStage_3;
     }
 
-    protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustResult) {
+    protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]) {
         Contract.assertTrue(result.resolutionMode === CostAdjustResolutionMode.Trigger, `Must only be called at Trigger stage, instead got ${result.resolutionMode}`);
+
+        if (previousTargetSelections?.some((selection) => selection.card === this.source)) {
+            return;
+        }
 
         const amountAfterDiscount = this.payStageAmountAfterDiscount(result.adjustedCost.value);
         result.adjustedCost.setRemainingToDiscountedValue(amountAfterDiscount);
