@@ -10,7 +10,7 @@ import { AbilityRestriction, CardType, KeywordName, MetaEventName, PlayType, Wil
 import type { PlayCardAction } from '../core/ability/PlayCardAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
 import type { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
-import { CostAdjuster } from '../core/cost/CostAdjuster';
+import * as CostAdjusterFactory from '../core/cost/CostAdjusterFactory';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
     ignoredRequirements?: string[];
@@ -114,7 +114,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     private makeCostAdjuster(properties: ICostAdjusterProperties | null, context: TContext) {
-        return properties ? new CostAdjuster(context.game, context.source, properties) : null;
+        return properties ? CostAdjusterFactory.create(context.game, context.source, properties) : null;
     }
 
     /**

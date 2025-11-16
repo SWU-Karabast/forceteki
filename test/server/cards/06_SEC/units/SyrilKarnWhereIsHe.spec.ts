@@ -40,8 +40,8 @@ describe('Syril Karn, Where Is He?', function () {
             context.player1.clickCard(context.atst);
 
             // Now the opponent (controller of AT-ST) gets to choose: damage or discard
-            expect(context.player2).toHaveExactPromptButtons([`${context.atst.title} takes 2 damage`, 'Discard a card']);
-            context.player2.clickPrompt('Discard a card');
+            expect(context.player2).toHaveExactPromptButtons(['Damage', 'Discard']);
+            context.player2.clickPrompt('Discard');
 
             expect(context.player2).toBeAbleToSelectExactly([context.resupply]);
             context.player2.clickCard(context.resupply);
@@ -86,8 +86,8 @@ describe('Syril Karn, Where Is He?', function () {
             context.player1.clickCard(context.atst);
 
             // Now the choosing player is Player 1 (controller of Vanguard Infantry)
-            expect(context.player1).toHaveExactPromptButtons([`${context.atst.title} takes 2 damage`, 'Discard a card']);
-            context.player1.clickPrompt(`${context.atst.title} takes 2 damage`);
+            expect(context.player1).toHaveExactPromptButtons(['Damage', 'Discard']);
+            context.player1.clickPrompt('Damage');
 
             // Verify damage applied and no discard for player1
             expect(context.atst.damage).toBe(2);

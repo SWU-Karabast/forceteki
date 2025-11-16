@@ -53,6 +53,7 @@ export interface ISelectTargetResolver<TContext extends AbilityContext> extends 
     condition?: (context: TContext) => boolean;
     checkTarget?: boolean;
     showUnresolvable?: boolean;
+    highlightCards?: Card | Card[] | ((context: TContext) => (Card | Card[]));
 }
 
 export interface IDropdownListTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {

@@ -21,7 +21,7 @@ export default class DarthSionLordOfPain extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'Give an experience token to Darth Sion for each enemy unit defeated this phase',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({
-                amount: this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayerNew(context.player.opponent).length,
+                amount: this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.player.opponent).length,
                 target: context.source
             })),
         });

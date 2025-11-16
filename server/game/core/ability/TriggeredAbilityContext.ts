@@ -1,4 +1,5 @@
 import type { Card } from '../card/Card';
+import * as Contract from '../utils/Contract';
 import { AbilityContext, type IAbilityContextProperties } from './AbilityContext';
 import type TriggeredAbility from './TriggeredAbility';
 
@@ -10,13 +11,23 @@ export interface ITriggeredAbilityContextProperties extends IAbilityContextPrope
 
 export class TriggeredAbilityContext<TSource extends Card = Card> extends AbilityContext<TSource> {
     public readonly event: any;
-    public readonly overrideTitle?: string;
     public declare readonly ability: TriggeredAbility;
+
+    private _overrideTitle: string = null;
+
+    public get overrideTitle(): string | null {
+        return this._overrideTitle;
+    }
 
     public constructor(properties: ITriggeredAbilityContextProperties) {
         super(properties);
         this.event = properties.event;
-        this.overrideTitle = properties.overrideTitle;
+        this._overrideTitle = properties.overrideTitle;
+    }
+
+    public setOverrideTitle(title: string) {
+        Contract.assertIsNullLike(this._overrideTitle, () => `Override title has already been set to ${this._overrideTitle}`);
+        this._overrideTitle = title;
     }
 
     public override isTriggered(): this is TriggeredAbilityContext<TSource> {
