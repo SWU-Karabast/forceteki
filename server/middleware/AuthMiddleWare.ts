@@ -54,17 +54,17 @@ export const authMiddleware = (routeName = null, serverRoleRequired: ServerRole 
 
 
             if (routeName) {
-                logger.info(`Auth ${routeName}: finished authenticating user`);
+                logger.info(`Auth ${routeName}: finished authenticating user`, { userId: req.user.getId() });
             }
 
             if (serverRoleRequired) {
                 const authResponse = await checkServerRoleUserPrivilegesAsync(req.path, req.user.getId(), serverRoleRequired);
                 if (!authResponse.success) {
-                    logger.warn(`Auth ${routeName}: user ${req.user.getId()} lacks required role ${serverRoleRequired}`);
+                    logger.warn(`Auth ${routeName}: user ${req.user.getId()} lacks required role ${serverRoleRequired}`, { userId: req.user.getId() });
                     return res.status(403).json({ success: false, message: authResponse.message });
                 }
                 if (routeName) {
-                    logger.info(`Auth ${routeName}: user ${req.user.getId()} has required role ${serverRoleRequired}`);
+                    logger.info(`Auth ${routeName}: user ${req.user.getId()} has required role ${serverRoleRequired}`, { userId: req.user.getId() });
                 }
             }
 

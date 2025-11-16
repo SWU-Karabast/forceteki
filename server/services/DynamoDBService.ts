@@ -12,7 +12,7 @@ import { logger } from '../logger';
 import * as Contract from '../game/core/utils/Contract';
 import { type IDeckDataEntity, type IDeckStatsEntity, type IUserProfileDataEntity, type IUserPreferences, type IServerRoleUsersListsEntity } from './DynamoDBInterfaces';
 import { z } from 'zod';
-import { iDeckDataEntitySchema, iDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
+import { IDeckDataEntitySchema, IDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
 import { type IRegisteredCosmeticOption, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 
@@ -27,8 +27,6 @@ export async function getDynamoDbServiceAsync() {
     if (dynamoDbService) {
         return dynamoDbService;
     }
-    console.log(process.env.ENVIRONMENT);
-    console.log(process.env.USE_LOCAL_DYNAMODB);
     if (process.env.ENVIRONMENT === 'development' && process.env.USE_LOCAL_DYNAMODB !== 'true') {
         return null;
     }
@@ -373,7 +371,7 @@ class DynamoDBService {
     public saveDeckAsync(deckData: IDeckDataEntity) {
         return this.executeDbOperationAsync(async () => {
             await this.validateAndHandleAsync(
-                iDeckDataEntitySchema,
+                IDeckDataEntitySchema,
                 deckData,
                 'Save deck'
             );
@@ -392,7 +390,7 @@ class DynamoDBService {
         return this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync(`USER#${userId}`, `DECK#${deckId}`);
             return this.validateAndHandleAsync<IDeckDataEntity>(
-                iDeckDataEntitySchema,
+                IDeckDataEntitySchema,
                 result.Item,
                 `Get deck ${deckId}`,
                 () => this.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`)
@@ -447,7 +445,7 @@ class DynamoDBService {
             }
 
             return this.validateAndHandleAsync<IDeckDataEntity>(
-                iDeckDataEntitySchema,
+                IDeckDataEntitySchema,
                 foundDeck,
                 `Get deck by link ${deckLinkID}`,
                 () => this.deleteItemAsync(foundDeck.pk, foundDeck.sk)
@@ -468,7 +466,7 @@ class DynamoDBService {
             for (const item of result.Items) {
                 try {
                     const validDeck = await this.validateAndHandleAsync<IDeckDataEntity>(
-                        iDeckDataEntitySchema,
+                        IDeckDataEntitySchema,
                         item,
                         `Validate deck ${item.id} in getUserDecks`,
                         () => this.deleteItemAsync(item.pk, item.sk)
@@ -505,7 +503,7 @@ class DynamoDBService {
     public updateDeckStatsAsync(userId: string, deckId: string, stats: IDeckStatsEntity) {
         return this.executeDbOperationAsync(() => {
             try {
-                iDeckStatsEntitySchema.parse(stats);
+                IDeckStatsEntitySchema.parse(stats);
                 return this.updateItemAsync(
                     `USER#${userId}`,
                     `DECK#${deckId}`,
@@ -705,9 +703,7 @@ class DynamoDBService {
     }
 
     public clearAllCosmeticsAsync() {
-        if (!this.isLocalMode) {
-            throw new Error('Cosmetic cleanup is only allowed in local mode');
-        }
+        Contract.assertTrue(this.isLocalMode, 'Cosmetic cleanup is only allowed in local mode');
 
         return this.executeDbOperationAsync(async () => {
             // Get all cosmetics first
@@ -722,22 +718,6 @@ class DynamoDBService {
 
             return { deletedCount: cosmetics.length };
         }, 'Error clearing all cosmetics');
-    }
-
-    public resetCosmeticsToDefaultAsync() {
-        if (!this.isLocalMode) {
-            throw new Error('Cosmetic reset is only allowed in local mode');
-        }
-
-        return this.executeDbOperationAsync(async () => {
-            // First clear all existing cosmetics
-            const clearResult = await this.clearAllCosmeticsAsync();
-
-            return {
-                message: 'Cosmetics cleared. Defaults will be reinitialized on next fetch.',
-                deletedCount: clearResult.deletedCount
-            };
-        }, 'Error resetting cosmetics to default');
     }
 
     // Admin user methods
