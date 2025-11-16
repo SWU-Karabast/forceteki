@@ -108,13 +108,24 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
 
         this.checkAddAdjusterToTriggerList(context.source, costAdjustTriggerResult);
 
+        // TODO THIS PR: put the sorted targets list on the context
         const targetResolver = this.buildTriggerStageTargetResolver(abilityCostResult.costAdjustments, costAdjustTriggerResult, context);
 
-        // calculate available downstream adjustments so we can determine how many targets we are required to select
-        const preAdjustedCost = this.getMinimumPossibleRemainingCost(context, costAdjustTriggerResult);
+        const sortedTargets =
+            this.getSortedTargets(abilityCostResult.costAdjustments, context)
+                .map((t) => t.unit);
+
+        const minimumTargetsSet = this.findMinimumTargetSetToPay(
+            sortedTargets,
+            context,
+            costAdjustTriggerResult,
+            context.player.readyResourceCount,
+        );
+
+        Contract.assertNotNullLike(minimumTargetsSet, 'No valid target set found to pay cost with targeted cost adjuster at pay time');
+        const minimumTargetsRequiredToPay = minimumTargetsSet.length;
 
         const maxTargetableUnitsCount = this.getNumberOfLegalTargets(targetResolver, context);
-        const minimumTargetsRequiredToPay = Math.max(0, Math.ceil((preAdjustedCost - context.player.readyResourceCount) / this.adjustAmountPerTarget));
         costProps.minimumTargets = Math.max(1, minimumTargetsRequiredToPay);
 
         // payment shouldn't have been triggered if there aren't enough targetable units available to pay the minimum
@@ -222,39 +233,69 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     ): boolean {
         const availableResources = context.player.readyResourceCount;
         const currentAdjustedCost = costResult.adjustedCost.value;
-        if (this.canPayWithTargetSet(selectedCards.length, availableResources, currentAdjustedCost)) {
+
+        const currentDiscountAmount = selectedCards.length * this.adjustAmountPerTarget;
+        const remainingCostToPay = Math.max(0, currentAdjustedCost - currentDiscountAmount);
+
+        if (remainingCostToPay <= availableResources) {
             return true;
         }
 
-        const maxTargetableConcrete = maxTargetable ?? selectableCardsSorted.length;
+        const minimumTargetSetToPay = this.findMinimumTargetSetToPay(
+            selectableCardsSorted,
+            context,
+            costResult,
+            availableResources,
+            [...selectedCards, card],
+            maxTargetable
+        );
 
-        const potentialTargetSet = selectedCards.map((card) => ({ card, stage: this.costAdjustStage }));
-        const availableCards = [card, ...selectableCardsSorted];
-        while (potentialTargetSet.length < maxTargetableConcrete) {
-            let nextCard: Card;
-            do {
-                nextCard = availableCards.shift();
-                Contract.assertNotNullLike(nextCard, 'Ran out of available cards while evaluating targetable units for cost adjuster');
-            } while (selectedCards.includes(nextCard));
-
-            potentialTargetSet.push({ card: nextCard, stage: this.costAdjustStage });
-
-            const minimumPossibleRemainingCost =
-                this.getMinimumPossibleRemainingCost(context, costResult, potentialTargetSet);
-
-            if (this.canPayWithTargetSet(potentialTargetSet.length, availableResources, minimumPossibleRemainingCost)) {
-                return true;
-            }
-        }
-
-        return false;
+        return minimumTargetSetToPay != null;
     }
 
-    private canPayWithTargetSet(numTargets: number, availableResources: number, currentAdjustedCost: number): boolean {
-        const currentDiscountAmount = numTargets * this.adjustAmountPerTarget;
-        const remainingCostToPay = Math.max(0, currentAdjustedCost - currentDiscountAmount);
+    private findMinimumTargetSetToPay(
+        allAvailableTargetsSorted: Card[],
+        context: AbilityContext,
+        adjustResult: ICostAdjustTriggerResult,
+        availableResources: number,
+        preSelectedTargets?: Card[],
+        maxTargetsOverride?: number
+    ): Card[] | null {
+        const availableCopy = [...allAvailableTargetsSorted];
 
-        return remainingCostToPay <= availableResources;
+        const potentialTargetSet: ITriggerStageTargetSelection[] = [];
+        const preselectedTargetSet = new Set<Card>();
+        for (const card of preSelectedTargets ?? []) {
+            potentialTargetSet.push({ card, stage: this.costAdjustStage });
+            preselectedTargetSet.add(card);
+        }
+
+        const maxTargetableConcrete = maxTargetsOverride ?? availableCopy.length;
+
+        do {
+            const adjustResultCopy = { ...adjustResult, adjustedCost: adjustResult.adjustedCost.copy() };
+            const adjustAmountForTargetSet = potentialTargetSet.length * this.adjustAmountPerTarget;
+            adjustResultCopy.adjustedCost.applyStaticDecrease(adjustAmountForTargetSet);
+
+            const minimumPossibleRemainingCost =
+                this.getMinimumPossibleRemainingCost(context, adjustResultCopy, potentialTargetSet);
+
+            if (minimumPossibleRemainingCost <= availableResources) {
+                return potentialTargetSet.map((selection) => selection.card);
+            }
+
+            let nextCard: Card;
+            do {
+                nextCard = availableCopy.shift();
+                if (!nextCard) {
+                    return null;
+                }
+            } while (preselectedTargetSet.has(nextCard));
+
+            potentialTargetSet.push({ card: nextCard, stage: this.costAdjustStage });
+        } while (potentialTargetSet.length <= maxTargetableConcrete);
+
+        return null;
     }
 
     private triggerAdjustment(
@@ -323,6 +364,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         return fullCostAdjustEffectEvent;
     }
 
+    // TODO THIS PR: can we just cache this?
     private buildEvaluationStageTargetResolver(): CardTargetResolver {
         return this.buildTargetResolverCommon();
     }
@@ -356,6 +398,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             ? () => this.maxTargetCount
             : null;
 
+        // TODO THIS PR: update prompt text for cases where minimum is variable
         return new CardTargetResolver(
             this.costPropertyName, {
                 mode: TargetMode.BetweenVariable,

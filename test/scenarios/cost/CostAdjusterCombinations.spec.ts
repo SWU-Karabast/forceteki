@@ -1,17 +1,6 @@
 describe('Cost adjuster combinations', function() {
     integration(function (contextRef) {
         describe('Exploit + Starhawk:', function () {
-            // beforeEach(function () {
-            //     return contextRef.setupTestAsync({
-            //         phase: 'action',
-            //         player1: {
-            //             hand: ['hailfire-tank'],
-            //             spaceArena: ['the-starhawk#prototype-battleship'],
-            //             groundArena: ['battle-droid', 'clone-trooper']
-            //         }
-            //     });
-            // });
-
             it('Starhawk cost adjustment should not trigger at pay time if it is exploited away', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -33,6 +22,37 @@ describe('Cost adjuster combinations', function() {
 
                 expect(context.player1.exhaustedResourceCount).toBe(4);
                 expect(context.hailfireTank).toBeInZone('groundArena');
+            });
+
+            it('opportunity cost for exploiting Starhawk should be calculated correctly (unit can be played by exploiting Starhawk)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['asajj-ventress#count-dookus-assassin'],
+                        spaceArena: ['the-starhawk#prototype-battleship'],
+                        groundArena: ['battle-droid']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.setExactReadyResources(0);
+                expect(context.player1).toBeAbleToSelect(context.asajjVentressCountDookusAssassin);
+                context.player1.clickCard(context.asajjVentressCountDookusAssassin);
+
+                context.player1.clickPrompt('Trigger Exploit');
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.theStarhawk]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCard(context.theStarhawk);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCard(context.battleDroid);
+                context.player1.clickPrompt('Done');
+
+                expect(context.asajjVentressCountDookusAssassin).toBeInZone('groundArena');
+                expect(context.battleDroid).toBeInZone('outsideTheGame');
+                expect(context.theStarhawk).toBeInZone('discard');
             });
 
             it('opportunity cost for exploiting Starhawk should be calculated correctly (unit cannot be played)', async function () {
@@ -155,17 +175,25 @@ describe('Cost adjuster combinations', function() {
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
                 expect(context.player1).toBeAbleToSelectExactly([context.cloneTrooper, context.battleDroid]);
                 context.player1.clickCard(context.cloneTrooper);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                // unselect battle droid to confirm that target filtering updates correctly
+                context.player1.clickCard(context.battleDroid);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                expect(context.player1).toBeAbleToSelectExactly([context.cloneTrooper, context.separatistCommando, context.battleDroid]);
+                context.player1.clickCard(context.separatistCommando);
                 context.player1.clickPrompt('Done');
 
                 context.player1.clickPrompt('Pay cost by exhausting units');
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
-                expect(context.player1).toBeAbleToSelectExactly([context.separatistCommando]);
-                context.player1.clickCard(context.separatistCommando);
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid]);
+                context.player1.clickCard(context.battleDroid);
                 context.player1.clickPrompt('Done');
 
                 expect(context.player1.readyResourceCount).toBe(0);
                 expect(context.hailfireTank).toBeInZone('groundArena');
-                expect(context.battleDroid).toBeInZone('outsideTheGame');
+                expect(context.separatistCommando).toBeInZone('discard');
+                expect(context.battleDroid.exhausted).toBeTrue();
             });
         });
     });
