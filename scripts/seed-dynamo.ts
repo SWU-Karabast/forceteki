@@ -1,10 +1,20 @@
 // scripts/seedCosmetics.ts
-import { getDynamoDbServiceAsync } from './server/services/DynamoDBService';
-import { type IRegisteredCosmeticOption } from './server/utils/cosmetics/CosmeticsInterfaces';
-import cosmeticsData from './server/data/fallback-cosmetics.json';
+// to run this script run on root folder ts-node scripts/seed-dynamo.ts
+import '../server/env';
+import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
+import { type IRegisteredCosmeticOption } from '../server/utils/cosmetics/CosmeticsInterfaces';
 
 async function run() {
     const service = await getDynamoDbServiceAsync();
+
+    let cosmeticsData: any;
+
+    if (process.env.ENVIRONMENT === 'development') {
+        cosmeticsData = await import('../server/data/fallback-cosmetics-local.json');
+    } else {
+        cosmeticsData = await import('../server/data/fallback-cosmetics.json');
+    }
+
     if (!service) {
         throw new Error('DynamoDB service not available (are you in dev & DynamoDB Local running?)');
     }

@@ -27,7 +27,8 @@ export async function getDynamoDbServiceAsync() {
     if (dynamoDbService) {
         return dynamoDbService;
     }
-
+    console.log(process.env.ENVIRONMENT);
+    console.log(process.env.USE_LOCAL_DYNAMODB);
     if (process.env.ENVIRONMENT === 'development' && process.env.USE_LOCAL_DYNAMODB !== 'true') {
         return null;
     }
