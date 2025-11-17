@@ -119,6 +119,7 @@ interface ICardBetweenVariableTargetResolver<TContext extends AbilityContext> ex
     maxNumCardsFunc?: (context: TContext, selectedCards?: Card[]) => number;
     useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
+    onSelectionChanged?: (selectedCards: Card[], context: TContext) => void;
 }
 
 interface ICardMaxStatTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {

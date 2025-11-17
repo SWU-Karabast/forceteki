@@ -27,6 +27,7 @@ export type ITargetedCostAdjusterInitializationProperties = ITargetedCostAdjuste
 };
 
 interface IContextCostProps {
+    sortedAvailableTargets: IOpportunityCostTarget[];
     minimumTargets?: number;
     selectedTargets?: IUnitCard[];
 }
@@ -103,7 +104,12 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             return;
         }
 
-        const costProps: IContextCostProps = {};
+        const sortedTargetsWithOpportunityCost =
+            this.buildSortedTargets(abilityCostResult.costAdjustments, context);
+
+        const costProps: IContextCostProps = {
+            sortedAvailableTargets: sortedTargetsWithOpportunityCost
+        };
         context.costs[this.costPropertyName] = costProps;
 
         this.checkAddAdjusterToTriggerList(context.source, costAdjustTriggerResult);
@@ -111,12 +117,8 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         // TODO THIS PR: put the sorted targets list on the context
         const targetResolver = this.buildTriggerStageTargetResolver(abilityCostResult.costAdjustments, costAdjustTriggerResult, context);
 
-        const sortedTargets =
-            this.getSortedTargets(abilityCostResult.costAdjustments, context)
-                .map((t) => t.unit);
-
         const minimumTargetsSet = this.findMinimumTargetSetToPay(
-            sortedTargets,
+            sortedTargetsWithOpportunityCost.map((t) => t.unit),
             context,
             costAdjustTriggerResult,
             context.player.readyResourceCount,
@@ -186,7 +188,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     protected override resolveCostAdjustmentInternal(_card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
         const targetResolver = this.buildEvaluationStageTargetResolver();
 
-        const targets = this.getSortedTargets(evaluationResult, context);
+        const targets = this.buildSortedTargets(evaluationResult, context);
         const numTargets = Math.min(targets.length, this.getNumberOfLegalTargets(targetResolver, context));
 
         for (let i = 0; i < numTargets; i++) {
@@ -205,7 +207,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         }
     }
 
-    protected getSortedTargets(result: ICostAdjustEvaluationResult, context: AbilityContext): IOpportunityCostTarget[] {
+    protected buildSortedTargets(result: ICostAdjustEvaluationResult, context: AbilityContext): IOpportunityCostTarget[] {
         const targets: IOpportunityCostTarget[] = [];
 
         for (const { unit, opportunityCost: opportunityCostMap } of result.costAdjusterTargets.targets) {
@@ -229,7 +231,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         context: AbilityContext,
         selectableCardsSorted: Card[],
         costResult: ICostAdjustTriggerResult,
-        maxTargetable?: number,
+        maxTargetable?: number,     // TODO THIS PR: do we need this? can we just use the property on the class?
     ): boolean {
         const availableResources = context.player.readyResourceCount;
         const currentAdjustedCost = costResult.adjustedCost.value;
@@ -374,9 +376,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         triggerResult: ICostAdjustTriggerResult,
         context: AbilityContext
     ): CardTargetResolver {
-        const sortedTargets =
-            this.getSortedTargets(evaluationResult, context)
-                .map((t) => t.unit);
+        const sortedTargets = this.getSortedTargetsFromContext(context).map((t) => t.unit);
 
         const multiSelectCardCondition = (card: Card, selectedCards: Card[], context?: AbilityContext) =>
             this.evaluateTargetable(
@@ -388,11 +388,15 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
                 this.maxTargetCount,
             );
 
-        return this.buildTargetResolverCommon(multiSelectCardCondition);
+        const onSelectionChanged = (selected: Card | Card[], context: AbilityContext) =>
+            this.updateMinimumTargetsInContext(selected, triggerResult, context);
+
+        return this.buildTargetResolverCommon(multiSelectCardCondition, onSelectionChanged);
     }
 
     private buildTargetResolverCommon(
-        multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: AbilityContext) => boolean
+        multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: AbilityContext) => boolean,
+        onSelectionChanged?: (selectedCards: Card[], context: AbilityContext) => void,
     ): CardTargetResolver {
         const maxNumCardsFunc = this.maxTargetCount
             ? () => this.maxTargetCount
@@ -409,9 +413,26 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
                 controller: RelativePlayer.Self,
                 appendToDefaultTitle: this.promptSuffix,
                 cardCondition: this.targetCondition,
+                onSelectionChanged,
                 multiSelectCardCondition
             }
         );
+    }
+
+    private updateMinimumTargetsInContext(
+        selected: Card | Card[],
+        costAdjustTriggerResult: ICostAdjustTriggerResult,
+        context: AbilityContext
+    ) {
+        const minimumTargetsSet = this.findMinimumTargetSetToPay(
+            this.getSortedTargetsFromContext(context).map((t) => t.unit),
+            context,
+            costAdjustTriggerResult,
+            context.player.readyResourceCount,
+            Helpers.asArray(selected)
+        );
+
+        context.costs[this.costPropertyName].minimumTargets = minimumTargetsSet.length;
     }
 
     // by default, can choose as many targets as meet the condition
@@ -425,5 +446,13 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
 
     private getSelectedUnitsCount(context: AbilityContext): number {
         return Helpers.asArray(context.targets[this.costPropertyName])?.length || 0;
+    }
+
+    private getSortedTargetsFromContext(context: AbilityContext): IOpportunityCostTarget[] {
+        const costProps = context.costs[this.costPropertyName] as IContextCostProps;
+        Contract.assertNotNullLike(costProps);
+        Contract.assertNotNullLike(costProps.sortedAvailableTargets);
+
+        return costProps.sortedAvailableTargets;
     }
 }

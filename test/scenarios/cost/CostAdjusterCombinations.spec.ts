@@ -98,6 +98,54 @@ describe('Cost adjuster combinations', function() {
                 expect(context.hailfireTank).toBeInZone('groundArena');
                 expect(context.battleDroid).toBeInZone('outsideTheGame');
             });
+
+            it('non-optimal play cost should be allowed and legal targets updated at trigger time', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'dryden-vos#i-never-ask-twice',
+                        hand: ['separatist-super-tank'],
+                        spaceArena: ['the-starhawk#prototype-battleship'],
+                        groundArena: ['battle-droid', 'clone-trooper'],
+                        resources: 3
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.player1).toBeAbleToSelect(context.separatistSuperTank);
+                context.player1.clickCard(context.separatistSuperTank);
+
+                context.player1.clickPrompt('Trigger Exploit');
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.cloneTrooper, context.theStarhawk]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
+                // optimal path: select the two ground units and confirm that we could click done
+                context.player1.clickCard(context.battleDroid);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                context.player1.clickCard(context.cloneTrooper);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                // non-optimal path: unselect both, select starhawk and one ground unit, we should not be done yet
+                context.player1.clickCard(context.battleDroid);
+                context.player1.clickCard(context.cloneTrooper);
+                context.player1.clickCard(context.theStarhawk);
+                context.player1.clickCard(context.battleDroid);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCard(context.cloneTrooper);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.separatistSuperTank).toBeInZone('groundArena');
+                expect(context.battleDroid).toBeInZone('outsideTheGame');
+                expect(context.cloneTrooper).toBeInZone('outsideTheGame');
+                expect(context.theStarhawk).toBeInZone('discard');
+            });
+
+            // TODO THIS PR: same test as above but add aspect penalty
+
+            // TODO THIS PR: won't try to exploit more units than are allowed
         });
 
         describe('Exploit + Vuutun Palaa:', function () {

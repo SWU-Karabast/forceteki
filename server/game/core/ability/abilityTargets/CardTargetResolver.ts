@@ -25,6 +25,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     private readonly selector: BaseCardSelector<AbilityContext>;
     private readonly targetMode: TargetMode;
 
+    private readonly onSelectionChanged?: (selected: Card | Card[], context: AbilityContext) => void;
+
     private static readonly choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
 
     public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
@@ -56,6 +58,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         }
 
         this.validateZoneLegalForTarget(properties);
+
+        // TODO THIS PR: expand to any other target interfaces that use it
+        if (properties.mode === TargetMode.BetweenVariable) {
+            this.onSelectionChanged = properties.onSelectionChanged;
+        }
     }
 
     private getSelector(properties: ICardTargetResolver<AbilityContext>) {
@@ -193,6 +200,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             selectCardMode: this.getSelectCardMode(context),
             hideIfNoLegalTargets: this.properties.hideIfNoLegalTargets,
             immediateEffect: this.immediateEffect,
+            onSelectionChanged: (selectedCards, ctx) => this.onSelectionChanged?.(selectedCards, ctx),
             onSelect: (card) => {
                 this.setTargetResult(context, card);
                 return true;
