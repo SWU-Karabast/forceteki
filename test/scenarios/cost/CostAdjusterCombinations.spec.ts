@@ -99,7 +99,7 @@ describe('Cost adjuster combinations', function() {
                 expect(context.battleDroid).toBeInZone('outsideTheGame');
             });
 
-            it('non-optimal play cost should be allowed and legal targets updated at trigger time', async function () {
+            it('non-optimal play cost should be allowed and minimum required targets updated at trigger time based on selections', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -143,9 +143,86 @@ describe('Cost adjuster combinations', function() {
                 expect(context.theStarhawk).toBeInZone('discard');
             });
 
-            // TODO THIS PR: same test as above but add aspect penalty
+            it('Starhawk discount should be computed correctly for an odd number of resources (card is not playable)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['separatist-super-tank'],
+                        spaceArena: ['the-starhawk#prototype-battleship'],
+                        groundArena: ['battle-droid', 'clone-trooper'],
+                        resources: 3
+                    }
+                });
 
-            // TODO THIS PR: won't try to exploit more units than are allowed
+                const { context } = contextRef;
+
+                // due to aspect cost we can't pay for it
+                expect(context.player1).not.toBeAbleToSelect(context.separatistSuperTank);
+            });
+
+            it('optimal play cost should be computed correctly and triggered (with aspect penalty)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'han-solo#worth-the-risk',
+                        hand: ['hailfire-tank'],
+                        spaceArena: ['the-starhawk#prototype-battleship'],
+                        groundArena: ['battle-droid'],
+                        resources: 4
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.player1).toBeAbleToSelect(context.hailfireTank);
+                context.player1.clickCard(context.hailfireTank);
+
+                context.player1.clickPrompt('Trigger Exploit');
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCard(context.battleDroid);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.hailfireTank).toBeInZone('groundArena');
+                expect(context.battleDroid).toBeInZone('outsideTheGame');
+            });
+
+            it('other cost adjustments should be correctly accounted for', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'dryden-vos#i-never-ask-twice',
+                        hand: ['separatist-super-tank'],
+                        spaceArena: ['the-starhawk#prototype-battleship'],
+                        groundArena: ['gnk-power-droid'],
+                        resources: 3
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // attack with GNK to get the discount
+                context.player1.clickCard(context.gnkPowerDroid);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                expect(context.player1).toBeAbleToSelect(context.separatistSuperTank);
+                context.player1.clickCard(context.separatistSuperTank);
+
+                context.player1.clickPrompt('Trigger Exploit');
+                expect(context.player1).toBeAbleToSelectExactly([context.gnkPowerDroid]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCard(context.gnkPowerDroid);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.separatistSuperTank).toBeInZone('groundArena');
+                expect(context.gnkPowerDroid).toBeInZone('discard');
+            });
         });
 
         describe('Exploit + Vuutun Palaa:', function () {

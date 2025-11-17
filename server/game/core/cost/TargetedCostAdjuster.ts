@@ -230,8 +230,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         selectedCards: Card[],
         context: AbilityContext,
         selectableCardsSorted: Card[],
-        costResult: ICostAdjustTriggerResult,
-        maxTargetable?: number,     // TODO THIS PR: do we need this? can we just use the property on the class?
+        costResult: ICostAdjustTriggerResult
     ): boolean {
         const availableResources = context.player.readyResourceCount;
         const currentAdjustedCost = costResult.adjustedCost.value;
@@ -248,8 +247,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             context,
             costResult,
             availableResources,
-            [...selectedCards, card],
-            maxTargetable
+            [...selectedCards, card]
         );
 
         return minimumTargetSetToPay != null;
@@ -260,8 +258,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         context: AbilityContext,
         adjustResult: ICostAdjustTriggerResult,
         availableResources: number,
-        preSelectedTargets?: Card[],
-        maxTargetsOverride?: number
+        preSelectedTargets?: Card[]
     ): Card[] | null {
         const availableCopy = [...allAvailableTargetsSorted];
 
@@ -272,7 +269,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             preselectedTargetSet.add(card);
         }
 
-        const maxTargetableConcrete = maxTargetsOverride ?? availableCopy.length;
+        const maxTargetableConcrete = this.maxTargetCount ?? availableCopy.length;
 
         do {
             const adjustResultCopy = { ...adjustResult, adjustedCost: adjustResult.adjustedCost.copy() };
@@ -384,8 +381,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
                 selectedCards,
                 context,
                 sortedTargets,
-                triggerResult,
-                this.maxTargetCount,
+                triggerResult
             );
 
         const onSelectionChanged = (selected: Card | Card[], context: AbilityContext) =>
