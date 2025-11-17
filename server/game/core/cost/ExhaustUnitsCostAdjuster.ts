@@ -13,6 +13,7 @@ import type { GameSystem } from '../gameSystem/GameSystem';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import { ExhaustSystem } from '../../gameSystems/ExhaustSystem';
 import type { Card } from '../card/Card';
+import { DynamicOpportunityCost } from './AdjustedCostEvaluator';
 
 export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
     public constructor(
@@ -55,18 +56,24 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         super.applyMaxAdjustmentAmount(_card, _context, result, previousTargetSelections);
     }
 
-    protected override getNumberOfRemovedTargets(previousTargetSelections: ITriggerStageTargetSelection[]): number {
+    protected override getNumberOfRemovedTargets(previousTargetSelections: ITriggerStageTargetSelection[], context: AbilityContext): number {
         let numRemoved = 0;
         for (const selection of previousTargetSelections) {
-            if (selection.card.hasSomeTrait(Trait.Droid) && selection.stage === CostAdjustStage.Exploit_1) {
+            if (
+                this.isTargetableForExhaust(selection.card, context) &&
+                selection.stage === CostAdjustStage.Exploit_1
+            ) {
                 numRemoved++;
             }
         }
         return numRemoved;
     }
 
-    protected override resolveCostAdjustmentInternal(_card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
-        super.resolveCostAdjustmentInternal(_card, context, evaluationResult);
+    protected override resolveCostAdjustmentInternal(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
+        super.resolveCostAdjustmentInternal(card, context, evaluationResult);
+
+        const dynamicCost = new DynamicOpportunityCost((_remainingCost: number) => 0);
+        evaluationResult.adjustedCost.applyDynamicOffset(dynamicCost);
 
         const adjustSourceEntry = evaluationResult.costAdjusterTargets.targets.find(
             (t) => t.unit === this.source
@@ -74,8 +81,13 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
 
         Contract.assertNotNullLike(adjustSourceEntry, `Source card ${this.source.internalName} of ExhaustUnitsCostAdjuster not found in costAdjusterTargets`);
 
+        const maxTargetableUnits = context.player.getArenaUnits()
+            .filter((unit) => this.isTargetableForExhaust(unit, context))
+            .length;
+
         const opportunityCost: IEvaluationOpportunityCost = {
-            max: context.player.getArenaUnits({ trait: Trait.Droid }).length
+            max: maxTargetableUnits,
+            dynamic: dynamicCost
         };
 
         this.setOrAddOpportunityCost(
@@ -85,7 +97,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         );
 
         for (const targetEntry of evaluationResult.costAdjusterTargets.targets) {
-            if (targetEntry.unit.hasSomeTrait(Trait.Droid)) {
+            if (this.isTargetableForExhaust(targetEntry.unit, context)) {
                 this.setOrAddOpportunityCost(
                     targetEntry,
                     { max: 1 },
@@ -93,5 +105,10 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
                 );
             }
         }
+    }
+
+    private isTargetableForExhaust(unit: Card, context: AbilityContext): boolean {
+        return unit.hasSomeTrait(Trait.Droid) &&
+          this.effectSystem.canAffect(unit, context as AbilityContext<IUnitCard>, { isCost: true });
     }
 }

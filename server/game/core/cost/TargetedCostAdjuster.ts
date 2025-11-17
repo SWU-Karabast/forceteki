@@ -38,11 +38,10 @@ interface IOpportunityCostTarget {
 }
 
 export abstract class TargetedCostAdjuster extends CostAdjuster {
-    private readonly effectSystem: GameSystem<AbilityContext<IUnitCard>>;
-
     protected readonly adjustAmountPerTarget: number;
     protected readonly costPropertyName: string;
     protected readonly doNotUseAdjusterButtonText: string;
+    protected readonly effectSystem: GameSystem<AbilityContext<IUnitCard>>;
     protected readonly eventName: EventName;
     protected readonly maxTargetCount?: number;
     protected readonly promptSuffix: string;
@@ -152,6 +151,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             () => this.triggerAdjustment(events, context, costAdjustTriggerResult, abilityCostResult, targetResolver)
         ];
 
+        // TODO THIS PR: fix cancel after Exploit has happened
         if (abilityCostResult.canCancel) {
             choices.push('Cancel');
             handlers.push(() => {
@@ -175,13 +175,13 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     protected override applyMaxAdjustmentAmount(_card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]) {
         const targetResolver = this.buildEvaluationStageTargetResolver();
 
-        const numRemovedTargets = previousTargetSelections ? this.getNumberOfRemovedTargets(previousTargetSelections) : 0;
+        const numRemovedTargets = previousTargetSelections ? this.getNumberOfRemovedTargets(previousTargetSelections, context) : 0;
 
         const adjustAmount = (this.getNumberOfLegalTargets(targetResolver, context) - numRemovedTargets) * this.adjustAmountPerTarget;
         result.adjustedCost.applyStaticDecrease(adjustAmount);
     }
 
-    protected getNumberOfRemovedTargets(previousTargetSelections: ITriggerStageTargetSelection[]): number {
+    protected getNumberOfRemovedTargets(previousTargetSelections: ITriggerStageTargetSelection[], context: AbilityContext): number {
         return 0;
     }
 

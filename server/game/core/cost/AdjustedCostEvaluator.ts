@@ -71,7 +71,7 @@ export class DynamicOpportunityCost {
 
     public constructor(computeDiscount: (remainingCost: number) => number) {
         this.computeDiscount = (remainingCost: number) => {
-            Contract.assertPositiveNonZero(remainingCost, `Remaining cost must be positive non-zero, instead got ${remainingCost}`);
+            Contract.assertNonNegative(remainingCost, `Remaining cost must be non-negative, instead got ${remainingCost}`);
             return computeDiscount(remainingCost);
         };
     }
@@ -82,7 +82,7 @@ export class DynamicOpportunityCost {
     }
 
     public getLowestPossibleRemainingCost(currentRemainingCost: number): number {
-        Contract.assertPositiveNonZero(currentRemainingCost, `Current remaining cost must be positive non-zero, instead got ${currentRemainingCost}`);
+        Contract.assertNonNegative(currentRemainingCost, `Current remaining cost must be non-negative, instead got ${currentRemainingCost}`);
 
         const computedDiscount = this.computeDiscount(currentRemainingCost);
         const allDiscounts = [computedDiscount, ...this.alternateDiscounts];
