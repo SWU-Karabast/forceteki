@@ -323,8 +323,9 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickCard(context.cloneTrooper);
                 context.player1.clickPrompt('Done');
 
-                context.player1.clickPrompt('Pay cost by exhausting units');
+                // exhaust units selection
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                expect(context.player1).not.toHaveEnabledPromptButton('Cancel');
                 expect(context.player1).toBeAbleToSelectExactly([context.battleDroid]);
                 context.player1.clickCard(context.battleDroid);
                 context.player1.clickPrompt('Done');
@@ -369,8 +370,9 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickCard(context.separatistCommando);
                 context.player1.clickPrompt('Done');
 
-                context.player1.clickPrompt('Pay cost by exhausting units');
+                // exhaust units selection
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                expect(context.player1).not.toHaveEnabledPromptButton('Cancel');
                 expect(context.player1).toBeAbleToSelectExactly([context.battleDroid]);
                 context.player1.clickCard(context.battleDroid);
                 context.player1.clickPrompt('Done');
@@ -379,6 +381,30 @@ describe('Cost adjuster combinations', function() {
                 expect(context.hailfireTank).toBeInZone('groundArena');
                 expect(context.separatistCommando).toBeInZone('discard');
                 expect(context.battleDroid.exhausted).toBeTrue();
+            });
+
+            it('playing the card should fully cancel if the Exploit step is cancelled', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['hailfire-tank'],
+                        spaceArena: ['vuutun-palaa#droid-control-ship'],
+                        groundArena: ['battle-droid', 'separatist-commando', 'clone-trooper'],
+                        resources: 3
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.player1).toBeAbleToSelect(context.hailfireTank);
+                context.player1.clickCard(context.hailfireTank);
+
+                context.player1.clickPrompt('Trigger Exploit');
+                context.player1.clickPrompt('Cancel');
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.hailfireTank).toBeInZone('hand');
             });
 
             it('non-optimal play cost should be allowed and minimum required targets updated at trigger time based on selections', async function () {
@@ -640,7 +666,7 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickCard(context.cloneTrooper);
                 context.player1.clickPrompt('Done');
 
-                context.player1.clickPrompt('Pay cost by exhausting units');
+                // exhaust units selection
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
                 expect(context.player1).toBeAbleToSelectExactly([context.battleDroid]);
                 context.player1.clickCard(context.battleDroid);
@@ -686,7 +712,7 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickCard(context.separatistCommando);
                 context.player1.clickPrompt('Done');
 
-                context.player1.clickPrompt('Pay cost by exhausting units');
+                // exhaust units selection
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
                 expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.generalsGuardian]);
                 context.player1.clickCard(context.battleDroid);
@@ -767,7 +793,6 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickPrompt('Done');
 
                 // exhaust droid
-                context.player1.clickPrompt('Pay cost by exhausting units');
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
                 expect(context.player1).toBeAbleToSelectExactly([context.battleDroid]);
                 context.player1.clickCard(context.battleDroid);

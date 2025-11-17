@@ -112,7 +112,7 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     onCancel?: (player: Player) => void;
     onMenuCommand?: (arg: string) => boolean;
     onSelect?: (card: Card | Card[]) => boolean;
-    onSelectionChanged?: (selectedCards: Card[], context: AbilityContext) => void;
+    onSelectionSetChanged?: (selectedCards: Card[], context: AbilityContext) => void;
     selectCardMode: SelectCardMode;
     selectOrder?: boolean;
     selector: BaseCardSelector<AbilityContext>;

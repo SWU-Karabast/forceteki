@@ -65,7 +65,7 @@ export class SelectCardPrompt extends UiPrompt {
     private readonly selector: BaseCardSelector<AbilityContext>;
     private readonly source: OngoingEffectSource;
 
-    private readonly onSelectionChanged?: (selectedCards: Card[], context: AbilityContext) => void;
+    private readonly onSelectionSetChanged?: (selectedCards: Card[], context: AbilityContext) => void;
 
     private previouslySelectedCards?: Card[];
     private selectedCards: Card[];
@@ -115,7 +115,7 @@ export class SelectCardPrompt extends UiPrompt {
 
         this.promptTitle = properties.promptTitle || this.source.name;
 
-        this.onSelectionChanged = properties.onSelectionChanged;
+        this.onSelectionSetChanged = properties.onSelectionSetChanged;
 
         this.savePreviouslySelectedCards();
     }
@@ -236,7 +236,7 @@ export class SelectCardPrompt extends UiPrompt {
         }
         this.choosingPlayer.setSelectedCards(this.selectedCards);
 
-        this.onSelectionChanged?.(this.selectedCards, this.context);
+        this.onSelectionSetChanged?.(this.selectedCards, this.context);
 
         return true;
     }
@@ -244,7 +244,7 @@ export class SelectCardPrompt extends UiPrompt {
     private clearSelectedCards() {
         this.selectedCards = [];
         this.choosingPlayer.clearSelectedCards();
-        this.onSelectionChanged?.([], this.context);
+        this.onSelectionSetChanged?.([], this.context);
     }
 
     private fireOnSelect() {

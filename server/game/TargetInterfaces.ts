@@ -97,6 +97,8 @@ interface ICardTargetResolverBase<TContext extends AbilityContext> extends ITarg
 
     /** Filter cards by their controller */
     controller?: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
+
+    onSelectionSetChanged?: (selectedCards: Card[], context: TContext) => void;
 }
 
 interface ICardExactlyUpToTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
@@ -119,7 +121,6 @@ interface ICardBetweenVariableTargetResolver<TContext extends AbilityContext> ex
     maxNumCardsFunc?: (context: TContext, selectedCards?: Card[]) => number;
     useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
-    onSelectionChanged?: (selectedCards: Card[], context: TContext) => void;
 }
 
 interface ICardMaxStatTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {

@@ -152,7 +152,6 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             () => this.triggerAdjustment(events, context, costAdjustTriggerResult, abilityCostResult, targetResolver)
         ];
 
-        // TODO THIS PR: fix cancel after Exploit has happened
         if (abilityCostResult.canCancel) {
             choices.push('Cancel');
             handlers.push(() => {
@@ -311,6 +310,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         // step 2: generate the cost reduction event (which in turn emits the individual events for each targeted unit)
         context.game.queueSimpleStep(() => {
             if (!abilityCostResult.cancelled) {
+                abilityCostResult.canCancel = false;
                 costAdjustTriggerResult.adjustedCost.applyStaticDecrease(this.getSelectedUnitsCount(context) * this.adjustAmountPerTarget);
                 events.push(this.buildTargetsEffectEvent(context));
             }
@@ -385,15 +385,15 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
                 triggerResult
             );
 
-        const onSelectionChanged = (selected: Card | Card[], context: AbilityContext) =>
+        const onSelectionSetChanged = (selected: Card | Card[], context: AbilityContext) =>
             this.updateMinimumTargetsInContext(selected, triggerResult, context);
 
-        return this.buildTargetResolverCommon(multiSelectCardCondition, onSelectionChanged);
+        return this.buildTargetResolverCommon(multiSelectCardCondition, onSelectionSetChanged);
     }
 
     private buildTargetResolverCommon(
         multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: AbilityContext) => boolean,
-        onSelectionChanged?: (selectedCards: Card[], context: AbilityContext) => void,
+        onSelectionSetChanged?: (selectedCards: Card[], context: AbilityContext) => void,
     ): CardTargetResolver {
         const maxNumCardsFunc = this.maxTargetCount
             ? () => this.maxTargetCount
@@ -410,7 +410,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
                 controller: RelativePlayer.Self,
                 appendToDefaultTitle: this.promptSuffix,
                 cardCondition: this.targetCondition,
-                onSelectionChanged,
+                onSelectionSetChanged,
                 multiSelectCardCondition
             }
         );
