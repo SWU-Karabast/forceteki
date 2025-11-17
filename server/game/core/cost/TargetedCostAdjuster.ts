@@ -37,6 +37,12 @@ interface IOpportunityCostTarget {
     opportunityCost: IEvaluationOpportunityCost;
 }
 
+/**
+ * ABC for cost adjusters that adjust cost based on targeted units (Exploit and Vuutun Palaa).
+ * Centralizes all of the common functionality including determining required number of targets,
+ * building the target resolver and evaluating which selection are legal based on downstream adjusters,
+ * and evaluating whether there is sufficient available adjustment to pay.
+ */
 export abstract class TargetedCostAdjuster extends CostAdjuster {
     protected readonly adjustAmountPerTarget: number;
     protected readonly costPropertyName: string;
@@ -92,6 +98,14 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         return this.getNumberOfLegalTargets(this.evaluationStageTargetResolver, context) * this.adjustAmountPerTarget;
     }
 
+    /**
+     * Triggers the target selection stage of the cost adjuster, where the user is prompted to select which units to
+     * target for the effect.
+     *
+     * Handles the setup of the target resolver by determining the minimum number of targets required based on other
+     * available adjustments, and populates the context with necessary data to be able to update the target list
+     * on the fly based on player selections.
+     */
     public queueGenerateEventGameSteps(
         events: any[],
         context: AbilityContext<Card>,
@@ -171,6 +185,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         });
     }
 
+    /** Applies the maximum possible adjustment amount based on the number of legal targets minus any targets that would be potentially removed by earlier stages (i.e. Exploit) */
     protected override applyMaxAdjustmentAmount(_card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]) {
         const numRemovedTargets = previousTargetSelections ? this.getNumberOfRemovedTargets(previousTargetSelections, context) : 0;
 
@@ -178,16 +193,24 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         result.adjustedCost.applyStaticDecrease(adjustAmount);
     }
 
+    /** If the cost would be affected by targets being removed by Exploit, returns the number of targets removed */
     protected getNumberOfRemovedTargets(previousTargetSelections: ITriggerStageTargetSelection[], context: AbilityContext): number {
         return 0;
     }
 
+    /**
+     * Determines the minimum possible cost to play by iterating over the list of targetable units and calculating the max discount available for each.
+     * This includes evaluating the "opportunity cost" if there is an interaction like Exploit removing a droid while Vuutun Palaa is in play.
+     */
     protected override resolveCostAdjustmentInternal(_card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
         const targets = this.buildSortedTargets(evaluationResult, context);
         const numTargets = Math.min(targets.length, this.getNumberOfLegalTargets(this.evaluationStageTargetResolver, context));
 
         for (let i = 0; i < numTargets; i++) {
             const opportunityCost = targets[i].opportunityCost;
+
+            // if there is a "dynamic" opportunity cost like Starhawk, add tracking context here indicating that we have the option
+            // to keep it in play or to target it for our effect (currently always Exploit)
             if (opportunityCost.dynamic != null) {
                 opportunityCost.dynamic.addAlternateDiscount(this.adjustAmountPerTarget);
                 continue;
@@ -202,6 +225,10 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         }
     }
 
+    /**
+     * Builds the list of legal targets in the arena that could be selected for this effect, ordered in increasing order of "opportunity cost".
+     * The idea is that we will greedily evaluate units with lower opportunity cost first to get the highest possible overall discount.
+     */
     protected buildSortedTargets(result: ICostAdjustEvaluationResult, context: AbilityContext): IOpportunityCostTarget[] {
         const targets: IOpportunityCostTarget[] = [];
 
@@ -220,34 +247,11 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         return targets;
     }
 
-    private evaluateTargetable(
-        card: Card,
-        selectedCards: Card[],
-        context: AbilityContext,
-        selectableCardsSorted: Card[],
-        adjustResult: ICostAdjustTriggerResult
-    ): boolean {
-        const availableResources = context.player.readyResourceCount;
-        const currentAdjustedCost = adjustResult.adjustedCost.value;
-
-        const currentDiscountAmount = selectedCards.length * this.adjustAmountPerTarget;
-        const remainingCostToPay = Math.max(0, currentAdjustedCost - currentDiscountAmount);
-
-        if (remainingCostToPay <= availableResources) {
-            return true;
-        }
-
-        const minimumTargetSetToPay = this.findMinimumTargetSetToPay(
-            selectableCardsSorted,
-            context,
-            adjustResult,
-            availableResources,
-            [...selectedCards, card]
-        );
-
-        return minimumTargetSetToPay != null;
-    }
-
+    /**
+     * At pay time, computes the smallest set of targets we could choose at this stage which will allow paying the full cost.
+     * This accounts for both "upstream" adjustments that have already been applied, as well as "downstream" adjustments that might
+     * be available depending on what choices we make (mostly relevant for Exploit).
+     */
     private findMinimumTargetSetToPay(
         allAvailableTargetsSorted: Card[],
         context: AbilityContext,
@@ -292,6 +296,10 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         return null;
     }
 
+    /**
+     * Triggers the process of the player choosing targets for adjustment, and then queues a followup step to trigger the event and make
+     * the game state changes. Will check to see if the user cancels at the trigger stage.
+     */
     private triggerAdjustment(
         events: any[],
         context: AbilityContext,
@@ -312,6 +320,10 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         }, `generate ${this.costPropertyName} event for ${context.source.internalName}`);
     }
 
+    /**
+     * Builds the GameEvents to apply the cost adjustment effects to the selected targets.
+     * There will be one "overall" adjustment event and an effect for each individual target (i.e. defeat, exhaust).
+     */
     private buildTargetsEffectEvent(context) {
         const costProps = context.costs[this.costPropertyName] as IContextCostProps;
         const targets = context.targets[this.costPropertyName];
@@ -359,10 +371,16 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         return fullCostAdjustEffectEvent;
     }
 
+    /** Builds a common reusable target resolver that can be applied across multiple potential target cards */
     private buildEvaluationStageTargetResolver(): CardTargetResolver {
         return this.buildTargetResolverCommon();
     }
 
+    /**
+     * Builds a dedicated target resolver for use when the card is being played and we need to evaluate which cards are legal for selection.
+     * This resolver will update the set of selectable units based on which cards are already selected and what that implies for available downstream adjustments
+     * (i.e., Exploit + Vuutun Palaa).
+     */
     private buildTriggerStageTargetResolver(
         triggerResult: ICostAdjustTriggerResult,
         context: AbilityContext
@@ -409,6 +427,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         );
     }
 
+    /** Updates the value on the context object indicating the current minimum number of targetable cards, based on the currently selected units */
     private updateMinimumTargetsInContext(
         selected: Card | Card[],
         costAdjustTriggerResult: ICostAdjustTriggerResult,
@@ -423,6 +442,43 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         );
 
         context.costs[this.costPropertyName].minimumTargets = minimumTargetsSet.length;
+    }
+
+
+    /**
+     * Determines whether a specific unit on the field can be selected for the cost adjustment effect.
+     * The big question is whether doing something to that unit (defeating it for Exploit) will impact other
+     * downstream cost adjustments in a way where it would no longer be possible to pay. If so, the card is marked
+     * as not selectable.
+     *
+     * This will change based on the current set of selections.
+     */
+    private evaluateTargetable(
+        card: Card,
+        selectedCards: Card[],
+        context: AbilityContext,
+        selectableCardsSorted: Card[],
+        adjustResult: ICostAdjustTriggerResult
+    ): boolean {
+        const availableResources = context.player.readyResourceCount;
+        const currentAdjustedCost = adjustResult.adjustedCost.value;
+
+        const currentDiscountAmount = selectedCards.length * this.adjustAmountPerTarget;
+        const remainingCostToPay = Math.max(0, currentAdjustedCost - currentDiscountAmount);
+
+        if (remainingCostToPay <= availableResources) {
+            return true;
+        }
+
+        const minimumTargetSetToPay = this.findMinimumTargetSetToPay(
+            selectableCardsSorted,
+            context,
+            adjustResult,
+            availableResources,
+            [...selectedCards, card]
+        );
+
+        return minimumTargetSetToPay != null;
     }
 
     // by default, can choose as many targets as meet the condition

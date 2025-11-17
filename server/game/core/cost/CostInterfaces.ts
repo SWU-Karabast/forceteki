@@ -1,7 +1,9 @@
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { Aspect } from '../Constants';
-import type { AdjustedCostEvaluator, DynamicOpportunityCost, SimpleAdjustedCost } from './AdjustedCostEvaluator';
+import type { AdjustedCostEvaluator } from './evaluation/AdjustedCostEvaluator';
 import type { CostAdjuster, CostAdjustResolutionMode } from './CostAdjuster';
+import type { DynamicOpportunityCost } from './evaluation/DynamicOpportunityCost';
+import type { SimpleAdjustedCost } from './evaluation/SimpleAdjustedCost';
 
 export enum CostAdjustStage {
     Standard_0 = 'standard_0',

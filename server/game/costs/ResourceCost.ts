@@ -9,7 +9,8 @@ import type { IAbilityCostAdjustmentProperties, ICostAdjusterEvaluationTarget, I
 import { CostAdjustStage, ResourceCostType, type ICostAdjustEvaluationIntermediateResult } from '../core/cost/CostInterfaces';
 import * as CostHelpers from '../core/cost/CostHelpers';
 import type { MetaActionCost } from '../core/cost/MetaActionCost';
-import { AdjustedCostEvaluator, SimpleAdjustedCost } from '../core/cost/AdjustedCostEvaluator';
+import { AdjustedCostEvaluator } from '../core/cost/evaluation/AdjustedCostEvaluator';
+import { SimpleAdjustedCost } from '../core/cost/evaluation/SimpleAdjustedCost';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
