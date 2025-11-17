@@ -7,8 +7,8 @@ import type { CostAdjuster, CostAdjustResolutionMode } from './CostAdjuster';
 export enum CostAdjustStage {
     Standard_0 = 'standard_0',
     Exploit_1 = 'exploit_1',
-    ExhaustUnits_2 = 'exhaustUnits_2',
-    PayStage_3 = 'payStage_3',
+    PayStage_2 = 'payStage_2',
+    ExhaustUnits_3 = 'exhaustUnits_3',
     Increase_4 = 'increase_4'
 }
 

@@ -1,4 +1,5 @@
 import * as Contract from '../utils/Contract';
+import type { ICostAdjustEvaluationIntermediateResult } from './CostInterfaces';
 
 export class SimpleAdjustedCost {
     private _value: number;
@@ -69,10 +70,12 @@ export class DynamicOpportunityCost {
     private computeDiscount: (remainingCost: number) => number;
     private alternateDiscounts: number[] = [];
 
-    public constructor(computeDiscount: (remainingCost: number) => number) {
+    public constructor(computeDiscount: (remainingCost: number) => number, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
+        const alreadyAppliedDiscounts = evaluationResult.totalResourceCost - evaluationResult.adjustedCost.value;
+
         this.computeDiscount = (remainingCost: number) => {
             Contract.assertNonNegative(remainingCost, `Remaining cost must be non-negative, instead got ${remainingCost}`);
-            return computeDiscount(remainingCost);
+            return computeDiscount(remainingCost + alreadyAppliedDiscounts);
         };
     }
 

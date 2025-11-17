@@ -43,7 +43,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
 
     protected override getCostStage(costAdjustType: CostAdjustType): CostAdjustStage {
         Contract.assertTrue(costAdjustType === CostAdjustType.ExhaustUnits, `ExhaustUnitsCostAdjuster must have costAdjustType of '${CostAdjustType.ExhaustUnits}', instead got '${costAdjustType}'`);
-        return CostAdjustStage.ExhaustUnits_2;
+        return CostAdjustStage.ExhaustUnits_3;
     }
 
     protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]) {
@@ -72,7 +72,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
     protected override resolveCostAdjustmentInternal(card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
         super.resolveCostAdjustmentInternal(card, context, evaluationResult);
 
-        const dynamicCost = new DynamicOpportunityCost((_remainingCost: number) => 0);
+        const dynamicCost = new DynamicOpportunityCost((_remainingCost: number) => 0, evaluationResult);
         evaluationResult.adjustedCost.applyDynamicOffset(dynamicCost);
 
         const adjustSourceEntry = evaluationResult.costAdjusterTargets.targets.find(

@@ -24,7 +24,7 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
 
     protected override getCostStage(costAdjustType: CostAdjustType): CostAdjustStage {
         Contract.assertTrue(costAdjustType === CostAdjustType.ModifyPayStage, `ModifyPayStageCostAdjuster must have costAdjustType of '${CostAdjustType.ModifyPayStage}', instead got '${costAdjustType}'`);
-        return CostAdjustStage.PayStage_3;
+        return CostAdjustStage.PayStage_2;
     }
 
     protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]) {
@@ -39,7 +39,7 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
     }
 
     protected override resolveCostAdjustmentInternal(_card: Card, _context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
-        const dynamicCost = new DynamicOpportunityCost((remainingCost: number) => remainingCost - this.payStageAmountAfterDiscount(remainingCost));
+        const dynamicCost = new DynamicOpportunityCost((remainingCost: number) => remainingCost - this.payStageAmountAfterDiscount(remainingCost), evaluationResult);
         evaluationResult.adjustedCost.applyDynamicOffset(dynamicCost);
 
         const adjustSourceEntry = evaluationResult.costAdjusterTargets.targets.find(

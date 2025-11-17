@@ -476,5 +476,80 @@ describe('Cost adjuster combinations', function() {
                 expect(context.battleDroid.exhausted).toBeTrue();
             });
         });
+
+        describe('Vuutun Palaa + Starhawk:', function () {
+            it('reductions should be combined correctly at pay time', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['the-son#embodiment-of-darkness'],
+                        spaceArena: ['vuutun-palaa#droid-control-ship', 'the-starhawk#prototype-battleship'],
+                        groundArena: ['battle-droid', 'separatist-commando', 'clone-trooper'],
+                        resources: 2
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theSon);
+
+                context.player1.clickPrompt('Pay cost by exhausting units');
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.separatistCommando]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                context.player1.clickCard(context.battleDroid);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                context.player1.clickCard(context.separatistCommando);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.theSon).toBeInZone('groundArena');
+                expect(context.battleDroid.exhausted).toBeTrue();
+                expect(context.separatistCommando.exhausted).toBeTrue();
+            });
+
+            it('reductions should be combined correctly at resolve time, accounting for exhausted Droid units', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['the-son#embodiment-of-darkness'],
+                        spaceArena: ['vuutun-palaa#droid-control-ship', 'the-starhawk#prototype-battleship'],
+                        groundArena: [{ card: 'battle-droid', exhausted: true }, 'separatist-commando', 'clone-trooper'],
+                        resources: 2
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.player1).not.toBeAbleToSelect(context.theSon);
+            });
+
+            it('other cost adjustments should be correctly accounted for', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jyn-erso#resisting-oppression',
+                        hand: ['republic-attack-pod'],
+                        spaceArena: ['vuutun-palaa#droid-control-ship', 'the-starhawk#prototype-battleship'],
+                        groundArena: ['battle-droid', 'clone-trooper'],
+                        resources: 2
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.setExactReadyResources(2);
+                context.player1.clickCard(context.republicAttackPod);
+
+                context.player1.clickPrompt('Pay cost by exhausting units');
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                context.player1.clickCard(context.battleDroid);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.republicAttackPod).toBeInZone('groundArena');
+                expect(context.battleDroid.exhausted).toBeTrue();
+            });
+        });
     });
 });
