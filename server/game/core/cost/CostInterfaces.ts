@@ -3,7 +3,6 @@ import type { Aspect } from '../Constants';
 import type { AdjustedCostEvaluator, DynamicOpportunityCost, SimpleAdjustedCost } from './AdjustedCostEvaluator';
 import type { CostAdjuster, CostAdjustResolutionMode } from './CostAdjuster';
 
-// TODO THIS PR: reverse exhaust and pay stage order
 export enum CostAdjustStage {
     Standard_0 = 'standard_0',
     Exploit_1 = 'exploit_1',
@@ -20,13 +19,6 @@ export enum ResourceCostType {
 export interface IEvaluationOpportunityCost {
     max: number;
     dynamic?: DynamicOpportunityCost;
-}
-
-export interface ICostAdjusterEvaluationTargetSet {
-    targets: ICostAdjusterEvaluationTarget[];
-
-    // TODO THIS PR: remove
-    targetsAreOrdered: boolean;
 }
 
 export interface ICostAdjusterEvaluationTarget {
@@ -52,13 +44,13 @@ export interface ICostAdjustTriggerResult extends ICostAdjustmentResolutionPrope
 }
 
 export interface ICostAdjustEvaluationResult extends ICostAdjustmentResolutionProperties {
-    costAdjusterTargets: ICostAdjusterEvaluationTargetSet;
+    costAdjusterTargets: ICostAdjusterEvaluationTarget[];
 }
 
 export interface ICostAdjustEvaluationIntermediateResult extends ICostAdjustmentResolutionProperties {
     resolutionMode: CostAdjustResolutionMode.Evaluate;
     adjustedCost: AdjustedCostEvaluator;
-    costAdjusterTargets: ICostAdjusterEvaluationTargetSet;
+    costAdjusterTargets: ICostAdjusterEvaluationTarget[];
 }
 
 export type ICostAdjustResult = ICostAdjustTriggerResult | ICostAdjustEvaluationIntermediateResult;

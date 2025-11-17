@@ -5,7 +5,7 @@ import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
 import { CostAdjustResolutionMode, type CostAdjuster } from '../core/cost/CostAdjuster';
 import type { Card } from '../core/card/Card';
-import type { IAbilityCostAdjustmentProperties, ICostAdjusterEvaluationTargetSet, ICostAdjustTriggerResult } from '../core/cost/CostInterfaces';
+import type { IAbilityCostAdjustmentProperties, ICostAdjusterEvaluationTarget, ICostAdjustTriggerResult } from '../core/cost/CostInterfaces';
 import { CostAdjustStage, ResourceCostType, type ICostAdjustEvaluationIntermediateResult } from '../core/cost/CostInterfaces';
 import * as CostHelpers from '../core/cost/CostHelpers';
 import type { MetaActionCost } from '../core/cost/MetaActionCost';
@@ -180,10 +180,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         context: AbilityContext<TCard>,
         _costAdjustersByStage: Map<CostAdjustStage, CostAdjuster[]>
     ): ICostAdjustEvaluationIntermediateResult {
-        const costAdjusterTargets: ICostAdjusterEvaluationTargetSet = {
-            targets: context.player.getArenaUnits().map((unit) => ({ unit })),
-            targetsAreOrdered: false
-        };
+        const costAdjusterTargets: ICostAdjusterEvaluationTarget[] = context.player.getArenaUnits().map((unit) => ({ unit }));
 
         return {
             resolutionMode: CostAdjustResolutionMode.Evaluate,

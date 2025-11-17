@@ -5,7 +5,7 @@ import * as Contract from '../utils/Contract';
 import { DynamicOpportunityCost } from './AdjustedCostEvaluator';
 import type { IModifyPayStageCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjustResolutionMode } from './CostAdjuster';
-import { CostAdjuster, CostAdjustType } from './CostAdjuster';
+import { CostAdjuster } from './CostAdjuster';
 import type { ICostAdjustEvaluationIntermediateResult, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
@@ -17,14 +17,9 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
         source: Card,
         properties: IModifyPayStageCostAdjusterProperties
     ) {
-        super(game, source, properties);
+        super(game, source, CostAdjustStage.PayStage_2, properties);
 
         this.payStageAmountAfterDiscount = properties.payStageAmount;
-    }
-
-    protected override getCostStage(costAdjustType: CostAdjustType): CostAdjustStage {
-        Contract.assertTrue(costAdjustType === CostAdjustType.ModifyPayStage, `ModifyPayStageCostAdjuster must have costAdjustType of '${CostAdjustType.ModifyPayStage}', instead got '${costAdjustType}'`);
-        return CostAdjustStage.PayStage_2;
     }
 
     protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]) {
@@ -42,7 +37,7 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
         const dynamicCost = new DynamicOpportunityCost((remainingCost: number) => remainingCost - this.payStageAmountAfterDiscount(remainingCost), evaluationResult);
         evaluationResult.adjustedCost.applyDynamicOffset(dynamicCost);
 
-        const adjustSourceEntry = evaluationResult.costAdjusterTargets.targets.find(
+        const adjustSourceEntry = evaluationResult.costAdjusterTargets.find(
             (t) => t.unit === this.source
         );
 

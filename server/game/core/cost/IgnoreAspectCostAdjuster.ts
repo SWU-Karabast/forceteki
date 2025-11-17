@@ -16,7 +16,7 @@ export class IgnoreAspectCostAdjuster extends CostAdjuster {
         source: Card,
         properties: IIgnoreAllAspectsCostAdjusterProperties | IIgnoreSpecificAspectsCostAdjusterProperties
     ) {
-        super(game, source, properties);
+        super(game, source, CostAdjustStage.Standard_0, properties);
 
         if (properties.costAdjustType === CostAdjustType.IgnoreSpecificAspects) {
             if (Array.isArray(properties.ignoredAspect)) {
@@ -32,14 +32,6 @@ export class IgnoreAspectCostAdjuster extends CostAdjuster {
         }
 
         return super.canAdjust(card, context, evaluationResult);
-    }
-
-    protected override getCostStage(costAdjustType: CostAdjustType): CostAdjustStage {
-        Contract.assertTrue(
-            costAdjustType === CostAdjustType.IgnoreAllAspects || costAdjustType === CostAdjustType.IgnoreSpecificAspects,
-            `IgnoreAspectCostAdjuster must have costAdjustType of '${CostAdjustType.IgnoreAllAspects}' or '${CostAdjustType.IgnoreSpecificAspects}', instead got '${costAdjustType}'`
-        );
-        return CostAdjustStage.Standard_0;
     }
 
     protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustmentResolutionProperties) {

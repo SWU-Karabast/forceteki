@@ -1,7 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
-import * as Contract from '../utils/Contract';
 import type { ICostAdjusterProperties } from './CostAdjuster';
 import { CostAdjuster, CostAdjustType } from './CostAdjuster';
 import type { ICostAdjustmentResolutionProperties } from './CostInterfaces';
@@ -17,12 +16,7 @@ export class IncreaseCostAdjuster extends CostAdjuster {
             ...properties,
             costAdjustType: CostAdjustType.Increase
         };
-        super(game, source, propsWithType);
-    }
-
-    protected override getCostStage(costAdjustType: CostAdjustType): CostAdjustStage {
-        Contract.assertTrue(costAdjustType === CostAdjustType.Increase, `IncreaseCostAdjuster must have costAdjustType of '${CostAdjustType.Increase}', instead got '${costAdjustType}'`);
-        return CostAdjustStage.Increase_4;
+        super(game, source, CostAdjustStage.Increase_4, propsWithType);
     }
 
     protected override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustmentResolutionProperties) {

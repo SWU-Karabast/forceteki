@@ -21,7 +21,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         source: ICardWithCostProperty,
         properties: IExhaustUnitsCostAdjusterProperties
     ) {
-        super(game, source,
+        super(game, source, CostAdjustStage.ExhaustUnits_3,
             {
                 limit: new PerPlayerPerGameAbilityLimit(game, 1),
                 ...properties,
@@ -39,11 +39,6 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
 
     protected override buildEffectSystem(): GameSystem<AbilityContext<IUnitCard>> {
         return new ExhaustSystem({ isCost: true });
-    }
-
-    protected override getCostStage(costAdjustType: CostAdjustType): CostAdjustStage {
-        Contract.assertTrue(costAdjustType === CostAdjustType.ExhaustUnits, `ExhaustUnitsCostAdjuster must have costAdjustType of '${CostAdjustType.ExhaustUnits}', instead got '${costAdjustType}'`);
-        return CostAdjustStage.ExhaustUnits_3;
     }
 
     protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]) {
@@ -75,7 +70,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         const dynamicCost = new DynamicOpportunityCost((_remainingCost: number) => 0, evaluationResult);
         evaluationResult.adjustedCost.applyDynamicOffset(dynamicCost);
 
-        const adjustSourceEntry = evaluationResult.costAdjusterTargets.targets.find(
+        const adjustSourceEntry = evaluationResult.costAdjusterTargets.find(
             (t) => t.unit === this.source
         );
 
@@ -96,7 +91,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
             CostAdjustStage.Exploit_1,
         );
 
-        for (const targetEntry of evaluationResult.costAdjusterTargets.targets) {
+        for (const targetEntry of evaluationResult.costAdjusterTargets) {
             if (this.isTargetableForExhaust(targetEntry.unit, context)) {
                 this.setOrAddOpportunityCost(
                     targetEntry,

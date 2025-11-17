@@ -10,7 +10,7 @@ import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/Exploi
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState, undoObject } from '../GameObjectUtils';
+import { registerState, undoObject, undoState } from '../GameObjectUtils';
 import { ResourceCostType, type ICostAdjustEvaluationIntermediateResult, type ICostAdjustTriggerResult } from './CostInterfaces';
 import type { ICostAdjusterEvaluationTarget, ICostAdjustmentResolutionProperties, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { CostAdjustStage } from './CostInterfaces';
@@ -147,33 +147,27 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     @undoObject()
     protected accessor source: Card;
 
-    // TODO THIS PR: will the decorators work here?
-    protected get isCancelled(): boolean {
-        return this.state.isCancelled;
-    }
-
-    protected set isCancelled(value: boolean) {
-        this.state.isCancelled = value;
-    }
+    @undoState()
+    protected accessor isCancelled: boolean;
 
     public constructor(
         game: Game,
         source: Card,
+        costStage: CostAdjustStage,
         properties: ICostAdjusterProperties
     ) {
         super(game);
 
         this.source = source;
 
-        this.costAdjustStage = this.getCostStage(properties.costAdjustType);
+        this.costAdjustStage = costStage;
         this.costAdjustType = properties.costAdjustType;
 
         if (
             properties.costAdjustType === CostAdjustType.Increase ||
             properties.costAdjustType === CostAdjustType.Decrease
         ) {
-            // TODO THIS PR: can we remove the 1?
-            this.amount = properties.amount || 1;
+            this.amount = properties.amount;
         }
 
         this.match = properties.match;
@@ -189,8 +183,6 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         this.matchAbilityCosts = !!properties.matchAbilityCosts;
     }
 
-    // TODO THIS PR: can we remove getCostStage?
-    protected abstract getCostStage(costAdjustType: CostAdjustType): CostAdjustStage;
     protected abstract applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]): void;
 
     public isExploit(): this is ExploitCostAdjuster {

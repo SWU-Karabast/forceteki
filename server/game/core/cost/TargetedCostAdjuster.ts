@@ -12,7 +12,7 @@ import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import type { ITargetedCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjuster } from './CostAdjuster';
-import type { ICostAdjustEvaluationIntermediateResult, ICostAdjustEvaluationResult, ICostAdjustResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
+import type { CostAdjustStage, ICostAdjustEvaluationIntermediateResult, ICostAdjustEvaluationResult, ICostAdjustResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 
 export type ITargetedCostAdjusterInitializationProperties = ITargetedCostAdjusterProperties & {
@@ -52,9 +52,10 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     public constructor(
         game: Game,
         source: ICardWithCostProperty,
+        costStage: CostAdjustStage,
         properties: ITargetedCostAdjusterInitializationProperties
     ) {
-        super(game, source, properties);
+        super(game, source, costStage, properties);
 
         this.adjustAmountPerTarget = properties.adjustAmountPerTarget;
         this.costPropertyName = properties.costPropertyName;
@@ -210,7 +211,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     protected buildSortedTargets(result: ICostAdjustEvaluationResult, context: AbilityContext): IOpportunityCostTarget[] {
         const targets: IOpportunityCostTarget[] = [];
 
-        for (const { unit, opportunityCost: opportunityCostMap } of result.costAdjusterTargets.targets) {
+        for (const { unit, opportunityCost: opportunityCostMap } of result.costAdjusterTargets) {
             if (this.targetCondition && !this.targetCondition(unit, context)) {
                 continue;
             }
