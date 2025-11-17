@@ -23,7 +23,7 @@ export default class IAmYourFather extends EventCard {
                     mode: TargetMode.Select,
                     dependsOn: 'targetUnit',
                     choosingPlayer: RelativePlayer.Opponent,
-                    activePromptTitle: (context) => `${context.targets.targetUnit.title} takes 7 [Damage] or opponent [Draw]s 3 cards`,
+                    activePromptTitle: (context) => `${context.targets.targetUnit.title} takes 7 [Damage] or opponent [Draws] 3 cards`,
                     choices: (context) => ({
                         [NamedAction.Damage]: AbilityHelper.immediateEffects.damage({
                             target: context.targets.targetUnit,
