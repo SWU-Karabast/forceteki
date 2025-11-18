@@ -36,8 +36,9 @@ interface IContextCostProps {
      */
     remainingCostAfterOtherDiscounts?: number;
 
-    /** This will only be computed and stored if opportunity costs matter */
+    /** These will only be computed and stored if opportunity costs matter */
     sortedAvailableTargets?: IOpportunityCostTarget[];
+    otherDiscountsAmount?: number;
 }
 
 interface IOpportunityCostTarget {
@@ -161,7 +162,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             context,
             costAdjustTriggerResult,
             context.player.readyResourceCount,
-        );
+        ).targetSet;
 
         Contract.assertNotNullLike(minimumTargetsSet, 'No valid target set found to pay cost with targeted cost adjuster at pay time');
         const minimumTargetsRequiredToPay = minimumTargetsSet.length;
@@ -286,7 +287,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         adjustResult: ICostAdjustTriggerResult,
         availableResources: number,
         preSelectedTargets?: Card[]
-    ): Card[] | null {
+    ): { targetSet: Card[]; otherDiscountsAmount: number } | null {
         const availableCopy = [...allAvailableTargetsSorted];
 
         const potentialTargetSet: ITriggerStageTargetSelection[] = [];
@@ -314,7 +315,8 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             }
 
             if (minimumPossibleRemainingCost <= availableResources) {
-                return potentialTargetSet.map((selection) => selection.card);
+                const otherDiscountsAmount = (adjustResult.totalResourceCost - minimumPossibleRemainingCost) - adjustAmountForTargetSet;
+                return { targetSet: potentialTargetSet.map((selection) => selection.card), otherDiscountsAmount };
             }
 
             let nextCard: Card;
@@ -436,12 +438,15 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         const onSelectionSetChanged = (selected: Card | Card[], context: AbilityContext) =>
             this.updateMinimumTargetsInContext(selected, triggerResult, context);
 
-        return this.buildTargetResolverCommon(multiSelectCardCondition, onSelectionSetChanged);
+        const activePromptTitle = this.buildActivePromptTitleHandler(triggerResult);
+
+        return this.buildTargetResolverCommon(multiSelectCardCondition, onSelectionSetChanged, activePromptTitle);
     }
 
     private buildTargetResolverCommon(
         multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: AbilityContext) => boolean,
         onSelectionSetChanged?: (selectedCards: Card[], context: AbilityContext) => void,
+        activePromptTitle?: (context: AbilityContext, selectedCards: Card[]) => string
     ): CardTargetResolver {
         const maxNumCardsFunc = this.maxTargetCount
             ? () => this.maxTargetCount
@@ -459,7 +464,8 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
                 appendToDefaultTitle: this.promptSuffix,
                 cardCondition: this.targetCondition,
                 onSelectionSetChanged,
-                multiSelectCardCondition
+                multiSelectCardCondition,
+                activePromptTitle
             }
         );
     }
@@ -470,7 +476,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         costAdjustTriggerResult: ICostAdjustTriggerResult,
         context: AbilityContext
     ) {
-        const minimumTargetsSet = this.findMinimumTargetSetToPay(
+        const minimumTargetsResult = this.findMinimumTargetSetToPay(
             this.getSortedTargetsFromContext(context).map((t) => t.unit),
             context,
             costAdjustTriggerResult,
@@ -478,9 +484,9 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             Helpers.asArray(selected)
         );
 
-        context.costs[this.costPropertyName].minimumTargets = minimumTargetsSet.length;
+        context.costs[this.costPropertyName].minimumTargets = minimumTargetsResult.targetSet.length;
+        context.costs[this.costPropertyName].otherDiscountsAmount = minimumTargetsResult.otherDiscountsAmount;
     }
-
 
     /**
      * Determines whether a specific unit on the field can be selected for the cost adjustment effect.
@@ -497,16 +503,11 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         selectableCardsSorted: Card[],
         adjustResult: ICostAdjustTriggerResult
     ): boolean {
-        const availableResources = context.player.readyResourceCount;
-        const currentAdjustedCost = adjustResult.adjustedCost.value;
-
-        const currentDiscountAmount = selectedCards.length * this.adjustAmountPerTarget;
-        const remainingCostToPay = Math.max(0, currentAdjustedCost - currentDiscountAmount);
-
-        if (remainingCostToPay <= availableResources) {
-            return true;
+        if (this.maxTargetCount != null && selectedCards.length === this.maxTargetCount) {
+            return false;
         }
 
+        const availableResources = context.player.readyResourceCount;
         const minimumTargetSetToPay = this.findMinimumTargetSetToPay(
             selectableCardsSorted,
             context,
@@ -525,6 +526,12 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         return this.maxTargetCount == null
             ? availableTargetsCount
             : Math.min(this.maxTargetCount, availableTargetsCount);
+    }
+
+    protected buildActivePromptTitleHandler(
+        _adjustmentProps: IAbilityCostAdjustmentProperties
+    ): ((context: AbilityContext, selectedCards: Card[]) => string) | null {
+        return null;
     }
 
     private getSelectedUnitsCount(context: AbilityContext): number {

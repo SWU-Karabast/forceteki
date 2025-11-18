@@ -88,6 +88,7 @@ export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> 
 
 // ********************************************** INTERNAL TYPES **********************************************
 interface ICardTargetResolverBase<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
+    activePromptTitle?: ((context: TContext, selectedCards?: Card[]) => string) | string;
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     zoneFilter?: ZoneFilter | ZoneFilter[];
     cardCondition?: (card: Card, context?: TContext) => boolean;

@@ -176,13 +176,23 @@ export class SelectCardPrompt extends UiPrompt {
         return {
             selectCardMode: this.properties.selectCardMode,
             selectOrder: this.properties.selectOrder,
-            menuTitle: this.properties.activePromptTitle || this.selector.defaultActivePromptTitle(this.context),
+            menuTitle: this.getConcreteActivePromptTitle(),
             buttons: buttons,
             promptTitle: this.promptTitle,
             promptUuid: this.uuid,
             isOpponentEffect: this.properties.isOpponentEffect,
             attackTargetingHighlightAttacker: this.properties.attackTargetingHighlightAttacker,
         };
+    }
+
+    private getConcreteActivePromptTitle(): string {
+        if (this.properties.activePromptTitle) {
+            return typeof this.properties.activePromptTitle === 'function'
+                ? this.properties.activePromptTitle(this.context, this.selectedCards)
+                : this.properties.activePromptTitle;
+        }
+
+        return this.selector.defaultActivePromptTitle(this.context);
     }
 
     public override waitingPrompt() {

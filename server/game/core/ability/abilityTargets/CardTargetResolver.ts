@@ -107,6 +107,17 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return this.selector.canTarget(card, context, []);
     }
 
+    protected override buildConcreteActivePromptTitle(context: AbilityContext): string | null {
+        if (!this.properties.activePromptTitle) {
+            return null;
+        }
+
+        // if it's a function, we'll populate the selection prompt with it directly when we build it later
+        return typeof this.properties.activePromptTitle === 'function'
+            ? null
+            : this.properties.activePromptTitle;
+    }
+
     protected override resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult, passPrompt?: IPassAbilityHandler) {
         if (!this.hasLegalTarget(context)) {
             if (context.stage === Stage.PreTarget) {
@@ -187,8 +198,15 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             card.getOngoingEffectValues(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
         );
 
+        const defaultPromptProperties = this.getDefaultProperties(context);
+
+        const activePromptTitle = typeof this.properties.activePromptTitle === 'function'
+            ? this.properties.activePromptTitle
+            : defaultPromptProperties.activePromptTitle;
+
         const promptProperties: ISelectCardPromptProperties = {
-            ...this.getDefaultProperties(context),
+            ...defaultPromptProperties,
+            activePromptTitle,
             selector: this.selector,
             buttons: buttons,
             mustSelect: mustSelect,
