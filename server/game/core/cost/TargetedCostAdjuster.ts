@@ -117,11 +117,11 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
 
     /**
      * Triggers the target selection stage of the cost adjuster, where the user is prompted to select which units to
-     * target for the effect.
+     * target for the effect. Handles the setup of the target resolver by determining the minimum number of targets required based on other
+     * available adjustments.
      *
-     * Handles the setup of the target resolver by determining the minimum number of targets required based on other
-     * available adjustments, and populates the context with necessary data to be able to update the target list
-     * on the fly based on player selections.
+     * If opportunity costs are relevant for this adjustment, they will be factored in since downstream discounts
+     * can change on the based on player selections.
      */
     public queueGenerateEventGameSteps(
         events: any[],
@@ -153,7 +153,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         this.checkAddAdjusterToTriggerList(context.source, costAdjustTriggerResult);
 
         const targetResolver = useOpportunityCost
-            ? this.buildTriggerStageTargetResolver(costAdjustTriggerResult, context)
+            ? this.buildOpportunityCostTriggerStageTargetResolver(costAdjustTriggerResult, context)
             : this.defaultTargetResolver;
 
         const minimumTargetsSet = this.findMinimumTargetSetToPay(
@@ -275,8 +275,10 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
 
     /**
      * At pay time, computes the smallest set of targets we could choose at this stage which will allow paying the full cost.
-     * This accounts for both "upstream" adjustments that have already been applied, as well as "downstream" adjustments that might
-     * be available depending on what choices we make (mostly relevant for Exploit).
+     * This accounts for both "upstream" adjustments that have already been applied, as well as "downstream" adjustments.
+     *
+     * If opportunity costs are relevant for this adjustment, they will be factored in since the discount will depend
+     * on what choices we make (mostly relevant for Exploit). Otherwise, the computation will be optimized for something simpler.
      */
     private findMinimumTargetSetToPay(
         allAvailableTargetsSorted: Card[],
@@ -410,11 +412,13 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     }
 
     /**
-     * Builds a dedicated target resolver for use when the card is being played and we need to evaluate which cards are legal for selection.
-     * This resolver will update the set of selectable units based on which cards are already selected and what that implies for available downstream adjustments
-     * (i.e., Exploit + Vuutun Palaa).
+     * Builds a dedicated target resolver for use when the card is being played and we need to evaluate which cards are legal for selection,
+     * with considerations for opportunity costs. This resolver will update the set of selectable units based on which cards are already
+     * selected and what that implies for available downstream adjustments (i.e., Exploit + Vuutun Palaa).
+     *
+     * Should not be used if opportunity costs are not relevant, since it does a lot of extra  computation across all targets.
      */
-    private buildTriggerStageTargetResolver(
+    private buildOpportunityCostTriggerStageTargetResolver(
         triggerResult: ICostAdjustTriggerResult,
         context: AbilityContext
     ): CardTargetResolver {
