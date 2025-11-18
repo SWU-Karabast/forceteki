@@ -89,7 +89,6 @@ describe('The Starhawk, Prototype Battleship', function() {
                 context.player1.exhaustResources(context.player1.readyResourceCount - expectedResourceCost);
                 const exhaustedResourceCountBefore = context.player1.exhaustedResourceCount;
 
-                // jumps directly to the piloting vehicle target prompt because regular Poe cost can't be paid
                 expect(context.player1).toBeAbleToSelect(context.pirateBattleTank);
                 context.player1.clickCard(context.pirateBattleTank);
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);

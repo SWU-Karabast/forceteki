@@ -347,9 +347,9 @@ describe('Bail Organa, Doing Everything He Can', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
 
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player2).toHaveEnabledPromptButtons(['Return Battlefield Marine to opponent\'s hand', 'Opponent can play It\'s Worse from their hand or resources for free']);
+                expect(context.player2).toHaveEnabledPromptButtons(['Bounce', 'Play']);
 
-                context.player2.clickPrompt('Opponent can play It\'s Worse from their hand or resources for free');
+                context.player2.clickPrompt('Play');
                 expect(context.player1).toBeAbleToSelectExactly([itsWorseHand, itsWorseResource]);
                 expect(context.player1).toHaveChooseNothingButton();
 

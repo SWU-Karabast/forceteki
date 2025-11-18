@@ -3,6 +3,7 @@ import type { ICost, ICostResult } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { GameEvent } from '../event/GameEvent';
 import type { ResourceCost } from '../../costs/ResourceCost';
+import type { MetaActionCost } from './MetaActionCost';
 
 /**
  * Class that wraps a {@link GameSystem} so it can be represented as an action cost
@@ -22,6 +23,14 @@ export class GameSystemCost<TContext extends AbilityContext = AbilityContext> im
         return false;
     }
 
+    public isMetaActionCost(): this is MetaActionCost {
+        return false;
+    }
+
+    public getName(): string {
+        return this.gameSystem.name;
+    }
+
     public getActionName(context: TContext): string {
         return this.gameSystem.name;
     }
@@ -36,7 +45,7 @@ export class GameSystemCost<TContext extends AbilityContext = AbilityContext> im
         return this.ifPossible || this.gameSystem.hasLegalTarget(context);
     }
 
-    public queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: ICostResult): void {
+    public queueGameStepsForAdjustmentsAndPayment(events: GameEvent[], context: TContext, result: ICostResult): void {
         // if the game system has no target but payment is optional, just return
         if (!this.gameSystem.hasLegalTarget(context) && this.ifPossible) {
             return;

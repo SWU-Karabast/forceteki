@@ -2,7 +2,6 @@ import { CardTargetResolver } from './abilityTargets/CardTargetResolver.js';
 import { SelectTargetResolver } from './abilityTargets/SelectTargetResolver.js';
 import type { RelativePlayerFilter } from '../Constants.js';
 import { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck, GameStateChangeRequired } from '../Constants.js';
-import { GameEvent } from '../event/GameEvent.js';
 import * as Contract from '../utils/Contract.js';
 import { PlayerTargetResolver } from './abilityTargets/PlayerTargetResolver.js';
 import { DropdownListTargetResolver } from './abilityTargets/DropdownListTargetResolver.js';
@@ -257,40 +256,18 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
     }
 
 
-    public getCosts(context: AbilityContext, playCosts = true, triggerCosts = true) {
+    public getCosts(context: AbilityContext) {
         let costs = typeof this.cost === 'function' ? Helpers.asArray(this.cost(context)) : this.cost;
-
         costs = costs.map((a) => a);
-
-        if (!playCosts) {
-            costs = costs.filter((cost) => !cost.isPlayCost);
-        }
 
         return costs;
     }
 
     public resolveCosts(context: AbilityContext, results: ICostResult) {
-        for (const cost of this.getCosts(context, results.playCosts, results.triggerCosts)) {
-            context.game.queueSimpleStep(() => {
-                if (!results.cancelled) {
-                    if (cost.queueGenerateEventGameSteps) {
-                        cost.queueGenerateEventGameSteps(results.events, context, results);
-                    } else {
-                        if (cost.resolve) {
-                            cost.resolve(context, results);
-                        }
-                        context.game.queueSimpleStep(() => {
-                            if (!results.cancelled) {
-                                const newEvents = cost.payEvents
-                                    ? cost.payEvents(context)
-                                    : [new GameEvent('payCost', context, {}, () => cost.pay(context))];
-
-                                results.events = results.events.concat(newEvents);
-                            }
-                        }, `Generate cost events for ${cost.gameSystem ? cost.gameSystem : cost.constructor.name} for ${this}`);
-                    }
-                }
-            }, `Resolve cost '${cost.gameSystem ? cost.gameSystem : cost.constructor.name}' for ${this}`);
+        for (const cost of this.getCosts(context)) {
+            if (cost.resolve) {
+                cost.resolve(context, results);
+            }
         }
     }
 

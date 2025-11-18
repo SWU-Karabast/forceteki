@@ -1,12 +1,13 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EffectName } from '../core/Constants';
 import type { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
-import { CostAdjuster } from '../core/cost/CostAdjuster';
+import type { CostAdjuster } from '../core/cost/CostAdjuster';
 import type { Player } from '../core/Player';
 import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder';
 import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import { ExploitCostAdjuster } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import * as Contract from '../core/utils/Contract';
+import * as CostAdjusterFactory from '../core/cost/CostAdjusterFactory';
 
 export function modifyCost(properties: ICostAdjusterProperties) {
     return OngoingEffectBuilder.player.detached(EffectName.CostAdjuster, {
@@ -14,7 +15,7 @@ export function modifyCost(properties: ICostAdjusterProperties) {
             // since the properties object of modifyCost is generated once and then captured, need to copy the limit every
             // time the properties are used so that each instance of the cost adjuster has a unique limit
             const propertiesWithClonedLimit = Object.assign(properties, { limit: properties.limit?.clone() });
-            const adjuster = new CostAdjuster(context.game, context.source, propertiesWithClonedLimit);
+            const adjuster = CostAdjusterFactory.create(context.game, context.source, propertiesWithClonedLimit);
 
             player.addCostAdjuster(adjuster);
             return adjuster;

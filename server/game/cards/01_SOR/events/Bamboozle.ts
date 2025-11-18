@@ -4,8 +4,9 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { Aspect, PlayType, WildcardCardType } from '../../../core/Constants';
 import { PlayEventAction } from '../../../actions/PlayEventAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
-import { CostAdjuster, CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
+import * as CostAdjusterFactory from '../../../core/cost/CostAdjusterFactory';
 
 export default class Bamboozle extends EventCard {
     protected override getImplementationId() {
@@ -55,7 +56,7 @@ class PlayBamboozleAction extends PlayEventAction {
 
         return {
             title: 'Play Bamboozle by discarding a Cunning card',
-            costAdjusters: new CostAdjuster(card.game, card, { costAdjustType: CostAdjustType.Free }),
+            costAdjusters: [CostAdjusterFactory.create(card.game, card, { costAdjustType: CostAdjustType.Free })],
             additionalCosts: [discardCost],
             ...properties,
         };
