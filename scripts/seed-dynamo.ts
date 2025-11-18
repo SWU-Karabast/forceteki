@@ -20,7 +20,7 @@ async function run() {
     }
 
     // Cast the JSON data to the correct type
-    const cosmetics = cosmeticsData as IRegisteredCosmeticOption[];
+    const cosmetics = cosmeticsData.default as IRegisteredCosmeticOption[];
 
     console.log(`Starting to seed ${cosmetics.length} cosmetic items...`);
 
