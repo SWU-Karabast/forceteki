@@ -8,7 +8,6 @@ import * as Contract from '../core/utils/Contract';
 import type { Player } from '../core/Player';
 import { StaticAbilityHelper } from '../AbilityHelper';
 
-// TODO: allow providing only onTrue or onFalse in the properties so we don't need to use noAction()
 export interface IConditionalSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     condition: ((context: TContext, properties: IConditionalSystemProperties) => boolean) | boolean;
     onTrue?: GameSystem<TContext>;
