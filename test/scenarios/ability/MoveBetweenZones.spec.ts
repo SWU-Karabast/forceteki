@@ -1,6 +1,6 @@
 describe('Ability targeting when the target changes zones', function() {
     integration(function (contextRef) {
-        describe('When played ability, on attack ability', function () {
+        describe('Unrefusable Offer + Superlaser Technician:', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
