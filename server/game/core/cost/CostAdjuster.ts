@@ -283,9 +283,11 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     protected getMinimumPossibleRemainingCost(
         context: AbilityContext,
         adjustResult: ICostAdjustTriggerResult,
+        thisStageDiscount: number = 0,
         previousTargetSelections?: ITriggerStageTargetSelection[]
     ): number {
         const adjustResultCopy = { ...adjustResult, adjustedCost: adjustResult.adjustedCost.copy() };
+        adjustResultCopy.adjustedCost.applyStaticDecrease(thisStageDiscount);
 
         const triggerStages = CostHelpers.getCostAdjustStagesInTriggerOrder();
         const remainingStages = triggerStages.slice(triggerStages.indexOf(adjustResult.adjustStage) + 1);

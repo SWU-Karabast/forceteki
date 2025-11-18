@@ -12,7 +12,7 @@ import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import type { ITargetedCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjuster } from './CostAdjuster';
-import type { CostAdjustStage, ICostAdjustEvaluationIntermediateResult, ICostAdjustEvaluationResult, ICostAdjustResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
+import type { CostAdjustStage, IAbilityCostAdjustmentProperties, ICostAdjustEvaluationIntermediateResult, ICostAdjustEvaluationResult, ICostAdjustResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 
 export type ITargetedCostAdjusterInitializationProperties = ITargetedCostAdjusterProperties & {
@@ -27,9 +27,17 @@ export type ITargetedCostAdjusterInitializationProperties = ITargetedCostAdjuste
 };
 
 interface IContextCostProps {
-    sortedAvailableTargets: IOpportunityCostTarget[];
     minimumTargets?: number;
     selectedTargets?: IUnitCard[];
+
+    /**
+     * This is statically computed and available only if opportunity cost isn't relevant,
+     * since otherwise the other discount amounts are not fixed
+     */
+    remainingCostAfterOtherDiscounts?: number;
+
+    /** This will only be computed and stored if opportunity costs matter */
+    sortedAvailableTargets?: IOpportunityCostTarget[];
 }
 
 interface IOpportunityCostTarget {
@@ -48,11 +56,17 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     protected readonly costPropertyName: string;
     protected readonly doNotUseAdjusterButtonText: string;
     protected readonly effectSystem: GameSystem<AbilityContext<IUnitCard>>;
-    protected readonly evaluationStageTargetResolver: CardTargetResolver;
     protected readonly eventName: EventName;
     protected readonly maxTargetCount?: number;
     protected readonly promptSuffix: string;
     protected readonly useAdjusterButtonText: string;
+
+    /**
+     * This target resolver doesn't consider opportunity costs at the selection step.
+     * Therefore it can be reused across multiple canPay evaluations for different cards, as well
+     * as for selecting targets at pay time _if_ opportunity costs are not relevant to the adjustment.
+     */
+    protected readonly defaultTargetResolver: CardTargetResolver;
 
     protected readonly targetCondition?: (card: Card, context: AbilityContext) => boolean;
 
@@ -76,10 +90,13 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         this.targetCondition = properties.targetCondition;
 
         // cache this resolver so it can be reused across canPay checks for different cards
-        this.evaluationStageTargetResolver = this.buildEvaluationStageTargetResolver();
+        this.defaultTargetResolver = this.buildEvaluationStageTargetResolver();
     }
 
     protected abstract buildEffectSystem(): GameSystem<AbilityContext<IUnitCard>>;
+
+    /** Allows us to bypass the opportunity cost evaluations when not needed, since they're fairly computationally expensive */
+    protected abstract doesAdjustmentUseOpportunityCost(adjustmentProps: IAbilityCostAdjustmentProperties): boolean;
 
     public override isTargeted(): this is TargetedCostAdjuster {
         return true;
@@ -87,7 +104,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
 
     protected override canAdjust(card: Card, context: AbilityContext<ICardWithCostProperty>, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
         // check available legal targets
-        if (!this.evaluationStageTargetResolver.hasLegalTarget(context)) {
+        if (!this.defaultTargetResolver.hasLegalTarget(context)) {
             return false;
         }
 
@@ -95,7 +112,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     }
 
     public override getAmount(card: Card, player: Player, context: AbilityContext, currentAmount: number = null): number {
-        return this.getNumberOfLegalTargets(this.evaluationStageTargetResolver, context) * this.adjustAmountPerTarget;
+        return this.getNumberOfLegalTargets(this.defaultTargetResolver, context) * this.adjustAmountPerTarget;
     }
 
     /**
@@ -118,17 +135,26 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             return;
         }
 
-        const sortedTargetsWithOpportunityCost =
-            this.buildSortedTargets(abilityCostResult.costAdjustments, context);
+        const useOpportunityCost = this.doesAdjustmentUseOpportunityCost(abilityCostResult.costAdjustments);
+
+        const sortedTargetsWithOpportunityCost = this.buildSortedTargets(abilityCostResult.costAdjustments, context);
+
+        const remainingCostAfterOtherDiscounts =
+            useOpportunityCost
+                ? null
+                : this.getMinimumPossibleRemainingCost(context, costAdjustTriggerResult);
 
         const costProps: IContextCostProps = {
-            sortedAvailableTargets: sortedTargetsWithOpportunityCost
+            sortedAvailableTargets: useOpportunityCost ? sortedTargetsWithOpportunityCost : null,
+            remainingCostAfterOtherDiscounts
         };
         context.costs[this.costPropertyName] = costProps;
 
         this.checkAddAdjusterToTriggerList(context.source, costAdjustTriggerResult);
 
-        const targetResolver = this.buildTriggerStageTargetResolver(costAdjustTriggerResult, context);
+        const targetResolver = useOpportunityCost
+            ? this.buildTriggerStageTargetResolver(costAdjustTriggerResult, context)
+            : this.defaultTargetResolver;
 
         const minimumTargetsSet = this.findMinimumTargetSetToPay(
             sortedTargetsWithOpportunityCost.map((t) => t.unit),
@@ -189,7 +215,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
     protected override applyMaxAdjustmentAmount(_card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]) {
         const numRemovedTargets = previousTargetSelections ? this.getNumberOfRemovedTargets(previousTargetSelections, context) : 0;
 
-        const adjustAmount = (this.getNumberOfLegalTargets(this.evaluationStageTargetResolver, context) - numRemovedTargets) * this.adjustAmountPerTarget;
+        const adjustAmount = (this.getNumberOfLegalTargets(this.defaultTargetResolver, context) - numRemovedTargets) * this.adjustAmountPerTarget;
         result.adjustedCost.applyStaticDecrease(adjustAmount);
     }
 
@@ -204,7 +230,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
      */
     protected override resolveCostAdjustmentInternal(_card: Card, context: AbilityContext, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
         const targets = this.buildSortedTargets(evaluationResult, context);
-        const numTargets = Math.min(targets.length, this.getNumberOfLegalTargets(this.evaluationStageTargetResolver, context));
+        const numTargets = Math.min(targets.length, this.getNumberOfLegalTargets(this.defaultTargetResolver, context));
 
         for (let i = 0; i < numTargets; i++) {
             const opportunityCost = targets[i].opportunityCost;
@@ -269,14 +295,21 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
         }
 
         const maxTargetableConcrete = this.maxTargetCount ?? availableCopy.length;
+        const staticRemainingCostAfterOtherAdjustments =
+            context.costs[this.costPropertyName]?.remainingCostAfterOtherDiscounts;
 
         do {
-            const adjustResultCopy = { ...adjustResult, adjustedCost: adjustResult.adjustedCost.copy() };
             const adjustAmountForTargetSet = potentialTargetSet.length * this.adjustAmountPerTarget;
-            adjustResultCopy.adjustedCost.applyStaticDecrease(adjustAmountForTargetSet);
 
-            const minimumPossibleRemainingCost =
-                this.getMinimumPossibleRemainingCost(context, adjustResultCopy, potentialTargetSet);
+            // small optimization: if we're not using opportunity costs, we can use the precomputed discounts from other adjusters
+            // instead of re-running the downstream adjusters for every addition to the target set
+            let minimumPossibleRemainingCost: number;
+            if (staticRemainingCostAfterOtherAdjustments != null) {
+                minimumPossibleRemainingCost = Math.max(0, staticRemainingCostAfterOtherAdjustments - adjustAmountForTargetSet);
+            } else {
+                minimumPossibleRemainingCost =
+                    this.getMinimumPossibleRemainingCost(context, adjustResult, adjustAmountForTargetSet, potentialTargetSet);
+            }
 
             if (minimumPossibleRemainingCost <= availableResources) {
                 return potentialTargetSet.map((selection) => selection.card);

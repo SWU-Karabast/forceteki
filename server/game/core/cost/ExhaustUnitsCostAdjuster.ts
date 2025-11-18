@@ -5,7 +5,7 @@ import type Game from '../Game';
 import type { IExhaustUnitsCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjustResolutionMode, CostAdjustType } from './CostAdjuster';
 import * as Contract from '../utils/Contract.js';
-import type { ICostAdjustEvaluationIntermediateResult, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
+import type { IAbilityCostAdjustmentProperties, ICostAdjustEvaluationIntermediateResult, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 import { PerPlayerPerGameAbilityLimit } from '../ability/AbilityLimit';
 import { TargetedCostAdjuster } from './TargetedCostAdjuster';
@@ -50,6 +50,11 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
 
     protected override buildEffectSystem(): GameSystem<AbilityContext<IUnitCard>> {
         return new ExhaustSystem({ isCost: true });
+    }
+
+    /** As of right now, the Exhaust effect would not impact other adjusters and therefore has no opportunity cost considerations */
+    protected override doesAdjustmentUseOpportunityCost(_adjustmentProps: IAbilityCostAdjustmentProperties) {
+        return false;
     }
 
     protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]) {
