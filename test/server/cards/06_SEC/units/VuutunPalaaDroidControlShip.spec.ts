@@ -268,6 +268,66 @@ describe('Vuutun Palaa, Droid Control Ship', function() {
                 expect(context.generalsGuardian.exhausted).toBeTrue();
                 expect(context.wampa.exhausted).toBeFalse();
             });
+
+            it('will work for every card played while it is in effect', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.vanguardInfantry);
+
+                expect(context.player1).toHaveExactPromptButtons(['Pay cost by exhausting units', 'Pay cost normally', 'Cancel']);
+                context.player1.clickPrompt('Pay cost by exhausting units');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.generalsGuardian]);
+                expect(context.player1).toHaveDisabledPromptButton('Done');
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
+
+                context.player1.clickCard(context.generalsGuardian);
+                context.player1.clickPrompt('Done');
+
+                expect(context.vanguardInfantry).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.battleDroid.exhausted).toBeFalse();
+                expect(context.generalsGuardian.exhausted).toBeTrue();
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.atst);
+
+                expect(context.player1).toHaveExactPromptButtons(['Pay cost by exhausting units', 'Pay cost normally', 'Cancel']);
+                context.player1.clickPrompt('Pay cost by exhausting units');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid]);
+                expect(context.player1).toHaveDisabledPromptButton('Done');
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
+
+                context.player1.clickCard(context.battleDroid);
+                context.player1.clickPrompt('Done');
+
+                expect(context.atst).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(5);
+                expect(context.battleDroid.exhausted).toBeTrue();
+                expect(context.generalsGuardian.exhausted).toBeTrue();
+
+                // move to next phase to confirm it lasts
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.encouragingLeadership);
+
+                expect(context.player1).toHaveExactPromptButtons(['Pay cost by exhausting units', 'Pay cost normally', 'Cancel']);
+                context.player1.clickPrompt('Pay cost by exhausting units');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.generalsGuardian]);
+                expect(context.player1).toHaveDisabledPromptButton('Done');
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
+
+                context.player1.clickCard(context.generalsGuardian);
+                context.player1.clickPrompt('Done');
+
+                expect(context.encouragingLeadership).toBeInZone('discard');
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+                expect(context.battleDroid.exhausted).toBeFalse();
+                expect(context.generalsGuardian.exhausted).toBeTrue();
+            });
         });
 
         it('Vuutun Palaa\'s constant ability can reduce the cost of a unit played with Smuggle', async function () {
