@@ -1,4 +1,6 @@
 // copyS3ToLocal.ts
+
+// to run this script use ts-node scripts/syncS3.ts
 import {
     S3Client,
     ListObjectsV2Command,
@@ -9,31 +11,28 @@ import {
 import type { Readable } from 'stream';
 import '../server/env';
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'karabast-customization';
-const PREFIX = process.env.S3_PREFIX || ''; // e.g. "cardbacks/"
+const BUCKET_NAME = 'karabast-customization';
 
-// ---- PRODUCTION S3 CLIENT ----
 const prodS3 = new S3Client({
     region: 'us-east-1',
     credentials: {
-        accessKeyId: process.env.CUSTOMIZATION_ACCESS_KEY_ID ?? '',
-        secretAccessKey: process.env.CUSTOMIZATION_ACCESS_KEY ?? ''
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? ''
     }
 });
 
-// ---- LOCAL S3 MOCK CLIENT ----
 const localS3 = new S3Client({
     region: 'us-east-1',
-    endpoint: process.env.LOCAL_S3_ENDPOINT || 'http://localhost:9090',
+    endpoint: 'http://localhost:9090',
     forcePathStyle: true,
     credentials: {
-        accessKeyId: process.env.LOCAL_S3_ACCESS_KEY || 'accessKey1',
-        secretAccessKey: process.env.LOCAL_S3_SECRET_KEY || 'verySecretKey1'
+        accessKeyId: 'accessKey1',
+        secretAccessKey: 'verySecretKey1'
     }
 });
 
 // Helper: convert stream to Buffer
-async function streamToBuffer(stream: Readable): Promise<Buffer> {
+function streamToBuffer(stream: Readable): Promise<Buffer> {
     const chunks: Buffer[] = [];
     return new Promise((resolve, reject) => {
         stream.on('data', (chunk) => {
@@ -64,8 +63,11 @@ async function ensureLocalBucketExists() {
 }
 
 async function copyAllObjects() {
-    await ensureLocalBucketExists();
+    if (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB !== 'true') {
+        return;
+    }
 
+    await ensureLocalBucketExists();
     let continuationToken: string | undefined = undefined;
     let totalCopied = 0;
 
@@ -73,7 +75,6 @@ async function copyAllObjects() {
         const listResult = await prodS3.send(
             new ListObjectsV2Command({
                 Bucket: BUCKET_NAME,
-                Prefix: PREFIX || undefined,
                 ContinuationToken: continuationToken
             })
         );

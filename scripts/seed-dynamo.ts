@@ -5,15 +5,17 @@ import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
 import { type IRegisteredCosmeticOption } from '../server/utils/cosmetics/CosmeticsInterfaces';
 
 async function run() {
-    const service = await getDynamoDbServiceAsync();
-
-    let cosmeticsData: any;
-
-    if (process.env.ENVIRONMENT === 'development') {
-        cosmeticsData = await import('../server/data/fallback-cosmetics-local.json');
-    } else {
-        cosmeticsData = await import('../server/data/fallback-cosmetics.json');
+    if (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB !== 'true') {
+        return;
     }
+
+    const service = await getDynamoDbServiceAsync();
+    const cosmeticsData = await import('../server/data/fallback-cosmetics-local.json');
+
+    // for prod
+    /* else {
+        cosmeticsData = await import('../server/data/fallback-cosmetics.json');
+    }*/
 
     if (!service) {
         throw new Error('DynamoDB service not available (are you in dev & DynamoDB Local running?)');
