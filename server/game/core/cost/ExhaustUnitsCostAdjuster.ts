@@ -61,7 +61,9 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         Contract.assertTrue(result.resolutionMode === CostAdjustResolutionMode.Trigger, `Must only be called at Trigger stage, instead got ${result.resolutionMode}`);
 
         // if the source (Vuutun Palaa) was removed via Exploit, no adjustment available
-        if (previousTargetSelections?.some((selection) => selection.card === this.source)) {
+        if (previousTargetSelections?.some(
+            (selection) => selection.stage === CostAdjustStage.Exploit_1 && selection.card === this.source
+        )) {
             return;
         }
 
