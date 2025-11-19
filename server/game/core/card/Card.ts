@@ -1093,7 +1093,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             }
         }
 
-        // STATE TODO: Can we move these registrations into state themselves? Another instane of game.on()...
+        // STATE TODO: Can we move these registrations into state themselves? Another instance of game.on()...
         for (const triggeredAbility of triggeredAbilities) {
             if (EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && !EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
                 triggeredAbility.registerEvents();
