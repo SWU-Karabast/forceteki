@@ -152,10 +152,41 @@ describe('Elia Kane, False Convert', function() {
                 expect(context.player2.exhaustedResourceCount).toEqual(1);
             });
 
-            // TODO: There isn't a good way to test 0 resources since the test setup will prompt the player to
-            // select 2 cards to resource if they have none. This scenario is wildly unlikely to happen in a
-            // real game anyway.
-            // it('When the opponent has 0 resources, Elia Kane\'s ability does nothing', async function() {});
+            it('When the opponent has 0 resources, Elia Kane\'s ability does nothing', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['lando-calrissian#responsible-businessman'],
+                        leader: 'quigon-jinn#student-of-the-living-force',
+                        groundArena: ['luke-skywalker#jedi-knight'],
+                        hasForceToken: true,
+                        resources: ['wampa', 'atst']
+                    },
+                    player2: {
+                        hand: ['elia-kane#false-convert'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.quigonJinn);
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickCard(context.landoCalrissian);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.atst);
+                context.player1.clickDone();
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.wampa).toBeInZone('hand', context.player1);
+                expect(context.atst).toBeInZone('hand', context.player1);
+                expect(context.player1.resources.length).toBe(0);
+
+                context.player2.clickCard(context.eliaKane);
+                expect(context.eliaKane).toBeInZone('groundArena', context.player2);
+                expect(context.player1).toBeActivePlayer();
+            });
 
             it('When the opponent has no cards in their deck, they cannot put a card into play as a resource', async function() {
                 await contextRef.setupTestAsync({

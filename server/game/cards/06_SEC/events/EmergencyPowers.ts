@@ -20,7 +20,7 @@ export default class EmergencyPowers extends EventCard {
             then: (thenContext) => ({
                 title: 'Pay any number of resources. Give an Experience token to that unit for each resource paid.',
                 thenCondition: (context) =>
-                    context.player.readyResourceCount > 0 && context.player.hasSomeArenaUnit(),
+                    context.player.readyResourceCount > 0 && context.game.hasSomeArenaUnit(),
                 targetResolver: {
                     mode: TargetMode.DropdownList,
                     options: (context) => Array.from({ length: context.player.readyResourceCount + 1 }, (_x, i) => `${i}`),
