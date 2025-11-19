@@ -452,7 +452,6 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             ? () => this.maxTargetCount
             : null;
 
-        // TODO THIS PR: update prompt text for cases where minimum is variable
         return new CardTargetResolver(
             this.costPropertyName, {
                 mode: TargetMode.BetweenVariable,
