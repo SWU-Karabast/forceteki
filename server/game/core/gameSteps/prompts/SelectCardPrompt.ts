@@ -65,6 +65,8 @@ export class SelectCardPrompt extends UiPrompt {
     private readonly selector: BaseCardSelector<AbilityContext>;
     private readonly source: OngoingEffectSource;
 
+    private readonly onSelectionSetChanged?: (selectedCards: Card[], context: AbilityContext) => void;
+
     private previouslySelectedCards?: Card[];
     private selectedCards: Card[];
 
@@ -112,6 +114,8 @@ export class SelectCardPrompt extends UiPrompt {
         }
 
         this.promptTitle = properties.promptTitle || this.source.name;
+
+        this.onSelectionSetChanged = properties.onSelectionSetChanged;
 
         this.savePreviouslySelectedCards();
     }
@@ -172,13 +176,23 @@ export class SelectCardPrompt extends UiPrompt {
         return {
             selectCardMode: this.properties.selectCardMode,
             selectOrder: this.properties.selectOrder,
-            menuTitle: this.properties.activePromptTitle || this.selector.defaultActivePromptTitle(this.context),
+            menuTitle: this.getConcreteActivePromptTitle(),
             buttons: buttons,
             promptTitle: this.promptTitle,
             promptUuid: this.uuid,
             isOpponentEffect: this.properties.isOpponentEffect,
             attackTargetingHighlightAttacker: this.properties.attackTargetingHighlightAttacker,
         };
+    }
+
+    private getConcreteActivePromptTitle(): string {
+        if (this.properties.activePromptTitle) {
+            return typeof this.properties.activePromptTitle === 'function'
+                ? this.properties.activePromptTitle(this.context, this.selectedCards)
+                : this.properties.activePromptTitle;
+        }
+
+        return this.selector.defaultActivePromptTitle(this.context);
     }
 
     public override waitingPrompt() {
@@ -232,12 +246,15 @@ export class SelectCardPrompt extends UiPrompt {
         }
         this.choosingPlayer.setSelectedCards(this.selectedCards);
 
+        this.onSelectionSetChanged?.(this.selectedCards, this.context);
+
         return true;
     }
 
     private clearSelectedCards() {
         this.selectedCards = [];
         this.choosingPlayer.clearSelectedCards();
+        this.onSelectionSetChanged?.([], this.context);
     }
 
     private fireOnSelect() {

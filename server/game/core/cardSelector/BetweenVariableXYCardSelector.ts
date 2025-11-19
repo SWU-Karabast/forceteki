@@ -7,8 +7,8 @@ import { BaseCardSelector } from './BaseCardSelector.js';
 
 export interface IBetweenVariableXYCardSelectorProperties<TContext> extends IBaseCardSelectorProperties<TContext> {
     mode: TargetMode.BetweenVariable;
-    minNumCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
-    maxNumCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
+    minNumCardsFunc?: (context: TContext, selectedCards?: Card[]) => number;
+    maxNumCardsFunc?: (context: TContext, selectedCards?: Card[]) => number;
     useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 
@@ -20,8 +20,8 @@ export class BetweenVariableXYCardSelector<TContext extends AbilityContext = Abi
     public constructor(properties: IBetweenVariableXYCardSelectorProperties<TContext>) {
         super(properties);
 
-        this.minNumCardsFunc = properties.minNumCardsFunc;
-        this.maxNumCardsFunc = properties.maxNumCardsFunc;
+        this.minNumCardsFunc = properties.minNumCardsFunc ?? (() => 0);
+        this.maxNumCardsFunc = properties.maxNumCardsFunc ?? ((context: TContext) => this.getMatchingCards(context).length);
         this.useSingleSelectModeFunc = properties.useSingleSelectModeFunc;
     }
 

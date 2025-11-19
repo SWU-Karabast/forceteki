@@ -88,6 +88,7 @@ export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> 
 
 // ********************************************** INTERNAL TYPES **********************************************
 interface ICardTargetResolverBase<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
+    activePromptTitle?: ((context: TContext, selectedCards?: Card[]) => string) | string;
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     zoneFilter?: ZoneFilter | ZoneFilter[];
     cardCondition?: (card: Card, context?: TContext) => boolean;
@@ -97,6 +98,8 @@ interface ICardTargetResolverBase<TContext extends AbilityContext> extends ITarg
 
     /** Filter cards by their controller */
     controller?: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
+
+    onSelectionSetChanged?: (selectedCards: Card[], context: TContext) => void;
 }
 
 interface ICardExactlyUpToTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
@@ -115,8 +118,8 @@ interface ICardExactlyUpToVariableTargetResolver<TContext extends AbilityContext
 
 interface ICardBetweenVariableTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode: TargetMode.BetweenVariable;
-    minNumCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
-    maxNumCardsFunc: (context: TContext, selectedCards?: Card[]) => number;
+    minNumCardsFunc?: (context: TContext, selectedCards?: Card[]) => number;
+    maxNumCardsFunc?: (context: TContext, selectedCards?: Card[]) => number;
     useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }

@@ -77,15 +77,24 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
     }
 
     protected getDefaultProperties(context: AbilityContext) {
-        const activePromptTitleConcrete = typeof this.properties.activePromptTitle === 'function' ? this.properties.activePromptTitle(context) : this.properties.activePromptTitle;
         return {
-            activePromptTitle: activePromptTitleConcrete,
+            activePromptTitle: this.buildConcreteActivePromptTitle(context),
             waitingPromptTitle: 'waitingPromptTitle' in this.properties
                 ? this.properties.waitingPromptTitle as string
                 : (context.ability?.type === 'action' ? 'Waiting for opponent to take an action or pass' : 'Waiting for opponent'),
             context: context,
             source: context.source
         };
+    }
+
+    protected buildConcreteActivePromptTitle(context: AbilityContext): string | null {
+        if (!this.properties.activePromptTitle) {
+            return null;
+        }
+
+        return typeof this.properties.activePromptTitle === 'function'
+            ? this.properties.activePromptTitle(context)
+            : this.properties.activePromptTitle;
     }
 
     protected setTargetResult(context: AbilityContext, target) {

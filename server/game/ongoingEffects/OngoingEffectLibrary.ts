@@ -7,7 +7,7 @@ import { cardCannot } from './CardCannot';
 // const { copyCard } = require('./Effects/Library/copyCard');
 // const { gainAllAbilities } = require('./Effects/Library/GainAllAbilities');
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
-import { addExploit, modifyCost } from './ModifyCost';
+import { addExploit, exhaustUnitsInsteadOfResources, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import type { Trait } from '../core/Constants';
 import { KeywordName } from '../core/Constants';
@@ -15,10 +15,9 @@ import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import type { IAbilityPropsWithType, IDamageModificationEffectAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
-import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
+import type { IExhaustUnitsCostAdjusterProperties, IExploitCostAdjusterProperties, IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
-import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import { playerCannot } from './PlayerCannot';
 import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotLimitModifier';
 import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
@@ -279,7 +278,9 @@ export = {
     ignoreAllAspectPenalties: (properties: Omit<IIgnoreAllAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreAllAspects, ...properties }),
     ignoreSpecificAspectPenalties: (properties: Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreSpecificAspects, ...properties }),
     ignorePilotingPilotLimit: () => OngoingEffectBuilder.card.static(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit),
-    addExploit: (properties: IExploitCostAdjusterProperties) => addExploit(properties),
+    addExploit: (properties: Omit<IExploitCostAdjusterProperties, 'costAdjustType'>) => addExploit({ ...properties, costAdjustType: CostAdjustType.Exploit }),
+    canExhaustUnitsInsteadOfResources: (properties: Omit<IExhaustUnitsCostAdjusterProperties, 'costAdjustType'>) =>
+        exhaustUnitsInsteadOfResources({ ...properties, costAdjustType: CostAdjustType.ExhaustUnits }),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>

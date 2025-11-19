@@ -3,13 +3,13 @@ import type { GameSystem } from '../gameSystem/GameSystem';
 import type { GameEvent } from '../event/GameEvent';
 import type { Player } from '../Player.js';
 import type { ResourceCost } from '../../costs/ResourceCost';
-import type { IAbilityCostAdjustmentProperties } from './CostInterfaces';
 import type { MetaActionCost } from './MetaActionCost';
+import type { ICostAdjustEvaluationResult } from './CostInterfaces';
 
 export interface ICostResult {
     canCancel: boolean;
     cancelled: boolean;
-    costAdjustments?: IAbilityCostAdjustmentProperties;
+    costAdjustments?: ICostAdjustEvaluationResult;
 }
 
 export interface ICost<TContext extends AbilityContext = AbilityContext> {
