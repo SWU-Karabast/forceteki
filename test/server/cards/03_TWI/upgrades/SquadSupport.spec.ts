@@ -1,4 +1,3 @@
-
 describe('Squad Support', function() {
     integration(function(contextRef) {
         describe('Squad Support\'s ability', function() {
@@ -43,8 +42,33 @@ describe('Squad Support', function() {
                 context.player2.clickCard(context.battlefieldMarine);
                 expect(context.advancedReconCommando.getPower()).toBe(6);
                 expect(context.advancedReconCommando.getHp()).toBe(5);
+            });
 
-            // TODO: test with Evidence of the Crime to confirm that the amount updates correctly
+            it('should give +1/+1 to the attached unit for each Trooper you control (stolen with Evidence of the Crime)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['evidence-of-the-crime'],
+                        groundArena: ['battlefield-marine', 'advanced-recon-commando', 'yoda#old-master'],
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper', { card: 'clan-challengers', upgrades: ['squad-support'] }],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.evidenceOfTheCrime);
+                context.player1.clickCard(context.squadSupport);
+                context.player1.clickCard(context.yoda);
+
+                expect(context.player2).toBeActivePlayer();
+
+                expect(context.clanChallengers.getPower()).toBe(3);
+                expect(context.clanChallengers.getHp()).toBe(6);
+
+                expect(context.yoda.getPower()).toBe(4);
+                expect(context.yoda.getHp()).toBe(6);
             });
 
             it('should not give any bonus if there is no Trooper', async function () {
