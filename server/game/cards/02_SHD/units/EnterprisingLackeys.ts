@@ -22,7 +22,10 @@ export default class EnterprisingLackeys extends NonLeaderUnitCard {
             },
             ifYouDo: {
                 title: 'Put this unit into play as a resource',
-                immediateEffect: AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.source })),
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    condition: (context) => context.source.zoneName === ZoneName.Discard,
+                    onTrue: AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.source }))
+                })
             }
         });
     }

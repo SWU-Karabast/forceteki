@@ -682,14 +682,14 @@ class Game extends EventEmitter {
     /**
      * @param {import('./zone/AllArenasZone').IAllArenasZoneCardFilterProperties} filter
      */
-    hasSomeArenaCard(filter) {
+    hasSomeArenaCard(filter = {}) {
         return this.allArenas.hasSomeCard(filter);
     }
 
     /**
      * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
      */
-    hasSomeArenaUnit(filter) {
+    hasSomeArenaUnit(filter = {}) {
         return this.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit });
     }
 
