@@ -59,12 +59,20 @@ export abstract class DistributeAmongTargetsSystem<
         return 'distribute';
     }
 
+    protected preferLogGameMessageBeforeEventResolution(): boolean {
+        return false;
+    }
+
     public eventHandler(event): void {
         const context: TContext = event.context;
         event.totalDistributed =
             (event.individualEvents as GameEvent[])
                 .flatMap((event) => event.resolvedEvents.filter((resolvedEvent) => resolvedEvent.name === event.name))
                 .reduce((total, individualEvent) => total + this.getDistributedAmountFromEvent(individualEvent), 0);
+
+        if (!this.preferLogGameMessageBeforeEventResolution()) {
+            this.generateDistributedEffectMessage(event.individualEvents, context, event.additionalProperties, true);
+        }
     }
 
     protected getChatMessage(): string {
@@ -169,7 +177,9 @@ export abstract class DistributeAmongTargetsSystem<
         // auto-select if there's only one legal target and the player isn't allowed to choose 0 targets
         if ((!properties.canChooseNoTargets && !context.ability.optional) && legalTargets.length === 1) {
             const event = this.generateEffectEvent(legalTargets[0], distributeEvent, context, amountToDistribute);
-            this.generateDistributedEffectMessage([event], context, additionalProperties, false);
+            if (this.preferLogGameMessageBeforeEventResolution()) {
+                this.generateDistributedEffectMessage([event], context, additionalProperties, false);
+            }
             events.push(event);
             return;
         }
@@ -187,9 +197,11 @@ export abstract class DistributeAmongTargetsSystem<
                 const individualEvents = Array.from(results.valueDistribution.entries())
                     .map(([card, amount]) => this.generateEffectEvent(card, distributeEvent, context, amount));
 
-                // Immediately log the distributed effect message after selection so players resolving replacement effects
-                // can see the amounts and make decisions accordingly.
-                this.generateDistributedEffectMessage(individualEvents, context, additionalProperties, false);
+                if (this.preferLogGameMessageBeforeEventResolution()) {
+                    // Immediately log the distributed effect message after selection so players resolving replacement effects
+                    // can see the amounts and make decisions accordingly.
+                    this.generateDistributedEffectMessage(individualEvents, context, additionalProperties, false);
+                }
 
                 events.push(...individualEvents);
             }

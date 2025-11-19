@@ -128,9 +128,11 @@ describe('Shien Flurry', function() {
             context.player2.clickCard(context.theLegacyRun);
 
             expect(context.obiwanKenobi.damage).toBe(4);
-            expect(context.getChatLogs(3)).toContain('player2 uses The Legacy Run to distribute 6 damage among enemy units');
-            expect(context.getChatLogs(3)).toContain('player1 uses Obi-Wan Kenobi\'s gained ability from Shien Flurry to prevent 2 damage to Obi-Wan Kenobi');
-            expect(context.getChatLogs(3)).toContain('player2 uses The Legacy Run to deal 4 damage to Obi-Wan Kenobi');
+            expect(context.getChatLogs(3)).toEqual([
+                'player2 uses The Legacy Run to distribute 6 damage among enemy units',
+                'player2 uses The Legacy Run to deal 6 damage to Obi-Wan Kenobi',
+                'player1 uses Obi-Wan Kenobi\'s gained ability from Shien Flurry to prevent 2 damage to Obi-Wan Kenobi'
+            ]);
         });
 
         it('Shien Flurry\'s ability should prevent damage only once, even if the unit changes control', async function() {
