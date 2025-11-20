@@ -189,7 +189,7 @@ describe('Brain Invaders', () => {
                 expect(context.player2.exhaustedResourceCount).toBe(9);
             });
 
-            it('removes all abilities from Piloting leader upgrades', async function() {
+            it('does not remove abilities from Leader Upgrades', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -250,6 +250,42 @@ describe('Brain Invaders', () => {
                     'shield',
                     'lando-calrissian#buying-time'
                 ]);
+            });
+
+            it('does not prevent units with leader upgrades from becoming leader units, so they are defeated instead of changing control', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['brain-invaders'],
+                        spaceArena: ['n1-starfighter']
+                    },
+                    player2: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        hand: ['change-of-heart'],
+                        hasInitiative: true
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Player 2 plays Change of Heart to take control of the N-1 Starfighter
+                context.player2.clickCard(context.changeOfHeart);
+                context.player2.clickCard(context.n1Starfighter);
+                expect(context.n1Starfighter).toBeInZone('spaceArena', context.player2);
+                context.player1.passAction();
+
+                // Player 2 deploys Kazuda as a pilot upgrade on the N-1 Starfighter
+                context.player2.clickCard(context.kazudaXiono);
+                context.player2.clickPrompt('Deploy Kazuda Xiono as a Pilot');
+                context.player2.clickCard(context.n1Starfighter);
+                expect(context.n1Starfighter).toHaveExactUpgradeNames(['kazuda-xiono#best-pilot-in-the-galaxy']);
+
+                // End the phase. N-1 Starfighter should be defeated instead of returning to Player 1
+                context.moveToRegroupPhase();
+
+                expect(context.n1Starfighter).toBeInZone('discard', context.player1);
+                expect(context.kazudaXiono).toBeInZone('base', context.player2);
+                expect(context.kazudaXiono.exhausted).toBeTrue();
             });
         });
 
