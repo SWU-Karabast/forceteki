@@ -227,10 +227,10 @@ export class GameServer {
         logger.info(`GameServer: Detected ${cpus().length} logical CPU cores.`);
 
         // Start CPU profiling test for 120 seconds
-        this.startCpuProfilingTest(120);
+        //this.startCpuProfilingTest(10);
 
         // Start allocation profiling test for 120 seconds
-        this.startAllocProfilingTest(120);
+        //this.startAllocProfilingTest(10);
 
         // check if NEXTAUTH variable is set
         requireEnvVars(
@@ -1833,14 +1833,17 @@ export class GameServer {
 
             await profiler.startCPU();
 
-            // Stop profiling after 120 seconds
+            // Stop profiling after specified duration
             setTimeout(async () => {
                 try {
-                    const profileFile = await profiler.stopCPU('gameserver-startup-test');
-                    if (profileFile) {
-                        logger.info(`[GameServer] CPU profiling test completed. Profile saved to: ${profileFile}`);
+                    const result = await profiler.stopCPUAsBuffer('gameserver-cpu');
+                    if (result) {
+                        logger.info(`[GameServer] CPU profiling test completed. Uploading ${result.filename} to S3...`);
+                        const isDevMode = env.environment === 'development';
+                        await profiler.uploadProfileToS3(result.buffer, result.filename, isDevMode);
+                        logger.info(`[GameServer] CPU profile uploaded successfully: ${result.filename}`);
                     } else {
-                        logger.warn('[GameServer] CPU profiling test completed but no profile file was generated');
+                        logger.warn('[GameServer] CPU profiling test completed but no profile data was generated');
                     }
                 } catch (error) {
                     logger.error(`[GameServer] Error stopping CPU profiling test: ${error}`);
@@ -1858,14 +1861,17 @@ export class GameServer {
 
             await profiler.startAllocSampling(1024 * 64); // 64KB sampling interval
 
-            // Stop profiling after 120 seconds
+            // Stop profiling after specified duration
             setTimeout(async () => {
                 try {
-                    const profileFile = await profiler.stopAllocSampling('gameserver-alloc-test');
-                    if (profileFile) {
-                        logger.info(`[GameServer] Allocation profiling test completed. Profile saved to: ${profileFile}`);
+                    const result = await profiler.stopAllocSamplingAsBuffer('gammeserver-allocation');
+                    if (result) {
+                        logger.info(`[GameServer] Allocation profiling test completed. Uploading ${result.filename} to S3...`);
+                        const isDevMode = env.environment === 'development';
+                        await profiler.uploadProfileToS3(result.buffer, result.filename, isDevMode);
+                        logger.info(`[GameServer] Allocation profile uploaded successfully: ${result.filename}`);
                     } else {
-                        logger.warn('[GameServer] Allocation profiling test completed but no profile file was generated');
+                        logger.warn('[GameServer] Allocation profiling test completed but no profile data was generated');
                     }
                 } catch (error) {
                     logger.error(`[GameServer] Error stopping allocation profiling test: ${error}`);
