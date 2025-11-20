@@ -196,7 +196,7 @@ describe('Brain Invaders', () => {
                         leader: 'lando-calrissian#buying-time',
                         hand: ['direct-hit'],
                         groundArena: ['brain-invaders'],
-                        spaceArena: ['razor-crest#reliable-gunship']
+                        spaceArena: [{ card: 'razor-crest#reliable-gunship', upgrades: ['shield', 'shield'] }]
                     },
                     player2: {
                         leader: 'rio-durant#wisecracking-wheelman',
@@ -211,32 +211,45 @@ describe('Brain Invaders', () => {
                 context.player1.clickPrompt('Deploy Lando Calrissian as a Pilot');
                 context.player1.clickCard(context.razorCrest);
 
-                // Lando's "When deployed as an upgrade" ability does not trigger
-                expect(context.player2).toBeActivePlayer();
+                // Lando's "When deployed as an upgrade" ability triggers because Leader Upgrades are not blanked
+                expect(context.player1).toHavePrompt('Give a Shield token to a unit in a different arena');
+                expect(context.player1).toBeAbleToSelectExactly([context.brainInvaders]);
+                context.player1.clickCard(context.brainInvaders);
+                expect(context.brainInvaders).toHaveExactUpgradeNames(['shield']);
 
-                // Elite P-38 can attack base because Razor Crest did not gain Sentinel from Lando
+                // Elite P-38 can attack base because Razor Crest (a leader unit) cannot gain Sentinel from Lando
                 expect(context.razorCrest.hasSentinel()).toBeFalse();
                 context.player2.clickCard(context.eliteP38Starfighter);
                 expect(context.player2).toBeAbleToSelect(context.p1Base);
                 context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(3);
 
-                // Razor Crest attacks, restoring 2 because it retains its Restore 2
+                // Razor Crest attacks, no damage is restored because it loses its Restore 2 ability
                 context.player1.clickCard(context.razorCrest);
                 context.player1.clickCard(context.p2Base);
-                expect(context.p1Base.damage).toBe(1);
+                expect(context.p1Base.damage).toBe(3);
 
                 // Deploy Rio as a pilot on the Slaver's Freighter
                 context.player2.clickCard(context.rioDurant);
                 context.player2.clickPrompt('Deploy Rio Durant as a Pilot');
                 context.player2.clickCard(context.slaversFreighter);
 
-                // Freighter does not get +1/+0 from Rio
-                expect(context.slaversFreighter.getPower()).toBe(7);
+                // Freighter does get the +1/+0 buff from Rio
+                expect(context.slaversFreighter.getPower()).toBe(8);
 
-                // Direct Hit can defeat the Slaver's Freighter because it is not a Leader Unit
+                // Direct Hit cannot defeat the Slaver's Freighter because it is a leader unit
                 context.player1.clickCard(context.directHit);
-                context.player1.clickCard(context.slaversFreighter);
-                expect(context.slaversFreighter).toBeInZone('discard');
+                expect(context.player1).toBeAbleToSelectExactly([context.eliteP38Starfighter]);
+                context.player1.clickCard(context.eliteP38Starfighter);
+                context.player2.clickCard(context.brainInvaders); // Resolve Elite P-38's when defeated
+
+                // Slaver's Freighter attacks Razor Crest, but doesn't have Saboteur to break through the Shields
+                context.player2.clickCard(context.slaversFreighter);
+                context.player2.clickCard(context.razorCrest);
+                expect(context.razorCrest).toHaveExactUpgradeNames([
+                    'shield',
+                    'lando-calrissian#buying-time'
+                ]);
             });
         });
 
