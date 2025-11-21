@@ -7,7 +7,6 @@ import { CostAdjustResolutionMode, CostAdjustType } from './CostAdjuster';
 import * as Contract from '../utils/Contract.js';
 import type { IAbilityCostAdjustmentProperties, ICostAdjustEvaluationIntermediateResult, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
-import { PerPlayerPerGameAbilityLimit } from '../ability/AbilityLimit';
 import { TargetedCostAdjuster } from './TargetedCostAdjuster';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
@@ -32,7 +31,6 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
     ) {
         super(game, source, CostAdjustStage.ExhaustUnits_3,
             {
-                limit: new PerPlayerPerGameAbilityLimit(game, 1),
                 ...properties,
                 costAdjustType: CostAdjustType.ExhaustUnits,
                 adjustAmountPerTarget: 1,

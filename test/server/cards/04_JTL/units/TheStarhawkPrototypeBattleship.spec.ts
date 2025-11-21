@@ -171,6 +171,24 @@ describe('The Starhawk, Prototype Battleship', function() {
                 context.player2.clickPrompt('Use it anyway');
                 expect(context.player2.exhaustedResourceCount).toBe(2);
             });
+
+            it('should apply for all cards played while the effect is active', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.raddus);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.encouragingLeadership);
+                expect(context.player1.exhaustedResourceCount).toBe(6);
+
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.hardpointHeavyBlaster);
+                context.player1.clickCard(context.theStarhawk);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
         });
 
         describe('Starhawk\'s constant ability', function() {
