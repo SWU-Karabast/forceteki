@@ -28,7 +28,7 @@ const getDefaultCosmeticsPreferences = () => ({
     cardback: null,
     background: null,
     playmat: null,
-    disablePlaymats: true,
+    disablePlaymats: false,
 });
 
 export const getDefaultPreferences = (): IUserPreferences => ({
