@@ -22,9 +22,8 @@ const parsedEnv = z
         SWUSTATS_CLIENT_ID: z.string().optional(),
         SWUSTATS_CLIENT_SECRET: z.string().optional(),
         INTRASERVICE_SECRET: z.string().optional(),
-        PROFILE_DUMP_S3_BUCKET: z.string().optional(),
-        PROFILE_DUMP_ACCESS_KEY_ID: z.string().optional(),
-        PROFILE_DUMP_SECRET_ACCESS_KEY: z.string().optional(),
+        PROFILE_CAPTURE_S3_BUCKET: z.string().optional(),
+        PROFILE_CAPTURE_SECRET: z.string().optional(),
     })
     .safeParse(process.env);
 
@@ -96,9 +95,8 @@ export const FORCE_ENABLE_STATS_LOGGING = parsedEnv.data.FORCE_ENABLE_STATS_LOGG
 export const SWUSTATS_CLIENT_ID = parsedEnv.data.SWUSTATS_CLIENT_ID;
 export const SWUSTATS_CLIENT_SECRET = parsedEnv.data.SWUSTATS_CLIENT_SECRET;
 export const INTRASERVICE_SECRET = parsedEnv.data.INTRASERVICE_SECRET;
-export const PROFILE_DUMP_S3_BUCKET = parsedEnv.data.PROFILE_DUMP_S3_BUCKET;
-export const PROFILE_DUMP_ACCESS_KEY_ID = parsedEnv.data.PROFILE_DUMP_ACCESS_KEY_ID;
-export const PROFILE_DUMP_SECRET_ACCESS_KEY = parsedEnv.data.PROFILE_DUMP_SECRET_ACCESS_KEY;
+export const PROFILE_CAPTURE_S3_BUCKET = parsedEnv.data.PROFILE_CAPTURE_S3_BUCKET;
+export const PROFILE_CAPTURE_SECRET = parsedEnv.data.PROFILE_CAPTURE_SECRET;
 
 
 type ParsedEnvData = typeof parsedEnv.data;

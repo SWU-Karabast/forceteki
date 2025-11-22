@@ -226,12 +226,6 @@ export class GameServer {
         logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
         logger.info(`GameServer: Detected ${cpus().length} logical CPU cores.`);
 
-        // Start CPU profiling test for 120 seconds
-        //this.startCpuProfilingTest(10);
-
-        // Start allocation profiling test for 120 seconds
-        //this.startAllocProfilingTest(10);
-
         // check if NEXTAUTH variable is set
         requireEnvVars(
             ['INTRASERVICE_SECRET'],
@@ -657,6 +651,70 @@ export class GameServer {
             }
         });
         // *** End of User Object calls ***
+
+        // PROFILING
+        app.get('/api/run-profile', async (req, res, next) => {
+            try {
+                const { secretKey, type, duration } = req.query;
+
+                // Verify secret key
+                if (!env.PROFILE_CAPTURE_SECRET) {
+                    return res.status(503).json({
+                        success: false,
+                        message: 'Profile capture not configured - PROFILE_CAPTURE_SECRET not set'
+                    });
+                }
+
+                if (secretKey !== env.PROFILE_CAPTURE_SECRET) {
+                    logger.warn('[GameServer] Unauthorized profile capture attempt with invalid secret key');
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Forbidden - Invalid secret key'
+                    });
+                }
+
+                // Validate type parameter
+                if (!type || (type !== 'cpu' && type !== 'heap')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid type parameter. Must be "cpu" or "heap"'
+                    });
+                }
+
+                // Parse and validate duration parameter between 1 second and 10 minutes
+                if (!duration) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Duration parameter is required'
+                    });
+                }
+
+                const profileDuration = parseInt(duration as string);
+                if (profileDuration < 1 || profileDuration > 600) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid duration parameter. Must be between 1 and 600 seconds'
+                    });
+                }
+
+                // Start the appropriate profiling type using existing methods
+                if (type === 'cpu') {
+                    await this.startCpuProfilingTest(profileDuration);
+                } else {
+                    await this.startAllocProfilingTest(profileDuration);
+                }
+
+                return res.json({
+                    success: true,
+                    type,
+                    duration: profileDuration,
+                    message: `${type.toUpperCase()} profiling started. Will automatically stop and upload in ${profileDuration} seconds.`
+                });
+            } catch (err) {
+                logger.error('GameServer (run-profile) Server error:', err);
+                next(err);
+            }
+        });
 
         // user DECKS
         app.post('/api/get-decks', authMiddleware('get-decks'), async (req, res, next) => {

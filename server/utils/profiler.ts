@@ -124,26 +124,20 @@ export class RuntimeProfiler {
             throw new Error('Buffer is empty, cannot upload to S3');
         }
 
-        // Validate required environment variables based on mode
-        const accessKeyId = devMode ? env.PROFILE_DUMP_ACCESS_KEY_ID : env.AWS_ACCESS_KEY_ID;
-        const secretAccessKey = devMode ? env.PROFILE_DUMP_SECRET_ACCESS_KEY : env.AWS_SECRET_ACCESS_KEY;
-
-        if (!env.AWS_REGION || !accessKeyId || !secretAccessKey || !env.PROFILE_DUMP_S3_BUCKET) {
-            const requiredKeys = devMode
-                ? 'AWS_REGION, PROFILE_DUMP_ACCESS_KEY_ID, PROFILE_DUMP_SECRET_ACCESS_KEY, and PROFILE_DUMP_S3_BUCKET'
-                : 'AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and PROFILE_DUMP_S3_BUCKET';
-            throw new Error(`S3 upload requires ${requiredKeys} env vars.`);
+        // Validate required environment variables
+        if (!env.AWS_REGION || !env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY || !env.PROFILE_CAPTURE_S3_BUCKET) {
+            throw new Error('S3 upload requires AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and PROFILE_CAPTURE_S3_BUCKET env vars.');
         }
 
         let s3Client: S3Client | null = null;
 
         try {
-            // Create S3 client on-demand with appropriate credentials
+            // Create S3 client on-demand
             s3Client = new S3Client({
                 region: env.AWS_REGION,
                 credentials: {
-                    accessKeyId,
-                    secretAccessKey
+                    accessKeyId: env.AWS_ACCESS_KEY_ID,
+                    secretAccessKey: env.AWS_SECRET_ACCESS_KEY
                 }
             });
 
@@ -160,7 +154,7 @@ export class RuntimeProfiler {
             const contentType = 'application/json';
 
             const command = new PutObjectCommand({
-                Bucket: env.PROFILE_DUMP_S3_BUCKET,
+                Bucket: env.PROFILE_CAPTURE_S3_BUCKET,
                 Key: key,
                 Body: buffer,
                 ContentType: contentType,
