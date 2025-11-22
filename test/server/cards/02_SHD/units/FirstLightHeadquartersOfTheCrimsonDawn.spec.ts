@@ -130,8 +130,33 @@ describe('First Light, Headquarters of the Crimson Dawn', function() {
             expect(context.firstLight).toBeInZone('spaceArena');
             expect(context.player1.exhaustedResourceCount).toBe(9);
         });
-    });
 
-    // TODO: test with tie phantom and confirm it can't be used to pay the damage cost
-    // TODO: test with General's Blade or Lando leader to confirm that cost adjusters apply correctly
+        it('First Light\'s Smuggle ability works with decrease cost abilities', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'qira#i-alone-survived',
+                    resources: ['first-light#headquarters-of-the-crimson-dawn', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'],
+                    groundArena: [{ card: 'gungi#finding-himself', upgrades: ['generals-blade'] }]
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.gungi);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.firstLight);
+            context.player1.clickCard(context.gungi);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.gungi.damage).toBe(4);
+            expect(context.player1.exhaustedResourceCount).toBe(5);
+
+            expect(context.gungi.getPower()).toBe(9);
+            expect(context.gungi.getHp()).toBe(8);
+        });
+    });
 });

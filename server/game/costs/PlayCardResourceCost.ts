@@ -5,7 +5,7 @@ import * as Contract from '../core/utils/Contract.js';
 import { type CostAdjuster } from '../core/cost/CostAdjuster';
 import type { ICardWithCostProperty } from '../core/card/propertyMixins/Cost';
 import { ResourceCost } from './ResourceCost';
-import type { ICostAdjustEvaluationResult } from '../core/cost/CostInterfaces';
+import type { ICostAdjustEvaluationIntermediateResult } from '../core/cost/CostInterfaces';
 import { CostAdjustStage } from '../core/cost/CostInterfaces';
 import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
 
@@ -64,25 +64,14 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
     protected override initializeEvaluationResult(
         context: AbilityContext<ICardWithCostProperty>,
         adjustersByStage: Map<CostAdjustStage, CostAdjuster[]>
-    ): ICostAdjustEvaluationResult {
+    ): ICostAdjustEvaluationIntermediateResult {
         const result = super.initializeEvaluationResult(context, adjustersByStage);
-
-        // if there are any cost adjusters that require targeting among friendly units, build the target set
-        if (
-            adjustersByStage.get(CostAdjustStage.Exploit_1).length > 0 ||
-            adjustersByStage.get(CostAdjustStage.ExhaustUnits_2).length > 0
-        ) {
-            result.costAdjusterTargets = {
-                targets: context.player.getArenaUnits().map((unit) => ({ unit })),
-                targetsAreOrdered: false
-            };
-        }
 
         // apply any aspect penalties to the cost
         const penaltyAspects = context.player.getPenaltyAspects(this.aspects);
         if (penaltyAspects.length > 0) {
             result.penaltyAspects = penaltyAspects;
-            result.remainingCost += penaltyAspects.length * 2;
+            result.adjustedCost.applyStaticIncrease(penaltyAspects.length * 2);
             result.totalResourceCost += penaltyAspects.length * 2;
         }
 

@@ -1,13 +1,13 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EffectName } from '../core/Constants';
-import type { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
+import type { ICostAdjusterProperties, IExhaustUnitsCostAdjusterProperties, IExploitCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import type { CostAdjuster } from '../core/cost/CostAdjuster';
 import type { Player } from '../core/Player';
 import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder';
-import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import { ExploitCostAdjuster } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import * as Contract from '../core/utils/Contract';
 import * as CostAdjusterFactory from '../core/cost/CostAdjusterFactory';
+import { ExhaustUnitsCostAdjuster } from '../core/cost/ExhaustUnitsCostAdjuster';
 
 export function modifyCost(properties: ICostAdjusterProperties) {
     return OngoingEffectBuilder.player.detached(EffectName.CostAdjuster, {
@@ -33,5 +33,19 @@ export function addExploit(properties: IExploitCostAdjusterProperties) {
             return adjuster;
         },
         unapply: (player: Player, context: AbilityContext, adjuster: CostAdjuster) => player.removeCostAdjuster(adjuster)
+    });
+}
+
+export function exhaustUnitsInsteadOfResources(
+    properties: IExhaustUnitsCostAdjusterProperties
+) {
+    return OngoingEffectBuilder.player.detached(EffectName.CostAdjuster, {
+        apply: (player: Player, context: AbilityContext) => {
+            Contract.assertTrue(context.source.hasCost());
+            const adjuster = new ExhaustUnitsCostAdjuster(context.game, context.source, properties);
+            player.addCostAdjuster(adjuster);
+            return adjuster;
+        },
+        unapply: (player, _context, adjuster) => player.removeCostAdjuster(adjuster)
     });
 }

@@ -48,4 +48,8 @@ export class DistributeDamageSystem<
     protected override getDistributionVerb(): string {
         return 'deal';
     }
+
+    protected override preferLogGameMessageBeforeEventResolution(): boolean {
+        return true;
+    }
 }

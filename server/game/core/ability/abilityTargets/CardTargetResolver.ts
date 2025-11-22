@@ -25,6 +25,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     private readonly selector: BaseCardSelector<AbilityContext>;
     private readonly targetMode: TargetMode;
 
+    private readonly onSelectionSetChanged?: (selected: Card | Card[], context: AbilityContext) => void;
+
     private static readonly choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
 
     public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
@@ -56,6 +58,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         }
 
         this.validateZoneLegalForTarget(properties);
+        this.onSelectionSetChanged = properties.onSelectionSetChanged;
     }
 
     private getSelector(properties: ICardTargetResolver<AbilityContext>) {
@@ -102,6 +105,17 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
     public canTarget(card: Card, context: AbilityContext) {
         return this.selector.canTarget(card, context, []);
+    }
+
+    protected override buildConcreteActivePromptTitle(context: AbilityContext): string | null {
+        if (!this.properties.activePromptTitle) {
+            return null;
+        }
+
+        // if it's a function, we'll populate the selection prompt with it directly when we build it later
+        return typeof this.properties.activePromptTitle === 'function'
+            ? null
+            : this.properties.activePromptTitle;
     }
 
     protected override resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult, passPrompt?: IPassAbilityHandler) {
@@ -184,8 +198,15 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             card.getOngoingEffectValues(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
         );
 
+        const defaultPromptProperties = this.getDefaultProperties(context);
+
+        const activePromptTitle = typeof this.properties.activePromptTitle === 'function'
+            ? this.properties.activePromptTitle
+            : defaultPromptProperties.activePromptTitle;
+
         const promptProperties: ISelectCardPromptProperties = {
-            ...this.getDefaultProperties(context),
+            ...defaultPromptProperties,
+            activePromptTitle,
             selector: this.selector,
             buttons: buttons,
             mustSelect: mustSelect,
@@ -193,6 +214,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             selectCardMode: this.getSelectCardMode(context),
             hideIfNoLegalTargets: this.properties.hideIfNoLegalTargets,
             immediateEffect: this.immediateEffect,
+            onSelectionSetChanged: (selectedCards, ctx) => this.onSelectionSetChanged?.(selectedCards, ctx),
             onSelect: (card) => {
                 this.setTargetResult(context, card);
                 return true;
