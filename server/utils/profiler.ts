@@ -12,31 +12,52 @@ function ts() {
 }
 
 export class RuntimeProfiler {
+    private static instance: RuntimeProfiler | null = null;
     private session: inspector.Session;
     private cpuActive = false;
     private samplingActive = false;
 
     /**
+     * Private constructor for singleton pattern
      * Initialize the RuntimeProfiler with an inspector session
      * The session is connected internally without exposing any TCP ports
      */
-    public constructor() {
+    private constructor() {
         this.session = new inspector.Session();
         this.session.connect(); // internal, no TCP port exposure
     }
 
     /**
+     * Get the singleton instance of RuntimeProfiler
+     * @returns The singleton RuntimeProfiler instance
+     */
+    public static getInstance(): RuntimeProfiler {
+        if (!RuntimeProfiler.instance) {
+            RuntimeProfiler.instance = new RuntimeProfiler();
+        }
+        return RuntimeProfiler.instance;
+    }
+
+    /**
      * Start CPU profiling
      * Enables the V8 profiler and begins collecting CPU profile data
-     * @returns Promise that resolves when profiling has started
+     * @returns Promise that resolves to true if profiling was started, false if already active
      */
-    public async startCPU() {
+    public async startCPU(): Promise<boolean> {
         if (this.cpuActive) {
-            return;
+            return false;
         }
-        await this.post('Profiler.enable');
-        await this.post('Profiler.start');
+        // Set flag immediately to prevent race conditions
         this.cpuActive = true;
+        try {
+            await this.post('Profiler.enable');
+            await this.post('Profiler.start');
+            return true;
+        } catch (error) {
+            // Reset flag if start failed
+            this.cpuActive = false;
+            throw error;
+        }
     }
 
     /**
@@ -60,18 +81,26 @@ export class RuntimeProfiler {
      * Start heap allocation sampling
      * Enables the V8 heap profiler and begins collecting allocation data
      * @param samplingIntervalBytes - Sampling interval in bytes (default: 64KB). Smaller values provide more detail but higher overhead
-     * @returns Promise that resolves when sampling has started
+     * @returns Promise that resolves to true if sampling was started, false if already active
      */
-    public async startAllocSampling(samplingIntervalBytes = 1024 * 64 /* 64KB */) {
+    public async startAllocSampling(samplingIntervalBytes = 1024 * 64 /* 64KB */): Promise<boolean> {
         if (this.samplingActive) {
-            return;
+            return false;
         }
-        await this.post('HeapProfiler.enable');
-        await this.post('HeapProfiler.startSampling', {
-            samplingInterval: samplingIntervalBytes, // smaller = more detail, more overhead
-            stackDepth: 64
-        });
+        // Set flag immediately to prevent race conditions
         this.samplingActive = true;
+        try {
+            await this.post('HeapProfiler.enable');
+            await this.post('HeapProfiler.startSampling', {
+                samplingInterval: samplingIntervalBytes, // smaller = more detail, more overhead
+                stackDepth: 64
+            });
+            return true;
+        } catch (error) {
+            // Reset flag if start failed
+            this.samplingActive = false;
+            throw error;
+        }
     }
 
     /**

@@ -1886,10 +1886,14 @@ export class GameServer {
 
     private async startCpuProfilingTest(durationSeconds: number): Promise<void> {
         try {
-            const profiler = new RuntimeProfiler();
+            const profiler = RuntimeProfiler.getInstance();
             logger.info(`[GameServer] Starting CPU profiling test for ${durationSeconds} seconds...`);
 
-            await profiler.startCPU();
+            const started = await profiler.startCPU();
+            if (!started) {
+                logger.warn('[GameServer] CPU profiling is already active, cannot start new session');
+                return;
+            }
 
             // Stop profiling after specified duration
             setTimeout(async () => {
@@ -1914,10 +1918,14 @@ export class GameServer {
 
     private async startAllocProfilingTest(durationSeconds: number): Promise<void> {
         try {
-            const profiler = new RuntimeProfiler();
+            const profiler = RuntimeProfiler.getInstance();
             logger.info(`[GameServer] Starting allocation profiling test for ${durationSeconds} seconds...`);
 
-            await profiler.startAllocSampling(1024 * 64); // 64KB sampling interval
+            const started = await profiler.startAllocSampling(1024 * 64); // 64KB sampling interval
+            if (!started) {
+                logger.warn('[GameServer] Heap profiling is already active, cannot start new session');
+                return;
+            }
 
             // Stop profiling after specified duration
             setTimeout(async () => {
