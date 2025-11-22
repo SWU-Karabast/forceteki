@@ -36,6 +36,8 @@ import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { requireEnvVars } from '../env';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import { RuntimeProfiler } from '../utils/profiler';
+
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -226,7 +228,7 @@ export class GameServer {
 
         // check if NEXTAUTH variable is set
         requireEnvVars(
-            ['INTRASERVICE_SECRET'],
+            ['INTRASERVICE_SECRET', 'PROFILE_CAPTURE_SECRET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
             'GameServer',
             ['NEXTAUTH_SECRET']
         );
@@ -649,6 +651,99 @@ export class GameServer {
             }
         });
         // *** End of User Object calls ***
+
+        // PROFILING
+        app.post('/api/run-profile', async (req, res, next) => {
+            try {
+                // Validate Authorization header
+                if (env.PROFILE_CAPTURE_SECRET) {
+                    const authHeader = req.headers.authorization;
+
+                    if (!authHeader || !authHeader.startsWith('api-key ')) {
+                        logger.warn('[GameServer] Profile capture attempt without valid Authorization header');
+                        return res.status(401).json({
+                            success: false,
+                            message: 'Unauthorized - Missing or invalid Authorization header'
+                        });
+                    }
+
+                    const apiKey = authHeader.substring(8); // Remove 'api-key ' prefix
+                    if (apiKey !== env.PROFILE_CAPTURE_SECRET) {
+                        logger.warn('[GameServer] Unauthorized profile capture attempt with invalid API key');
+                        return res.status(403).json({
+                            success: false,
+                            message: 'Forbidden'
+                        });
+                    }
+                } else {
+                    logger.warn('[GameServer] Profile capture attempt with missing PROFILE_CAPTURE_SECRET set on server!');
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Unauthorized - Missing PROFILE_CAPTURE_SECRET'
+                    });
+                }
+
+                const { type, durationSeconds, forceStop } = req.body;
+
+                // Handle force stop request
+                const shouldForceStop = forceStop === true || forceStop === 'true' || forceStop === 1;
+                if (shouldForceStop) {
+                    const result = await this.stopAllActiveProfiles();
+                    if (result.stopped) {
+                        return res.json({
+                            success: true,
+                            message: 'All active profiling force stopped and uploaded'
+                        });
+                    }
+
+                    return res.status(400).json({
+                        success: false,
+                        message: `No active ${type.toUpperCase()} profiling session to stop`
+                    });
+                }
+
+                // Validate type parameter
+                if (!type || (type !== 'cpu' && type !== 'heap')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid type parameter. Must be "cpu" or "heap"'
+                    });
+                }
+
+                // Parse and validate duration parameter between 1 second and 10 minutes
+                if (!durationSeconds) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'durationSeconds parameter is required'
+                    });
+                }
+
+                const profileDurationSeconds = parseInt(durationSeconds as string);
+                if (profileDurationSeconds <= 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid durationSeconds parameter. Must be greater than 0 seconds'
+                    });
+                }
+
+                // Start the appropriate profiling type using existing methods
+                if (type === 'cpu') {
+                    await this.startCpuProfilingDump(profileDurationSeconds);
+                } else {
+                    await this.startAllocProfilingDump(profileDurationSeconds);
+                }
+
+                return res.json({
+                    success: true,
+                    type,
+                    duration: profileDurationSeconds,
+                    message: `${type.toUpperCase()} profiling started. Will automatically stop and upload in ${profileDurationSeconds} seconds.`
+                });
+            } catch (err) {
+                logger.error('GameServer (run-profile) Server error:', err);
+                next(err);
+            }
+        });
 
         // user DECKS
         app.post('/api/get-decks', authMiddleware('get-decks'), async (req, res, next) => {
@@ -1816,6 +1911,79 @@ export class GameServer {
         } catch (error) {
             logger.error(`Error logging GC stats: ${error}`);
         }
+    }
+
+    private async startCpuProfilingDump(durationSeconds: number): Promise<void> {
+        try {
+            const profiler = RuntimeProfiler.getInstance();
+            logger.info(`[GameServer] Starting CPU profiling test for ${durationSeconds} seconds...`);
+
+            const started = await profiler.startCPU();
+            if (!started) {
+                logger.warn('[GameServer] CPU profiling is already active, cannot start new session');
+                return;
+            }
+
+            // Stop profiling after specified duration
+            setTimeout(async () => {
+                await this.stopAndUploadProfile('cpu', 'gameserver-cpu', 'CPU profiling test completed');
+            }, durationSeconds * 1000);
+        } catch (error) {
+            logger.error(`[GameServer] Error starting CPU profiling test: ${error}`);
+        }
+    }
+
+    private async startAllocProfilingDump(durationSeconds: number): Promise<void> {
+        try {
+            const profiler = RuntimeProfiler.getInstance();
+            logger.info(`[GameServer] Starting allocation profiling test for ${durationSeconds} seconds...`);
+
+            const started = await profiler.startAllocSampling(1024 * 64); // 64KB sampling interval
+            if (!started) {
+                logger.warn('[GameServer] Heap profiling is already active, cannot start new session');
+                return;
+            }
+
+            // Stop profiling after specified duration
+            setTimeout(async () => {
+                await this.stopAndUploadProfile('heap', 'gameserver-heap', 'Allocation profiling test completed');
+            }, durationSeconds * 1000);
+        } catch (error) {
+            logger.error(`[GameServer] Error starting allocation profiling test: ${error}`);
+        }
+    }
+
+    private async stopAndUploadProfile(type: 'cpu' | 'heap', label: string, completionMessage: string): Promise<{ stopped: boolean }> {
+        const profiler = RuntimeProfiler.getInstance();
+        let stopped = false;
+
+        try {
+            const result = type === 'cpu'
+                ? await profiler.stopCPUAsBuffer(label)
+                : await profiler.stopAllocSamplingAsBuffer(label);
+
+            if (result) {
+                logger.info(`[GameServer] ${completionMessage}. Uploading ${result.filename} to S3...`);
+                const isDevMode = env.environment === 'development';
+                await profiler.uploadProfileToS3(result.buffer, result.filename, isDevMode);
+                logger.info(`[GameServer] ${type.toUpperCase()} profile uploaded successfully: ${result.filename}`);
+                stopped = true;
+            } else {
+                logger.warn(`[GameServer] ${completionMessage} but no profile data was generated`);
+            }
+        } catch (error) {
+            logger.error(`[GameServer] Error stopping ${type.toUpperCase()} profiling: ${error}`);
+        }
+
+        return { stopped };
+    }
+
+    private async stopAllActiveProfiles(): Promise<{ stopped: boolean }> {
+        const cpuResult = await this.stopAndUploadProfile('cpu', 'gameserver-cpu-forced', 'Force stopped CPU profiling');
+        const heapResult = await this.stopAndUploadProfile('heap', 'gameserver-heap-forced', 'Force stopped heap profiling');
+
+        // Return true if at least one profiling session was stopped
+        return { stopped: cpuResult.stopped || heapResult.stopped };
     }
 }
 
