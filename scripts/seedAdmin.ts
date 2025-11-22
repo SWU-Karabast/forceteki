@@ -13,7 +13,12 @@ async function run() {
         throw new Error('DynamoDB service not available (are you in dev & DynamoDB Local running?)');
     }
 
-    const myUserId = 'None'; // e.g. 'ID of your local administrator'
+    const myUserId: string | null = null; // e.g. 'ID of your local administrator'
+    if (!myUserId) {
+        throw new Error(
+            'myUserId is null or empty. Set it to the ID of your local administrator before running this script.'
+        );
+    }
 
     await service.putItemAsync({
         pk: 'SERVER_ROLE_USERS',

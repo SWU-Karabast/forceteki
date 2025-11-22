@@ -1,6 +1,9 @@
-// copyS3ToLocal.ts
+// Copies all objects from the production S3 bucket (karabast-customization)
+// to the local S3Mock bucket. Only runs in development when USE_LOCAL_DYNAMODB=true.
 
 // to run this script use ts-node scripts/syncS3.ts
+import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
+import { type IRegisteredCosmeticOption } from '../server/utils/cosmetics/CosmeticsInterfaces';
 import {
     S3Client,
     ListObjectsV2Command,
@@ -12,12 +15,20 @@ import type { Readable } from 'stream';
 import '../server/env';
 
 const BUCKET_NAME = 'karabast-customization';
+const { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env;
+
+if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+    throw new Error(
+        'Missing AWS credentials. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to sync S3.'
+    );
+}
+
 
 const prodS3 = new S3Client({
     region: 'us-east-1',
     credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? ''
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     }
 });
 
@@ -30,6 +41,42 @@ const localS3 = new S3Client({
         secretAccessKey: 'verySecretKey1'
     }
 });
+
+
+/**
+ * Seeds the local DynamoDB with fallback cosmetics data.
+ * Only runs when ENVIRONMENT=development and USE_LOCAL_DYNAMODB=true
+ */
+async function seedCosmetics(): Promise<void> {
+    const service = await getDynamoDbServiceAsync();
+    const cosmeticsData = await import('../server/data/initialize-cosmetics-local.json');
+    //  cosmeticsData = await import('../server/data/initialize-cosmetics.json'); For PROD
+    if (!service) {
+        throw new Error('DynamoDB service not available (are you in dev & DynamoDB Local running?)');
+    }
+
+    // Cast the JSON data to the correct type
+    const cosmetics = cosmeticsData.default as IRegisteredCosmeticOption[];
+
+    console.log(`Starting to seed ${cosmetics.length} cosmetic items...`);
+
+    const result = await service.initializeCosmeticsAsync(cosmetics);
+
+    console.log(`Successfully seeded ${result.initializedCount} cosmetic items!`);
+
+    // Verify by fetching them back
+    const fetchedCosmetics = await service.getCosmeticsAsync();
+    console.log(`Verification: Found ${fetchedCosmetics.length} cosmetics in database`);
+
+    // Group by type for summary
+    const summary = fetchedCosmetics.reduce((acc, cosmetic) => {
+        acc[cosmetic.type] = (acc[cosmetic.type] || 0) + 1;
+        return acc;
+    }, {} satisfies Record<string, number>);
+
+    console.log('Summary by type:', summary);
+}
+
 
 // Helper: convert stream to Buffer
 function streamToBuffer(stream: Readable): Promise<Buffer> {
@@ -64,7 +111,8 @@ async function ensureLocalBucketExists() {
 
 async function copyAllObjects() {
     if (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB !== 'true') {
-        return;
+        console.log('This script only runs in local development mode. Required variables:\nENVIRONMENT=development\nUSE_LOCAL_DYNAMODB=true');
+        throw new Error('Must be in a development environment and USE_LOCAL_DYNAMODB environment needs to be set to true');
     }
 
     await ensureLocalBucketExists();
@@ -115,9 +163,12 @@ async function copyAllObjects() {
     } while (continuationToken);
 
     console.log(`Done. Copied ${totalCopied} objects to local S3.`);
+    await seedCosmetics();
 }
 
 copyAllObjects().catch((err) => {
     console.error('Fatal error while copying S3 objects:', err);
     process.exit(1);
 });
+
+
