@@ -2,6 +2,8 @@ import type { Request, Response, NextFunction } from 'express';
 import { parse } from 'cookie';
 import { UserFactory } from '../utils/user/UserFactory';
 import { logger } from '../logger';
+import { type ServerRole } from '../services/DynamoDBInterfaces';
+import { checkServerRoleUserPrivilegesAsync as checkServerRoleUserPrivilegesAsync } from '../utils/authUtils';
 
 // Extend Express Request type
 declare global {
@@ -18,7 +20,7 @@ declare global {
     }
 }
 
-export const authMiddleware = (routeName = null) => {
+export const authMiddleware = (routeName = null, serverRoleRequired: ServerRole | null = null) => {
     const userFactory = new UserFactory();
 
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -52,7 +54,18 @@ export const authMiddleware = (routeName = null) => {
 
 
             if (routeName) {
-                logger.info(`Auth ${routeName}: finished authenticating user`);
+                logger.info(`Auth ${routeName}: finished authenticating user`, { userId: req.user.getId() });
+            }
+
+            if (serverRoleRequired) {
+                const authResponse = await checkServerRoleUserPrivilegesAsync(req.path, req.user.getId(), serverRoleRequired);
+                if (!authResponse.success) {
+                    logger.warn(`Auth ${routeName}: user ${req.user.getId()} lacks required role ${serverRoleRequired}`, { userId: req.user.getId() });
+                    return res.status(403).json({ success: false, message: authResponse.message });
+                }
+                if (routeName) {
+                    logger.info(`Auth ${routeName}: user ${req.user.getId()} has required role ${serverRoleRequired}`, { userId: req.user.getId() });
+                }
             }
 
             return next();
