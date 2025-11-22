@@ -655,7 +655,7 @@ export class GameServer {
         // PROFILING
         app.get('/api/run-profile', async (req, res, next) => {
             try {
-                const { secretKey, type, duration } = req.query;
+                const { secretKey, type, duration, forceStop } = req.query;
 
                 // Verify secret key
                 if (!env.PROFILE_CAPTURE_SECRET) {
@@ -672,6 +672,24 @@ export class GameServer {
                         message: 'Forbidden - Invalid secret key'
                     });
                 }
+
+                // Handle force stop request
+                const shouldForceStop = forceStop === 'true' || forceStop === '1';
+                if (shouldForceStop) {
+                    const result = await this.stopAllActiveProfiles();
+                    if (result.stopped) {
+                        return res.json({
+                            success: true,
+                            message: 'All active profiling force stopped and uploaded'
+                        });
+                    }
+
+                    return res.status(400).json({
+                        success: false,
+                        message: `No active ${type.toUpperCase()} profiling session to stop`
+                    });
+                }
+
 
                 // Validate type parameter
                 if (!type || (type !== 'cpu' && type !== 'heap')) {
@@ -1897,19 +1915,7 @@ export class GameServer {
 
             // Stop profiling after specified duration
             setTimeout(async () => {
-                try {
-                    const result = await profiler.stopCPUAsBuffer('gameserver-cpu');
-                    if (result) {
-                        logger.info(`[GameServer] CPU profiling test completed. Uploading ${result.filename} to S3...`);
-                        const isDevMode = env.environment === 'development';
-                        await profiler.uploadProfileToS3(result.buffer, result.filename, isDevMode);
-                        logger.info(`[GameServer] CPU profile uploaded successfully: ${result.filename}`);
-                    } else {
-                        logger.warn('[GameServer] CPU profiling test completed but no profile data was generated');
-                    }
-                } catch (error) {
-                    logger.error(`[GameServer] Error stopping CPU profiling test: ${error}`);
-                }
+                await this.stopAndUploadProfile('cpu', 'gameserver-cpu', 'CPU profiling test completed');
             }, durationSeconds * 1000);
         } catch (error) {
             logger.error(`[GameServer] Error starting CPU profiling test: ${error}`);
@@ -1929,23 +1935,44 @@ export class GameServer {
 
             // Stop profiling after specified duration
             setTimeout(async () => {
-                try {
-                    const result = await profiler.stopAllocSamplingAsBuffer('gammeserver-allocation');
-                    if (result) {
-                        logger.info(`[GameServer] Allocation profiling test completed. Uploading ${result.filename} to S3...`);
-                        const isDevMode = env.environment === 'development';
-                        await profiler.uploadProfileToS3(result.buffer, result.filename, isDevMode);
-                        logger.info(`[GameServer] Allocation profile uploaded successfully: ${result.filename}`);
-                    } else {
-                        logger.warn('[GameServer] Allocation profiling test completed but no profile data was generated');
-                    }
-                } catch (error) {
-                    logger.error(`[GameServer] Error stopping allocation profiling test: ${error}`);
-                }
+                await this.stopAndUploadProfile('heap', 'gameserver-heap', 'Allocation profiling test completed');
             }, durationSeconds * 1000);
         } catch (error) {
             logger.error(`[GameServer] Error starting allocation profiling test: ${error}`);
         }
+    }
+
+    private async stopAndUploadProfile(type: 'cpu' | 'heap', label: string, completionMessage: string): Promise<{ stopped: boolean }> {
+        const profiler = RuntimeProfiler.getInstance();
+        let stopped = false;
+
+        try {
+            const result = type === 'cpu'
+                ? await profiler.stopCPUAsBuffer(label)
+                : await profiler.stopAllocSamplingAsBuffer(label);
+
+            if (result) {
+                logger.info(`[GameServer] ${completionMessage}. Uploading ${result.filename} to S3...`);
+                const isDevMode = env.environment === 'development';
+                await profiler.uploadProfileToS3(result.buffer, result.filename, isDevMode);
+                logger.info(`[GameServer] ${type.toUpperCase()} profile uploaded successfully: ${result.filename}`);
+                stopped = true;
+            } else {
+                logger.warn(`[GameServer] ${completionMessage} but no profile data was generated`);
+            }
+        } catch (error) {
+            logger.error(`[GameServer] Error stopping ${type.toUpperCase()} profiling: ${error}`);
+        }
+
+        return { stopped };
+    }
+
+    private async stopAllActiveProfiles(): Promise<{ stopped: boolean }> {
+        const cpuResult = await this.stopAndUploadProfile('cpu', 'gameserver-cpu-forced', 'Force stopped CPU profiling');
+        const heapResult = await this.stopAndUploadProfile('heap', 'gameserver-heap-forced', 'Force stopped heap profiling');
+
+        // Return true if at least one profiling session was stopped
+        return { stopped: cpuResult.stopped || heapResult.stopped };
     }
 }
 
