@@ -315,7 +315,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             }
 
             if (minimumPossibleRemainingCost <= availableResources) {
-                const otherDiscountsAmount = (adjustResult.totalResourceCost - minimumPossibleRemainingCost) - adjustAmountForTargetSet;
+                const otherDiscountsAmount = (adjustResult.getTotalResourceCost() - minimumPossibleRemainingCost) - adjustAmountForTargetSet;
                 return { targetSet: potentialTargetSet.map((selection) => selection.card), otherDiscountsAmount };
             }
 
