@@ -20,6 +20,7 @@ const { AbilityResolver } = require('./gameSteps/AbilityResolver.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
+const { ServerAnimationQueue } = require('./animation/ServerAnimationQueue.js');
 
 const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint, GameErrorSeverity, GameEndReason } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
@@ -302,6 +303,9 @@ class Game extends EventEmitter {
             currentPhase: null,
             prevActionPhasePlayerPassed: null
         };
+
+        /** @private @type {import('./animation/ServerAnimationQueue.js').ServerAnimationQueue} */
+        this.animationQueue = new ServerAnimationQueue();
 
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
@@ -1467,6 +1471,31 @@ class Game extends EventEmitter {
     }
 
     /**
+     * Queues a single animation event to be sent to the client with the next game state update.
+     * @param {import('./animation/AnimationTypes').AnimationEvent} animationEvent
+     */
+    queueAnimation(animationEvent) {
+        this.animationQueue.add(animationEvent);
+    }
+
+    /**
+     * Queues multiple animation events to be sent to the client with the next game state update.
+     * @param {import('./animation/AnimationTypes').AnimationEvent[]} animationEvents
+     */
+    queueAnimations(animationEvents) {
+        this.animationQueue.addMultiple(animationEvents);
+    }
+
+    /**
+     * Clears the animation queue and resets optimization flag. Should be called after
+     * all players have received their game state with animations.
+     */
+    clearAnimations() {
+        this.animationQueue.clear();
+        this._animationsOptimized = false;
+    }
+
+    /**
      * Creates an EventWindow which will open windows for each kind of triggered
      * ability which can respond any passed events, and execute their handlers.
      * @param events
@@ -1957,6 +1986,13 @@ class Game extends EventEmitter {
                     playerState[player.id] = player.getStateSummary(activePlayer);
                 }
 
+                // Optimize and serialize animation queue (only optimize once)
+                if (!this._animationsOptimized) {
+                    this.animationQueue.optimize();
+                    this._animationsOptimized = true;
+                }
+                const serializedAnimations = this.animationQueue.serialize();
+
                 const gameState = {
                     playerUpdate: activePlayer.name,
                     id: this.id,
@@ -1977,6 +2013,7 @@ class Game extends EventEmitter {
                     gameMode: this.gameMode,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
+                    animations: serializedAnimations,
                 };
 
                 // clean out any properies that are null or undefined to reduce the message size
@@ -2193,15 +2230,6 @@ class Game extends EventEmitter {
                 preUndoState: this.preUndoStateForError,
                 postUndoState,
             };
-            if (process.env.NODE_ENV !== 'test') {
-                logger.info('Rollback operation completed', {
-                    lobbyId: this.lobbyId,
-                    gameId: this.id,
-                    rollbackSettings: settings,
-                    durationMs,
-                    gameStates
-                });
-            }
 
             return rollbackResult.success;
         } catch (error) {

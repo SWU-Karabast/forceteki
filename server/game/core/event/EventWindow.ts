@@ -1,10 +1,11 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { AbilityType } from '../Constants';
+import { AbilityType, EventName } from '../Constants';
 import { ReplacementEffectWindow } from '../gameSteps/abilityWindow/ReplacementEffectWindow';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import * as Contract from '../utils/Contract';
+import { AnimationBuilder } from '../animation/AnimationBuilder';
 
 export enum TriggerHandlingMode {
 
@@ -209,6 +210,118 @@ export class EventWindow extends BaseStepWithPipeline {
 
                 this.resolvedEvents.push(event);
             }
+        }
+
+        // Batch animations from all resolved events in this window
+        this.batchAnimations();
+    }
+
+    /**
+     * Generic animation batching system.
+     * Collects animation data from resolved events and batches events of the same type
+     * that occurred in the same window to display simultaneously.
+     */
+    private batchAnimations() {
+        // Group animation data by event type
+        const animationsByEvent = new Map<string, Record<string, unknown>[]>();
+
+        for (const event of this.resolvedEvents) {
+            if (event.animationData) {
+                const eventName = event.name;
+                if (!animationsByEvent.has(eventName)) {
+                    animationsByEvent.set(eventName, []);
+                }
+                animationsByEvent.get(eventName).push(event.animationData);
+            }
+        }
+
+        // Process each event type's animations
+        for (const [eventName, animationDataList] of animationsByEvent.entries()) {
+            if (eventName === EventName.OnDamageDealt && animationDataList.length > 0) {
+                // Batch damage animations to display simultaneously
+                const animations = AnimationBuilder.simultaneousDamage(
+                    animationDataList.map((data) => ({
+                        targetId: data.targetId as string,
+                        amount: data.amount as number
+                    })),
+                    animationDataList[0].sourceId as string | undefined
+                );
+
+                this.game.queueAnimations(animations);
+            } else if (eventName === EventName.OnDamageHealed && animationDataList.length > 0) {
+                // Batch heal animations to display simultaneously
+                const animations = AnimationBuilder.simultaneousHeal(
+                    animationDataList.map((data) => ({
+                        targetId: data.targetId as string,
+                        amount: data.amount as number
+                    })),
+                    animationDataList[0].sourceId as string | undefined
+                );
+
+                this.game.queueAnimations(animations);
+            } else if (eventName === EventName.OnCardDefeated && animationDataList.length > 0) {
+                // Separate shield losses from regular defeats
+                const shieldLosses = animationDataList.filter((data) => data.type === 'LOSE_SHIELD');
+                const regularDefeats = animationDataList.filter((data) => data.type === 'DEFEAT');
+
+                // Batch shield loss animations
+                if (shieldLosses.length > 0) {
+                    // Group shields by parent unit to handle multiple shields on same unit
+                    const shieldsByUnit = new Map<string, Record<string, unknown>[]>();
+                    for (const shield of shieldLosses) {
+                        const unitId = shield.targetId as string;
+                        if (!shieldsByUnit.has(unitId)) {
+                            shieldsByUnit.set(unitId, []);
+                        }
+                        shieldsByUnit.get(unitId).push(shield);
+                    }
+
+                    // Collect all shield animations to queue them together
+                    const allShieldAnimations = [];
+
+                    // For each unit, create animations for its shields
+                    // When multiple shields on the SAME unit are defeated simultaneously (e.g., Saboteur),
+                    // we need to animate them ALL at the same time, not sequentially
+                    for (const [unitId, unitShields] of shieldsByUnit.entries()) {
+                        // Create one animation event per shield, all with the same groupId
+                        // This makes them animate simultaneously
+                        const groupId = `shield-lose-unit-${unitId}-${Date.now()}`;
+                        const isSimultaneous = unitShields.length > 1;
+
+                        for (let i = 0; i < unitShields.length; i++) {
+                            const animation = AnimationBuilder.loseShield(unitId, {
+                                shieldUuid: unitShields[i].shieldUuid as string,
+                                isSimultaneous,
+                                groupId: isSimultaneous ? groupId : undefined,
+                                // Only pass shieldIndex for simultaneous defeats (Saboteur)
+                                // For sequential defeats, let the client find the last unanimated shield
+                                shieldIndex: isSimultaneous ? i : undefined,
+                                totalShields: isSimultaneous ? unitShields.length : undefined
+                            });
+                            allShieldAnimations.push(animation);
+                        }
+                    }                    // Queue all shield animations together so they execute at the same priority
+                    if (allShieldAnimations.length > 0) {
+                        this.game.queueAnimations(allShieldAnimations);
+                    }
+                }
+
+                // Batch regular defeat animations
+                if (regularDefeats.length > 0) {
+                    const animations = AnimationBuilder.simultaneousDefeats(
+                        regularDefeats.map((data) => ({
+                            targetId: data.targetId as string,
+                            upgradeIds: data.upgradeIds as string[] | undefined,
+                            isUpgrade: data.isUpgrade as boolean | undefined
+                        })),
+                        regularDefeats[0].sourceId as string | undefined
+                    );
+
+                    this.game.queueAnimations(animations);
+                }
+            }
+            // Future animation types can be added here
+            // else if (eventName === EventName.OnCardHealed) { ... }
         }
     }
 
