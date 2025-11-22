@@ -228,7 +228,7 @@ export class GameServer {
 
         // check if NEXTAUTH variable is set
         requireEnvVars(
-            ['INTRASERVICE_SECRET'],
+            ['INTRASERVICE_SECRET', 'PROFILE_CAPTURE_SECRET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
             'GameServer',
             ['NEXTAUTH_SECRET']
         );
@@ -653,28 +653,40 @@ export class GameServer {
         // *** End of User Object calls ***
 
         // PROFILING
-        app.get('/api/run-profile', async (req, res, next) => {
+        app.post('/api/run-profile', async (req, res, next) => {
             try {
-                const { secretKey, type, duration, forceStop } = req.query;
+                // Validate Authorization header
+                if (env.PROFILE_CAPTURE_SECRET) {
+                    const authHeader = req.headers.authorization;
 
-                // Verify secret key
-                if (!env.PROFILE_CAPTURE_SECRET) {
-                    return res.status(503).json({
+                    if (!authHeader || !authHeader.startsWith('api-key ')) {
+                        logger.warn('[GameServer] Profile capture attempt without valid Authorization header');
+                        return res.status(401).json({
+                            success: false,
+                            message: 'Unauthorized - Missing or invalid Authorization header'
+                        });
+                    }
+
+                    const apiKey = authHeader.substring(8); // Remove 'api-key ' prefix
+                    if (apiKey !== env.PROFILE_CAPTURE_SECRET) {
+                        logger.warn('[GameServer] Unauthorized profile capture attempt with invalid API key');
+                        return res.status(403).json({
+                            success: false,
+                            message: 'Forbidden'
+                        });
+                    }
+                } else {
+                    logger.warn('[GameServer] Profile capture attempt with missing PROFILE_CAPTURE_SECRET set on server!');
+                    return res.status(401).json({
                         success: false,
-                        message: 'Profile capture not configured - PROFILE_CAPTURE_SECRET not set'
+                        message: 'Unauthorized - Missing PROFILE_CAPTURE_SECRET'
                     });
                 }
 
-                if (secretKey !== env.PROFILE_CAPTURE_SECRET) {
-                    logger.warn('[GameServer] Unauthorized profile capture attempt with invalid secret key');
-                    return res.status(403).json({
-                        success: false,
-                        message: 'Forbidden - Invalid secret key'
-                    });
-                }
+                const { type, durationSeconds, forceStop } = req.body;
 
                 // Handle force stop request
-                const shouldForceStop = forceStop === 'true' || forceStop === '1';
+                const shouldForceStop = forceStop === true || forceStop === 'true' || forceStop === 1;
                 if (shouldForceStop) {
                     const result = await this.stopAllActiveProfiles();
                     if (result.stopped) {
@@ -690,7 +702,6 @@ export class GameServer {
                     });
                 }
 
-
                 // Validate type parameter
                 if (!type || (type !== 'cpu' && type !== 'heap')) {
                     return res.status(400).json({
@@ -700,33 +711,33 @@ export class GameServer {
                 }
 
                 // Parse and validate duration parameter between 1 second and 10 minutes
-                if (!duration) {
+                if (!durationSeconds) {
                     return res.status(400).json({
                         success: false,
-                        message: 'Duration parameter is required'
+                        message: 'durationSeconds parameter is required'
                     });
                 }
 
-                const profileDuration = parseInt(duration as string);
-                if (profileDuration < 1 || profileDuration > 600) {
+                const profileDurationSeconds = parseInt(durationSeconds as string);
+                if (profileDurationSeconds <= 0) {
                     return res.status(400).json({
                         success: false,
-                        message: 'Invalid duration parameter. Must be between 1 and 600 seconds'
+                        message: 'Invalid durationSeconds parameter. Must be greater than 0 seconds'
                     });
                 }
 
                 // Start the appropriate profiling type using existing methods
                 if (type === 'cpu') {
-                    await this.startCpuProfilingTest(profileDuration);
+                    await this.startCpuProfilingDump(profileDurationSeconds);
                 } else {
-                    await this.startAllocProfilingTest(profileDuration);
+                    await this.startAllocProfilingDump(profileDurationSeconds);
                 }
 
                 return res.json({
                     success: true,
                     type,
-                    duration: profileDuration,
-                    message: `${type.toUpperCase()} profiling started. Will automatically stop and upload in ${profileDuration} seconds.`
+                    duration: profileDurationSeconds,
+                    message: `${type.toUpperCase()} profiling started. Will automatically stop and upload in ${profileDurationSeconds} seconds.`
                 });
             } catch (err) {
                 logger.error('GameServer (run-profile) Server error:', err);
@@ -1902,7 +1913,7 @@ export class GameServer {
         }
     }
 
-    private async startCpuProfilingTest(durationSeconds: number): Promise<void> {
+    private async startCpuProfilingDump(durationSeconds: number): Promise<void> {
         try {
             const profiler = RuntimeProfiler.getInstance();
             logger.info(`[GameServer] Starting CPU profiling test for ${durationSeconds} seconds...`);
@@ -1922,7 +1933,7 @@ export class GameServer {
         }
     }
 
-    private async startAllocProfilingTest(durationSeconds: number): Promise<void> {
+    private async startAllocProfilingDump(durationSeconds: number): Promise<void> {
         try {
             const profiler = RuntimeProfiler.getInstance();
             logger.info(`[GameServer] Starting allocation profiling test for ${durationSeconds} seconds...`);

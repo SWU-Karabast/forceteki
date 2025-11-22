@@ -21,7 +21,6 @@ ENV ENVIRONMENT="production"
 ENV GAME_NODE_HOST="localhost"
 ENV GAME_NODE_NAME="test1"
 ENV GAME_NODE_SOCKET_IO_PORT="9500"
-ENV PROFILE_CAPTURE_S3_BUCKET="karabast-profiling-dumps"
 
 # Expose app port (internal only — Caddy handles public traffic)
 EXPOSE 9500

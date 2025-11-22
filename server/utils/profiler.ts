@@ -154,8 +154,8 @@ export class RuntimeProfiler {
         }
 
         // Validate required environment variables
-        if (!env.AWS_REGION || !env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY || !env.PROFILE_CAPTURE_S3_BUCKET) {
-            throw new Error('S3 upload requires AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and PROFILE_CAPTURE_S3_BUCKET env vars.');
+        if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
+            throw new Error('S3 upload requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY env vars.');
         }
 
         let s3Client: S3Client | null = null;
@@ -163,7 +163,7 @@ export class RuntimeProfiler {
         try {
             // Create S3 client on-demand
             s3Client = new S3Client({
-                region: env.AWS_REGION,
+                region: 'us-east-1',
                 credentials: {
                     accessKeyId: env.AWS_ACCESS_KEY_ID,
                     secretAccessKey: env.AWS_SECRET_ACCESS_KEY
@@ -183,7 +183,7 @@ export class RuntimeProfiler {
             const contentType = 'application/json';
 
             const command = new PutObjectCommand({
-                Bucket: env.PROFILE_CAPTURE_S3_BUCKET,
+                Bucket: 'karabast-profiling-dumps',
                 Key: key,
                 Body: buffer,
                 ContentType: contentType,
