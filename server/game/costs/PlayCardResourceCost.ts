@@ -5,9 +5,9 @@ import * as Contract from '../core/utils/Contract.js';
 import { type CostAdjuster } from '../core/cost/CostAdjuster';
 import type { ICardWithCostProperty } from '../core/card/propertyMixins/Cost';
 import { ResourceCost } from './ResourceCost';
-import type { ICostAdjustEvaluationIntermediateResult } from '../core/cost/CostInterfaces';
 import { CostAdjustStage } from '../core/cost/CostInterfaces';
 import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
+import { AdjustedCostEvaluator } from '../core/cost/evaluation/AdjustedCostEvaluator';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -61,20 +61,9 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
         return costAdjustersByStage;
     }
 
-    protected override initializeEvaluationResult(
-        context: AbilityContext<ICardWithCostProperty>,
-        adjustersByStage: Map<CostAdjustStage, CostAdjuster[]>
-    ): ICostAdjustEvaluationIntermediateResult {
-        const result = super.initializeEvaluationResult(context, adjustersByStage);
-
-        // apply any aspect penalties to the cost
+    protected override buildEvaluationCostTracker(context: AbilityContext): AdjustedCostEvaluator {
         const penaltyAspects = context.player.getPenaltyAspects(this.aspects);
-        if (penaltyAspects.length > 0) {
-            result.penaltyAspects = penaltyAspects;
-            result.adjustedCost.applyStaticIncrease(penaltyAspects.length * 2);
-            result.totalResourceCost += penaltyAspects.length * 2;
-        }
 
-        return result;
+        return new AdjustedCostEvaluator(this.resourceCostAmount, penaltyAspects);
     }
 }

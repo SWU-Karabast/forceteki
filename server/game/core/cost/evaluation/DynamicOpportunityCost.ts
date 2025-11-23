@@ -17,7 +17,7 @@ export class DynamicOpportunityCost {
     private alternateDiscounts: number[] = [];
 
     public constructor(computeDiscount: (remainingCost: number) => number, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
-        const alreadyAppliedDiscounts = evaluationResult.totalResourceCost - evaluationResult.adjustedCost.value;
+        const alreadyAppliedDiscounts = evaluationResult.getTotalResourceCost() - evaluationResult.adjustedCost.value;
 
         this.computeDiscount = (remainingCost: number) => {
             Contract.assertNonNegative(remainingCost, `Remaining cost must be non-negative, instead got ${remainingCost}`);

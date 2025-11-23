@@ -50,7 +50,7 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
         Contract.assertNotNullLike(adjustSourceEntry, `Source card ${this.source.internalName} of ModifyPayStageCostAdjuster not found in costAdjusterTargets`);
 
         const opportunityCost: IEvaluationOpportunityCost = {
-            max: this.payStageAmountAfterDiscount(evaluationResult.totalResourceCost),
+            max: this.payStageAmountAfterDiscount(evaluationResult.getTotalResourceCost()),
             dynamic: dynamicCost
         };
 
