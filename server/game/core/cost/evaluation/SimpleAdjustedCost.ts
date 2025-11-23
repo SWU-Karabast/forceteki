@@ -3,7 +3,7 @@ import * as Contract from '../../utils/Contract';
 
 interface IPenaltyAspect {
     aspect: Aspect;
-    applyPenalty: boolean;
+    penaltyDisabled: boolean;
 }
 
 /**
@@ -31,7 +31,8 @@ export class SimpleAdjustedCost {
         this._totalResourceCost = initialCost;
 
         if (penaltyAspects) {
-            this._penaltyAspects = penaltyAspects.map((aspect) => ({ aspect, applyPenalty: true }));
+            this._penaltyAspects = penaltyAspects.map((aspect) => ({ aspect, penaltyDisabled: false }));
+            this.applyStaticIncrease(penaltyAspects.length * 2);
         }
     }
 
@@ -54,15 +55,22 @@ export class SimpleAdjustedCost {
     }
 
     public disableAspectPenalty(aspect: Aspect) {
-        const matchingPenalties = this._penaltyAspects.filter((entry) => entry.aspect === aspect);
-        for (const penaltyEntry of matchingPenalties) {
-            penaltyEntry.applyPenalty = false;
+        const matchingEnabledPenalties = this._penaltyAspects.filter(
+            (entry) => entry.aspect === aspect && !entry.penaltyDisabled
+        );
+
+        for (const penaltyEntry of matchingEnabledPenalties) {
+            penaltyEntry.penaltyDisabled = true;
+            this.applyStaticDecrease(2);
         }
     }
 
     public disableAllAspectPenalties() {
-        for (const penaltyEntry of this._penaltyAspects) {
-            penaltyEntry.applyPenalty = false;
+        const enabledPenalties = this._penaltyAspects.filter((entry) => !entry.penaltyDisabled);
+
+        for (const penaltyEntry of enabledPenalties) {
+            penaltyEntry.penaltyDisabled = true;
+            this.applyStaticDecrease(2);
         }
     }
 
@@ -72,18 +80,16 @@ export class SimpleAdjustedCost {
     }
 
     public getTotalResourceCost(includeAspectPenalties = true): number {
-        return this._totalResourceCost + (includeAspectPenalties ? this.computeAspectPenaltyTotal() : 0);
+        return this._totalResourceCost - (includeAspectPenalties ? 0 : this.penaltyAspects.length * 2);
     }
 
     protected createCopy(): SimpleAdjustedCost {
-        return new SimpleAdjustedCost(this._value);
+        const copy = new SimpleAdjustedCost(this._value);
+        copy._penaltyAspects = this._penaltyAspects.map((entry) => ({ ...entry }));
+        return copy;
     }
 
     protected computeLowestPossibleCost(): number {
-        return this._value + this.computeAspectPenaltyTotal();
-    }
-
-    private computeAspectPenaltyTotal(): number {
-        return this._penaltyAspects.filter((entry) => entry.applyPenalty).length * 2;
+        return this._value;
     }
 }

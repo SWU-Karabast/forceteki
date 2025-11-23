@@ -162,7 +162,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             context,
             costAdjustTriggerResult,
             context.player.readyResourceCount,
-        ).targetSet;
+        )?.targetSet;
 
         Contract.assertNotNullLike(minimumTargetsSet, 'No valid target set found to pay cost with targeted cost adjuster at pay time');
         const minimumTargetsRequiredToPay = minimumTargetsSet.length;
@@ -482,6 +482,8 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
             context.player.readyResourceCount,
             Helpers.asArray(selected)
         );
+
+        Contract.assertNotNullLike(minimumTargetsResult, 'No valid target set found to pay cost with targeted cost adjuster at pay time');
 
         context.costs[this.costPropertyName].minimumTargets = minimumTargetsResult.targetSet.length;
         context.costs[this.costPropertyName].otherDiscountsAmount = minimumTargetsResult.otherDiscountsAmount;
