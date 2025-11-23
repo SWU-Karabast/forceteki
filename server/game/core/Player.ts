@@ -769,7 +769,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      */
     public removeCostAdjuster(adjuster: CostAdjuster) {
         if (this.costAdjusters.includes(adjuster)) {
-            adjuster.unregisterEvents();
+            adjuster.cancel();
             this.state.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster).map((x) => x.getRef());
         }
     }

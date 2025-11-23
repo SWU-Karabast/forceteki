@@ -1,12 +1,15 @@
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { Aspect } from '../Constants';
-import type { CostAdjuster } from './CostAdjuster';
+import type { AdjustedCostEvaluator } from './evaluation/AdjustedCostEvaluator';
+import type { CostAdjuster, CostAdjustResolutionMode } from './CostAdjuster';
+import type { DynamicOpportunityCost } from './evaluation/DynamicOpportunityCost';
+import type { SimpleAdjustedCost } from './evaluation/SimpleAdjustedCost';
 
 export enum CostAdjustStage {
     Standard_0 = 'standard_0',
     Exploit_1 = 'exploit_1',
-    ExhaustUnits_2 = 'exhaustUnits_2',
-    PayStage_3 = 'payStage_3',
+    PayStage_2 = 'payStage_2',
+    ExhaustUnits_3 = 'exhaustUnits_3',
     Increase_4 = 'increase_4'
 }
 
@@ -15,32 +18,41 @@ export enum ResourceCostType {
     PlayCard = 'playCard'
 }
 
-export interface ICostAdjusterEvaluationTargetSet {
-    targets: ICostAdjusterEvaluationTarget[];
-    targetsAreOrdered: boolean;
+export interface IEvaluationOpportunityCost {
+    max: number;
+    dynamic?: DynamicOpportunityCost;
 }
 
 export interface ICostAdjusterEvaluationTarget {
     unit: IUnitCard;
-    opportunityCost?: Map<CostAdjustStage, number>;
+    opportunityCost?: Map<CostAdjustStage, IEvaluationOpportunityCost>;
 }
 
 export interface IAbilityCostAdjustmentProperties {
     totalResourceCost: number;
     matchingAdjusters: Map<CostAdjustStage, CostAdjuster[]>;
-    penaltyAspects?: Aspect[];
     resourceCostType: ResourceCostType;
+    penaltyAspects?: Aspect[];
 }
 
 export interface ICostAdjustmentResolutionProperties extends IAbilityCostAdjustmentProperties {
-    remainingCost: number;
+    adjustedCost: SimpleAdjustedCost;
     adjustStage: CostAdjustStage;
 }
 
 export interface ICostAdjustTriggerResult extends ICostAdjustmentResolutionProperties {
+    resolutionMode: CostAdjustResolutionMode.Trigger;
     triggeredAdjusters: Set<CostAdjuster>;
 }
 
 export interface ICostAdjustEvaluationResult extends ICostAdjustmentResolutionProperties {
-    costAdjusterTargets?: ICostAdjusterEvaluationTargetSet;
+    costAdjusterTargets: ICostAdjusterEvaluationTarget[];
 }
+
+export interface ICostAdjustEvaluationIntermediateResult extends ICostAdjustmentResolutionProperties {
+    resolutionMode: CostAdjustResolutionMode.Evaluate;
+    adjustedCost: AdjustedCostEvaluator;
+    costAdjusterTargets: ICostAdjusterEvaluationTarget[];
+}
+
+export type ICostAdjustResult = ICostAdjustTriggerResult | ICostAdjustEvaluationIntermediateResult;

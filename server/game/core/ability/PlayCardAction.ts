@@ -7,7 +7,7 @@ import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
 import { PlayerAction } from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-import type { CostAdjuster } from '../cost/CostAdjuster';
+import { CostAdjustType, type CostAdjuster } from '../cost/CostAdjuster';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
@@ -80,7 +80,9 @@ export abstract class PlayCardAction extends PlayerAction {
 
         if (!!properties.exploitValue) {
             propertiesWithDefaults = Helpers.mergeArrayProperty(
-                propertiesWithDefaults, 'costAdjusters', [new ExploitCostAdjuster(card.game, card, { exploitKeywordAmount: properties.exploitValue })]
+                propertiesWithDefaults,
+                'costAdjusters',
+                [new ExploitCostAdjuster(card.game, card, { costAdjustType: CostAdjustType.Exploit, exploitKeywordAmount: properties.exploitValue })]
             );
         }
 
