@@ -174,6 +174,7 @@ describe('Cost adjuster combinations', function() {
 
                 const { context } = contextRef;
 
+                context.player1.setExactReadyResources(4);
                 expect(context.player1).toBeAbleToSelect(context.hailfireTank);
                 context.player1.clickCard(context.hailfireTank);
 
