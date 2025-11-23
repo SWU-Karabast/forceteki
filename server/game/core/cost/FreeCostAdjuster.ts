@@ -21,5 +21,6 @@ export class FreeCostAdjuster extends CostAdjuster {
 
     protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustmentResolutionProperties) {
         result.adjustedCost.setRemainingToDiscountedValue(0);
+        result.adjustedCost.disableAllAspectPenalties();
     }
 }

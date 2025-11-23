@@ -27,7 +27,7 @@ export class IgnoreAspectCostAdjuster extends CostAdjuster {
     }
 
     protected override canAdjust(card: Card, context: AbilityContext, evaluationResult: ICostAdjustTriggerResult): boolean {
-        if (this.ignoredAspect && !evaluationResult.penaltyAspects?.includes(this.ignoredAspect)) {
+        if (this.ignoredAspect && !evaluationResult.getPenaltyAspects()?.includes(this.ignoredAspect)) {
             return false;
         }
 
@@ -35,19 +35,15 @@ export class IgnoreAspectCostAdjuster extends CostAdjuster {
     }
 
     protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustmentResolutionProperties) {
-        let matchingAspects: Aspect[];
-
         switch (this.costAdjustType) {
             case CostAdjustType.IgnoreAllAspects:
-                matchingAspects = result.penaltyAspects ?? [];
+                result.adjustedCost.disableAllAspectPenalties();
                 break;
             case CostAdjustType.IgnoreSpecificAspects:
-                matchingAspects = result.penaltyAspects?.filter((aspect) => aspect === this.ignoredAspect) ?? [];
+                result.adjustedCost.disableAspectPenalty(this.ignoredAspect);
                 break;
             default:
                 throw new Error(`Unsupported cost adjust type for IgnoreAspectCostAdjuster: ${this.costAdjustType}`);
         }
-
-        result.adjustedCost.applyStaticDecrease(matchingAspects.length * 2);
     }
 }

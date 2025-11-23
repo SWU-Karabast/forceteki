@@ -182,30 +182,38 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         _costAdjustersByStage: Map<CostAdjustStage, CostAdjuster[]>
     ): ICostAdjustEvaluationIntermediateResult {
         const costAdjusterTargets: ICostAdjusterEvaluationTarget[] = context.player.getArenaUnits().map((unit) => ({ unit }));
+        const costTracker = this.buildEvaluationCostTracker(context);
 
         return {
             resolutionMode: CostAdjustResolutionMode.Evaluate,
-            totalResourceCost: this.resourceCostAmount,
-            adjustedCost: new AdjustedCostEvaluator(this.resourceCostAmount),
+            getTotalResourceCost: (includeAspectPenalties) => costTracker.getTotalResourceCost(includeAspectPenalties),
+            getPenaltyAspects: () => costTracker.penaltyAspects,
+            adjustedCost: costTracker,
             adjustStage: CostAdjustStage.Increase_4,
             matchingAdjusters: new Map<CostAdjustStage, CostAdjuster[]>(),
             resourceCostType: this.isPlayCost ? ResourceCostType.PlayCard : ResourceCostType.Ability,
-            costAdjusterTargets
+            costAdjusterTargets,
         };
     }
 
     /** Builds a new {@link ICostAdjustTriggerResult} for starting an adjust + payment pass */
     protected initializeTriggerResult(evaluationResult: IAbilityCostAdjustmentProperties): ICostAdjustTriggerResult {
+        const costTracker = new SimpleAdjustedCost(evaluationResult.getTotalResourceCost(false), evaluationResult.getPenaltyAspects());
+
         return {
             resolutionMode: CostAdjustResolutionMode.Trigger,
-            totalResourceCost: evaluationResult.totalResourceCost,
-            adjustedCost: new SimpleAdjustedCost(evaluationResult.totalResourceCost),
+            getTotalResourceCost: (includeAspectPenalties) => costTracker.getTotalResourceCost(includeAspectPenalties),
+            getPenaltyAspects: () => costTracker.penaltyAspects,
+            adjustedCost: costTracker,
             adjustStage: CostAdjustStage.Standard_0,
             matchingAdjusters: evaluationResult.matchingAdjusters,
             resourceCostType: evaluationResult.resourceCostType,
-            triggeredAdjusters: new Set<CostAdjuster>(),
-            penaltyAspects: evaluationResult.penaltyAspects
+            triggeredAdjusters: new Set<CostAdjuster>()
         };
+    }
+
+    protected buildEvaluationCostTracker(_context: AbilityContext): AdjustedCostEvaluator {
+        return new AdjustedCostEvaluator(this.resourceCostAmount);
     }
 
     /** Constructs a map of all cost adjusters for a player + ability grouped by their stage */
