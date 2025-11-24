@@ -31,22 +31,6 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
 
         event.originalZone = upgradeCard.zoneName;
 
-        // Check if this is a shield token being attached
-        // Cast to Card to access isTokenUpgrade and internalName
-        const upgradeAsCard = upgradeCard as unknown as Card;
-
-        // Debug: log ALL upgrade attachments
-        console.log('[AttachUpgradeSystem] Attaching upgrade:', {
-            isTokenUpgrade: upgradeAsCard.isTokenUpgrade(),
-            internalName: upgradeAsCard.internalName,
-            parentCard: parentCard.uuid,
-            parentCardName: parentCard.internalName,
-            hasAnimationData: !!event.animationData
-        });
-
-        // Shield gain animations are not implemented yet
-        // Future: Add shield gain animation support here
-
         // attachTo manages all of the unattach and move zone logic
         upgradeCard.attachTo(parentCard, event.newController);
     }
