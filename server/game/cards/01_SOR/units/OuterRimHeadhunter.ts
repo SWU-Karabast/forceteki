@@ -18,7 +18,7 @@ export default class OuterRimHeadhunter extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.leader.isDeployableLeader() && context.player.leader.deployed,
+                    condition: (context) => context.player.hasSomeArenaUnit({ condition: (card) => card.isLeaderUnit() }),
                     onTrue: AbilityHelper.immediateEffects.exhaust(),
                 })
             }

@@ -15,10 +15,11 @@ export default class SteadfastBattalion extends NonLeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'If you control a leader unit, give a friendly unit +2/+2 for this phase',
             targetResolver: {
+                activePromptTitle: 'Give a friendly unit +2/+2 for this phase',
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.leader.isDeployableLeader() && context.player.leader.deployed,
+                    condition: (context) => context.player.hasSomeArenaUnit({ condition: (card) => card.isLeaderUnit() }),
                     onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                     }),

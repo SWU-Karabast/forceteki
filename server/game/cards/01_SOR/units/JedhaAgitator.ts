@@ -15,9 +15,10 @@ export default class JedhaAgitator extends NonLeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'If you control a leader unit, deal 2 damage to a ground unit or base',
             targetResolver: {
+                activePromptTitle: 'Deal 2 damage to a ground unit or base',
                 cardCondition: (card) => (card.isUnit() && card.zoneName === ZoneName.GroundArena) || card.isBase(),
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.leader.isDeployableLeader() && context.player.leader.deployed,
+                    condition: (context) => context.player.hasSomeArenaUnit({ condition: (card) => card.isLeaderUnit() }),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                 })
             }
