@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardCardType } from '../../../core/Constants';
+import { CardType, WildcardCardType } from '../../../core/Constants';
 
 export default class OuterRimHeadhunter extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -18,7 +18,7 @@ export default class OuterRimHeadhunter extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.hasSomeArenaUnit({ condition: (card) => card.isLeaderUnit() }),
+                    condition: (context) => context.player.hasSomeArenaCard({ type: CardType.LeaderUnit }),
                     onTrue: AbilityHelper.immediateEffects.exhaust(),
                 })
             }

@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { CardType } from '../../../core/Constants';
 
 export default class RuggedSurvivors extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -15,7 +16,7 @@ export default class RuggedSurvivors extends NonLeaderUnitCard {
             title: 'Draw a card if you control a leader unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.hasSomeArenaUnit({ condition: (card) => card.isLeaderUnit() }),
+                condition: (context) => context.player.hasSomeArenaCard({ type: CardType.LeaderUnit }),
                 onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
             })
         });
