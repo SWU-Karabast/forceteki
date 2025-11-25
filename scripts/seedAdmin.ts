@@ -1,9 +1,11 @@
 // scripts/seedAdmin.ts
 import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
 import '../server/env';
+
+const MY_USER_ID: string | null = null; // guid of generated user after logging in
+
+
 // to run this script run on root folder ts-node scripts/seed-dynamo.ts
-
-
 async function run() {
     if (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB !== 'true') {
         return;
@@ -13,8 +15,7 @@ async function run() {
         throw new Error('DynamoDB service not available (are you in dev & DynamoDB Local running?)');
     }
 
-    const myUserId: string | null = null; // e.g. 'ID of your local administrator'
-    if (!myUserId) {
+    if (!MY_USER_ID) {
         throw new Error(
             'myUserId is null or empty. Set it to the ID of your local administrator before running this script.'
         );
@@ -23,13 +24,13 @@ async function run() {
     await service.putItemAsync({
         pk: 'SERVER_ROLE_USERS',
         sk: 'ROLES',
-        admins: [myUserId],
+        admins: [MY_USER_ID],
         developers: [],
         moderators: [],
         updatedAt: new Date().toISOString(),
     });
 
-    console.log('Seeded admin:', myUserId);
+    console.log('Seeded admin:', MY_USER_ID);
 }
 
 run().catch((err) => {
