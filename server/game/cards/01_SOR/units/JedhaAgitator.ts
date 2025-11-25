@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName } from '../../../core/Constants';
+import { CardType, ZoneName } from '../../../core/Constants';
 
 export default class JedhaAgitator extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,9 +15,10 @@ export default class JedhaAgitator extends NonLeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'If you control a leader unit, deal 2 damage to a ground unit or base',
             targetResolver: {
+                activePromptTitle: 'Deal 2 damage to a ground unit or base',
                 cardCondition: (card) => (card.isUnit() && card.zoneName === ZoneName.GroundArena) || card.isBase(),
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.leader.isDeployableLeader() && context.player.leader.deployed,
+                    condition: (context) => context.player.hasSomeArenaCard({ type: CardType.LeaderUnit }),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                 })
             }
