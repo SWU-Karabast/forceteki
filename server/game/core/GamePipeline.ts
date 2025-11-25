@@ -136,7 +136,7 @@ export class GamePipeline {
 
     public getDebugInfo() {
         return {
-            pipeline: this.pipeline.map((step) => this.getDebugInfoForStep(step)),
+            pipeline: [...this.pipeline].reverse().map((step) => this.getDebugInfoForStep(step)),
             queue: this.stepsQueuedDuringCurrentStep.map((step) => this.getDebugInfoForStep(step))
         };
     }
@@ -174,7 +174,7 @@ export class GamePipeline {
 
     private queueNewStepsIntoPipeline() {
         this.addStepsToPipeline(this.stepsQueuedDuringCurrentStep);
-        this.stepsQueuedDuringCurrentStep = [];
+        this.stepsQueuedDuringCurrentStep.length = 0;
     }
 
     private addStepsToPipeline(steps: StepItem[]) {
