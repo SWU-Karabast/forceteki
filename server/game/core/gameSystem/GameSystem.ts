@@ -194,7 +194,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return Helpers.asArray(targets).map((target) => {
             if (target.isCard() && target.isBase()) {
                 return {
-                    format: target.controller === context.player ? 'their own base' : '{0}\'s base',
+                    format: target.controller === context.player ? 'their base' : '{0}\'s base',
                     args: [target.controller]
                 };
             }

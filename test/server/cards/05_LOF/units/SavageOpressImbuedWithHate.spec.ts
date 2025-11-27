@@ -1,7 +1,7 @@
 describe('Savage Opress, Imbued with Hate', () => {
     integration(function (contextRef) {
         const useTheForce = 'player1 uses Savage Opress to not damage their base by instead using the Force';
-        const doNotUseTheForce = 'player1 uses Savage Opress to deal 9 damage to their own base';
+        const doNotUseTheForce = 'player1 uses Savage Opress to deal 9 damage to their base';
 
         describe('Savage Opress\' when played ability', () => {
             beforeEach(function () {
