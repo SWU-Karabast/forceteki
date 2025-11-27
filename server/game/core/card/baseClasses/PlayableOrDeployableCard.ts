@@ -290,7 +290,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         }
 
         this.controller = newController;
-        if (this.isTokenUpgrade() && moveTo == null) {
+        if (this.isTokenUpgrade() && moveTo !== ZoneName.Resource) {
             this.owner = newController;
         }
 
