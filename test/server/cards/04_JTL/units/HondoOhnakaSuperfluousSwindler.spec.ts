@@ -140,7 +140,7 @@ describe('Hondo Ohnaka, Superfluous Swindler', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('', async function () {
+        it('can move token upgrade and gain control and ownership of them', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
