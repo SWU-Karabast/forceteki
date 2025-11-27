@@ -290,6 +290,9 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         }
 
         this.controller = newController;
+        if (this.isTokenUpgrade() && moveTo == null) {
+            this.owner = newController;
+        }
 
         const moveDestination = moveTo || this.zone.name;
 
