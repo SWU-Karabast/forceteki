@@ -27,8 +27,6 @@ const getDefaultSoundPreferences = () => ({
 const getDefaultCosmeticsPreferences = () => ({
     cardback: null,
     background: null,
-    playmat: null,
-    disablePlaymats: false,
 });
 
 export const getDefaultPreferences = (): IUserPreferences => ({

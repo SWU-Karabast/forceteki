@@ -8,7 +8,7 @@ const MY_USER_ID: string | null = null; // guid of generated user after logging 
 // to run this script run on root folder ts-node scripts/seed-dynamo.ts
 async function run() {
     if (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB !== 'true') {
-        return;
+        throw new Error('Environmental variables ENVIRONMENT and USE_LOCAL_DYNAMODB need to be set.');
     }
     const service = await getDynamoDbServiceAsync();
     if (!service) {

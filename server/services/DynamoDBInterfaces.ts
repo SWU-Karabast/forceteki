@@ -56,8 +56,6 @@ export interface IUserPreferences {
     cosmetics?: {
         cardback?: string;
         background?: string;
-        playmat?: string;
-        disablePlaymats?: boolean;
     };
 }
 

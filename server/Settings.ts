@@ -25,8 +25,6 @@ export interface IUser {
     cosmetics?: Partial<{
         cardback: string;
         background: string;
-        playmat: string;
-        disablePlaymats: boolean;
     }>;
 }
 

@@ -1,7 +1,6 @@
 export enum RegisteredCosmeticType {
     Cardback = 'cardback',
     Background = 'background',
-    Playmat = 'playmat'
 }
 
 export interface IRegisteredCosmeticOption {
