@@ -71,6 +71,19 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         }
     }
 
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<IPlayCardProperties>): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        if (properties.playType && properties.playType === PlayType.Plot) {
+            return ['play {0} using Plot', [this.getTargetMessage(properties.target, context)]];
+        }
+
+        // TODO: Add more details about how and where the card is being played from
+        // https://github.com/SWU-Karabast/forceteki/issues/1953
+
+        return super.getEffectMessage(context, additionalProperties);
+    }
+
     private resolvePlayCardAbility(ability: PlayCardAction, event: any) {
         const newContext = ability.createContext(event.player);
 
