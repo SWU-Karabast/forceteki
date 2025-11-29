@@ -139,5 +139,34 @@ describe('Hondo Ohnaka, Superfluous Swindler', function() {
             // The ability is automatically skipped because there are no other Force units to attach Constructed Lightsaber to
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('can move token upgrade and gain control and ownership of them', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['hondo-ohnaka#superfluous-swindler']
+                },
+                player2: {
+                    groundArena: [
+                        {
+                            card: 'secretive-sage',
+                            upgrades: ['experience']
+                        }
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.hondoOhnaka);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickCard(context.experience);
+            context.player1.clickCard(context.hondoOhnaka);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.hondoOhnaka).toHaveExactUpgradeNames(['experience']);
+            expect(context.experience.owner).toBe(context.player1.player);
+            expect(context.experience.controller).toBe(context.player1.player);
+        });
     });
 });

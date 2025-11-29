@@ -7,6 +7,7 @@ import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
+import type { Player } from '../core/Player';
 
 export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties {
     amount?: number;
@@ -50,8 +51,8 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
 
     protected abstract getTokenType(): TokenUpgradeName;
 
-    protected generateToken(context: TContext) {
-        return context.game.generateToken(context.player, this.getTokenType());
+    protected generateToken(context: TContext, owner: Player) {
+        return context.game.generateToken(owner, this.getTokenType());
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties>): void {
@@ -63,7 +64,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
         event.generatedTokens = [];
         for (let i = 0; i < properties.amount; i++) {
-            event.generatedTokens.push(this.generateToken(context));
+            event.generatedTokens.push(this.generateToken(context, card.controller));
         }
 
         // add contingent events for attaching the generated upgrade token(s)
