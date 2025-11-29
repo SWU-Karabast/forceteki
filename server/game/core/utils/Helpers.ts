@@ -336,6 +336,7 @@ function convertNullToUndefinedRecursiveInPlaceInternal(obj, visited) {
     }
 
     visited.add(obj);
+    visited.add(obj);
 
     for (const key in obj) {
         if (obj[key] === null) { // explicit null check here (== matches both undefined and null)

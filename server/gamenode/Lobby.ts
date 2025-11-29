@@ -817,7 +817,8 @@ export class Lobby {
                     optionSettings: {
                         autoSingleTarget: false,
                     }
-                }
+                },
+                cosmetics: user.socket.user.getPreferences()?.cosmetics,
             })
         );
 
@@ -1214,7 +1215,7 @@ export class Lobby {
             // Only update stats if the game has a winner and made it into the second round at least
             if (game.winnerNames.length === 0 || !game.finishedAt) {
                 throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${game.winnerNames.length === 0
-                    ? `winnerNames length being ${game.winnerNames.length}` : ''} 
+                    ? `winnerNames length being ${game.winnerNames.length}` : ''}
                     ${!game.finishedAt ? 'game finishedAt missing' : ''} `);
             }
 
