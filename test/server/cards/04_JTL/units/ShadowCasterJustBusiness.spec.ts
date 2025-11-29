@@ -190,9 +190,9 @@ describe('Shadow Caster, Just Business', function() {
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(1);
 
-                expect(context.player1).toHaveExactPromptButtons(['Exhaust this leader to use the When Defeated ability again', 'Use the When Defeated ability again']);
-                context.player1.clickPrompt('Exhaust this leader to use the When Defeated ability again');
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHaveExactPromptButtons(['Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again', 'Use the When Defeated ability again']);
+                context.player1.clickPrompt('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
@@ -225,13 +225,13 @@ describe('Shadow Caster, Just Business', function() {
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(1);
 
-                expect(context.player1).toHaveExactPromptButtons(['Exhaust this leader to use the When Defeated ability again', 'Use the When Defeated ability again']);
+                expect(context.player1).toHaveExactPromptButtons(['Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again', 'Use the When Defeated ability again']);
                 context.player1.clickPrompt('Use the When Defeated ability again');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(3);
 

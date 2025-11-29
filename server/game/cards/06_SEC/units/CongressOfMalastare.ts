@@ -12,13 +12,13 @@ export default class CongressOfMalastare extends NonLeaderUnitCard {
 
     protected override getImplementationId () {
         return {
-            id: 'congress-of-malastare-id',
+            id: '1629192496',
             internalName: 'congress-of-malastare',
         };
     }
 
     protected override setupStateWatchers (registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
+        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
     }
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {

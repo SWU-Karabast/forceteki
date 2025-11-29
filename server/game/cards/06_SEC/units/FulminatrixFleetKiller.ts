@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class FulminatrixFleetKiller extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'fulminatrix#fleet-killer-id',
+            id: '2460309477',
             internalName: 'fulminatrix#fleet-killer',
         };
     }

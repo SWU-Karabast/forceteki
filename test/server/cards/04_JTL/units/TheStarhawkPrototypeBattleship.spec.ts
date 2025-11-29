@@ -89,7 +89,6 @@ describe('The Starhawk, Prototype Battleship', function() {
                 context.player1.exhaustResources(context.player1.readyResourceCount - expectedResourceCost);
                 const exhaustedResourceCountBefore = context.player1.exhaustedResourceCount;
 
-                // jumps directly to the piloting vehicle target prompt because regular Poe cost can't be paid
                 expect(context.player1).toBeAbleToSelect(context.pirateBattleTank);
                 context.player1.clickCard(context.pirateBattleTank);
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
@@ -172,6 +171,24 @@ describe('The Starhawk, Prototype Battleship', function() {
                 context.player2.clickPrompt('Use it anyway');
                 expect(context.player2.exhaustedResourceCount).toBe(2);
             });
+
+            it('should apply for all cards played while the effect is active', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.raddus);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.encouragingLeadership);
+                expect(context.player1.exhaustedResourceCount).toBe(6);
+
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.hardpointHeavyBlaster);
+                context.player1.clickCard(context.theStarhawk);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
         });
 
         describe('Starhawk\'s constant ability', function() {
@@ -225,6 +242,38 @@ describe('The Starhawk, Prototype Battleship', function() {
                 context.player1.clickCard(context.arquitensAssaultCruiser);
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
             });
+
+            it('should calculate its cost reduction after other cost decreases have been applied (exact resources available)', function() {
+                const { context } = contextRef;
+
+                // exhaust resources down to the expected amount to confirm that cost evaluation before play works and the card shows as selectable
+                context.player1.setExactReadyResources(3);
+
+                // attack with Bendu to trigger his ability
+                context.player1.clickCard(context.bendu);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                expect(context.player1).toBeAbleToSelect(context.arquitensAssaultCruiser);
+                context.player1.clickCard(context.arquitensAssaultCruiser);
+                expect(context.player1.readyResourceCount).toBe(0);
+            });
+
+            it('should calculate its cost reduction after other cost decreases have been applied (not enough resources by 1)', function() {
+                const { context } = contextRef;
+
+                // exhaust resources down to the expected amount to confirm that cost evaluation before play works and the card shows as selectable
+                context.player1.setExactReadyResources(2);
+
+                // attack with Bendu to trigger his ability
+                context.player1.clickCard(context.bendu);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                expect(context.player1).not.toBeAbleToSelect(context.arquitensAssaultCruiser);
+            });
         });
 
         it('Starhawk\'s constant ability should work with Smuggle', async function() {
@@ -249,7 +298,7 @@ describe('The Starhawk, Prototype Battleship', function() {
                 phase: 'action',
                 player1: {
                     leader: 'doctor-aphra#rapacious-archaeologist',
-                    spaceArena: ['the-starhawk#prototype-battleship'],
+                    spaceArena: ['the-starhawk#prototype-battleship', 'tie-fighter'],
                     hand: ['infiltrating-demolisher'],
                     resources: 1
                 }
@@ -260,7 +309,7 @@ describe('The Starhawk, Prototype Battleship', function() {
             expect(context.player1).toBeAbleToSelect(context.infiltratingDemolisher);
             context.player1.clickCard(context.infiltratingDemolisher);
             context.player1.clickPrompt('Trigger Exploit');
-            context.player1.clickCard(context.theStarhawk);
+            context.player1.clickCard(context.tieFighter);
             context.player1.clickDone();
 
             expect(context.player1.exhaustedResourceCount).toBe(1);

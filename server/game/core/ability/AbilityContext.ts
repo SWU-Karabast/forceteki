@@ -8,6 +8,7 @@ import type { Player } from '../Player';
 import type { Card } from '../card/Card';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import type { IOngoingEffectProps } from '../../Interfaces';
+import type { ReplacementEffectContext } from './ReplacementEffectContext';
 
 export interface IAbilityContextProperties {
     game: Game;
@@ -81,6 +82,10 @@ export class AbilityContext<TSource extends Card = Card> {
     }
 
     public isTriggered(): this is TriggeredAbilityContext<TSource> {
+        return false;
+    }
+
+    public isReplacement(): this is ReplacementEffectContext<TSource> {
         return false;
     }
 

@@ -10,13 +10,13 @@ export default class TempestAssault extends EventCard {
 
     protected override getImplementationId() {
         return {
-            id: 'tempest-assault-id',
+            id: '2302358538',
             internalName: 'tempest-assault',
         };
     }
 
     protected override setupStateWatchers (registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.damageDealtThisPhaseWatcher = AbilityHelper.stateWatchers.damageDealtThisPhase(registrar, this);
+        this.damageDealtThisPhaseWatcher = AbilityHelper.stateWatchers.damageDealtThisPhase();
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {

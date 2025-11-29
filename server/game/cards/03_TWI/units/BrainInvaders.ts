@@ -13,11 +13,11 @@ export default class BrainInvaders extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each leader loses all abilities (except Epic Actions) and cannot gain abilities',
+            title: 'Each non-upgrade leader loses all abilities (except Epic Actions) and cannot gain abilities',
             targetZoneFilter: WildcardZoneName.Any,
             targetController: WildcardRelativePlayer.Any,
             targetCardTypeFilter: WildcardCardType.Any,
-            matchTarget: (card) => card.isLeader(),
+            matchTarget: (card) => card.isLeader() && !card.isUpgrade(),
             ongoingEffect: AbilityHelper.ongoingEffects.loseAllAbilities()
         });
     }

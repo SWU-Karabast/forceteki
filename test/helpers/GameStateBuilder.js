@@ -6,6 +6,7 @@ const GameFlowWrapper = require('./GameFlowWrapper.js');
 const fs = require('fs');
 const { UnitTestCardDataGetter } = require('../../server/utils/cardData/UnitTestCardDataGetter');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager');
+const { StateWatcherLibrary } = require('../../server/game/stateWatchers/StateWatcherLibrary');
 
 class GameStateBuilder {
     constructor() {
@@ -17,6 +18,7 @@ class GameStateBuilder {
         this.proxiedGameFlowWrapperMethods = [
             'advancePhases',
             'allPlayersInInitiativeOrder',
+            'getAllNonLeaderCardTitles',
             'getPlayableCardTitles',
             'getChatLog',
             'getChatLogs',
@@ -107,7 +109,7 @@ class GameStateBuilder {
         context.game.gameMode = SwuGameFormat.Premier;
 
         if (options.hasOwnProperty('enableConfirmationToUndo')) {
-            context.game.enableConfirmationToUndo = !!options.enableConfirmationToUndo; // Ensures a boolean value
+            context.game.setUndoConfirmationRequired(!!options.enableConfirmationToUndo);
         }
 
         if (options.player1.hasInitiative) {
@@ -210,6 +212,8 @@ class GameStateBuilder {
             context.cardPropertyNames.push(card.propertyName);
         });
 
+        this.registerAllStateWatchers(context.game);
+
         Util.refreshGameState(context.game);
 
         if (options.phase !== 'setup') {
@@ -231,6 +235,21 @@ class GameStateBuilder {
         }
 
         this.attachAbbreviatedContextInfo(context, context);
+    }
+
+    /**
+     * Registers all state watchers from the StateWatcherLibrary to stress test them
+     * @param {Game} game
+     */
+    registerAllStateWatchers(game) {
+        const watcherLibrary = new StateWatcherLibrary(game);
+
+        const prototypeMethods = Object.getOwnPropertyNames(StateWatcherLibrary.prototype)
+            .filter((prop) => typeof StateWatcherLibrary.prototype[prop] === 'function' && prop !== 'constructor');
+
+        for (const methodName of prototypeMethods) {
+            watcherLibrary[methodName]();
+        }
     }
 
     /**

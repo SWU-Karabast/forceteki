@@ -17,6 +17,7 @@ export class GameEvent {
     public condition = (event) => true;
     public order = 0;
     public isContingent = false;
+    public readonly name: string;
 
     public get eventId() {
         return this._eventId;
@@ -25,11 +26,13 @@ export class GameEvent {
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
+    private handler?: (event: GameEvent) => void;
     private replacementEventsGenerator?: () => any[] = null;
     private _preResolutionEffect = null;
     private replacementEvents: any[] = [];
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
     private _window: EventWindow = null;
+    private _replacesEvent?: GameEvent;
 
     /** A unique ID which can be captured in state if necessary. */
     private readonly _eventId: number;
@@ -54,6 +57,10 @@ export class GameEvent {
         return this.resolutionStatus === EventResolutionStatus.REPLACED;
     }
 
+    public get isReplacementEvent() {
+        return this._replacesEvent != null;
+    }
+
     public get isResolved() {
         return this.resolutionStatus === EventResolutionStatus.RESOLVED;
     }
@@ -70,15 +77,19 @@ export class GameEvent {
         return this.replacementEvents.every((event) => event.isResolvedOrReplacementResolved);
     }
 
+    public get replacesEvent(): GameEvent | undefined {
+        return this._replacesEvent;
+    }
+
     public get window(): EventWindow | null {
         return this._window;
     }
 
     public constructor(
-        public name: string,
+        name: string,
         context: AbilityContext,
         params: any,
-        private handler?: (event: GameEvent) => void
+        handler?: (event: GameEvent) => void
     ) {
         if (EnumHelpers.isEnumValue(name, EventName)) {
             this.isMetaEvent = false;
@@ -88,6 +99,8 @@ export class GameEvent {
             Contract.fail(`Unknown event name: ${name}`);
         }
 
+        this.name = name;
+        this.handler = handler;
         this._context = context;
         this._eventId = context.game.getNextGameEventId();
 
@@ -146,6 +159,7 @@ export class GameEvent {
         Contract.assertNotNullLike(this.replacementEvents, 'GameEvent.replacementEvents can not be null');
 
         this.replacementEvents.push(replacementEvent);
+        replacementEvent.setReplacesEvent(this);
         this.resolutionStatus = EventResolutionStatus.REPLACED;
     }
 
@@ -167,13 +181,26 @@ export class GameEvent {
     }
 
     public generateReplacementEvents(): any[] {
-        return this.replacementEventsGenerator ? this.replacementEventsGenerator() : [];
+        const replacementEvents = this.replacementEventsGenerator ? this.replacementEventsGenerator() : [];
+
+        for (const event of replacementEvents) {
+            event.setReplacesEvent(this);
+        }
+
+        return replacementEvents;
     }
 
     public setContingentEventsGenerator(generator: (event) => any[]) {
         Contract.assertIsNullLike(this.contingentEventsGenerator, 'Attempting to set contingentEventsGenerator but it already has a value');
 
         this.contingentEventsGenerator = () => generator(this);
+    }
+
+    /** If this event is a replacement event, sets the original event that it replaces */
+    public setReplacesEvent(replacesEvent: GameEvent) {
+        Contract.assertIsNullLike(this._replacesEvent, () => `Attempting to set replacesEvent but it already has a value: ${this._replacesEvent.name}`);
+
+        this._replacesEvent = replacesEvent;
     }
 
     public generateContingentEvents(): any[] {

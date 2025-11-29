@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { Aspect, DamagePreventionType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType } from './core/Constants';
+import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, Trait } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
@@ -28,9 +28,11 @@ import type { IUpgradeCard } from './core/card/CardInterfaces';
 import type { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
 import type { FormatMessage } from './core/chat/GameChat';
 import type { ISnapshotSettingsBase } from './core/snapshot/SnapshotInterfaces';
-import type { Lobby } from '../gamenode/Lobby';
+import type { Lobby, MatchType } from '../gamenode/Lobby';
 import type { DamageSourceType } from './IDamageOrDefeatSource';
 import type { IInPlayCard } from './core/card/baseClasses/InPlayCard';
+import type { IOngoingAllCardsForPlayerEffectProps, OngoingAllCardsForPlayerEffect } from './core/ongoingEffect/OngoingAllCardsForPlayerEffect';
+import type { SwuGameFormat } from '../SwuGameFormat';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -40,20 +42,25 @@ import type { IInPlayCard } from './core/card/baseClasses/InPlayCard';
 /** Interface definition for addTriggeredAbility */
 export type ITriggeredAbilityProps<TSource extends Card = Card> = ITriggeredAbilityWhenProps<TSource> | ITriggeredAbilityAggregateWhenProps<TSource>;
 export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IReplacementEffectAbilityWhenProps<TSource> | IReplacementEffectAbilityAggregateWhenProps<TSource>;
-export type IDamagePreventionAbilityProps<TSource extends Card = Card> = Omit<IReplacementEffectAbilityBaseProps<TSource>, 'when'> & {
-    preventionType: DamagePreventionType;
+export type IDamageModificationAbilityProps<TSource extends Card = Card> = Omit<IReplacementEffectAbilityBaseProps<TSource>, 'when' | 'onlyIfYouDoEffect'> & {
+    modificationType: DamageModificationType;
     onlyFromPlayer?: RelativePlayer; // TSTODO - update to accept an array
     damageOfType?: DamageSourceType;
-    preventionAmount?: number;
+    amount?: number;
     replaceWithEffect?: GameSystem<TriggeredAbilityContext>;
 
     /**
-     * This can be used to override the default assumption that prevention applies to context.sourcea
+     * This can be used to override the default assumption that modification applies to context.source
      * @param card
      * @param context
      * @returns True if the card meets the defined condition
      */
-    shouldCardHaveDamagePrevention?: (card: Card, context?: TriggeredAbilityContext) => boolean;
+    shouldCardHaveDamageModification?: (card: Card, context?: TriggeredAbilityContext) => boolean;
+
+    /**
+     * This is used for damage modification that requires some other system to resolve before modifying the damage, such as defeating a unit
+     */
+    onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
 };
 
 /** Interface definition for addActionAbility */
@@ -105,6 +112,7 @@ export interface IOngoingCardEffectProps extends IOngoingEffectProps<Card> {
 /** Base interface for triggered and action ability definitions */
 export interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
+    contextTitle?: (context: TContext) => string;
     zoneFilter?: ZoneFilter | ZoneFilter[];
     limit?: any;
     cardName?: string;
@@ -147,6 +155,8 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
     immediateEffect?: GameSystem<TContext>;
     handler?: (context: TContext) => void;
 
+    customConfirmation?: (context: TContext) => string | null;
+
     /**
      * Indicates that an attack should be triggered from a friendly unit.
      * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.
@@ -160,6 +170,7 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
+    contextTitle?: (context: AbilityContext<TSource>) => string;
     sourceZoneFilter?: ZoneFilter | ZoneFilter[];
 
     /** A handler to enable or disable the ability's effects depending on game context */
@@ -192,8 +203,8 @@ export type IReplacementEffectAbilityPropsWithType<TSource extends Card = Card> 
     type: AbilityType.ReplacementEffect;
 };
 
-export type IDamagePreventionEffectAbilityPropsWithType<TSource extends Card = Card> = IDamagePreventionAbilityProps<TSource> & {
-    type: AbilityType.DamagePrevention;
+export type IDamageModificationEffectAbilityPropsWithType<TSource extends Card = Card> = IDamageModificationAbilityProps<TSource> & {
+    type: AbilityType.DamageModification;
 };
 
 export interface IPlayRestrictionAbilityProps {
@@ -207,14 +218,14 @@ export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard
 export type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
 export type IActionAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
 export type IReplacementEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IReplacementEffectAbilityProps<TTarget> & IGainCondition<TSource>;
-export type IDamagePreventionEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IDamagePreventionAbilityProps<TTarget> & IGainCondition<TSource>;
+export type IDamageModificationEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IDamageModificationAbilityProps<TTarget> & IGainCondition<TSource>;
 
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
   IActionAbilityPropsWithType<TSource> |
   IConstantAbilityPropsWithType<TSource> |
   IReplacementEffectAbilityPropsWithType<TSource> |
-  IDamagePreventionEffectAbilityPropsWithType<TSource>;
+  IDamageModificationEffectAbilityPropsWithType<TSource>;
 
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
 export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
@@ -297,6 +308,7 @@ export type IOngoingCardOrPlayerEffectGenerator<TTarget extends Card | Player> =
 export type IOngoingCardEffectGenerator = IOngoingCardOrPlayerEffectGenerator<Card>;
 export type IOngoingPlayerEffectGenerator = IOngoingCardOrPlayerEffectGenerator<Player>;
 export type IOngoingEffectGenerator = IOngoingCardEffectGenerator | IOngoingPlayerEffectGenerator;
+export type IOngoingAllCardsForPlayerEffectGenerator = (game: Game, source: Card, props: IOngoingAllCardsForPlayerEffectProps) => OngoingAllCardsForPlayerEffect;
 
 export type IOngoingEffectFactory<TTarget> = IOngoingEffectProps<TTarget> & {
     ongoingEffect: any; // IOngoingEffectGenerator | IOngoingEffectGenerator[]
@@ -423,6 +435,8 @@ export interface ISerializedReportState {
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;
     viewport?: { width: number; height: number } | null;
+    gameFormat: SwuGameFormat;
+    matchType: MatchType;
 }
 
 export interface ISerializedUndoFailureState {
@@ -439,9 +453,10 @@ export interface IEventRegistration<Handler = () => void> {
 
 // ********************************************** INTERNAL TYPES **********************************************
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
-        'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
+        'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler' | 'then' | 'ifYouDo' | 'ifYouDoNot'
 > {
     replaceWith?: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
+    onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
 }
 
 type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
@@ -549,3 +564,8 @@ export type NumericKeywordName =
   | KeywordName.Raid
   | KeywordName.Restore
   | KeywordName.Exploit;
+
+export interface ICardAttributes {
+    // TODO: Add more attributes as needed
+    traits: Set<Trait>;
+}

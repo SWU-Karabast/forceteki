@@ -5,8 +5,8 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class DirectorKrennicILoseNothingButTime extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'director-krennic#i-lose-nothing-but-me-id',
-            internalName: 'director-krennic#i-lose-nothing-but-me',
+            id: '8625547336',
+            internalName: 'director-krennic#i-lose-nothing-but-time',
         };
     }
 

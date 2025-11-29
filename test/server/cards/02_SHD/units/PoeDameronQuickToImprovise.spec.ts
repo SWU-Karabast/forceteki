@@ -96,10 +96,10 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
 
             expect(context.player1).toHaveEnabledPromptButtons([
                 'Deal 2 damage to a unit or base.',
-                'Defeat an upgrade.',
+                '(No effect) Defeat an upgrade.',
                 'An opponent discards a card from their hand.',
             ]);
-            context.player1.clickPrompt('Defeat an upgrade.');
+            context.player1.clickPrompt('(No effect) Defeat an upgrade.');
             expect(context.player2).toBeActivePlayer();
         });
     });

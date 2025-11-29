@@ -49,7 +49,7 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
                     nested: true
                 }))
             },
-            then: () => this.thenPlayAnotherUpgrade(AbilityHelper)
+            ifYouDo: () => this.thenPlayAnotherUpgrade(AbilityHelper)
         });
     }
 
@@ -68,7 +68,7 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
                     nested: true
                 }))
             },
-            then: () => this.thenPlayAnotherUpgrade(AbilityHelper)
+            ifYouDo: () => this.thenPlayAnotherUpgrade(AbilityHelper)
         };
     }
 }

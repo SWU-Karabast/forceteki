@@ -4,7 +4,6 @@ import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck, Play
 import * as AttackHelper from '../attack/AttackHelpers.js';
 import * as Helpers from '../utils/Helpers.js';
 import * as Contract from '../utils/Contract.js';
-import { TriggerHandlingMode } from '../event/EventWindow.js';
 import type { Card } from '../card/Card.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
 import type { GameEvent } from '../event/GameEvent.js';
@@ -15,6 +14,7 @@ import type Game from '../Game.js';
 import { GameCardMetric } from '../../../gameStatistics/GameStatisticsTracker.js';
 import type { FormatMessage, MsgArg } from '../chat/GameChat.js';
 import * as ChatHelpers from '../chat/ChatHelpers';
+import { TriggerHandlingMode } from '../event/EventWindow.js';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
@@ -219,10 +219,10 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
             return null;
         }
 
-        const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
+        const then = this.getConcreteThenIfYouDoProperties(this.properties.then, context);
         const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
         if (!then.thenCondition || then.thenCondition(context)) {
-            return this.buildSubAbilityStepContext(then, canBeTriggeredBy);
+            return this.buildSubAbilityStepContext(then, canBeTriggeredBy, context);
         }
 
         return null;
@@ -233,8 +233,9 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
             // if there are no resolved events, "if you do not" check automatically succeeds
             if (this.properties.ifYouDoNot) {
                 return this.buildSubAbilityStepContext(
-                    this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context),
-                    context.player
+                    this.getConcreteIfYouDoNotProperties(this.properties.ifYouDoNot, context),
+                    context.player,
+                    context
                 );
             }
 
@@ -246,34 +247,41 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
 
         if (this.properties.ifYouDo) {
-            const concreteIfAbility = this.getConcreteSubAbilityStepProperties(this.properties.ifYouDo, context);
+            const concreteIfAbility = this.getConcreteThenIfYouDoProperties(this.properties.ifYouDo, context);
             const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
 
             if (conditionalEvent.isResolvedOrReplacementResolved && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
-                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy, context);
             }
         }
 
         if (this.properties.ifYouDoNot) {
-            const concreteIfAbility = this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context);
+            const concreteIfAbility = this.getConcreteIfYouDoNotProperties(this.properties.ifYouDoNot, context);
             const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
 
             if (!conditionalEvent.isResolvedOrReplacementResolved) {
-                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+                return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy, context);
             }
         }
 
         return null;
     }
 
-    private getConcreteSubAbilityStepProperties<TContext extends AbilityContext, TAbility extends IAbilityPropsWithSystems<TContext>>(subAbilityStep: ((context?: TContext) => TAbility) | TAbility, context: TContext) {
+    private getConcreteThenIfYouDoProperties<TContext extends AbilityContext, TAbility extends IAbilityPropsWithSystems<TContext>>(subAbilityStep: ((context?: TContext) => TAbility) | TAbility, context: TContext) {
         const properties = typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
 
         // sub-steps will always pass to a parent window
         return { ...properties, triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
     }
 
-    private buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player) {
+    private getConcreteIfYouDoNotProperties<TContext extends AbilityContext, TAbility extends IAbilityPropsWithSystems<TContext>>(subAbilityStep: ((context?: TContext) => TAbility) | TAbility, context: TContext) {
+        const properties = typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
+
+        // "if you do not" requires its own window to check for triggers
+        return { ...properties, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers };
+    }
+
+    protected buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player, parentContex: AbilityContext) {
         return this.buildSubAbilityStep(subAbilityStepProps).createContext(canBeTriggeredBy);
     }
 

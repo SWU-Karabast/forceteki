@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class KnowledgeAndDefense extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'knowledge-and-defense-id',
+            id: '9368244861',
             internalName: 'knowledge-and-defense',
         };
     }

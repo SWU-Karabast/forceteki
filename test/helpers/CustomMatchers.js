@@ -582,18 +582,37 @@ var customMatchers = {
     },
     toHaveConfirmUndoPrompt: function () {
         return {
-            compare: function (player) {
+            compare: function (player, blockButtonEnabled = null) {
                 var result = {};
 
-                const rollbackActionPromptText = 'Your opponent would like to undo their previous action';
+                const rollbackCurrentActionPromptText = 'Your opponent would like to undo their current action';
+                const rollbackPreviousActionPromptText = 'Your opponent would like to undo their previous action';
                 const rollbackManualPromptText = 'Your opponent would like to undo to a previous bookmark';
-                const hasRollbackActionPrompt = player.hasPrompt(rollbackActionPromptText);
-                const hasRollbackManualPrompt = !hasRollbackActionPrompt && player.hasPrompt(rollbackManualPromptText);
-                result.pass = hasRollbackActionPrompt || hasRollbackManualPrompt;
+
+                let promptTextFound;
+                for (const prompt of [rollbackCurrentActionPromptText, rollbackPreviousActionPromptText, rollbackManualPromptText]) {
+                    if (player.hasPrompt(prompt)) {
+                        result.pass = true;
+                        promptTextFound = prompt;
+                        break;
+                    }
+                }
+
+                if (blockButtonEnabled !== null && result.pass) {
+                    const buttons = player.currentPrompt().buttons;
+                    const blockButton = buttons.find(
+                        (button) => button.text === 'Deny and Block Requests'
+                    );
+
+                    if (blockButtonEnabled) {
+                        result.pass = blockButton && !blockButton.disabled;
+                    } else {
+                        result.pass = !blockButton || blockButton.disabled;
+                    }
+                }
 
                 if (result.pass) {
-                    const promptText = hasRollbackActionPrompt ? rollbackActionPromptText : rollbackManualPromptText;
-                    result.message = `Expected ${player.name} not to have confirm undo prompt '${promptText}' but it did.`;
+                    result.message = `Expected ${player.name} not to have confirm undo prompt '${promptTextFound}' but it did.`;
                 } else {
                     result.message = `Expected ${player.name} to have confirm undo prompt but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 }
@@ -1148,6 +1167,46 @@ var customMatchers = {
 
                 if (failures.length > 0) {
                     result.message += `\n\n${failures.join('\n')}`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toBeOver: function () {
+        return {
+            compare: function (game) {
+                var result = {};
+
+                result.pass = game.finishedAt != null && game.winnerNames.length > 0;
+
+                if (result.pass) {
+                    result.message = 'Expected game not to be over but it is';
+                } else {
+                    result.message = 'Expected game to be over but it is not';
+                }
+
+                return result;
+            }
+        };
+    },
+    toBeGameWinner: function () {
+        return {
+            compare: function (player) {
+                var result = {};
+
+                if (player.game.finishedAt == null || player.game.winnerNames.length === 0) {
+                    result.pass = false;
+                    result.message = 'Expected game to be over to check for a winner but it is not';
+                    return result;
+                }
+
+                result.pass = player.game.winnerNames.includes(player.name);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to be a game winner but they are`;
+                } else {
+                    result.message = `Expected ${player.name} to be a game winner but they are not. Winners: ${player.game.winnerNames.join(', ')}`;
                 }
 
                 return result;

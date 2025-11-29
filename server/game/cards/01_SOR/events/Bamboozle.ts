@@ -4,8 +4,9 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { Aspect, PlayType, WildcardCardType } from '../../../core/Constants';
 import { PlayEventAction } from '../../../actions/PlayEventAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
-import { CostAdjuster, CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
+import * as CostAdjusterFactory from '../../../core/cost/CostAdjusterFactory';
 
 export default class Bamboozle extends EventCard {
     protected override getImplementationId() {
@@ -16,11 +17,18 @@ export default class Bamboozle extends EventCard {
     }
 
     protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null) {
+        const playActions = super.buildPlayCardActions(playType, propertyOverrides);
+
+        // TODO: Probably try to find a more generic way to handle this sort of thing
+        if (this.isBlankOutOfPlay()) {
+            return playActions;
+        }
+
         const bamboozleAction = playType === PlayType.Smuggle || playType === PlayType.Piloting
             ? []
             : [this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayBamboozleAction(this, { playType }, this.game.abilityHelper))];
 
-        return super.buildPlayCardActions(playType, propertyOverrides).concat(bamboozleAction);
+        return playActions.concat(bamboozleAction);
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -48,7 +56,7 @@ class PlayBamboozleAction extends PlayEventAction {
 
         return {
             title: 'Play Bamboozle by discarding a Cunning card',
-            costAdjusters: new CostAdjuster(card.game, card, { costAdjustType: CostAdjustType.Free }),
+            costAdjusters: [CostAdjusterFactory.create(card.game, card, { costAdjustType: CostAdjustType.Free })],
             additionalCosts: [discardCost],
             ...properties,
         };

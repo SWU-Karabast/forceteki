@@ -5,8 +5,9 @@ import { GameEvent } from '../event/GameEvent.js';
 import type Game from '../Game.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import type { ITargetResult } from '../ability/abilityTargets/TargetResolver.js';
-import type { ICostResult } from '../cost/ICost.js';
+import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { Player } from '../Player.js';
+import * as Helpers from '../utils/Helpers.js';
 
 export interface IPassAbilityHandler {
     buttonText: string;
@@ -18,7 +19,7 @@ export interface IPassAbilityHandler {
 
 export class AbilityResolver extends BaseStepWithPipeline {
     public context: AbilityContext;
-    public resolutionComplete: boolean;
+    public resolutionCommitted: boolean;
     public canCancel: boolean;
     public cancelled: boolean;
 
@@ -49,7 +50,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
          * Indicates to the calling pipeline that this ability is done resolving.
          * Otherwise, repeat ability resolution (e.g. if the user clicked "cancel" halfway through)
          */
-        this.resolutionComplete = false;
+        this.resolutionCommitted = false;
 
         // if canCancel is not provided, we default to true if there is no previous ability resolver
         // this prevents us from trying to cancel an "inner" ability while the outer one still resolves
@@ -77,17 +78,17 @@ export class AbilityResolver extends BaseStepWithPipeline {
                 : this.context.player.opponent,
             handler: () => {
                 this.cancelled = true;
-                this.resolutionComplete = true;
+                this.resolutionCommitted = true;
             }
         } : null;
     }
 
     private initialise() {
         this.pipeline.initialise([
-            // new SimpleStep(this.game, () => this.createSnapshot()),
             new SimpleStep(this.game, () => this.checkAbility(), 'checkAbility'),
             new SimpleStep(this.game, () => this.resolveEarlyTargets(), 'resolveEarlyTargets'),
             new SimpleStep(this.game, () => this.checkForCancelOrPass(), 'checkForCancelOrPass'),
+            new SimpleStep(this.game, () => this.checkCustomConfirmation(), 'checkCustomConfirmation'),
             new SimpleStep(this.game, () => this.openInitiateAbilityEventWindow(), 'openInitiateAbilityEventWindow'),
             new SimpleStep(this.game, () => this.resetGameAbilityResolver(), 'resetGameAbilityResolver')
         ]);
@@ -102,7 +103,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         if (this.context.ability.meetsRequirements(this.context, this.ignoredRequirements, true) !== '') {
             this.cancelled = true;
-            this.resolutionComplete = true;
+            this.resolutionCommitted = true;
             return;
         }
 
@@ -122,7 +123,10 @@ export class AbilityResolver extends BaseStepWithPipeline {
             return;
         }
 
-        if (!this.context.ability.cannotTargetFirst) {
+        if (
+            !this.context.ability.cannotTargetFirst &&
+            !this.context.ability.hasTargetsChosenByPlayer(this.context, this.context.player.opponent)
+        ) {
             // if the opponent is the one choosing whether to pass or not, we don't include the pass handler in the target resolver
             const passAbilityHandler = this.passAbilityHandler?.playerChoosing === this.context.player ? this.passAbilityHandler : null;
 
@@ -142,6 +146,15 @@ export class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
+    private checkCustomConfirmation() {
+        this.context.ability.promptCustomConfirmation(
+            this.context,
+            () => {
+                this.cancelled = true;
+            }
+        );
+    }
+
     // TODO: figure out our story for snapshots
     // createSnapshot() {
     //     if([CardType.Unit, CardType.Base, CardType.Leader, CardType.Upgrade].includes(this.context.source.getType())) {
@@ -151,7 +164,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
     private openInitiateAbilityEventWindow() {
         if (this.cancelled) {
-            this.checkResolveIfYouDoNot();
+            this.checkResolveThenIfYouDoNot();
             return;
         }
         let eventName = EventName.OnAbilityResolverInitiated;
@@ -174,15 +187,18 @@ export class AbilityResolver extends BaseStepWithPipeline {
     }
 
     // if there is an "if you do not" part of this ability, we need to resolve it if the main ability doesn't resolve
-    private checkResolveIfYouDoNot() {
-        if (!this.cancelled || !this.resolutionComplete) {
+    private checkResolveThenIfYouDoNot() {
+        if (!this.cancelled || !this.resolutionCommitted) {
             return;
         }
 
-        if (this.context.ability.isCardAbilityStep() && this.context.ability.properties?.ifYouDoNot) {
-            const ifYouDoNotAbilityContext = this.context.ability.getSubAbilityStepContext(this.context);
-            if (ifYouDoNotAbilityContext) {
-                this.game.resolveAbility(ifYouDoNotAbilityContext);
+        if (
+            this.context.ability.isCardAbilityStep() &&
+            (this.context.ability.properties?.ifYouDoNot || this.context.ability.properties?.then)
+        ) {
+            const subAbilityStepContext = this.context.ability.getSubAbilityStepContext(this.context);
+            if (subAbilityStepContext) {
+                this.game.resolveAbility(subAbilityStepContext);
             }
         }
     }
@@ -190,7 +206,6 @@ export class AbilityResolver extends BaseStepWithPipeline {
     private queueInitiateAbilitySteps() {
         this.game.queueSimpleStep(() => this.resolveCosts(), 'resolveCosts');
         this.game.queueSimpleStep(() => this.payCosts(), 'payCosts');
-        this.game.queueSimpleStep(() => this.checkCostsWerePaid(), 'checkCostsWerePaid');
         this.game.queueSimpleStep(() => this.resolveTargets(), 'resolveTargets');
         this.game.queueSimpleStep(() => this.checkForCancel(), 'checkForCancel');
         this.game.queueSimpleStep(() => this.executeHandler(), 'executeHandler');
@@ -213,7 +228,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
             this.context.ability.getCosts(this.context).length === 0
         ) {
             this.cancelled = true;
-            this.resolutionComplete = true;
+            this.resolutionCommitted = true;
         }
     }
 
@@ -224,16 +239,139 @@ export class AbilityResolver extends BaseStepWithPipeline {
         }
         this.costResults.canCancel = this.canCancel;
         this.context.stage = Stage.Cost;
-        this.context.ability.resolveCosts(this.context, this.costResults);
+
+        const abilityCosts = this.context.ability.getCosts(this.context);
+        for (const cost of abilityCosts) {
+            if (cost.resolve) {
+                cost.resolve(this.context, this.costResults);
+
+                if (this.costResults.cancelled) {
+                    this.cancelled = true;
+                    return;
+                }
+            }
+        }
+    }
+
+    private payCosts() {
+        if (this.cancelled) {
+            return;
+        }
+
+        const abilityCosts = this.context.ability.getCosts(this.context);
+
+        // prioritize any costs that have a targeting requirement first so that they can be cancellable
+        const { trueAra: metaActionCosts, falseAra: otherCosts } = Helpers.splitArray(abilityCosts, (cost) => cost.isMetaActionCost());
+        const orderedAbilityCosts = metaActionCosts.concat(otherCosts);
+
+        this.context.player.hasResolvedAbilityThisTimepoint = true;
+        for (const cost of orderedAbilityCosts) {
+            this.game.queueSimpleStep(() => this.queueGameStepsForCost(cost), `queue cost '${cost.getName()}'`);
+        }
+
+        this.game.queueSimpleStep(() => {
+            if (!this.cancelled && !this.costResults.cancelled) {
+                this.resolutionCommitted = true;
+            }
+        }, 'mark resolution required');
+    }
+
+    private queueGameStepsForCost(cost: ICost) {
+        if (this.cancelled) {
+            return;
+        }
+
+        const costEvents = [];
+        cost.queueGameStepsForAdjustmentsAndPayment(costEvents, this.context, this.costResults);
+
+        this.game.queueSimpleStep(() => {
+            if (this.costResults.cancelled) {
+                if (this.resolutionCommitted) {
+                    this.game.addMessage('{0} attempted to use {1}, but did not successfully pay the required costs', this.context.player, this.context.source);
+                }
+                this.cancelled = true;
+                return;
+            }
+
+            if (costEvents.length > 0) {
+                this.costResults.canCancel = false;
+                this.resolutionCommitted = true;
+                this.game.openEventWindow(costEvents);
+            }
+        }, `check + pay cost '${cost.getName()}'`);
+    }
+
+    private resolveTargets() {
+        if (this.cancelled) {
+            return;
+        }
+        this.context.stage = Stage.Target;
+
+        const ability = this.context.ability;
+
+        if (ability.hasTargetsChosenByPlayer(this.context, this.context.player.opponent)) {
+            this.context.player.hasResolvedAbilityThisTimepoint = true;
+        }
+
+        if (this.context.ability.hasTargets() && !ability.hasSomeLegalTarget(this.context) && !ability.canResolveWithoutLegalTargets) {
+            // Ability cannot resolve, so display a message and cancel it
+            this.game.addMessage('{0} attempted to use {1}, but there are insufficient legal targets', this.context.player, this.context.source);
+            this.cancelled = true;
+        } else if (this.targetResults.delayTargeting) {
+            // Targeting was delayed due to an opponent needing to choose targets (which shouldn't happen until costs have been paid), so continue
+            this.targetResults = ability.resolveRemainingTargets(this.context, this.targetResults.delayTargeting, null);
+        } else if (this.targetResults.payCostsFirst || !ability.checkAllTargets(this.context)) {
+            // Targeting was stopped by the player choosing to pay costs first, or one of the chosen targets is no longer legal. Retarget from scratch
+            this.targetResults = ability.resolveTargets(this.context, null);
+        }
+    }
+
+    private executeHandler() {
+        if (this.cancelled) {
+            this.checkResolveThenIfYouDoNot();
+            for (const event of this.events) {
+                event.cancel();
+            }
+            return;
+        }
+
+        this.context.player.hasResolvedAbilityThisTimepoint = true;
+
+        // Increment limits (limits aren't used up on cards in hand)
+        if (this.context.ability.limit && this.context.source.zoneName !== ZoneName.Hand &&
+          (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.zoneName === this.context.source.zoneName)) {
+            this.context.ability.limit.increment(this.context.player);
+        }
+
+        this.context.ability.displayMessage(this.context);
+        this.context.stage = Stage.Effect;
+
+        this.context.ability.executeHandler(this.context);
+    }
+
+    private resetGameAbilityResolver() {
+        this.game.currentAbilityResolver = this.currentAbilityResolver;
+    }
+
+    public override continue() {
+        try {
+            return this.pipeline.continue(this.game);
+        } catch (err) {
+            this.game.reportError(err, GameErrorSeverity.SevereGameMessageOnly);
+
+            // if we hit an error resolving an ability, try to close out the ability gracefully and move on
+            // to see if we can preserve a playable game state
+            this.cancelled = true;
+            this.resolutionCommitted = true;
+
+            return true;
+        }
     }
 
     private getCostResults(): ICostResult {
         return {
             cancelled: false,
-            canCancel: this.canCancel,
-            events: [],
-            playCosts: true,
-            triggerCosts: true
+            canCancel: this.canCancel
         };
     }
 
@@ -264,92 +402,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
         if (context.overrideTitle) {
             return context.overrideTitle;
         }
-        return context.ability.title;
-    }
-
-    private payCosts() {
-        if (this.cancelled) {
-            return;
-        } else if (this.costResults.cancelled) {
-            this.cancelled = true;
-            return;
-        }
-
-        this.resolutionComplete = true;
-        if (this.costResults.events.length > 0) {
-            this.game.openEventWindow(this.costResults.events);
-        }
-    }
-
-    private checkCostsWerePaid() {
-        if (this.cancelled) {
-            return;
-        }
-        this.cancelled = this.costResults.events.some((event) => event.isCancelled);
-        if (this.cancelled) {
-            this.game.addMessage('{0} attempted to use {1}, but did not successfully pay the required costs', this.context.player, this.context.source);
-        }
-    }
-
-    private resolveTargets() {
-        if (this.cancelled) {
-            return;
-        }
-        this.context.stage = Stage.Target;
-
-        const ability = this.context.ability;
-
-        if (this.context.ability.hasTargets() && !ability.hasSomeLegalTarget(this.context) && !ability.canResolveWithoutLegalTargets) {
-            // Ability cannot resolve, so display a message and cancel it
-            this.game.addMessage('{0} attempted to use {1}, but there are insufficient legal targets', this.context.player, this.context.source);
-            this.cancelled = true;
-        } else if (this.targetResults.delayTargeting) {
-            // Targeting was delayed due to an opponent needing to choose targets (which shouldn't happen until costs have been paid), so continue
-            this.targetResults = ability.resolveRemainingTargets(this.context, this.targetResults.delayTargeting, null);
-        } else if (this.targetResults.payCostsFirst || !ability.checkAllTargets(this.context)) {
-            // Targeting was stopped by the player choosing to pay costs first, or one of the chosen targets is no longer legal. Retarget from scratch
-            this.targetResults = ability.resolveTargets(this.context, null);
-        }
-    }
-
-    private executeHandler() {
-        if (this.cancelled) {
-            this.checkResolveIfYouDoNot();
-            for (const event of this.events) {
-                event.cancel();
-            }
-            return;
-        }
-
-        // Increment limits (limits aren't used up on cards in hand)
-        if (this.context.ability.limit && this.context.source.zoneName !== ZoneName.Hand &&
-          (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.zoneName === this.context.source.zoneName)) {
-            this.context.ability.limit.increment(this.context.player);
-        }
-
-        this.context.ability.displayMessage(this.context);
-        this.context.stage = Stage.Effect;
-
-        this.context.ability.executeHandler(this.context);
-    }
-
-    private resetGameAbilityResolver() {
-        this.game.currentAbilityResolver = this.currentAbilityResolver;
-    }
-
-    public override continue() {
-        try {
-            return this.pipeline.continue(this.game);
-        } catch (err) {
-            this.game.reportError(err, GameErrorSeverity.SevereGameMessageOnly);
-
-            // if we hit an error resolving an ability, try to close out the ability gracefully and move on
-            // to see if we can preserve a playable game state
-            this.cancelled = true;
-            this.resolutionComplete = true;
-
-            return true;
-        }
+        return context.ability.getTitle(context);
     }
 
     public override toString() {

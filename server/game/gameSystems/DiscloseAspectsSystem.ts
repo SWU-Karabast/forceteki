@@ -16,10 +16,12 @@ import type { Player } from '../core/Player';
 
 export enum DiscloseMode {
     Any = 'any',
+    Some = 'some',
     All = 'all'
 }
 
 export interface IDiscloseAspectsProperties extends IPlayerTargetSystemProperties {
+    activePromptTitle?: string;
     aspects: Aspect[];
     mode?: DiscloseMode;
 }
@@ -41,8 +43,15 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
             }
         }
 
-        this.generateSelectCardSystem(context, additionalProperties, generatedEvents)
-            .queueGenerateEventGameSteps(events, context);
+        for (const target of this.targets(context, additionalProperties)) {
+            if (target.isPlayer()) {
+                // Create new context with the targeted player so the RelativePlayer
+                // is resolved correctly in the SelectCardSystem
+                const newContext = context.copy({ player: target }) as TContext;
+                this.generateSelectCardSystem(newContext, additionalProperties, generatedEvents)
+                    .queueGenerateEventGameSteps(events, newContext);
+            }
+        }
     }
 
     public override defaultTargets(context: TContext): Player[] {
@@ -73,6 +82,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         switch (mode) {
             case DiscloseMode.Any:
                 return new SelectCardSystem<TContext>({
+                    activePromptTitle: properties.activePromptTitle,
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,
                     mode: TargetMode.Single,
@@ -87,15 +97,38 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                     onSelectHandler: (cards) => this.updateEventsWithSelectedCards(events, cards),
                     cancelIfNoTargets: true,
                 });
+            case DiscloseMode.Some:
+                return new SelectCardSystem<TContext>({
+                    activePromptTitle: properties.activePromptTitle,
+                    zoneFilter: ZoneName.Hand,
+                    controller: RelativePlayer.Self,
+                    mode: TargetMode.BetweenVariable,
+                    minNumCardsFunc: (_context) => 1,
+                    maxNumCardsFunc: (_context, selectedCards) => this.numberOfCardsToSelect(properties.aspects, selectedCards),
+                    cardCondition: (card) => properties.aspects.some((aspect) => card.aspects.includes(aspect)),
+                    multiSelectCardCondition: (card, selectedCards, context) =>
+                        this.handCanSatisfyAspects(context.player.hand, properties.aspects, mode) &&
+                        this.cardContainsMissingAspects(card, selectedCards, properties.aspects),
+                    immediateEffect: new RevealSystem<TContext>({
+                        activePromptTitle: `Opponent discloses ${EnumHelpers.aspectString(properties.aspects, Conjunction.AndOr)}`,
+                        promptedPlayer: RelativePlayer.Opponent,
+                        useDisplayPrompt: true,
+                        interactMode: ViewCardInteractMode.ViewOnly
+                    }),
+                    cancelHandler: events ? () => events.forEach((event) => event.cancel()) : null,
+                    onSelectHandler: (cards) => this.updateEventsWithSelectedCards(events, cards),
+                    cancelIfNoTargets: true,
+                });
             case DiscloseMode.All:
                 return new SelectCardSystem<TContext>({
+                    activePromptTitle: properties.activePromptTitle,
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,
                     mode: TargetMode.ExactlyVariable,
                     numCardsFunc: (_context, selectedCards) => this.numberOfCardsToSelect(properties.aspects, selectedCards),
                     cardCondition: (card) => properties.aspects.some((aspect) => card.aspects.includes(aspect)),
                     multiSelectCardCondition: (card, selectedCards, context) =>
-                        this.handCanSatisfyAspects(context.player.hand, properties.aspects) &&
+                        this.handCanSatisfyAspects(context.player.hand, properties.aspects, mode) &&
                         this.cardContainsMissingAspects(card, selectedCards, properties.aspects),
                     immediateEffect: new RevealSystem<TContext>({
                         activePromptTitle: `Opponent discloses ${EnumHelpers.aspectString(properties.aspects)}`,
@@ -118,7 +151,11 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         }
     }
 
-    private handCanSatisfyAspects(hand: Card[], requiredAspects: Aspect[]): boolean {
+    private handCanSatisfyAspects(hand: Card[], requiredAspects: Aspect[], mode: DiscloseMode): boolean {
+        if (mode === DiscloseMode.Some) {
+            return hand.some((card) => requiredAspects.some((aspect) => card.aspects.includes(aspect)));
+        }
+
         return this.aspectsMissing(requiredAspects, hand).length === 0;
     }
 

@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class BoKatanKryzeAlone extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bokatan-kryze#alone-id',
+            id: '2959504320',
             internalName: 'bokatan-kryze#alone',
         };
     }

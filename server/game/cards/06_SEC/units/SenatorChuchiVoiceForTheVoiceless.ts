@@ -6,7 +6,7 @@ import { KeywordName, RelativePlayer, Trait, WildcardCardType } from '../../../c
 export default class SenatorChuchiVoiceForTheVoiceless extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'senator-chuchi#voice-for-the-voiceless-id',
+            id: '2121882819',
             internalName: 'senator-chuchi#voice-for-the-voiceless',
         };
     }

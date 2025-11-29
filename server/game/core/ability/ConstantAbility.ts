@@ -39,6 +39,7 @@ export interface IConstantAbilityState extends IGameObjectBaseState {
 @registerState()
 export class ConstantAbility extends GameObjectBase<IConstantAbilityState> implements IConstantAbility {
     public readonly title: string;
+    public readonly contextTitle?: (context: AbilityContext) => string;
     public readonly abilityIdentifier?: string;
     public readonly printedAbility: boolean;
 
@@ -52,10 +53,10 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
     public readonly targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     public readonly cardName?: string;
     public readonly ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
+    public readonly sourceCard: Card;
 
     @undoArray(false)
     public accessor registeredEffects: OngoingEffect[] = [];
-
 
     public constructor(game: Game, card: Card, properties: IConstantAbilityProps) {
         super(game);
@@ -65,6 +66,7 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
         this.duration = Duration.Persistent;
         this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
         this.printedAbility = properties.printedAbility ?? true;
+        this.sourceCard = card;
 
         // This object is destructured later and these properties will be to override defaults when the OngoingEffect is created. If these fields exist at all, even if undefined, it'll override the defaults when they shouldn't be.
         if (properties.condition) {
@@ -88,5 +90,13 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
         if (properties.ongoingEffect) {
             this.ongoingEffect = properties.ongoingEffect;
         }
+    }
+
+    public getTitle<T extends AbilityContext>(context?: T): string {
+        if (this.contextTitle && context) {
+            return this.contextTitle(context);
+        }
+
+        return this.title;
     }
 }

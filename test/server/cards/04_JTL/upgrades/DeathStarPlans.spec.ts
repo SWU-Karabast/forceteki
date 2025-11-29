@@ -100,10 +100,18 @@ describe('Death Star Plans', function () {
                 context.player1.passAction();
                 context.player2.clickCard(context.warriorDrone);
                 context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.player2).toHavePrompt('Take control of Death Star Plans and attach it to a unit you control');
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.warriorDrone]);
+
                 context.player2.clickCard(context.wampa);
+
                 expect(context.deathStarPlans).toBeAttachedTo(context.wampa);
                 expect(context.deathStarPlans.controller).toBe(context.player2.player);
+                expect(context.getChatLogs(2)).toEqual([
+                    'player2 attacks Battlefield Marine with Warrior Drone',
+                    'player2 uses Death Star Plans to take control of Death Star Plans and attach it to Wampa',
+                ]);
             });
 
             it('should reduce the cost of the first unit played and then again for the other player when Death Star Plans switches control', async function () {

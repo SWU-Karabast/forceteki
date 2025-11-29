@@ -1,8 +1,7 @@
 import type { IGameObjectState } from './GameObject';
 import { GameObject } from './GameObject';
 import type { Deck, IDeckList as IDeckList } from '../../utils/deck/Deck.js';
-import type { CostAdjuster, ICanAdjustProperties } from './cost/CostAdjuster';
-import { CostAdjustType } from './cost/CostAdjuster';
+import type { CostAdjuster } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
 import { PlayerPromptState } from './PlayerPromptState.js';
 import * as Contract from './utils/Contract';
@@ -15,7 +14,6 @@ import {
     PhaseName,
     PlayType,
     RelativePlayer,
-    Stage,
     TokenCardName,
     WildcardCardType,
     WildcardRelativePlayer,
@@ -34,7 +32,6 @@ import { BaseZone } from './zone/BaseZone';
 import type Game from './Game';
 import type { ZoneAbstract } from './zone/ZoneAbstract';
 import type { Card } from './card/Card';
-import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
 import type { IUser } from '../../Settings';
 import type {
     IAllArenasForPlayerCardFilterProperties,
@@ -43,15 +40,16 @@ import type {
 import type { IInPlayCard } from './card/baseClasses/InPlayCard';
 import type { ICardWithExhaustProperty, IPlayableCard } from './card/baseClasses/PlayableOrDeployableCard';
 import type { IPlayerSerializedState, Zone } from '../Interfaces';
-import type { IGetMatchingCostAdjusterProperties, IRunCostAdjustmentProperties } from './cost/CostInterfaces';
 import type { GameObjectRef } from './GameObjectBase';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
 import { logger } from '../../logger';
 import { StandardActionTimer } from './actionTimer/StandardActionTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
-import { PlayerTimeRemainingStatus, type IActionTimer } from './actionTimer/IActionTimer';
+import type { IActionTimer } from './actionTimer/IActionTimer';
+import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
+import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -75,6 +73,24 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     public socket: any;
     public disconnected: boolean;
     public left: boolean;
+
+    private canTakeActionsThisPhase: null;
+    // STATE TODO: Does Deck need to be a GameObject?
+    private decklistNames: Deck | null;
+    public readonly actionTimer: IActionTimer;
+
+    public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
+    public hasResolvedAbilityThisTimepoint = false;
+
+    public optionSettings: Partial<{ autoSingleTarget: boolean }>;
+    private _promptState: PlayerPromptState;
+    public opponent: Player;
+    private playableZones: PlayableZone[];
+    private _lastActionId = 0;
+
+    public activeForPreviousPrompt = false;
+    private _rejectedOpponentUndoRequests = 0;
+    private _undoRequestsBlocked = false;
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get alwaysTrackState(): boolean {
@@ -154,20 +170,13 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return this.id;
     }
 
-    private canTakeActionsThisPhase: null;
-    // STATE TODO: Does Deck need to be a GameObject?
-    private decklistNames: Deck | null;
-    public readonly actionTimer: IActionTimer;
+    public get rejectedOpponentUndoRequests(): number {
+        return this._rejectedOpponentUndoRequests;
+    }
 
-    public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
-
-    public optionSettings: Partial<{ autoSingleTarget: boolean }>;
-    private _promptState: PlayerPromptState;
-    public opponent: Player;
-    private playableZones: PlayableZone[];
-    private _lastActionId = 0;
-
-    public activeForPreviousPrompt = false;
+    public get undoRequestsBlocked(): boolean {
+        return this._undoRequestsBlocked;
+    }
 
     public constructor(id: string, user: IUser, game: Game, useTimer = false) {
         super(game, user.username);
@@ -280,6 +289,14 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
     public get hasTheForce(): boolean {
         return this.baseZone.hasForceToken();
+    }
+
+    public incrementRejectedOpponentUndoRequests() {
+        this._rejectedOpponentUndoRequests++;
+    }
+
+    public setUndoRequestsBlocked(blocked: boolean) {
+        this._undoRequestsBlocked = blocked;
     }
 
     /**
@@ -532,7 +549,6 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     public isCardInPlayableZone(card: Card, playingType: PlayType = null) {
         // Check if card can be legally played by this player out of discard from an ongoing effect
         if (
-            playingType === PlayType.PlayFromOutOfPlay &&
             card.zoneName === ZoneName.Discard &&
             card.hasOngoingEffect(EffectName.CanPlayFromDiscard)
         ) {
@@ -753,7 +769,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      */
     public removeCostAdjuster(adjuster: CostAdjuster) {
         if (this.costAdjusters.includes(adjuster)) {
-            adjuster.unregisterEvents();
+            adjuster.cancel();
             this.state.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster).map((x) => x.getRef());
         }
     }
@@ -795,159 +811,8 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return penaltyAspects;
     }
 
-    /**
-     * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
-     * Accounts for aspect penalties and any modifiers to those specifically
-     * @param cost
-     * @param aspects
-     * @param context
-     * @param properties Additional parameters for determining cost adjustment
-     */
-    public getAdjustedPlayCardCost(cost: number, aspects: Aspect[], context: AbilityContext, properties: IRunCostAdjustmentProperties = null) {
-        Contract.assertNonNegative(cost);
-
-        const card = context.source;
-
-        // if any aspect penalties, check modifiers for them separately
-        let aspectPenaltiesTotal = 0;
-
-        const penaltyAspects = this.getPenaltyAspects(aspects);
-        for (const penaltyAspect of penaltyAspects) {
-            const penaltyAspectParams = { ...properties, penaltyAspect };
-            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(2, context, penaltyAspectParams);
-        }
-
-        const penalizedCost = cost + aspectPenaltiesTotal;
-        return this.runAdjustersForCost(penalizedCost, card, context, properties);
-    }
-
-    /**
-     * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
-     * Accounts for aspect penalties and any modifiers to those specifically
-     * @param cost
-     * @param context
-     * @param properties Additional parameters for determining cost adjustment
-     */
-    public getAdjustedAbilityCost(cost: number, context: AbilityContext, properties: IRunCostAdjustmentProperties = null) {
-        Contract.assertNonNegative(cost);
-
-        const card = context.source;
-
-        return this.runAdjustersForCost(cost, card, context, properties);
-    }
-
-    /**
-     * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
-     * @param baseCost
-     * @param card
-     * @param target
-     * @param properties Additional parameters for determining cost adjustment
-     */
-    public runAdjustersForCost(baseCost: number, card, context, properties: IRunCostAdjustmentProperties) {
-        const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
-        const costIncreases = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
-            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context), 0);
-        const costDecreases = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Decrease)
-            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context), 0);
-
-        baseCost += costIncreases;
-        let reducedCost = baseCost - costDecreases;
-
-        if (matchingAdjusters.some((adjuster) => adjuster.costAdjustType === CostAdjustType.Free)) {
-            reducedCost = 0;
-        }
-
-        // run any cost adjusters that affect the "pay costs" stage last
-        const payStageAdjustment = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.ModifyPayStage)
-            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context, reducedCost), 0);
-
-        reducedCost += payStageAdjustment;
-
-        return Math.max(reducedCost, 0);
-    }
-
-
-    /**
-     * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
-     * @param baseCost
-     * @param properties Additional parameters for determining cost adjustment
-     */
-    public runAdjustersForAspectPenalties(baseCost: number, context, properties: IRunCostAdjustmentProperties) {
-        const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
-
-        const ignoreAllAspectPenalties = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects).length > 0;
-
-        const ignoreSpecificAspectPenalty = matchingAdjusters
-            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreSpecificAspects).length > 0;
-
-        let cost = baseCost;
-        if (ignoreAllAspectPenalties || ignoreSpecificAspectPenalty) {
-            cost -= 2;
-        }
-
-        return Math.max(cost, 0);
-    }
-
-    /**
-     * @param context
-     * @param properties Additional parameters for determining cost adjustment
-     */
-    public getMatchingCostAdjusters(context: AbilityContext, properties: IGetMatchingCostAdjusterProperties = null): CostAdjuster[] {
-        const canAdjustProps: ICanAdjustProperties = { ...properties, isAbilityCost: !context.ability.isPlayCardAbility() };
-
-        const allMatchingAdjusters = this.costAdjusters.concat(properties?.additionalCostAdjusters ?? [])
-            .filter((adjuster) => {
-                // TODO: Make this work with Piloting
-                if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
-                    const upgrade = context.source;
-                    return context.game.getArenaUnits()
-                        .filter((unit) => upgrade.canAttach(unit, context, this))
-                        .some((unit) => adjuster.canAdjust(upgrade, context, { attachTarget: unit, ...canAdjustProps }));
-                }
-
-                return adjuster.canAdjust(context.source, context, { attachTarget: context.target, ...canAdjustProps });
-            });
-
-        if (properties?.ignoreExploit) {
-            return allMatchingAdjusters.filter((adjuster) => !adjuster.isExploit());
-        }
-
-        const { trueAra: exploitAdjusters, falseAra: nonExploitAdjusters } =
-                    Helpers.splitArray(allMatchingAdjusters, (adjuster) => adjuster.isExploit());
-
-        // if there are multiple Exploit adjusters, generate a single merged one to represent the total Exploit value
-        const costAdjusters = nonExploitAdjusters;
-        if (exploitAdjusters.length > 1) {
-            Contract.assertTrue(exploitAdjusters.every((adjuster) => adjuster.isExploit()));
-            Contract.assertTrue(context.source.hasCost());
-            costAdjusters.unshift(new MergedExploitCostAdjuster(exploitAdjusters, context.source, context));
-        } else {
-            costAdjusters.unshift(...exploitAdjusters);
-        }
-
-        return costAdjusters;
-    }
-
-    /**
-     * Mark all cost adjusters which are valid for this card/target/playingType as used, and remove them if they have no uses remaining
-     * @param {PlayType} playingType
-     * @param {Card} card DrawCard
-     * @param {AbilityContext} context
-     * @param {Card=} target BaseCard
-     * @param {Aspect=} aspects
-     */
-    public markUsedAdjusters(playingType: PlayType, card: Card, context: AbilityContext, target: Card | undefined = null, aspects: Aspect | undefined = null) {
-        const matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(card, context, { attachTarget: target, penaltyAspect: aspects }));
-        matchingAdjusters.forEach((adjuster) => {
-            adjuster.markUsed();
-            if (adjuster.isExpired()) {
-                this.removeCostAdjuster(adjuster);
-            }
-        });
+    public getCostAdjusters(): CostAdjuster[] {
+        return [...this.costAdjusters];
     }
 
     /**
@@ -1335,12 +1200,15 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     }
 
     private buildAvailableSnapshotsState(isActionPhaseActivePlayer = false) {
+        if (!this.game.isUndoEnabled) {
+            return null;
+        }
+
         if (
-            !this.game.isUndoEnabled ||
             this.game.gameEndReason === GameEndReason.Concede ||
             this.game.gameEndReason === GameEndReason.PlayerLeft
         ) {
-            return null;
+            return { quickSnapshotAvailable: QuickUndoAvailableState.NoSnapshotAvailable };
         }
 
         let availableActionSnapshots = this.countAvailableActionSnapshots();
@@ -1356,7 +1224,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             actionSnapshots: availableActionSnapshots,
             actionPhaseSnapshots: this.game.countAvailablePhaseSnapshots(PhaseName.Action),
             regroupPhaseSnapshots: this.game.countAvailablePhaseSnapshots(PhaseName.Regroup),
-            hasQuickSnapshot: this.game.hasAvailableQuickSnapshot(this.id),
+            quickSnapshotAvailable: this.game.hasAvailableQuickSnapshot(this.id),
         };
     }
 
@@ -1386,14 +1254,14 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             const groundArenaCards = this.game.groundArena.getCards({ controller: this });
             if (groundArenaCards.length > 0) {
                 state.groundArena = groundArenaCards
-                    .filter((card) => !card.isLeaderUnit())
+                    .filter((card) => !card.isLeaderUnit() && !card.isAttached())
                     .map((card) => Helpers.safeSerialize(this.game, () => card.captureCardState(), card.internalName));
             }
             // Space arena units
             const spaceArenaCards = this.game.spaceArena.getCards({ controller: this });
             if (spaceArenaCards.length > 0) {
                 state.spaceArena = spaceArenaCards
-                    .filter((card) => !card.isLeaderUnit())
+                    .filter((card) => !card.isLeaderUnit() && !card.isAttached())
                     .map((card) => Helpers.safeSerialize(this.game, () => card.captureCardState(), card.internalName));
             }
             // Discard pile

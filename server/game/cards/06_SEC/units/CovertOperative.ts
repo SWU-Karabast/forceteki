@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class CovertOperative extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'covert-operative-id',
+            id: '4054219737',
             internalName: 'covert-operative',
         };
     }

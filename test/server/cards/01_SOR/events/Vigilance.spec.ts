@@ -92,7 +92,7 @@ describe('Vigilance', function() {
 
                 // check board state
                 expect(context.p1Base.damage).toEqual(1);
-                expect(context.getChatLogs(1)).toContain('player1 uses Vigilance to heal 5 damage from their own base');
+                expect(context.getChatLogs(1)).toContain('player1 uses Vigilance to heal 5 damage from their base');
             });
         });
         describe('Vigilance\'s ability', function() {
@@ -119,17 +119,17 @@ describe('Vigilance', function() {
                     expect(context.player1).toHaveEnabledPromptButtons([
                         'Discard 6 cards from an opponent\'s deck.',
                         'Heal 5 damage from a base.',
-                        'Defeat a unit with 3 or less remaining HP.',
-                        'Give a Shield token to a unit.'
+                        '(No effect) Defeat a unit with 3 or less remaining HP.',
+                        '(No effect) Give a Shield token to a unit.'
                     ]);
                     context.player1.clickPrompt('Discard 6 cards from an opponent\'s deck.');
 
                     // check board state
                     expect(context.p2Base.damage).toEqual(0);
                     expect(context.player1).toHaveEnabledPromptButtons([
-                        'Defeat a unit with 3 or less remaining HP.',
+                        '(No effect) Defeat a unit with 3 or less remaining HP.',
                         'Heal 5 damage from a base.',
-                        'Give a Shield token to a unit.'
+                        '(No effect) Give a Shield token to a unit.'
                     ]);
 
                     // heal 0 damage from base
@@ -147,17 +147,17 @@ describe('Vigilance', function() {
                     expect(context.player1).toHaveEnabledPromptButtons([
                         'Discard 6 cards from an opponent\'s deck.',
                         'Heal 5 damage from a base.',
-                        'Defeat a unit with 3 or less remaining HP.',
-                        'Give a Shield token to a unit.'
+                        '(No effect) Defeat a unit with 3 or less remaining HP.',
+                        '(No effect) Give a Shield token to a unit.'
                     ]);
-                    context.player1.clickPrompt('Defeat a unit with 3 or less remaining HP.');
+                    context.player1.clickPrompt('(No effect) Defeat a unit with 3 or less remaining HP.');
                     expect(context.player1).toHaveEnabledPromptButtons([
-                        'Defeat a unit with 3 or less remaining HP.',
+                        '(No effect) Defeat a unit with 3 or less remaining HP.',
                         'Heal 5 damage from a base.',
-                        'Give a Shield token to a unit.'
+                        '(No effect) Give a Shield token to a unit.'
                     ]);
 
-                    context.player1.clickPrompt('Give a Shield token to a unit.');
+                    context.player1.clickPrompt('(No effect) Give a Shield token to a unit.');
                     expect(context.player2).toBeActivePlayer();
                 });
         });

@@ -245,15 +245,23 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
     public unapplyAndRemove(match: (effect: OngoingEffect<any>) => boolean) {
         let anyEffectRemoved = false;
         const remainingEffects: OngoingEffect<any>[] = [];
+        const removedEffects: OngoingEffect<any>[] = [];
+
         for (const effect of this.effects) {
             if (match(effect)) {
                 anyEffectRemoved = true;
-                this.unapplyEffect(effect);
+                removedEffects.push(effect);
             } else {
                 remainingEffects.push(effect);
             }
         }
+
         this.effects = remainingEffects;
+
+        for (const removedEffect of removedEffects) {
+            this.unapplyEffect(removedEffect);
+        }
+
         return anyEffectRemoved;
     }
 

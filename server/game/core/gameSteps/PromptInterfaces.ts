@@ -60,7 +60,7 @@ export type DistributePromptType =
 export type IStatefulPromptResults = IDistributeAmongTargetsPromptResults;
 
 export interface IPromptPropertiesBase {
-    activePromptTitle?: string;
+    activePromptTitle?: ((context: AbilityContext) => string) | string;
     waitingPromptTitle?: string;
     promptTitle?: string;
 }
@@ -102,6 +102,8 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     source: string | OngoingEffectSource;
     isOpponentEffect: boolean;
 
+    activePromptTitle?: ((context: AbilityContext, selectedCards?: Card[]) => string) | string;
+    attackTargetingHighlightAttacker?: Card;
     availableCards?: Card[];
     buttons?: IButton[];
     cardCondition?: (card: Card, context?: AbilityContext) => boolean;
@@ -112,10 +114,10 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     onCancel?: (player: Player) => void;
     onMenuCommand?: (arg: string) => boolean;
     onSelect?: (card: Card | Card[]) => boolean;
+    onSelectionSetChanged?: (selectedCards: Card[], context: AbilityContext) => void;
     selectCardMode: SelectCardMode;
     selectOrder?: boolean;
     selector: BaseCardSelector<AbilityContext>;
-    attackTargetingHighlightAttacker?: Card;
 }
 
 export interface IDisplayCardPromptPropertiesBase extends IPromptPropertiesBase {

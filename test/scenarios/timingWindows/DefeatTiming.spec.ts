@@ -60,7 +60,7 @@ describe('Defeat timing', function() {
 
                 context.player2.clickCard(context.vanguardInfantry);
                 expect(context.player2).toHavePrompt('Choose an ability to resolve:');
-                expect(context.player1).toHavePrompt('Waiting for opponent to use Choose Triggered Ability Resolution Order');
+                expect(context.player1).toHavePrompt('Waiting for opponent');
                 expect(context.vanguardInfantry).toBeInZone('discard');
 
                 context.player2.clickPrompt('Give an Experience token to a unit');
@@ -140,15 +140,21 @@ describe('Defeat timing', function() {
                 expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
                 context.player1.clickPrompt('You');
                 expect(context.player1).toHavePrompt('Choose an ability to resolve:');
-                expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Draw a card', 'When an opponent\'s unit is defeated, heal 1 from base', 'When an opponent\'s unit is defeated, heal 1 from base', 'When an opponent\'s unit is defeated, heal 1 from base']);
-                context.player1.clickPrompt('When an opponent\'s unit is defeated, heal 1 from base');
-                context.player1.clickPrompt('When an opponent\'s unit is defeated, heal 1 from base');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Draw a card',
+                    'Draw a card',
+                    'When an opponent\'s unit is defeated, heal 1 from base: Luke Skywalker',
+                    'When an opponent\'s unit is defeated, heal 1 from base: Superlaser Technician',
+                    'When an opponent\'s unit is defeated, heal 1 from base: Yoda'
+                ]);
+                context.player1.clickPrompt('When an opponent\'s unit is defeated, heal 1 from base: Luke Skywalker');
+                context.player1.clickPrompt('When an opponent\'s unit is defeated, heal 1 from base: Superlaser Technician');
                 context.player1.clickPrompt('Draw a card');
                 // may ability prompts the player whether or not to actually use it before it fully resolves
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
                 context.player1.clickPrompt('Trigger');
-                expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'When an opponent\'s unit is defeated, heal 1 from base']);
-                context.player1.clickPrompt('When an opponent\'s unit is defeated, heal 1 from base');
+                expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'When an opponent\'s unit is defeated, heal 1 from base: Yoda']);
+                context.player1.clickPrompt('When an opponent\'s unit is defeated, heal 1 from base: Yoda');
                 // last trigger is chosen automatically
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
                 context.player1.clickPrompt('Pass');

@@ -3,6 +3,9 @@ import FormData from 'form-data';
 import { httpPostFormData } from '../../Util';
 import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState } from '../Interfaces';
 import { logger } from '../../logger';
+import * as Helpers from './utils/Helpers';
+import type { SwuGameFormat } from '../../SwuGameFormat';
+import type { MatchType } from '../../gamenode/Lobby';
 
 interface IDiscordFormat {
     content: string;
@@ -42,7 +45,9 @@ export interface IDiscordDispatcher {
         lobbyId: string,
         player1Id: string,
         player2Id: string,
-        gameStepsSinceLastUndo?: number
+        gameFormat: SwuGameFormat,
+        matchType: MatchType,
+        gameStepsSinceLastUndo?: number,
     ): Promise<EitherPostResponseOrBoolean>;
 
     /**
@@ -55,7 +60,9 @@ export interface IDiscordDispatcher {
     formatAndSendGameStartErrorAsync(
         description: string,
         error: Error,
-        lobbyId: string
+        lobbyId: string,
+        gameFormat: SwuGameFormat,
+        matchType: MatchType,
     ): Promise<EitherPostResponseOrBoolean>;
 }
 
@@ -140,6 +147,16 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 name: 'Game Steps Since Last Undo',
                 value: bugReport.gameStepsSinceLastUndo,
                 inline: true,
+            },
+            {
+                name: 'Game Format',
+                value: bugReport.gameFormat.toString(),
+                inline: true
+            },
+            {
+                name: 'Match Type',
+                value: bugReport.matchType.toString(),
+                inline: true
             }
         ];
 
@@ -313,6 +330,8 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         lobbyId: string,
         player1Id: string,
         player2Id: string,
+        gameFormat: SwuGameFormat,
+        matchType: MatchType,
         gameStepsSinceLastUndo?: number
     ): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
@@ -351,6 +370,16 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 value: gameStepsSinceLastUndo != null ? gameStepsSinceLastUndo.toString() : 'N/A',
                 inline: true,
             },
+            {
+                name: 'Game Format',
+                value: gameFormat.toString(),
+                inline: false
+            },
+            {
+                name: 'Match Type',
+                value: matchType.toString(),
+                inline: true
+            }
         ];
 
         const data: IDiscordFormat = {
@@ -387,7 +416,9 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     public formatAndSendGameStartErrorAsync(
         description: string,
         error: Error,
-        lobbyId: string
+        lobbyId: string,
+        gameFormat: SwuGameFormat,
+        matchType: MatchType,
     ): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
@@ -413,6 +444,16 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 value: error.message,
                 inline: false,
             },
+            {
+                name: 'Game Format',
+                value: gameFormat.toString(),
+                inline: false
+            },
+            {
+                name: 'Match Type',
+                value: matchType.toString(),
+                inline: true
+            }
         ];
 
         const data: IDiscordFormat = {
@@ -451,14 +492,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
      */
     private static formatMessagesToText(messages: ISerializedMessage[], reporter: string, opponent: string): string {
         return messages.map((messageEntry) => {
-            const message = messageEntry.message;
+            let message = messageEntry.message;
 
             // Handle alert messages
             if (typeof message === 'object' && 'alert' in message) {
-                const alertMessage = Array.isArray(message.alert.message)
-                    ? message.alert.message.join(' ')
-                    : message.alert.message;
-                return `[ALERT - ${message.alert.type}] ${alertMessage}`;
+                message = [`[ALERT - ${message.alert.type}] `, ...Helpers.asArray(message.alert.message)];
             }
 
             // Handle regular messages (arrays)

@@ -6,7 +6,7 @@ import { TargetMode } from '../../../core/Constants';
 export default class PursueTheLead extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'pursue-the-lead-id',
+            id: '2634645435',
             internalName: 'pursue-the-lead',
         };
     }

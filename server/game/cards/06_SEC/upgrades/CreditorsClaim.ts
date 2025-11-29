@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class CreditorsClaim extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'creditors-claim-id',
+            id: '1036406563',
             internalName: 'creditors-claim',
         };
     }

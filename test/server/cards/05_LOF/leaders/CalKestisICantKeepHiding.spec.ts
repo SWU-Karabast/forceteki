@@ -42,6 +42,7 @@ describe('Cal Kestis, I Can\'t Keep Hiding', function () {
                     player1: {
                         leader: 'cal-kestis#i-cant-keep-hiding',
                         hasForceToken: true,
+                        resources: 3
                     },
                     player2: {
                         groundArena: [{ card: 'wampa', exhausted: true }],
@@ -55,8 +56,6 @@ describe('Cal Kestis, I Can\'t Keep Hiding', function () {
 
                 // Use Cal Kestis's ability
                 context.player1.clickCard(context.calKestis);
-                context.player1.clickPrompt('An opponent chooses a ready unit they control. Exhaust that unit');
-                context.player1.clickPrompt('Use it anyway');
 
                 // Verify Cal Kestis is exhausted and The Force is used
                 expect(context.calKestis.exhausted).toBeTrue();

@@ -45,9 +45,9 @@ describe('Shatterpoint', function() {
                 context.player1.clickCard(context.shatterpoint);
                 expect(context.player1).toHaveExactPromptButtons([
                     'Defeat a non-leader unit with 3 or less remaining HP',
-                    'Use the Force. If you do, defeat a non-leader unit',
+                    '(No effect) Use the Force. If you do, defeat a non-leader unit',
                 ]);
-                context.player1.clickPrompt('Use the Force. If you do, defeat a non-leader unit');
+                context.player1.clickPrompt('(No effect) Use the Force. If you do, defeat a non-leader unit');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atst).toBeInZone('groundArena', context.player2);

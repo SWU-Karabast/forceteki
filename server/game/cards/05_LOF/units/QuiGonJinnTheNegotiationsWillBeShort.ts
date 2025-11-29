@@ -1,6 +1,6 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { NamedAction, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class QuiGonJinnTheNegotiationsWillBeShort extends NonLeaderUnitCard {
@@ -24,10 +24,12 @@ export default class QuiGonJinnTheNegotiationsWillBeShort extends NonLeaderUnitC
                     mode: TargetMode.Select,
                     dependsOn: 'unit',
                     choosingPlayer: (context) => (context.targets.unit.owner === context.player ? RelativePlayer.Self : RelativePlayer.Opponent),
+                    activePromptTitle: (context) => `Move ${context.targets.unit.title} to [Top] or [Bottom] of your deck`,
                     choices: (context) => ({
-                        [`Move ${context.targets.unit.title} to top of your deck`]: AbilityHelper.immediateEffects.moveToTopOfDeck({ target: context.targets.unit }),
-                        [`Move ${context.targets.unit.title} to bottom of your deck`]: AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.targets.unit }),
-                    })
+                        [NamedAction.Top]: AbilityHelper.immediateEffects.moveToTopOfDeck({ target: context.targets.unit }),
+                        [NamedAction.Bottom]: AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.targets.unit }),
+                    }),
+                    highlightCards: (context) => context.targets.unit,
                 }
             }
         });

@@ -8,7 +8,7 @@ import { WildcardCardType, WildcardRelativePlayer } from '../../../core/Constant
 export default class SatineKryzeStandingOnPrinciples extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'satine-kryze#standing-on-principles-id',
+            id: '2070613552',
             internalName: 'satine-kryze#standing-on-principles'
         };
     }

@@ -20,6 +20,7 @@ import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
+import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
@@ -35,6 +36,8 @@ import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { requireEnvVars } from '../env';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import { RuntimeProfiler } from '../utils/profiler';
+
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -74,6 +77,8 @@ interface GCPerformanceEntry {
 }
 
 export class GameServer {
+    private static readonly DOCKER_CARD_DATA_PATH = '/app/data';
+
     public static async createAsync(): Promise<GameServer> {
         let cardDataGetter: CardDataGetter;
         let testGameBuilder: any = null;
@@ -87,7 +92,20 @@ export class GameServer {
                 ? await GameServer.buildRemoteCardDataGetter()
                 : testGameBuilder.cardDataGetter;
         } else {
-            cardDataGetter = await GameServer.buildRemoteCardDataGetter();
+            try {
+                cardDataGetter = await LocalFolderCardDataGetter.createAsync(
+                    GameServer.DOCKER_CARD_DATA_PATH,
+                    false  // isDevelopment - skip validation warnings in production
+                );
+            } catch (error) {
+                logger.error(`SETUP: Failed to load card data from Docker image at ${GameServer.DOCKER_CARD_DATA_PATH}. This indicates a build problem - card data may not have been copied into the image correctly.`, {
+                    error: {
+                        message: error.message,
+                        stack: error.stack
+                    }
+                });
+                throw error; // Re-throw to crash the server - can't run without card data
+            }
         }
 
         // downloads all card data to build deck validator
@@ -210,7 +228,7 @@ export class GameServer {
 
         // check if NEXTAUTH variable is set
         requireEnvVars(
-            ['INTRASERVICE_SECRET'],
+            ['INTRASERVICE_SECRET', 'PROFILE_CAPTURE_SECRET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
             'GameServer',
             ['NEXTAUTH_SECRET']
         );
@@ -390,13 +408,31 @@ export class GameServer {
                     id: user.getId(),
                     username: user.getUsername(),
                     showWelcomeMessage: user.getShowWelcomeMessage(),
+                    undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     preferences: user.getPreferences(),
                     needsUsernameChange: user.needsUsernameChange(),
-                    swuStatsRefreshToken: user.getSwuStatsRefreshToken(),
                     moderation: user.getModeration(),
                 } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/user/:userId/swustatsLink', authMiddleware('swustatsLink'), async (req, res, next) => {
+            const user = req.user as User;
+            try {
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (swustatsLink): Anonymous user ${user.getId()} is attempting to retrieve swustatsLink`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve swustatsLink'
+                    });
+                }
+                const linked = await this.swuStatsHandler.getAccessTokenAsync(user.getId(), this);
+                res.status(200).json({ linked: !!linked });
+            } catch (err) {
+                logger.error('GameServer (swustatsLink) Server Error: ', err);
                 next(err);
             }
         });
@@ -422,6 +458,27 @@ export class GameServer {
             }
         });
 
+        app.put('/api/user/:userId/undo-popup-seen', authMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                // Check if user is authenticated (not an anonymous user)
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (undo-popup-seen): Anonymous user ${user.getId()} is attempting to retrieve undo-popup-seen info`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve undo-popup-seen info'
+                    });
+                }
+                const result = await this.userFactory.setUndoPopupSeenStatus(user.getId());
+                return res.status(200).json({
+                    success: result,
+                });
+            } catch (err) {
+                logger.error('GameServer (undo-popup-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
         app.post('/api/get-change-username-info', authMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
@@ -435,7 +492,7 @@ export class GameServer {
                 }
                 const result = await this.userFactory.canChangeUsernameAsync(user.getId());
                 return res.status(200).json({
-                    succeess: true,
+                    success: true,
                     result: result,
                 });
             } catch (err) {
@@ -595,6 +652,99 @@ export class GameServer {
         });
         // *** End of User Object calls ***
 
+        // PROFILING
+        app.post('/api/run-profile', async (req, res, next) => {
+            try {
+                // Validate Authorization header
+                if (env.PROFILE_CAPTURE_SECRET) {
+                    const authHeader = req.headers.authorization;
+
+                    if (!authHeader || !authHeader.startsWith('api-key ')) {
+                        logger.warn('[GameServer] Profile capture attempt without valid Authorization header');
+                        return res.status(401).json({
+                            success: false,
+                            message: 'Unauthorized - Missing or invalid Authorization header'
+                        });
+                    }
+
+                    const apiKey = authHeader.substring(8); // Remove 'api-key ' prefix
+                    if (apiKey !== env.PROFILE_CAPTURE_SECRET) {
+                        logger.warn('[GameServer] Unauthorized profile capture attempt with invalid API key');
+                        return res.status(403).json({
+                            success: false,
+                            message: 'Forbidden'
+                        });
+                    }
+                } else {
+                    logger.warn('[GameServer] Profile capture attempt with missing PROFILE_CAPTURE_SECRET set on server!');
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Unauthorized - Missing PROFILE_CAPTURE_SECRET'
+                    });
+                }
+
+                const { type, durationSeconds, forceStop } = req.body;
+
+                // Handle force stop request
+                const shouldForceStop = forceStop === true || forceStop === 'true' || forceStop === 1;
+                if (shouldForceStop) {
+                    const result = await this.stopAllActiveProfiles();
+                    if (result.stopped) {
+                        return res.json({
+                            success: true,
+                            message: 'All active profiling force stopped and uploaded'
+                        });
+                    }
+
+                    return res.status(400).json({
+                        success: false,
+                        message: `No active ${type.toUpperCase()} profiling session to stop`
+                    });
+                }
+
+                // Validate type parameter
+                if (!type || (type !== 'cpu' && type !== 'heap')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid type parameter. Must be "cpu" or "heap"'
+                    });
+                }
+
+                // Parse and validate duration parameter between 1 second and 10 minutes
+                if (!durationSeconds) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'durationSeconds parameter is required'
+                    });
+                }
+
+                const profileDurationSeconds = parseInt(durationSeconds as string);
+                if (profileDurationSeconds <= 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid durationSeconds parameter. Must be greater than 0 seconds'
+                    });
+                }
+
+                // Start the appropriate profiling type using existing methods
+                if (type === 'cpu') {
+                    await this.startCpuProfilingDump(profileDurationSeconds);
+                } else {
+                    await this.startAllocProfilingDump(profileDurationSeconds);
+                }
+
+                return res.json({
+                    success: true,
+                    type,
+                    duration: profileDurationSeconds,
+                    message: `${type.toUpperCase()} profiling started. Will automatically stop and upload in ${profileDurationSeconds} seconds.`
+                });
+            } catch (err) {
+                logger.error('GameServer (run-profile) Server error:', err);
+                next(err);
+            }
+        });
+
         // user DECKS
         app.post('/api/get-decks', authMiddleware('get-decks'), async (req, res, next) => {
             try {
@@ -616,6 +766,34 @@ export class GameServer {
                 }
             } catch (err) {
                 logger.error('GameServer (get-decks) Server error: ', err);
+                next(err);
+            }
+        });
+
+        app.put('/api/get-deck/:deckId/rename', authMiddleware('rename-deck'), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                const { deckId } = req.params;
+                const { newName } = req.body;
+
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (rename-deck): Authentication error for anonymous user ${user.getId()}`);
+                    return res.status(403).json({
+                        message: 'Server error'
+                    });
+                }
+                try {
+                    const renameResponse = await this.deckService.updateDeckNameAsync(user.getId(), deckId, newName);
+                    if (renameResponse) {
+                        return res.status(200).json({});
+                    }
+                    return res.status(500).json({ message: 'Server error when renameing deck' });
+                } catch (err) {
+                    logger.error(`GameServer (rename-deck): Error in getting a users ${user.getId()} decks: `, err);
+                    next(err);
+                }
+            } catch (err) {
+                logger.error('GameServer (rename-deck) Server error: ', err);
                 next(err);
             }
         });
@@ -774,14 +952,13 @@ export class GameServer {
 
         app.post('/api/create-lobby', authMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, lobbyName, enableUndo } = req.body;
+                const { deck, format, isPrivate, lobbyName, allow30CardsInMainBoard } = req.body;
                 const user = req.user;
 
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     // TODO shouldn't return 403
                     logger.error(`GameServer (create-lobby): Error in create-lobby User ${user.getId()} attempted to create a different lobby while already being in a lobby`);
-                    logger.info(`enableUndo value: '${enableUndo}'`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'
@@ -793,8 +970,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, isPrivate, enableUndo);
+                await this.processDeckValidation(deck, format, allow30CardsInMainBoard, res, () => {
+                    this.createLobby(lobbyName, user, deck, format, isPrivate, allow30CardsInMainBoard);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -896,7 +1073,7 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, res, () => {
+                await this.processDeckValidation(deck, format, false, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
@@ -984,10 +1161,11 @@ export class GameServer {
     private async processDeckValidation(
         deck: ISwuDbDecklist,
         format: SwuGameFormat,
+        allow30CardsInMainBoard: boolean,
         res: express.Response,
         onValid: () => Promise<void> | void
     ): Promise<void> {
-        const validationResults = this.deckValidator.validateSwuDbDeck(deck, format);
+        const validationResults = this.deckValidator.validateSwuDbDeck(deck, format, allow30CardsInMainBoard);
         if (Object.keys(validationResults).length > 0) {
             res.status(400).json({
                 success: false,
@@ -1075,7 +1253,7 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean, enableUndo = false) {
+    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean, allow30CardsInMainBoard: boolean = false) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -1088,12 +1266,12 @@ export class GameServer {
             lobbyName,
             isPrivate ? MatchType.Private : MatchType.Custom,
             format,
+            allow30CardsInMainBoard,
             this.cardDataGetter,
             this.deckValidator,
             this,
             this.discordDispatcher,
-            this.testGameBuilder,
-            enableUndo
+            this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
         lobby.createLobbyUser(user, deck);
@@ -1106,12 +1284,12 @@ export class GameServer {
             'Test Game',
             MatchType.Custom,
             SwuGameFormat.Open,
+            false,
             this.cardDataGetter,
             this.deckValidator,
             this,
             this.discordDispatcher,
-            this.testGameBuilder,
-            true
+            this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
         const order66 = this.userFactory.createAnonymousUser('exe66', 'Order66');
@@ -1388,6 +1566,7 @@ export class GameServer {
             'Quick Game',
             MatchType.Quick,
             format,
+            false,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -1732,6 +1911,79 @@ export class GameServer {
         } catch (error) {
             logger.error(`Error logging GC stats: ${error}`);
         }
+    }
+
+    private async startCpuProfilingDump(durationSeconds: number): Promise<void> {
+        try {
+            const profiler = RuntimeProfiler.getInstance();
+            logger.info(`[GameServer] Starting CPU profiling test for ${durationSeconds} seconds...`);
+
+            const started = await profiler.startCPU();
+            if (!started) {
+                logger.warn('[GameServer] CPU profiling is already active, cannot start new session');
+                return;
+            }
+
+            // Stop profiling after specified duration
+            setTimeout(async () => {
+                await this.stopAndUploadProfile('cpu', 'gameserver-cpu', 'CPU profiling test completed');
+            }, durationSeconds * 1000);
+        } catch (error) {
+            logger.error(`[GameServer] Error starting CPU profiling test: ${error}`);
+        }
+    }
+
+    private async startAllocProfilingDump(durationSeconds: number): Promise<void> {
+        try {
+            const profiler = RuntimeProfiler.getInstance();
+            logger.info(`[GameServer] Starting allocation profiling test for ${durationSeconds} seconds...`);
+
+            const started = await profiler.startAllocSampling(1024 * 64); // 64KB sampling interval
+            if (!started) {
+                logger.warn('[GameServer] Heap profiling is already active, cannot start new session');
+                return;
+            }
+
+            // Stop profiling after specified duration
+            setTimeout(async () => {
+                await this.stopAndUploadProfile('heap', 'gameserver-heap', 'Allocation profiling test completed');
+            }, durationSeconds * 1000);
+        } catch (error) {
+            logger.error(`[GameServer] Error starting allocation profiling test: ${error}`);
+        }
+    }
+
+    private async stopAndUploadProfile(type: 'cpu' | 'heap', label: string, completionMessage: string): Promise<{ stopped: boolean }> {
+        const profiler = RuntimeProfiler.getInstance();
+        let stopped = false;
+
+        try {
+            const result = type === 'cpu'
+                ? await profiler.stopCPUAsBuffer(label)
+                : await profiler.stopAllocSamplingAsBuffer(label);
+
+            if (result) {
+                logger.info(`[GameServer] ${completionMessage}. Uploading ${result.filename} to S3...`);
+                const isDevMode = env.environment === 'development';
+                await profiler.uploadProfileToS3(result.buffer, result.filename, isDevMode);
+                logger.info(`[GameServer] ${type.toUpperCase()} profile uploaded successfully: ${result.filename}`);
+                stopped = true;
+            } else {
+                logger.warn(`[GameServer] ${completionMessage} but no profile data was generated`);
+            }
+        } catch (error) {
+            logger.error(`[GameServer] Error stopping ${type.toUpperCase()} profiling: ${error}`);
+        }
+
+        return { stopped };
+    }
+
+    private async stopAllActiveProfiles(): Promise<{ stopped: boolean }> {
+        const cpuResult = await this.stopAndUploadProfile('cpu', 'gameserver-cpu-forced', 'Force stopped CPU profiling');
+        const heapResult = await this.stopAndUploadProfile('heap', 'gameserver-heap-forced', 'Force stopped heap profiling');
+
+        // Return true if at least one profiling session was stopped
+        return { stopped: cpuResult.stopped || heapResult.stopped };
     }
 }
 

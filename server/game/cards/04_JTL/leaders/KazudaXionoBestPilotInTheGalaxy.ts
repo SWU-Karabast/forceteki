@@ -14,10 +14,11 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addPilotDeploy();
         registrar.addActionAbility({
-            title: 'Select a friendly unit',
+            title: 'Remove all abilities from a friendly unit, then take another action',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
+                    activePromptTitle: 'Choose a friendly unit to lose all abilities for this round',
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     immediateEffect: AbilityHelper.immediateEffects.forThisRoundCardEffect({

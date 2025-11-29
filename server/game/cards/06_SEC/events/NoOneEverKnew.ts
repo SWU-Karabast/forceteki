@@ -6,7 +6,7 @@ import { RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../co
 export default class NoOneEverKnew extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'no-one-ever-knew-id',
+            id: '5278047091',
             internalName: 'no-one-ever-knew',
         };
     }

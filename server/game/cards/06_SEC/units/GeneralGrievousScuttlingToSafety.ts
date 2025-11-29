@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class GeneralGrievousScuttlingToSafety extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'general-grievous#scuttling-to-safety-id',
+            id: '1759702973',
             internalName: 'general-grievous#scuttling-to-safety'
         };
     }

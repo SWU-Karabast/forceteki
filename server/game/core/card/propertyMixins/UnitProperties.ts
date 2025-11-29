@@ -300,8 +300,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
             }
 
-            this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase(this.owner.game.stateWatcherRegistrar, this);
-            this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase(this.owner.game.stateWatcherRegistrar, this);
+            this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
+            this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
 
             this.defaultAttackAction = new InitiateAttackAction(this.game, this);
         }
@@ -551,7 +551,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
-            if (this.isBlank()) {
+            if (this.isFullyBlanked() || this.hasOngoingEffect(EffectName.BlankExceptKeyword)) {
                 return [];
             }
 
@@ -560,6 +560,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
+
+            if (this.hasOngoingEffect(EffectName.BlankExceptFromSourceCard)) {
+                // Only return triggered abilities gained from the source of the blanking effect
+                return triggeredAbilities.filter((ability) => this.canGainAbilityFromSource(ability.gainAbilitySource)) as TriggeredAbility[];
+            }
 
             // add any temporarily registered attack abilities from keywords
             if (this._attackKeywordAbilities != null) {
@@ -705,7 +710,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             Contract.assertIsNullLike(
                 this._whenPlayedKeywordAbilities,
-                `Failed to unregister when played abilities from previous play: ${this._whenPlayedKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+                `Failed to unregister when played abilities from previous play: ${this._whenPlayedKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
             );
 
             this._whenPlayedKeywordAbilities = [];
@@ -745,7 +750,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             Contract.assertIsNullLike(
                 this._attackKeywordAbilities,
-                () => `Failed to unregister on attack abilities from previous attack: ${this._attackKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+                () => `Failed to unregister on attack abilities from previous attack: ${this._attackKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
             );
 
             this._attackKeywordAbilities = [];
@@ -780,7 +785,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             Contract.assertIsNullLike(
                 this._whenDefeatedKeywordAbilities,
-                `Failed to unregister when defeated abilities from previous defeat: ${this._whenDefeatedKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+                `Failed to unregister when defeated abilities from previous defeat: ${this._whenDefeatedKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
             );
 
             this._whenDefeatedKeywordAbilities = this.registerBountyKeywords(bountyKeywords);
@@ -800,7 +805,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             Contract.assertIsNullLike(
                 this._whenCapturedKeywordAbilities,
-                () => `Failed to unregister when captured abilities from previous capture: ${this._whenCapturedKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+                () => `Failed to unregister when captured abilities from previous capture: ${this._whenCapturedKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
             );
 
             this._whenCapturedKeywordAbilities = this.registerBountyKeywords(bountyKeywords);

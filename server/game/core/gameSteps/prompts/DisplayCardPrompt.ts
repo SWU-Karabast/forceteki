@@ -10,6 +10,7 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
     protected readonly properties: TProperties;
 
     private readonly choosingPlayer: Player;
+    private readonly menuTitle?: string;
     private readonly promptTitle: string;
     private readonly source: OngoingEffectSource;
 
@@ -32,6 +33,12 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
         this.properties = Object.assign(this.defaultProperties(), properties);
 
         this.promptTitle = properties.promptTitle || this.source.name;
+
+        if (properties.activePromptTitle && typeof properties.activePromptTitle === 'function') {
+            throw new Error('DisplayCardPrompt support for an activePromptTitle function is not implemented');
+        }
+
+        this.menuTitle = properties.activePromptTitle as string | null;
     }
 
     protected abstract activePromptDisplayCardInternal(): Partial<IPlayerPromptStateProperties>;
@@ -60,7 +67,7 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
         );
 
         return {
-            menuTitle: this.properties.activePromptTitle,
+            menuTitle: this.menuTitle,
             promptTitle: this.promptTitle,
             promptUuid: this.uuid,
             displayCards,

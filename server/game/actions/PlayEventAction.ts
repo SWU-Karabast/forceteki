@@ -6,6 +6,8 @@ import { AbilityResolver } from '../core/gameSteps/AbilityResolver.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { IEventCard } from '../core/card/EventCard.js';
 import type { ITargetResult } from '../core/ability/abilityTargets/TargetResolver.js';
+import type { EventAbility } from '../core/ability/EventAbility';
+import type { Player } from '../core/Player';
 
 export class PlayEventAction extends PlayCardAction {
     private earlyTargetResults?: ITargetResult;
@@ -13,10 +15,12 @@ export class PlayEventAction extends PlayCardAction {
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isEvent());
 
+        this.checkAndRearrangeResources(context);
+
         this.moveEventToDiscard(context);
 
         const eventAbility = context.source.getEventAbility();
-        const abilityContext = eventAbility.createContext();
+        const abilityContext = this.generateEventAbilityContext(eventAbility, context.player);
         abilityContext.playType = context.playType;
         if (this.earlyTargetResults) {
             this.copyContextTargets(context, abilityContext);
@@ -27,7 +31,7 @@ export class PlayEventAction extends PlayCardAction {
         context.game.queueStep(abilityResolver);
         context.game.queueSimpleStep(() => {
             // If the ability was cancelled it won't appears in the chat log so we need to log the message here
-            if (abilityResolver.cancelled && abilityResolver.resolutionComplete) {
+            if (abilityResolver.cancelled && abilityResolver.resolutionCommitted) {
                 this.game.addMessage('{0} plays {1}', context.player, context.source);
             }
         }, 'log play event action for cancelled resolutions');
@@ -47,6 +51,28 @@ export class PlayEventAction extends PlayCardAction {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
+    public override promptCustomConfirmation(context: PlayCardContext, cancelHandler: () => void) {
+        Contract.assertTrue(context.source.isEvent());
+
+        const eventAbility = context.source.getEventAbility();
+
+        if (eventAbility.customConfirmation) {
+            const confirmationMessage = eventAbility.customConfirmation(context);
+            if (!confirmationMessage) {
+                return;
+            }
+
+            this.game.promptWithHandlerMenu(context.player, {
+                activePromptTitle: confirmationMessage,
+                choices: ['Continue', 'Cancel'],
+                handlers: [
+                    () => undefined,
+                    () => cancelHandler()
+                ]
+            });
+        }
+    }
+
     /** Override that allows doing the card selection / prompting for an event card _before_ it is moved to discard for play so we can present a cancel option */
     public override resolveEarlyTargets(context: PlayCardContext, passHandler = null, canCancel = false) {
         Contract.assertTrue(context.source.isEvent());
@@ -64,7 +90,7 @@ export class PlayEventAction extends PlayCardAction {
             return this.getDefaultTargetResults(context);
         }
 
-        const eventAbilityContext = eventAbility.createContext();
+        const eventAbilityContext = this.generateEventAbilityContext(eventAbility, context.player);
         eventAbilityContext.playType = context.playType;
 
         this.copyContextTargets(context, eventAbilityContext);
@@ -125,5 +151,9 @@ export class PlayEventAction extends PlayCardAction {
         }
 
         context.game.openEventWindow(events);
+    }
+
+    private generateEventAbilityContext(eventAbility: EventAbility, player: Player) {
+        return eventAbility.createContext(player);
     }
 }
