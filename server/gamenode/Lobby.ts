@@ -1310,7 +1310,7 @@ export class Lobby {
 
     private sendGameStateToSpectator(socket: Socket, spectatorId: string): void {
         if (this.game) {
-            socket.send('gamestate', this.game.getState(spectatorId));
+            socket.send('gamestate', this.game.getGameStateStringified(spectatorId));
         }
     }
 
@@ -1336,12 +1336,12 @@ export class Lobby {
         // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
+                user.socket.send('gamestate', game.getGameStateStringified(user.id), () => this.safeSetUserConnected(user.id));
             }
         }
         for (const user of this.spectators) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
+                user.socket.send('gamestate', game.getGameStateStringified(user.id), () => this.safeSetUserConnected(user.id));
             }
         }
     }

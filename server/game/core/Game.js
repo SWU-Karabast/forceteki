@@ -1929,10 +1929,14 @@ class Game extends EventEmitter {
         return this.state.lastGameEventId;
     }
 
+    getGameStateStringified(notInactivePlayerId) {
+        return JSON.stringify(this.getStateInternal(notInactivePlayerId));
+    }
+
     // /*
     //  * This information is sent to the client
     //  */
-    getState(notInactivePlayerId) {
+    getStateInternal(notInactivePlayerId) {
         try {
             const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
 
