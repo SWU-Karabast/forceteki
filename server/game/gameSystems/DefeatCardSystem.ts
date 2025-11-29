@@ -10,6 +10,7 @@ import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
 import { DefeatSourceType } from '../IDamageOrDefeatSource';
+import { AnimationType } from '../core/animation/AnimationTypes';
 
 export interface IDefeatCardPropertiesBase extends ICardTargetSystemProperties {
     defeatSource?: IDamageSource | DefeatSourceType.Ability | DefeatSourceType.UniqueRule | DefeatSourceType.FrameworkEffect;
@@ -69,6 +70,41 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     public eventHandler(event): void {
         const card: Card = event.card;
         Contract.assertTrue(card.canBeExhausted());
+
+        // Store animation data on the event to be processed in batch after the event window resolves
+        // Only animate cards in play (not resources or other zones)
+        if (card.zoneName !== ZoneName.Resource && card.canBeInPlay() && event.context?.game) {
+            const targetId = card.uuid;
+            const sourceId = event.defeatSource?.card?.uuid;
+            const isUpgrade = card.isUpgrade();
+
+            // Check if this is a shield token being defeated
+            if (card.isTokenUpgrade() && card.internalName === 'shield' && card.parentCard) {
+                // For shield tokens, animate on the parent unit, not the shield itself
+                // Pass the shield's UUID in metadata so we can identify which specific shield to animate
+                event.animationData = {
+                    type: AnimationType.LoseShield,
+                    targetId: card.parentCard.uuid, // Animate on the parent unit
+                    shieldUuid: card.uuid, // The specific shield token being removed
+                };
+            } else {
+                // For units, include their upgrades so they can be animated
+                let upgradeIds: string[] | undefined;
+                if (card.isUnit() && card.isUpgraded()) {
+                    upgradeIds = card.upgrades.map((upgrade) => upgrade.uuid);
+                }
+
+                event.animationData = {
+                    type: AnimationType.Defeat,
+                    targetId,
+                    sourceId,
+                    upgradeIds,
+                    isUpgrade
+                };
+            }
+        } else {
+            // Card not in a zone where defeat animations apply
+        }
 
         if (card.zoneName === ZoneName.Resource) {
             this.leavesResourceZoneEventHandler(card, event.context);

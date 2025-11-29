@@ -100,6 +100,18 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         event.damageDealt = event.card.addDamage(eventDamageAmount, event.damageSource);
 
+        // Store animation data on the event to be processed in batch after the event window resolves
+        if (event.damageDealt > 0 && event.context?.game) {
+            const targetId = event.card.uuid;
+            const sourceId = event.damageSource?.card?.uuid ?? event.damageSource?.damageDealtBy?.[0]?.uuid;
+
+            event.animationData = {
+                targetId,
+                amount: event.damageDealt,
+                sourceId
+            };
+        }
+
         // excess damage can be "used up" by effects such as Overwhelm, making it unavailable for other effects such Blizzard Assault AT-AT
         // see unofficial dev ruling at https://nexus.cascadegames.com/resources/Rules_Clarifications/
         if (event.sourceEventForExcessDamage) {

@@ -24,9 +24,14 @@ const getDefaultSoundPreferences = () => ({
     muteOpponentFoundSound: false,
 });
 
+const getDefaultAnimationPreferences = () => ({
+    disableAnimations: false,
+    onlyDamageAnimations: false,
+});
+
 export const getDefaultPreferences = (): UserPreferences => ({
-    cardback: null,
-    sound: getDefaultSoundPreferences()
+    sound: getDefaultSoundPreferences(),
+    animations: getDefaultAnimationPreferences(),
 });
 
 

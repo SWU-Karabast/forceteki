@@ -16,6 +16,18 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
 
     public eventHandler(event): void {
         event.damageHealed = event.card.removeDamage(event.amount);
+
+        // Store animation data on the event to be processed in batch after the event window resolves
+        if (event.damageHealed > 0 && event.context?.game) {
+            const targetId = event.card.uuid;
+            const sourceId = event.context.source?.uuid;
+
+            event.animationData = {
+                targetId,
+                amount: event.damageHealed,
+                sourceId
+            };
+        }
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
