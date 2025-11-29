@@ -1929,10 +1929,14 @@ class Game extends EventEmitter {
         return this.state.lastGameEventId;
     }
 
+    getGameStateStringified(notInactivePlayerId) {
+        return JSON.stringify(this.getStateInternal(notInactivePlayerId));
+    }
+
     // /*
     //  * This information is sent to the client
     //  */
-    getState(notInactivePlayerId) {
+    getStateInternal(notInactivePlayerId) {
         try {
             const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
 
@@ -1979,8 +1983,8 @@ class Game extends EventEmitter {
                     undoEnabled: this.isUndoEnabled,
                 };
 
-                // clean out any properies that are null or undefined to reduce the message size
-                Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
+                // convert null to undefined to reduce the message size (undefined is omitted from JSON)
+                Helpers.convertNullToUndefinedRecursiveInPlace(gameState);
 
                 return gameState;
             }
