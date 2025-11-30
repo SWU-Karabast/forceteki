@@ -23,7 +23,7 @@ import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
-import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
+import type { ISwuDbDecklist, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
 import type { QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
@@ -977,7 +977,7 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, allow30CardsInMainBoard, res, () => {
+                await this.processDeckValidation(deck, true, { format, allow30CardsInMainBoard }, res, () => {
                     this.createLobby(lobbyName, user, deck, format, isPrivate, allow30CardsInMainBoard);
                     res.status(200).json({ success: true });
                 });
@@ -1080,7 +1080,7 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, false, res, () => {
+                await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
@@ -1283,16 +1283,21 @@ export class GameServer {
     // method for validating the deck via API
     private async processDeckValidation(
         deck: ISwuDbDecklist,
-        format: SwuGameFormat,
-        allow30CardsInMainBoard: boolean,
+        isLobby: boolean,
+        validationProperties: IDeckValidationProperties,
         res: express.Response,
         onValid: () => Promise<void> | void
     ): Promise<void> {
-        const validationResults = this.deckValidator.validateSwuDbDeck(deck, format, allow30CardsInMainBoard);
-        if (Object.keys(validationResults).length > 0) {
+        const validationResults = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
+
+        const filteredResults = isLobby
+            ? DeckValidator.filterOutSideboardingErrors(validationResults)
+            : validationResults;
+
+        if (Object.keys(filteredResults).length > 0) {
             res.status(400).json({
                 success: false,
-                errors: validationResults,
+                errors: filteredResults,
             });
             return;
         }
