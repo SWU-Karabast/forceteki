@@ -39,6 +39,10 @@ export async function getDynamoDbServiceAsync() {
         try {
             await dynamoDbService.ensureLocalTableExistsAsync();
         } catch (err) {
+            if (process.env.ENVIRONMENT === 'development' && process.env.USE_LOCAL_DYNAMODB === 'true') {
+                throw new Error('Local DynamoDB isn\'t initialized while USE_LOCAL_DYNAMODB env variable is set to true');
+            }
+
             logger.error(`Failed to ensure DynamoDB local table exists: ${err}`);
             return null;
         }
