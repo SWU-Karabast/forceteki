@@ -507,7 +507,8 @@ export class Lobby {
         activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], validationProperties);
 
         // if the deck doesn't have any errors that block import, set it as active
-        if (!DeckValidator.errorsShouldBlockLoadDeckInLobby(activeUser.importDeckValidationErrors)) {
+        const filteredErrors = DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
+        if (Object.keys(filteredErrors).length === 0) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
             activeUser.decklist = args[0];
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(

@@ -1290,14 +1290,14 @@ export class GameServer {
     ): Promise<void> {
         const validationResults = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
 
-        const hasBlockingErrors = isLobby
-            ? DeckValidator.errorsShouldBlockLoadDeckInLobby(validationResults)
-            : Object.keys(validationResults).length > 0;
+        const filteredResults = isLobby
+            ? DeckValidator.filterOutSideboardingErrors(validationResults)
+            : validationResults;
 
-        if (hasBlockingErrors) {
+        if (Object.keys(filteredResults).length > 0) {
             res.status(400).json({
                 success: false,
-                errors: validationResults,
+                errors: filteredResults,
             });
             return;
         }
