@@ -23,7 +23,7 @@ import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
-import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
+import type { ISwuDbDecklist, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
 import type { QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
@@ -1288,7 +1288,8 @@ export class GameServer {
         res: express.Response,
         onValid: () => Promise<void> | void
     ): Promise<void> {
-        const validationResults = this.deckValidator.validateSwuDbDeck(deck, format, allow30CardsInMainBoard);
+        const validationProperties: IDeckValidationProperties = { format, allow30CardsInMainBoard };
+        const validationResults = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
         if (Object.keys(validationResults).length > 0) {
             res.status(400).json({
                 success: false,
