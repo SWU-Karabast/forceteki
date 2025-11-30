@@ -55,6 +55,13 @@ export class DeckValidator {
 
     private static readonly MaxSideboardSize = 10;
 
+    public static errorsShouldBlockLoadDeckInLobby(failures: IDeckValidationFailures): boolean {
+        return Object.keys(failures).some((key) =>
+            key !== DeckValidationFailureReason.MinMainboardSizeNotMet &&
+            key !== DeckValidationFailureReason.MaxSideboardSizeExceeded
+        );
+    }
+
     public static async createAsync(cardDataGetter: CardDataGetter): Promise<DeckValidator> {
         const allCardsData: ICardDataJson[] = [];
         for (const cardId of cardDataGetter.cardIds) {

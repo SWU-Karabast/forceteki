@@ -11,7 +11,7 @@ import type { IUser } from '../Settings';
 import { getUserWithDefaultsSet } from '../Settings';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
-import type { DeckValidator } from '../utils/deck/DeckValidator';
+import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
 import type { IDecklistInternal, IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
 import { ScoreType } from '../utils/deck/DeckInterfaces';
@@ -506,15 +506,14 @@ export class Lobby {
         const validationProperties: IDeckValidationProperties = { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard };
         activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], validationProperties);
 
-        // if the deck doesn't have any errors set it as active.
-        if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
+        // if the deck doesn't have any errors that block import, set it as active
+        if (!DeckValidator.errorsShouldBlockLoadDeckInLobby(activeUser.importDeckValidationErrors)) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
             activeUser.decklist = args[0];
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
                 validationProperties
             );
-            activeUser.importDeckValidationErrors = null;
         }
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
