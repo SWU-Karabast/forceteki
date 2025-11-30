@@ -977,7 +977,7 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, allow30CardsInMainBoard, res, () => {
+                await this.processDeckValidation(deck, true, { format, allow30CardsInMainBoard }, res, () => {
                     this.createLobby(lobbyName, user, deck, format, isPrivate, allow30CardsInMainBoard);
                     res.status(200).json({ success: true });
                 });
@@ -1080,7 +1080,7 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, false, res, () => {
+                await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
@@ -1283,14 +1283,18 @@ export class GameServer {
     // method for validating the deck via API
     private async processDeckValidation(
         deck: ISwuDbDecklist,
-        format: SwuGameFormat,
-        allow30CardsInMainBoard: boolean,
+        isLobby: boolean,
+        validationProperties: IDeckValidationProperties,
         res: express.Response,
         onValid: () => Promise<void> | void
     ): Promise<void> {
-        const validationProperties: IDeckValidationProperties = { format, allow30CardsInMainBoard };
         const validationResults = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
-        if (Object.keys(validationResults).length > 0) {
+
+        const hasBlockingErrors = isLobby
+            ? DeckValidator.errorsShouldBlockLoadDeckInLobby(validationResults)
+            : Object.keys(validationResults).length > 0;
+
+        if (hasBlockingErrors) {
             res.status(400).json({
                 success: false,
                 errors: validationResults,
