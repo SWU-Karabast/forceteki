@@ -3,7 +3,7 @@ import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
 import { CardType } from '../../game/core/Constants';
 import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
-import type { IDecklistInternal, ISwuDbCardEntry } from './DeckInterfaces';
+import type { IDecklistInternal, ISwuDbCardEntry, IDeckValidationProperties } from './DeckInterfaces';
 import { DecklistLocation, DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbDecklist } from './DeckInterfaces';
 import { SwuGameFormat } from '../../SwuGameFormat';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
@@ -54,6 +54,19 @@ export class DeckValidator {
     private readonly setCodeToId: Map<string, string>;
 
     private static readonly MaxSideboardSize = 10;
+
+    public static filterOutSideboardingErrors(failures: IDeckValidationFailures): IDeckValidationFailures {
+        const filtered: IDeckValidationFailures = {};
+
+        for (const [key, value] of Object.entries(failures)) {
+            if (key !== DeckValidationFailureReason.MinMainboardSizeNotMet &&
+              key !== DeckValidationFailureReason.MaxSideboardSizeExceeded) {
+                filtered[key] = value;
+            }
+        }
+
+        return filtered;
+    }
 
     public static async createAsync(cardDataGetter: CardDataGetter): Promise<DeckValidator> {
         const allCardsData: ICardDataJson[] = [];
@@ -155,16 +168,16 @@ export class DeckValidator {
     }
 
     // Validate IDecklistInternal
-    public validateInternalDeck(deck: IDecklistInternal, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
+    public validateInternalDeck(deck: IDecklistInternal, properties: IDeckValidationProperties): IDeckValidationFailures {
         // Basic structure check (internal decks have mandatory leader, base, and deck)
         if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
             return { [DeckValidationFailureReason.InvalidDeckData]: true };
         }
-        return this.validateCommonDeck(deck, format, allow30CardsInMainBoard);
+        return this.validateCommonDeck(deck, properties.format, properties.allow30CardsInMainBoard);
     }
 
     // Validate the ISwuDbDeckList
-    public validateSwuDbDeck(deck: ISwuDbDecklist, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
+    public validateSwuDbDeck(deck: ISwuDbDecklist, properties: IDeckValidationProperties): IDeckValidationFailures {
         // Basic structure check (SWU‑DB decks use optional properties, so we check them explicitly)
         if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
             return { [DeckValidationFailureReason.InvalidDeckData]: true };
@@ -173,7 +186,7 @@ export class DeckValidator {
         if (deck.secondleader) {
             return { [DeckValidationFailureReason.TooManyLeaders]: true };
         }
-        return this.validateCommonDeck(deck, format, allow30CardsInMainBoard);
+        return this.validateCommonDeck(deck, properties.format, properties.allow30CardsInMainBoard);
     }
 
     private validateCommonDeck(deck: IDecklistInternal | ISwuDbDecklist, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
