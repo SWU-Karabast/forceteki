@@ -1541,13 +1541,7 @@ export class GameServer {
             if (lobby.gameType === MatchType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
-                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, {
-                        ...lobbyUser.deck.getDecklist(),
-                        deckID: lobbyUser.deck.id,
-                        deckLink: lobbyUser.decklist.deckLink,
-                        deckSource: lobbyUser.decklist.deckSource,
-                        isPresentInDb: lobbyUser.decklist.isPresentInDb,
-                    }));
+                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser?.deck));
                 }
             }
 
@@ -1737,8 +1731,14 @@ export class GameServer {
     /**
      * requeues the user and removes them from the previous lobby. If the lobby is empty, it cleans it up.
      */
-    public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: any) {
+    public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: Deck) {
         try {
+            if (!deck) {
+                logger.error(`GameServer: Cannot requeue user ${user.getId()} - no deck provided`);
+                socket.send('connection_error', 'Unable to requeue: deck not found');
+                return;
+            }
+
             const userLobbyMapEntry = this.userLobbyMap.get(user.getId());
             if (userLobbyMapEntry) {
                 const lobbyId = userLobbyMapEntry.lobbyId;

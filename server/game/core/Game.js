@@ -533,6 +533,18 @@ class Game extends EventEmitter {
     }
 
     /**
+     * Attach the lobby user object to a player. This preserves authentication
+     * information needed for end-of-game stats updates after the user may have
+     * been removed from the lobby.
+     * @param {string} playerId - The player ID
+     * @param {any} lobbyUser - The User object from the lobby
+     */
+    attachLobbyUser(playerId, lobbyUser) {
+        const player = this.getPlayerById(playerId);
+        player.lobbyUser = lobbyUser;
+    }
+
+    /**
      * Get all players (not spectators) with the first player at index 0
      * @returns {Player[]} Array of Player objects
      */

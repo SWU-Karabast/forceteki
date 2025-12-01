@@ -1,6 +1,7 @@
 import type { IGameObjectState } from './GameObject';
 import { GameObject } from './GameObject';
-import type { Deck, IDeckList as IDeckList } from '../../utils/deck/Deck.js';
+import type { Deck } from '../../utils/deck/Deck.js';
+import type { IDeckListForLoading } from '../../utils/deck/DeckInterfaces';
 import type { CostAdjuster } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
 import { PlayerPromptState } from './PlayerPromptState.js';
@@ -50,6 +51,7 @@ import type { IActionTimer } from './actionTimer/IActionTimer';
 import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
+import type { User } from '../../utils/user/User';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -62,12 +64,13 @@ export interface IPlayerState extends IGameObjectState {
     base: GameObjectRef<IBaseCard>;
     passedActionPhase: boolean;
     // IDeckList is made up of arrays and GameObjectRefs, so it's serializable.
-    decklist: IDeckList;
+    decklist: IDeckListForLoading;
     costAdjusters: GameObjectRef<CostAdjuster>[];
 }
 
 export class Player extends GameObject<IPlayerState> implements IGameStatisticsTrackable {
     public user: IUser;
+    public lobbyUser?: User;
     public printedType: string;
     // TODO: INCOMPLETE
     public socket: any;
@@ -142,7 +145,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         this.state.passedActionPhase = value;
     }
 
-    public get decklist(): IDeckList {
+    public get decklist(): IDeckListForLoading {
         return this.state.decklist;
     }
 
@@ -901,6 +904,14 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      */
     public selectDeck(deck: Deck) {
         this.decklistNames = deck;
+    }
+
+    /**
+     * Returns the lobby deck assigned to this player
+     * @returns {Deck | null} the deck or null if not set
+     */
+    public get lobbyDeck(): Deck | null {
+        return this.decklistNames;
     }
 
     // TODO NOISY PR: rearrange this file into sections
