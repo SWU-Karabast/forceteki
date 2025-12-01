@@ -541,7 +541,7 @@ class Game extends EventEmitter {
      */
     attachLobbyUser(playerId, lobbyUser) {
         const player = this.getPlayerById(playerId);
-        player.lobbyUser = lobbyUser;
+        player.setLobbyUser(lobbyUser);
     }
 
     /**

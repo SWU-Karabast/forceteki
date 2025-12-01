@@ -30,17 +30,13 @@ export enum DeckSource {
     Unknown = 'unknown'
 }
 
-export interface DeckSummary {
-    deckID: string;
+export interface IDeckListBase {
+    deckID?: string;
     deckLink?: string;
-    deckSource?: DeckSource;
-    leaderID: string;
-    baseID: string;
-    deck: IDecklistInternal;
-    isDeckPresentInDb?: boolean;
+    isPresentInDb?: boolean;
 }
 
-export interface ISwuDbDecklist {
+export interface ISwuDbDecklist extends IDeckListBase {
     metadata: {
         name: string;
         author: string;
@@ -50,7 +46,6 @@ export interface ISwuDbDecklist {
     base?: ISwuDbCardEntry;
     deck?: ISwuDbCardEntry[];
     sideboard?: ISwuDbCardEntry[];
-    deckID?: string;
 }
 
 export interface ILeaderBaseInternal {
@@ -58,13 +53,10 @@ export interface ILeaderBaseInternal {
     base: IInternalCardEntry;
 }
 
-export interface IDecklistInternal extends ILeaderBaseInternal {
+export type IDecklistInternal = ILeaderBaseInternal & IDeckListBase & {
     deck: IInternalCardEntry[];
     sideboard?: IInternalCardEntry[];
-    deckID?: string;
-    deckLink?: string;
-    isPresentInDb?: boolean;
-}
+};
 
 export interface IDeckListForLoading {
     deckCards: GameObjectRef<IPlayableCard>[];
@@ -75,21 +67,6 @@ export interface IDeckListForLoading {
     leader: GameObjectRef<ILeaderCard> | undefined;
     allCards: GameObjectRef<Card>[];
 }
-
-export enum DeckListType {
-    Swudb = 'swudb',
-    Internal = 'internal'
-}
-
-export interface ISwudbDeckListWithType extends ISwuDbDecklist {
-    type: DeckListType.Swudb;
-}
-
-export interface IInternalDeckListWithType extends IDecklistInternal {
-    type: DeckListType.Internal;
-}
-
-export type IDeckListWithType = ISwudbDeckListWithType | IInternalDeckListWithType;
 
 export interface ICardIdAndName {
 

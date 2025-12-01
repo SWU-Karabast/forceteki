@@ -70,7 +70,7 @@ export interface IPlayerState extends IGameObjectState {
 
 export class Player extends GameObject<IPlayerState> implements IGameStatisticsTrackable {
     public user: IUser;
-    public lobbyUser?: User;
+    private _lobbyUser?: User;
     public printedType: string;
     // TODO: INCOMPLETE
     public socket: any;
@@ -181,6 +181,10 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return this._undoRequestsBlocked;
     }
 
+    public get lobbyUser(): User | undefined {
+        return this._lobbyUser;
+    }
+
     public constructor(id: string, user: IUser, game: Game, useTimer = false) {
         super(game, user.username);
 
@@ -255,6 +259,11 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
     public incrementActionId() {
         this._lastActionId++;
+    }
+
+    public setLobbyUser(lobbyUser: User): void {
+        Contract.assertIsNullLike(this._lobbyUser, 'lobbyUser is already set');
+        this._lobbyUser = lobbyUser;
     }
 
     private checkPlayerTimeoutConditions(promptUuid: string, playerActionId: number) {

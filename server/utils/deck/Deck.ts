@@ -2,8 +2,8 @@ import type { Card } from '../../game/core/card/Card';
 import type { Player } from '../../game/core/Player';
 import * as CardHelpers from '../../game/core/card/CardHelpers';
 import * as Contract from '../../game/core/utils/Contract';
-import type { ISwuDbCardEntry, IDecklistInternal, IInternalCardEntry, ILeaderBaseInternal, IDeckListWithType, IDeckListForLoading } from './DeckInterfaces';
-import { DeckListType, DeckSource } from './DeckInterfaces';
+import type { ISwuDbCardEntry, IDecklistInternal, IInternalCardEntry, ILeaderBaseInternal, IDeckListForLoading, ISwuDbDecklist } from './DeckInterfaces';
+import { DeckSource } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards } from '../../game/cards/Index';
 
@@ -20,19 +20,18 @@ export class Deck {
 
     public readonly base: IInternalCardEntry;
     public readonly deckSource: DeckSource;
-    // public readonly deckSummary: DeckSummary;
     public readonly leader: IInternalCardEntry;
     public readonly id?: string;
     public readonly isPresentInDb: boolean;
     public readonly deckLink?: string;
-    public readonly decklist: IDeckListWithType;
+    public readonly originalDeckList: ISwuDbDecklist;
 
     private readonly cardDataGetter: CardDataGetter;
 
     private deckCards: Map<string, number>;
     private sideboard: Map<string, number>;
 
-    public constructor(decklist: IDeckListWithType, cardDataGetter: CardDataGetter) {
+    public constructor(decklist: ISwuDbDecklist, cardDataGetter: CardDataGetter) {
         this.base = Deck.buildDecklistEntry(decklist.base.id, 1, cardDataGetter);
         this.leader = Deck.buildDecklistEntry(decklist.leader.id, 1, cardDataGetter);
         this.id = decklist.deckID;
@@ -47,16 +46,11 @@ export class Deck {
         this.deckCards = this.convertCardListToMap(decklist.deck, allCardIds);
         this.sideboard = this.convertCardListToMap(sideboard, allCardIds);
         this.cardDataGetter = cardDataGetter;
-        this.decklist = decklist;
+        this.originalDeckList = decklist;
 
-        if (decklist.type === DeckListType.Internal) {
-            this.isPresentInDb = decklist.isPresentInDb;
-            this.deckLink = decklist.deckLink;
-            this.deckSource = this.determineDeckSource(decklist.deckLink);
-        } else {
-            this.isPresentInDb = false;
-            this.deckSource = DeckSource.Unknown;
-        }
+        this.isPresentInDb = decklist.isPresentInDb;
+        this.deckLink = decklist.deckLink;
+        this.deckSource = this.determineDeckSource(decklist.deckLink);
     }
 
     private convertCardListToMap(cardList: ISwuDbCardEntry[], allCardIds: Set<string>) {

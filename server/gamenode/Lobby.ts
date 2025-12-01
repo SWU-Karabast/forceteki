@@ -13,7 +13,7 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
-import type { IDecklistInternal, IDeckValidationFailures, ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
 import { DeckSource } from '../utils/deck/DeckInterfaces';
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
@@ -40,21 +40,9 @@ enum LobbySettingKeys {
 export interface LobbyUserWrapper extends LobbySpectatorWrapper {
     ready: boolean;
     deck?: Deck;
-    decklistRaw?: IDecklistInternal | ISwuDbDecklist;
     deckValidationErrors?: IDeckValidationFailures;
     importDeckValidationErrors?: IDeckValidationFailures;
     reportedBugs: number;
-}
-
-export interface PlayerDetails {
-    user: User;
-    deckID: string;
-    deckLink: string;
-    deckSource: DeckSource;
-    leaderID: string;
-    baseID: string;
-    deck: IDecklistInternal;
-    isDeckPresentInDb: boolean;
 }
 
 export enum MatchType {
@@ -268,7 +256,6 @@ export class Lobby {
                 ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat, this.allow30CardsInMainBoard)
                 : {},
             deck,
-            decklistRaw: decklist,
             reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
@@ -380,12 +367,12 @@ export class Lobby {
                 socket.registerEvent(
                     'requeue',
                     () => {
-                        if (!existingUser?.deck || !existingUser.deck.decklist) {
+                        if (!existingUser?.deck || !existingUser.deck.originalDeckList) {
                             logger.error(`Lobby: Cannot requeue user ${user.getId()} - no deck found`, { lobbyId: this.id, userId: user.getId() });
                             socket.send('connection_error', 'Unable to requeue: deck not found');
                             return;
                         }
-                        this.server.requeueUser(socket, this.format, user, existingUser.deck.decklist);
+                        this.server.requeueUser(socket, this.format, user, existingUser.deck.originalDeckList);
                     }
                 );
             }
@@ -502,7 +489,6 @@ export class Lobby {
         // if the deck doesn't have any errors set it as active.
         if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
-            activeUser.decklistRaw = args[0];
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
                 this.gameFormat,
@@ -905,12 +891,12 @@ export class Lobby {
         this.buildSafeTimeout(() => {
             for (const user of this.users) {
                 logger.error(`Lobby: requeueing user ${user.id} after matched user disconnected`);
-                if (!user.deck || !user.deck.decklist) {
+                if (!user.deck || !user.deck.originalDeckList) {
                     logger.error(`Lobby: Cannot requeue user ${user.id} - no deck found`, { lobbyId: this.id, userId: user.id });
                     user.socket.send('connection_error', 'Unable to requeue: deck not found');
                     continue;
                 }
-                this.server.requeueUser(user.socket, this.format, user.socket.user, user.deck.decklist);
+                this.server.requeueUser(user.socket, this.format, user.socket.user, user.deck.originalDeckList);
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
 
