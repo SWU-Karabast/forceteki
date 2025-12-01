@@ -16,12 +16,16 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
                 });
             });
 
-            it('should give a friendly imperial unit an experience token', function () {
+            it('should give an Imperial unit an experience token', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandMoffTarkin);
                 context.player1.clickPrompt('Give an experience token to an Imperial unit');
-                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter]);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.atst,
+                    context.tielnFighter,
+                    context.tieAdvanced     // Can target enemy Imperial units
+                ]);
 
                 context.player1.clickCard(context.atst);
                 expect(context.grandMoffTarkin.exhausted).toBe(true);
@@ -39,7 +43,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
                         leader: 'grand-moff-tarkin#oversector-governor'
                     },
                     player2: {
-                        groundArena: ['wampa'],
+                        groundArena: ['wampa']
                     }
                 });
             });
@@ -74,7 +78,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
                 });
             });
 
-            it('should give a friendly imperial unit an experience token on attack', function () {
+            it('should give an Imperial unit an experience token on attack', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandMoffTarkin);
@@ -82,7 +86,11 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
 
                 expect(context.player1).toHavePrompt('Give an experience token to another Imperial unit');
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter]);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.atst,
+                    context.tielnFighter,
+                    context.tieAdvanced     // Can target enemy Imperial units
+                ]);
                 context.player1.clickCard(context.tielnFighter);
 
                 expect(context.tielnFighter).toHaveExactUpgradeNames(['experience']);
