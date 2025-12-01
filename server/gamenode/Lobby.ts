@@ -11,9 +11,9 @@ import type { IUser } from '../Settings';
 import { getUserWithDefaultsSet } from '../Settings';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
-import type { DeckValidator } from '../utils/deck/DeckValidator';
+import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
-import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
 import { DeckSource } from '../utils/deck/DeckInterfaces';
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
@@ -253,7 +253,7 @@ export class Lobby {
             ready: false,
             socket: null,
             deckValidationErrors: deck
-                ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat, this.allow30CardsInMainBoard)
+                ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard })
                 : {},
             deck,
             reportedBugs: 0
@@ -484,17 +484,17 @@ export class Lobby {
         const activeUser = this.users.find((u) => u.id === socket.user.getId());
 
         // we check if the deck is valid.
-        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], this.gameFormat, this.allow30CardsInMainBoard);
+        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard };
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], validationProperties);
 
-        // if the deck doesn't have any errors set it as active.
-        if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
+        // if the deck doesn't have any errors that block import, set it as active
+        const filteredErrors = DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
+        if (Object.keys(filteredErrors).length === 0) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
-                this.gameFormat,
-                this.allow30CardsInMainBoard
+                validationProperties
             );
-            activeUser.importDeckValidationErrors = null;
         }
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
@@ -516,10 +516,10 @@ export class Lobby {
             userDeck.moveToDeck(cardId);
         }
         // check deck for deckValidationErrors
+        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard };
         user.deckValidationErrors = this.deckValidator.validateInternalDeck(
             userDeck.getDecklist(),
-            this.gameFormat,
-            this.allow30CardsInMainBoard
+            validationProperties
         );
         // we need to clear any importDeckValidation errors otherwise they can persist
         user.importDeckValidationErrors = null;

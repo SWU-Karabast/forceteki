@@ -4,6 +4,7 @@ import type { Card } from '../../game/core/card/Card';
 import type { ILeaderCard } from '../../game/core/card/propertyMixins/LeaderProperties';
 import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
 import type { GameObjectRef } from '../../game/core/GameObjectBase';
+import type { SwuGameFormat } from '../../SwuGameFormat';
 
 export interface ISwuDbCardEntry {
     id: string;
@@ -73,6 +74,11 @@ export interface ICardIdAndName {
     /** SWUDB calls this an "id" but it's a setcode */
     id: string;
     name: string;
+}
+
+export interface IDeckValidationProperties {
+    format: SwuGameFormat;
+    allow30CardsInMainBoard: boolean;
 }
 
 export enum DecklistLocation {
