@@ -380,12 +380,12 @@ export class Lobby {
                 socket.registerEvent(
                     'requeue',
                     () => {
-                        if (!existingUser?.deck) {
+                        if (!existingUser?.deck || !existingUser.deck.decklist) {
                             logger.error(`Lobby: Cannot requeue user ${user.getId()} - no deck found`, { lobbyId: this.id, userId: user.getId() });
                             socket.send('connection_error', 'Unable to requeue: deck not found');
                             return;
                         }
-                        this.server.requeueUser(socket, this.format, user, existingUser.deck);
+                        this.server.requeueUser(socket, this.format, user, existingUser.deck.decklist);
                     }
                 );
             }
@@ -905,12 +905,12 @@ export class Lobby {
         this.buildSafeTimeout(() => {
             for (const user of this.users) {
                 logger.error(`Lobby: requeueing user ${user.id} after matched user disconnected`);
-                if (!user.deck) {
+                if (!user.deck || !user.deck.decklist) {
                     logger.error(`Lobby: Cannot requeue user ${user.id} - no deck found`, { lobbyId: this.id, userId: user.id });
                     user.socket.send('connection_error', 'Unable to requeue: deck not found');
                     continue;
                 }
-                this.server.requeueUser(user.socket, this.format, user.socket.user, user.deck);
+                this.server.requeueUser(user.socket, this.format, user.socket.user, user.deck.decklist);
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
 

@@ -25,6 +25,7 @@ export class Deck {
     public readonly id?: string;
     public readonly isPresentInDb: boolean;
     public readonly deckLink?: string;
+    public readonly decklist: IDeckListWithType;
 
     private readonly cardDataGetter: CardDataGetter;
 
@@ -46,6 +47,7 @@ export class Deck {
         this.deckCards = this.convertCardListToMap(decklist.deck, allCardIds);
         this.sideboard = this.convertCardListToMap(sideboard, allCardIds);
         this.cardDataGetter = cardDataGetter;
+        this.decklist = decklist;
 
         if (decklist.type === DeckListType.Internal) {
             this.isPresentInDb = decklist.isPresentInDb;

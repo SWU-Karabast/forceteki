@@ -23,7 +23,7 @@ import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
-import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
+import type { IDeckListWithType, ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import type { QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
@@ -1541,7 +1541,7 @@ export class GameServer {
             if (lobby.gameType === MatchType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
-                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser?.deck));
+                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser?.deck?.decklist));
                 }
             }
 
@@ -1622,7 +1622,7 @@ export class GameServer {
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(format: SwuGameFormat, user: User, deck: any): boolean {
+    private enterQueue(format: SwuGameFormat, user: User, deck: IDeckListWithType): boolean {
         this.queue.addPlayer(
             format,
             {
@@ -1731,7 +1731,7 @@ export class GameServer {
     /**
      * requeues the user and removes them from the previous lobby. If the lobby is empty, it cleans it up.
      */
-    public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: Deck) {
+    public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: IDeckListWithType) {
         try {
             if (!deck) {
                 logger.error(`GameServer: Cannot requeue user ${user.getId()} - no deck provided`);

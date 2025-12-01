@@ -1,12 +1,12 @@
 import { SwuGameFormat } from '../SwuGameFormat';
-import type { Deck } from '../utils/deck/Deck';
 import type Socket from '../socket';
 import { logger } from '../logger';
 import type { User } from '../utils/user/User';
 import * as Contract from '../game/core/utils/Contract';
+import type { IDeckListWithType } from '../utils/deck/DeckInterfaces';
 
 export interface QueuedPlayerToAdd {
-    deck: Deck;
+    deck: IDeckListWithType;
     socket?: Socket;
     user: User;
 }
