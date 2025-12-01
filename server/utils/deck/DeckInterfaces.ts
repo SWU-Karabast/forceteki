@@ -1,3 +1,5 @@
+import type { SwuGameFormat } from '../../SwuGameFormat';
+
 export interface ISwuDbCardEntry {
     id: string;
     count: number;
@@ -43,6 +45,11 @@ export interface ICardIdAndName {
     /** SWUDB calls this an "id" but it's a setcode */
     id: string;
     name: string;
+}
+
+export interface IDeckValidationProperties {
+    format: SwuGameFormat;
+    allow30CardsInMainBoard: boolean;
 }
 
 export enum DecklistLocation {
