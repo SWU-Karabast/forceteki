@@ -123,6 +123,13 @@ export class GameServer {
         await serverRoleUsersCache.initializeAsync();
         console.log('SETUP: Server role users cache initialized.');
 
+        // initialize cosmetics service (conditionally based on environment)
+        let cosmeticsService: CosmeticsService | undefined;
+        const shouldInitializeCosmetics = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
+        if (shouldInitializeCosmetics) {
+            cosmeticsService = await CosmeticsService.createAsync();
+        }
+
         // increase stack trace limit for better error logging
         Error.stackTraceLimit = 50;
 
@@ -130,6 +137,7 @@ export class GameServer {
             cardDataGetter,
             deckValidator,
             serverRoleUsersCache,
+            cosmeticsService,
             testGameBuilder
         );
     }
@@ -183,7 +191,7 @@ export class GameServer {
 
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
-    public readonly cosmeticsService: CosmeticsService = new CosmeticsService();
+    public readonly cosmeticsService?: CosmeticsService;
     public readonly swuStatsHandler: SwuStatsHandler;
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
@@ -193,6 +201,7 @@ export class GameServer {
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         serverRoleUsersCache: ServerRoleUsersCache,
+        cosmeticsService?: CosmeticsService,
         testGameBuilder?: any
     ) {
         const app = express();
@@ -200,6 +209,7 @@ export class GameServer {
         const server = http.createServer(app);
 
         this.serverRoleUsersCache = serverRoleUsersCache;
+        this.cosmeticsService = cosmeticsService;
 
         const corsOptions = {
             origin: env.corsOrigins,
@@ -1126,12 +1136,11 @@ export class GameServer {
         });
 
         // Cosmetics API endpoints
-        app.get('/api/cosmetics', this.buildAuthMiddleware('get-cosmetics'), async (req, res, next) => {
+        app.get('/api/cosmetics', this.buildAuthMiddleware('get-cosmetics'), (req, res, next) => {
             try {
                 let cosmetics = CosmeticsService.defaultCosmetics;
-                const shouldFetchFromDb = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
-                if (shouldFetchFromDb) {
-                    const fetchedCosmetics = await this.cosmeticsService.getCosmeticsAsync();
+                if (this.cosmeticsService) {
+                    const fetchedCosmetics = this.cosmeticsService.getCosmetics();
 
                     if (fetchedCosmetics && fetchedCosmetics.length > 0) {
                         cosmetics = fetchedCosmetics;
@@ -1150,6 +1159,9 @@ export class GameServer {
 
         app.post('/api/cosmetics', this.buildAuthMiddleware('post-cosmetics', ServerRole.Moderator), async (req, res, next) => {
             try {
+                if (!this.cosmeticsService) {
+                    return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
+                }
                 const { cosmetic } = req.body;
 
                 await this.cosmeticsService.saveCosmeticAsync(cosmetic);
@@ -1166,6 +1178,9 @@ export class GameServer {
 
         app.delete('/api/cosmetics/:cosmeticId', this.buildAuthMiddleware('delete-cosmetics-by-id', ServerRole.Moderator), async (req, res, next) => {
             try {
+                if (!this.cosmeticsService) {
+                    return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
+                }
                 const { cosmeticId } = req.params;
 
                 await this.cosmeticsService.deleteCosmeticAsync(cosmeticId);
@@ -1225,6 +1240,9 @@ export class GameServer {
         // deletes all cosmetics from the database
         app.delete('/api/cosmetics', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
+                if (!this.cosmeticsService) {
+                    return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
+                }
                 const result = await this.cosmeticsService.clearAllCosmeticsAsync();
                 return res.status(200).json({
                     success: true,
@@ -1239,6 +1257,9 @@ export class GameServer {
         // resets cosmetics to the default set from file
         app.post('/api/cosmetics-reset', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
+                if (!this.cosmeticsService) {
+                    return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
+                }
                 const result = await this.cosmeticsService.resetCosmeticsAsync(CosmeticsService.defaultCosmetics);
                 return res.status(200).json({
                     success: true,

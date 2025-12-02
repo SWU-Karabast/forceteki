@@ -1,10 +1,13 @@
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import { type IRegisteredCosmeticOption, RegisteredCosmeticType } from './CosmeticsInterfaces';
+import { CosmeticsCache } from './CosmeticsCache';
 import { randomUUID } from 'crypto';
 
 
 export class CosmeticsService {
-    private dbServicePromise = getDynamoDbServiceAsync();
+    private readonly dbServicePromise = getDynamoDbServiceAsync();
+    private readonly cosmeticsCache: CosmeticsCache;
+
     public static readonly defaultCosmetics: IRegisteredCosmeticOption[] = [
         {
             id: randomUUID(),
@@ -22,36 +25,65 @@ export class CosmeticsService {
         },
     ];
 
-    public async getCosmeticsAsync() {
-        const dbService = await this.dbServicePromise;
-        return dbService.getCosmeticsAsync();
+    private constructor(cosmeticsCache: CosmeticsCache) {
+        this.cosmeticsCache = cosmeticsCache;
+    }
+
+    /**
+     * Creates and initializes a new CosmeticsService instance.
+     * @throws Error if in development mode without local DynamoDB
+     */
+    public static async createAsync(): Promise<CosmeticsService> {
+        if (process.env.ENVIRONMENT === 'development' && process.env.USE_LOCAL_DYNAMODB !== 'true') {
+            throw new Error('CosmeticsService requires USE_LOCAL_DYNAMODB=true in development mode');
+        }
+
+        const cache = new CosmeticsCache(60);
+        await cache.initializeAsync();
+        return new CosmeticsService(cache);
+    }
+
+    /**
+     * Gets all cosmetics from the cache synchronously.
+     */
+    public getCosmetics(): IRegisteredCosmeticOption[] {
+        return this.cosmeticsCache.getCosmetics();
     }
 
     public async initializeCosmeticsAsync(cosmetics: IRegisteredCosmeticOption[]) {
         const dbService = await this.dbServicePromise;
-        return dbService.initializeCosmeticsAsync(cosmetics);
+        const result = await dbService.initializeCosmeticsAsync(cosmetics);
+        await this.cosmeticsCache.forceRefreshAsync();
+        return result;
     }
 
     public async saveCosmeticAsync(cosmeticData: IRegisteredCosmeticOption) {
         const dbService = await this.dbServicePromise;
-        return dbService.saveCosmeticAsync(cosmeticData);
+        const result = await dbService.saveCosmeticAsync(cosmeticData);
+        await this.cosmeticsCache.forceRefreshAsync();
+        return result;
     }
 
     public async deleteCosmeticAsync(cosmeticId: string) {
         const dbService = await this.dbServicePromise;
-        return dbService.deleteCosmeticAsync(cosmeticId);
+        const result = await dbService.deleteCosmeticAsync(cosmeticId);
+        await this.cosmeticsCache.forceRefreshAsync();
+        return result;
     }
 
     // Development use only
     public async clearAllCosmeticsAsync() {
         const dbService = await this.dbServicePromise;
-        return dbService.clearAllCosmeticsAsync();
+        const result = await dbService.clearAllCosmeticsAsync();
+        await this.cosmeticsCache.forceRefreshAsync();
+        return result;
     }
 
     public async resetCosmeticsAsync(defaultCosmetics: IRegisteredCosmeticOption[]) {
         const dbService = await this.dbServicePromise;
         const deletedResult = await dbService.clearAllCosmeticsAsync();
         const initializedResult = await dbService.initializeCosmeticsAsync(defaultCosmetics);
+        await this.cosmeticsCache.forceRefreshAsync();
         return {
             deletedCount: deletedResult,
             initializedCount: initializedResult

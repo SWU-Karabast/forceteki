@@ -59,4 +59,19 @@ export class TimedCache<T> {
     public getValue(): T {
         return this.value;
     }
+
+    /**
+     * Forces an immediate refresh of the cached value.
+     * Does not reset the periodic timer.
+     */
+    public async forceRefreshAsync(): Promise<void> {
+        try {
+            logger.info(`${this.cacheName}: Force refreshing cached value...`);
+            this.value = await this.fetchFunction();
+            logger.info(`${this.cacheName}: Successfully force refreshed cache`);
+        } catch (error) {
+            logger.error(`${this.cacheName}: Failed to force refresh cache, keeping stale data`, error);
+            throw error;
+        }
+    }
 }
