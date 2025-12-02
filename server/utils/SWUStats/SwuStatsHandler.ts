@@ -1,11 +1,13 @@
 import { logger } from '../../logger';
 import type Game from '../../game/core/Game';
 import type { Player } from '../../game/core/Player';
+import * as Contract from '../../game/core/utils/Contract';
 import type { IDecklistInternal } from '../deck/DeckInterfaces';
+import { DeckSource } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
 import { GameCardMetric, type IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
-import type { PlayerDetails, IStatsMessageFormat } from '../../gamenode/Lobby';
+import type { IStatsMessageFormat } from '../../gamenode/Lobby';
 import { StatsSource } from '../../gamenode/Lobby';
 import { StatsSaveStatus } from '../../gamenode/Lobby';
 import type { GameServer, ISwuStatsToken } from '../../gamenode/GameServer';
@@ -103,25 +105,20 @@ export class SwuStatsHandler {
     /**
      * Send game result to SWUstats API
      * @param game The completed game
-     * @param player1Details Details about player1
-     * @param player2Details Details about player2
-     * @param hasSwuStatsSource the hasSwuStatsSource function from the lobby
+     * @param player1User Details about player1
+     * @param player2User Details about player2
      * @param lobbyId the id of the lobby in string format
      * @param serverObject the server object from where we gain access to the user x accessToken
      * @returns Promise that resolves to true if successful, false otherwise
      */
     public async sendSWUStatsGameResultAsync(
         game: Game,
-        player1Details: PlayerDetails,
-        player2Details: PlayerDetails,
-        hasSwuStatsSource: (playerDetails: PlayerDetails) => boolean,
+        player1: Player,
+        player2: Player,
         lobbyId: string,
         serverObject: GameServer,
     ): Promise<IStatsMessageFormat> {
         try {
-            const players = game.getPlayers();
-            const [player1, player2] = players;
-
             // Determine winner
             const winner = this.determineWinner(game, player1, player2);
             if (winner === 0) {
@@ -136,14 +133,12 @@ export class SwuStatsHandler {
                 game,
                 player1,
                 player2,
-                player1Details,
-                player2Details,
                 winner,
                 lobbyId,
-                hasSwuStatsSource,
                 serverObject
             );
-            // Log the payload for debugging (excluding API key)
+            // Log the payload for debugging (excluding API key and tokens)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
             const { apiKey, p1SWUStatsToken, p2SWUStatsToken, ...payloadForLogging } = payload;
             logger.info(`Sending game result to SWUStats for game ${game.id}`, {
                 lobbyId,
@@ -300,26 +295,26 @@ export class SwuStatsHandler {
         game: Game,
         player1: Player,
         player2: Player,
-        player1Details: PlayerDetails,
-        player2Details: PlayerDetails,
         winner: number,
         lobbyId: string,
-        hasSwuStatsSource: (playerDetails: PlayerDetails) => boolean,
         serverObject: GameServer
     ): Promise<SWUstatsGameResult> {
-        const player1Data = this.buildPlayerData(player1, player2, player1Details.deckLink, game, winner, 1);
-        const player2Data = this.buildPlayerData(player2, player1, player2Details.deckLink, game, winner, 2);
+        Contract.assertNotNullLike(player1.lobbyDeck, `Player1 ${player1.id} has no deck assigned at SWUStats payload build time`);
+        Contract.assertNotNullLike(player2.lobbyDeck, `Player2 ${player2.id} has no deck assigned at SWUStats payload build time`);
+
+        const player1Data = this.buildPlayerData(player1, player2, player1.lobbyDeck.deckLink, game, winner, 1);
+        const player2Data = this.buildPlayerData(player2, player1, player2.lobbyDeck.deckLink, game, winner, 2);
 
         const firstPlayer = player1Data.firstPlayer === 1 ? 1 : 2;
         const winHero = winner === 1 ? player1Data.leader : player2Data.leader;
         const loseHero = winner === 1 ? player2Data.leader : player1Data.leader;
         let p1SWUStatsToken = null;
         let p2SWUStatsToken = null;
-        if (hasSwuStatsSource(player1Details) && player1Details.user.isAuthenticatedUser()) {
-            p1SWUStatsToken = await this.getAccessTokenAsync(player1Details.user.getId(), serverObject, lobbyId);
+        if (player1.lobbyDeck.deckSource === DeckSource.SWUStats && player1.lobbyUser.isAuthenticatedUser()) {
+            p1SWUStatsToken = await this.getAccessTokenAsync(player1.lobbyUser.getId(), serverObject, lobbyId);
         }
-        if (hasSwuStatsSource(player2Details) && player2Details.user.isAuthenticatedUser()) {
-            p2SWUStatsToken = await this.getAccessTokenAsync(player2Details.user.getId(), serverObject, lobbyId);
+        if (player2.lobbyDeck.deckSource === DeckSource.SWUStats && player2.lobbyUser.isAuthenticatedUser()) {
+            p2SWUStatsToken = await this.getAccessTokenAsync(player2.lobbyUser.getId(), serverObject, lobbyId);
         }
         // Get winner's remaining health
         const winnerPlayer = winner === 1 ? player1 : player2;
@@ -329,8 +324,8 @@ export class SwuStatsHandler {
             apiKey: this.apiKey,
             winner,
             firstPlayer,
-            p1DeckLink: player1Details.deckLink,
-            p2DeckLink: player2Details.deckLink,
+            p1DeckLink: player1.lobbyDeck.deckLink,
+            p2DeckLink: player2.lobbyDeck.deckLink,
             player1: player1Data,
             player2: player2Data,
             p1SWUStatsToken,
