@@ -697,10 +697,6 @@ class DynamoDBService {
     }
 
     public deleteCosmeticAsync(cosmeticId: string) {
-        if (!this.isLocalMode) {
-            throw new Error('Cosmetic deletion is only allowed in local mode');
-        }
-
         return this.executeDbOperationAsync(() => {
             return this.deleteItemAsync('COSMETICS', `ITEM#${cosmeticId}`);
         }, 'Error deleting cosmetic item');
