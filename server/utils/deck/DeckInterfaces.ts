@@ -3,8 +3,8 @@ import type { IPlayableCard } from '../../game/core/card/baseClasses/PlayableOrD
 import type { Card } from '../../game/core/card/Card';
 import type { ILeaderCard } from '../../game/core/card/propertyMixins/LeaderProperties';
 import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
+import type { SwuGameFormat } from '../../game/core/Constants';
 import type { GameObjectRef } from '../../game/core/GameObjectBase';
-import type { SwuGameFormat } from '../../SwuGameFormat';
 
 export interface ISwuDbFormatCardEntry {
     id: string;

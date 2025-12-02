@@ -1,9 +1,9 @@
-import { SwuGameFormat } from '../SwuGameFormat';
 import type Socket from '../socket';
 import { logger } from '../logger';
 import type { User } from '../utils/user/User';
 import * as Contract from '../game/core/utils/Contract';
 import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
+import { SwuGameFormat } from '../game/core/Constants';
 
 export interface QueuedPlayerToAdd {
     deck: ISwuDbFormatDecklist;

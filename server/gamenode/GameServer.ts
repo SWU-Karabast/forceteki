@@ -12,7 +12,7 @@ import { monitorEventLoopDelay, performance, PerformanceObserver, constants as N
 
 import { logger, jsonOnlyLogger } from '../logger';
 
-import { Lobby, MatchType } from './Lobby';
+import { Lobby, MatchmakingType } from './Lobby';
 import Socket from '../socket';
 import type { User } from '../utils/user/User';
 import * as env from '../env';
@@ -22,7 +22,6 @@ import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbFormatDecklist, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
 import type { QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
@@ -41,6 +40,7 @@ import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
+import { SwuGameFormat } from '../game/core/Constants';
 
 
 /**
@@ -1358,7 +1358,7 @@ export class GameServer {
                     numberOfOngoingGames++;
 
                     // don't show entries for private games
-                    if (lobby.gameType !== MatchType.Private) {
+                    if (lobby.matchmakingType !== MatchmakingType.PrivateLobby) {
                         ongoingGames.push(gameState);
                     }
                 }
@@ -1406,7 +1406,7 @@ export class GameServer {
             Array.from(this.lobbies.entries()).filter(([, lobby]) =>
                 !lobby.isFilled() &&
                 !lobby.isPrivate &&
-                lobby.gameType !== MatchType.Quick &&
+                lobby.matchmakingType !== MatchmakingType.Quick &&
                 !lobby.hasOngoingGame() &&
                 lobby.hasConnectedPlayer()
             )
@@ -1433,7 +1433,7 @@ export class GameServer {
         // set default user if anonymous user is supplied for private lobbies
         const lobby = new Lobby(
             lobbyName,
-            isPrivate ? MatchType.Private : MatchType.Custom,
+            isPrivate ? MatchmakingType.PrivateLobby : MatchmakingType.PublicLobby,
             format,
             allow30CardsInMainBoard,
             this.cardDataGetter,
@@ -1451,7 +1451,7 @@ export class GameServer {
     private async startTestGame(filename: string) {
         const lobby = new Lobby(
             'Test Game',
-            MatchType.Custom,
+            MatchmakingType.PublicLobby,
             SwuGameFormat.Open,
             false,
             this.cardDataGetter,
@@ -1584,7 +1584,7 @@ export class GameServer {
 
             // If a user refreshes while they are matched with another player in the queue they lose the requeue listener
             // this is why we reinitialize the requeue listener
-            if (lobby.gameType === MatchType.Quick) {
+            if (lobby.matchmakingType === MatchmakingType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
                     socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser?.deck?.originalDeckList));
@@ -1727,7 +1727,7 @@ export class GameServer {
         // Create a new Lobby
         const lobby = new Lobby(
             'Quick Game',
-            MatchType.Quick,
+            MatchmakingType.Quick,
             format,
             false,
             this.cardDataGetter,

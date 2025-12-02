@@ -12,14 +12,13 @@ import { getUserWithDefaultsSet } from '../Settings';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import { SwuGameFormat } from '../SwuGameFormat';
 import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
 import { DeckSource } from '../utils/deck/DeckInterfaces';
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
-import { AlertType, GameEndReason, GameErrorSeverity } from '../game/core/Constants';
+import { AlertType, GameEndReason, GameErrorSeverity, SwuGameFormat } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
@@ -45,10 +44,10 @@ export interface LobbyUserWrapper extends LobbySpectatorWrapper {
     reportedBugs: number;
 }
 
-export enum MatchType {
-    Custom = 'Custom',
-    Private = 'Private',
-    Quick = 'Quick',
+export enum MatchmakingType {
+    PublicLobby = 'publicLobby',
+    PrivateLobby = 'privateLobby',
+    Quick = 'quick',
 }
 
 export enum StatsSource {
@@ -97,7 +96,7 @@ export class Lobby {
     public users: LobbyUserWrapper[] = [];
     public spectators: LobbySpectatorWrapper[] = [];
     private lobbyOwnerId: string;
-    public gameType: MatchType;
+    public matchmakingType: MatchmakingType;
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
     private userLastActivity = new Map<string, Date>();
@@ -109,8 +108,8 @@ export class Lobby {
 
     public constructor(
         lobbyName: string,
-        lobbyGameType: MatchType,
-        lobbyGameFormat: SwuGameFormat,
+        matchmakingType: MatchmakingType,
+        gameFormat: SwuGameFormat,
         allow30CardsInMainBoard: boolean,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
@@ -119,22 +118,22 @@ export class Lobby {
         testGameBuilder?: any
     ) {
         Contract.assertTrue(
-            [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
-            `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
+            [MatchmakingType.PublicLobby, MatchmakingType.PrivateLobby, MatchmakingType.Quick].includes(matchmakingType),
+            `Lobby game type ${matchmakingType} doesn't match any MatchType values`
         );
         this._id = uuid();
         this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat(() => this.sendLobbyState());
-        this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
-        this.isPrivate = lobbyGameType === MatchType.Private;
-        this.gameType = lobbyGameType;
+        this.connectionLink = matchmakingType !== MatchmakingType.Quick ? this.createLobbyLink() : null;
+        this.isPrivate = matchmakingType === MatchmakingType.PrivateLobby;
+        this.matchmakingType = matchmakingType;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
-        this.gameFormat = lobbyGameFormat;
+        this.gameFormat = gameFormat;
         this.server = gameServer;
         this.discordDispatcher = discordDispatcher;
-        this.undoMode = lobbyGameType === MatchType.Private ? UndoMode.Free : UndoMode.Request;
+        this.undoMode = matchmakingType === MatchmakingType.PrivateLobby ? UndoMode.Free : UndoMode.Request;
         this.allow30CardsInMainBoard = allow30CardsInMainBoard;
     }
 
@@ -164,7 +163,7 @@ export class Lobby {
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
-            gameType: this.gameType,
+            gameType: this.matchmakingType,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
@@ -362,7 +361,7 @@ export class Lobby {
             return Promise.resolve();
         }
 
-        if (this.gameType === MatchType.Quick) {
+        if (this.matchmakingType === MatchmakingType.Quick) {
             if (!socket.eventContainsListener('requeue')) {
                 socket.registerEvent(
                     'requeue',
@@ -470,8 +469,8 @@ export class Lobby {
         // Clear the rematch request and reset the game.
         this.rematchRequest = null;
         this.game = null;
-        if (this.gameType === MatchType.Quick) {
-            this.gameType = MatchType.Custom;
+        if (this.matchmakingType === MatchmakingType.Quick) {
+            this.matchmakingType = MatchmakingType.PublicLobby;
         }
         // Clear the 'ready' state for all users.
         this.users.forEach((user) => {
@@ -716,7 +715,7 @@ export class Lobby {
             await game.initialiseAsync();
             this.sendGameState(game);
         } catch (error) {
-            if (this.gameType === MatchType.Quick) {
+            if (this.matchmakingType === MatchmakingType.Quick) {
                 logger.error(
                     'Lobby: error attempting to start matchmaking lobby, cancelling and requeueing users',
                     { error: { message: error.message, stack: error.stack }, lobbyId: this.id }
@@ -728,7 +727,7 @@ export class Lobby {
                     error,
                     this.id,
                     this.gameFormat,
-                    this.gameType
+                    this.matchmakingType
                 ).catch((e) => {
                     logger.error('Lobby: error sending game start error to discord', { error: { message: e.message, stack: e.stack }, lobbyId: this.id });
                 });
@@ -760,7 +759,7 @@ export class Lobby {
         );
 
         const useActionTimer =
-            (this.gameType === MatchType.Quick || this.gameType === MatchType.Custom) &&
+            (this.matchmakingType === MatchmakingType.Quick || this.matchmakingType === MatchmakingType.PublicLobby) &&
             (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_ACTION_TIMER === 'true');
 
         return {
@@ -872,7 +871,7 @@ export class Lobby {
     }
 
     public handleMatchmakingDisconnect() {
-        if (this.gameType !== MatchType.Quick) {
+        if (this.matchmakingType !== MatchmakingType.Quick) {
             logger.error('Lobby: attempting to use quick lobby disconnect on non-quick lobby', { lobbyId: this.id });
             return;
         }
@@ -946,7 +945,7 @@ export class Lobby {
                 player1Id,
                 player2Id,
                 this.gameFormat,
-                this.gameType,
+                this.matchmakingType,
                 this.game.gameStepsSinceLastUndo
             )
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
@@ -981,7 +980,7 @@ export class Lobby {
             player1Id,
             player2Id,
             this.gameFormat,
-            this.gameType,
+            this.matchmakingType,
             this.game.gameStepsSinceLastUndo
         )
             .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
@@ -1351,7 +1350,7 @@ export class Lobby {
                 gameMessages,
                 this.id,
                 this.gameFormat,
-                this.gameType,
+                this.matchmakingType,
                 this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,

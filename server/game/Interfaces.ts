@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, Trait } from './core/Constants';
+import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, SwuGameFormat, Trait } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
@@ -28,11 +28,10 @@ import type { IUpgradeCard } from './core/card/CardInterfaces';
 import type { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
 import type { FormatMessage } from './core/chat/GameChat';
 import type { ISnapshotSettingsBase } from './core/snapshot/SnapshotInterfaces';
-import type { Lobby, MatchType } from '../gamenode/Lobby';
+import type { Lobby, MatchmakingType } from '../gamenode/Lobby';
 import type { DamageSourceType } from './IDamageOrDefeatSource';
 import type { IInPlayCard } from './core/card/baseClasses/InPlayCard';
 import type { IOngoingAllCardsForPlayerEffectProps, OngoingAllCardsForPlayerEffect } from './core/ongoingEffect/OngoingAllCardsForPlayerEffect';
-import type { SwuGameFormat } from '../SwuGameFormat';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -436,7 +435,7 @@ export interface ISerializedReportState {
     screenResolution?: { width: number; height: number } | null;
     viewport?: { width: number; height: number } | null;
     gameFormat: SwuGameFormat;
-    matchType: MatchType;
+    matchType: MatchmakingType;
 }
 
 export interface ISerializedUndoFailureState {

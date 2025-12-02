@@ -604,3 +604,9 @@ export enum NamedAction {
     Top = 'Top',
     Bottom = 'Bottom',
 }
+
+export enum SwuGameFormat {
+    Premier = 'premier',
+    NextSetPreview = 'nextSetPreview',
+    Open = 'open'
+}

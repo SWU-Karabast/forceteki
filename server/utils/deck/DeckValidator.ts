@@ -1,11 +1,10 @@
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
-import { CardType } from '../../game/core/Constants';
+import { CardType, SwuGameFormat } from '../../game/core/Constants';
 import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
 import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties } from './DeckInterfaces';
 import { DecklistLocation, DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
-import { SwuGameFormat } from '../../SwuGameFormat';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 import * as Contract from '../../game/core/utils/Contract';
 
