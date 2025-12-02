@@ -117,17 +117,14 @@ export class GameServer {
 
         console.log('SETUP: Card data downloaded.');
 
-        // initialize server role users cache
-        console.log('SETUP: Initializing server role users cache.');
-        const serverRoleUsersCache = new ServerRoleUsersCache(60);
-        await serverRoleUsersCache.initializeAsync();
-        console.log('SETUP: Server role users cache initialized.');
-
-        // initialize cosmetics service (conditionally based on environment)
         let cosmeticsService: CosmeticsService | undefined;
-        const shouldInitializeCosmetics = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
-        if (shouldInitializeCosmetics) {
+        let serverRoleUsersCache: ServerRoleUsersCache | undefined;
+        const shouldInitializeDbCaches = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
+        if (shouldInitializeDbCaches) {
+            console.log('SETUP: Initializing caches for server roles and customizations.');
+            serverRoleUsersCache = await ServerRoleUsersCache.createAsync(60);
             cosmeticsService = await CosmeticsService.createAsync();
+            console.log('SETUP: Caches for server roles and customizations initialized.');
         }
 
         // increase stack trace limit for better error logging
@@ -195,12 +192,12 @@ export class GameServer {
     public readonly swuStatsHandler: SwuStatsHandler;
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
-    public readonly serverRoleUsersCache: ServerRoleUsersCache;
+    public readonly serverRoleUsersCache?: ServerRoleUsersCache;
 
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
-        serverRoleUsersCache: ServerRoleUsersCache,
+        serverRoleUsersCache?: ServerRoleUsersCache,
         cosmeticsService?: CosmeticsService,
         testGameBuilder?: any
     ) {

@@ -9,8 +9,8 @@ import type { IServerRoleUsersListsEntity } from '../services/DynamoDBInterfaces
 export class ServerRoleUsersCache {
     private readonly cache: TimedCache<IServerRoleUsersListsEntity>;
 
-    public constructor(refreshIntervalMinutes: number) {
-        this.cache = new TimedCache<IServerRoleUsersListsEntity>(
+    public static async createAsync(refreshIntervalMinutes: number): Promise<ServerRoleUsersCache> {
+        const cache = new TimedCache<IServerRoleUsersListsEntity>(
             refreshIntervalMinutes,
             async () => {
                 const db = await getDynamoDbServiceAsync();
@@ -18,6 +18,16 @@ export class ServerRoleUsersCache {
             },
             'ServerRoleUsersCache'
         );
+
+        await cache.initializeAsync();
+
+        const instance = new ServerRoleUsersCache(cache);
+
+        return instance;
+    }
+
+    private constructor(cache: TimedCache<IServerRoleUsersListsEntity>) {
+        this.cache = cache;
     }
 
     /**
