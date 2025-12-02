@@ -23,7 +23,7 @@ import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { ISwuDbFormatDecklist, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
-import type { QueuedPlayer } from './QueueHandler';
+import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
@@ -40,6 +40,7 @@ import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
+import { ENABLE_BO3, GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
 
 
@@ -979,7 +980,7 @@ export class GameServer {
 
         app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, lobbyName, allow30CardsInMainBoard } = req.body;
+                const { deck, format, isPrivate, gamesToWinMode, lobbyName, allow30CardsInMainBoard } = req.body;
                 const user = req.user;
 
                 // Check if the user is already in a lobby
@@ -998,7 +999,7 @@ export class GameServer {
                 }
 
                 await this.processDeckValidation(deck, true, { format, allow30CardsInMainBoard }, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, isPrivate, allow30CardsInMainBoard);
+                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, allow30CardsInMainBoard);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -1084,7 +1085,7 @@ export class GameServer {
 
         app.post('/api/enter-queue', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { format, deck } = req.body;
+                const { format, gamesToWinMode, deck } = req.body;
                 const user = req.user;
                 // check if user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
@@ -1101,7 +1102,7 @@ export class GameServer {
                 }
 
                 await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
-                    const success = this.enterQueue(format, user, deck);
+                    const success = this.enterQueue(format, gamesToWinMode, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -1422,7 +1423,15 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean, allow30CardsInMainBoard: boolean = false) {
+    private createLobby(
+        lobbyName: string,
+        user: User,
+        deck: Deck,
+        format: SwuGameFormat,
+        gamesToWinMode: GamesToWinMode,
+        isPrivate: boolean,
+        allow30CardsInMainBoard: boolean = false
+    ) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -1430,11 +1439,16 @@ export class GameServer {
             throw new Error('User must be provided for public lobbies');
         }
 
+        if (!ENABLE_BO3) {
+            Contract.assertFalse(gamesToWinMode === GamesToWinMode.BestOfThree, 'Best of three mode only enabled for dev testing');
+        }
+
         // set default user if anonymous user is supplied for private lobbies
         const lobby = new Lobby(
             lobbyName,
             isPrivate ? MatchmakingType.PrivateLobby : MatchmakingType.PublicLobby,
             format,
+            gamesToWinMode,
             allow30CardsInMainBoard,
             this.cardDataGetter,
             this.deckValidator,
@@ -1453,6 +1467,7 @@ export class GameServer {
             'Test Game',
             MatchmakingType.PublicLobby,
             SwuGameFormat.Open,
+            GamesToWinMode.BestOfOne,
             false,
             this.cardDataGetter,
             this.deckValidator,
@@ -1587,7 +1602,7 @@ export class GameServer {
             if (lobby.matchmakingType === MatchmakingType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
-                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser?.deck?.originalDeckList));
+                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.queueFormatKey, user, lobbyUser?.deck?.originalDeckList));
                 }
             }
 
@@ -1668,9 +1683,14 @@ export class GameServer {
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(format: SwuGameFormat, user: User, deck: ISwuDbFormatDecklist): boolean {
+    private enterQueue(format: SwuGameFormat, gamesToWinMode: GamesToWinMode, user: User, deck: ISwuDbFormatDecklist): boolean {
+        const formatKey: IQueueFormatKey = {
+            swuFormat: format,
+            gamesToWinMode
+        };
+
         this.queue.addPlayer(
-            format,
+            formatKey,
             {
                 user,
                 deck,
@@ -1722,13 +1742,14 @@ export class GameServer {
     /**
      * Matchmake two users in a queue
      */
-    private async matchmakeQueuePlayersAsync(format: SwuGameFormat, [p1, p2]: [QueuedPlayer, QueuedPlayer]): Promise<void> {
+    private async matchmakeQueuePlayersAsync(format: IQueueFormatKey, [p1, p2]: [QueuedPlayer, QueuedPlayer]): Promise<void> {
         Contract.assertFalse(p1.user.getId() === p2.user.getId(), 'Cannot matchmake the same user');
         // Create a new Lobby
         const lobby = new Lobby(
             'Quick Game',
             MatchmakingType.Quick,
-            format,
+            format.swuFormat,
+            format.gamesToWinMode,
             false,
             this.cardDataGetter,
             this.deckValidator,
@@ -1759,7 +1780,7 @@ export class GameServer {
         return Promise.resolve();
     }
 
-    private async setupQueueSocketAsync(player: QueuedPlayer, lobby: Lobby, format: SwuGameFormat): Promise<void> {
+    private async setupQueueSocketAsync(player: QueuedPlayer, lobby: Lobby, format: IQueueFormatKey): Promise<void> {
         const socket = player?.socket;
         if (!socket) {
             return Promise.resolve();
@@ -1777,7 +1798,7 @@ export class GameServer {
     /**
      * requeues the user and removes them from the previous lobby. If the lobby is empty, it cleans it up.
      */
-    public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: ISwuDbFormatDecklist) {
+    public requeueUser(socket: Socket, format: IQueueFormatKey, user: User, deck: ISwuDbFormatDecklist) {
         try {
             if (!deck) {
                 logger.error(`GameServer: Cannot requeue user ${user.getId()} - no deck provided`);

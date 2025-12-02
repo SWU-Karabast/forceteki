@@ -18,11 +18,13 @@ import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
+import { ENABLE_BO3, GamesToWinMode } from '../game/core/Constants';
 import { AlertType, GameEndReason, GameErrorSeverity, SwuGameFormat } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import type { Player } from '../game/core/Player';
+import type { IQueueFormatKey } from './QueueHandler';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -35,6 +37,18 @@ interface LobbySpectatorWrapper {
 enum LobbySettingKeys {
     RequestUndo = 'requestUndo',
 }
+
+interface IBestOfOneHistory {
+    gamesToWinMode: GamesToWinMode.BestOfOne;
+    lastWinnerId?: string;
+}
+
+interface IBestOfThreeHistory {
+    gamesToWinMode: GamesToWinMode.BestOfThree;
+    winnerIdsInOrder: string[];
+}
+
+type IGameWinHistory = IBestOfOneHistory | IBestOfThreeHistory;
 
 export interface LobbyUserWrapper extends LobbySpectatorWrapper {
     ready: boolean;
@@ -106,10 +120,13 @@ export class Lobby {
     private gameMessageErrorCount = 0;
     private statsUpdateStatus = new Map<string, Map<StatsSource, IStatsMessageFormat>>();
 
+    private winHistory: IGameWinHistory;
+
     public constructor(
         lobbyName: string,
         matchmakingType: MatchmakingType,
         gameFormat: SwuGameFormat,
+        gamesToWinMode: GamesToWinMode,
         allow30CardsInMainBoard: boolean,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
@@ -135,6 +152,18 @@ export class Lobby {
         this.discordDispatcher = discordDispatcher;
         this.undoMode = matchmakingType === MatchmakingType.PrivateLobby ? UndoMode.Free : UndoMode.Request;
         this.allow30CardsInMainBoard = allow30CardsInMainBoard;
+
+        switch (gamesToWinMode) {
+            case GamesToWinMode.BestOfOne:
+                this.setBo1History();
+                break;
+            case GamesToWinMode.BestOfThree:
+                Contract.assertFalse(ENABLE_BO3, 'Best of three mode only enabled for dev testing');
+                this.initializeBo3History();
+                break;
+            default:
+                Contract.fail(`Invalid games to win mode: ${gamesToWinMode}`);
+        }
     }
 
     public get id(): string {
@@ -147,6 +176,28 @@ export class Lobby {
 
     public get format(): SwuGameFormat {
         return this.gameFormat;
+    }
+
+    public get gamesToWinMode(): GamesToWinMode {
+        return this.winHistory.gamesToWinMode;
+    }
+
+    public get queueFormatKey(): IQueueFormatKey {
+        return { swuFormat: this.format, gamesToWinMode: this.gamesToWinMode };
+    }
+
+    private setBo1History(winnerId?: string): void {
+        this.winHistory = {
+            gamesToWinMode: GamesToWinMode.BestOfOne,
+            lastWinnerId: winnerId
+        };
+    }
+
+    private initializeBo3History(): void {
+        this.winHistory = {
+            gamesToWinMode: GamesToWinMode.BestOfThree,
+            winnerIdsInOrder: []
+        };
     }
 
     public getLobbyState(user?: LobbyUserWrapper): any {
@@ -371,7 +422,7 @@ export class Lobby {
                             socket.send('connection_error', 'Unable to requeue: deck not found');
                             return;
                         }
-                        this.server.requeueUser(socket, this.format, user, existingUser.deck.originalDeckList);
+                        this.server.requeueUser(socket, this.queueFormatKey, user, existingUser.deck.originalDeckList);
                     }
                 );
             }
@@ -895,7 +946,7 @@ export class Lobby {
                     user.socket.send('connection_error', 'Unable to requeue: deck not found');
                     continue;
                 }
-                this.server.requeueUser(user.socket, this.format, user.socket.user, user.deck.originalDeckList);
+                this.server.requeueUser(user.socket, this.queueFormatKey, user.socket.user, user.deck.originalDeckList);
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
 

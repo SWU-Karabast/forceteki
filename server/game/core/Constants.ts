@@ -610,3 +610,10 @@ export enum SwuGameFormat {
     NextSetPreview = 'nextSetPreview',
     Open = 'open'
 }
+
+export enum GamesToWinMode {
+    BestOfOne = 'bestOfOne',
+    BestOfThree = 'bestOfThree',
+}
+
+export const ENABLE_BO3 = process.env.ENVIRONMENT === 'development';

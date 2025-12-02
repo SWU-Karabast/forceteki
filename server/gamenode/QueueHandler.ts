@@ -3,6 +3,7 @@ import { logger } from '../logger';
 import type { User } from '../utils/user/User';
 import * as Contract from '../game/core/utils/Contract';
 import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
+import { ENABLE_BO3, GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
 
 export interface QueuedPlayerToAdd {
@@ -21,24 +22,38 @@ export interface QueuedPlayer extends QueuedPlayerToAdd {
 }
 
 interface QueuedPlayerEntry {
-    format: SwuGameFormat;
+    format: IQueueFormatKey;
     player: QueuedPlayer;
 }
 
+export interface IQueueFormatKey {
+    swuFormat: SwuGameFormat;
+    gamesToWinMode: GamesToWinMode;
+}
+
+
 export class QueueHandler {
-    private queues: Map<SwuGameFormat, QueuedPlayer[]>;
+    private readonly queues: Map<SwuGameFormat, Map<GamesToWinMode, QueuedPlayer[]>>;
     private playersWaitingToConnect: QueuedPlayerEntry[] = [];
 
     public constructor() {
-        this.queues = new Map<SwuGameFormat, QueuedPlayer[]>();
+        this.queues = new Map<SwuGameFormat, Map<GamesToWinMode, QueuedPlayer[]>>();
 
-        Object.values(SwuGameFormat).forEach((format) => {
-            this.queues.set(format, []);
-        });
+        for (const format of Object.values(SwuGameFormat)) {
+            const formatMap = new Map<GamesToWinMode, QueuedPlayer[]>();
+
+            formatMap.set(GamesToWinMode.BestOfOne, []);
+
+            if (ENABLE_BO3) {
+                formatMap.set(GamesToWinMode.BestOfThree, []);
+            }
+
+            this.queues.set(format, formatMap);
+        }
     }
 
     /** Adds an entry for a player, but they can't match until they actually connect */
-    public addPlayer(format: SwuGameFormat, player: QueuedPlayerToAdd) {
+    public addPlayer(format: IQueueFormatKey, player: QueuedPlayerToAdd) {
         Contract.assertNotNullLike(player);
         Contract.assertNotNullLike(format);
 
@@ -89,7 +104,7 @@ export class QueueHandler {
         playerEntry.player.state = QueuedPlayerState.Connected;
         playerEntry.player.socket = socket;
 
-        this.queues.get(playerEntry.format)?.push(playerEntry.player);
+        this.getQueueByFormat(playerEntry.format)?.push(playerEntry.player);
         logger.info(`User ${userId} connected with socket id ${socket.id}, added to queue for format ${playerEntry.format}`);
     }
 
@@ -108,10 +123,10 @@ export class QueueHandler {
     }
 
     public removePlayer(userId: string, reasonStr: string) {
-        for (const [format, queue] of this.queues.entries()) {
+        for (const [queueKey, queue] of this.iterateQueues()) {
             const index = queue.findIndex((p) => p.user.getId() === userId);
             if (index !== -1) {
-                logger.info(`Removing player ${userId} from queue for format ${format}. Reason: ${reasonStr}`);
+                logger.info(`Removing player ${userId} from queue for format ${this.queueKeyToString(queueKey)}. Reason: ${reasonStr}`);
                 queue.splice(index, 1);
                 return;
             }
@@ -128,7 +143,7 @@ export class QueueHandler {
     /** Send a heartbeat signal to the FE for all connected clients */
     public sendHeartbeat() {
         try {
-            for (const queue of this.queues.values()) {
+            for (const [_queueKey, queue] of this.iterateQueues()) {
                 for (const player of queue) {
                     if (player.socket) {
                         player.socket.send('queueHeartbeat', Date.now());
@@ -141,10 +156,10 @@ export class QueueHandler {
     }
 
     private findPlayerInQueue(userId: string): QueuedPlayerEntry | null {
-        for (const [format, queue] of this.queues.entries()) {
+        for (const [queueKey, queue] of this.iterateQueues()) {
             const player = queue.find((p) => p.user.getId() === userId);
             if (player) {
-                return { player, format };
+                return { player, format: queueKey };
             }
         }
         return null;
@@ -159,8 +174,8 @@ export class QueueHandler {
     }
 
     // Get the next two players from a format queue
-    public getNextMatchPair(format: SwuGameFormat): [QueuedPlayer, QueuedPlayer] | null {
-        const queue = this.queues.get(format);
+    public getNextMatchPair(format: IQueueFormatKey): [QueuedPlayer, QueuedPlayer] | null {
+        const queue = this.getQueueByFormat(format);
         if (!queue || queue.length < 2) {
             return null;
         }
@@ -175,9 +190,31 @@ export class QueueHandler {
     }
 
     // Check if any format has enough players for matchmaking
-    public findReadyFormats(): SwuGameFormat[] {
-        return Array.from(this.queues.entries())
+    public findReadyFormats(): IQueueFormatKey[] {
+        return Array.from(this.iterateQueues())
             .filter(([_, queue]) => queue.length >= 2)
             .map(([format]) => format);
+    }
+
+    private *iterateQueues(): IterableIterator<[IQueueFormatKey, QueuedPlayer[]]> {
+        for (const [swuFormat, queueMap] of this.queues.entries()) {
+            for (const [gamesToWinMode, queue] of queueMap.entries()) {
+                yield [{ swuFormat, gamesToWinMode }, queue];
+            }
+        }
+    }
+
+    private queueKeyToString(key: IQueueFormatKey): string {
+        return `(${key.swuFormat} / ${GamesToWinMode[key.gamesToWinMode]})`;
+    }
+
+    private getQueueByFormat(key: IQueueFormatKey): QueuedPlayer[] | null {
+        const formatMap = this.queues.get(key.swuFormat);
+        Contract.assertNotNullLike(formatMap, `No queue found for format ${key.swuFormat}`);
+
+        const queue = formatMap.get(key.gamesToWinMode);
+        Contract.assertNotNullLike(queue, `No queue found for ${this.queueKeyToString(key)}`);
+
+        return queue;
     }
 }
