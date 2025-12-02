@@ -2,6 +2,7 @@ import Game from '../game/core/Game';
 import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
 import * as Contract from '../game/core/utils/Contract';
+import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger';
@@ -18,7 +19,7 @@ import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
-import { ENABLE_BO3, GamesToWinMode } from '../game/core/Constants';
+import { ENABLE_BO3, GamesToWinMode, RematchMode } from '../game/core/Constants';
 import { AlertType, GameEndReason, GameErrorSeverity, SwuGameFormat } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
@@ -45,7 +46,9 @@ interface IBestOfOneHistory {
 
 interface IBestOfThreeHistory {
     gamesToWinMode: GamesToWinMode.BestOfThree;
-    winnerIdsInOrder: string[];
+
+    /** Array of player IDs who won each game, or 'draw' for drawn games */
+    winnerIdsInOrder: (string | 'draw')[];
 }
 
 type IGameWinHistory = IBestOfOneHistory | IBestOfThreeHistory;
@@ -82,7 +85,7 @@ export interface IStatsMessageFormat {
 
 export interface RematchRequest {
     initiator?: string;
-    mode: 'reset' | 'regular';
+    mode: RematchMode;
 }
 
 export class Lobby {
@@ -121,6 +124,7 @@ export class Lobby {
     private statsUpdateStatus = new Map<string, Map<StatsSource, IStatsMessageFormat>>();
 
     private winHistory: IGameWinHistory;
+    private bo3NextGameConfirmedBy?: Set<string>;
 
     public constructor(
         lobbyName: string,
@@ -200,6 +204,37 @@ export class Lobby {
         };
     }
 
+    /**
+     * Get win history data formatted for the frontend client
+     */
+    private getWinHistoryForClient(): {
+        gamesToWinMode: GamesToWinMode;
+        lastWinnerId?: string;
+        currentGameNumber?: number;
+        winsPerPlayer?: Record<string, number>;
+    } {
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne) {
+            return {
+                gamesToWinMode: this.winHistory.gamesToWinMode,
+                lastWinnerId: this.winHistory.lastWinnerId
+            };
+        }
+
+        // Bo3 mode
+        const winsPerPlayer: Record<string, number> = {};
+        for (const winnerId of this.winHistory.winnerIdsInOrder) {
+            if (winnerId !== 'draw') {
+                winsPerPlayer[winnerId] = (winsPerPlayer[winnerId] || 0) + 1;
+            }
+        }
+
+        return {
+            gamesToWinMode: this.winHistory.gamesToWinMode,
+            currentGameNumber: this.winHistory.winnerIdsInOrder.length + 1,
+            winsPerPlayer
+        };
+    }
+
     public getLobbyState(user?: LobbyUserWrapper): any {
         return {
             id: this._id,
@@ -219,6 +254,7 @@ export class Lobby {
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
             allow30CardsInMainBoard: this.allow30CardsInMainBoard,
+            winHistory: this.getWinHistoryForClient(),
             settings: {
                 requestUndo: this.undoMode === UndoMode.Request,
             },
@@ -497,10 +533,23 @@ export class Lobby {
     }
 
     private requestRematch(socket: Socket, ...args: any[]): void {
-        // Expect the rematch mode to be passed as the first argument: 'reset' or 'regular'
         Contract.assertTrue(args.length === 1, 'Expected rematch mode argument but argument length is: ' + args.length);
-        const mode = args[0];
-        Contract.assertTrue(mode === 'reset' || mode === 'regular', 'Invalid rematch mode, expected reset or regular but receieved: ' + mode);
+
+        // Convert and validate the mode is a valid RematchMode value (throws if invalid)
+        const mode = EnumHelpers.checkConvertToEnum(args[0], RematchMode)[0];
+
+        // Validate mode transitions based on current game mode
+        switch (this.gamesToWinMode) {
+            case GamesToWinMode.BestOfOne:
+                Contract.assertTrue(mode === RematchMode.Regular || mode === RematchMode.Reset || mode === RematchMode.Bo1ConvertToBo3);
+                break;
+            case GamesToWinMode.BestOfThree:
+                // Bo3 mode - only NewBo3 is allowed for rematch (regular/reset should use proceedToNextBo3Game)
+                Contract.assertTrue(mode === RematchMode.NewBo3);
+                break;
+            default:
+                Contract.fail(`Unknown games to win mode: ${this.gamesToWinMode}`);
+        }
 
         const user = this.getUser(socket.user.getId());
 
@@ -511,23 +560,168 @@ export class Lobby {
                 mode,
             };
             logger.info(`Lobby: user ${socket.user.getId()} requested a rematch (${mode})`, { lobbyId: this.id, userName: user.username, userId: user.id });
-            this.game.addAlert(AlertType.Notification, `${user.username} has requested a ${mode === 'reset' ? 'quick' : ''} rematch!`);
+
+            let alertMessage: string;
+            switch (mode) {
+                case RematchMode.Reset:
+                    alertMessage = `${user.username} has requested a quick rematch!`;
+                    break;
+                case RematchMode.Bo1ConvertToBo3:
+                    alertMessage = `${user.username} has requested to convert to a best-of-three match!`;
+                    break;
+                case RematchMode.NewBo3:
+                    alertMessage = `${user.username} has requested a new best-of-three match!`;
+                    break;
+                case RematchMode.Regular:
+                    alertMessage = `${user.username} has requested a rematch!`;
+                    break;
+                default:
+                    Contract.fail(`Unknown rematch mode: ${mode}`);
+            }
+            this.game.addAlert(AlertType.Notification, alertMessage);
         }
         this.sendLobbyState();
     }
 
     private rematch() {
+        const mode = this.rematchRequest?.mode;
+
         // Clear the rematch request and reset the game.
         this.rematchRequest = null;
         this.game = null;
         if (this.matchmakingType === MatchmakingType.Quick) {
             this.matchmakingType = MatchmakingType.PublicLobby;
         }
+
+        // Handle win history based on rematch mode
+        switch (mode) {
+            case RematchMode.Bo1ConvertToBo3: {
+                // Convert Bo1 to Bo3, using previous winner as first game result
+                Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne, 'Cannot convert to Bo3 from non-Bo1 mode');
+                const previousWinnerId = this.winHistory.lastWinnerId;
+                this.winHistory = {
+                    gamesToWinMode: GamesToWinMode.BestOfThree,
+                    winnerIdsInOrder: previousWinnerId ? [previousWinnerId] : []
+                };
+                // Initialize Bo3 confirmation tracking
+                this.bo3NextGameConfirmedBy = new Set<string>();
+                break;
+            }
+            case RematchMode.NewBo3:
+                // Start a fresh Bo3 set
+                this.initializeBo3History();
+                // Initialize Bo3 confirmation tracking
+                this.bo3NextGameConfirmedBy = new Set<string>();
+                break;
+            case RematchMode.Regular:
+            case RematchMode.Reset:
+                // Keep existing win history mode (Bo1 stays Bo1)
+                // For Bo1, lastWinnerId is already set by handleGameEnd
+                // Clear Bo3 confirmation tracking since we're staying in Bo1
+                this.bo3NextGameConfirmedBy = undefined;
+                break;
+            case undefined:
+                // No mode specified (shouldn't happen, but handle gracefully)
+                break;
+            default:
+                Contract.fail(`Unknown rematch mode: ${mode}`);
+        }
+
         // Clear the 'ready' state for all users.
         this.users.forEach((user) => {
             user.ready = false;
         });
         this.sendLobbyState();
+    }
+
+    /**
+     * RPC method for proceeding to the next game in a Bo3 set.
+     * Both players must call this method to confirm they are ready to proceed.
+     * The winner is determined server-side from the game state.
+     */
+    private proceedToNextBo3Game(socket: Socket): void {
+        Contract.assertTrue(this.gamesToWinMode === GamesToWinMode.BestOfThree);
+        Contract.assertNotNullLike(this.game, 'Cannot proceed to next game when no game exists');
+        Contract.assertTrue(this.game.finishedAt != null, 'Cannot proceed to next game when current game has not finished');
+        Contract.assertNotNullLike(this.bo3NextGameConfirmedBy, 'Bo3 confirmation tracking not initialized');
+
+        const userId = socket.user.getId();
+        const user = this.getUser(userId);
+
+        // Add this user to the confirmed set
+        this.bo3NextGameConfirmedBy.add(userId);
+        logger.info(`Lobby: user ${user.username} confirmed proceeding to next Bo3 game`, { lobbyId: this.id, userName: user.username, userId: user.id });
+
+        // Send game message so opponent can see this player confirmed
+        this.game.addMessage('{0} is ready to proceed to the next game.', this.game.getPlayerById(userId));
+
+        // Check if both players have confirmed
+        if (this.bo3NextGameConfirmedBy.size >= 2) {
+            // Reset for next game (winner was already recorded in handleGameEnd)
+            this.game = null;
+            this.bo3NextGameConfirmedBy.clear();
+
+            // Clear the 'ready' state for all users
+            this.users.forEach((u) => {
+                u.ready = false;
+            });
+
+            this.gameChat.addAlert(AlertType.Notification, 'Both players confirmed. Proceeding to next game.');
+            logger.info('Lobby: both players confirmed, proceeding to next Bo3 game', { lobbyId: this.id });
+        } else {
+            this.gameChat.addAlert(AlertType.Notification, `${user.username} is ready for the next game.`);
+        }
+
+        this.sendLobbyState();
+    }
+
+    /**
+     * Records the result of the current game into win history.
+     * Reads winner from game.winnerNames (server-authoritative).
+     * @param gamesToWinMode The game mode to record the result for
+     */
+    private recordGameResult(gamesToWinMode: GamesToWinMode): void {
+        Contract.assertNotNullLike(this.game, 'Cannot record game result when no game exists');
+        Contract.assertTrue(this.winHistory.gamesToWinMode === gamesToWinMode, `recordGameResult called with ${gamesToWinMode} but winHistory is ${this.winHistory.gamesToWinMode}`);
+
+        const winnerNames = this.game.winnerNames;
+        let winnerId: string | 'draw' | null = null;
+
+        if (winnerNames.length > 1) {
+            // Draw - both players' names are in winnerNames
+            winnerId = 'draw';
+        } else if (winnerNames.length === 1) {
+            // Single winner - find the player ID by name
+            const winnerName = winnerNames[0];
+            const winner = this.game.getPlayers().find((p) => p.name === winnerName);
+            Contract.assertNotNullLike(winner, `Could not find player with name ${winnerName}`);
+            winnerId = winner.id;
+        }
+
+        switch (gamesToWinMode) {
+            case GamesToWinMode.BestOfOne: {
+                Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne);
+                if (winnerId) {
+                    this.winHistory.lastWinnerId = winnerId;
+                    logger.info(`Lobby: Bo1 game ${winnerId === 'draw' ? 'ended in a draw' : `won by ${winnerId}`}`, { lobbyId: this.id });
+                } else {
+                    logger.warn('Lobby: Game finished but no winner names recorded', { lobbyId: this.id });
+                }
+                break;
+            }
+            case GamesToWinMode.BestOfThree: {
+                Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+                if (winnerId) {
+                    this.winHistory.winnerIdsInOrder.push(winnerId);
+                    logger.info(`Lobby: Bo3 game ${this.winHistory.winnerIdsInOrder.length} ${winnerId === 'draw' ? 'ended in a draw' : `won by ${winnerId}`}`, { lobbyId: this.id });
+                } else {
+                    Contract.fail('Game finished but no winner names recorded');
+                }
+                break;
+            }
+            default:
+                Contract.fail(`Unknown games to win mode: ${gamesToWinMode}`);
+        }
     }
 
     private changeDeck(socket: Socket, ...args) {
@@ -1293,14 +1487,28 @@ export class Lobby {
     }
 
     public handleGameEnd(): void {
-        if (this.game.statsUpdated) {
-            this.sendRepeatedEndGameUpdateStatsMessages(this.game);
-        } else {
-            // Update deck stats asynchronously
-            this.game.statsUpdated = true;
-            this.endGameUpdateStatsAsync(this.game).catch((error) => {
-                logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-            });
+        // Record winner based on game mode
+        this.recordGameResult(this.gamesToWinMode);
+
+        // Handle stats and other end-game logic based on game mode
+        switch (this.gamesToWinMode) {
+            case GamesToWinMode.BestOfOne:
+                // Update stats for Bo1
+                if (this.game.statsUpdated) {
+                    this.sendRepeatedEndGameUpdateStatsMessages(this.game);
+                } else {
+                    this.game.statsUpdated = true;
+                    this.endGameUpdateStatsAsync(this.game).catch((error) => {
+                        logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+                    });
+                }
+                break;
+            case GamesToWinMode.BestOfThree:
+                // Skip stats update for Bo3 (stats handled at set completion)
+                logger.info('Lobby: skipping stats update for Bo3 game (stats handled at set completion)', { lobbyId: this.id });
+                break;
+            default:
+                Contract.fail(`Unknown games to win mode: ${this.gamesToWinMode}`);
         }
     }
 

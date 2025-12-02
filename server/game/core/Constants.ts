@@ -616,4 +616,11 @@ export enum GamesToWinMode {
     BestOfThree = 'bestOfThree',
 }
 
+export enum RematchMode {
+    Regular = 'regular',
+    Reset = 'reset',
+    Bo1ConvertToBo3 = 'bo1ConvertToBo3',
+    NewBo3 = 'newBo3',
+}
+
 export const ENABLE_BO3 = process.env.ENVIRONMENT === 'development';
