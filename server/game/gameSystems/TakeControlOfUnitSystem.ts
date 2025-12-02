@@ -29,6 +29,10 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
 
     public eventHandler(event): void {
         event.card.takeControl(event.newController);
+
+        for (const upgrade of event.card.upgrades.filter((u) => u.isTokenUpgrade())) {
+            upgrade.takeControl(event.newController);
+        }
     }
 
     public override canAffectInternal(card: Card, context: TContext, _additionalProperties: Partial<ITakeControlOfUnitProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

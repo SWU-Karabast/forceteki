@@ -55,6 +55,35 @@ describe('Finn, This is a Rescue', function () {
             });
         });
 
+        it('Finn\'s undeployed ability can defeat a stolen token upgrade to gain shield (CR6 token upgrade ownership update)', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'finn#this-is-a-rescue',
+                    groundArena: ['battlefield-marine', 'hondo-ohnaka#superfluous-swindler'],
+                    resources: 4
+                },
+                player2: {
+                    groundArena: [{ card: 'wampa', upgrades: ['experience'] }],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.hondoOhnaka);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickCard(context.experience);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.finn);
+            context.player1.clickCard(context.experience);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+        });
+
         describe('Finn\'s deployed ability', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
@@ -120,6 +149,35 @@ describe('Finn, This is a Rescue', function () {
                 expect(context.atst).toHaveExactUpgradeNames(['shield']);
                 expect(context.entrenched).toBeInZone('discard');
             });
+        });
+
+        it('Finn\'s deployed ability can defeat a stolen token upgrade to gain shield (CR6 token upgrade ownership update)', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'finn#this-is-a-rescue', deployed: true },
+                    groundArena: ['battlefield-marine', 'hondo-ohnaka#superfluous-swindler'],
+                },
+                player2: {
+                    groundArena: [{ card: 'wampa', upgrades: ['experience'] }],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.hondoOhnaka);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickCard(context.experience);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.finn);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickCard(context.experience);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
         });
     });
 });
