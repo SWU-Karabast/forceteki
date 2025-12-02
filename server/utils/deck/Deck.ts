@@ -2,7 +2,7 @@ import type { Card } from '../../game/core/card/Card';
 import type { Player } from '../../game/core/Player';
 import * as CardHelpers from '../../game/core/card/CardHelpers';
 import * as Contract from '../../game/core/utils/Contract';
-import type { ISwuDbCardEntry, IDecklistInternal, IInternalCardEntry, ILeaderBaseInternal, IDeckListForLoading, ISwuDbDecklist } from './DeckInterfaces';
+import type { ISwuDbFormatCardEntry, IDecklistInternal, IInternalCardEntry, ILeaderBaseInternal, IDeckListForLoading, ISwuDbFormatDecklist } from './DeckInterfaces';
 import { DeckSource } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards } from '../../game/cards/Index';
@@ -24,14 +24,14 @@ export class Deck {
     public readonly id?: string;
     public readonly isPresentInDb: boolean;
     public readonly deckLink?: string;
-    public readonly originalDeckList: ISwuDbDecklist;
+    public readonly originalDeckList: ISwuDbFormatDecklist;
 
     private readonly cardDataGetter: CardDataGetter;
 
     private deckCards: Map<string, number>;
     private sideboard: Map<string, number>;
 
-    public constructor(decklist: ISwuDbDecklist, cardDataGetter: CardDataGetter) {
+    public constructor(decklist: ISwuDbFormatDecklist, cardDataGetter: CardDataGetter) {
         this.base = Deck.buildDecklistEntry(decklist.base.id, 1, cardDataGetter);
         this.leader = Deck.buildDecklistEntry(decklist.leader.id, 1, cardDataGetter);
         this.id = decklist.deckID;
@@ -53,7 +53,7 @@ export class Deck {
         this.deckSource = this.determineDeckSource(decklist.deckLink);
     }
 
-    private convertCardListToMap(cardList: ISwuDbCardEntry[], allCardIds: Set<string>) {
+    private convertCardListToMap(cardList: ISwuDbFormatCardEntry[], allCardIds: Set<string>) {
         const cardsMap = new Map<string, number>();
         const missingCardIds = new Set(allCardIds);
 

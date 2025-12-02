@@ -3,10 +3,10 @@ import type Socket from '../socket';
 import { logger } from '../logger';
 import type { User } from '../utils/user/User';
 import * as Contract from '../game/core/utils/Contract';
-import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
+import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 
 export interface QueuedPlayerToAdd {
-    deck: ISwuDbDecklist;
+    deck: ISwuDbFormatDecklist;
     socket?: Socket;
     user: User;
 }

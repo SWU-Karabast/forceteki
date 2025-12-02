@@ -23,7 +23,7 @@ import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
-import type { ISwuDbDecklist, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
+import type { ISwuDbFormatDecklist, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
 import type { QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
@@ -1282,7 +1282,7 @@ export class GameServer {
 
     // method for validating the deck via API
     private async processDeckValidation(
-        deck: ISwuDbDecklist,
+        deck: ISwuDbFormatDecklist,
         isLobby: boolean,
         validationProperties: IDeckValidationProperties,
         res: express.Response,
@@ -1627,7 +1627,7 @@ export class GameServer {
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(format: SwuGameFormat, user: User, deck: ISwuDbDecklist): boolean {
+    private enterQueue(format: SwuGameFormat, user: User, deck: ISwuDbFormatDecklist): boolean {
         this.queue.addPlayer(
             format,
             {
@@ -1736,7 +1736,7 @@ export class GameServer {
     /**
      * requeues the user and removes them from the previous lobby. If the lobby is empty, it cleans it up.
      */
-    public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: ISwuDbDecklist) {
+    public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: ISwuDbFormatDecklist) {
         try {
             if (!deck) {
                 logger.error(`GameServer: Cannot requeue user ${user.getId()} - no deck provided`);

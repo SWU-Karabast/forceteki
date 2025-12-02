@@ -6,12 +6,12 @@ import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
 import type { GameObjectRef } from '../../game/core/GameObjectBase';
 import type { SwuGameFormat } from '../../SwuGameFormat';
 
-export interface ISwuDbCardEntry {
+export interface ISwuDbFormatCardEntry {
     id: string;
     count: number;
 }
 
-export interface IInternalCardEntry extends ISwuDbCardEntry {
+export interface IInternalCardEntry extends ISwuDbFormatCardEntry {
     internalName: string;
     cost?: number;
 }
@@ -37,16 +37,16 @@ export interface IDeckListBase {
     isPresentInDb?: boolean;
 }
 
-export interface ISwuDbDecklist extends IDeckListBase {
+export interface ISwuDbFormatDecklist extends IDeckListBase {
     metadata: {
         name: string;
         author: string;
     };
-    leader?: ISwuDbCardEntry;
-    secondleader?: ISwuDbCardEntry;
-    base?: ISwuDbCardEntry;
-    deck?: ISwuDbCardEntry[];
-    sideboard?: ISwuDbCardEntry[];
+    leader?: ISwuDbFormatCardEntry;
+    secondleader?: ISwuDbFormatCardEntry;
+    base?: ISwuDbFormatCardEntry;
+    deck?: ISwuDbFormatCardEntry[];
+    sideboard?: ISwuDbFormatCardEntry[];
 }
 
 export interface ILeaderBaseInternal {
