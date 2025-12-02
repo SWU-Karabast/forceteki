@@ -4,6 +4,8 @@ import { logger } from '../logger';
 import type { User } from '../utils/user/User';
 import * as Contract from '../game/core/utils/Contract';
 import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
+import type { IMatchmakingRule } from './MatchmakingRules';
+import { MatchmakingRules } from './MatchmakingRules';
 
 export interface QueuedPlayerToAdd {
     deck: ISwuDbFormatDecklist;
@@ -18,6 +20,7 @@ export enum QueuedPlayerState {
 
 export interface QueuedPlayer extends QueuedPlayerToAdd {
     state: QueuedPlayerState;
+    previousMatch?: PreviousMatchEntry;
 }
 
 interface QueuedPlayerEntry {
@@ -25,12 +28,20 @@ interface QueuedPlayerEntry {
     player: QueuedPlayer;
 }
 
+export interface PreviousMatchEntry {
+    opponentUserId: string;
+    endTimestamp: number;
+}
+
 export class QueueHandler {
     private queues: Map<SwuGameFormat, QueuedPlayer[]>;
     private playersWaitingToConnect: QueuedPlayerEntry[] = [];
+    private playerPreviousMatch: Map<string, PreviousMatchEntry>;
+    private readonly cooldownSeconds = 60;
 
     public constructor() {
         this.queues = new Map<SwuGameFormat, QueuedPlayer[]>();
+        this.playerPreviousMatch = new Map<string, PreviousMatchEntry>();
 
         Object.values(SwuGameFormat).forEach((format) => {
             this.queues.set(format, []);
@@ -56,7 +67,11 @@ export class QueueHandler {
 
         this.playersWaitingToConnect.push({
             format,
-            player: { ...player, state: QueuedPlayerState.WaitingForConnection }
+            player: {
+                ...player,
+                state: QueuedPlayerState.WaitingForConnection,
+                previousMatch: this.playerPreviousMatch.get(player.user.getId())
+            }
         });
         logger.info(`Added user ${player.user.getId()} to waiting list for format ${format} until they connect`);
 
@@ -88,6 +103,7 @@ export class QueueHandler {
 
         playerEntry.player.state = QueuedPlayerState.Connected;
         playerEntry.player.socket = socket;
+        playerEntry.player.previousMatch = this.playerPreviousMatch.get(userId);
 
         this.queues.get(playerEntry.format)?.push(playerEntry.player);
         logger.info(`User ${userId} connected with socket id ${socket.id}, added to queue for format ${playerEntry.format}`);
@@ -108,6 +124,8 @@ export class QueueHandler {
     }
 
     public removePlayer(userId: string, reasonStr: string) {
+        this.cleanupPreviousMatchEntryIfNeeded(userId);
+
         for (const [format, queue] of this.queues.entries()) {
             const index = queue.findIndex((p) => p.user.getId() === userId);
             if (index !== -1) {
@@ -122,6 +140,33 @@ export class QueueHandler {
             logger.info(`Removing player ${userId} from queue waiting list. Reason: ${reasonStr}`);
             this.playersWaitingToConnect.splice(index, 1);
             return;
+        }
+    }
+
+    /** Sets a previous match entry for a player pair */
+    public setPreviousMatchEntry(
+        player1UserId: string,
+        player2UserId: string,
+        endTimestamp: number
+    ) {
+        this.playerPreviousMatch.set(player1UserId, {
+            opponentUserId: player2UserId,
+            endTimestamp: endTimestamp
+        });
+
+        this.playerPreviousMatch.set(player2UserId, {
+            opponentUserId: player1UserId,
+            endTimestamp: endTimestamp
+        });
+    }
+
+    private cleanupPreviousMatchEntryIfNeeded(userId: string) {
+        const entry = this.playerPreviousMatch.get(userId);
+        const now = Date.now();
+        const cooldownMs = this.cooldownSeconds * 1000;
+
+        if (entry && now - entry.endTimestamp > cooldownMs) {
+            this.playerPreviousMatch.delete(userId);
         }
     }
 
@@ -165,13 +210,36 @@ export class QueueHandler {
             return null;
         }
 
-        const p1 = queue.shift();
-        const p2 = queue.shift();
+        return this.findMatchInQueue(queue, [MatchmakingRules.rematchCooldown(this.cooldownSeconds)]);
+    }
 
-        Contract.assertNotNullLike(p1);
-        Contract.assertNotNullLike(p2);
+    /**
+     * Finds a matching pair in the queue based on the provided rules
+     *
+     * @param queue The queue of players to search for a match
+     * @param rules The matchmaking rules to apply when finding a match
+     * @returns A tuple of the matched players, or null if no match is found
+     */
+    private findMatchInQueue(queue: QueuedPlayer[], rules: IMatchmakingRule[]): [QueuedPlayer, QueuedPlayer] | null {
+        for (let i = 0; i < queue.length; i++) {
+            for (let j = i + 1; j < queue.length; j++) {
+                const player1 = queue[i];
+                const player2 = queue[j];
 
-        return [p1, p2];
+                const canMatch = rules.every((rule) => rule.canMatch(player1, player2));
+
+                if (canMatch) {
+                    // Remove matched players from the queue
+                    queue.splice(j, 1);
+                    queue.splice(i, 1);
+                    return [player1, player2];
+                }
+
+                logger.info(`Players ${player1.user.getId()} and ${player2.user.getId()} cannot match due to matchmaking rules`);
+            }
+        }
+
+        return null;
     }
 
     // Check if any format has enough players for matchmaking

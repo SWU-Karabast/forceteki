@@ -41,6 +41,7 @@ import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
+import type Game from '../game/core/Game';
 
 
 /**
@@ -1901,6 +1902,20 @@ export class GameServer {
             }, timeoutValue);
         } catch (err) {
             logger.error('GameServer: Error in onSocketDisconnected:', err);
+        }
+    }
+
+    /**
+     * Called near lobby end-of-life when users are disconnecting. Records matchmaking info
+     * (such as opponents and game end time) for future matchmaking before lobby tear-down.
+     */
+    public recordExpiringMatchmakingEntry(game: Game, lobby: Lobby): void {
+        Contract.assertNotNullLike(game.finishedAt, 'Finished game must have a finishedAt timestamp');
+
+        if (lobby.gameType === MatchType.Quick) {
+            // Update queue handler with finished game info
+            const [player1, player2] = game.getPlayers();
+            this.queue.setPreviousMatchEntry(player1.user.id, player2.user.id, game.finishedAt.getTime());
         }
     }
 
