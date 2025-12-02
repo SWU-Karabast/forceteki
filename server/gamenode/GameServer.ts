@@ -1742,7 +1742,8 @@ export class GameServer {
             this.cardDataGetter,
             this.deckValidator,
             this,
-            this.discordDispatcher
+            this.discordDispatcher,
+            this.cosmeticsService
         );
 
         this.lobbies.set(lobby.id, lobby);

@@ -22,6 +22,7 @@ import { AlertType, GameEndReason, GameErrorSeverity } from '../game/core/Consta
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import type { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 
 interface LobbySpectator {
     id: string;
@@ -32,6 +33,11 @@ interface LobbySpectator {
 
 enum LobbySettingKeys {
     RequestUndo = 'requestUndo',
+}
+
+interface ICosmeticUris {
+    cardbackUri: string;
+    backgroundUri: string;
 }
 
 export interface LobbyUser extends LobbySpectator {
@@ -108,6 +114,7 @@ export class Lobby {
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
     private readonly allow30CardsInMainBoard: boolean;
+    private readonly cosmeticsService?: CosmeticsService;
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
@@ -136,6 +143,7 @@ export class Lobby {
         deckValidator: DeckValidator,
         gameServer: GameServer,
         discordDispatcher: DiscordDispatcher,
+        cosmeticsService?: CosmeticsService,
         testGameBuilder?: any
     ) {
         Contract.assertTrue(
@@ -156,6 +164,7 @@ export class Lobby {
         this.discordDispatcher = discordDispatcher;
         this.undoMode = lobbyGameType === MatchType.Private ? UndoMode.Free : UndoMode.Request;
         this.allow30CardsInMainBoard = allow30CardsInMainBoard;
+        this.cosmeticsService = cosmeticsService;
     }
 
     public get id(): string {
@@ -809,8 +818,25 @@ export class Lobby {
     }
 
     private buildGameSettings(): GameConfiguration {
-        const players: IUser[] = this.users.map((user) =>
-            getUserWithDefaultsSet({
+        const players: IUser[] = [];
+
+        for (const user of this.users) {
+            const cosmeticIds = user.socket.user.getPreferences()?.cosmetics;
+
+            let cosmeticUris: ICosmeticUris;
+            if (cosmeticIds) {
+                cosmeticUris = {
+                    cardbackUri: this.cosmeticsService.getCosmeticUriById(cosmeticIds.cardbackId),
+                    backgroundUri: this.cosmeticsService.getCosmeticUriById(cosmeticIds.backgroundId),
+                };
+            } else {
+                cosmeticUris = {
+                    cardbackUri: this.cosmeticsService.getDefaultCardbackUri(),
+                    backgroundUri: this.cosmeticsService.getDefaultBackgroundUri(),
+                };
+            }
+
+            players.push(getUserWithDefaultsSet({
                 id: user.id,
                 username: user.username,
                 settings: {
@@ -818,9 +844,9 @@ export class Lobby {
                         autoSingleTarget: false,
                     }
                 },
-                cosmetics: user.socket.user.getPreferences()?.cosmetics,
-            })
-        );
+                cosmetics: cosmeticUris,
+            }));
+        }
 
         const useActionTimer =
             (this.gameType === MatchType.Quick || this.gameType === MatchType.Custom) &&

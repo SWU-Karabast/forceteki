@@ -23,8 +23,8 @@ export interface IUser {
         }>;
     }>;
     cosmetics?: Partial<{
-        cardback: string;
-        background: string;
+        cardbackUri: string;
+        backgroundUri: string;
     }>;
 }
 

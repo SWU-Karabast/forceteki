@@ -50,6 +50,24 @@ export class CosmeticsService {
         return this.cosmeticsCache.getCosmetics();
     }
 
+    public getCosmeticUriById(cosmeticId: string): string | null {
+        const cosmetics = this.getCosmetics();
+        const cosmetic = cosmetics.find((c) => c.id === cosmeticId);
+        return cosmetic ? cosmetic.path : null;
+    }
+
+    public getDefaultCardbackUri(): string | null {
+        const cosmetics = this.getCosmetics();
+        const cosmetic = cosmetics.find((c) => c.type === RegisteredCosmeticType.Cardback && c.title === 'Default');
+        return cosmetic ? cosmetic.path : null;
+    }
+
+    public getDefaultBackgroundUri(): string | null {
+        const cosmetics = this.getCosmetics();
+        const cosmetic = cosmetics.find((c) => c.type === RegisteredCosmeticType.Background && c.title === 'Default');
+        return cosmetic ? cosmetic.path : null;
+    }
+
     public async initializeCosmeticsAsync(cosmetics: IRegisteredCosmeticOption[]) {
         const dbService = await this.dbServicePromise;
         const result = await dbService.initializeCosmeticsAsync(cosmetics);
