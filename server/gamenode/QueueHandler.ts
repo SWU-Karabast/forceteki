@@ -4,8 +4,8 @@ import { logger } from '../logger';
 import type { User } from '../utils/user/User';
 import * as Contract from '../game/core/utils/Contract';
 import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
-import type { IMatchmakingRule } from './MatchmakingRules';
-import { MatchmakingRules } from './MatchmakingRules';
+import type { IMatchmakingPlayerEntry, IMatchmakingRule } from './MatchmakingRules';
+import { MatchmakingRule } from './MatchmakingRules';
 
 export interface QueuedPlayerToAdd {
     deck: ISwuDbFormatDecklist;
@@ -20,7 +20,6 @@ export enum QueuedPlayerState {
 
 export interface QueuedPlayer extends QueuedPlayerToAdd {
     state: QueuedPlayerState;
-    previousMatch?: PreviousMatchEntry;
 }
 
 interface QueuedPlayerEntry {
@@ -37,7 +36,9 @@ export class QueueHandler {
     private queues: Map<SwuGameFormat, QueuedPlayer[]>;
     private playersWaitingToConnect: QueuedPlayerEntry[] = [];
     private playerPreviousMatch: Map<string, PreviousMatchEntry>;
-    private readonly cooldownSeconds = 60;
+
+    /** Cooldown interval (in seconds) for rematch prevention */
+    public static readonly COOLDOWN_INTERVAL = 15;
 
     public constructor() {
         this.queues = new Map<SwuGameFormat, QueuedPlayer[]>();
@@ -67,11 +68,7 @@ export class QueueHandler {
 
         this.playersWaitingToConnect.push({
             format,
-            player: {
-                ...player,
-                state: QueuedPlayerState.WaitingForConnection,
-                previousMatch: this.playerPreviousMatch.get(player.user.getId())
-            }
+            player: { ...player, state: QueuedPlayerState.WaitingForConnection }
         });
         logger.info(`Added user ${player.user.getId()} to waiting list for format ${format} until they connect`);
 
@@ -103,7 +100,6 @@ export class QueueHandler {
 
         playerEntry.player.state = QueuedPlayerState.Connected;
         playerEntry.player.socket = socket;
-        playerEntry.player.previousMatch = this.playerPreviousMatch.get(userId);
 
         this.queues.get(playerEntry.format)?.push(playerEntry.player);
         logger.info(`User ${userId} connected with socket id ${socket.id}, added to queue for format ${playerEntry.format}`);
@@ -124,8 +120,6 @@ export class QueueHandler {
     }
 
     public removePlayer(userId: string, reasonStr: string) {
-        this.cleanupPreviousMatchEntryIfNeeded(userId);
-
         for (const [format, queue] of this.queues.entries()) {
             const index = queue.findIndex((p) => p.user.getId() === userId);
             if (index !== -1) {
@@ -158,16 +152,12 @@ export class QueueHandler {
             opponentUserId: player1UserId,
             endTimestamp: endTimestamp
         });
-    }
 
-    private cleanupPreviousMatchEntryIfNeeded(userId: string) {
-        const entry = this.playerPreviousMatch.get(userId);
-        const now = Date.now();
-        const cooldownMs = this.cooldownSeconds * 1000;
-
-        if (entry && now - entry.endTimestamp > cooldownMs) {
-            this.playerPreviousMatch.delete(userId);
-        }
+        // After the cooldown period, remove the previous match entries
+        setTimeout(() => {
+            this.playerPreviousMatch.delete(player1UserId);
+            this.playerPreviousMatch.delete(player2UserId);
+        }, QueueHandler.COOLDOWN_INTERVAL * 1000);
     }
 
     /** Send a heartbeat signal to the FE for all connected clients */
@@ -210,7 +200,7 @@ export class QueueHandler {
             return null;
         }
 
-        return this.findMatchInQueue(queue, [MatchmakingRules.rematchCooldown(this.cooldownSeconds)]);
+        return this.findMatchInQueue(queue, [MatchmakingRule.rematchCooldown(QueueHandler.COOLDOWN_INTERVAL)]);
     }
 
     /**
@@ -225,8 +215,10 @@ export class QueueHandler {
             for (let j = i + 1; j < queue.length; j++) {
                 const player1 = queue[i];
                 const player2 = queue[j];
+                const p1Entry: IMatchmakingPlayerEntry = { player: player1, previousMatch: this.playerPreviousMatch.get(player1.user.getId()) };
+                const p2Entry: IMatchmakingPlayerEntry = { player: player2, previousMatch: this.playerPreviousMatch.get(player2.user.getId()) };
 
-                const canMatch = rules.every((rule) => rule.canMatch(player1, player2));
+                const canMatch = rules.every((rule) => rule.canMatch(p1Entry, p2Entry));
 
                 if (canMatch) {
                     // Remove matched players from the queue
