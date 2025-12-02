@@ -11,6 +11,7 @@ import { ActionAbility } from '../ability/ActionAbility';
 import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
 import type { IOngoingEffectSourceState } from '../ongoingEffect/OngoingEffectSource';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
+import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
@@ -18,7 +19,7 @@ import { ChatObjectType, KeywordName } from '../Constants';
 import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Helpers from '../utils/Helpers';
-import type { AbilityContext } from '../ability/AbilityContext';
+import { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
 import type { KeywordInstance, KeywordWithCostValues, KeywordWithNumericValue } from '../ability/KeywordInstance';
@@ -1216,6 +1217,72 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.zoneName === ZoneName.Resource;
     }
 
+    /**
+     * Checks if this card is blocked from being played by an opponent's effect
+     * (e.g., Regional Governor naming this card, or Trade Route Taxation blocking events).
+     * This is used to display the lock icon on cards that could be played but are blocked.
+     * @returns A string describing why the card is blocked (with source card name), or null if not blocked
+     */
+    public getBlockedFromPlayReason(): string | null {
+        // Only check if the card is in a zone from which it could potentially be played:
+        // - Hand (normal play)
+        // - Discard pile (via abilities like Fleet Lieutenant, Agent Kallus, Lando)
+        // - Resources (via Smuggle keyword)
+        if (this.zoneName !== ZoneName.Hand &&
+          this.zoneName !== ZoneName.Discard &&
+          this.zoneName !== ZoneName.Resource) {
+            return null;
+        }
+
+        // Create a minimal context to check play restrictions
+        // The context needs an ability.card property for restrictions like Regional Governor
+        // which check context.ability.card.title
+        const mockAbility = {
+            card: this,
+            isPlayCardAbility: () => false
+        } as any;
+        const context = new AbilityContext({
+            game: this.game,
+            source: this,
+            player: this.controller,
+            ability: mockAbility,
+        });
+
+        // Check player-level restrictions that would block playing this card
+        // These are applied by cards like Regional Governor and Trade Route Taxation
+        const playRestriction = this.isEvent()
+            ? AbilityRestriction.PlayEvent
+            : this.isUnit()
+                ? AbilityRestriction.PlayUnit
+                : this.isUpgrade()
+                    ? AbilityRestriction.PlayUpgrade
+                    : null;
+
+        // Get the restriction values and their sources to find the blocking card
+        const restrictions = this.controller.getOngoingEffectValues<Restriction>(EffectName.AbilityRestrictions);
+        const sources = this.controller.getOngoingEffectSources(EffectName.AbilityRestrictions);
+
+        // Check if player has a restriction on playing this specific card type
+        if (playRestriction) {
+            for (let i = 0; i < restrictions.length; i++) {
+                if (restrictions[i].isMatch(playRestriction, context)) {
+                    const sourceName = sources[i]?.title || 'an effect';
+                    return `Blocked by ${sourceName}`;
+                }
+            }
+        }
+
+        // Check if player has a general Play restriction (used by Regional Governor)
+        for (let i = 0; i < restrictions.length; i++) {
+            if (restrictions[i].isMatch(AbilityRestriction.Play, context)) {
+                const sourceName = sources[i]?.title || 'an effect';
+                return `Blocked by ${sourceName}`;
+            }
+        }
+
+        return null;
+    }
+
     // TODO: should we break this out into variants for event (Play) vs other (EnterPlay)?
     public canPlay(context, type) {
         return (
@@ -1346,6 +1413,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             return { ...state, ...selectionState };
         }
 
+        // Check if card is blocked from play by opponent effect (for lock icon display)
+        const blockedFromPlayReason = this.getBlockedFromPlayReason() || undefined;
+
         const state = {
             id: this.cardData.id,
             setId: this.setId,
@@ -1361,6 +1431,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             uuid: this.uuid,
             printedType: this.printedType,
             isBlanked: this.isBlank(),
+            blockedFromPlayReason,
             ...selectionState
         };
 
