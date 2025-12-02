@@ -10,9 +10,6 @@ describe('Experience', function() {
                     player2: {
                         spaceArena: ['valiant-assault-ship']
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
@@ -53,9 +50,6 @@ describe('Experience', function() {
                         hand: ['confiscate'],
                         spaceArena: [{ card: 'cartel-spacer', upgrades: ['experience'] }]
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
@@ -63,8 +57,8 @@ describe('Experience', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.confiscate);
+                context.player1.clickCard(context.experience);
 
-                // ability will resolve automatically since there's only one legal target
                 expect(context.cartelSpacer.isUpgraded()).toBe(false);
                 expect(context.experience).toBeInZone('outsideTheGame');
             });
@@ -80,13 +74,24 @@ describe('Experience', function() {
                     player2: {
                         spaceArena: ['tieln-fighter']
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
-            it('its owner and controller should be the player who created it', function () {
+            // VBL 27/11/2025 : errata from CR6, owner and controller of token upgrade is controller of attached unit
+            it('its owner and controller should be the controller of attached unit (player)', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clanWrenRescuer);
+                context.player1.clickCard(context.clanWrenRescuer);
+
+                expect(context.clanWrenRescuer.upgrades.length).toBe(1);
+                const experience = context.clanWrenRescuer.upgrades[0];
+                expect(experience.internalName).toBe('experience');
+                expect(experience.owner).toBe(context.player1.player);
+                expect(experience.controller).toBe(context.player1.player);
+            });
+
+            it('its owner and controller should be the controller of attached unit (opponent)', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.clanWrenRescuer);
@@ -95,8 +100,8 @@ describe('Experience', function() {
                 expect(context.tielnFighter.upgrades.length).toBe(1);
                 const experience = context.tielnFighter.upgrades[0];
                 expect(experience.internalName).toBe('experience');
-                expect(experience.owner).toBe(context.player1.player);
-                expect(experience.controller).toBe(context.player1.player);
+                expect(experience.owner).toBe(context.player2.player);
+                expect(experience.controller).toBe(context.player2.player);
             });
         });
     });

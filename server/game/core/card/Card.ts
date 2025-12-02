@@ -63,6 +63,7 @@ export interface ICardState extends IOngoingEffectSourceState {
     hiddenForOpponent: boolean;
 
     controllerRef: GameObjectRef<Player>;
+    ownerRef: GameObjectRef<Player>;
 
     zone: GameObjectRef<Zone> | null;
     movedFromZone: ZoneName | null;
@@ -220,6 +221,14 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.controllerRef = value.getRef();
     }
 
+    public get owner(): Player {
+        return this.game.gameObjectManager.get(this.state.ownerRef);
+    }
+
+    protected set owner(value: Player) {
+        this.state.ownerRef = value.getRef();
+    }
+
     public get facedown(): boolean {
         return this.state.facedown;
     }
@@ -319,7 +328,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
-        public readonly owner: Player,
+        owner: Player,
         private readonly cardData: ICardDataJson
     ) {
         super(owner.game, cardData.title);
@@ -343,6 +352,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this._unique = cardData.unique;
         this._printedType = Card.buildTypeFromPrinted(cardData.types);
 
+        this.owner = owner;
         this.controller = owner;
         this.id = cardData.id;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
