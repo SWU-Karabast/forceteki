@@ -34,14 +34,19 @@ export class TimedCache<T> {
      */
     public async initializeAsync(): Promise<void> {
         logger.info(`${this.cacheName}: Initializing cache...`);
-        await this.refreshValue();
+
+        this.value = await this.fetchFunction();
 
         // Set up periodic refresh
         const intervalMs = this.refreshIntervalMinutes * 60 * 1000;
-        this.refreshTimer = setInterval(() => {
-            this.refreshValue().catch((error) => {
-                logger.error(`${this.cacheName}: Unhandled error in refresh timer`, error);
-            });
+        this.refreshTimer = setInterval(async () => {
+            try {
+                logger.info(`${this.cacheName}: Refreshing cached value...`);
+                this.value = await this.fetchFunction();
+                logger.info(`${this.cacheName}: Successfully refreshed cache`);
+            } catch (error) {
+                logger.error(`${this.cacheName}: Failed to refresh cache, keeping stale data`, error);
+            }
         }, intervalMs);
 
         logger.info(`${this.cacheName}: Cache initialized, will refresh every ${this.refreshIntervalMinutes} minutes`);
@@ -49,24 +54,9 @@ export class TimedCache<T> {
 
     /**
      * Gets the cached value synchronously.
-     * @returns The cached value, or undefined if not yet initialized
+     * @returns The cached value
      */
-    public getValue(): T | undefined {
+    public getValue(): T {
         return this.value;
-    }
-
-    /**
-     * Refreshes the cached value by calling the fetch function.
-     * On error, keeps the stale value and logs the error.
-     */
-    private async refreshValue(): Promise<void> {
-        try {
-            logger.info(`${this.cacheName}: Refreshing cached value...`);
-            const newValue = await this.fetchFunction();
-            this.value = newValue;
-            logger.info(`${this.cacheName}: Successfully refreshed cache`);
-        } catch (error) {
-            logger.error(`${this.cacheName}: Failed to refresh cache, keeping stale data`, error);
-        }
     }
 }
