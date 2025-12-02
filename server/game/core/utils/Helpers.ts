@@ -326,15 +326,15 @@ export function setUnion<T>(setA: Set<T>, setB: Set<T>): Set<T> {
  * This is an _in-place_ operation, meaning it modifies the original object.
  */
 export function deleteEmptyPropertiesRecursiveInPlace(obj) {
-    deleteEmptyPropertiesRecursiveInPlaceInternal(obj, []);
+    deleteEmptyPropertiesRecursiveInPlaceInternal(obj, new Set());
 }
 
 function deleteEmptyPropertiesRecursiveInPlaceInternal(obj, visited) {
-    if (obj == null || visited.includes(obj)) {
+    if (obj == null || visited.has(obj)) {
         return;
     }
 
-    visited.push(obj);
+    visited.add(obj);
 
     const keysToDelete = [];
     for (const key in obj) {
