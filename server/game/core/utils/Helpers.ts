@@ -322,32 +322,27 @@ export function setUnion<T>(setA: Set<T>, setB: Set<T>): Set<T> {
 }
 
 /**
- * Recurses through an object's properties and removes any properties that are null or undefined.
+ * Recurses through an object's properties and converts any null values to undefined.
  * This is an _in-place_ operation, meaning it modifies the original object.
+ * When serialized to JSON, undefined properties are omitted, reducing message size.
  */
-export function deleteEmptyPropertiesRecursiveInPlace(obj) {
-    deleteEmptyPropertiesRecursiveInPlaceInternal(obj, []);
+export function convertNullToUndefinedRecursiveInPlace(obj) {
+    convertNullToUndefinedRecursiveInPlaceInternal(obj, new Set());
 }
 
-function deleteEmptyPropertiesRecursiveInPlaceInternal(obj, visited) {
-    if (obj == null || visited.includes(obj)) {
+function convertNullToUndefinedRecursiveInPlaceInternal(obj, visited) {
+    if (obj == null || visited.has(obj)) {
         return;
     }
 
-    visited.push(obj);
+    visited.add(obj);
 
-    const keysToDelete = [];
     for (const key in obj) {
-        if (obj[key] == null) {
-            keysToDelete.push(key);
+        if (obj[key] === null) { // explicit null check here (== matches both undefined and null)
+            obj[key] = undefined;
         } else if (obj[key] instanceof Object) {
-            deleteEmptyPropertiesRecursiveInPlaceInternal(obj[key], visited);
+            convertNullToUndefinedRecursiveInPlaceInternal(obj[key], visited);
         }
-    }
-
-    for (const key of keysToDelete) {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete obj[key];
     }
 }
 

@@ -3,8 +3,8 @@ import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
 import { CardType } from '../../game/core/Constants';
 import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
-import type { IDecklistInternal, ISwuDbCardEntry } from './DeckInterfaces';
-import { DecklistLocation, DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbDecklist } from './DeckInterfaces';
+import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties } from './DeckInterfaces';
+import { DecklistLocation, DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
 import { SwuGameFormat } from '../../SwuGameFormat';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 import * as Contract from '../../game/core/utils/Contract';
@@ -54,6 +54,19 @@ export class DeckValidator {
     private readonly setCodeToId: Map<string, string>;
 
     private static readonly MaxSideboardSize = 10;
+
+    public static filterOutSideboardingErrors(failures: IDeckValidationFailures): IDeckValidationFailures {
+        const filtered: IDeckValidationFailures = {};
+
+        for (const [key, value] of Object.entries(failures)) {
+            if (key !== DeckValidationFailureReason.MinMainboardSizeNotMet &&
+              key !== DeckValidationFailureReason.MaxSideboardSizeExceeded) {
+                filtered[key] = value;
+            }
+        }
+
+        return filtered;
+    }
 
     public static async createAsync(cardDataGetter: CardDataGetter): Promise<DeckValidator> {
         const allCardsData: ICardDataJson[] = [];
@@ -124,11 +137,11 @@ export class DeckValidator {
         return 10;
     }
 
-    public getUnimplementedCardsInDeck(deck: IDecklistInternal | ISwuDbDecklist): { id: string; name: string }[] {
+    public getUnimplementedCardsInDeck(deck: IDecklistInternal | ISwuDbFormatDecklist): { id: string; name: string }[] {
         if (!deck) {
             return [];
         }
-        const deckCards: ISwuDbCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
+        const deckCards: ISwuDbFormatCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
         const unimplemented: { id: string; name: string }[] = [];
 
         // check leader
@@ -155,16 +168,16 @@ export class DeckValidator {
     }
 
     // Validate IDecklistInternal
-    public validateInternalDeck(deck: IDecklistInternal, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
+    public validateInternalDeck(deck: IDecklistInternal, properties: IDeckValidationProperties): IDeckValidationFailures {
         // Basic structure check (internal decks have mandatory leader, base, and deck)
         if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
             return { [DeckValidationFailureReason.InvalidDeckData]: true };
         }
-        return this.validateCommonDeck(deck, format, allow30CardsInMainBoard);
+        return this.validateCommonDeck(deck, properties.format, properties.allow30CardsInMainBoard);
     }
 
     // Validate the ISwuDbDeckList
-    public validateSwuDbDeck(deck: ISwuDbDecklist, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
+    public validateSwuDbDeck(deck: ISwuDbFormatDecklist, properties: IDeckValidationProperties): IDeckValidationFailures {
         // Basic structure check (SWU‑DB decks use optional properties, so we check them explicitly)
         if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
             return { [DeckValidationFailureReason.InvalidDeckData]: true };
@@ -173,10 +186,10 @@ export class DeckValidator {
         if (deck.secondleader) {
             return { [DeckValidationFailureReason.TooManyLeaders]: true };
         }
-        return this.validateCommonDeck(deck, format, allow30CardsInMainBoard);
+        return this.validateCommonDeck(deck, properties.format, properties.allow30CardsInMainBoard);
     }
 
-    private validateCommonDeck(deck: IDecklistInternal | ISwuDbDecklist, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
+    private validateCommonDeck(deck: IDecklistInternal | ISwuDbFormatDecklist, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
         try {
             Contract.assertFalse(format !== SwuGameFormat.Open && allow30CardsInMainBoard, '30-card setting can only be used in Open format');
 
@@ -188,7 +201,7 @@ export class DeckValidator {
             };
 
             // Combine main deck and sideboard cards.
-            const deckCards: ISwuDbCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
+            const deckCards: ISwuDbFormatCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
 
             const baseData = this.getCardCheckData(deck.base.id);
             const minBoardedSize = this.getMinimumSideboardedDeckSize(deck.base.id, allow30CardsInMainBoard);
@@ -290,7 +303,7 @@ export class DeckValidator {
         }
     }
 
-    protected checkCardLocation(card: ISwuDbCardEntry, cardData: ICardCheckData, location: DecklistLocation, failures: IDeckValidationFailures) {
+    protected checkCardLocation(card: ISwuDbFormatCardEntry, cardData: ICardCheckData, location: DecklistLocation, failures: IDeckValidationFailures) {
         if (this.getCardLocation(cardData) !== location) {
             failures[DeckValidationFailureReason.InvalidDecklistLocation].push({
                 card: { id: card.id, name: cardData.titleAndSubtitle },
@@ -300,7 +313,7 @@ export class DeckValidator {
     }
 
     protected checkMaxCopiesOfCard(
-        card: ISwuDbCardEntry,
+        card: ISwuDbFormatCardEntry,
         cardData: ICardCheckData,
         format: SwuGameFormat,
         failures: IDeckValidationFailures,
@@ -336,7 +349,7 @@ export class DeckValidator {
         }
     }
 
-    private getTotalCardCount(cardlist: ISwuDbCardEntry[]): number {
+    private getTotalCardCount(cardlist: ISwuDbFormatCardEntry[]): number {
         return cardlist.reduce((sum, card) => sum + card.count, 0);
     }
 }
