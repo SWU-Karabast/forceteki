@@ -255,6 +255,9 @@ export class Lobby {
             matchingCountdownText: this.matchingCountdownText,
             allow30CardsInMainBoard: this.allow30CardsInMainBoard,
             winHistory: this.getWinHistoryForClient(),
+            hasConfirmedNextGame: this.gamesToWinMode === GamesToWinMode.BestOfThree && user
+                ? this.bo3NextGameConfirmedBy?.has(user.id) ?? false
+                : undefined,
             settings: {
                 requestUndo: this.undoMode === UndoMode.Request,
             },
