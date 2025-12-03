@@ -212,19 +212,18 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected set controller(value: Player) {
-        this.state.controllerRef = value.getRef();
+        this._controller = value;
     }
 
+    @undoObject()
+    private accessor _owner: Player;
+
     public get owner(): Player {
-        return this.game.gameObjectManager.get(this.state.ownerRef);
+        return this._owner;
     }
 
     protected set owner(value: Player) {
-        this.state.ownerRef = value.getRef();
-    }
-
-    public get facedown(): boolean {
-        return this.state.facedown;
+        this._owner = value;
     }
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style

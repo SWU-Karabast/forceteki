@@ -1146,21 +1146,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
             super.removeOngoingEffect(ongoingEffect);
         }
-
-        // STATE TODO: We need to really dig into what is being updated by resolveAbilitiesForNewZone. We desperately want to remove this onAfter method.
-        //              Good rollback code shouldn't need to use this method. Instead all game actions should result in Game State changes, so that when we rollback we never
-        //              need to redo the action that causes this; it should all be captured within State.
-        public override afterSetAllState(oldState) {
-            super.afterSetAllState(oldState);
-
-            // STATE TODO: I don't wholly trust this covers all cases, but it's a good start at least.
-            // if (oldState.zone?.uuid !== this.state.zone.uuid) {
-            //     const oldZone = this.game.gameObjectManager.get<Zone>(oldState.zone);
-            //     this.movedFromZone = oldZone?.name;
-            //     // This is a bad work around, if it does change zones, it always resets limits on abilities. We want to reset to the exact state, not call functions to mutate state.
-            //     this.resolveAbilitiesForNewZone();
-            // }
-        }
     }
 
     return AsUnit;

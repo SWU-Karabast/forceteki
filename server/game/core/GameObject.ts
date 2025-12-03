@@ -128,7 +128,18 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
         return effects[effects.length - 1];
     }
 
+    // TODO: Convert to for loop where possible.
     protected getOngoingEffects() {
+        // const ongoings = this._ongoingEffects;
+        // const suppressedEffects = [];
+        // for (const ongoing of ongoings) {
+        //     if (ongoing.type !== EffectName.SuppressEffects) {
+        //         continue;
+        //     }
+
+        //     suppressedEffects.push(ongoing.getValue(this));
+        // }
+
         const suppressEffects = this._ongoingEffects.filter((ongoingEffect) => ongoingEffect.type === EffectName.SuppressEffects);
         const suppressedEffects = suppressEffects.reduce((array, ongoingEffect) => array.concat(ongoingEffect.getValue(this)), []);
         return this._ongoingEffects.filter((ongoingEffect) => !suppressedEffects.includes(ongoingEffect));
