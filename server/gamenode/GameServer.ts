@@ -1707,7 +1707,7 @@ export class GameServer {
 
                     if (!matchedPlayers) {
                         // If matchmaking failed to find a pair, set a timer to try again
-                        this.matchmakingTimers.set(format, setTimeout(() => this.matchmakeAllQueuesAsync(), QueueHandler.COOLDOWN_INTERVAL * 1000));
+                        this.matchmakingTimers.set(format, setTimeout(() => this.matchmakeAllQueuesAsync(), QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000));
                         break;
                     }
 

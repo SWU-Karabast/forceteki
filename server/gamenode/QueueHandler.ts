@@ -38,7 +38,7 @@ export class QueueHandler {
     private playerPreviousMatch: Map<string, PreviousMatchEntry>;
 
     /** Cooldown interval (in seconds) for rematch prevention */
-    public static readonly COOLDOWN_INTERVAL = 15;
+    public static readonly COOLDOWN_INTERVAL_SECONDS = 15;
 
     public constructor() {
         this.queues = new Map<SwuGameFormat, QueuedPlayer[]>();
@@ -47,6 +47,9 @@ export class QueueHandler {
         Object.values(SwuGameFormat).forEach((format) => {
             this.queues.set(format, []);
         });
+
+        // Cleanup previous match entries periodically
+        setInterval(() => this.cleanupPreviousMatchEntries(), QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000);
     }
 
     /** Adds an entry for a player, but they can't match until they actually connect */
@@ -152,12 +155,16 @@ export class QueueHandler {
             opponentUserId: player1UserId,
             endTimestamp: endTimestamp
         });
+    }
 
-        // After the cooldown period, remove the previous match entries
-        setTimeout(() => {
-            this.playerPreviousMatch.delete(player1UserId);
-            this.playerPreviousMatch.delete(player2UserId);
-        }, QueueHandler.COOLDOWN_INTERVAL * 1000);
+    private cleanupPreviousMatchEntries() {
+        const now = Date.now();
+        const cooldownMs = QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000;
+        for (const [userId, matchEntry] of this.playerPreviousMatch.entries()) {
+            if (now - matchEntry.endTimestamp > cooldownMs) {
+                this.playerPreviousMatch.delete(userId);
+            }
+        }
     }
 
     /** Send a heartbeat signal to the FE for all connected clients */
@@ -200,7 +207,7 @@ export class QueueHandler {
             return null;
         }
 
-        return this.findMatchInQueue(queue, [MatchmakingRule.rematchCooldown(QueueHandler.COOLDOWN_INTERVAL)]);
+        return this.findMatchInQueue(queue, [MatchmakingRule.rematchCooldown(QueueHandler.COOLDOWN_INTERVAL_SECONDS)]);
     }
 
     /**
