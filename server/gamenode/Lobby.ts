@@ -18,8 +18,8 @@ import { DeckSource } from '../utils/deck/DeckInterfaces';
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
-import type { GameServer } from './GameServer';
-import { ENABLE_BO3, GamesToWinMode, RematchMode } from '../game/core/Constants';
+import { isBo3Enabled, type GameServer } from './GameServer';
+import { GamesToWinMode, RematchMode } from '../game/core/Constants';
 import { AlertType, GameEndReason, GameErrorSeverity, SwuGameFormat } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
@@ -162,7 +162,7 @@ export class Lobby {
                 this.setBo1History();
                 break;
             case GamesToWinMode.BestOfThree:
-                Contract.assertFalse(ENABLE_BO3, 'Best of three mode only enabled for dev testing');
+                Contract.assertTrue(isBo3Enabled(), 'Best of three mode only enabled for dev testing');
                 this.initializeBo3History();
                 break;
             default:
@@ -197,11 +197,13 @@ export class Lobby {
         };
     }
 
-    private initializeBo3History(): void {
+    private initializeBo3History(bo1WinnerId?: string): void {
         this.winHistory = {
             gamesToWinMode: GamesToWinMode.BestOfThree,
-            winnerIdsInOrder: []
+            winnerIdsInOrder: bo1WinnerId ? [bo1WinnerId] : []
         };
+
+        this.bo3NextGameConfirmedBy = new Set<string>();
     }
 
     /**
@@ -602,19 +604,12 @@ export class Lobby {
                 // Convert Bo1 to Bo3, using previous winner as first game result
                 Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne, 'Cannot convert to Bo3 from non-Bo1 mode');
                 const previousWinnerId = this.winHistory.lastWinnerId;
-                this.winHistory = {
-                    gamesToWinMode: GamesToWinMode.BestOfThree,
-                    winnerIdsInOrder: previousWinnerId ? [previousWinnerId] : []
-                };
-                // Initialize Bo3 confirmation tracking
-                this.bo3NextGameConfirmedBy = new Set<string>();
+                this.initializeBo3History(previousWinnerId);
                 break;
             }
             case RematchMode.NewBo3:
                 // Start a fresh Bo3 set
                 this.initializeBo3History();
-                // Initialize Bo3 confirmation tracking
-                this.bo3NextGameConfirmedBy = new Set<string>();
                 break;
             case RematchMode.Regular:
             case RematchMode.Reset:

@@ -3,8 +3,9 @@ import { logger } from '../logger';
 import type { User } from '../utils/user/User';
 import * as Contract from '../game/core/utils/Contract';
 import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
-import { ENABLE_BO3, GamesToWinMode } from '../game/core/Constants';
+import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
+import { isBo3Enabled } from './GameServer';
 
 export interface QueuedPlayerToAdd {
     deck: ISwuDbFormatDecklist;
@@ -44,7 +45,7 @@ export class QueueHandler {
 
             formatMap.set(GamesToWinMode.BestOfOne, []);
 
-            if (ENABLE_BO3) {
+            if (isBo3Enabled()) {
                 formatMap.set(GamesToWinMode.BestOfThree, []);
             }
 
@@ -205,7 +206,7 @@ export class QueueHandler {
     }
 
     private queueKeyToString(key: IQueueFormatKey): string {
-        return `(${key.swuFormat} / ${GamesToWinMode[key.gamesToWinMode]})`;
+        return `(${key.swuFormat} / ${key.gamesToWinMode})`;
     }
 
     private getQueueByFormat(key: IQueueFormatKey): QueuedPlayer[] | null {

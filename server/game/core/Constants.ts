@@ -623,4 +623,3 @@ export enum RematchMode {
     NewBo3 = 'newBo3',
 }
 
-export const ENABLE_BO3 = process.env.ENVIRONMENT === 'development';

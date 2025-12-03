@@ -40,9 +40,12 @@ import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
-import { ENABLE_BO3, GamesToWinMode } from '../game/core/Constants';
+import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
 
+export function isBo3Enabled(): boolean {
+    return process.env.ENVIRONMENT === 'development';
+}
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -1439,7 +1442,7 @@ export class GameServer {
             throw new Error('User must be provided for public lobbies');
         }
 
-        if (!ENABLE_BO3) {
+        if (!isBo3Enabled()) {
             Contract.assertFalse(gamesToWinMode === GamesToWinMode.BestOfThree, 'Best of three mode only enabled for dev testing');
         }
 
