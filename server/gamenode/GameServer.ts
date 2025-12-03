@@ -170,7 +170,7 @@ export class GameServer {
     private lastCpuUsageTime: bigint;
     private loopDelayHistogram: IntervalHistogram;
     private lastLoopUtilization: EventLoopUtilization;
-    private matchmakingTimers = new Map<SwuGameFormat, NodeJS.Timeout>();
+    private matchmakingTimer?: NodeJS.Timeout;
     private gcStats = {
         totalDuration: 0,
         scavengeCount: 0,
@@ -1685,16 +1685,15 @@ export class GameServer {
     }
 
     private async matchmakeAllQueuesAsync(): Promise<void> {
+        // If there's a pending timer-based matchmaking task, clear it out
+        if (this.matchmakingTimer) {
+            clearTimeout(this.matchmakingTimer);
+            this.matchmakingTimer = undefined;
+        }
+
         const formatsWithMatches = this.queue.findReadyFormats();
 
         for (const format of formatsWithMatches) {
-            // If there's a pending timer-based matchmaking task, clear it out
-            const existingTimer = this.matchmakingTimers.get(format);
-            if (existingTimer) {
-                clearTimeout(existingTimer);
-                this.matchmakingTimers.delete(format);
-            }
-
             // track exceptions to avoid getting stuck in a loop
             let exceptionCount = 0;
 
@@ -1707,7 +1706,17 @@ export class GameServer {
 
                     if (!matchedPlayers) {
                         // If matchmaking failed to find a pair, set a timer to try again
-                        this.matchmakingTimers.set(format, setTimeout(() => this.matchmakeAllQueuesAsync(), QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000));
+                        this.matchmakingTimer = setTimeout(() => {
+                            try {
+                                this.matchmakeAllQueuesAsync();
+                            } catch (error) {
+                                logger.error(
+                                    'GameServer: Error in scheduled matchmaking retry:',
+                                    { error: { message: error.message, stack: error.stack } }
+                                );
+                            }
+                        }, QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000);
+
                         break;
                     }
 
