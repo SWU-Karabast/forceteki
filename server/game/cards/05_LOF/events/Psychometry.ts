@@ -14,19 +14,17 @@ export default class Psychometry extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Choose another card in your discard pile. Search the top 5 cards of your deck for a card that shares a Trait with the chosen card, reveal it, and draw it.',
+            cannotTargetFirst: true,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Discard,
-                cardCondition: (card, context) => card !== context.source
-            },
-            then: (context) => ({
-                title: 'Search the top 5 cards of your deck for a card that shares a Trait with the chosen card, reveal it, and draw it.',
-                immediateEffect: AbilityHelper.immediateEffects.deckSearch({
+                cardCondition: (card, context) => card !== context.source,
+                immediateEffect: AbilityHelper.immediateEffects.deckSearch((context) => ({
                     searchCount: 5,
                     cardCondition: (card) => card.hasSomeTrait(context.target.traits),
                     selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
-                })
-            })
+                }))
+            }
         });
     }
 }

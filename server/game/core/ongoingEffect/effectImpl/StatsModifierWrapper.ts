@@ -85,12 +85,28 @@ export default class StatsModifierWrapper {
     }
 
     public static statsModifierDescription(modifier: StatsModifier): string {
-        const locale: Intl.LocalesArgument = 'en';
-        const options: Intl.NumberFormatOptions = {
-            signDisplay: 'always',
-        };
         // Ensure that we show -0 if one of the values is zero and other is negative (e.g. -2/-0 instead of -2/+0)
-        const zero = (modifier.power < 0 && modifier.hp <= 0) || (modifier.power <= 0 && modifier.hp < 0) ? -0 : 0;
-        return (modifier.power || zero).toLocaleString(locale, options) + '/' + (modifier.hp || zero).toLocaleString(locale, options);
+
+        const powerSign = this.signForStatValue(modifier.power, modifier.hp);
+        const hpSign = this.signForStatValue(modifier.hp, modifier.power);
+
+        const power = powerSign + modifier.power.toString();
+        const hp = hpSign + modifier.hp.toString();
+
+        return power + '/' + hp;
+    }
+
+    private static signForStatValue(value: number, otherValue: number) {
+        if (value > 0) {
+            return '+';
+        }
+
+        if (value < 0) {
+            // the '-' will be generated automatically
+            return '';
+        }
+
+        // if value is zero, copy the sign off the other value
+        return otherValue < 0 ? '-' : '+';
     }
 }

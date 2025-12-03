@@ -283,6 +283,7 @@ export enum EventName {
     OnEffectApplied = 'onEffectApplied',
     OnEntireHandDiscarded = 'onEntireHandDiscarded',
     OnExhaustResources = 'onExhaustResources',
+    OnExhaustUnitsToPayCost = 'onExhaustUnitsToPayCost',
     OnExploitUnits = 'onExploitUnits',
     OnForceUsed = 'onForceUsed',
     OnIndirectDamageDealtToPlayer = 'onIndirectDamageDealtToPlayer',
@@ -585,4 +586,21 @@ export enum Conjunction {
     And = 'and',
     Or = 'or',
     AndOr = 'and/or',
+}
+
+/**
+ * Named Actions which have special button styles associated on front end
+ *
+ * If you add to this list, make sure to add a matching style in CardActionTray.tsx
+ */
+export enum NamedAction {
+    Damage = 'Damage',
+    Draw = 'Draw',
+    Discard = 'Discard',
+    Exhaust = 'Exhaust',
+    Pay = 'Pay',
+    Return = 'Return',
+    Play = 'Play',
+    Top = 'Top',
+    Bottom = 'Bottom',
 }

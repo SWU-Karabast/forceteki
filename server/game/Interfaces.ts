@@ -28,10 +28,11 @@ import type { IUpgradeCard } from './core/card/CardInterfaces';
 import type { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
 import type { FormatMessage } from './core/chat/GameChat';
 import type { ISnapshotSettingsBase } from './core/snapshot/SnapshotInterfaces';
-import type { Lobby } from '../gamenode/Lobby';
+import type { Lobby, MatchType } from '../gamenode/Lobby';
 import type { DamageSourceType } from './IDamageOrDefeatSource';
 import type { IInPlayCard } from './core/card/baseClasses/InPlayCard';
 import type { IOngoingAllCardsForPlayerEffectProps, OngoingAllCardsForPlayerEffect } from './core/ongoingEffect/OngoingAllCardsForPlayerEffect';
+import type { SwuGameFormat } from '../SwuGameFormat';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -111,6 +112,7 @@ export interface IOngoingCardEffectProps extends IOngoingEffectProps<Card> {
 /** Base interface for triggered and action ability definitions */
 export interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
+    contextTitle?: (context: TContext) => string;
     zoneFilter?: ZoneFilter | ZoneFilter[];
     limit?: any;
     cardName?: string;
@@ -153,6 +155,8 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
     immediateEffect?: GameSystem<TContext>;
     handler?: (context: TContext) => void;
 
+    customConfirmation?: (context: TContext) => string | null;
+
     /**
      * Indicates that an attack should be triggered from a friendly unit.
      * Shorthand for `AbilityHelper.immediateEffects.attack(AttackSelectionMode.SelectAttackerAndTarget)`.
@@ -166,6 +170,7 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
+    contextTitle?: (context: AbilityContext<TSource>) => string;
     sourceZoneFilter?: ZoneFilter | ZoneFilter[];
 
     /** A handler to enable or disable the ability's effects depending on game context */
@@ -430,6 +435,8 @@ export interface ISerializedReportState {
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;
     viewport?: { width: number; height: number } | null;
+    gameFormat: SwuGameFormat;
+    matchType: MatchType;
 }
 
 export interface ISerializedUndoFailureState {

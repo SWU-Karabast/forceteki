@@ -10,7 +10,7 @@ import { AbilityRestriction, CardType, KeywordName, MetaEventName, PlayType, Wil
 import type { PlayCardAction } from '../core/ability/PlayCardAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
 import type { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
-import { CostAdjuster } from '../core/cost/CostAdjuster';
+import * as CostAdjusterFactory from '../core/cost/CostAdjusterFactory';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
     ignoredRequirements?: string[];
@@ -63,12 +63,25 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             event.context.game.promptWithHandlerMenu(event.context.player, {
                 activePromptTitle: `Choose an option for playing ${event.card.title}`,
                 source: event.card,
-                choices: availablePlayCardAbilities.map((action) => action.title),
+                choices: availablePlayCardAbilities.map((action) => action.getTitle(event.context)),
                 handlers: availablePlayCardAbilities.map((action) => (() => this.resolvePlayCardAbility(action, event)))
             });
         } else {
             Contract.fail(`No legal play card abilities found for card ${event.card.internalName}`);
         }
+    }
+
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<IPlayCardProperties>): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        if (properties.playType && properties.playType === PlayType.Plot) {
+            return ['play {0} using Plot', [this.getTargetMessage(properties.target, context)]];
+        }
+
+        // TODO: Add more details about how and where the card is being played from
+        // https://github.com/SWU-Karabast/forceteki/issues/1953
+
+        return super.getEffectMessage(context, additionalProperties);
     }
 
     private resolvePlayCardAbility(ability: PlayCardAction, event: any) {
@@ -114,7 +127,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     private makeCostAdjuster(properties: ICostAdjusterProperties | null, context: TContext) {
-        return properties ? new CostAdjuster(context.game, context.source, properties) : null;
+        return properties ? CostAdjusterFactory.create(context.game, context.source, properties) : null;
     }
 
     /**

@@ -31,7 +31,7 @@ export class PlayEventAction extends PlayCardAction {
         context.game.queueStep(abilityResolver);
         context.game.queueSimpleStep(() => {
             // If the ability was cancelled it won't appears in the chat log so we need to log the message here
-            if (abilityResolver.cancelled && abilityResolver.resolutionComplete) {
+            if (abilityResolver.cancelled && abilityResolver.resolutionCommitted) {
                 this.game.addMessage('{0} plays {1}', context.player, context.source);
             }
         }, 'log play event action for cancelled resolutions');
@@ -49,6 +49,28 @@ export class PlayEventAction extends PlayCardAction {
             return 'restriction';
         }
         return super.meetsRequirements(context, ignoredRequirements);
+    }
+
+    public override promptCustomConfirmation(context: PlayCardContext, cancelHandler: () => void) {
+        Contract.assertTrue(context.source.isEvent());
+
+        const eventAbility = context.source.getEventAbility();
+
+        if (eventAbility.customConfirmation) {
+            const confirmationMessage = eventAbility.customConfirmation(context);
+            if (!confirmationMessage) {
+                return;
+            }
+
+            this.game.promptWithHandlerMenu(context.player, {
+                activePromptTitle: confirmationMessage,
+                choices: ['Continue', 'Cancel'],
+                handlers: [
+                    () => undefined,
+                    () => cancelHandler()
+                ]
+            });
+        }
     }
 
     /** Override that allows doing the card selection / prompting for an event card _before_ it is moved to discard for play so we can present a cancel option */

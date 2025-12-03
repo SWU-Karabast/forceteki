@@ -250,8 +250,8 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
         // TODO: figure out a better way to handle cases where we want to override the ability title.
         // The current checks are to account for playing upgrades, exploiting, and using modal card options
         const defaultTitle =
-            context.ability?.title && !context.ability.title.startsWith('Play') && !context.ability.title.includes('modal')
-                ? context.ability.title
+            context.ability?.getTitle(context) && !context.ability.getTitle(context).startsWith('Play') && !context.ability.getTitle(context).includes('modal')
+                ? context.ability.getTitle(context)
                 : this.defaultPromptString(context);
         return defaultTitle + (this.appendToDefaultTitle ? ' ' + this.appendToDefaultTitle : '');
     }

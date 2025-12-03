@@ -5,8 +5,9 @@ import { GameEvent } from '../event/GameEvent.js';
 import type Game from '../Game.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import type { ITargetResult } from '../ability/abilityTargets/TargetResolver.js';
-import type { ICostResult } from '../cost/ICost.js';
+import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { Player } from '../Player.js';
+import * as Helpers from '../utils/Helpers.js';
 
 export interface IPassAbilityHandler {
     buttonText: string;
@@ -18,7 +19,7 @@ export interface IPassAbilityHandler {
 
 export class AbilityResolver extends BaseStepWithPipeline {
     public context: AbilityContext;
-    public resolutionComplete: boolean;
+    public resolutionCommitted: boolean;
     public canCancel: boolean;
     public cancelled: boolean;
 
@@ -49,7 +50,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
          * Indicates to the calling pipeline that this ability is done resolving.
          * Otherwise, repeat ability resolution (e.g. if the user clicked "cancel" halfway through)
          */
-        this.resolutionComplete = false;
+        this.resolutionCommitted = false;
 
         // if canCancel is not provided, we default to true if there is no previous ability resolver
         // this prevents us from trying to cancel an "inner" ability while the outer one still resolves
@@ -77,17 +78,17 @@ export class AbilityResolver extends BaseStepWithPipeline {
                 : this.context.player.opponent,
             handler: () => {
                 this.cancelled = true;
-                this.resolutionComplete = true;
+                this.resolutionCommitted = true;
             }
         } : null;
     }
 
     private initialise() {
         this.pipeline.initialise([
-            // new SimpleStep(this.game, () => this.createSnapshot()),
             new SimpleStep(this.game, () => this.checkAbility(), 'checkAbility'),
             new SimpleStep(this.game, () => this.resolveEarlyTargets(), 'resolveEarlyTargets'),
             new SimpleStep(this.game, () => this.checkForCancelOrPass(), 'checkForCancelOrPass'),
+            new SimpleStep(this.game, () => this.checkCustomConfirmation(), 'checkCustomConfirmation'),
             new SimpleStep(this.game, () => this.openInitiateAbilityEventWindow(), 'openInitiateAbilityEventWindow'),
             new SimpleStep(this.game, () => this.resetGameAbilityResolver(), 'resetGameAbilityResolver')
         ]);
@@ -102,7 +103,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         if (this.context.ability.meetsRequirements(this.context, this.ignoredRequirements, true) !== '') {
             this.cancelled = true;
-            this.resolutionComplete = true;
+            this.resolutionCommitted = true;
             return;
         }
 
@@ -145,6 +146,15 @@ export class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
+    private checkCustomConfirmation() {
+        this.context.ability.promptCustomConfirmation(
+            this.context,
+            () => {
+                this.cancelled = true;
+            }
+        );
+    }
+
     // TODO: figure out our story for snapshots
     // createSnapshot() {
     //     if([CardType.Unit, CardType.Base, CardType.Leader, CardType.Upgrade].includes(this.context.source.getType())) {
@@ -154,7 +164,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
     private openInitiateAbilityEventWindow() {
         if (this.cancelled) {
-            this.checkResolveIfYouDoNot();
+            this.checkResolveThenIfYouDoNot();
             return;
         }
         let eventName = EventName.OnAbilityResolverInitiated;
@@ -177,15 +187,18 @@ export class AbilityResolver extends BaseStepWithPipeline {
     }
 
     // if there is an "if you do not" part of this ability, we need to resolve it if the main ability doesn't resolve
-    private checkResolveIfYouDoNot() {
-        if (!this.cancelled || !this.resolutionComplete) {
+    private checkResolveThenIfYouDoNot() {
+        if (!this.cancelled || !this.resolutionCommitted) {
             return;
         }
 
-        if (this.context.ability.isCardAbilityStep() && this.context.ability.properties?.ifYouDoNot) {
-            const ifYouDoNotAbilityContext = this.context.ability.getSubAbilityStepContext(this.context);
-            if (ifYouDoNotAbilityContext) {
-                this.game.resolveAbility(ifYouDoNotAbilityContext);
+        if (
+            this.context.ability.isCardAbilityStep() &&
+            (this.context.ability.properties?.ifYouDoNot || this.context.ability.properties?.then)
+        ) {
+            const subAbilityStepContext = this.context.ability.getSubAbilityStepContext(this.context);
+            if (subAbilityStepContext) {
+                this.game.resolveAbility(subAbilityStepContext);
             }
         }
     }
@@ -193,7 +206,6 @@ export class AbilityResolver extends BaseStepWithPipeline {
     private queueInitiateAbilitySteps() {
         this.game.queueSimpleStep(() => this.resolveCosts(), 'resolveCosts');
         this.game.queueSimpleStep(() => this.payCosts(), 'payCosts');
-        this.game.queueSimpleStep(() => this.checkCostsWerePaid(), 'checkCostsWerePaid');
         this.game.queueSimpleStep(() => this.resolveTargets(), 'resolveTargets');
         this.game.queueSimpleStep(() => this.checkForCancel(), 'checkForCancel');
         this.game.queueSimpleStep(() => this.executeHandler(), 'executeHandler');
@@ -216,7 +228,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
             this.context.ability.getCosts(this.context).length === 0
         ) {
             this.cancelled = true;
-            this.resolutionComplete = true;
+            this.resolutionCommitted = true;
         }
     }
 
@@ -227,73 +239,66 @@ export class AbilityResolver extends BaseStepWithPipeline {
         }
         this.costResults.canCancel = this.canCancel;
         this.context.stage = Stage.Cost;
-        this.context.ability.resolveCosts(this.context, this.costResults);
-    }
 
-    private getCostResults(): ICostResult {
-        return {
-            cancelled: false,
-            canCancel: this.canCancel,
-            events: [],
-            playCosts: true,
-            triggerCosts: true
-        };
-    }
+        const abilityCosts = this.context.ability.getCosts(this.context);
+        for (const cost of abilityCosts) {
+            if (cost.resolve) {
+                cost.resolve(this.context, this.costResults);
 
-    private checkForPass() {
-        if (this.cancelled) {
-            return;
-        } else if (this.costResults.cancelled) {
-            this.cancelled = true;
-            return;
+                if (this.costResults.cancelled) {
+                    this.cancelled = true;
+                    return;
+                }
+            }
         }
-
-        if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
-            this.passAbilityHandler.hasBeenShown = true;
-            this.game.promptWithHandlerMenu(this.passAbilityHandler.playerChoosing, {
-                activePromptTitle: `Trigger the ability '${this.getAbilityPromptTitle(this.context)}' or pass`,
-                choices: ['Trigger', this.passAbilityHandler.buttonText],
-                handlers: [
-                    () => undefined,
-                    () => {
-                        this.passAbilityHandler.handler();
-                    }
-                ]
-            });
-        }
-    }
-
-    private getAbilityPromptTitle(context) {
-        if (context.overrideTitle) {
-            return context.overrideTitle;
-        }
-        return context.ability.title;
     }
 
     private payCosts() {
         if (this.cancelled) {
             return;
-        } else if (this.costResults.cancelled) {
-            this.cancelled = true;
-            return;
         }
 
-        this.resolutionComplete = true;
-        if (this.costResults.events.length > 0) {
-            this.context.player.hasResolvedAbilityThisTimepoint = true;
+        const abilityCosts = this.context.ability.getCosts(this.context);
 
-            this.game.openEventWindow(this.costResults.events);
+        // prioritize any costs that have a targeting requirement first so that they can be cancellable
+        const { trueAra: metaActionCosts, falseAra: otherCosts } = Helpers.splitArray(abilityCosts, (cost) => cost.isMetaActionCost());
+        const orderedAbilityCosts = metaActionCosts.concat(otherCosts);
+
+        this.context.player.hasResolvedAbilityThisTimepoint = true;
+        for (const cost of orderedAbilityCosts) {
+            this.game.queueSimpleStep(() => this.queueGameStepsForCost(cost), `queue cost '${cost.getName()}'`);
         }
+
+        this.game.queueSimpleStep(() => {
+            if (!this.cancelled && !this.costResults.cancelled) {
+                this.resolutionCommitted = true;
+            }
+        }, 'mark resolution required');
     }
 
-    private checkCostsWerePaid() {
+    private queueGameStepsForCost(cost: ICost) {
         if (this.cancelled) {
             return;
         }
-        this.cancelled = this.costResults.events.some((event) => event.isCancelled);
-        if (this.cancelled) {
-            this.game.addMessage('{0} attempted to use {1}, but did not successfully pay the required costs', this.context.player, this.context.source);
-        }
+
+        const costEvents = [];
+        cost.queueGameStepsForAdjustmentsAndPayment(costEvents, this.context, this.costResults);
+
+        this.game.queueSimpleStep(() => {
+            if (this.costResults.cancelled) {
+                if (this.resolutionCommitted) {
+                    this.game.addMessage('{0} attempted to use {1}, but did not successfully pay the required costs', this.context.player, this.context.source);
+                }
+                this.cancelled = true;
+                return;
+            }
+
+            if (costEvents.length > 0) {
+                this.costResults.canCancel = false;
+                this.resolutionCommitted = true;
+                this.game.openEventWindow(costEvents);
+            }
+        }, `check + pay cost '${cost.getName()}'`);
     }
 
     private resolveTargets() {
@@ -323,7 +328,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
     private executeHandler() {
         if (this.cancelled) {
-            this.checkResolveIfYouDoNot();
+            this.checkResolveThenIfYouDoNot();
             for (const event of this.events) {
                 event.cancel();
             }
@@ -357,10 +362,47 @@ export class AbilityResolver extends BaseStepWithPipeline {
             // if we hit an error resolving an ability, try to close out the ability gracefully and move on
             // to see if we can preserve a playable game state
             this.cancelled = true;
-            this.resolutionComplete = true;
+            this.resolutionCommitted = true;
 
             return true;
         }
+    }
+
+    private getCostResults(): ICostResult {
+        return {
+            cancelled: false,
+            canCancel: this.canCancel
+        };
+    }
+
+    private checkForPass() {
+        if (this.cancelled) {
+            return;
+        } else if (this.costResults.cancelled) {
+            this.cancelled = true;
+            return;
+        }
+
+        if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
+            this.passAbilityHandler.hasBeenShown = true;
+            this.game.promptWithHandlerMenu(this.passAbilityHandler.playerChoosing, {
+                activePromptTitle: `Trigger the ability '${this.getAbilityPromptTitle(this.context)}' or pass`,
+                choices: ['Trigger', this.passAbilityHandler.buttonText],
+                handlers: [
+                    () => undefined,
+                    () => {
+                        this.passAbilityHandler.handler();
+                    }
+                ]
+            });
+        }
+    }
+
+    private getAbilityPromptTitle(context) {
+        if (context.overrideTitle) {
+            return context.overrideTitle;
+        }
+        return context.ability.getTitle(context);
     }
 
     public override toString() {

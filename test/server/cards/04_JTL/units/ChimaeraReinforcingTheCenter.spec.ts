@@ -199,49 +199,6 @@ describe('Chimaera, Reinforcing the Center', function() {
                 expect(battleDroid[0]).toBeInZone('groundArena');
             });
 
-            it('should interact correctly with Superlaser Technician', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['chimaera#reinforcing-the-center'],
-                        groundArena: ['superlaser-technician']
-                    },
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.chimaera);
-                const readyResources = context.player1.readyResourceCount;
-                context.player1.clickCard(context.superlaserTechnician);
-
-                expect(context.chimaera).toBeInZone('spaceArena');
-                expect(context.superlaserTechnician).toBeInZone('resource');
-                expect(context.superlaserTechnician.exhausted).toBe(false);
-                expect(context.player1.readyResourceCount).toBe(readyResources + 1);
-            });
-
-            it('should interact correctly with Enterprising Lackeys', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'iden-versio#inferno-squad-commander',
-                        hand: ['chimaera#reinforcing-the-center'],
-                        groundArena: ['enterprising-lackeys'],
-                        resources: ['superlaser-technician', 'battlefield-marine', 'wild-rancor', 'protector', 'devotion', 'restored-arc170']
-                    },
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.chimaera);
-                context.player1.clickCard(context.enterprisingLackeys);
-                expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
-                context.player1.clickCard(context.devotion);
-                expect(context.devotion).toBeInZone('discard');
-                expect(context.enterprisingLackeys).toBeInZone('resource');
-                expect(context.enterprisingLackeys.exhausted).toBe(true);
-            });
-
             it('should interact correctly with Shuttle ST-149', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

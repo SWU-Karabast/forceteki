@@ -1,57 +1,117 @@
 describe('Chancellor Palpatine, I Am The Senate', function() {
     integration(function(contextRef) {
-        it('when played while you control a leader unit, creates 2 Spy tokens and gives those tokens Sentinel for this phase', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
-                    hand: ['chancellor-palpatine#i-am-the-senate'],
-                },
-                player2: {
-                    groundArena: ['wampa']
-                }
+        describe('When Played Ability', function () {
+            it('while you control a leader unit, creates 2 Spy tokens and gives those tokens Sentinel for this phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
+                        hand: ['chancellor-palpatine#i-am-the-senate'],
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Palpatine unit
+                context.player1.clickCard(context.chancellorPalpatineIAmTheSenate);
+
+                // Verify 2 Spy tokens were created for player1
+                const spies = context.player1.findCardsByName('spy');
+                expect(spies.length).toBe(2);
+                expect(spies).toAllBeInZone('groundArena');
+                expect(spies.every((spy) => spy.exhausted)).toBeTrue();
+
+                // Now it is player2's action; attempting to attack must target a Sentinel (the spies) due to the phase effect
+                context.player2.clickCard(context.wampa);
+                // Only the spies should be valid defenders because they have Sentinel for this phase
+                expect(context.player2).toBeAbleToSelectExactly(spies);
+                context.player2.clickCard(spies[0]);
             });
 
-            const { context } = contextRef;
+            it('while you control an undeployed leader, does not create tokens', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'iden-versio#inferno-squad-commander',
+                        hand: ['chancellor-palpatine#i-am-the-senate'],
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
 
-            // Play Palpatine unit
-            context.player1.clickCard(context.chancellorPalpatineIAmTheSenate);
+                const { context } = contextRef;
 
-            // Verify 2 Spy tokens were created for player1
-            const spies = context.player1.findCardsByName('spy');
-            expect(spies.length).toBe(2);
-            expect(spies).toAllBeInZone('groundArena');
-            expect(spies.every((spy) => spy.exhausted)).toBeTrue();
+                context.player1.clickCard(context.chancellorPalpatineIAmTheSenate);
 
-            // Now it is player2's action; attempting to attack must target a Sentinel (the spies) due to the phase effect
-            context.player2.clickCard(context.wampa);
-            // Only the spies should be valid defenders because they have Sentinel for this phase
-            expect(context.player2).toBeAbleToSelectExactly(spies);
-            context.player2.clickCard(spies[0]);
-        });
+                const spies = context.player1.findCardsByName('spy');
+                expect(spies.length).toBe(0);
 
-        it('when played while you control an undeployed leader, does not create tokens', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    leader: 'iden-versio#inferno-squad-commander',
-                    hand: ['chancellor-palpatine#i-am-the-senate'],
-                },
-                player2: {
-                    groundArena: ['wampa']
-                }
+                context.player2.clickCard(context.wampa);
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.chancellorPalpatine]);
+                context.player2.clickCard(context.p1Base);
             });
 
-            const { context } = contextRef;
+            it('works when you control a pilot leader upgrade that makes attached unit a leader', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-vader#victor-squadron-leader',
+                        resources: ['chancellor-palpatine#i-am-the-senate', 'atst', 'atst', 'atst', 'atst', 'atst'],
+                        spaceArena: ['lurking-tie-phantom']
+                    }
+                });
 
-            context.player1.clickCard(context.chancellorPalpatineIAmTheSenate);
+                const { context } = contextRef;
 
-            const spies = context.player1.findCardsByName('spy');
-            expect(spies.length).toBe(0);
+                // Deploy Vader as a pilot on Lurking TIE Phantom
+                context.player1.clickCard(context.darthVader);
+                context.player1.clickPrompt('Deploy Darth Vader as a Pilot');
+                context.player1.clickCard(context.lurkingTiePhantom);
 
-            context.player2.clickCard(context.wampa);
-            expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.chancellorPalpatine]);
-            context.player2.clickCard(context.p1Base);
+                // Resolve Vader's deploy trigger first
+                context.player1.clickPrompt('Create 2 TIE Fighter Tokens');
+
+                // Now resolve Palpatine Plot
+                expect(context.player1).toHavePassAbilityPrompt('Play Chancellor Palpatine using Plot');
+                context.player1.clickPrompt('Trigger');
+
+                // Verify 2 Spy tokens were created for player1
+                const spies = context.player1.findCardsByName('spy');
+                expect(spies.length).toBe(2);
+                expect(spies).toAllBeInZone('groundArena');
+                expect(spies.every((spy) => spy.exhausted)).toBeTrue();
+            });
+
+            it('does not work when you control a pilot leader upgrade that does not make attached unit a leader', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'poe-dameron#i-can-fly-anything',
+                        hand: ['chancellor-palpatine#i-am-the-senate'],
+                        spaceArena: ['green-squadron-awing']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Attach Poe as a pilot on Green Squadron A-Wing
+                context.player1.clickCard(context.poeDameron);
+                context.player1.clickPrompt('Flip Poe Dameron and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it');
+                context.player1.clickCard(context.greenSquadronAwing);
+                context.player2.passAction();
+
+                // Now play Palpatine from hand
+                context.player1.clickCard(context.chancellorPalpatine);
+                expect(context.chancellorPalpatine).toBeInZone('groundArena');
+
+                // Verify no Spy tokens were created for player1
+                const spies = context.player1.findCardsByName('spy');
+                expect(spies.length).toBe(0);
+            });
         });
 
         it('can be played from resources using Plot when a leader is deployed; creates 2 Spies with Sentinel and replaces itself from the deck', async function () {

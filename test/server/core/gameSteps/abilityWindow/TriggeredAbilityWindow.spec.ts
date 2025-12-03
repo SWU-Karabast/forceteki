@@ -119,5 +119,132 @@ describe('Simultaneous triggers', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('The same ability triggered multiple times in the same window', function () {
+            it('should only create a single trigger prompt if the ability uses a collective trigger', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'boba-fett#any-methods-necessary',
+                        hand: ['guerilla-soldier']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'battlefield-marine'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.guerillaSoldier);
+                context.player1.clickPrompt('Deal indirect damage to opponent');
+                context.player2.setDistributeIndirectDamagePromptState(new Map([
+                    [context.wampa, 2],
+                    [context.battlefieldMarine, 1],
+                ]));
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
+                context.player1.clickPrompt('Trigger');
+
+                context.player1.clickPrompt('Deal indirect damage to opponent');
+                context.player2.setDistributeIndirectDamagePromptState(new Map([
+                    [context.wampa, 1],
+                ]));
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should create a named trigger button for each target if the ability does not have a collective trigger', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['guerilla-soldier'],
+                        groundArena: ['allegiant-general-pryde#ruthless-and-loyal']
+                    },
+                    player2: {
+                        groundArena: [
+                            { card: 'wampa', upgrades: ['shield'] },
+                            { card: 'battlefield-marine', upgrades: ['devotion'] }
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.guerillaSoldier);
+                context.player1.clickPrompt('Deal indirect damage to opponent');
+                context.player2.setDistributeIndirectDamagePromptState(new Map([
+                    [context.wampa, 2],
+                    [context.battlefieldMarine, 1],
+                ]));
+
+                expect(context.player1).toHaveEnabledPromptButtons([
+                    'Defeat a non-unique upgrade on the unit: Battlefield Marine',
+                    'Defeat a non-unique upgrade on the unit: Wampa'
+                ]);
+
+                context.player1.clickPrompt('Defeat a non-unique upgrade on the unit: Battlefield Marine');
+                expect(context.player1).toBeAbleToSelectExactly([context.devotion]);
+                context.player1.clickCard(context.devotion);
+
+                expect(context.player1).toHavePrompt('Defeat a non-unique upgrade on the unit: Wampa');
+                expect(context.player1).toBeAbleToSelectExactly([context.shield]);
+                context.player1.clickCard(context.shield);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.devotion).toBeInZone('discard');
+                expect(context.battlefieldMarine.isUpgraded()).toBeFalse();
+            });
+
+            it('should work correctly if sharing the window with another ability and only one of them has collective trigger', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'boba-fett#any-methods-necessary',
+                        hand: ['guerilla-soldier'],
+                        groundArena: ['allegiant-general-pryde#ruthless-and-loyal']
+                    },
+                    player2: {
+                        groundArena: [
+                            { card: 'wampa', upgrades: ['shield'] },
+                            { card: 'battlefield-marine', upgrades: ['devotion'] }
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.guerillaSoldier);
+                context.player1.clickPrompt('Deal indirect damage to opponent');
+                context.player2.setDistributeIndirectDamagePromptState(new Map([
+                    [context.wampa, 2],
+                    [context.battlefieldMarine, 1],
+                ]));
+
+                expect(context.player1).toHaveEnabledPromptButtons([
+                    'Exhaust this leader to deal 1 indirect damage to a player',
+                    'Defeat a non-unique upgrade on the unit: Battlefield Marine',
+                    'Defeat a non-unique upgrade on the unit: Wampa'
+                ]);
+
+                context.player1.clickPrompt('Defeat a non-unique upgrade on the unit: Battlefield Marine');
+                expect(context.player1).toBeAbleToSelectExactly([context.devotion]);
+                context.player1.clickCard(context.devotion);
+
+                context.player1.clickPrompt('Defeat a non-unique upgrade on the unit: Wampa');
+                expect(context.player1).toBeAbleToSelectExactly([context.shield]);
+                context.player1.clickCard(context.shield);
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
+                context.player1.clickPrompt('Trigger');
+
+                context.player1.clickPrompt('Deal indirect damage to opponent');
+                context.player2.setDistributeIndirectDamagePromptState(new Map([
+                    [context.wampa, 1],
+                ]));
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.devotion).toBeInZone('discard');
+                expect(context.battlefieldMarine.isUpgraded()).toBeFalse();
+            });
+        });
     });
 });

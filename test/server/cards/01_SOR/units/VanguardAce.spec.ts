@@ -56,8 +56,29 @@ describe('Vanguard Ace', function() {
                 context.player1.clickCard(context.vanguardAce);
                 expect(context.vanguardAce).toHaveExactUpgradeNames(['experience']);
             });
+        });
 
-            // TODO TAKE CONTROL: check that state watchers still work if the card is played by the opponent
+        it('Vanguard Ace\'s ability give experience even if previous played unit is stolen by opponent', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['yoda#old-master', 'vanguard-ace'],
+                },
+                player2: {
+                    hand: ['traitorous']
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.yoda);
+
+            context.player2.clickCard(context.traitorous);
+            context.player2.clickCard(context.yoda);
+
+            context.player1.clickCard(context.vanguardAce);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.vanguardAce).toHaveExactUpgradeNames(['experience']);
         });
 
         it('Vanguard Ace\'s ability counts a previous play of itself this phase', async function () {

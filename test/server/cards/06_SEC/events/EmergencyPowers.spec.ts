@@ -111,7 +111,7 @@ describe('Emergency Powers', function() {
             });
         });
 
-        it('Emergency Power\' ability should do nothing if there are no units on the field', async function() {
+        it('Emergency Power\'s ability should do nothing if there are no units on the field', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -124,10 +124,48 @@ describe('Emergency Powers', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.emergencyPowers);
+            context.player1.clickPrompt('Play anyway');
 
             expect(context.emergencyPowers).toBeInZone('discard', context.player1);
             expect(context.player2).toBeActivePlayer();
             expect(context.player1.exhaustedResourceCount).toBe(1);
+        });
+
+        it('Emergency Power\'s ability should give exp to enemy if controller has no units', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['emergency-powers'],
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'dagobah-swamp',
+                    resources: 10,
+                },
+                player2: {
+                    groundArena: ['atst'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.emergencyPowers);
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.atst,
+            ]);
+
+            context.player1.clickCard(context.atst);
+            expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 10 }, (_x, i) => `${i}`));
+            context.player1.chooseListOption('9');
+            expect(context.atst).toHaveExactUpgradeNames([
+                'experience',
+                'experience',
+                'experience',
+                'experience',
+                'experience',
+                'experience',
+                'experience',
+                'experience',
+                'experience']);
+            expect(context.player1.exhaustedResourceCount).toBe(10);
         });
     });
 });
