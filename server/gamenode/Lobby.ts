@@ -11,9 +11,10 @@ import type { IUser } from '../Settings';
 import { getUserWithDefaultsSet } from '../Settings';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
-import type { DeckValidator } from '../utils/deck/DeckValidator';
+import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
-import type { IDecklistInternal, IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
+import { DeckSource } from '../utils/deck/DeckInterfaces';
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
@@ -22,46 +23,26 @@ import { AlertType, GameEndReason, GameErrorSeverity } from '../game/core/Consta
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import type { Player } from '../game/core/Player';
 
-interface LobbySpectator {
+interface LobbySpectatorWrapper {
     id: string;
     username: string;
     state: 'connected' | 'disconnected';
     socket?: Socket;
+    user?: User;
 }
 
 enum LobbySettingKeys {
     RequestUndo = 'requestUndo',
 }
 
-export interface LobbyUser extends LobbySpectator {
-    state: 'connected' | 'disconnected';
+export interface LobbyUserWrapper extends LobbySpectatorWrapper {
     ready: boolean;
     deck?: Deck;
-    decklist?: any;
     deckValidationErrors?: IDeckValidationFailures;
     importDeckValidationErrors?: IDeckValidationFailures;
     reportedBugs: number;
-}
-
-export enum DeckSource {
-    SWUStats = 'swuStats',
-    SWUDB = 'swuDb',
-    SWUnlimitedDB = 'swUnlimitedDb',
-    SWUBase = 'swuBase',
-    SWUCardHub = 'swuCardHub',
-    Unknown = 'unknown'
-}
-
-export interface PlayerDetails {
-    user: User;
-    deckID: string;
-    deckLink: string;
-    deckSource: DeckSource;
-    leaderID: string;
-    baseID: string;
-    deck: IDecklistInternal;
-    isDeckPresentInDb: boolean;
 }
 
 export enum MatchType {
@@ -113,8 +94,8 @@ export class Lobby {
     private undoMode: UndoMode = UndoMode.Disabled;
 
     private game?: Game;
-    public users: LobbyUser[] = [];
-    public spectators: LobbySpectator[] = [];
+    public users: LobbyUserWrapper[] = [];
+    public spectators: LobbySpectatorWrapper[] = [];
     private lobbyOwnerId: string;
     public gameType: MatchType;
     public gameFormat: SwuGameFormat;
@@ -123,7 +104,6 @@ export class Lobby {
     private matchingCountdownText?: string;
     private matchingCountdownTimeoutHandle?: NodeJS.Timeout;
     private usersLeftCount = 0;
-    private playersDetails: PlayerDetails[] = [];
     private gameMessageErrorCount = 0;
     private statsUpdateStatus = new Map<string, Map<StatsSource, IStatsMessageFormat>>();
 
@@ -170,7 +150,7 @@ export class Lobby {
         return this.gameFormat;
     }
 
-    public getLobbyState(user?: LobbyUser): any {
+    public getLobbyState(user?: LobbyUserWrapper): any {
         return {
             id: this._id,
             lobbyName: this._lobbyName,
@@ -195,7 +175,7 @@ export class Lobby {
         };
     }
 
-    private buildLobbyUserData(user: LobbyUser, fullData = false) {
+    private buildLobbyUserData(user: LobbyUserWrapper, fullData = false) {
         const authenticatedStatus = user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser();
 
         const previousAuthenticatedStatus = this.previousAuthenticatedStatusByUser.get(user.id);
@@ -273,10 +253,9 @@ export class Lobby {
             ready: false,
             socket: null,
             deckValidationErrors: deck
-                ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat, this.allow30CardsInMainBoard)
+                ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard })
                 : {},
             deck,
-            decklist,
             reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
@@ -299,6 +278,7 @@ export class Lobby {
                 id: user.getId(),
                 username: user.getId(),
                 socket,
+                user: socket.user,
                 state: 'connected'
             });
         } else {
@@ -314,7 +294,7 @@ export class Lobby {
         logger.info(`Lobby: adding spectator: ${user.getUsername()}, id: ${user.getId()} (${this.spectators.length} spectator(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
     }
 
-    private checkUpdateSocket(user: LobbyUser | LobbySpectator, socket: Socket): void {
+    private checkUpdateSocket(user: LobbyUserWrapper | LobbySpectatorWrapper, socket: Socket): void {
         // clean up disconnect handlers on the old socket before removing it
         if (user.socket && user.socket.id !== socket.id) {
             user.socket.removeEventsListeners(['disconnect']);
@@ -366,6 +346,7 @@ export class Lobby {
                 state: 'connected',
                 ready: false,
                 socket,
+                user: socket.user,
                 reportedBugs: 0
             });
             logger.info(`Lobby: adding username: ${user.getUsername()}, id: ${user.getId()}, socket id: ${socket.id} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
@@ -385,13 +366,14 @@ export class Lobby {
             if (!socket.eventContainsListener('requeue')) {
                 socket.registerEvent(
                     'requeue',
-                    () => this.server.requeueUser(socket, this.format, user, {
-                        ...existingUser?.deck?.getDecklist(),
-                        deckID: existingUser?.deck?.id,
-                        deckLink: existingUser?.decklist.deckLink,
-                        deckSource: existingUser?.decklist.deckSource,
-                        isPresentInDb: existingUser?.decklist.isPresentInDb,
-                    })
+                    () => {
+                        if (!existingUser?.deck || !existingUser.deck.originalDeckList) {
+                            logger.error(`Lobby: Cannot requeue user ${user.getId()} - no deck found`, { lobbyId: this.id, userId: user.getId() });
+                            socket.send('connection_error', 'Unable to requeue: deck not found');
+                            return;
+                        }
+                        this.server.requeueUser(socket, this.format, user, existingUser.deck.originalDeckList);
+                    }
                 );
             }
 
@@ -495,7 +477,6 @@ export class Lobby {
         this.users.forEach((user) => {
             user.ready = false;
         });
-        this.playersDetails = [];
         this.sendLobbyState();
     }
 
@@ -503,18 +484,17 @@ export class Lobby {
         const activeUser = this.users.find((u) => u.id === socket.user.getId());
 
         // we check if the deck is valid.
-        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], this.gameFormat, this.allow30CardsInMainBoard);
+        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard };
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], validationProperties);
 
-        // if the deck doesn't have any errors set it as active.
-        if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
+        // if the deck doesn't have any errors that block import, set it as active
+        const filteredErrors = DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
+        if (Object.keys(filteredErrors).length === 0) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
-            activeUser.decklist = args[0];
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
-                this.gameFormat,
-                this.allow30CardsInMainBoard
+                validationProperties
             );
-            activeUser.importDeckValidationErrors = null;
         }
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
@@ -536,10 +516,10 @@ export class Lobby {
             userDeck.moveToDeck(cardId);
         }
         // check deck for deckValidationErrors
+        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard };
         user.deckValidationErrors = this.deckValidator.validateInternalDeck(
             userDeck.getDecklist(),
-            this.gameFormat,
-            this.allow30CardsInMainBoard
+            validationProperties
         );
         // we need to clear any importDeckValidation errors otherwise they can persist
         user.importDeckValidationErrors = null;
@@ -712,39 +692,6 @@ export class Lobby {
         this.game = game;
     }
 
-    /**
-     * Helper method to determine deck source from deck link or other data
-     */
-    private determineDeckSource(deckLink?: string, deckSource?: string): DeckSource {
-        if (deckSource) {
-            const upperDeckSource = deckSource.toUpperCase();
-            const enumValues = Object.values(DeckSource);
-
-            for (const enumValue of enumValues) {
-                if (enumValue.toUpperCase() === upperDeckSource) {
-                    return enumValue;
-                }
-            }
-        }
-        // Fallback to determining from deckLink
-        if (deckLink) {
-            if (deckLink.includes('swustats.net')) {
-                return DeckSource.SWUStats;
-            } else if (deckLink.includes('swudb.com')) {
-                return DeckSource.SWUDB;
-            } else if (deckLink.includes('swunlimiteddb.com')) {
-                return DeckSource.SWUnlimitedDB;
-            } else if (deckLink.includes('swubase.com')) {
-                return DeckSource.SWUBase;
-            } else if (deckLink.includes('swucardhub.fr')) {
-                return DeckSource.SWUCardHub;
-            }
-        }
-
-        // Default fallback
-        return DeckSource.Unknown;
-    }
-
     private async onStartGameAsync() {
         try {
             this.rematchRequest = null;
@@ -763,18 +710,8 @@ export class Lobby {
             // For each user, if they have a deck, select it in the game
             this.users.forEach((user) => {
                 Contract.assertNotNullLike(user.deck, `User ${user.id} doesn't have a deck assigned at game start for lobby ${this.id}`);
-
                 game.selectDeck(user.id, user.deck);
-                this.playersDetails.push({
-                    user: user.socket.user,
-                    baseID: user.deck.base.id,
-                    leaderID: user.deck.leader.id,
-                    deckID: user.deck.id,
-                    deckLink: user.decklist.deckLink,
-                    deckSource: this.determineDeckSource(user.decklist.deckLink, user.decklist.deckSource),
-                    deck: user.deck.getDecklist(),
-                    isDeckPresentInDb: user.decklist.isPresentInDb,
-                });
+                game.attachLobbyUser(user.id, user.socket.user);
             });
             await game.initialiseAsync();
             this.sendGameState(game);
@@ -954,13 +891,12 @@ export class Lobby {
         this.buildSafeTimeout(() => {
             for (const user of this.users) {
                 logger.error(`Lobby: requeueing user ${user.id} after matched user disconnected`);
-                this.server.requeueUser(user.socket, this.format, user.socket.user, {
-                    ...user.deck?.getDecklist(),
-                    deckID: user.deck?.id,
-                    deckLink: user.decklist.deckLink,
-                    deckSource: user.decklist.deckSource,
-                    isPresentInDb: user.decklist.isPresentInDb,
-                });
+                if (!user.deck || !user.deck.originalDeckList) {
+                    logger.error(`Lobby: Cannot requeue user ${user.id} - no deck found`, { lobbyId: this.id, userId: user.id });
+                    user.socket.send('connection_error', 'Unable to requeue: deck not found');
+                    continue;
+                }
+                this.server.requeueUser(user.socket, this.format, user.socket.user, user.deck.originalDeckList);
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
 
@@ -1082,35 +1018,38 @@ export class Lobby {
     /**
      * Private method to update a players stats on Karabast
      */
-    private async updateKarabastPlayerStatsAsync(playerUser: PlayerDetails, opponentPlayerUser: PlayerDetails, score: ScoreType): Promise<IStatsMessageFormat> {
+    private async updateKarabastPlayerStatsAsync(updatingPlayer: Player, opponentPlayer: Player, score: ScoreType): Promise<IStatsMessageFormat> {
         try {
-            if (!playerUser.user.isAuthenticatedUser()) {
+            Contract.assertNotNullLike(updatingPlayer.lobbyDeck, `Updating player ${updatingPlayer.id} has no deck assigned at stats update time`);
+            Contract.assertNotNullLike(opponentPlayer.lobbyDeck, `Opponent player ${opponentPlayer.id} has no deck assigned at stats update time`);
+
+            if (!updatingPlayer.lobbyUser.isAuthenticatedUser()) {
                 return { type: StatsSaveStatus.Warning,
                     source: StatsSource.Karabast,
                     message: 'deck stats can only be saved for logged-in users' };
             }
-            if (!playerUser.isDeckPresentInDb) {
+            if (!updatingPlayer.lobbyDeck.isPresentInDb) {
                 return { type: StatsSaveStatus.Warning,
                     source: StatsSource.Karabast,
                     message: 'stats can only be updated for saved decks' };
             }
 
             // Get the deck service
-            const opponentPlayerLeaderId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.leaderID);
-            const opponentPlayerBaseId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.baseID);
+            const opponentPlayerLeaderId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayer.lobbyDeck.leader.id);
+            const opponentPlayerBaseId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayer.lobbyDeck.base.id);
             await this.server.deckService.updateDeckStatsAsync(
-                playerUser.user.getId(),
-                playerUser.deckID,
+                updatingPlayer.lobbyUser.getId(),
+                updatingPlayer.lobbyDeck.id,
                 score,
                 opponentPlayerLeaderId.internalName,
                 opponentPlayerBaseId.internalName,
             );
-            logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${this.id}`, { lobbyId: this.id, userId: playerUser.user.getId() });
+            logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${this.id}`, { lobbyId: this.id, userId: updatingPlayer.lobbyUser.getId() });
             return { type: StatsSaveStatus.Success,
                 source: StatsSource.Karabast,
                 message: 'deck stats successfully updated' };
         } catch (error) {
-            logger.error(`Lobby ${this.id}: Error updating deck Karabast stats for a player:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: playerUser.user.getId() });
+            logger.error(`Lobby ${this.id}: Error updating deck Karabast stats for a player:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: updatingPlayer.lobbyUser.getId() });
             return { type: StatsSaveStatus.Error,
                 source: StatsSource.Karabast,
                 message: 'an error occurred while updating stats' };
@@ -1121,45 +1060,37 @@ export class Lobby {
     /**
      * Private method to update a players SWU stats
      */
-    private async updatePlayerSWUStatsAsync(game: Game, player1User: PlayerDetails, player2User: PlayerDetails): Promise<{ player1SwuStatsStatus: IStatsMessageFormat | null; player2SwuStatsStatus: IStatsMessageFormat | null }> {
+    private async updatePlayerSWUStatsAsync(game: Game, player1: Player, player2: Player): Promise<{ player1SwuStatsStatus: IStatsMessageFormat | null; player2SwuStatsStatus: IStatsMessageFormat | null }> {
         try {
             const swuStatsMessage = await this.server.swuStatsHandler.sendSWUStatsGameResultAsync(
                 game,
-                player1User,
-                player2User,
-                this.hasSwuStatsSource,
+                player1,
+                player2,
                 this.id,
                 this.server,
             );
             // Success return message
             logger.info(`Lobby ${this.id}: Successfully updated deck SWUStats stats for game ${game.id}`, { lobbyId: this.id });
             return {
-                player1SwuStatsStatus: this.hasSwuStatsSource(player1User) ? swuStatsMessage : null,
-                player2SwuStatsStatus: this.hasSwuStatsSource(player2User) ? swuStatsMessage : null
+                player1SwuStatsStatus: player1.lobbyDeck.deckSource === DeckSource.SWUStats ? swuStatsMessage : null,
+                player2SwuStatsStatus: player2.lobbyDeck.deckSource === DeckSource.SWUStats ? swuStatsMessage : null
             };
         } catch (error) {
             // return error stat message for SWUStats
             logger.error(`Lobby ${this.id}: An error occurred while sending stats to SWUStats in ${game.id}`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
             return {
-                player1SwuStatsStatus: this.hasSwuStatsSource(player1User) ? {
+                player1SwuStatsStatus: player1.lobbyDeck.deckSource === DeckSource.SWUStats ? {
                     type: StatsSaveStatus.Error,
                     source: StatsSource.SwuStats,
                     message: 'an error occurred while sending stats'
                 } : null,
-                player2SwuStatsStatus: this.hasSwuStatsSource(player2User) ? {
+                player2SwuStatsStatus: player2.lobbyDeck.deckSource === DeckSource.SWUStats ? {
                     type: StatsSaveStatus.Error,
                     source: StatsSource.SwuStats,
                     message: 'an error occurred while sending stats'
                 } : null
             };
         }
-    }
-
-    /**
-     * Private method to check if players deck source is SWUStats
-     */
-    public hasSwuStatsSource(playerDetails: PlayerDetails): boolean {
-        return playerDetails.deckSource === DeckSource.SWUStats;
     }
 
     /**
@@ -1182,15 +1113,17 @@ export class Lobby {
         }
         const [player1, player2] = players;
 
-        // Get the user & deck information for each player
-        const player1User = this.playersDetails.find((u) => u.user.getId() === player1.id);
-        const player2User = this.playersDetails.find((u) => u.user.getId() === player2.id);
+        // Validate that lobby users are attached to players
+        Contract.assertNotNullLike(player1.lobbyUser, `Lobby ${this.id}: player1 ${player1.id} has no lobbyUser attached at stats send time`);
+        Contract.assertNotNullLike(player2.lobbyUser, `Lobby ${this.id}: player2 ${player2.id} has no lobbyUser attached at stats send time`);
+        Contract.assertNotNullLike(player1.lobbyDeck, `Lobby ${this.id}: player1 ${player1.id} has no deck assigned at stats send time`);
+        Contract.assertNotNullLike(player2.lobbyDeck, `Lobby ${this.id}: player2 ${player2.id} has no deck assigned at stats send time`);
 
         // SWUStats
-        let player1SwuStatsStatus = this.hasSwuStatsSource(player1User)
+        let player1SwuStatsStatus = player1.lobbyDeck?.deckSource === DeckSource.SWUStats
             ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'an error occurred while updating stats' }
             : null;
-        let player2SwuStatsStatus = this.hasSwuStatsSource(player2User)
+        let player2SwuStatsStatus = player2.lobbyDeck?.deckSource === DeckSource.SWUStats
             ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'an error occurred while updating stats' }
             : null;
 
@@ -1236,23 +1169,13 @@ export class Lobby {
                 return;
             }
 
-
-            if (!player1User) {
-                logger.error(`Lobby ${this.id}: Missing information for player1 ${player1.id}`, { lobbyId: this.id, userId: player1.id });
-                throw new Error(`Missing information for player1 ${player1.id}`);
-            }
-            if (!player2User) {
-                logger.error(`Lobby ${this.id}: Missing information for player2 ${player2.id}`, { lobbyId: this.id, userId: player2.id });
-                throw new Error(`Missing information for player1 ${player2.id}`);
-            }
-
             // Update Karabast stats
-            player1KarabastStatus = await this.updateKarabastPlayerStatsAsync(player1User, player2User, player1Score);
-            player2KarabastStatus = await this.updateKarabastPlayerStatsAsync(player2User, player1User, player2Score);
+            player1KarabastStatus = await this.updateKarabastPlayerStatsAsync(player1, player2, player1Score);
+            player2KarabastStatus = await this.updateKarabastPlayerStatsAsync(player2, player1, player2Score);
 
             // Send to SWUstats if handler is available
             if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier && this.swuStatsEnabled) {
-                ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1User, player2User));
+                ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1, player2));
             }
             // Send warning that swustats are not updated when in non-premier format.
             if (this.format !== SwuGameFormat.Premier && this.swuStatsEnabled) {
@@ -1267,13 +1190,13 @@ export class Lobby {
             }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for ${game.id}`, { lobbyId: this.id });
         } finally {
-            this.sendStatsMessageToUser(player1User.user.getId(), player1KarabastStatus);
-            this.sendStatsMessageToUser(player2User.user.getId(), player2KarabastStatus);
+            this.sendStatsMessageToUser(player1.id, player1KarabastStatus);
+            this.sendStatsMessageToUser(player2.id, player2KarabastStatus);
             if (player1SwuStatsStatus && this.swuStatsEnabled) {
-                this.sendStatsMessageToUser(player1User.user.getId(), player1SwuStatsStatus);
+                this.sendStatsMessageToUser(player1.id, player1SwuStatsStatus);
             }
             if (player2SwuStatsStatus && this.swuStatsEnabled) {
-                this.sendStatsMessageToUser(player2User.user.getId(), player2SwuStatsStatus);
+                this.sendStatsMessageToUser(player2.id, player2SwuStatsStatus);
             }
         }
     }

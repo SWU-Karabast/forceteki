@@ -1,9 +1,17 @@
-export interface ISwuDbCardEntry {
+import type { IBaseCard } from '../../game/core/card/BaseCard';
+import type { IPlayableCard } from '../../game/core/card/baseClasses/PlayableOrDeployableCard';
+import type { Card } from '../../game/core/card/Card';
+import type { ILeaderCard } from '../../game/core/card/propertyMixins/LeaderProperties';
+import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
+import type { GameObjectRef } from '../../game/core/GameObjectBase';
+import type { SwuGameFormat } from '../../SwuGameFormat';
+
+export interface ISwuDbFormatCardEntry {
     id: string;
     count: number;
 }
 
-export interface IInternalCardEntry extends ISwuDbCardEntry {
+export interface IInternalCardEntry extends ISwuDbFormatCardEntry {
     internalName: string;
     cost?: number;
 }
@@ -14,17 +22,31 @@ export enum ScoreType {
     Lose = 'Lose'
 }
 
-export interface ISwuDbDecklist {
+export enum DeckSource {
+    SWUStats = 'swuStats',
+    SWUDB = 'swuDb',
+    SWUnlimitedDB = 'swUnlimitedDb',
+    SWUBase = 'swuBase',
+    SWUCardHub = 'swuCardHub',
+    Unknown = 'unknown'
+}
+
+export interface IDeckListBase {
+    deckID?: string;
+    deckLink?: string;
+    isPresentInDb?: boolean;
+}
+
+export interface ISwuDbFormatDecklist extends IDeckListBase {
     metadata: {
         name: string;
         author: string;
     };
-    leader?: ISwuDbCardEntry;
-    secondleader?: ISwuDbCardEntry;
-    base?: ISwuDbCardEntry;
-    deck?: ISwuDbCardEntry[];
-    sideboard?: ISwuDbCardEntry[];
-    deckID?: string;
+    leader?: ISwuDbFormatCardEntry;
+    secondleader?: ISwuDbFormatCardEntry;
+    base?: ISwuDbFormatCardEntry;
+    deck?: ISwuDbFormatCardEntry[];
+    sideboard?: ISwuDbFormatCardEntry[];
 }
 
 export interface ILeaderBaseInternal {
@@ -32,10 +54,19 @@ export interface ILeaderBaseInternal {
     base: IInternalCardEntry;
 }
 
-export interface IDecklistInternal extends ILeaderBaseInternal {
+export type IDecklistInternal = ILeaderBaseInternal & IDeckListBase & {
     deck: IInternalCardEntry[];
     sideboard?: IInternalCardEntry[];
-    deckID?: string;
+};
+
+export interface IDeckListForLoading {
+    deckCards: GameObjectRef<IPlayableCard>[];
+    outOfPlayCards: any[];
+    outsideTheGameCards: GameObjectRef<Card>[];
+    tokens: GameObjectRef<ITokenCard>[];
+    base: GameObjectRef<IBaseCard> | undefined;
+    leader: GameObjectRef<ILeaderCard> | undefined;
+    allCards: GameObjectRef<Card>[];
 }
 
 export interface ICardIdAndName {
@@ -43,6 +74,11 @@ export interface ICardIdAndName {
     /** SWUDB calls this an "id" but it's a setcode */
     id: string;
     name: string;
+}
+
+export interface IDeckValidationProperties {
+    format: SwuGameFormat;
+    allow30CardsInMainBoard: boolean;
 }
 
 export enum DecklistLocation {

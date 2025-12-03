@@ -322,9 +322,9 @@ export function setUnion<T>(setA: Set<T>, setB: Set<T>): Set<T> {
 }
 
 /**
- * Recurses through an object's properties and converts null to undefined.
- * JSON.stringify will then strip these undefined values.
+ * Recurses through an object's properties and converts any null values to undefined.
  * This is an _in-place_ operation, meaning it modifies the original object.
+ * When serialized to JSON, undefined properties are omitted, reducing message size.
  */
 export function convertNullToUndefinedRecursiveInPlace(obj) {
     if (obj == null) {
