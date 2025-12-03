@@ -19,7 +19,7 @@ describe('Director Krennic, On the Verge of Greatness', function() {
                     },
                     player2: {
                         leader: 'asajj-ventress#i-work-alone',
-                        hand: ['onyx-squadron-brute']
+                        hand: ['onyx-squadron-brute', 'waylay']
                     }
                 });
             });
@@ -97,6 +97,22 @@ describe('Director Krennic, On the Verge of Greatness', function() {
 
                 context.player1.clickCard(context.ruthlessRaider);
                 expect(context.player1.exhaustedResourceCount).toBe(5);
+            });
+
+            it('does not discount a card that is played a second time after being returned to hand', function() {
+                const { context } = contextRef;
+
+                // Gets the discount the first time it is played
+                context.player1.clickCard(context.distantPatroller);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+
+                // P2 returns it to P1's hand
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.distantPatroller);
+
+                // It does not get the discount the second time it is played
+                context.player1.clickCard(context.distantPatroller);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
             });
         });
 
