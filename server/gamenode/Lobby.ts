@@ -630,6 +630,7 @@ export class Lobby {
             const otherPlayer = this.users.find((u) => u.id !== id);
             if (otherPlayer) {
                 this.game.endGame(this.game.getPlayerById(otherPlayer.id), GameEndReason.PlayerLeft);
+                this.server.recordExpiringMatchmakingEntry(this.game, this);
             }
             this.sendGameState(this.game);
         }
