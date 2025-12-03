@@ -1692,6 +1692,7 @@ export class GameServer {
         }
 
         const formatsWithMatches = this.queue.findReadyFormats();
+        let needsTimedRetry = false;
 
         for (const format of formatsWithMatches) {
             // track exceptions to avoid getting stuck in a loop
@@ -1705,18 +1706,8 @@ export class GameServer {
                     matchedPlayers = this.queue.getNextMatchPair(format);
 
                     if (!matchedPlayers) {
-                        // If matchmaking failed to find a pair, set a timer to try again
-                        this.matchmakingTimer = setTimeout(() => {
-                            try {
-                                this.matchmakeAllQueuesAsync();
-                            } catch (error) {
-                                logger.error(
-                                    'GameServer: Error in scheduled matchmaking retry:',
-                                    { error: { message: error.message, stack: error.stack } }
-                                );
-                            }
-                        }, QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000);
-
+                        // If matchmaking failed to find a pair, flag that we need a timed retry
+                        needsTimedRetry = true;
                         break;
                     }
 
@@ -1736,6 +1727,19 @@ export class GameServer {
                     }
                 }
             }
+        }
+
+        if (needsTimedRetry) {
+            this.matchmakingTimer = setTimeout(() => {
+                try {
+                    this.matchmakeAllQueuesAsync();
+                } catch (error) {
+                    logger.error(
+                        'GameServer: Error in scheduled matchmaking retry:',
+                        { error: { message: error.message, stack: error.stack } }
+                    );
+                }
+            }, QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000);
         }
 
         return Promise.resolve();
