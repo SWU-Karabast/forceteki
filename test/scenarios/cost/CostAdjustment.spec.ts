@@ -87,5 +87,8 @@ describe('Cost adjustment', function() {
                 expect(context.player1).not.toBeAbleToSelect(context.cloneCommanderCody);
             });
         });
+
+        // TODO: Add tests for Guardian of the Whills and Darksaber's non-overlapping cost adjusters
+        // once targeting and cost calculation are fixed: https://github.com/SWU-Karabast/forceteki/issues/1971
     });
 });
