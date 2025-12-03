@@ -322,32 +322,36 @@ export function setUnion<T>(setA: Set<T>, setB: Set<T>): Set<T> {
 }
 
 /**
- * Recurses through an object's properties and removes any properties that are null or undefined.
+ * Recurses through an object's properties and converts null to undefined.
+ * JSON.stringify will then strip these undefined values.
  * This is an _in-place_ operation, meaning it modifies the original object.
  */
-export function deleteEmptyPropertiesRecursiveInPlace(obj) {
-    deleteEmptyPropertiesRecursiveInPlaceInternal(obj, new Set());
+export function convertNullToUndefinedRecursiveInPlace(obj) {
+    if (obj == null) {
+        return;
+    }
+    convertNullToUndefinedRecursiveInPlaceInternal(obj, new Set());
 }
 
-function deleteEmptyPropertiesRecursiveInPlaceInternal(obj, visited) {
-    if (obj == null || visited.has(obj)) {
+function convertNullToUndefinedRecursiveInPlaceInternal(obj, visited) {
+    if (visited.has(obj)) {
         return;
     }
 
     visited.add(obj);
 
-    const keysToDelete = [];
-    for (const key in obj) {
-        if (obj[key] == null) {
-            keysToDelete.push(key);
-        } else if (obj[key] instanceof Object) {
-            deleteEmptyPropertiesRecursiveInPlaceInternal(obj[key], visited);
-        }
-    }
+    const keys = Object.keys(obj);
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of -- for loop is ~15% faster than for...of in hot paths
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const value = obj[key];
 
-    for (const key of keysToDelete) {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete obj[key];
+        if (value === null) {
+            obj[key] = undefined;
+        } else if (typeof value === 'object') {
+            // value is guaranteed non-null here due to the if above
+            convertNullToUndefinedRecursiveInPlaceInternal(value, visited);
+        }
     }
 }
 

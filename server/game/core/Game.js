@@ -1979,9 +1979,8 @@ class Game extends EventEmitter {
                     undoEnabled: this.isUndoEnabled,
                 };
 
-                // clean out any properies that are null or undefined to reduce the message size
-                Helpers.deleteEmptyPropertiesRecursiveInPlace(gameState);
-
+                // Convert nulls to undefined so JSON.stringify strips them (reduces payload size)
+                Helpers.convertNullToUndefinedRecursiveInPlace(gameState);
                 return gameState;
             }
             return {};
