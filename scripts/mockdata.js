@@ -1,6 +1,43 @@
-const { color } = require('console-log-colors');
-
-const mockCards = [];
+const mockCards = [
+    buildMockCard({
+        title: 'Han Solo',
+        subtitle: 'Hibernation Sick',
+        power: 1,
+        hp: 1,
+        cost: 1,
+        hasNonKeywordAbility: true,
+        keywords: ['shielded'],
+        aspects: ['vigilance', 'command'],
+        types: ['unit'],
+        traits: ['rebel'],
+        setId: {
+            set: 'LAW',
+            number: 37,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'han-solo#hibernation-sick',
+    }),
+    buildMockCard({
+        title: 'Zeb Orellios',
+        subtitle: 'Spectre Four',
+        power: 4,
+        hp: 4,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        keywords: ['sentinel'],
+        aspects: ['vigilance', 'aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'spectre'],
+        setId: {
+            set: 'LAW',
+            number: 45,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'zeb-orellios#spectre-four',
+    })
+];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
 function buildMockCard(cardData) {
