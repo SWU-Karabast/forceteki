@@ -158,6 +158,8 @@ import { DiscloseAspectsSystem } from './DiscloseAspectsSystem';
 import { AllCardsForPlayerLastingEffectSystem, type IAllCardsForPlayerLastingEffectProperties } from './AllCardsForPlayerLastingEffectSystem';
 import type { IWinGameProperties } from './WinGameSystem';
 import { WinGameSystem } from './WinGameSystem';
+import type { ICreateCreditTokenProperties } from './CreateCreditTokenSystem';
+import { CreateCreditTokenSystem } from './CreateCreditTokenSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -207,6 +209,9 @@ export function createTieFighter<TContext extends AbilityContext = AbilityContex
 }
 export function createSpy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateSpyProperties, TContext> = {}) {
     return new CreateSpySystem<TContext>(propertyFactory);
+}
+export function createCreditToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateCreditTokenProperties, TContext> = {}) {
+    return new CreateCreditTokenSystem<TContext>(propertyFactory);
 }
 export function theForceIsWithYou<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateForceTokenProperties, TContext> = {}) {
     return new CreateForceTokenSystem<TContext>(propertyFactory);
