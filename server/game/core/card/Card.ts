@@ -624,6 +624,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return false;
     }
 
+    public isCreditToken(): this is ITokenCard {
+        return false;
+    }
+
     public isTokenUnit(): this is ITokenUnitCard {
         return false;
     }
@@ -956,6 +960,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                 this.zone.removeLeader();
             } else if (this.isForceToken()) {
                 this.zone.removeForceToken();
+            } else if (this.isCreditToken()) {
+                this.zone.removeCreditToken(this);
             } else {
                 Contract.fail(`Attempting to move card ${this.internalName} from ${this.zone}`);
             }
@@ -1005,8 +1011,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                     this.zone.setLeader(this);
                 } else if (this.isForceToken()) {
                     this.zone.setForceToken(this);
+                } else if (this.isCreditToken()) {
+                    this.zone.addCreditToken(this);
                 } else {
-                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader or force token`);
+                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader, force token, or credit token`);
                 }
 
                 break;

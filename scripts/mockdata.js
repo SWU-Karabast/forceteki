@@ -1,6 +1,21 @@
 const { color } = require('console-log-colors');
 
-const mockCards = [];
+const mockCards = [
+    buildMockCard({
+        title: 'Credit',
+        cost: 0,
+        id: 'credit-id',
+        internalName: 'credit',
+        unique: false,
+        traits: ['supply'],
+        types: [
+            'token'
+        ],
+        setId: {
+            set: 'LAW'
+        },
+    })
+];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
 function buildMockCard(cardData) {
