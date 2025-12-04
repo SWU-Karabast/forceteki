@@ -28,7 +28,8 @@ export enum CostAdjustType {
     IgnoreSpecificAspects = 'ignoreSpecificAspect',
     ModifyPayStage = 'modifyPayStage',
     Exploit = 'exploit',
-    ExhaustUnits = 'exhaustUnits'
+    ExhaustUnits = 'exhaustUnits',
+    DefeatCreditTokens = 'defeatCreditTokens'
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
@@ -95,6 +96,10 @@ export interface IModifyPayStageCostAdjusterProperties extends ICostAdjusterProp
     payStageAmount: (currentAmount: number) => number;
 }
 
+export interface IDefeatCreditTokensCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.DefeatCreditTokens;
+}
+
 export type ICostAdjusterProperties =
   | IIgnoreAllAspectsCostAdjusterProperties
   | IIncreaseOrDecreaseCostAdjusterProperties
@@ -102,7 +107,8 @@ export type ICostAdjusterProperties =
   | IIgnoreSpecificAspectsCostAdjusterProperties
   | IModifyPayStageCostAdjusterProperties
   | IExploitCostAdjusterProperties
-  | IExhaustUnitsCostAdjusterProperties;
+  | IExhaustUnitsCostAdjusterProperties
+  | IDefeatCreditTokensCostAdjusterProperties;
 
 export type ITargetedCostAdjusterProperties =
   | IExploitCostAdjusterProperties
