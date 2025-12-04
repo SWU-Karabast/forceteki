@@ -1,4 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { IPlayableOrDeployableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import { Card } from '../core/card/Card';
 import type { IUpgradeCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
@@ -43,7 +44,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     public override readonly eventName = EventName.OnCardDefeated;
     public override readonly costDescription = 'defeating {0}';
     public override effectDescription = 'defeat {0}';
-    protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event, CardType.TokenCard];
 
     protected override readonly defaultProperties: Partial<IDefeatCardPropertiesBase> = {
         defeatSource: DefeatSourceType.Ability
@@ -68,10 +69,9 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
     public eventHandler(event): void {
         const card: Card = event.card;
-        Contract.assertTrue(card.canBeExhausted());
 
         if (card.zoneName === ZoneName.Resource) {
-            this.leavesResourceZoneEventHandler(card, event.context);
+            this.leavesResourceZoneEventHandler(card as IPlayableOrDeployableCard, event.context);
         } else if (card.isUpgrade()) {
             card.unattach(event);
         }
@@ -102,7 +102,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        if (card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
+        if (!card.isCreditToken() && card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
             return false;
         }
         const properties = this.generatePropertiesFromContext(context);

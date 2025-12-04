@@ -189,7 +189,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         additionalProperties,
         attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler,
     ): void {
-        Contract.assertTrue(card.canBeInPlay() && card.isInPlay(), `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`);
+        Contract.assertTrue(card.isCreditToken() || (card.canBeInPlay() && card.isInPlay()), `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`);
 
         event.setContingentEventsGenerator((event) => {
             const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {

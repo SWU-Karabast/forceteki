@@ -19,6 +19,8 @@ export class CreateCreditTokenSystem<TContext extends AbilityContext = AbilityCo
         for (const token of event.generatedTokens) {
             token.moveTo(ZoneName.Base);
         }
+
+        event.context.game.addMessage('{0} Balance: {1}', event.context.player, ChatHelpers.pluralize(event.context.player.creditTokenCount, '1 Credit', 'Credits'));
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

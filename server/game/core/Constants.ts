@@ -280,6 +280,7 @@ export enum EventName {
     OnDamageHealed = 'onDamageHealed',
     OnDeckSearch = 'onDeckSearch',
     OnDeckShuffled = 'onDeckShuffled',
+    OnDefeatCreditsToPayCost = 'onDefeatCreditsToPayCost',
     OnDiscardFromDeck = 'onDiscardFromDeck',
     OnEffectApplied = 'onEffectApplied',
     OnEntireHandDiscarded = 'onEntireHandDiscarded',

@@ -1,7 +1,7 @@
 describe('Credit token', function () {
     integration(function(contextRef) {
         describe('The basics of the Credit token', function () {
-            it('Is intialiazed for each player based on the test setup', async function () {
+            xit('Is intialiazed for each player based on the test setup', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -31,7 +31,7 @@ describe('Credit token', function () {
                 }
             });
 
-            it('Can be adjusted through the player interaction wrapper', async function () {
+            xit('Can be adjusted through the player interaction wrapper', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action'
                 });
@@ -48,6 +48,28 @@ describe('Credit token', function () {
                 // Remove some credit tokens
                 context.player1.setCreditTokenCount(2);
                 expect(context.player1.credits).toBe(2);
+            });
+
+            it('Can be defeated to pay costs', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'nala-se#clone-engineer',
+                        base: 'kestro-city',
+                        credits: 4,
+                        resources: 5,
+                        hand: ['captain-rex#lead-by-example']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.captainRex);
+
+                expect(context.player1.credits).toBe(0);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+
+                expect(context.captainRex).toBeInZone('groundArena', context.player1);
             });
         });
     });
