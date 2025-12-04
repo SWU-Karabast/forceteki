@@ -1,3 +1,5 @@
+const { color } = require('console-log-colors');
+
 const mockCards = [
     buildMockCard({
         title: 'Han Solo',
@@ -90,6 +92,20 @@ const mockCards = [
         },
         unique: true,
         internalName: 'leias-disguise'
+    }),
+    buildMockCard({
+        title: 'Credit',
+        cost: 0,
+        id: 'credit-id',
+        internalName: 'credit',
+        unique: false,
+        traits: ['supply'],
+        types: [
+            'token'
+        ],
+        setId: {
+            set: 'LAW'
+        },
     })
 ];
 

@@ -454,6 +454,10 @@ class PlayerInteractionWrapper {
         return this.player.hasTheForce;
     }
 
+    get credits() {
+        return this.player.creditTokenCount;
+    }
+
     get actionPhaseActivePlayer() {
         return this.game.actionPhaseActivePlayer;
     }
@@ -914,6 +918,30 @@ class PlayerInteractionWrapper {
             }
 
             forceToken.moveTo(ZoneName.OutsideTheGame);
+        }
+    }
+
+    setCreditTokenCount(count) {
+        const currentCount = this.player.creditTokenCount;
+
+        if (count < currentCount) {
+            const tokensToRemove = currentCount - count;
+            const tokens = this.player.baseZone.credits.slice(0, tokensToRemove);
+            for (const token of tokens) {
+                token.moveTo(ZoneName.OutsideTheGame);
+            }
+            return;
+        }
+
+        const tokensToAdd = count - currentCount;
+        let tokens = [];
+
+        for (let i = 0; i < count; i++) {
+            tokens.push(this.game.generateToken(this.player, 'credit'));
+        }
+
+        for (const token of tokens) {
+            token.moveTo(ZoneName.Base);
         }
     }
 
