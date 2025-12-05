@@ -49,6 +49,29 @@ describe('Credit token', function () {
                 context.player1.setCreditTokenCount(2);
                 expect(context.player1.credits).toBe(2);
             });
+
+            it('Can be defeated to pay costs', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        credits: 4,
+                        hand: ['hyperspace-wayfarer']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play the Hyperspace Wayfarer (6 cost)
+                context.player1.clickCard(context.hyperspaceWayfarer);
+
+                // Check that credit tokens were defeated to pay part of the cost
+                expect(context.player1.credits).toBe(0);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+
+                // Check that the unit is in play
+                expect(context.hyperspaceWayfarer).toBeInZone('spaceArena', context.player1);
+            });
         });
     });
 });
