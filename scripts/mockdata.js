@@ -1,6 +1,22 @@
-const { color } = require('console-log-colors');
-
-const mockCards = [];
+const mockCards = [
+    buildMockCard({
+        title: 'Jaunty Light Freighter',
+        power: 1,
+        hp: 1,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['vehicle', 'transport'],
+        setId: {
+            set: 'LAW',
+            number: 147,
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'jaunty-light-freighter',
+    }),
+];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
 function buildMockCard(cardData) {
