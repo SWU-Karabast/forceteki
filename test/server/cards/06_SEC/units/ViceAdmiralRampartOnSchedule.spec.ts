@@ -1,6 +1,6 @@
 describe('Vice Admiral Rampart, On Schedule', function () {
     integration(function (contextRef) {
-        const disclosePrompt = 'Disclose Command, Command, Villainy to give an Experience token to each of up to 2 other units';
+        const disclosePrompt = 'Disclose :command:, :command:, :villainy: to give an Experience token to each of up to 2 other units';
 
         it('discloses Command, Command, Villainy and gives up to 2 other units an Experience token on attack', async function () {
             await contextRef.setupTestAsync({

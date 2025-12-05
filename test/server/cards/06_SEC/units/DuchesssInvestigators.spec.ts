@@ -1,5 +1,7 @@
 describe('Duchess\'s Investigators', function() {
     integration(function(contextRef) {
+        const disclosePrompt = 'Disclose :cunning: to make your opponent discard a random card from their hand';
+
         it('Duchess\'s Investigators\'s when played ability should disclose Vigilance to make the opponent discard a random card', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -20,7 +22,7 @@ describe('Duchess\'s Investigators', function() {
 
             context.player1.clickCard(context.duchesssInvestigators);
 
-            expect(context.player1).toHavePrompt('Disclose Cunning to make your opponent discard a random card from their hand');
+            expect(context.player1).toHavePrompt(disclosePrompt);
             expect(context.player1).toBeAbleToSelectExactly([context.surpriseStrike]);
             expect(context.player1).toHaveChooseNothingButton();
 
