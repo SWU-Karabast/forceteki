@@ -17,6 +17,7 @@ import type { CostAdjustStage } from './CostInterfaces';
 import * as CostHelpers from './CostHelpers';
 import type { TargetedCostAdjuster } from './TargetedCostAdjuster';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
+import type { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
 
 // TODO: move all these enums + interfaces to CostInterfaces.ts
 
@@ -28,7 +29,8 @@ export enum CostAdjustType {
     IgnoreSpecificAspects = 'ignoreSpecificAspect',
     ModifyPayStage = 'modifyPayStage',
     Exploit = 'exploit',
-    ExhaustUnits = 'exhaustUnits'
+    ExhaustUnits = 'exhaustUnits',
+    DefeatCreditTokens = 'defeatCreditTokens'
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
@@ -95,6 +97,10 @@ export interface IModifyPayStageCostAdjusterProperties extends ICostAdjusterProp
     payStageAmount: (currentAmount: number) => number;
 }
 
+export interface IDefeatCreditTokensCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.DefeatCreditTokens;
+}
+
 export type ICostAdjusterProperties =
   | IIgnoreAllAspectsCostAdjusterProperties
   | IIncreaseOrDecreaseCostAdjusterProperties
@@ -102,7 +108,8 @@ export type ICostAdjusterProperties =
   | IIgnoreSpecificAspectsCostAdjusterProperties
   | IModifyPayStageCostAdjusterProperties
   | IExploitCostAdjusterProperties
-  | IExhaustUnitsCostAdjusterProperties;
+  | IExhaustUnitsCostAdjusterProperties
+  | IDefeatCreditTokensCostAdjusterProperties;
 
 export type ITargetedCostAdjusterProperties =
   | IExploitCostAdjusterProperties
@@ -193,6 +200,10 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         return false;
     }
 
+    public requiresGameSteps(): this is CostAdjusterWithGameSteps {
+        return false;
+    }
+
     protected canAdjust(card: Card, context: AbilityContext, evaluationResult: ICostAdjustmentResolutionProperties): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
@@ -229,7 +240,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     }
 
     public checkApplyCostAdjustment(card: Card, context: AbilityContext, triggerResult: ICostAdjustTriggerResult) {
-        Contract.assertFalse(CostHelpers.isTargetedCostAdjusterStage(this.costAdjustStage), `Targeted cost adjuster stages should not use checkApplyCostAdjustment: '${this.costAdjustStage}'`);
+        Contract.assertFalse(CostHelpers.isInteractiveCostAdjusterStage(this.costAdjustStage), `Interactive cost adjuster stages should not use checkApplyCostAdjustment: '${this.costAdjustStage}'`);
 
         if (
             this.isCancelled ||
