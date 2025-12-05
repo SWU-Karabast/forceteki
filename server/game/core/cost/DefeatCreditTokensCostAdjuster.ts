@@ -13,6 +13,7 @@ import type { ICostAdjustmentResolutionProperties, ICostAdjustResult, ICostAdjus
 import { CostAdjustStage } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 import * as Contract from '../utils/Contract';
+import type { IDropdownListPromptProperties } from '../gameSteps/prompts/DropdownListPrompt';
 
 export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
     public constructor(
@@ -60,24 +61,31 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         // Payment shouldn't have been triggered if there aren't enough credits available to pay the minimum
         Contract.assertTrue(credits >= minimumCreditsRequiredToPay);
 
+        // Max credit value should be non-zero if we reached this point
+        Contract.assertTrue(maximumCreditsThatCanBeUsed > 0);
+
         const canPlayWithoutAdjuster = minimumCreditsRequiredToPay === 0;
 
         const choices: string[] = [];
         const handlers: (() => void)[] = [];
 
-        // First, offer the choice to use the maximum number of credit tokens possible
-        if (maximumCreditsThatCanBeUsed > 0) {
-            choices.push(`Use ${maximumCreditsThatCanBeUsed} Credits (maximum)`);
+        // If there's only one amount of credits that can be used, don't offer multiple choices
+        if (maximumCreditsThatCanBeUsed === minimumCreditsRequiredToPay || maximumCreditsThatCanBeUsed === 1) {
+            choices.push(`Use ${this.creditString(maximumCreditsThatCanBeUsed)}`);
             handlers.push(() => {
                 this.triggerCostAdjustmentEvents(events, maximumCreditsThatCanBeUsed, context, costAdjustTriggerResult, abilityCostResult);
             });
-        }
-
-        // If the maximum is not the same as the minimum, offer the choice to use the minimum number of credit tokens possible
-        if (maximumCreditsThatCanBeUsed !== minimumCreditsRequiredToPay) {
-            choices.push(`Use ${minimumCreditsRequiredToPay} Credits (minimum)`);
+        } else {
+            choices.push('Select amount');
             handlers.push(() => {
-                this.triggerCostAdjustmentEvents(events, minimumCreditsRequiredToPay, context, costAdjustTriggerResult, abilityCostResult);
+                this.promptDropdownList(
+                    Math.max(1, minimumCreditsRequiredToPay),
+                    maximumCreditsThatCanBeUsed,
+                    context,
+                    (chosenAmount: number) => {
+                        this.triggerCostAdjustmentEvents(events, chosenAmount, context, costAdjustTriggerResult, abilityCostResult);
+                    }
+                );
             });
         }
 
@@ -96,7 +104,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         }
 
         context.game.promptWithHandlerMenu(context.player, {
-            activePromptTitle: `Choose pay mode for ${context.source.title}`,
+            activePromptTitle: `Use Credit tokens for ${context.source.title}`,
             choices,
             handlers
         });
@@ -109,6 +117,8 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         costAdjustTriggerResult: ICostAdjustTriggerResult,
         abilityCostResult?: ICostResult
     ): void {
+        Contract.assertTrue(creditTokenCount > 0, 'creditTokenCount must be greater than zero to trigger payment event');
+
         context.game.queueSimpleStep(() => {
             if (!abilityCostResult.cancelled) {
                 abilityCostResult.canCancel = false;
@@ -138,5 +148,27 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         });
 
         return overallPaymentEvent;
+    }
+
+    private promptDropdownList(
+        min: number,
+        max: number,
+        context: AbilityContext<Card>,
+        onSelect?: (chosenAmount: number) => void
+    ): void {
+        const props: IDropdownListPromptProperties = {
+            activePromptTitle: `Choose amount of Credit tokens to use for ${context.source.title}`,
+            promptTitle: 'Select amount of Credit tokens',
+            waitingPromptTitle: `Waiting for opponent to choose Credit tokens to use for ${context.source.title}`,
+            options: Array.from({ length: max - min + 1 }, (_, i) => (i + min).toString()),
+            source: context.source,
+            choiceHandler: (choice: string) => onSelect?.(parseInt(choice, 10))
+        };
+
+        context.game.promptWithDropdownListMenu(context.player, props);
+    }
+
+    private creditString(count: number): string {
+        return `${count} ${count === 1 ? 'Credit' : 'Credits'}`;
     }
 }
