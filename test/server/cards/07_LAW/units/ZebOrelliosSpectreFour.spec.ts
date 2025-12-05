@@ -5,7 +5,8 @@ describe('Zeb Orellios, Spectre Four', function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['zeb-orellios#spectre-four']
+                        hand: ['zeb-orellios#spectre-four'],
+                        groundArena: [{ card: 'specforce-soldier', upgrades: ['academy-training'] }]
                     },
                     player2: {
                         groundArena: ['wampa'],
@@ -19,7 +20,7 @@ describe('Zeb Orellios, Spectre Four', function () {
 
                 expect(context.player1).toHavePrompt('Deal 3 damage to a ground unit');
                 // Only ground units should be targetable
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.zebOrellios]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.zebOrellios, context.specforceSoldier]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.wampa);
 
