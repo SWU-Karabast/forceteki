@@ -261,8 +261,8 @@ export function aspectString(
     return aspects
         .map((aspect, index) => {
             return (conjunction && aspects.length > 1 && index === aspects.length - 1)
-                ? `${conjunction} ${Helpers.capitalize(aspect)}`
-                : Helpers.capitalize(aspect);
+                ? `${conjunction} :${aspect.toLowerCase()}:`
+                : `:${aspect.toLowerCase()}:`;
         })
         .join((!conjunction || aspects.length > 2) ? ', ' : ' ');
 }
