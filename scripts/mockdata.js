@@ -19,7 +19,7 @@ const mockCards = [
         internalName: 'han-solo#hibernation-sick',
     }),
     buildMockCard({
-        title: 'Zeb Orellios',
+        title: 'Zeb Orrelios',
         subtitle: 'Spectre Four',
         power: 4,
         hp: 4,
@@ -35,8 +35,25 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'zeb-orellios#spectre-four',
-    })
+        internalName: 'zeb-orrelios#spectre-four',
+    }),
+    buildMockCard({
+        title: 'Jaunty Light Freighter',
+        power: 1,
+        hp: 1,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['vehicle', 'transport'],
+        setId: {
+            set: 'LAW',
+            number: 147,
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'jaunty-light-freighter',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */

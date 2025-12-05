@@ -3,11 +3,11 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, ZoneName } from '../../../core/Constants';
 
-export default class ZebOrelliosSpectreFour extends NonLeaderUnitCard {
+export default class ZebOrreliosSpectreFour extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'zeb-orellios#spectre-four-id',
-            internalName: 'zeb-orellios#spectre-four',
+            id: 'zeb-orrelios#spectre-four-id',
+            internalName: 'zeb-orrelios#spectre-four',
         };
     }
 
