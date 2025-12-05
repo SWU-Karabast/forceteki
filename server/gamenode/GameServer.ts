@@ -43,8 +43,10 @@ import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
 
+const BO3_TESTING_ENABLED = true;
+
 export function isBo3Enabled(): boolean {
-    return process.env.ENVIRONMENT === 'development';
+    return BO3_TESTING_ENABLED && process.env.ENVIRONMENT === 'development';
 }
 
 /**
