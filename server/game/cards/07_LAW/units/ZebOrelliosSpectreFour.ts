@@ -14,6 +14,7 @@ export default class ZebOrelliosSpectreFour extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Deal 3 damage to a ground unit. If you control a Command or Cunning unit, deal 5 damage to a ground unit instead',
+            contextTitle: (context) => `Deal ${context.player.isAspectInPlay(Aspect.Command) || context.player.isAspectInPlay(Aspect.Cunning) ? 5 : 3} damage to a ground unit`,
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,

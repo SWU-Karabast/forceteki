@@ -17,6 +17,7 @@ describe('Zeb Orellios, Spectre Four', function () {
 
                 context.player1.clickCard(context.zebOrellios);
 
+                expect(context.player1).toHavePrompt('Deal 3 damage to a ground unit');
                 // Only ground units should be targetable
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.zebOrellios]);
                 expect(context.player1).toHavePassAbilityButton();
@@ -41,6 +42,7 @@ describe('Zeb Orellios, Spectre Four', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.zebOrellios);
+                expect(context.player1).toHavePrompt('Deal 5 damage to a ground unit');
                 context.player1.clickCard(context.atst);
 
                 expect(context.atst.damage).toBe(5);
@@ -61,6 +63,7 @@ describe('Zeb Orellios, Spectre Four', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.zebOrellios);
+                expect(context.player1).toHavePrompt('Deal 5 damage to a ground unit');
                 context.player1.clickCard(context.atst);
 
                 expect(context.atst.damage).toBe(5);
