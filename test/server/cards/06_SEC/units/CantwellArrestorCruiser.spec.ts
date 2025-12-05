@@ -1,6 +1,6 @@
 describe('Cantwell Arrestor Cruiser\'s when played ability', function() {
     integration(function(contextRef) {
-        const disclosePrompt = 'Disclose Vigilance, Vigilance, Villainy to exhaust an enemy unit. That unit cannot ready while this unit is in play';
+        const disclosePrompt = 'Disclose :vigilance:, :vigilance:, :villainy: to exhaust an enemy unit. That unit cannot ready while this unit is in play';
         const exhaustPrompt = 'Exhaust an enemy unit. That unit cannot ready while this unit is in play';
 
         describe('When player has required aspects in hand', function() {

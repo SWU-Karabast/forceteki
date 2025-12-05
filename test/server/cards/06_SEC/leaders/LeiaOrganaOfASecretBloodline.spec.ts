@@ -1,7 +1,7 @@
 
 describe('Leia Organa, Of a Secret Bloodline', () => {
     integration(function (contextRef) {
-        const disclosePrompt = 'Disclose Vigilance, Command, Aggression, Cunning, or Heroism to give an experience token to a unit that does not share an aspect with the disclosed card';
+        const disclosePrompt = 'Disclose :vigilance:, :command:, :aggression:, :cunning:, or :heroism: to give an experience token to a unit that does not share an aspect with the disclosed card';
         const experiencePrompt = (aspectString: string) => `Give an experience token to a unit that does not have a ${aspectString} aspect`;
 
         describe('Leia Organa\'s undeployed ability', function () {
@@ -52,7 +52,7 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                 expect(context.player2).toHaveEnabledPromptButton('Done');
                 context.player2.clickDone();
 
-                expect(context.player1).toHavePrompt(experiencePrompt('Vigilance'));
+                expect(context.player1).toHavePrompt(experiencePrompt(':vigilance:'));
                 expect(context.player1).toBeAbleToSelectExactly([
                     // Cards with Vigilance aspect are not selectable
                     context.battlefieldMarine,
@@ -249,7 +249,7 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                 expect(context.player2).toHaveEnabledPromptButton('Done');
                 context.player2.clickDone();
 
-                expect(context.player1).toHavePrompt(experiencePrompt('Command'));
+                expect(context.player1).toHavePrompt(experiencePrompt(':command:'));
                 expect(context.player1).toBeAbleToSelectExactly([
                     // Cards with Command aspect are not selectable
                     context.dume,

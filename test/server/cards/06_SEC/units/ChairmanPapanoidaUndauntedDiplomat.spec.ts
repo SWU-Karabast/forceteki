@@ -1,6 +1,6 @@
 describe('Chairman Papanoida, Undaunted Diplomat', function () {
     integration(function (contextRef) {
-        const disclosePrompt = 'Disclose Aggression, Aggression. If you do, create a Spy token';
+        const disclosePrompt = 'Disclose :aggression:, :aggression:. If you do, create a Spy token';
         describe('Chairman Papanoida, Undaunted Diplomat\'s ability', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({

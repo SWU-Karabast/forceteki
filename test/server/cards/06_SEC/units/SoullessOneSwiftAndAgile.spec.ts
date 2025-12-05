@@ -1,5 +1,7 @@
 describe('Soulless One, Swift and Agile', function() {
     integration(function(contextRef) {
+        const disclosePrompt = 'Disclose :cunning:, :cunning:, :villainy: to ready 2 resources';
+
         it('Soulless One\'s ability should disclose Cunning, Cunning, Villainy to ready 2 resources', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -19,7 +21,7 @@ describe('Soulless One, Swift and Agile', function() {
             context.player1.clickCard(context.soullessOne);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player1).toHavePrompt('Disclose Cunning, Cunning, Villainy to ready 2 resources');
+            expect(context.player1).toHavePrompt(disclosePrompt);
             expect(context.player1).toBeAbleToSelectExactly([context.cunning, context.atst]);
             expect(context.player1).toHaveChooseNothingButton();
 

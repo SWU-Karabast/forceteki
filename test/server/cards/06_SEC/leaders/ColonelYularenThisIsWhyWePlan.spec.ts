@@ -1,6 +1,6 @@
 describe('Colonel Yularen, This Is Why We Plan', function() {
     integration(function(contextRef) {
-        const disclosePrompt = 'Disclose Command, Heroism to attack with another unit';
+        const disclosePrompt = 'Disclose :command:, :heroism: to attack with another unit';
         describe('Colonel Yularen\'s undeployed ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({

@@ -1,5 +1,7 @@
 describe('Bardottan Ornithopter', function() {
     integration(function(contextRef) {
+        const disclosePrompt = 'Disclose :vigilance: to draw a card';
+
         it('Bardottan Ornithopter\'s when played ability should disclose Vigilance to draw a card', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -18,7 +20,7 @@ describe('Bardottan Ornithopter', function() {
             context.player1.clickCard(context.bardottanOrnithopter);
 
             // Prompt to disclose Vigilance to draw a card
-            expect(context.player1).toHavePrompt('Disclose Vigilance to draw a card');
+            expect(context.player1).toHavePrompt(disclosePrompt);
             expect(context.player1).toBeAbleToSelectExactly([context.duchesssChampion]);
             // "Choose nothing" is allowed (we won't use it in this test)
             expect(context.player1).toHaveChooseNothingButton();

@@ -328,7 +328,7 @@ describe('Padmé Amidala, What Do You Have To Hide?', function() {
                 context.player1.clickCard(context.reinforcementWalker);
 
                 // Prompt to disclose required aspects
-                expect(context.player1).toHavePrompt('Disclose Command, Command, Heroism to draw a card');
+                expect(context.player1).toHavePrompt('Disclose :command:, :command:, :heroism: to draw a card');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.command,
                     context.c3poProtocolDroid

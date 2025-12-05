@@ -1,5 +1,7 @@
 describe('Ahsoka Tano, I Learned It From You', function () {
     integration(function (contextRef) {
+        const disclosePrompt = 'Disclose :command:, :heroism: to attack with another unit';
+
         beforeEach(async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -22,7 +24,7 @@ describe('Ahsoka Tano, I Learned It From You', function () {
             const damageAfterAhsoka = context.p2Base.damage;
 
             // Disclose [Command, Heroism]
-            expect(context.player1).toHavePrompt('Disclose Command, Heroism to attack with another unit');
+            expect(context.player1).toHavePrompt(disclosePrompt);
             context.player1.clickCard(context.superlaserTechnician);
             context.player1.clickCard(context.karabast);
             context.player1.clickPrompt('Done');
@@ -56,7 +58,7 @@ describe('Ahsoka Tano, I Learned It From You', function () {
             const damageAfterAhsokaOnly = context.p2Base.damage;
 
             // Disclose window appears; choose to pass on disclosing
-            expect(context.player1).toHavePrompt('Disclose Command, Heroism to attack with another unit');
+            expect(context.player1).toHavePrompt(disclosePrompt);
             expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
             context.player1.clickPrompt('Choose nothing');
 

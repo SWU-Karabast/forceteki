@@ -1,7 +1,7 @@
 describe('Ebon Hawk, Cause and Effect', function() {
     integration(function(contextRef) {
         describe('Ebon Hawk\'s on-attack ability', function() {
-            const prompt = 'Disclose Heroism to give this unit +2/+0 and/or Villainy to give the defending unit -4/-0 for this attack';
+            const prompt = 'Disclose :heroism: to give this unit +2/+0 and/or :villainy: to give the defending unit -4/-0 for this attack';
 
             it('gives Ebon Hawk +2/+0 and the defending unit -4/-0 if both Heroism and Villainy are disclosed', async function () {
                 await contextRef.setupTestAsync({
