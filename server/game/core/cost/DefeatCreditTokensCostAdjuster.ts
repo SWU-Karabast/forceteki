@@ -12,6 +12,7 @@ import { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
 import type { ICostAdjustmentResolutionProperties, ICostAdjustResult, ICostAdjustTriggerResult } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 import type { ICostResult } from './ICost';
+import * as Contract from '../utils/Contract';
 
 export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
     public constructor(
@@ -51,19 +52,76 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         costAdjustTriggerResult: ICostAdjustTriggerResult,
         abilityCostResult?: ICostResult
     ) {
+        const credits = context.player.creditTokenCount;
+        const availableResources = context.player.readyResourceCount;
+        const minimumCreditsRequiredToPay = Math.max(0, costAdjustTriggerResult.adjustedCost.value - availableResources);
+        const maximumCreditsThatCanBeUsed = Math.min(credits, costAdjustTriggerResult.adjustedCost.value);
+
+        // Payment shouldn't have been triggered if there aren't enough credits available to pay the minimum
+        Contract.assertTrue(credits >= minimumCreditsRequiredToPay);
+
+        const canPlayWithoutAdjuster = minimumCreditsRequiredToPay === 0;
+
+        const choices: string[] = [];
+        const handlers: (() => void)[] = [];
+
+        // First, offer the choice to use the maximum number of credit tokens possible
+        if (maximumCreditsThatCanBeUsed > 0) {
+            choices.push(`Use ${maximumCreditsThatCanBeUsed} Credits (maximum)`);
+            handlers.push(() => {
+                this.triggerCostAdjustmentEvents(events, maximumCreditsThatCanBeUsed, context, costAdjustTriggerResult, abilityCostResult);
+            });
+        }
+
+        // If the maximum is not the same as the minimum, offer the choice to use the minimum number of credit tokens possible
+        if (maximumCreditsThatCanBeUsed !== minimumCreditsRequiredToPay) {
+            choices.push(`Use ${minimumCreditsRequiredToPay} Credits (minimum)`);
+            handlers.push(() => {
+                this.triggerCostAdjustmentEvents(events, minimumCreditsRequiredToPay, context, costAdjustTriggerResult, abilityCostResult);
+            });
+        }
+
+        // Offer the choice to skip using credit tokens if possible
+        if (canPlayWithoutAdjuster) {
+            choices.push('Pay costs without Credit tokens');
+            handlers.push(() => undefined);
+        }
+
+        // Offer the choice to not play the card / use the ability
+        if (abilityCostResult.canCancel) {
+            choices.push('Cancel');
+            handlers.push(() => {
+                abilityCostResult.cancelled = true;
+            });
+        }
+
+        context.game.promptWithHandlerMenu(context.player, {
+            activePromptTitle: `Choose pay mode for ${context.source.title}`,
+            choices,
+            handlers
+        });
+    }
+
+    private triggerCostAdjustmentEvents(
+        events: any[],
+        creditTokenCount: number,
+        context: AbilityContext<Card>,
+        costAdjustTriggerResult: ICostAdjustTriggerResult,
+        abilityCostResult?: ICostResult
+    ): void {
         context.game.queueSimpleStep(() => {
             if (!abilityCostResult.cancelled) {
                 abilityCostResult.canCancel = false;
-                costAdjustTriggerResult.adjustedCost.applyStaticDecrease(context.player.creditTokenCount);
-                events.push(this.buildEvent(context));
+                costAdjustTriggerResult.adjustedCost.applyStaticDecrease(creditTokenCount);
+                events.push(this.buildEvent(context, creditTokenCount));
             }
         }, `generate defeatCreditTokens event for ${context.source.internalName}`);
     }
 
-    private buildEvent(context): GameEvent {
+    private buildEvent(context, creditTokenCount: number): GameEvent {
         const individualEvents = [];
         const player = context.player;
-        const creditTokens = player.baseZone.credits;
+        const creditTokens = player.baseZone.credits.slice(0, creditTokenCount);
         const defeatSystem = new DefeatCardSystem({ defeatSource: DefeatSourceType.Ability });
 
         for (const token of creditTokens) {
