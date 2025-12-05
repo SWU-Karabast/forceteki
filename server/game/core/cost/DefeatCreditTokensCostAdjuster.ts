@@ -3,9 +3,9 @@ import type { Card } from '../card/Card';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import type Game from '../Game';
 import type { Player } from '../Player';
-import type { IDefeatCreditTokensCostAdjusterProperties } from './CostAdjuster';
+import type { IDefeatCreditTokensCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjuster } from './CostAdjuster';
-import type { ICostAdjustmentResolutionProperties } from './CostInterfaces';
+import type { ICostAdjustmentResolutionProperties, ICostAdjustResult } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
 export class DefeatCreditTokensCostAdjuster extends CostAdjuster {
@@ -34,5 +34,10 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjuster {
 
     protected override getAmount(card: Card, player: Player, context: AbilityContext): number {
         return player.creditTokenCount;
+    }
+
+    protected override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]): void {
+        const numDefeatedCredits = 0; // TODO: this will come from an event generated when the cost is being paid
+        result.adjustedCost.applyStaticDecrease(numDefeatedCredits);
     }
 }
