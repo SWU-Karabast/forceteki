@@ -47,6 +47,9 @@ interface IBestOfOneHistory {
 interface IBestOfThreeHistory {
     gamesToWinMode: GamesToWinMode.BestOfThree;
 
+    /** The current game number (1, 2, or 3) */
+    currentGameNumber: number;
+
     /** Array of player IDs who won each game, or 'draw' for drawn games */
     winnerIdsInOrder: (string | 'draw')[];
 }
@@ -200,6 +203,7 @@ export class Lobby {
     private initializeBo3History(bo1WinnerId?: string): void {
         this.winHistory = {
             gamesToWinMode: GamesToWinMode.BestOfThree,
+            currentGameNumber: bo1WinnerId ? 2 : 1,
             winnerIdsInOrder: bo1WinnerId ? [bo1WinnerId] : []
         };
 
@@ -232,7 +236,7 @@ export class Lobby {
 
         return {
             gamesToWinMode: this.winHistory.gamesToWinMode,
-            currentGameNumber: this.winHistory.winnerIdsInOrder.length + 1,
+            currentGameNumber: this.winHistory.currentGameNumber,
             winsPerPlayer
         };
     }
@@ -495,11 +499,11 @@ export class Lobby {
         } else if (remainingSeconds > -4) {
             this.matchingCountdownText = 'Waiting for opponent to connect...';
 
-            this.sendLobbyState(true);
-
             if (this.users.length === 2 && this.users.every((u) => u.state === 'connected')) {
                 return this.onStartGameAsync();
             }
+
+            this.sendLobbyState(true);
         } else {
             logger.warn('Lobby: both users failed to connect within 3s, removing lobby and requeuing users', { lobbyId: this.id });
             this.server.removeLobby(this);
@@ -655,6 +659,10 @@ export class Lobby {
 
         // Check if both players have confirmed
         if (this.bo3NextGameConfirmedBy.size >= 2) {
+            // Increment the game number for the next game
+            Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+            this.winHistory.currentGameNumber++;
+
             // Reset for next game (winner was already recorded in handleGameEnd)
             this.game = null;
             this.bo3NextGameConfirmedBy.clear();
@@ -956,6 +964,7 @@ export class Lobby {
                 game.attachLobbyUser(user.id, user.socket.user);
             });
             await game.initialiseAsync();
+            this.sendLobbyState(true);
             this.sendGameState(game);
         } catch (error) {
             if (this.matchmakingType === MatchmakingType.Quick) {
@@ -1487,6 +1496,9 @@ export class Lobby {
     public handleGameEnd(): void {
         // Record winner based on game mode
         this.recordGameResult(this.gamesToWinMode);
+
+        // Send updated lobby state so clients see the new score immediately
+        this.sendLobbyState();
 
         // Handle stats and other end-game logic based on game mode
         switch (this.gamesToWinMode) {

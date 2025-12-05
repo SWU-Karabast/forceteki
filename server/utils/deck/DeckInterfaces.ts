@@ -55,6 +55,7 @@ export interface ILeaderBaseInternal {
 }
 
 export type IDecklistInternal = ILeaderBaseInternal & IDeckListBase & {
+    name?: string;
     deck: IInternalCardEntry[];
     sideboard?: IInternalCardEntry[];
 };
