@@ -1,6 +1,6 @@
 describe('Condemn', function () {
     integration(function (contextRef) {
-        const disclosePrompt = (attackerTitle: string) => `Disclose Vigilance, Villainy to give ${attackerTitle} -6/-0 for this attack`;
+        const disclosePrompt = (attackerTitle: string) => `Disclose :vigilance:, :villainy: to give ${attackerTitle} -6/-0 for this attack`;
 
         describe('The gained On Attack ability targeting attached unit', function () {
             it('should allow the defending player to disclose Vigilance & Villainy to give attached unit -6/-0 for the attack', async function () {

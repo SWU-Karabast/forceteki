@@ -1,6 +1,6 @@
 describe('Luthen\'s Haulcraft, Countermeasures Armed', function () {
     integration(function (contextRef) {
-        const disclosePrompt = 'Disclose Aggression, Aggression, Heroism to make your opponent discards 2 cards from their hand';
+        const disclosePrompt = 'Disclose :aggression:, :aggression:, :heroism: to make your opponent discards 2 cards from their hand';
 
         it('Luthen\'s Haulcraft\'s when defeated ability should disclose Aggression, Aggression, Heroism to discard 2 cards from opponent hand', async function () {
             await contextRef.setupTestAsync({

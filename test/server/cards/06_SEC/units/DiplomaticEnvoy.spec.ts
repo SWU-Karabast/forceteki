@@ -1,5 +1,7 @@
 describe('Diplomatic Envoy', function () {
     integration(function (contextRef) {
+        const disclosePrompt = 'Disclose :command: to give Ambush for this phase for the next unit you play this phase';
+
         describe('Diplomatic Envoy\'s ability', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
@@ -19,7 +21,7 @@ describe('Diplomatic Envoy', function () {
 
                 context.player1.clickCard(context.diplomaticEnvoy);
 
-                expect(context.player1).toHavePrompt('Disclose Command to give Ambush for this phase for the next unit you play this phase');
+                expect(context.player1).toHavePrompt(disclosePrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.battlefieldMarine);
@@ -47,7 +49,7 @@ describe('Diplomatic Envoy', function () {
 
                 context.player1.clickCard(context.diplomaticEnvoy);
 
-                expect(context.player1).toHavePrompt('Disclose Command to give Ambush for this phase for the next unit you play this phase');
+                expect(context.player1).toHavePrompt(disclosePrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.battlefieldMarine);

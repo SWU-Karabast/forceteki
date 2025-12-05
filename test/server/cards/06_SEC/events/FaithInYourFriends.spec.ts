@@ -1,5 +1,7 @@
 describe('Faith in Your Friends', function () {
     integration(function (contextRef) {
+        const disclosePrompt = 'Disclose :cunning:, :cunning:, :cunning:, :heroism:, :heroism: to create 2 Spy tokens';
+
         it('should search the top 3 deck for a card and draw, then we may disclose Cunning, Cunning, Cunning, Heroism, Heroism to create 2 Spy tokens', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -20,7 +22,7 @@ describe('Faith in Your Friends', function () {
 
             expect(context.cunning).toBeInZone('hand', context.player1);
 
-            expect(context.player1).toHavePrompt('Disclose Cunning, Cunning, Cunning, Heroism, Heroism to create 2 Spy tokens');
+            expect(context.player1).toHavePrompt(disclosePrompt);
             expect(context.player1).toBeAbleToSelectExactly([context.r2d2, context.cunning, context.millenniumFalcon]);
             context.player1.clickCard(context.r2d2);
             context.player1.clickCard(context.cunning);
@@ -51,7 +53,7 @@ describe('Faith in Your Friends', function () {
 
             context.player1.clickCard(context.faithInYourFriends);
 
-            expect(context.player1).toHavePrompt('Disclose Cunning, Cunning, Cunning, Heroism, Heroism to create 2 Spy tokens');
+            expect(context.player1).toHavePrompt(disclosePrompt);
             expect(context.player1).toBeAbleToSelectExactly([context.r2d2, context.cunning, context.millenniumFalcon]);
             context.player1.clickCard(context.r2d2);
             context.player1.clickCard(context.cunning);

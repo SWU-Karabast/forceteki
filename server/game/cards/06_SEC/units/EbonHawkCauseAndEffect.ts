@@ -17,7 +17,7 @@ export default class EbonHawkCauseAndEffect extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Heroism, Aspect.Villainy];
         registrar.addOnAttackAbility({
-            title: 'Disclose Heroism to give this unit +2/+0 and/or Villainy to give the defending unit -4/-0 for this attack',
+            title: 'Disclose :heroism: to give this unit +2/+0 and/or :villainy: to give the defending unit -4/-0 for this attack',
             immediateEffect: AbilityHelper.immediateEffects.disclose({
                 aspects: aspects,
                 mode: DiscloseMode.Some

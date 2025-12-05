@@ -1,6 +1,6 @@
 describe('Nala Se, Chief Medical Scientist', function() {
     integration(function(contextRef) {
-        const disclosePrompt = 'Disclose Vigilance, Vigilance. If you do, heal up to 4 damage from among other units';
+        const disclosePrompt = 'Disclose :vigilance:, :vigilance:. If you do, heal up to 4 damage from among other units';
 
         it('Nala Se\'s ability can heal up to 4 damage from other units', async function () {
             await contextRef.setupTestAsync({

@@ -1,6 +1,6 @@
 describe('Diplomatic Immunity', function() {
     integration(function(contextRef) {
-        const disclosePrompt = 'Disclose Vigilance, Vigilance, Heroism, Heroism. If you do, the attacker gets -2/-0 for this attack';
+        const disclosePrompt = 'Disclose :vigilance:, :vigilance:, :heroism:, :heroism:. If you do, the attacker gets -2/-0 for this attack';
 
         describe('Diplomatic Immunity\'s ability', function() {
             beforeEach(function () {

@@ -1,5 +1,7 @@
 describe('Karis Nemik, Freedom Is A Pure Idea', function() {
     integration(function(contextRef) {
+        const disclosePrompt = 'Disclose :aggression:, :heroism: to create a Spy token and ready it';
+
         it('Karis Nemik\'s when defeated ability should disclose Aggression and Heroism to create a Spy token and ready it', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -18,7 +20,7 @@ describe('Karis Nemik, Freedom Is A Pure Idea', function() {
             context.player2.clickCard(context.takedown);
             context.player2.clickCard(context.karisNemik);
 
-            expect(context.player1).toHavePrompt('Disclose Aggression, Heroism to create a Spy token and ready it');
+            expect(context.player1).toHavePrompt(disclosePrompt);
             expect(context.player1).toBeAbleToSelectExactly([context.wrecker]);
             expect(context.player1).toHaveChooseNothingButton();
             context.player1.clickCard(context.wrecker);
@@ -51,6 +53,7 @@ describe('Karis Nemik, Freedom Is A Pure Idea', function() {
             context.player2.clickCard(context.noGloryOnlyResults);
             context.player2.clickCard(context.karisNemik);
 
+            expect(context.player2).toHavePrompt(disclosePrompt);
             expect(context.player2).toBeAbleToSelectExactly([context.wrecker]);
             expect(context.player2).toHaveChooseNothingButton();
             context.player2.clickCard(context.wrecker);

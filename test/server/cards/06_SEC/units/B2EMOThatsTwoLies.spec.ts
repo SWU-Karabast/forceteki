@@ -1,5 +1,7 @@
 describe('B2EMO, That\'s Two Lies', function() {
     integration(function(contextRef) {
+        const disclosePrompt = 'Disclose :heroism:, :heroism: to give a unit Sentinel for this phase';
+
         it('B2EMO\'s on attack ability should disclose Heroism, Heroism to give a unit Sentinel for this phase', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -19,7 +21,7 @@ describe('B2EMO, That\'s Two Lies', function() {
             context.player1.clickCard(context.p2Base);
 
             // First, the on-attack ability appears as a choice in the triggered ability selection
-            context.player1.clickPrompt('Disclose Heroism, Heroism to give a unit Sentinel for this phase');
+            context.player1.clickPrompt(disclosePrompt);
 
             expect(context.player1).toBeAbleToSelectExactly([context.medalCeremony, context.c3poProtocolDroid]);
             expect(context.player1).toHaveChooseNothingButton();
