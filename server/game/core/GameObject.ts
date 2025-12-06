@@ -141,6 +141,7 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     }
 
     protected getOngoingEffects(): readonly OngoingCardEffect[] {
+        // Curently this still derefs the entire array of ongoing effects from the gamestate manager
         return this.ongoingEffects;
     }
 
