@@ -4,9 +4,8 @@ import type Game from '../../Game';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import type { IButton, IDisplayCard, ISelectableCard } from '../PromptInterfaces';
-import { DisplayCardSelectionState, type IDisplayCardsSelectProperties } from '../PromptInterfaces';
+import { DisplayCardSelectionState, type IDisplayCardsSelectProperties, SelectCardMode } from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';
-import { SelectCardMode } from '../PromptInterfaces';
 
 export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCardsSelectProperties> {
     private readonly canChooseFewer: boolean;
@@ -19,18 +18,18 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
     private readonly selectedCardsHandler: (cards: Card[]) => void;
     private readonly showSelectionOrder: boolean;
     private readonly displayTextByCardUuid: Map<string, string>;
-    private readonly selectCardMode: SelectCardMode;
 
     private selectedCards: Card[] = [];
 
     public constructor(game: Game, choosingPlayer: Player, properties: IDisplayCardsSelectProperties) {
-        super(game, choosingPlayer, properties);
+        const maxCards = properties.maxCards || 1;
+        const selectCardMode = maxCards > 1 ? SelectCardMode.Multiple : SelectCardMode.Single;
 
-        this.maxCards = properties.maxCards || 1;
-        this.selectCardMode = this.maxCards > 1 ? SelectCardMode.Multiple : SelectCardMode.Single;
+        super(game, choosingPlayer, properties, selectCardMode);
+
+        this.maxCards = maxCards;
         this.selectedCardsHandler = properties.selectedCardsHandler;
         this.multiSelectCardCondition = properties.multiSelectCondition || (() => true);
-
 
         const validCardCondition = properties.validCardCondition || (() => true);
 
@@ -79,8 +78,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
 
     public override activePromptDisplayCardInternal() {
         return {
-            buttons: this.doneButton ? [this.doneButton] : [],
-            selectCardMode: this.selectCardMode,
+            buttons: this.doneButton ? [this.doneButton] : []
         };
     }
 

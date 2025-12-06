@@ -5,7 +5,7 @@ import type { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSourc
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import type { IDisplayCard, IDisplayCardsBasicPromptProperties } from '../PromptInterfaces';
-import { DisplayCardSelectionState, type IButton } from '../PromptInterfaces';
+import { DisplayCardSelectionState, type IButton , SelectCardMode} from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasicPromptProperties> {
@@ -17,7 +17,7 @@ export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasi
     public constructor(game: Game, choosingPlayer: Player, properties: IDisplayCardsBasicPromptProperties) {
         Contract.assertTrue(properties.displayCards.length > 0);
 
-        super(game, choosingPlayer, properties);
+        super(game, choosingPlayer, properties, null);
 
         this.displayCards = properties.displayCards;
         this.doneButton = { text: 'Done', arg: 'done' };
