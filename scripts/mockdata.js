@@ -54,6 +54,24 @@ const mockCards = [
         arena: 'space',
         internalName: 'jaunty-light-freighter',
     }),
+    buildMockCard({
+        title: 'Leia\'s Disguise',
+        upgradePower: 2,
+        power: 2,
+        upgradeHp: 2,
+        hp: 2,
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['item', 'armor'],
+        types: ['upgrade'],
+        setId: {
+            set: 'LAW',
+            number: 111,
+        },
+        unique: true,
+        internalName: 'leias-disguise'
+    })
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
