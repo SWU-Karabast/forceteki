@@ -752,6 +752,12 @@ export class Lobby {
     }
 
     private updateDeck(socket: Socket, ...args) {
+        // Sideboarding is only allowed after game 1 in a Bo3 set
+        Contract.assertFalse(
+            this.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber <= 1,
+            'Sideboarding is not allowed before game 2 in a Bo3 set'
+        );
+
         const source = args[0]; // [<'Deck'|'Sideboard>'<cardID>]
         const cardId = args[1];
 
