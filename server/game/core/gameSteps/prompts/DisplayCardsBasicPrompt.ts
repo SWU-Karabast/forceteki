@@ -5,7 +5,7 @@ import type { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSourc
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import type { IDisplayCard, IDisplayCardsBasicPromptProperties } from '../PromptInterfaces';
-import { DisplayCardSelectionState, type IButton , SelectCardMode} from '../PromptInterfaces';
+import { DisplayCardSelectionState, type IButton } from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasicPromptProperties> {

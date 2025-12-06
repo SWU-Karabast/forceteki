@@ -3,18 +3,17 @@ import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
-import { DisplayCardSelectionState, PromptType, SelectCardMode, type IDisplayCard, type IDisplayCardPromptPropertiesBase } from '../PromptInterfaces';
+import { DisplayCardSelectionState, PromptType, type SelectCardMode, type IDisplayCard, type IDisplayCardPromptPropertiesBase } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPropertiesBase> extends UiPrompt {
-    protected readonly properties: TProperties;    
+    protected readonly properties: TProperties;
 
     private readonly choosingPlayer: Player;
     private readonly menuTitle?: string;
     private readonly promptTitle: string;
     private readonly source: OngoingEffectSource;
     private readonly selectCardMode: SelectCardMode;
-    
 
     public constructor(game: Game, choosingPlayer: Player, properties: TProperties, selectCardMode: SelectCardMode) {
         super(game);
@@ -74,7 +73,7 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
             menuTitle: this.menuTitle,
             promptTitle: this.promptTitle,
             promptUuid: this.uuid,
-            selectCardMode : this.selectCardMode,
+            selectCardMode: this.selectCardMode,
             displayCards,
             ...this.activePromptDisplayCardInternal(),
             promptType: PromptType.DisplayCards
