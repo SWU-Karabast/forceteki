@@ -150,27 +150,34 @@ export abstract class TriggerWindowBase extends BaseStep {
         }
 
         // Check to if we're dealing with a multi-selection of the 'same' ability
-        let isMultiSelectAbility = this.isMultiSelectAbility(abilitiesToResolve, this.resolved.map((resolved) => resolved.ability));
+        const repeatedAbilities = this.getRepeatedAbilityTriggers(abilitiesToResolve, this.resolved.map((resolved) => resolved.ability));
 
-        // if an ability is triggered multiple times and uses a collective trigger, filter down to one instance of it
-        if (isMultiSelectAbility && abilitiesToResolve[0].ability.collectiveTrigger) {
-            abilitiesToResolve = [abilitiesToResolve[0]];
-            this.unresolved.set(this.currentlyResolvingPlayer, abilitiesToResolve);
-            isMultiSelectAbility = false;
+        for (const repeatedAbility of repeatedAbilities) {
+            // if an ability is triggered multiple times and uses a collective trigger, filter down to one instance of it
+            if (repeatedAbility.collectiveTrigger) {
+                const abilityTriggers = abilitiesToResolve.filter((context) => context.ability === repeatedAbility);
+                abilitiesToResolve = abilitiesToResolve.filter((context) => context.ability !== repeatedAbility);
+                abilitiesToResolve.push(abilityTriggers[0]);
+                this.unresolved.set(this.currentlyResolvingPlayer, abilitiesToResolve);
+                continue;
+            }
+
+            // if an ability is triggered multiple times but does not use a collective trigger, we need to treat it as a multi-select
+            // so we can differentiate which instance is being resolved
+            for (const context of abilitiesToResolve.filter((context) => context.ability === repeatedAbility)) {
+                if (!context.overrideTitle) {
+                    context.setOverrideTitle(this.getOverrideTitle(context));
+                }
+            }
         }
 
         // if there's more than one ability still unresolved, prompt for next selection
         if (abilitiesToResolve.length > 1) {
-            this.promptForNextAbilityToResolve(isMultiSelectAbility);
+            this.promptForNextAbilityToResolve();
             return false;
         }
 
-        let abilityContextToResolve = abilitiesToResolve[0];
-        if (isMultiSelectAbility) {
-            abilityContextToResolve = abilityContextToResolve.createCopy({ overrideTitle: this.getOverrideTitle(abilityContextToResolve) });
-        }
-
-        this.resolveAbility(abilityContextToResolve);
+        this.resolveAbility(abilitiesToResolve[0]);
         return false;
     }
 
@@ -182,8 +189,8 @@ export abstract class TriggerWindowBase extends BaseStep {
         return this.unresolved.get(this.currentlyResolvingPlayer);
     }
 
-    private getChoiceTitle(context: TriggeredAbilityContext, isMultiSelectAbility: boolean) {
-        let title = isMultiSelectAbility ? this.getOverrideTitle(context) : context.ability.title;
+    private getChoiceTitle(context: TriggeredAbilityContext) {
+        let title = context.ability.getTitle(context);
         if (!context.ability.hasAnyLegalEffects(context, SubStepCheck.All)) {
             title = `(No effect) ${title}`;
         }
@@ -192,31 +199,34 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     private getOverrideTitle(context: TriggeredAbilityContext) {
-        return `${context.ability.title}: ${context.event.card.title}`;
+        return `${context.ability.getTitle(context)}: ${context.event.card.title}`;
     }
 
-    private isMultiSelectAbility(abilitiesToResolve: TriggeredAbilityContext[], resolvedAbilities: TriggeredAbility[]) {
-        const uniqueAbilities = new Set([
-            ...abilitiesToResolve.map((context) => context.ability),
-            ...resolvedAbilities
-        ]);
-        return (resolvedAbilities.length + abilitiesToResolve.length > 1) && uniqueAbilities.size === 1;
+    private getRepeatedAbilityTriggers(abilitiesToResolve: TriggeredAbilityContext[], resolvedAbilities: TriggeredAbility[]) {
+        const repeatedAbilities = new Set<TriggeredAbility>();
+        const allAbilities = new Set<TriggeredAbility>(resolvedAbilities);
+
+        for (const ability of abilitiesToResolve.map((context) => context.ability)) {
+            if (allAbilities.has(ability)) {
+                repeatedAbilities.add(ability);
+            } else {
+                allAbilities.add(ability);
+            }
+        }
+
+        return repeatedAbilities;
     }
 
 
-    private promptForNextAbilityToResolve(isMultiSelectAbility: boolean) {
+    private promptForNextAbilityToResolve() {
         const abilitiesToResolve = this.getCurrentlyResolvingAbilities();
 
         let choices: string[] = [];
         let handlers: (() => void)[] = [];
 
         // If its a multi-select, append the card name at the end of the ability name to differentiate them
-        choices = abilitiesToResolve.map((context) => this.getChoiceTitle(context, isMultiSelectAbility));
-        if (isMultiSelectAbility) {
-            handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context.createCopy({ overrideTitle: this.getOverrideTitle(context) })));
-        } else {
-            handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
-        }
+        choices = abilitiesToResolve.map((context) => this.getChoiceTitle(context));
+        handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
 
         this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
             activePromptTitle: 'Choose an ability to resolve:',
@@ -261,7 +271,7 @@ export abstract class TriggerWindowBase extends BaseStep {
 
         // if we can't find the ability to remove from the list, we have to error or else get stuck in an infinite loop
         if (justResolvedAbility == null) {
-            throw Error(`Could not find the resolved ability of card ${justResolvedAbility.source.internalName} in the list of unresolved abilities for player ${this.currentlyResolvingPlayer}`);
+            throw Error(`Could not find the resolved ability '${resolver.context.ability?.title}' on card ${resolver.context.source?.internalName} in the list of unresolved abilities for player ${this.currentlyResolvingPlayer.name}`);
         }
 
         unresolvedAbilitiesForPlayer.splice(unresolvedAbilitiesForPlayer.indexOf(justResolvedAbility), 1);

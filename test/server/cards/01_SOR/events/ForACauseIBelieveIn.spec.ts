@@ -48,6 +48,14 @@ describe('For A Cause I Believe In', function() {
 
             expect(context.echoBaseDefender).toBeInZone('discard');
             expect(context.regionalSympathizers).toBeInZone('discard');
+
+            expect(context.getChatLogs(5)).toEqual([
+                'player1 plays For a Cause I Believe In to reveal Battlefield Marine, Echo Base Defender, SpecForce Soldier, and Regional Sympathizers and to deal 4 damage to player2\'s base',
+                'player1 uses For a Cause I Believe In to move a card to the top of their deck',
+                'player1 uses For a Cause I Believe In to move a card to the top of their deck',
+                'player1 uses For a Cause I Believe In to discard Echo Base Defender',
+                'player1 uses For a Cause I Believe In to discard Regional Sympathizers',
+            ]);
         });
 
         it('deals 0 damage to opponents base when 0 heroism cards are revealed', async function() {

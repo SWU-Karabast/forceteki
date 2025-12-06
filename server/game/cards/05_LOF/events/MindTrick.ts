@@ -25,7 +25,8 @@ export default class MindTrick extends EventCard {
                     AbilityHelper.immediateEffects.conditional({
                         condition: (context) => context.player.hasSomeArenaUnit({ trait: Trait.Force }),
                         onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                            effect: AbilityHelper.ongoingEffects.loseAllAbilities()
+                            effect: AbilityHelper.ongoingEffects.loseAllAbilities(),
+                            ongoingEffectDescription: 'remove all abilities from'
                         })
                     })
                 ])

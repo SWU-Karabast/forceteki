@@ -16,7 +16,7 @@ export default class TheEmperorsLegion extends EventCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase(registrar, this);
+        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -24,7 +24,7 @@ export default class TheEmperorsLegion extends EventCard {
             title: 'Return each unit in your discard pile that was defeated this phase to your hand.',
             immediateEffect: AbilityHelper.immediateEffects.returnToHand((context) => {
                 const friendlyUnitsDefeatedThisPhaseInDiscard =
-                    this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayerNew(context.player)
+                    this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.player)
                         .filter(({ unit, inPlayId: defeatedInPlayId }) =>
                             unit.zoneName === ZoneName.Discard &&
                             unit.mostRecentInPlayId === defeatedInPlayId)

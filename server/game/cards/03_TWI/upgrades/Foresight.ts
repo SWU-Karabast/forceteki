@@ -30,7 +30,7 @@ export default class Foresight extends UpgradeCard {
                 then: {
                     title: 'Reveal and draw the top card of deck',
                     optional: true,
-                    thenCondition: (context) => thenContext.select === context.player.getTopCardOfDeck().title,
+                    thenCondition: (context) => thenContext.select === context.player.getTopCardOfDeck()?.title,
                     immediateEffect: AbilityHelper.immediateEffects.sequential([
                         AbilityHelper.immediateEffects.reveal((context) => ({
                             target: context.player.getTopCardOfDeck()

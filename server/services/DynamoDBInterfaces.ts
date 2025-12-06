@@ -13,11 +13,12 @@ export interface IModerationAction {
 export interface IUserDataEntity {
     id: string;
     username: string;
-    preferences?: UserPreferences;
+    preferences?: IUserPreferences;
     swuStatsRefreshToken?: string;
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
     moderation?: IModerationAction;
+    undoPopupSeenDate?: string;
 }
 
 export interface IFeMatchupStatEntity extends IMatchupStatEntity {
@@ -44,14 +45,17 @@ export interface IDeckStatsEntity {
 }
 
 
-export interface UserPreferences {
-    cardback?: string;
+export interface IUserPreferences {
     sound?: {
         muteAllSound?: boolean;
         muteCardAndButtonClickSound?: boolean;
         muteYourTurn?: boolean;
         muteChatSound?: boolean;
         muteOpponentFoundSound?: boolean;
+    };
+    cosmetics?: {
+        cardback?: string;
+        background?: string;
     };
 }
 
@@ -62,7 +66,7 @@ export interface IUserProfileDataEntity extends IUserDataEntity {
     lastLogin: string;
     createdAt: string;
     usernameLastUpdatedAt?: string; // When username was set/changed
-    preferences?: UserPreferences;
+    preferences?: IUserPreferences;
 }
 
 export interface ILocalStorageDeckData {
@@ -106,4 +110,16 @@ export interface IGameRecordEntity {
     player2BaseId: string;
     timestampStart: Date;
     timestampEnd: Date;
+}
+
+export enum ServerRole {
+    Admin = 'admin',
+    Developer = 'developer',
+    Moderator = 'moderator',
+}
+
+export interface IServerRoleUsersListsEntity {
+    admins: string[];
+    developers: string[];
+    moderators: string[];
 }

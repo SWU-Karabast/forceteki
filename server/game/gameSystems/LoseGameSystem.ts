@@ -11,7 +11,7 @@ export interface ILoseGameProperties extends IPlayerTargetSystemProperties {
 export class LoseGameSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ILoseGameProperties> {
     public override readonly name = 'loseGame';
     public override readonly eventName = MetaEventName.GameLost;
-    public override readonly effectDescription = '{0} lost the game';
+    public override readonly effectDescription = 'lose the game';
 
     public eventHandler(event: any): void {
         const player = event.player as Player;

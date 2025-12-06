@@ -1,4 +1,4 @@
-import type { IModerationAction, IUserDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
+import type { IModerationAction, IUserDataEntity, IUserPreferences } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class
@@ -35,24 +35,19 @@ export abstract class User {
     public abstract getShowWelcomeMessage(): boolean;
 
     /**
+     * Gets a users welcomeMessage status
+     */
+    public abstract getUndoPopupSeenDate(): Date | null;
+
+    /**
      * Gets the user's preferences
      */
-    public abstract getPreferences(): UserPreferences;
+    public abstract getPreferences(): IUserPreferences;
 
     /**
      * Sets the user's preferences
      */
-    public abstract setPreferences(preferences: UserPreferences): void;
-
-    /**
-     * Gets the user's swuStatsRefreshtoken if it exists
-     */
-    public abstract getSwuStatsRefreshToken(): string | null;
-
-    /**
-     * Gets the user's swuStatsRefreshtoken if it exists
-     */
-    public abstract hasSwuStatsRefreshToken(): boolean;
+    public abstract setPreferences(preferences: IUserPreferences): void;
 
     /**
      * Gets the object representation of the user for sending to the client
@@ -98,29 +93,25 @@ export class AuthenticatedUser extends User {
         return this.userData.showWelcomeMessage;
     }
 
+    public getUndoPopupSeenDate(): Date | null {
+        return this.userData.undoPopupSeenDate ? new Date(this.userData.undoPopupSeenDate) : null;
+    }
+
     public getUsername(): string {
         return this.userData.username;
     }
 
-    public getPreferences(): UserPreferences {
+    public getPreferences(): IUserPreferences {
         return this.userData.preferences;
     }
 
-    public setPreferences(preferences: UserPreferences) {
+    public setPreferences(preferences: IUserPreferences) {
         this.userData.preferences = preferences;
     }
 
     public needsUsernameChange(): boolean {
         // undefined = false
         return !!this.userData.needsUsernameChange;
-    }
-
-    public getSwuStatsRefreshToken(): string | null {
-        return this.userData.swuStatsRefreshToken ?? null;
-    }
-
-    public hasSwuStatsRefreshToken(): boolean {
-        return !!this.userData.swuStatsRefreshToken;
     }
 
     public getModeration(): IModerationAction | null {
@@ -178,24 +169,20 @@ export class AnonymousUser extends User {
         return this.username;
     }
 
-    public getPreferences(): UserPreferences {
+    public getPreferences(): IUserPreferences {
         return null;
     }
 
-    public setPreferences(_preferences: UserPreferences) {
-        throw new Error('Anonymous users do not support preferences. Check supportsPreferences() before calling this method.');
+    public setPreferences(_preferences: IUserPreferences) {
+        throw new Error('Anonymous users do not support preferences.');
     }
 
     public override getShowWelcomeMessage(): boolean {
         return false;
     }
 
-    public override getSwuStatsRefreshToken(): string | null {
+    public override getUndoPopupSeenDate(): Date | null {
         return null;
-    }
-
-    public hasSwuStatsRefreshToken(): boolean {
-        return false;
     }
 
     public getModeration(): IModerationAction | null {

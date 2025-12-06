@@ -76,7 +76,7 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                     player1: {
                         leader: 'chancellor-palpatine#how-liberty-dies',
                         base: 'data-vault',
-                        resources: ['confiscate', 'wampa', 'dogmatic-shock-squad', 'unveiled-might', 'when-has-become-now', 'wampa', 'wampa', 'atst', 'underworld-thug', 'wampa'],
+                        resources: ['confiscate', 'wampa', 'chancellor-palpatine#i-am-the-senate', 'jar-jar-binks#mesa-propose', 'when-has-become-now', 'wampa', 'wampa', 'atst', 'underworld-thug', 'wampa'],
                         deck: ['pyke-sentinel', 'moisture-farmer']
                     }
                 });
@@ -84,29 +84,33 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 const { context } = contextRef;
 
                 // Deploy Palpatine
-                context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickCard(context.chancellorPalpatineHowLibertyDies);
                 context.player1.clickPrompt('Deploy Chancellor Palpatine');
-                expect(context.chancellorPalpatine).toBeInZone('groundArena');
-                expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 less.', 'Play Dogmatic Shock Squad using Plot', 'Play Unveiled Might using Plot']);
+                expect(context.chancellorPalpatineHowLibertyDies).toBeInZone('groundArena');
+                expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 less.', 'Play Jar Jar Binks using Plot', 'Play Chancellor Palpatine using Plot']);
 
-                // Play Dogmatic for 6
-                context.player1.clickPrompt('Play Dogmatic Shock Squad using Plot');
+                // Play Jar Jar Binks for 2
+                context.player1.clickPrompt('Play Jar Jar Binks using Plot');
                 context.player1.clickPrompt('Trigger');
-                expect(context.player1.exhaustedResourceCount).toBe(6);
-                expect(context.dogmaticShockSquad).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+                expect(context.jarJarBinks).toBeInZone('groundArena');
+                context.player1.clickCard(context.chancellorPalpatineHowLibertyDies); // Give Palp +2/+2
 
                 // Reduce the next card played using Plot by 3
                 context.player1.clickPrompt('The next card you play using Plot this phase costs 3 less.');
 
-                // Play Unveiled Might for 1
-                expect(context.player1).toHavePassAbilityPrompt('Play Unveiled Might using Plot');
+                // Play Chancellor Palpatine unit for 0
+                expect(context.player1).toHavePassAbilityPrompt('Play Chancellor Palpatine using Plot');
                 context.player1.clickPrompt('Trigger');
-                expect(context.player1).toBeAbleToSelectExactly([context.chancellorPalpatine, context.dogmaticShockSquad]);
-                context.player1.clickCard(context.dogmaticShockSquad);
-                expect(context.player1.exhaustedResourceCount).toBe(7);
-                expect(context.unveiledMight).toBeAttachedTo(context.dogmaticShockSquad);
-                expect(context.moistureFarmer).toBeInZone('resource');
 
+                // Verify 2 Spy tokens were created for player1
+                const spies = context.player1.findCardsByName('spy');
+                expect(spies.length).toBe(2);
+                expect(spies).toAllBeInZone('groundArena');
+                expect(spies.every((spy) => spy.exhausted)).toBeTrue();
+
+                expect(context.moistureFarmer).toBeInZone('resource');
+                expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });
 

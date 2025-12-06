@@ -19,11 +19,11 @@ export class GamePipeline {
     }
 
     public get currentStep() {
-        return this.pipeline[0];
+        return this.pipeline[this.pipeline.length - 1];
     }
 
     public initialise(steps: StepItem[]): void {
-        this.pipeline = steps;
+        this.addStepsToPipeline(steps);
     }
 
     /**
@@ -49,7 +49,7 @@ export class GamePipeline {
                     return false;
                 }
             } else {
-                this.pipeline = this.pipeline.slice(1);
+                this.pipeline.pop();
             }
 
             this.queueNewStepsIntoPipeline();
@@ -63,7 +63,7 @@ export class GamePipeline {
      */
     public queueStep(step: IStep) {
         if (this.pipeline.length === 0) {
-            this.pipeline.unshift(step);
+            this.pipeline.push(step);
         } else {
             const currentStep = this.getCurrentStep();
             if (currentStep.queueStep) {
@@ -88,7 +88,7 @@ export class GamePipeline {
             }
         }
 
-        this.pipeline.shift();
+        this.pipeline.pop();
     }
 
     // HACK: This intended to be used by undo *only*.
@@ -136,7 +136,7 @@ export class GamePipeline {
 
     public getDebugInfo() {
         return {
-            pipeline: this.pipeline.map((step) => this.getDebugInfoForStep(step)),
+            pipeline: [...this.pipeline].reverse().map((step) => this.getDebugInfoForStep(step)),
             queue: this.stepsQueuedDuringCurrentStep.map((step) => this.getDebugInfoForStep(step))
         };
     }
@@ -161,11 +161,11 @@ export class GamePipeline {
     }
 
     private getCurrentStep(): IStep {
-        const step = this.pipeline[0];
+        const step = this.pipeline[this.pipeline.length - 1];
 
         if (typeof step === 'function') {
             const createdStep = step();
-            this.pipeline[0] = createdStep;
+            this.pipeline[this.pipeline.length - 1] = createdStep;
             return createdStep;
         }
 
@@ -173,7 +173,14 @@ export class GamePipeline {
     }
 
     private queueNewStepsIntoPipeline() {
-        this.pipeline.unshift(...this.stepsQueuedDuringCurrentStep);
-        this.stepsQueuedDuringCurrentStep = [];
+        this.addStepsToPipeline(this.stepsQueuedDuringCurrentStep);
+        this.stepsQueuedDuringCurrentStep.length = 0;
+    }
+
+    private addStepsToPipeline(steps: StepItem[]) {
+        // push the steps in reverse order so that the first step is at the end of the array
+        for (let i = steps.length - 1; i >= 0; i--) {
+            this.pipeline.push(steps[i]);
+        }
     }
 }

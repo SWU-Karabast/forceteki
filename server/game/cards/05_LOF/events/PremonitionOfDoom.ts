@@ -20,6 +20,7 @@ export default class PremonitionOfDoom extends EventCard {
                 when: {
                     onClaimInitiative: (event, context) => event.player === context.player
                 },
+                effectDescription: 'exhaust all units the next time they take the initiative this phase',
                 immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => ({
                     target: context.game.getArenaUnits()
                 }))

@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityRestriction, Aspect, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class CantwellArrestorCruiser extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class CantwellArrestorCruiser extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Vigilance, Aspect.Vigilance, Aspect.Villainy];
         registrar.addWhenPlayedAbility({
-            title: `Disclose ${Helpers.aspectString(aspects)} to exhaust an enemy unit. That unit cannot ready while this unit is in play`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects)} to exhaust an enemy unit. That unit cannot ready while this unit is in play`,
             immediateEffect: AbilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Exhaust an enemy unit. That unit cannot ready while this unit is in play',

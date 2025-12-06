@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class SteadfastBattalion extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -15,10 +15,11 @@ export default class SteadfastBattalion extends NonLeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'If you control a leader unit, give a friendly unit +2/+2 for this phase',
             targetResolver: {
+                activePromptTitle: 'Give a friendly unit +2/+2 for this phase',
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.leader.isDeployableLeader() && context.player.leader.deployed,
+                    condition: (context) => context.player.hasSomeArenaCard({ type: CardType.LeaderUnit }),
                     onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                     }),

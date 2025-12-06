@@ -16,7 +16,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsLeftPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsLeftPlayThisPhase(registrar, this);
+        this.cardsLeftPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsLeftPlayThisPhase();
     }
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -40,11 +40,8 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addTriggeredAbility({
+        registrar.addOnAttackCompletedAbility({
             title: 'Ready 2 resources',
-            when: {
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source,
-            },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {
                     const opponentHasUnitsThatLeftPlayThisPhase = this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({ controller: context.player.opponent });

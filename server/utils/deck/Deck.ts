@@ -2,24 +2,10 @@ import type { Card } from '../../game/core/card/Card';
 import type { Player } from '../../game/core/Player';
 import * as CardHelpers from '../../game/core/card/CardHelpers';
 import * as Contract from '../../game/core/utils/Contract';
-import type { ISwuDbCardEntry, ISwuDbDecklist, IDecklistInternal, IInternalCardEntry, ILeaderBaseInternal } from './DeckInterfaces';
+import type { ISwuDbFormatCardEntry, IDecklistInternal, IInternalCardEntry, ILeaderBaseInternal, IDeckListForLoading, ISwuDbFormatDecklist } from './DeckInterfaces';
+import { DeckSource } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
-import type { IPlayableCard } from '../../game/core/card/baseClasses/PlayableOrDeployableCard';
-import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
-import type { IBaseCard } from '../../game/core/card/BaseCard';
-import type { ILeaderCard } from '../../game/core/card/propertyMixins/LeaderProperties';
 import { cards } from '../../game/cards/Index';
-import type { GameObjectRef } from '../../game/core/GameObjectBase';
-
-export interface IDeckList {
-    deckCards: GameObjectRef<IPlayableCard>[];
-    outOfPlayCards: any[];
-    outsideTheGameCards: GameObjectRef<Card>[];
-    tokens: GameObjectRef<ITokenCard>[];
-    base: GameObjectRef<IBaseCard> | undefined;
-    leader: GameObjectRef<ILeaderCard> | undefined;
-    allCards: GameObjectRef<Card>[];
-}
 
 export class Deck {
     private static buildDecklistEntry(cardId: string, count: number, cardDataGetter: CardDataGetter): IInternalCardEntry {
@@ -33,15 +19,19 @@ export class Deck {
     }
 
     public readonly base: IInternalCardEntry;
+    public readonly deckSource: DeckSource;
     public readonly leader: IInternalCardEntry;
     public readonly id?: string;
+    public readonly isPresentInDb: boolean;
+    public readonly deckLink?: string;
+    public readonly originalDeckList: ISwuDbFormatDecklist;
 
     private readonly cardDataGetter: CardDataGetter;
 
     private deckCards: Map<string, number>;
     private sideboard: Map<string, number>;
 
-    public constructor(decklist: ISwuDbDecklist | IDecklistInternal, cardDataGetter: CardDataGetter) {
+    public constructor(decklist: ISwuDbFormatDecklist, cardDataGetter: CardDataGetter) {
         this.base = Deck.buildDecklistEntry(decklist.base.id, 1, cardDataGetter);
         this.leader = Deck.buildDecklistEntry(decklist.leader.id, 1, cardDataGetter);
         this.id = decklist.deckID;
@@ -56,9 +46,14 @@ export class Deck {
         this.deckCards = this.convertCardListToMap(decklist.deck, allCardIds);
         this.sideboard = this.convertCardListToMap(sideboard, allCardIds);
         this.cardDataGetter = cardDataGetter;
+        this.originalDeckList = decklist;
+
+        this.isPresentInDb = decklist.isPresentInDb;
+        this.deckLink = decklist.deckLink;
+        this.deckSource = this.determineDeckSource(decklist.deckLink);
     }
 
-    private convertCardListToMap(cardList: ISwuDbCardEntry[], allCardIds: Set<string>) {
+    private convertCardListToMap(cardList: ISwuDbFormatCardEntry[], allCardIds: Set<string>) {
         const cardsMap = new Map<string, number>();
         const missingCardIds = new Set(allCardIds);
 
@@ -73,6 +68,39 @@ export class Deck {
         }
 
         return cardsMap;
+    }
+
+    /**
+     * Helper method to determine deck source from deck link or other data
+     */
+    private determineDeckSource(deckLink?: string, deckSource?: string): DeckSource {
+        if (deckSource) {
+            const upperDeckSource = deckSource.toUpperCase();
+            const enumValues = Object.values(DeckSource);
+
+            for (const enumValue of enumValues) {
+                if (enumValue.toUpperCase() === upperDeckSource) {
+                    return enumValue;
+                }
+            }
+        }
+        // Fallback to determining from deckLink
+        if (deckLink) {
+            if (deckLink.includes('swustats.net')) {
+                return DeckSource.SWUStats;
+            } else if (deckLink.includes('swudb.com')) {
+                return DeckSource.SWUDB;
+            } else if (deckLink.includes('swunlimiteddb.com')) {
+                return DeckSource.SWUnlimitedDB;
+            } else if (deckLink.includes('swubase.com')) {
+                return DeckSource.SWUBase;
+            } else if (deckLink.includes('swucardhub.fr')) {
+                return DeckSource.SWUCardHub;
+            }
+        }
+
+        // Default fallback
+        return DeckSource.Unknown;
     }
 
     public moveToDeck(cardId: string) {
@@ -111,8 +139,8 @@ export class Deck {
         };
     }
 
-    public async buildCardsAsync(player: Player, cardDataGetter: CardDataGetter): Promise<IDeckList> {
-        const result: IDeckList = {
+    public async buildCardsAsync(player: Player, cardDataGetter: CardDataGetter): Promise<IDeckListForLoading> {
+        const result: IDeckListForLoading = {
             deckCards: [],
             outOfPlayCards: [],
             outsideTheGameCards: [],

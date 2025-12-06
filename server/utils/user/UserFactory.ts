@@ -9,7 +9,7 @@ import type { ParsedUrlQuery } from 'node:querystring';
 import type {
     IUserDataEntity,
     IUserProfileDataEntity,
-    UserPreferences
+    IUserPreferences
 } from '../../services/DynamoDBInterfaces';
 import {
     ModerationType
@@ -24,9 +24,14 @@ const getDefaultSoundPreferences = () => ({
     muteOpponentFoundSound: false,
 });
 
-const getDefaultPreferences = (): UserPreferences => ({
+const getDefaultCosmeticsPreferences = () => ({
     cardback: null,
-    sound: getDefaultSoundPreferences()
+    background: null,
+});
+
+export const getDefaultPreferences = (): IUserPreferences => ({
+    sound: getDefaultSoundPreferences(),
+    cosmetics: getDefaultCosmeticsPreferences(),
 });
 
 
@@ -81,6 +86,9 @@ export class UserFactory {
                 queryUser = query.user;
             }
             if (queryUser) {
+                if (queryUser.username && !queryUser.username.toLowerCase().startsWith('anonymous')) {
+                    logger.info(`Auth Anon-creation: creating user with id ${queryUser.id} with non-anonymous name ${queryUser.username}`, { userId: queryUser.id });
+                }
                 return new AnonymousUser(queryUser.id, queryUser.username);
             }
         }
@@ -98,6 +106,21 @@ export class UserFactory {
             return true;
         } catch (error) {
             logger.error('Error setting showWelcomeMessage status:', { error: { message: error.message, stack: error.stack } });
+            throw error;
+        }
+    }
+
+    public async setUndoPopupSeenStatus(userId: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+            await dbService.updateUserProfileAsync(userId, {
+                undoPopupSeenDate: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            logger.error('Error setting undoPopupSeen status:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -248,29 +271,12 @@ export class UserFactory {
      * @param updatedPreferences The updated preferences object
      * @returns True if update was successful
      */
-    public async updateUserPreferencesAsync(userId: string, updatedPreferences: Record<string, any>): Promise<UserPreferences> {
+    public async updateUserPreferencesAsync(userId: string, updatedPreferences: Record<string, any>): Promise<void> {
         try {
             const dbService = await this.dbServicePromise;
-
-            // Get existing user preferences
-            const userProfile = await dbService.getUserProfileAsync(userId);
-            const currentPreferences = userProfile?.preferences || {};
-
-            // Merge sound preferences with defaults if they don't exist
-            const mergedPreferences = {
-                ...getDefaultPreferences(),
-                ...currentPreferences,
-                ...updatedPreferences,
-                sound: {
-                    ...getDefaultSoundPreferences(),
-                    ...currentPreferences.sound,
-                    ...updatedPreferences.sound
-                }
-            };
-            await dbService.saveUserSettingsAsync(userId, mergedPreferences);
-            return mergedPreferences;
+            await dbService.updateUserPreferencesAsync(userId, updatedPreferences);
         } catch (error) {
-            logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack } });
+            logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack, userId: userId } });
             throw error;
         }
     }
@@ -340,7 +346,8 @@ export class UserFactory {
                 preferences: getDefaultPreferences(),
                 needsUsernameChange: false,
                 swuStatsRefreshToken: null,
-                moderation: null
+                moderation: null,
+                undoPopupSeenDate: null,
             };
 
             // Create OAuth link
@@ -417,6 +424,30 @@ export class UserFactory {
         } catch (error: any) {
             logger.error('Error linking SWUstats refresh token:', {
                 error: { message: error.message, stack: error.stack }, userId
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Fetches the SWUstats refresh token for a user
+     * @returns The refresh token
+     * @param userId a users id
+     */
+    public async getUserSwuStatsRefreshTokenAsync(userId: string): Promise<string | null> {
+        Contract.assertNotNullLike(userId, 'user is required');
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+
+            if (!userProfile) {
+                throw new Error(`No user profile found for userId ${userId}`);
+            }
+            return userProfile.swuStatsRefreshToken;
+        } catch (error: any) {
+            logger.error('Error refreshing user SWUstats token:', {
+                error: { message: error.message, stack: error.stack },
+                userId
             });
             throw error;
         }

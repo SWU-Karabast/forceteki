@@ -90,7 +90,6 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         if (this.hasSomeKeyword(KeywordName.Plot)) {
             const plotProps = Object.assign(this.buildGeneralAbilityProps('keyword_plot'), PlotAbility.buildPlotAbilityProperties(this.title));
             const plotAbility = this.createTriggeredAbility(plotProps);
-            plotAbility.registerEvents();
             this.state.triggeredAbilities.push(plotAbility.getRef());
         }
     }
@@ -291,6 +290,9 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         }
 
         this.controller = newController;
+        if (this.isTokenUpgrade()) {
+            this.owner = newController;
+        }
 
         const moveDestination = moveTo || this.zone.name;
 

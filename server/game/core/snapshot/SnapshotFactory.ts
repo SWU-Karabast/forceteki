@@ -33,25 +33,38 @@ export class SnapshotFactory {
     private currentActionSnapshot: IGameSnapshot;
 
     private lastAssignedSnapshotId = -1;
+    private lastAssignedTimepointNumber = -1;
 
     public get currentSnapshotId(): number | null {
-        return this.currentActionSnapshot?.id ?? null;
+        return this.currentActionSnapshot?.id;
     }
 
     public get currentSnapshottedAction(): number | null {
-        return this.currentActionSnapshot?.actionNumber ?? null;
+        return this.currentActionSnapshot?.actionNumber;
+    }
+
+    public get currentSnapshottedActivePlayer(): string | null {
+        return this.currentActionSnapshot?.activePlayerId;
     }
 
     public get currentSnapshottedPhase(): PhaseName | null {
-        return this.currentActionSnapshot?.phase ?? null;
+        return this.currentActionSnapshot?.phase;
     }
 
     public get currentSnapshottedRound(): number | null {
-        return this.currentActionSnapshot?.roundNumber ?? null;
+        return this.currentActionSnapshot?.roundNumber;
     }
 
-    public get currentSnapshottedTimepoint(): SnapshotTimepoint | null {
-        return this.currentActionSnapshot?.timepoint ?? null;
+    public get currentSnapshottedTimepointNumber(): number | null {
+        return this.currentActionSnapshot?.timepointNumber;
+    }
+
+    public get currentSnapshottedTimepointType(): SnapshotTimepoint | null {
+        return this.currentActionSnapshot?.timepoint;
+    }
+
+    public get currentSnapshotRequiresConfirmationToRollback(): boolean | null {
+        return this.currentActionSnapshot?.requiresConfirmationToRollback;
     }
 
     public constructor(game: Game, gameStateManager: GameStateManager) {
@@ -129,6 +142,7 @@ export class SnapshotFactory {
         // this should be called exactly once per action
 
         const nextSnapshotId = this.lastAssignedSnapshotId + 1;
+        const nextTimepointNumber = this.lastAssignedTimepointNumber + 1;
 
         const snapshot: IGameSnapshot = {
             id: nextSnapshotId,
@@ -136,15 +150,25 @@ export class SnapshotFactory {
             actionNumber: this.game.actionNumber,
             roundNumber: this.game.roundNumber,
             timepoint,
+            timepointNumber: nextTimepointNumber,
             phase: this.game.currentPhase,
             gameState: v8.serialize(this.game.state),
             states: this.gameStateManager.buildGameStateForSnapshot(),
-            rngState: this.game.randomGenerator.rngState
+            rngState: this.game.randomGenerator.rngState,
+            requiresConfirmationToRollback: false,
+            activePlayerId: this.game.actionPhaseActivePlayer?.id
         };
 
         this.lastAssignedSnapshotId = nextSnapshotId;
+        this.lastAssignedTimepointNumber = nextTimepointNumber;
 
         this.currentActionSnapshot = snapshot;
+    }
+
+    public setNextSnapshotIsSamePlayer(value: boolean) {
+        if (this.currentActionSnapshot) {
+            this.currentActionSnapshot.nextSnapshotIsSamePlayer = value;
+        }
     }
 
     /**
@@ -163,6 +187,8 @@ export class SnapshotFactory {
         Contract.assertNotNullLike(this.currentActionSnapshot, 'Attempting to read action snapshot before any is set, meaning the game is likely not initialized');
 
         this.currentActionSnapshot = snapshot;
+        this.currentActionSnapshot.requiresConfirmationToRollback = false;
+        this.lastAssignedTimepointNumber = snapshot.timepointNumber;
     }
 
     /** Helper method for correctly building snapshot containers in a way that they can pass back a handle for calling the `clearNewerSnapshots()` method */

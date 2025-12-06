@@ -17,6 +17,7 @@ export type ISelectCardProperties<TContext extends AbilityContext = AbilityConte
   & {
       player?: RelativePlayer;
       cancelHandler?: () => void;
+      onSelectHandler?: (card: Card | Card[]) => void;
       optional?: boolean;
       name?: string;
       effect?: string;
@@ -31,6 +32,7 @@ export type ISelectCardProperties<TContext extends AbilityContext = AbilityConte
 export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ISelectCardProperties<TContext>> {
     public override readonly name: string = 'selectCard';
     public override readonly eventName: MetaEventName.SelectCard;
+    public override readonly effectDescription = 'choose a target for {0}';
     protected override readonly defaultProperties: Partial<ISelectCardProperties<TContext>> = {
         cardCondition: () => true,
         optional: false,
@@ -41,10 +43,12 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { target, effect, effectArgs } = this.generatePropertiesFromContext(context);
+
         if (effect) {
             return [effect, effectArgs ? effectArgs(context) : []];
         }
-        return ['choose a target for {0}', [this.getTargetMessage(target, context)]];
+
+        return super.getEffectMessage(context);
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}) {
@@ -92,7 +96,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
                     this.addOnSelectEffectMessage(context, properties);
                 }
-
+                properties.onSelectHandler?.(context.target);
                 properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
             }
         }, `Execute immediate effect for select card system "${properties.name}"`);
@@ -134,7 +138,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         }
 
         if (targetResolverProperties.waitingPromptTitle == null && context.source.isCard()) {
-            targetResolverProperties.waitingPromptTitle = `Waiting for opponent to use ${context.source.title}`;
+            targetResolverProperties.waitingPromptTitle = 'Waiting for opponent';
         }
 
         return new CardTargetResolver(properties.name, targetResolverProperties, context.ability);

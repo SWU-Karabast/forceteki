@@ -127,8 +127,32 @@ describe('HK-47, Exclamation: Die Meatbag', function() {
                 expect(context.freelanceAssassin).toBeInZone('discard', context.player2);
                 expect(context.player2.base.damage).toBe(1);
             });
+        });
 
-            // TODO: Add case with base damage prevention effect after Close the Shield Gate is implemented
+        it('HK-47\'s triggered ability should be prevent by Close the Shield Gate', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['takedown'],
+                    groundArena: ['hk47#exclamation-die-meatbag'],
+                },
+                player2: {
+                    hand: ['close-the-shield-gate'],
+                    groundArena: ['battlefield-marine'],
+                    hasInitiative: true,
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.closeTheShieldGate);
+            context.player2.clickCard(context.p2Base);
+
+            context.player1.clickCard(context.takedown);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p2Base.damage).toBe(0);
         });
     });
 });

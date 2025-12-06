@@ -3,6 +3,8 @@ import type {
     ISerializedGameState,
     ISerializedReportState, MessageText
 } from '../../game/Interfaces';
+import type { SwuGameFormat } from '../../SwuGameFormat';
+import type { MatchType } from '../../gamenode/Lobby';
 
 // Helper function to sanitize strings for JSON
 function sanitizeForJson(str: string): string {
@@ -39,6 +41,9 @@ export function formatBugReport(
     opponent: User,
     messages: { date: Date; message: MessageText | { alert: { type: string; message: string | string[] } } }[],
     lobbyId: string,
+    gameFormat: SwuGameFormat,
+    matchType: MatchType,
+    gameStepsSinceLastUndo?: number,
     gameId?: string,
     screenResolution?: { width: number; height: number } | null,
     viewport?: { width: number; height: number } | null
@@ -60,7 +65,10 @@ export function formatBugReport(
         gameId,
         messages,
         timestamp: new Date().toISOString(),
-        screenResolution: screenResolution,
-        viewport: viewport
+        screenResolution,
+        viewport,
+        gameStepsSinceLastUndo: gameStepsSinceLastUndo == null ? 'N/A' : gameStepsSinceLastUndo.toString(),
+        gameFormat,
+        matchType
     };
 }

@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class ChargedWithCorruption extends EventCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class ChargedWithCorruption extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command, Aspect.Command];
         registrar.setEventAbility({
-            title: `Disclose ${Helpers.aspectString(aspects)}. If you do, a friendly unit captures an enemy non-leader unit`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects)}. If you do, a friendly unit captures an enemy non-leader unit`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'A friendly unit captures an enemy non-leader unit',

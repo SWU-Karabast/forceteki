@@ -56,6 +56,12 @@ describe('Elia Kane, False Convert', function() {
                 expect(context.pykeSentinel.exhausted).toBeFalse();
                 expect(context.player2.readyResourceCount).toEqual(2);
                 expect(context.player2.exhaustedResourceCount).toEqual(2);
+
+                expect(context.getChatLogs(3)).toEqual([
+                    'player1 plays Elia Kane',
+                    'player1 uses Elia Kane to randomly select 3 cards, and to look at 3 enemy resources and sees Lom Pyke, Cad Bane, and Restock',
+                    'player1 uses Elia Kane to defeat a ready Restock and to move the top card of player2\'s deck to their resources and to ready it',
+                ]);
             });
 
             it('Replaces the defeated resource with a ready resource even if the selected resource was exhausted', function () {
@@ -146,10 +152,41 @@ describe('Elia Kane, False Convert', function() {
                 expect(context.player2.exhaustedResourceCount).toEqual(1);
             });
 
-            // TODO: There isn't a good way to test 0 resources since the test setup will prompt the player to
-            // select 2 cards to resource if they have none. This scenario is wildly unlikely to happen in a
-            // real game anyway.
-            // it('When the opponent has 0 resources, Elia Kane\'s ability does nothing', async function() {});
+            it('When the opponent has 0 resources, Elia Kane\'s ability does nothing', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['lando-calrissian#responsible-businessman'],
+                        leader: 'quigon-jinn#student-of-the-living-force',
+                        groundArena: ['luke-skywalker#jedi-knight'],
+                        hasForceToken: true,
+                        resources: ['wampa', 'atst']
+                    },
+                    player2: {
+                        hand: ['elia-kane#false-convert'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.quigonJinn);
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickCard(context.landoCalrissian);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.atst);
+                context.player1.clickDone();
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.wampa).toBeInZone('hand', context.player1);
+                expect(context.atst).toBeInZone('hand', context.player1);
+                expect(context.player1.resources.length).toBe(0);
+
+                context.player2.clickCard(context.eliaKane);
+                expect(context.eliaKane).toBeInZone('groundArena', context.player2);
+                expect(context.player1).toBeActivePlayer();
+            });
 
             it('When the opponent has no cards in their deck, they cannot put a card into play as a resource', async function() {
                 await contextRef.setupTestAsync({

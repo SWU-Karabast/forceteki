@@ -1,7 +1,6 @@
-
-describe('Rey, Nobody', function() {
-    integration(function(contextRef) {
-        describe('Rey\'s undeployed ability', function() {
+describe('Rey, Nobody', function () {
+    integration(function (contextRef) {
+        describe('Rey\'s undeployed ability', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -126,7 +125,45 @@ describe('Rey, Nobody', function() {
             });
         });
 
-        describe('Rey\'s deployed ability', function() {
+        it('Rey\'s undeployed ability should be able to damage a unit when you play Anakin I\'ll try spinning and bounce it back to hand', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['anakin-skywalker#ill-try-spinning'],
+                    groundArena: ['atst'],
+                    spaceArena: ['awing'],
+                    leader: 'rey#nobody',
+                    resources: 5
+                },
+                player2: {
+                    spaceArena: ['alliance-xwing'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.anakinSkywalker);
+            context.player1.clickPrompt('Play Anakin Skywalker with Piloting');
+            context.player1.clickCard(context.awing);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.awing);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Return Anakin Skywalker to your hand');
+            expect(context.anakinSkywalker).toBeInZone('hand');
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.rey);
+            expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.atst, context.awing]);
+            context.player1.clickCard(context.allianceXwing);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.allianceXwing.damage).toBe(1);
+        });
+
+        describe('Rey\'s deployed ability', function () {
             it('should be able to discard its controller\'s hand and draw two cards', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

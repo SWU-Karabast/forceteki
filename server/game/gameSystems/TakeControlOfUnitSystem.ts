@@ -24,10 +24,15 @@ export interface ITakeControlOfUnitProperties extends ICardTargetSystemPropertie
 export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ITakeControlOfUnitProperties> {
     public override readonly name = 'takeControl';
     public override readonly eventName = EventName.OnTakeControl;
+    public override readonly effectDescription = 'take control of {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit];
 
     public eventHandler(event): void {
         event.card.takeControl(event.newController);
+
+        for (const upgrade of event.card.upgrades.filter((u) => u.isTokenUpgrade())) {
+            upgrade.takeControl(event.newController);
+        }
     }
 
     public override canAffectInternal(card: Card, context: TContext, _additionalProperties: Partial<ITakeControlOfUnitProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
@@ -52,7 +57,7 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { newController, target } = this.generatePropertiesFromContext(context);
         if (newController === context.player) {
-            return ['take control of {0}', [this.getTargetMessage(target, context)]];
+            return super.getEffectMessage(context);
         }
         return ['give control of {0} to {1}', [this.getTargetMessage(target, context), newController]];
     }

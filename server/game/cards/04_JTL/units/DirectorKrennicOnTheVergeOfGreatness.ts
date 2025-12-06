@@ -16,7 +16,7 @@ export default class DirectorKrennicOnTheVergeOfGreatness extends NonLeaderUnitC
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
+        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -39,8 +39,7 @@ export default class DirectorKrennicOnTheVergeOfGreatness extends NonLeaderUnitC
           !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
               playedCardEntry.playedAsType === CardType.BasicUnit &&
               playedCardEntry.playedBy === card.controller &&
-              playedCardEntry.hasWhenDefeatedAbilities &&
-              playedCardEntry.card !== card
+              playedCardEntry.hasWhenDefeatedAbilities
           );
     }
 }

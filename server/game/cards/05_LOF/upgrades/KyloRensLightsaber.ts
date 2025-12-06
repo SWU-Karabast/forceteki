@@ -13,7 +13,7 @@ export default class KyloRensLightsaber extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
+        registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addReplacementEffectAbilityTargetingAttached({
             title: 'This unit can\'t be exhausted by enemy card abilities',

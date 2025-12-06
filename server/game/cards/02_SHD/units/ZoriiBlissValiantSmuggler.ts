@@ -21,6 +21,7 @@ export default class ZoriiBlissValiantSmuggler extends NonLeaderUnitCard {
                     when: {
                         onPhaseStarted: (context) => context.phase === PhaseName.Regroup,
                     },
+                    effectDescription: 'discard a card from their hand at the start of the regroup phase',
                     immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                         amount: 1,
                         target: context.player

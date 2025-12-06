@@ -17,7 +17,7 @@ export function getEffectMessage<TContext extends AbilityContext, TProperties ex
     properties: TProperties,
     additionalProperties: Partial<TProperties> = {},
     getEffectFactoriesAndProperties: (target: TargetOf<TProperties>, context: TContext, additionalProperties?: Partial<TProperties>) => { effectFactories: IOngoingCardOrPlayerEffectGenerator<Flatten<TargetOf<TProperties>>>[]; effectProperties: IOngoingCardOrPlayerEffectProps<Flatten<TargetOf<TProperties>>> | IOngoingCardOrPlayerEffectProps<Flatten<TargetOf<TProperties>>>[] },
-    filterApplicableEffects: (target: Flatten<TargetOf<TProperties>>, effects: IOngoingCardOrPlayerEffect<Flatten<TargetOf<TProperties>>>[]) => IOngoingCardOrPlayerEffect<Flatten<TargetOf<TProperties>>>[] = (_target, effects) => effects,
+    filterApplicableEffects: (target: Flatten<TargetOf<TProperties>>, effects: IOngoingCardOrPlayerEffect<Flatten<TargetOf<TProperties>>>[], context: TContext) => IOngoingCardOrPlayerEffect<Flatten<TargetOf<TProperties>>>[] = (_target, effects) => effects,
 ): [string, any[]] {
     const targetDescription = properties.ongoingEffectTargetDescription ?? gameSystem.getTargetMessage(properties.target, context);
 
@@ -32,7 +32,7 @@ export function getEffectMessage<TContext extends AbilityContext, TProperties ex
         for (const factory of effectFactories) {
             for (const [i, props] of Helpers.asArray(effectProperties).entries()) {
                 const effect = factory(context.game, context.source, props);
-                if (effect.impl.effectDescription && filterApplicableEffects(properties.target[i] as any, [effect]).length > 0) {
+                if (effect.impl.effectDescription && filterApplicableEffects(properties.target[i] as any, [effect], context).length > 0) {
                     if (effect.impl.type === EffectName.AbilityRestrictions) {
                         abilityRestrictions.push(effect.impl.effectDescription);
                     } else if (effect.impl.type === EffectName.CloneUnit) {

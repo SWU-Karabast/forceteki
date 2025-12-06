@@ -118,7 +118,7 @@ describe('Stolen AT-Hauler', () => {
 
                 // Blank the Stolen AT-Hauler
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
                 context.player1.clickCard(context.stolenAthauler);
                 context.player1.passAction();
 

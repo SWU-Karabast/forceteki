@@ -1,7 +1,8 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, DamageType } from '../../../core/Constants';
+import { AbilityType, DamageModificationType } from '../../../core/Constants';
+import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class AaylaSecuraMasterOfTheBlade extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -20,13 +21,11 @@ export default class AaylaSecuraMasterOfTheBlade extends NonLeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({
                 target: context.source,
-                effect: AbilityHelper.ongoingEffects.gainAbility({
+                effect: AbilityHelper.ongoingEffects.gainDamageModificationAbility({
                     title: 'Prevent all combat damage that would be dealt to this unit',
-                    type: AbilityType.ReplacementEffect,
-                    when: {
-                        onDamageDealt: (event, context) =>
-                            event.card === context.source && event.type === DamageType.Combat
-                    }
+                    type: AbilityType.DamageModification,
+                    modificationType: DamageModificationType.PreventAll,
+                    damageOfType: DamageSourceType.Attack
                 }),
             })),
         });

@@ -10,9 +10,11 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 import * as Contract from '../game/core/utils/Contract';
-import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity } from './DynamoDBInterfaces';
+import { type IDeckDataEntity, type IDeckStatsEntity, type IUserProfileDataEntity, type IUserPreferences, type IServerRoleUsersListsEntity } from './DynamoDBInterfaces';
 import { z } from 'zod';
-import { iDeckDataEntitySchema, iDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
+import { IDeckDataEntitySchema, IDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
+import { getDefaultPreferences } from '../utils/user/UserFactory';
+import { type IRegisteredCosmeticOption, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -25,7 +27,6 @@ export async function getDynamoDbServiceAsync() {
     if (dynamoDbService) {
         return dynamoDbService;
     }
-
     if (process.env.ENVIRONMENT === 'development' && process.env.USE_LOCAL_DYNAMODB !== 'true') {
         return null;
     }
@@ -38,6 +39,10 @@ export async function getDynamoDbServiceAsync() {
         try {
             await dynamoDbService.ensureLocalTableExistsAsync();
         } catch (err) {
+            if (process.env.USE_LOCAL_DYNAMODB === 'true') {
+                throw new Error('Local DynamoDB isn\'t initialized while USE_LOCAL_DYNAMODB env variable is set to true');
+            }
+
             logger.error(`Failed to ensure DynamoDB local table exists: ${err}`);
             return null;
         }
@@ -240,16 +245,19 @@ class DynamoDBService {
         }, 'DynamoDB queryItems error');
     }
 
-    public updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>) {
+    public updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>, expressionAttributeNames?: Record<string, string>) {
         return this.executeDbOperationAsync(() => {
-            const command = new UpdateCommand({
+            const commandParams: any = {
                 TableName: this.tableName,
                 Key: { pk, sk },
                 UpdateExpression: updateExpression,
                 ExpressionAttributeValues: expressionAttributeValues,
                 ReturnValues: 'ALL_NEW'
-            });
-
+            };
+            if (expressionAttributeNames) {
+                commandParams.ExpressionAttributeNames = expressionAttributeNames;
+            }
+            const command = new UpdateCommand(commandParams);
             return this.client.send(command);
         }, 'DynamoDB updateItem error');
     }
@@ -272,7 +280,7 @@ class DynamoDBService {
             pk: `USER#${userData.id}`,
             sk: 'PROFILE',
             ...userData,
-            preferences: userData.preferences || { cardback: null },
+            preferences: userData.preferences || getDefaultPreferences(),
         };
         return this.putItemAsync(item);
     }
@@ -367,7 +375,7 @@ class DynamoDBService {
     public saveDeckAsync(deckData: IDeckDataEntity) {
         return this.executeDbOperationAsync(async () => {
             await this.validateAndHandleAsync(
-                iDeckDataEntitySchema,
+                IDeckDataEntitySchema,
                 deckData,
                 'Save deck'
             );
@@ -386,7 +394,7 @@ class DynamoDBService {
         return this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync(`USER#${userId}`, `DECK#${deckId}`);
             return this.validateAndHandleAsync<IDeckDataEntity>(
-                iDeckDataEntitySchema,
+                IDeckDataEntitySchema,
                 result.Item,
                 `Get deck ${deckId}`,
                 () => this.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`)
@@ -394,6 +402,27 @@ class DynamoDBService {
         }, 'Error getting deck');
     }
 
+    /**
+     * Update deck name
+     * @param userId User ID
+     * @param deckId Deck ID
+     * @param newName New name for the deck
+     * @returns Updated deck record
+     */
+    public updateDeckNameAsync(userId: string, deckId: string, newName: string) {
+        return this.executeDbOperationAsync(() => {
+            return this.updateItemAsync(
+                `USER#${userId}`,
+                `DECK#${deckId}`,
+                'SET #deckAttr.#nameAttr = :newName',
+                { ':newName': newName },
+                {
+                    '#deckAttr': 'deck',
+                    '#nameAttr': 'name'
+                }
+            );
+        }, `Error updating deck name for deck ${deckId}, user ${userId}`);
+    }
 
     /**
      * Find a deck by its deckLink property
@@ -420,7 +449,7 @@ class DynamoDBService {
             }
 
             return this.validateAndHandleAsync<IDeckDataEntity>(
-                iDeckDataEntitySchema,
+                IDeckDataEntitySchema,
                 foundDeck,
                 `Get deck by link ${deckLinkID}`,
                 () => this.deleteItemAsync(foundDeck.pk, foundDeck.sk)
@@ -441,7 +470,7 @@ class DynamoDBService {
             for (const item of result.Items) {
                 try {
                     const validDeck = await this.validateAndHandleAsync<IDeckDataEntity>(
-                        iDeckDataEntitySchema,
+                        IDeckDataEntitySchema,
                         item,
                         `Validate deck ${item.id} in getUserDecks`,
                         () => this.deleteItemAsync(item.pk, item.sk)
@@ -478,7 +507,7 @@ class DynamoDBService {
     public updateDeckStatsAsync(userId: string, deckId: string, stats: IDeckStatsEntity) {
         return this.executeDbOperationAsync(() => {
             try {
-                iDeckStatsEntitySchema.parse(stats);
+                IDeckStatsEntitySchema.parse(stats);
                 return this.updateItemAsync(
                     `USER#${userId}`,
                     `DECK#${deckId}`,
@@ -504,6 +533,211 @@ class DynamoDBService {
                 { ':preferences': settings }
             );
         }, 'Error saving user settings');
+    }
+
+    /**
+     * Check if the error is because of missing keys in the preference object
+     * @param userId the users ID
+     * @param defaultPreferences preference object
+     */
+    private async checkValidationExceptionAsync(userId: string, defaultPreferences: IUserPreferences): Promise<boolean> {
+        const getCommand = new GetCommand({
+            TableName: this.tableName,
+            Key: { pk: `USER#${userId}`, sk: 'PROFILE' }
+        });
+
+        const result = await this.client.send(getCommand);
+        const currentPreferences = result.Item?.preferences;
+
+        let shouldResetToDefaults = false;
+
+        const expectedKeys = Object.keys(defaultPreferences);
+        const missingKeys = expectedKeys.filter((key) => !(key in currentPreferences));
+        if (missingKeys.length > 0) {
+            shouldResetToDefaults = true;
+            logger.info(`User ${userId} is missing preferences keys: ${missingKeys.join(', ')}, will reset to defaults`, { userId });
+        }
+        return shouldResetToDefaults;
+    }
+
+
+    /**
+     * Update user preferences partially (supports nested updates)
+     * @param userId User ID
+     * @param preferences Partial preferences to update
+     */
+    public updateUserPreferencesAsync(userId: string, preferences: Partial<IUserPreferences>): Promise<void> {
+        return this.executeDbOperationAsync(async () => {
+            const updateExpressions: string[] = [];
+            const expressionAttributeValues: Record<string, any> = {};
+            const expressionAttributeNames: Record<string, string> = {};
+
+            const buildNestedUpdate = (obj: any, basePath: string[], valuePrefix: string) => {
+                for (const key in obj) {
+                    const value = obj[key];
+                    if (value !== undefined) {
+                        if (value instanceof Map) {
+                            Contract.fail('Map types are not supported in buildNestedUpdate. Convert to object first.');
+                        }
+                        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                            // It's a nested object, recurse
+                            buildNestedUpdate(value, [...basePath, key], `${valuePrefix}_${key}`);
+                        } else {
+                            const pathParts = [...basePath, key];
+                            const pathExpression = pathParts.map((part, idx) => {
+                                const attrName = `#${part}`;
+                                expressionAttributeNames[attrName] = part;
+                                return attrName;
+                            }).join('.');
+
+                            const valueName = `:${valuePrefix}_${key}`;
+                            updateExpressions.push(`${pathExpression} = ${valueName}`);
+                            expressionAttributeValues[valueName] = value;
+                        }
+                    }
+                }
+            };
+            buildNestedUpdate(preferences, ['preferences'], 'pref');
+            if (updateExpressions.length === 0) {
+                return;
+            }
+            let validationExceptionOccurred = false;
+            try {
+                const command = new UpdateCommand({
+                    TableName: this.tableName,
+                    Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                    UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+                    ExpressionAttributeValues: expressionAttributeValues,
+                    ExpressionAttributeNames: expressionAttributeNames,
+                });
+
+                await this.client.send(command);
+            } catch (error: any) {
+                if (error.name === 'ValidationException' &&
+                  error.message?.includes('document path provided in the update expression is invalid')) {
+                    logger.info(`Detected NULL markers in preferences for user ${userId}, resetting to defaults`, { userId });
+                    validationExceptionOccurred = true;
+                } else {
+                    // Re-throw if it's a different error
+                    logger.error(`An error occured when updating preferences for user ${userId}`, { error: { message: error.message, stack: error.stack }, userId });
+                    throw error;
+                }
+            }
+
+            if (validationExceptionOccurred) {
+                logger.info(`Attempting to see whether the validation exception is expected for ${userId}`, { userId });
+                try {
+                    // we read and then attempt
+                    const defaultPrefs = getDefaultPreferences();
+                    if (await this.checkValidationExceptionAsync(userId, defaultPrefs)) {
+                        // Get defaults and merge with new preferences
+                        const merged = { ...defaultPrefs, ...preferences };
+
+                        for (const key in preferences) {
+                            if (typeof preferences[key] === 'object' && preferences[key] !== null &&
+                              typeof defaultPrefs[key] === 'object' && defaultPrefs[key] !== null) {
+                                merged[key] = { ...defaultPrefs[key], ...preferences[key] };
+                            }
+                        }
+
+                        // Update with the merged preferences (full replace)
+                        const resetCommand = new UpdateCommand({
+                            TableName: this.tableName,
+                            Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                            UpdateExpression: 'SET preferences = :p',
+                            ExpressionAttributeValues: { ':p': merged }
+                        });
+
+                        await this.client.send(resetCommand);
+                    } else {
+                        throw new Error(`An unexpected validation exception occured when updating preferences for user ${userId}`);
+                    }
+                } catch (error) {
+                    logger.error(`An error occured when resetting to defaults the validation Exception for user ${userId}`, { error: { message: error.message, stack: error.stack }, userId });
+                    throw error;
+                }
+            }
+        }, 'Error updating user preferences');
+    }
+
+    // Registered Cosmetics Methods
+    public getCosmeticsAsync(): Promise<IRegisteredCosmeticOption[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync('COSMETICS', { beginsWith: 'ITEM#' });
+
+            return (result.Items || []).map((item) => ({
+                id: item.id as string,
+                title: item.title as string,
+                type: item.type as RegisteredCosmeticType,
+                path: item.path as string,
+                darkened: item.darkened as boolean | undefined
+            }));
+        }, 'Error getting cosmetics data');
+    }
+
+    public saveCosmeticAsync(cosmeticData: IRegisteredCosmeticOption) {
+        return this.executeDbOperationAsync(() => {
+            const item = {
+                pk: 'COSMETICS',
+                sk: `ITEM#${cosmeticData.id}`,
+                ...cosmeticData,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            return this.putItemAsync(item);
+        }, 'Error saving cosmetic item');
+    }
+
+    public initializeCosmeticsAsync(cosmetics: IRegisteredCosmeticOption[]) {
+        return this.executeDbOperationAsync(async () => {
+            const savePromises = cosmetics.map((cosmetic) => this.saveCosmeticAsync(cosmetic));
+            await Promise.all(savePromises);
+            return { initializedCount: cosmetics.length };
+        }, 'Error initializing cosmetics data');
+    }
+
+    public deleteCosmeticAsync(cosmeticId: string) {
+        return this.executeDbOperationAsync(() => {
+            return this.deleteItemAsync('COSMETICS', `ITEM#${cosmeticId}`);
+        }, 'Error deleting cosmetic item');
+    }
+
+    public clearAllCosmeticsAsync() {
+        Contract.assertTrue(this.isLocalMode, 'Cosmetic cleanup is only allowed in local mode');
+
+        return this.executeDbOperationAsync(async () => {
+            // Get all cosmetics first
+            const cosmetics = await this.getCosmeticsAsync();
+
+            // Delete each cosmetic
+            const deletePromises = cosmetics.map((cosmetic) =>
+                this.deleteCosmeticAsync(cosmetic.id)
+            );
+
+            await Promise.all(deletePromises);
+
+            return { deletedCount: cosmetics.length };
+        }, 'Error clearing all cosmetics');
+    }
+
+    // Admin user methods
+    public getServerRoleUsersAsync(): Promise<IServerRoleUsersListsEntity> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.getItemAsync('SERVER_ROLE_USERS', 'ROLES');
+            if (!result.Item) {
+                return {
+                    admins: [],
+                    developers: [],
+                    moderators: []
+                };
+            }
+
+            return {
+                admins: result.Item.admins || [],
+                developers: result.Item.developers || [],
+                moderators: result.Item.moderators || []
+            };
+        }, 'Error getting admin users');
     }
 
     // Clear all data (for testing purposes only)

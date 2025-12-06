@@ -11,7 +11,7 @@ export default class Imprisoned extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.setAttachCondition((card) => card.isNonLeaderUnit());
+        registrar.setAttachCondition((context) => context.attachTarget.isNonLeaderUnit());
 
         registrar.addConstantAbilityTargetingAttached({
             title: 'Attached unit loses its current abilities and can\'t gain abilities',

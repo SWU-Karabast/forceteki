@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect, WildcardCardType } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class BogDownInProcedure extends EventCard {
     protected override getImplementationId () {
@@ -15,13 +15,13 @@ export default class BogDownInProcedure extends EventCard {
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Cunning];
         registrar.setEventAbility({
-            title: `Exhaust a unit. You may disclose ${Helpers.aspectString(aspects)}. If you do, exhaust another unit`,
+            title: `Exhaust a unit. You may disclose ${EnumHelpers.aspectString(aspects)}. If you do, exhaust another unit`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.exhaust()
             },
             then: (thenContext) => ({
-                title: `Disclose ${Helpers.aspectString(aspects)} to exhaust another unit`,
+                title: `Disclose ${EnumHelpers.aspectString(aspects)} to exhaust another unit`,
                 immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
                 ifYouDo: {
                     title: 'Exhaust another unit',

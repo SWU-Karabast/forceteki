@@ -1,12 +1,14 @@
 import { SwuGameFormat } from '../SwuGameFormat';
-import type { Deck } from '../utils/deck/Deck';
 import type Socket from '../socket';
 import { logger } from '../logger';
 import type { User } from '../utils/user/User';
 import * as Contract from '../game/core/utils/Contract';
+import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
+import type { IMatchmakingPlayerEntry, IMatchmakingRule } from './MatchmakingRules';
+import { MatchmakingRule } from './MatchmakingRules';
 
 export interface QueuedPlayerToAdd {
-    deck: Deck;
+    deck: ISwuDbFormatDecklist;
     socket?: Socket;
     user: User;
 }
@@ -25,16 +27,29 @@ interface QueuedPlayerEntry {
     player: QueuedPlayer;
 }
 
+export interface PreviousMatchEntry {
+    opponentUserId: string;
+    endTimestamp: number;
+}
+
 export class QueueHandler {
     private queues: Map<SwuGameFormat, QueuedPlayer[]>;
     private playersWaitingToConnect: QueuedPlayerEntry[] = [];
+    private playerPreviousMatch: Map<string, PreviousMatchEntry>;
+
+    /** Cooldown interval (in seconds) for rematch prevention */
+    public static readonly COOLDOWN_INTERVAL_SECONDS = 15;
 
     public constructor() {
         this.queues = new Map<SwuGameFormat, QueuedPlayer[]>();
+        this.playerPreviousMatch = new Map<string, PreviousMatchEntry>();
 
         Object.values(SwuGameFormat).forEach((format) => {
             this.queues.set(format, []);
         });
+
+        // Cleanup previous match entries periodically
+        setInterval(() => this.cleanupPreviousMatchEntries(), 3600000); // 1 hour
     }
 
     /** Adds an entry for a player, but they can't match until they actually connect */
@@ -44,13 +59,13 @@ export class QueueHandler {
 
         const queueEntry = this.findPlayerInQueue(player.user.getId());
         if (queueEntry) {
-            logger.info(`User ${player.user.getId()} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${format}`);
+            logger.info(`QueueHandler: User ${player.user.getId()} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${format}`);
             this.removePlayer(player.user.getId(), 'Rejoining into queue');
         }
 
         const notConnectedPlayerEntry = this.findNotConnectedPlayer(player.user.getId());
         if (notConnectedPlayerEntry) {
-            logger.info(`User ${player.user.getId()} is already in waiting-to-queue list for ${notConnectedPlayerEntry.format}, rejoining into queue for format ${format}`);
+            logger.info(`QueueHandler: User ${player.user.getId()} is already in waiting-to-queue list for ${notConnectedPlayerEntry.format}, rejoining into queue for format ${format}`);
             this.removePlayer(player.user.getId(), 'Rejoining into queue');
         }
 
@@ -58,7 +73,7 @@ export class QueueHandler {
             format,
             player: { ...player, state: QueuedPlayerState.WaitingForConnection }
         });
-        logger.info(`Added user ${player.user.getId()} to waiting list for format ${format} until they connect`);
+        logger.info(`QueueHandler: Added user ${player.user.getId()} to waiting list for format ${format} until they connect`);
 
         // if the player has an active socket, immediately connect them
         if (player.socket) {
@@ -74,7 +89,7 @@ export class QueueHandler {
         if (queueEntry) {
             playerEntry = queueEntry;
 
-            logger.info(`User ${userId} with socket id ${socket.id} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${playerEntry.format}`);
+            logger.info(`QueueHandler: User ${userId} with socket id ${socket.id} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${playerEntry.format}`);
             this.removePlayer(userId, 'Rejoining into queue');
         } else {
             const notConnectedPlayer = this.findNotConnectedPlayer(userId);
@@ -90,7 +105,7 @@ export class QueueHandler {
         playerEntry.player.socket = socket;
 
         this.queues.get(playerEntry.format)?.push(playerEntry.player);
-        logger.info(`User ${userId} connected with socket id ${socket.id}, added to queue for format ${playerEntry.format}`);
+        logger.info(`QueueHandler: User ${userId} connected with socket id ${socket.id}, added to queue for format ${playerEntry.format}`);
     }
 
     /** If the user exists in the queue and is connected, temporarily move them into a disconnected state while waiting for reconnection */
@@ -111,7 +126,7 @@ export class QueueHandler {
         for (const [format, queue] of this.queues.entries()) {
             const index = queue.findIndex((p) => p.user.getId() === userId);
             if (index !== -1) {
-                logger.info(`Removing player ${userId} from queue for format ${format}. Reason: ${reasonStr}`);
+                logger.info(`QueueHandler: Removing player ${userId} from queue for format ${format}. Reason: ${reasonStr}`);
                 queue.splice(index, 1);
                 return;
             }
@@ -119,9 +134,40 @@ export class QueueHandler {
 
         const index = this.playersWaitingToConnect.findIndex((p) => p.player.user.getId() === userId);
         if (index !== -1) {
-            logger.info(`Removing player ${userId} from queue waiting list. Reason: ${reasonStr}`);
+            logger.info(`QueueHandler: Removing player ${userId} from queue waiting list. Reason: ${reasonStr}`);
             this.playersWaitingToConnect.splice(index, 1);
             return;
+        }
+    }
+
+    /** Sets a previous match entry for a player pair */
+    public setPreviousMatchEntry(
+        player1UserId: string,
+        player2UserId: string,
+        endTimestamp: number
+    ) {
+        this.playerPreviousMatch.set(player1UserId, {
+            opponentUserId: player2UserId,
+            endTimestamp: endTimestamp
+        });
+
+        this.playerPreviousMatch.set(player2UserId, {
+            opponentUserId: player1UserId,
+            endTimestamp: endTimestamp
+        });
+    }
+
+    private cleanupPreviousMatchEntries() {
+        try {
+            const now = Date.now();
+            const cooldownMs = QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000;
+            for (const [userId, matchEntry] of this.playerPreviousMatch.entries()) {
+                if (now - matchEntry.endTimestamp > cooldownMs) {
+                    this.playerPreviousMatch.delete(userId);
+                }
+            }
+        } catch (error) {
+            logger.error(`QueueHandler: Error cleaning up previous match entries: ${error}`);
         }
     }
 
@@ -136,7 +182,7 @@ export class QueueHandler {
                 }
             }
         } catch (error) {
-            logger.error(`Error sending heartbeat: ${error}`);
+            logger.error(`QueueHandler: Error sending heartbeat: ${error}`);
         }
     }
 
@@ -165,13 +211,38 @@ export class QueueHandler {
             return null;
         }
 
-        const p1 = queue.shift();
-        const p2 = queue.shift();
+        return this.findMatchInQueue(queue, [MatchmakingRule.rematchCooldown(QueueHandler.COOLDOWN_INTERVAL_SECONDS)]);
+    }
 
-        Contract.assertNotNullLike(p1);
-        Contract.assertNotNullLike(p2);
+    /**
+     * Finds a matching pair in the queue based on the provided rules
+     *
+     * @param queue The queue of players to search for a match
+     * @param rules The matchmaking rules to apply when finding a match
+     * @returns A tuple of the matched players, or null if no match is found
+     */
+    private findMatchInQueue(queue: QueuedPlayer[], rules: IMatchmakingRule[]): [QueuedPlayer, QueuedPlayer] | null {
+        for (let i = 0; i < queue.length; i++) {
+            for (let j = i + 1; j < queue.length; j++) {
+                const player1 = queue[i];
+                const player2 = queue[j];
+                const p1Entry: IMatchmakingPlayerEntry = { player: player1, previousMatch: this.playerPreviousMatch.get(player1.user.getId()) };
+                const p2Entry: IMatchmakingPlayerEntry = { player: player2, previousMatch: this.playerPreviousMatch.get(player2.user.getId()) };
 
-        return [p1, p2];
+                const canMatch = rules.every((rule) => rule.canMatch(p1Entry, p2Entry));
+
+                if (canMatch) {
+                    // Remove matched players from the queue
+                    queue.splice(j, 1);
+                    queue.splice(i, 1);
+                    return [player1, player2];
+                }
+
+                logger.info(`QueueHandler: Players ${player1.user.getId()} and ${player2.user.getId()} cannot match due to matchmaking rules`);
+            }
+        }
+
+        return null;
     }
 
     // Check if any format has enough players for matchmaking

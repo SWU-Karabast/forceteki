@@ -52,7 +52,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.maul.damage).toBe(0);
                 expect(context.luminaraUnduli.damage).toBe(7);
                 expect(context.mercenaryCompany.damage).toBe(4);
-                expect(context.getChatLogs(1)).toContain('player1 uses Maul to deal 4 combat damage to Mercenary Company instead of Maul');
+                expect(context.getChatLogs(1)).toContain('player1 uses Maul to deal 4 combat damage to Mercenary Company instead of Maul taking damage');
 
                 reset(false);
 

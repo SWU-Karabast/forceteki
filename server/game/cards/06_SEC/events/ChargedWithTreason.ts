@@ -2,12 +2,12 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect, WildcardCardType } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class ChargedWithTreason extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'charged-with-treason-id',
+            id: '3761473695',
             internalName: 'charged-with-treason',
         };
     }
@@ -15,7 +15,7 @@ export default class ChargedWithTreason extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Aggression, Aspect.Aggression];
         registrar.setEventAbility({
-            title: `Disclose ${Helpers.aspectString(aspects)}. If you do, deal 5 damage to a unit`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects)}. If you do, deal 5 damage to a unit`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Deal 5 damage to a unit',

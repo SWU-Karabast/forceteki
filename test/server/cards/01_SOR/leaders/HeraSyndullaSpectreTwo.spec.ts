@@ -1,8 +1,8 @@
 describe('Hera Syndulla, Spectre Two', function() {
     integration(function(contextRef) {
         describe('Hera\'s undeployed ability', function() {
-            it('ignores aspect penalties for Spectre unit and event', async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['sabine-wren#explosives-artist', 'wampa', 'karabast'],
@@ -13,31 +13,37 @@ describe('Hera Syndulla, Spectre Two', function() {
                     player2: {
                         groundArena: ['pyke-sentinel']
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
+            });
 
+            it('ignores aspect penalties for Spectre unit ', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.sabineWren);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
-
-                context.player2.passAction();
-
-                context.player1.clickCard(context.karabast);
-                expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.battlefieldMarine, context.yoda]);
-                context.player1.clickCard(context.battlefieldMarine);
-
-                expect(context.pykeSentinel).toBeInZone('discard');
-                expect(context.player1.exhaustedResourceCount).toBe(4);
-
-                context.player2.passAction();
-
-                context.player1.clickCard(context.wampa);
-                expect(context.player1.exhaustedResourceCount).toBe(10);
             });
 
+            it('ignores aspect penalties for Spectre event', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.karabast);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.yoda]);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.pykeSentinel);
+
+                expect(context.pykeSentinel).toBeInZone('discard');
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+            });
+
+            it('does not ignores aspect penalties for non-Spectre unit', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wampa);
+                expect(context.player1.exhaustedResourceCount).toBe(6);
+            });
+        });
+
+        describe('Hera\'s undeployed ability', function() {
             it('ignores aspect penalties for Spectre pilot upgrade', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -59,11 +65,9 @@ describe('Hera Syndulla, Spectre Two', function() {
                 expect(context.heraSyndullaWeveLostEnough).toBeAttachedTo(context.concordDawnInterceptors);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
             });
-        });
 
-        describe('Hera\'s undeployed ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('interacts properly with cost increase on events', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['karabast'],
@@ -74,13 +78,8 @@ describe('Hera Syndulla, Spectre Two', function() {
                     player2: {
                         groundArena: ['pyke-sentinel', 'del-meeko#providing-overwatch']
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
-            });
 
-            it('interacts properly with cost increase on events', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.karabast);
@@ -110,39 +109,41 @@ describe('Hera Syndulla, Spectre Two', function() {
                         groundArena: ['pyke-sentinel'],
                         leader: { card: 'rey#more-than-a-scavenger', deployed: true }
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
-            it('ignores aspect penalties for Spectre unit and event', function () {
+            it('ignores aspect penalties for Spectre unit', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.sabineWren);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
+            });
 
-                context.player2.passAction();
+            it('ignores aspect penalties for Spectre event', function () {
+                const { context } = contextRef;
 
                 context.player1.clickCard(context.karabast);
                 expect(context.player1).toBeAbleToSelectExactly([
-                    context.battlefieldMarine, context.yoda, context.heraSyndulla, context.chopper, context.sabineWren]);
+                    context.battlefieldMarine, context.yoda, context.heraSyndulla, context.chopper]);
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.rey]);
                 context.player1.clickCard(context.pykeSentinel);
 
                 expect(context.pykeSentinel.damage).toBe(1);
-                expect(context.player1.exhaustedResourceCount).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+            });
 
-                context.player2.passAction();
+            it('does not ignores aspect penalties for non-Spectre unit', function () {
+                const { context } = contextRef;
 
                 context.player1.clickCard(context.wampa);
-                expect(context.player1.exhaustedResourceCount).toBe(10);
+                expect(context.player1.exhaustedResourceCount).toBe(6);
             });
 
             it('gives an experience token to a unique unit on attack', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.heraSyndulla);
+                context.player1.clickCard(context.pykeSentinel);
 
                 expect(context.player1).toHavePrompt('Give an experience token to another unique unit');
                 expect(context.player1).toHavePassAbilityButton();

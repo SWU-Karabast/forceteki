@@ -25,13 +25,16 @@ describe('RicketyQuadjumper', function () {
 
                 // top card is an upgrade, give exp to another unit
                 expect(context.protector).toBeInZone('deck');
-                expect(context.getChatLogs(1)).toContain('player1 reveals Protector due to Rickety Quadjumper');
                 context.player1.clickDone();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.atst]);
 
                 // select battlefield marine
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Rickety Quadjumper to reveal Protector',
+                    'player1 uses Rickety Quadjumper to give an Experience token to Battlefield Marine',
+                ]);
             });
 
 
@@ -58,9 +61,12 @@ describe('RicketyQuadjumper', function () {
 
                 // top card is a unit, nothing happen
                 expect(context.isbAgent).toBeInZone('deck');
-                expect(context.getChatLogs(1)).toContain('player1 reveals ISB Agent due to Rickety Quadjumper');
                 context.player1.clickDone();
                 expect(context.player2).toBeActivePlayer();
+
+                expect(context.getChatLogs(1)).toEqual([
+                    'player1 uses Rickety Quadjumper to reveal ISB Agent',
+                ]);
             });
 
             it('should not prompt if the deck is empty', async function () {

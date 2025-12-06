@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, WildcardCardType } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class B2EMOThatsTwoLies extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class B2EMOThatsTwoLies extends NonLeaderUnitCard {
         const aspects = [Aspect.Heroism, Aspect.Heroism];
 
         registrar.addOnAttackAbility({
-            title: `Disclose ${Helpers.aspectString(aspects)} to give a unit Sentinel for this phase`,
+            title: `Disclose ${EnumHelpers.aspectString(aspects)} to give a unit Sentinel for this phase`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Give a unit Sentinel for this phase',

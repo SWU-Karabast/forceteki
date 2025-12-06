@@ -20,13 +20,15 @@ import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
+import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
-import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
+import type { ISwuDbFormatDecklist, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
 import type { QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
+import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
 import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
@@ -34,6 +36,13 @@ import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { requireEnvVars } from '../env';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
+import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import { checkServerRoleUserPrivileges } from '../utils/authUtils';
+import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
+import { ServerRole } from '../services/DynamoDBInterfaces';
+import { RuntimeProfiler } from '../utils/profiler';
+import type Game from '../game/core/Game';
+
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -73,6 +82,8 @@ interface GCPerformanceEntry {
 }
 
 export class GameServer {
+    private static readonly DOCKER_CARD_DATA_PATH = '/app/data';
+
     public static async createAsync(): Promise<GameServer> {
         let cardDataGetter: CardDataGetter;
         let testGameBuilder: any = null;
@@ -86,19 +97,45 @@ export class GameServer {
                 ? await GameServer.buildRemoteCardDataGetter()
                 : testGameBuilder.cardDataGetter;
         } else {
-            cardDataGetter = await GameServer.buildRemoteCardDataGetter();
+            try {
+                cardDataGetter = await LocalFolderCardDataGetter.createAsync(
+                    GameServer.DOCKER_CARD_DATA_PATH,
+                    false  // isDevelopment - skip validation warnings in production
+                );
+            } catch (error) {
+                logger.error(`SETUP: Failed to load card data from Docker image at ${GameServer.DOCKER_CARD_DATA_PATH}. This indicates a build problem - card data may not have been copied into the image correctly.`, {
+                    error: {
+                        message: error.message,
+                        stack: error.stack
+                    }
+                });
+                throw error; // Re-throw to crash the server - can't run without card data
+            }
         }
 
         // downloads all card data to build deck validator
         const deckValidator = await DeckValidator.createAsync(cardDataGetter);
 
         console.log('SETUP: Card data downloaded.');
+
+        let cosmeticsService: CosmeticsService | undefined;
+        let serverRoleUsersCache: ServerRoleUsersCache | undefined;
+        const shouldInitializeDbCaches = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
+        if (shouldInitializeDbCaches) {
+            console.log('SETUP: Initializing caches for server roles and customizations.');
+            serverRoleUsersCache = await ServerRoleUsersCache.createAsync(60);
+            cosmeticsService = await CosmeticsService.createAsync();
+            console.log('SETUP: Caches for server roles and customizations initialized.');
+        }
+
         // increase stack trace limit for better error logging
         Error.stackTraceLimit = 50;
 
         return new GameServer(
             cardDataGetter,
             deckValidator,
+            serverRoleUsersCache,
+            cosmeticsService,
             testGameBuilder
         );
     }
@@ -133,6 +170,7 @@ export class GameServer {
     private lastCpuUsageTime: bigint;
     private loopDelayHistogram: IntervalHistogram;
     private lastLoopUtilization: EventLoopUtilization;
+    private matchmakingTimer?: NodeJS.Timeout;
     private gcStats = {
         totalDuration: 0,
         scavengeCount: 0,
@@ -152,17 +190,25 @@ export class GameServer {
 
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
+    public readonly cosmeticsService?: CosmeticsService;
     public readonly swuStatsHandler: SwuStatsHandler;
+    private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
+    public readonly serverRoleUsersCache?: ServerRoleUsersCache;
 
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
+        serverRoleUsersCache?: ServerRoleUsersCache,
+        cosmeticsService?: CosmeticsService,
         testGameBuilder?: any
     ) {
         const app = express();
         app.use(express.json());
         const server = http.createServer(app);
+
+        this.serverRoleUsersCache = serverRoleUsersCache;
+        this.cosmeticsService = cosmeticsService;
 
         const corsOptions = {
             origin: env.corsOrigins,
@@ -193,7 +239,10 @@ export class GameServer {
         });
 
         this.setupAppRoutes(app);
-        app.use((err, req, res, next) => {
+        if (process.env.ENVIRONMENT === 'development') {
+            this.setupDevAppRoutes(app);
+        }
+        app.use((err, req, res, _next) => {
             logger.error('GameServer: Error in API route:', err);
             res.status(err.status || 500).json({
                 success: false,
@@ -208,7 +257,7 @@ export class GameServer {
 
         // check if NEXTAUTH variable is set
         requireEnvVars(
-            ['INTRASERVICE_SECRET'],
+            ['INTRASERVICE_SECRET', 'PROFILE_CAPTURE_SECRET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
             'GameServer',
             ['NEXTAUTH_SECRET']
         );
@@ -295,6 +344,7 @@ export class GameServer {
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
+
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
@@ -362,7 +412,9 @@ export class GameServer {
             }
         });
 
-        app.post('/api/get-user', authMiddleware('get-user'), (req, res, next) => {
+        // *** Start of User Object calls ***
+
+        app.post('/api/get-user', this.buildAuthMiddleware('get-user'), (req, res, next) => {
             try {
                 // const { decks, preferences } = req.body;
                 const user = req.user as User;
@@ -386,9 +438,9 @@ export class GameServer {
                     id: user.getId(),
                     username: user.getUsername(),
                     showWelcomeMessage: user.getShowWelcomeMessage(),
+                    undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     preferences: user.getPreferences(),
                     needsUsernameChange: user.needsUsernameChange(),
-                    swuStatsRefreshToken: user.getSwuStatsRefreshToken(),
                     moderation: user.getModeration(),
                 } });
             } catch (err) {
@@ -397,7 +449,25 @@ export class GameServer {
             }
         });
 
-        app.post('/api/toggle-welcome-message', authMiddleware(), async (req, res, next) => {
+        app.get('/api/user/:userId/swustatsLink', this.buildAuthMiddleware('swustatsLink'), async (req, res, next) => {
+            const user = req.user as User;
+            try {
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (swustatsLink): Anonymous user ${user.getId()} is attempting to retrieve swustatsLink`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve swustatsLink'
+                    });
+                }
+                const linked = await this.swuStatsHandler.getAccessTokenAsync(user.getId(), this);
+                res.status(200).json({ linked: !!linked });
+            } catch (err) {
+                logger.error('GameServer (swustatsLink) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/toggle-welcome-message', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
                 // Check if user is authenticated (not an anonymous user)
@@ -418,7 +488,28 @@ export class GameServer {
             }
         });
 
-        app.post('/api/get-change-username-info', authMiddleware(), async (req, res, next) => {
+        app.put('/api/user/:userId/undo-popup-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                // Check if user is authenticated (not an anonymous user)
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (undo-popup-seen): Anonymous user ${user.getId()} is attempting to retrieve undo-popup-seen info`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve undo-popup-seen info'
+                    });
+                }
+                const result = await this.userFactory.setUndoPopupSeenStatus(user.getId());
+                return res.status(200).json({
+                    success: result,
+                });
+            } catch (err) {
+                logger.error('GameServer (undo-popup-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/get-change-username-info', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
                 // Check if user is authenticated (not an anonymous user)
@@ -431,7 +522,7 @@ export class GameServer {
                 }
                 const result = await this.userFactory.canChangeUsernameAsync(user.getId());
                 return res.status(200).json({
-                    succeess: true,
+                    success: true,
                     result: result,
                 });
             } catch (err) {
@@ -440,7 +531,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/change-username', authMiddleware(), async (req, res, next) => {
+        app.post('/api/change-username', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const { newUsername } = req.body;
                 const user = req.user as User;
@@ -491,8 +582,7 @@ export class GameServer {
             }
         });
 
-        // Add this new route for setting moderation as seen:
-        app.post('/api/set-moderation-seen', authMiddleware(), async (req, res, next) => {
+        app.post('/api/set-moderation-seen', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
 
@@ -517,33 +607,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/save-sound-preferences', authMiddleware(), async (req, res, next) => {
-            try {
-                const { soundPreferences } = req.body;
-                const user = req.user as User;
-
-                // Check if user is authenticated
-                if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (save-sound-preferences): Anonymous user ${user.getId()} attempted to save sound preferences to dynamodb`);
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Error attempting to save sound preferences'
-                    });
-                }
-
-                // Update user preferences with sound preferences
-                await this.userFactory.updateUserPreferencesAsync(user.getId(), { sound: soundPreferences });
-
-                return res.status(200).json({
-                    success: true,
-                    message: 'Sound preferences saved successfully'
-                });
-            } catch (err) {
-                logger.error('GameServer (save-sound-preferences) Server error:', err);
-                next(err);
-            }
-        });
-
+        // SWUSTATS
         // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
         app.post('/api/link-swustats', async (req, res, next) => {
             try {
@@ -572,7 +636,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/unlink-swustats', authMiddleware(), async (req, res, next) => {
+        app.post('/api/unlink-swustats', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {
@@ -594,8 +658,125 @@ export class GameServer {
             }
         });
 
+        app.put('/api/user/:userId/preferences', this.buildAuthMiddleware('PUT-preferences'), async (req, res, next) => {
+            try {
+                const { preferences } = req.body;
+                const { userId } = req.params;
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (PUT-preferences): Anonymous user ${user.getId()} attempted to save preferences to dynamodb`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Error attempting to save preferences'
+                    });
+                }
+                await this.userFactory.updateUserPreferencesAsync(userId, preferences);
+                return res.status(200).json({
+                    success: true,
+                    message: 'Preferences saved successfully',
+                });
+            } catch (err) {
+                logger.error('GameServer (PUT-preferences) Server error:', err);
+                next(err);
+            }
+        });
+        // *** End of User Object calls ***
+
+        // PROFILING
+        app.post('/api/run-profile', async (req, res, next) => {
+            try {
+                // Validate Authorization header
+                if (env.PROFILE_CAPTURE_SECRET) {
+                    const authHeader = req.headers.authorization;
+
+                    if (!authHeader || !authHeader.startsWith('api-key ')) {
+                        logger.warn('[GameServer] Profile capture attempt without valid Authorization header');
+                        return res.status(401).json({
+                            success: false,
+                            message: 'Unauthorized - Missing or invalid Authorization header'
+                        });
+                    }
+
+                    const apiKey = authHeader.substring(8); // Remove 'api-key ' prefix
+                    if (apiKey !== env.PROFILE_CAPTURE_SECRET) {
+                        logger.warn('[GameServer] Unauthorized profile capture attempt with invalid API key');
+                        return res.status(403).json({
+                            success: false,
+                            message: 'Forbidden'
+                        });
+                    }
+                } else {
+                    logger.warn('[GameServer] Profile capture attempt with missing PROFILE_CAPTURE_SECRET set on server!');
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Unauthorized - Missing PROFILE_CAPTURE_SECRET'
+                    });
+                }
+
+                const { type, durationSeconds, forceStop } = req.body;
+
+                // Handle force stop request
+                const shouldForceStop = forceStop === true || forceStop === 'true' || forceStop === 1;
+                if (shouldForceStop) {
+                    const result = await this.stopAllActiveProfiles();
+                    if (result.stopped) {
+                        return res.json({
+                            success: true,
+                            message: 'All active profiling force stopped and uploaded'
+                        });
+                    }
+
+                    return res.status(400).json({
+                        success: false,
+                        message: `No active ${type.toUpperCase()} profiling session to stop`
+                    });
+                }
+
+                // Validate type parameter
+                if (!type || (type !== 'cpu' && type !== 'heap')) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid type parameter. Must be "cpu" or "heap"'
+                    });
+                }
+
+                // Parse and validate duration parameter between 1 second and 10 minutes
+                if (!durationSeconds) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'durationSeconds parameter is required'
+                    });
+                }
+
+                const profileDurationSeconds = parseInt(durationSeconds as string);
+                if (profileDurationSeconds <= 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid durationSeconds parameter. Must be greater than 0 seconds'
+                    });
+                }
+
+                // Start the appropriate profiling type using existing methods
+                if (type === 'cpu') {
+                    await this.startCpuProfilingDump(profileDurationSeconds);
+                } else {
+                    await this.startAllocProfilingDump(profileDurationSeconds);
+                }
+
+                return res.json({
+                    success: true,
+                    type,
+                    duration: profileDurationSeconds,
+                    message: `${type.toUpperCase()} profiling started. Will automatically stop and upload in ${profileDurationSeconds} seconds.`
+                });
+            } catch (err) {
+                logger.error('GameServer (run-profile) Server error:', err);
+                next(err);
+            }
+        });
+
         // user DECKS
-        app.post('/api/get-decks', authMiddleware('get-decks'), async (req, res, next) => {
+        app.post('/api/get-decks', this.buildAuthMiddleware('get-decks'), async (req, res, next) => {
             try {
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {
@@ -619,8 +800,36 @@ export class GameServer {
             }
         });
 
+        app.put('/api/get-deck/:deckId/rename', this.buildAuthMiddleware('rename-deck'), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                const { deckId } = req.params;
+                const { newName } = req.body;
+
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (rename-deck): Authentication error for anonymous user ${user.getId()}`);
+                    return res.status(403).json({
+                        message: 'Server error'
+                    });
+                }
+                try {
+                    const renameResponse = await this.deckService.updateDeckNameAsync(user.getId(), deckId, newName);
+                    if (renameResponse) {
+                        return res.status(200).json({});
+                    }
+                    return res.status(500).json({ message: 'Server error when renameing deck' });
+                } catch (err) {
+                    logger.error(`GameServer (rename-deck): Error in getting a users ${user.getId()} decks: `, err);
+                    next(err);
+                }
+            } catch (err) {
+                logger.error('GameServer (rename-deck) Server error: ', err);
+                next(err);
+            }
+        });
+
         // Add this to the setupAppRoutes method in GameServer.ts
-        app.post('/api/get-deck/:deckId', authMiddleware(), async (req, res, next) => {
+        app.post('/api/get-deck/:deckId', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const { deckId } = req.params;
                 const user = req.user;
@@ -668,7 +877,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/save-deck', authMiddleware(), async (req, res, next) => {
+        app.post('/api/save-deck', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const { deck } = req.body;
                 const user = req.user as User;
@@ -692,7 +901,7 @@ export class GameServer {
             }
         });
 
-        app.put('/api/deck/:deckId/favorite', authMiddleware(), async (req, res, next) => {
+        app.put('/api/deck/:deckId/favorite', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const { deckId } = req.params;
                 const { isFavorite } = req.body;
@@ -724,7 +933,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/delete-decks', authMiddleware(), async (req, res, next) => {
+        app.post('/api/delete-decks', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const { deckIds } = req.body;
                 const user = req.user as User;
@@ -771,16 +980,15 @@ export class GameServer {
             }
         });
 
-        app.post('/api/create-lobby', authMiddleware(), async (req, res, next) => {
+        app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, lobbyName, enableUndo } = req.body;
+                const { deck, format, isPrivate, lobbyName, allow30CardsInMainBoard } = req.body;
                 const user = req.user;
 
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     // TODO shouldn't return 403
                     logger.error(`GameServer (create-lobby): Error in create-lobby User ${user.getId()} attempted to create a different lobby while already being in a lobby`);
-                    logger.info(`enableUndo value: '${enableUndo}'`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'
@@ -792,8 +1000,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, isPrivate, enableUndo);
+                await this.processDeckValidation(deck, true, { format, allow30CardsInMainBoard }, res, () => {
+                    this.createLobby(lobbyName, user, deck, format, isPrivate, allow30CardsInMainBoard);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -825,7 +1033,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/join-lobby', authMiddleware(), (req, res, next) => {
+        app.post('/api/join-lobby', this.buildAuthMiddleware(), (req, res, next) => {
             try {
                 const { lobbyId } = req.body;
                 const user = req.user;
@@ -877,7 +1085,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/enter-queue', authMiddleware(), async (req, res, next) => {
+        app.post('/api/enter-queue', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const { format, deck } = req.body;
                 const user = req.user;
@@ -895,7 +1103,7 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                await this.processDeckValidation(deck, format, res, () => {
+                await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
@@ -924,6 +1132,143 @@ export class GameServer {
             } catch (err) {
                 logger.error('GameServer (all-leaders) Server error: ', err);
                 next(err);
+            }
+        });
+
+        // Cosmetics API endpoints
+        app.get('/api/cosmetics', this.buildAuthMiddleware('get-cosmetics'), (req, res, next) => {
+            try {
+                let cosmetics = CosmeticsService.defaultCosmetics;
+                if (this.cosmeticsService) {
+                    const fetchedCosmetics = this.cosmeticsService.getCosmetics();
+
+                    if (fetchedCosmetics && fetchedCosmetics.length > 0) {
+                        cosmetics = fetchedCosmetics;
+                    }
+                }
+                return res.status(200).json({
+                    success: true,
+                    cosmetics,
+                    count: cosmetics.length
+                });
+            } catch (error) {
+                logger.error('GameServer (cosmetics) Server error:', error);
+                next(error);
+            }
+        });
+
+        app.post('/api/cosmetics', this.buildAuthMiddleware('post-cosmetics', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                if (!this.cosmeticsService) {
+                    return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
+                }
+                const { cosmetic } = req.body;
+
+                await this.cosmeticsService.saveCosmeticAsync(cosmetic);
+                return res.status(201).json({
+                    success: true,
+                    message: 'Cosmetic saved successfully',
+                    cosmetic
+                });
+            } catch (error) {
+                logger.error('GameServer (save-cosmetic) Server error:', error);
+                next(error);
+            }
+        });
+
+        app.delete('/api/cosmetics/:cosmeticId', this.buildAuthMiddleware('delete-cosmetics-by-id', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                if (!this.cosmeticsService) {
+                    return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
+                }
+                const { cosmeticId } = req.params;
+
+                await this.cosmeticsService.deleteCosmeticAsync(cosmeticId);
+                return res.status(200).json({
+                    success: true,
+                    message: 'Cosmetic deleted successfully'
+                });
+            } catch (error) {
+                logger.error('GameServer (delete-cosmetic) Server error:', error);
+                next(error);
+            }
+        });
+
+        // Admin user check endpoint
+        app.get('/api/user-is-admin', this.buildAuthMiddleware('user-is-admin'), (req, res, next) => {
+            try {
+                return res.json(checkServerRoleUserPrivileges(req.path, req.user.getId(), ServerRole.Admin, this.serverRoleUsersCache));
+            } catch (error) {
+                logger.error('GameServer (user-is-admin) Server error:', error);
+                next(error);
+            }
+        });
+
+        // Dev user check endpoint
+        app.get('/api/user-is-developer', this.buildAuthMiddleware('user-is-developer'), (req, res, next) => {
+            try {
+                return res.json(checkServerRoleUserPrivileges(req.path, req.user.getId(), ServerRole.Developer, this.serverRoleUsersCache));
+            } catch (error) {
+                logger.error('GameServer (user-is-developer) Server error:', error);
+                next(error);
+            }
+        });
+
+        // Mod user check endpoint
+        app.get('/api/user-is-moderator', this.buildAuthMiddleware('user-is-moderator'), (req, res, next) => {
+            try {
+                return res.json(checkServerRoleUserPrivileges(req.path, req.user.getId(), ServerRole.Moderator, this.serverRoleUsersCache));
+            } catch (error) {
+                logger.error('GameServer (user-is-moderator) Server error:', error);
+                next(error);
+            }
+        });
+    }
+
+    /**
+     * Creates an auth middleware function with the GameServer instance injected.
+     * @param routeName - Optional name for logging
+     * @param serverRoleRequired - Optional server role required for access
+     * @returns Express middleware function
+     */
+    private buildAuthMiddleware(routeName?: string, serverRoleRequired?: ServerRole) {
+        return authMiddleware(this, routeName, serverRoleRequired);
+    }
+
+    // dev only endpoints
+    private setupDevAppRoutes(app: express.Application) {
+        // deletes all cosmetics from the database
+        app.delete('/api/cosmetics', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                if (!this.cosmeticsService) {
+                    return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
+                }
+                const result = await this.cosmeticsService.clearAllCosmeticsAsync();
+                return res.status(200).json({
+                    success: true,
+                    deletedCount: result.deletedCount
+                });
+            } catch (error) {
+                logger.error('GameServer (clear-all-cosmetics) Server error:', error);
+                next(error);
+            }
+        });
+
+        // resets cosmetics to the default set from file
+        app.post('/api/cosmetics-reset', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                if (!this.cosmeticsService) {
+                    return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
+                }
+                const result = await this.cosmeticsService.resetCosmeticsAsync(CosmeticsService.defaultCosmetics);
+                return res.status(200).json({
+                    success: true,
+                    message: `Cosmetics reset to defaults (${result.deletedCount.deletedCount} items cleared, ${result.initializedCount.initializedCount} items initialized)`,
+                    deletedCount: result.deletedCount.deletedCount
+                });
+            } catch (error) {
+                logger.error('GameServer (reset-cosmetics) Server error:', error);
+                next(error);
             }
         });
     }
@@ -981,16 +1326,22 @@ export class GameServer {
 
     // method for validating the deck via API
     private async processDeckValidation(
-        deck: ISwuDbDecklist,
-        format: SwuGameFormat,
+        deck: ISwuDbFormatDecklist,
+        isLobby: boolean,
+        validationProperties: IDeckValidationProperties,
         res: express.Response,
         onValid: () => Promise<void> | void
     ): Promise<void> {
-        const validationResults = this.deckValidator.validateSwuDbDeck(deck, format);
-        if (Object.keys(validationResults).length > 0) {
+        const validationResults = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
+
+        const filteredResults = isLobby
+            ? DeckValidator.filterOutSideboardingErrors(validationResults)
+            : validationResults;
+
+        if (Object.keys(filteredResults).length > 0) {
             res.status(400).json({
                 success: false,
-                errors: validationResults,
+                errors: filteredResults,
             });
             return;
         }
@@ -1074,7 +1425,7 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean, enableUndo = false) {
+    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean, allow30CardsInMainBoard: boolean = false) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -1087,11 +1438,12 @@ export class GameServer {
             lobbyName,
             isPrivate ? MatchType.Private : MatchType.Custom,
             format,
+            allow30CardsInMainBoard,
             this.cardDataGetter,
             this.deckValidator,
             this,
-            this.testGameBuilder,
-            enableUndo
+            this.discordDispatcher,
+            this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
         lobby.createLobbyUser(user, deck);
@@ -1104,11 +1456,12 @@ export class GameServer {
             'Test Game',
             MatchType.Custom,
             SwuGameFormat.Open,
+            false,
             this.cardDataGetter,
             this.deckValidator,
             this,
-            this.testGameBuilder,
-            true
+            this.discordDispatcher,
+            this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
         const order66 = this.userFactory.createAnonymousUser('exe66', 'Order66');
@@ -1237,7 +1590,7 @@ export class GameServer {
             if (lobby.gameType === MatchType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
-                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
+                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser?.deck?.originalDeckList));
                 }
             }
 
@@ -1318,7 +1671,7 @@ export class GameServer {
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(format: SwuGameFormat, user: User, deck: any): boolean {
+    private enterQueue(format: SwuGameFormat, user: User, deck: ISwuDbFormatDecklist): boolean {
         this.queue.addPlayer(
             format,
             {
@@ -1332,7 +1685,14 @@ export class GameServer {
     }
 
     private async matchmakeAllQueuesAsync(): Promise<void> {
+        // If there's a pending timer-based matchmaking task, clear it out
+        if (this.matchmakingTimer) {
+            clearTimeout(this.matchmakingTimer);
+            this.matchmakingTimer = undefined;
+        }
+
         const formatsWithMatches = this.queue.findReadyFormats();
+        let needsTimedRetry = false;
 
         for (const format of formatsWithMatches) {
             // track exceptions to avoid getting stuck in a loop
@@ -1344,7 +1704,10 @@ export class GameServer {
                 // try-catch here so that all matchmaking doesn't halt on a single failure
                 try {
                     matchedPlayers = this.queue.getNextMatchPair(format);
+
                     if (!matchedPlayers) {
+                        // If matchmaking failed to find a pair, flag that we need a timed retry
+                        needsTimedRetry = true;
                         break;
                     }
 
@@ -1366,6 +1729,19 @@ export class GameServer {
             }
         }
 
+        if (needsTimedRetry) {
+            this.matchmakingTimer = setTimeout(() => {
+                try {
+                    this.matchmakeAllQueuesAsync();
+                } catch (error) {
+                    logger.error(
+                        'GameServer: Error in scheduled matchmaking retry:',
+                        { error: { message: error.message, stack: error.stack } }
+                    );
+                }
+            }, QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000);
+        }
+
         return Promise.resolve();
     }
 
@@ -1379,9 +1755,11 @@ export class GameServer {
             'Quick Game',
             MatchType.Quick,
             format,
+            false,
             this.cardDataGetter,
             this.deckValidator,
-            this
+            this,
+            this.discordDispatcher
         );
 
         this.lobbies.set(lobby.id, lobby);
@@ -1415,7 +1793,6 @@ export class GameServer {
 
         await lobby.addLobbyUserAsync(player.user, socket);
         socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket.socket, player));
-
         if (!socket.eventContainsListener('requeue')) {
             socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck));
         }
@@ -1426,8 +1803,14 @@ export class GameServer {
     /**
      * requeues the user and removes them from the previous lobby. If the lobby is empty, it cleans it up.
      */
-    public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: any) {
+    public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: ISwuDbFormatDecklist) {
         try {
+            if (!deck) {
+                logger.error(`GameServer: Cannot requeue user ${user.getId()} - no deck provided`);
+                socket.send('connection_error', 'Unable to requeue: deck not found');
+                return;
+            }
+
             const userLobbyMapEntry = this.userLobbyMap.get(user.getId());
             if (userLobbyMapEntry) {
                 const lobbyId = userLobbyMapEntry.lobbyId;
@@ -1544,6 +1927,20 @@ export class GameServer {
             }, timeoutValue);
         } catch (err) {
             logger.error('GameServer: Error in onSocketDisconnected:', err);
+        }
+    }
+
+    /**
+     * Called near lobby end-of-life when users are disconnecting. Records matchmaking info
+     * (such as opponents and game end time) for future matchmaking before lobby tear-down.
+     */
+    public recordExpiringMatchmakingEntry(game: Game, lobby: Lobby): void {
+        Contract.assertNotNullLike(game.finishedAt, 'Finished game must have a finishedAt timestamp');
+
+        if (lobby.gameType === MatchType.Quick) {
+            // Update queue handler with finished game info
+            const [player1, player2] = game.getPlayers();
+            this.queue.setPreviousMatchEntry(player1.user.id, player2.user.id, game.finishedAt.getTime());
         }
     }
 
@@ -1723,6 +2120,79 @@ export class GameServer {
         } catch (error) {
             logger.error(`Error logging GC stats: ${error}`);
         }
+    }
+
+    private async startCpuProfilingDump(durationSeconds: number): Promise<void> {
+        try {
+            const profiler = RuntimeProfiler.getInstance();
+            logger.info(`[GameServer] Starting CPU profiling test for ${durationSeconds} seconds...`);
+
+            const started = await profiler.startCPU();
+            if (!started) {
+                logger.warn('[GameServer] CPU profiling is already active, cannot start new session');
+                return;
+            }
+
+            // Stop profiling after specified duration
+            setTimeout(async () => {
+                await this.stopAndUploadProfile('cpu', 'gameserver-cpu', 'CPU profiling test completed');
+            }, durationSeconds * 1000);
+        } catch (error) {
+            logger.error(`[GameServer] Error starting CPU profiling test: ${error}`);
+        }
+    }
+
+    private async startAllocProfilingDump(durationSeconds: number): Promise<void> {
+        try {
+            const profiler = RuntimeProfiler.getInstance();
+            logger.info(`[GameServer] Starting allocation profiling test for ${durationSeconds} seconds...`);
+
+            const started = await profiler.startAllocSampling(1024 * 64); // 64KB sampling interval
+            if (!started) {
+                logger.warn('[GameServer] Heap profiling is already active, cannot start new session');
+                return;
+            }
+
+            // Stop profiling after specified duration
+            setTimeout(async () => {
+                await this.stopAndUploadProfile('heap', 'gameserver-heap', 'Allocation profiling test completed');
+            }, durationSeconds * 1000);
+        } catch (error) {
+            logger.error(`[GameServer] Error starting allocation profiling test: ${error}`);
+        }
+    }
+
+    private async stopAndUploadProfile(type: 'cpu' | 'heap', label: string, completionMessage: string): Promise<{ stopped: boolean }> {
+        const profiler = RuntimeProfiler.getInstance();
+        let stopped = false;
+
+        try {
+            const result = type === 'cpu'
+                ? await profiler.stopCPUAsBuffer(label)
+                : await profiler.stopAllocSamplingAsBuffer(label);
+
+            if (result) {
+                logger.info(`[GameServer] ${completionMessage}. Uploading ${result.filename} to S3...`);
+                const isDevMode = env.environment === 'development';
+                await profiler.uploadProfileToS3(result.buffer, result.filename, isDevMode);
+                logger.info(`[GameServer] ${type.toUpperCase()} profile uploaded successfully: ${result.filename}`);
+                stopped = true;
+            } else {
+                logger.warn(`[GameServer] ${completionMessage} but no profile data was generated`);
+            }
+        } catch (error) {
+            logger.error(`[GameServer] Error stopping ${type.toUpperCase()} profiling: ${error}`);
+        }
+
+        return { stopped };
+    }
+
+    private async stopAllActiveProfiles(): Promise<{ stopped: boolean }> {
+        const cpuResult = await this.stopAndUploadProfile('cpu', 'gameserver-cpu-forced', 'Force stopped CPU profiling');
+        const heapResult = await this.stopAndUploadProfile('heap', 'gameserver-heap-forced', 'Force stopped heap profiling');
+
+        // Return true if at least one profiling session was stopped
+        return { stopped: cpuResult.stopped || heapResult.stopped };
     }
 }
 

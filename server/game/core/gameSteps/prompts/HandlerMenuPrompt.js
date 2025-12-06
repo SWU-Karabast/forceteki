@@ -17,6 +17,7 @@ const { UiPrompt } = require('./UiPrompt.js');
  * cards              - a list of cards to display as buttons with mouseover support
  * cardCondition      - disables the prompt buttons for any cards which return false
  * cardHandler        - handler which is called when a card button is clicked
+ * selectedCards      - an array of cards selected in previous step which are relevant for choices
  */
 class HandlerMenuPrompt extends UiPrompt {
     constructor(game, player, properties) {
@@ -28,7 +29,7 @@ class HandlerMenuPrompt extends UiPrompt {
             properties.source = properties.context.source;
         }
         if (properties.source && !properties.waitingPromptTitle) {
-            properties.waitingPromptTitle = 'Waiting for opponent to use ' + properties.source.name;
+            properties.waitingPromptTitle = 'Waiting for opponent';
         } else if (!properties.source) {
             properties.source = new OngoingEffectSource(game);
         }
@@ -77,6 +78,14 @@ class HandlerMenuPrompt extends UiPrompt {
             promptUuid: this.uuid,
             promptType: this.properties.promptType
         };
+    }
+
+    /** @override */
+    continue() {
+        if (this.properties.selectedCards?.length) {
+            this.player.setSelectedCards(this.properties.selectedCards);
+        }
+        return super.continue();
     }
 
     getUniqueCardsById(cards) {
