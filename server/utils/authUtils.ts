@@ -46,6 +46,13 @@ export const checkServerRoleUserPrivileges = (
                     };
                 }
                 break;
+            case ServerRole.Contributor:
+                if (!cache.isAdmin(userId) && !cache.isContributor(userId)) {
+                    return {
+                        success: false,
+                        message: 'Contributor privileges required'
+                    };
+                }
         }
 
         return {

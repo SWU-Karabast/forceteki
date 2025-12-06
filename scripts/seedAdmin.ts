@@ -27,6 +27,7 @@ async function run() {
         admins: [MY_USER_ID],
         developers: [],
         moderators: [],
+        contributors: [MY_USER_ID],
         updatedAt: new Date().toISOString(),
     });
 
