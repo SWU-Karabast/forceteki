@@ -42,6 +42,9 @@ enum LobbySettingKeys {
 interface IBestOfOneHistory {
     gamesToWinMode: GamesToWinMode.BestOfOne;
     lastWinnerId?: string;
+
+    /** Tracks if either player changed their deck since the last game (for first player selection) */
+    deckChangedSinceLastGame?: boolean;
 }
 
 interface IBestOfThreeHistory {
@@ -745,6 +748,11 @@ export class Lobby {
                 activeUser.deck.getDecklist(),
                 validationProperties
             );
+
+            // Track deck change for Bo1 first player selection
+            if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne) {
+                this.winHistory.deckChangedSinceLastGame = true;
+            }
         }
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
@@ -1002,6 +1010,57 @@ export class Lobby {
         }
     }
 
+    /**
+     * Determines which player should get to choose who starts with initiative.
+     * Returns the player ID of the loser of the previous game, or null for random selection.
+     */
+    private determineFirstPlayer(): string | null {
+        switch (this.winHistory.gamesToWinMode) {
+            case GamesToWinMode.BestOfThree: {
+                Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+
+                // Game 1 of Bo3: random
+                if (this.winHistory.currentGameNumber <= 1) {
+                    return null;
+                }
+
+                // Game 2+: find the most recent non-draw game's loser
+                for (let i = this.winHistory.winnerIdsInOrder.length - 1; i >= 0; i--) {
+                    const winnerId = this.winHistory.winnerIdsInOrder[i];
+                    if (winnerId !== 'draw') {
+                        // Return the loser (the other player)
+                        const loser = this.users.find((u) => u.id !== winnerId);
+                        return loser?.id ?? null;
+                    }
+                }
+
+                // All prior games were draws: random
+                return null;
+            }
+            case GamesToWinMode.BestOfOne: {
+                Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne);
+                const bo1History = this.winHistory;
+
+                // No previous game: random
+                if (!bo1History.lastWinnerId) {
+                    return null;
+                }
+
+                // Deck changed since last game: random (and reset the flag)
+                if (bo1History.deckChangedSinceLastGame) {
+                    bo1History.deckChangedSinceLastGame = false;
+                    return null;
+                }
+
+                // Rematch with no deck change: loser of previous game
+                const loser = this.users.find((u) => u.id !== bo1History.lastWinnerId);
+                return loser?.id ?? null;
+            }
+            default:
+                Contract.fail(`Unknown games to win mode: ${(this.winHistory as IGameWinHistory).gamesToWinMode}`);
+        }
+    }
+
     private buildGameSettings(): GameConfiguration {
         const players: IUser[] = this.users.map((user) =>
             getUserWithDefaultsSet({
@@ -1029,6 +1088,7 @@ export class Lobby {
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
             useActionTimer,
+            preselectedFirstPlayerId: this.determineFirstPlayer(),
             pushUpdate: () => this.sendGameState(this.game),
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
                 this.buildSafeTimeout(callback, delayMs, errorMessage),

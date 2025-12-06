@@ -278,6 +278,9 @@ class Game extends EventEmitter {
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
 
+        /** @public @readonly @type {string | undefined} Player ID who gets to choose who starts with initiative, or undefined for random selection */
+        this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
+
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this.#debug = { pipeline: false };
         // Experimental flags, intended only for manual testing. Use the enable methods to temporarily flag these on during tests.
