@@ -39,8 +39,7 @@ export default class DirectorKrennicOnTheVergeOfGreatness extends NonLeaderUnitC
           !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
               playedCardEntry.playedAsType === CardType.BasicUnit &&
               playedCardEntry.playedBy === card.controller &&
-              playedCardEntry.hasWhenDefeatedAbilities &&
-              playedCardEntry.card !== card
+              playedCardEntry.hasWhenDefeatedAbilities
           );
     }
 }
