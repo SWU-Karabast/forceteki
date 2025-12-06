@@ -72,10 +72,11 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     }
 
     public hasOngoingEffect(type: EffectName): boolean {
-        // This will want to be swapped out when the decorator is in place
-        // We can simply traverse the raw array of ongoing effects
-        for (const ref of this.state.ongoingEffects) {
-            if (this.game.getFromRef(ref).type === type) {
+        const effects = this.state.ongoingEffects;
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < effects.length; i++) {
+            // This call will want to be swapped out when the decorator is in place
+            if (this.game.getFromRef(effects[i]).type === type) {
                 return true;
             }
         }
