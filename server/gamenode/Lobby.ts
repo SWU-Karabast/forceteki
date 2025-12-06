@@ -675,8 +675,8 @@ export class Lobby {
                 u.ready = false;
             });
 
-            this.gameChat.addAlert(AlertType.Notification, 'Both players confirmed. Proceeding to next game.');
-            logger.info('Lobby: both players confirmed, proceeding to next Bo3 game', { lobbyId: this.id });
+            this.gameChat.addAlert(AlertType.Notification, `Both players confirmed. Proceeding to game ${this.winHistory.currentGameNumber}.`);
+            logger.info(`Lobby: both players confirmed, proceeding to Bo3 game ${this.winHistory.currentGameNumber}`, { lobbyId: this.id });
         } else {
             this.gameChat.addAlert(AlertType.Notification, `${user.username} is ready for the next game.`);
         }
@@ -734,6 +734,12 @@ export class Lobby {
     }
 
     private changeDeck(socket: Socket, ...args) {
+        // Changing decks is not allowed after game 1 in a Bo3 set
+        Contract.assertFalse(
+            this.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2,
+            'Changing decks is not allowed after game 1 in a Bo3 set'
+        );
+
         const activeUser = this.users.find((u) => u.id === socket.user.getId());
 
         // we check if the deck is valid.
