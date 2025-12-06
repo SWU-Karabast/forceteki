@@ -71,8 +71,15 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
         return filteredEffects.map((ongoingEffect) => ongoingEffect.context.source);
     }
 
-    public hasOngoingEffect(type: EffectName) {
-        return this.getOngoingEffectValues(type).length > 0;
+    public hasOngoingEffect(type: EffectName): boolean {
+        // This will want to be swapped out when the decorator is in place
+        // We can simply traverse the raw array of ongoing effects
+        for (const ref of this.state.ongoingEffects) {
+            if (this.game.getFromRef(ref).type === type) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -133,10 +140,8 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
         return effects[effects.length - 1];
     }
 
-    protected getOngoingEffects() {
-        const suppressEffects = this.ongoingEffects.filter((ongoingEffect) => ongoingEffect.type === EffectName.SuppressEffects);
-        const suppressedEffects = suppressEffects.reduce((array, ongoingEffect) => array.concat(ongoingEffect.getValue(this)), []);
-        return this.ongoingEffects.filter((ongoingEffect) => !suppressedEffects.includes(ongoingEffect));
+    protected getOngoingEffects(): readonly OngoingCardEffect[] {
+        return this.ongoingEffects;
     }
 
     public isPlayer(): this is Player {
