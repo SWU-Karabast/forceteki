@@ -55,6 +55,9 @@ interface IBestOfThreeHistory {
 
     /** Array of player IDs who won each game, or 'draw' for drawn games */
     winnerIdsInOrder: (string | 'draw')[];
+
+    /** If the set was conceded, the player ID who conceded */
+    setConcededByPlayerId?: string;
 }
 
 type IGameWinHistory = IBestOfOneHistory | IBestOfThreeHistory;
@@ -221,6 +224,7 @@ export class Lobby {
         lastWinnerId?: string;
         currentGameNumber?: number;
         winsPerPlayer?: Record<string, number>;
+        setConcededByPlayerId?: string;
     } {
         if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne) {
             return {
@@ -240,7 +244,8 @@ export class Lobby {
         return {
             gamesToWinMode: this.winHistory.gamesToWinMode,
             currentGameNumber: this.winHistory.currentGameNumber,
-            winsPerPlayer
+            winsPerPlayer,
+            setConcededByPlayerId: this.winHistory.setConcededByPlayerId
         };
     }
 
@@ -680,6 +685,34 @@ export class Lobby {
         } else {
             this.gameChat.addAlert(AlertType.Notification, `${user.username} is ready for the next game.`);
         }
+
+        this.sendLobbyState();
+    }
+
+    /**
+     * Concedes the entire Bo3 set. If there's an active game, it will be conceded first.
+     * This records the set as conceded by the player.
+     */
+    private concedeBo3(socket: Socket): void {
+        Contract.assertFalse(
+            this.gamesToWinMode === GamesToWinMode.BestOfOne,
+            'Cannot concede Bo3 set when in Bo1 mode'
+        );
+        Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+
+        const userId = socket.user.getId();
+        const user = this.getUser(userId);
+
+        // If there's an active game that hasn't finished, concede it first
+        if (this.game && this.game.finishedAt == null) {
+            this.game.concede(userId);
+        }
+
+        // Record that this player conceded the set
+        this.winHistory.setConcededByPlayerId = userId;
+
+        this.gameChat.addAlert(AlertType.Notification, `${user.username} has conceded the best-of-three set.`);
+        logger.info(`Lobby: user ${user.username} conceded the Bo3 set`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         this.sendLobbyState();
     }
