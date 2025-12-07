@@ -62,6 +62,7 @@ const mockCards = [
         hp: 2,
         cost: 2,
         hasNonKeywordAbility: true,
+        keywords: ['overwhelm'],
         aspects: ['vigilance', 'heroism'],
         traits: ['item', 'armor'],
         types: ['upgrade'],
@@ -71,6 +72,24 @@ const mockCards = [
         },
         unique: true,
         internalName: 'leias-disguise'
+    }),
+    buildMockCard({
+        title: 'Leia Organa',
+        subtitle: 'Someone who loves you',
+        power: 2,
+        hp: 2,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['rebel'],
+        types: ['leader'],
+        setId: {
+            set: 'LAW',
+            number: 10,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'leia-organa#someone-who-loves-you',
     })
 ];
 
