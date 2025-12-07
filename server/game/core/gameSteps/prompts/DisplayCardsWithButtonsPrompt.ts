@@ -3,7 +3,7 @@ import type Game from '../../Game';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import type { IDisplayCard } from '../PromptInterfaces';
-import { DisplayCardSelectionState, type IButton, type IDisplayCardsWithButtonsPromptProperties } from '../PromptInterfaces';
+import { DisplayCardSelectionState, type IButton, type IDisplayCardsWithButtonsPromptProperties, SelectCardMode } from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCardsWithButtonsPromptProperties> {
@@ -17,7 +17,9 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
         Contract.assertTrue(properties.perCardButtons.length > 0);
         Contract.assertTrue(properties.displayCards.length > 0);
 
-        super(game, choosingPlayer, properties);
+        const selectCardMode = properties.displayCards.length > 1 ? SelectCardMode.Multiple : SelectCardMode.Single;
+
+        super(game, choosingPlayer, properties, selectCardMode);
 
         this.displayCards = properties.displayCards;
         this.onCardButton = properties.onCardButton;
