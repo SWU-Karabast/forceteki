@@ -103,12 +103,49 @@ describe('Leia Organa, Someone who loves you', function() {
                 context.player1.clickCard(context.leiaOrganaSomeoneWhoLovesYou);
                 context.player1.clickPrompt('Deploy Leia Organa');
 
+                expect(context.player1).toHavePrompt('Give 4 Experience token to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.zebOrrelios, context.hanSolo, context.jauntyLightFreighter, context.leiaOrgana, context.battlefieldMarine, context.awing]);
 
                 // Choose a unit to receive Experience; unique aspects among p1 units = {vigilance, aggression, heroism, command} => 4
                 context.player1.clickCard(context.zebOrrelios);
 
                 expect(context.zebOrrelios).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience']);
+
+                // Turn should pass to player 2 afterward
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('on deploy, chooses a unit and gives it Experience equal to unique aspects among your units (multiple trigger)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'leia-organa#someone-who-loves-you',
+                        groundArena: ['zeb-orrelios#spectre-four', 'han-solo#hibernation-sick'],
+                        spaceArena: ['jaunty-light-freighter'],
+                        resources: ['wampa', 'atst', 'wampa', 'atst', 'wampa', 'atst', 'tala-durith#i-can-get-you-inside']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                        spaceArena: ['awing']
+                    }
+                });
+                const { context } = contextRef;
+
+                // Deploy Leia
+                context.player1.clickCard(context.leiaOrganaSomeoneWhoLovesYou);
+                context.player1.clickPrompt('Deploy Leia Organa');
+
+                expect(context.player1).toHaveExactPromptButtons(['Play Tala Durith using Plot', 'Choose a unit. Give an Experience token to that unit for each different aspect among units you control']);
+                context.player1.clickPrompt('Play Tala Durith using Plot');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toHavePrompt('Give 5 Experience token to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.zebOrrelios, context.hanSolo, context.jauntyLightFreighter, context.leiaOrgana, context.battlefieldMarine, context.awing, context.talaDurith]);
+
+                // Choose a unit to receive Experience; unique aspects among p1 units = {vigilance, aggression, heroism, command, cunning} => 4
+                context.player1.clickCard(context.zebOrrelios);
+
+                expect(context.zebOrrelios).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience', 'experience']);
 
                 // Turn should pass to player 2 afterward
                 expect(context.player2).toBeActivePlayer();

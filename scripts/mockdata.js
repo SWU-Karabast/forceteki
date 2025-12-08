@@ -74,7 +74,7 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Leia Organa',
-        subtitle: 'Someone who loves you',
+        subtitle: 'Someone Who Loves You',
         power: 2,
         hp: 2,
         cost: 5,

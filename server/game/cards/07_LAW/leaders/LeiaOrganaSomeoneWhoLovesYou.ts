@@ -43,6 +43,7 @@ export default class LeiaOrganaSomeoneWhoLovesYou extends LeaderUnitCard {
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
+                activePromptTitle: (context) => `Give ${new Set(context.player.getArenaUnits().flatMap((u) => u.aspects)).size} Experience token to a unit`,
                 immediateEffect: abilityHelper.immediateEffects.giveExperience((context) => ({
                     amount: new Set(context.player.getArenaUnits().flatMap((unit) => unit.aspects)).size
                 }))
