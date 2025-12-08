@@ -181,6 +181,45 @@ describe('Basic attack', function() {
             expect(context.poeDameron.damage).toBe(0);
         });
 
+        it('when the defender leaves and re-enters play during the attack (before combat damage), the attacker should not take damage', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['boba-fett#disintegrator']
+                },
+                player2: {
+                    groundArena: [
+                        {
+                            card: 'poe-dameron#quick-to-improvise',
+                            damage: 3,
+                            exhausted: true,
+                            upgrades: ['unrefusable-offer']
+                        }
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Boba Fett attacks Poe, defeating him with the on-attack ability
+            context.player1.clickCard(context.bobaFett);
+            context.player1.clickCard(context.poeDameron);
+            expect(context.poeDameron).toBeInZone('discard', context.player2);
+            expect(context.bobaFett).toBeInZone('groundArena', context.player1);
+
+            // Unrefusable Offer triggers, returning Poe to play under player1's control
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
+            context.player1.clickPrompt('Trigger');
+
+            // Poe is back in play with no damage
+            expect(context.poeDameron).toBeInZone('groundArena', context.player1);
+            expect(context.poeDameron.damage).toBe(0);
+
+            // Boba Fett is still in play and has taken no damage
+            expect(context.bobaFett).toBeInZone('groundArena', context.player1);
+            expect(context.bobaFett.damage).toBe(0);
+        });
+
         it('When evaluating attack targets for a card that grants an attacker effect, should not consider captured cards (and should not throw an exception)', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
