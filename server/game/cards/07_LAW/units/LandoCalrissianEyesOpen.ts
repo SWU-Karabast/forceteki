@@ -15,7 +15,7 @@ export default class LandoCalrissianEyesOpen extends NonLeaderUnitCard {
         registrar.addConstantAbility({
             title: 'While this unit is defending, the attacker gets -1/-0',
             targetController: RelativePlayer.Opponent,
-            matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isAttacking() && context.source.isDefending(),
+            matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isAttacking() && card.activeAttack.getAllTargets().includes(context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: 0 })
         });
     }
