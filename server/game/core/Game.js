@@ -1009,7 +1009,7 @@ class Game extends EventEmitter {
             return;
         }
 
-        this.addMessage('{0} concedes', player);
+        this.addMessage('{0} concedes the game', player);
 
         var otherPlayer = this.getOtherPlayer(player);
 

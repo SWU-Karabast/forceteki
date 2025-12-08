@@ -55,6 +55,9 @@ interface IBestOfThreeHistory {
 
     /** Array of player IDs who won each game, or 'draw' for drawn games */
     winnerIdsInOrder: (string | 'draw')[];
+
+    /** If the set was conceded, the player ID who conceded */
+    setConcededByPlayerId?: string;
 }
 
 type IGameWinHistory = IBestOfOneHistory | IBestOfThreeHistory;
@@ -221,6 +224,7 @@ export class Lobby {
         lastWinnerId?: string;
         currentGameNumber?: number;
         winsPerPlayer?: Record<string, number>;
+        setConcededByPlayerId?: string;
     } {
         if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne) {
             return {
@@ -240,7 +244,8 @@ export class Lobby {
         return {
             gamesToWinMode: this.winHistory.gamesToWinMode,
             currentGameNumber: this.winHistory.currentGameNumber,
-            winsPerPlayer
+            winsPerPlayer,
+            setConcededByPlayerId: this.winHistory.setConcededByPlayerId
         };
     }
 
@@ -685,6 +690,61 @@ export class Lobby {
     }
 
     /**
+     * Concedes the entire Bo3 set. If there's an active game, it will be conceded first.
+     * This records the set as conceded by the player.
+     */
+    private concedeBo3(socket: Socket): void {
+        const userId = socket.user.getId();
+        this.concedeBo3ByUserId(userId);
+    }
+
+    /**
+     * Core implementation for conceding a Bo3 set by user ID.
+     * Can be called from RPC (via concedeBo3) or internally (e.g., from removeUser).
+     */
+    private concedeBo3ByUserId(userId: string): void {
+        Contract.assertFalse(
+            this.gamesToWinMode === GamesToWinMode.BestOfOne,
+            'Cannot concede Bo3 set when in Bo1 mode'
+        );
+        Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+
+        const user = this.getUser(userId);
+
+        // If there's an active game that hasn't finished, concede it first
+        if (this.game && this.game.finishedAt == null) {
+            this.game.concede(userId);
+        }
+
+        // Only mark as conceded if the set isn't already decided by wins
+        // (i.e., no player has reached 2 wins yet)
+        const winsPerPlayer: Record<string, number> = {};
+        for (const winnerId of this.winHistory.winnerIdsInOrder) {
+            if (winnerId !== 'draw') {
+                winsPerPlayer[winnerId] = (winsPerPlayer[winnerId] || 0) + 1;
+            }
+        }
+        const setAlreadyDecided = Object.values(winsPerPlayer).some((wins) => wins >= 2);
+
+        if (!setAlreadyDecided) {
+            // Record that this player conceded the set
+            this.winHistory.setConcededByPlayerId = userId;
+        }
+
+        // Add message to game chat if game exists
+        if (this.game) {
+            this.game.gameChat.addMessage('{0} concedes the best-of-three set', this.game.getPlayerById(userId));
+            this.sendGameState(this.game);
+        } else {
+            this.gameChat.addMessage(`${user.username} has conceded the set.`);
+        }
+
+        logger.info(`Lobby: user ${user.username} conceded the Bo3 set`, { lobbyId: this.id, userName: user.username, userId: user.id });
+
+        this.sendLobbyState();
+    }
+
+    /**
      * Records the result of the current game into win history.
      * Reads winner from game.winnerNames (server-authoritative).
      * @param gamesToWinMode The game mode to record the result for
@@ -886,6 +946,12 @@ export class Lobby {
             this.gameChat.addMessage(`${user.username} has left the lobby`);
         } else {
             return;
+        }
+
+        // If we're in a Bo3 set, concede the set for the leaving player (before removing them)
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && !this.winHistory.setConcededByPlayerId) {
+            Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+            this.concedeBo3ByUserId(id);
         }
 
         if (this.lobbyOwnerId === id) {
