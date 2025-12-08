@@ -103,7 +103,7 @@ describe('Leia Organa, Someone who loves you', function() {
                 context.player1.clickCard(context.leiaOrganaSomeoneWhoLovesYou);
                 context.player1.clickPrompt('Deploy Leia Organa');
 
-                expect(context.player1).toHavePrompt('Give 4 Experience token to a unit');
+                expect(context.player1).toHavePrompt('Give 4 Experience tokens to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.zebOrrelios, context.hanSolo, context.jauntyLightFreighter, context.leiaOrgana, context.battlefieldMarine, context.awing]);
 
                 // Choose a unit to receive Experience; unique aspects among p1 units = {vigilance, aggression, heroism, command} => 4
@@ -139,7 +139,7 @@ describe('Leia Organa, Someone who loves you', function() {
                 context.player1.clickPrompt('Play Tala Durith using Plot');
                 context.player1.clickPrompt('Trigger');
 
-                expect(context.player1).toHavePrompt('Give 5 Experience token to a unit');
+                expect(context.player1).toHavePrompt('Give 5 Experience tokens to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.zebOrrelios, context.hanSolo, context.jauntyLightFreighter, context.leiaOrgana, context.battlefieldMarine, context.awing, context.talaDurith]);
 
                 // Choose a unit to receive Experience; unique aspects among p1 units = {vigilance, aggression, heroism, command, cunning} => 4
