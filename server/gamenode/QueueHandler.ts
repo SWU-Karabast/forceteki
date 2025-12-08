@@ -60,13 +60,13 @@ export class QueueHandler {
 
         const queueEntry = this.findPlayerInQueue(player.user.getId());
         if (queueEntry) {
-            logger.info(`User ${player.user.getId()} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${format}`);
+            logger.info(`User ${player.user.getId()} is already in queue for format ${this.queueKeyToString(queueEntry.format)}, rejoining into queue for format ${this.queueKeyToString(format)}`);
             this.removePlayer(player.user.getId(), 'Rejoining into queue');
         }
 
         const notConnectedPlayerEntry = this.findNotConnectedPlayer(player.user.getId());
         if (notConnectedPlayerEntry) {
-            logger.info(`User ${player.user.getId()} is already in waiting-to-queue list for ${notConnectedPlayerEntry.format}, rejoining into queue for format ${format}`);
+            logger.info(`User ${player.user.getId()} is already in waiting-to-queue list for ${this.queueKeyToString(notConnectedPlayerEntry.format)}, rejoining into queue for format ${this.queueKeyToString(format)}`);
             this.removePlayer(player.user.getId(), 'Rejoining into queue');
         }
 
@@ -74,7 +74,7 @@ export class QueueHandler {
             format,
             player: { ...player, state: QueuedPlayerState.WaitingForConnection }
         });
-        logger.info(`Added user ${player.user.getId()} to waiting list for format ${format} until they connect`);
+        logger.info(`Added user ${player.user.getId()} to waiting list for format ${this.queueKeyToString(format)} until they connect`);
 
         // if the player has an active socket, immediately connect them
         if (player.socket) {
@@ -90,7 +90,7 @@ export class QueueHandler {
         if (queueEntry) {
             playerEntry = queueEntry;
 
-            logger.info(`User ${userId} with socket id ${socket.id} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${playerEntry.format}`);
+            logger.info(`User ${userId} with socket id ${socket.id} is already in queue for format ${this.queueKeyToString(queueEntry.format)}, rejoining into queue for format ${this.queueKeyToString(playerEntry.format)}`);
             this.removePlayer(userId, 'Rejoining into queue');
         } else {
             const notConnectedPlayer = this.findNotConnectedPlayer(userId);
@@ -106,7 +106,7 @@ export class QueueHandler {
         playerEntry.player.socket = socket;
 
         this.getQueueByFormat(playerEntry.format)?.push(playerEntry.player);
-        logger.info(`User ${userId} connected with socket id ${socket.id}, added to queue for format ${playerEntry.format}`);
+        logger.info(`User ${userId} connected with socket id ${socket.id}, added to queue for format ${this.queueKeyToString(playerEntry.format)}`);
     }
 
     /** If the user exists in the queue and is connected, temporarily move them into a disconnected state while waiting for reconnection */
