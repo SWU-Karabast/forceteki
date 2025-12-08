@@ -605,7 +605,12 @@ export class Lobby {
                 default:
                     Contract.fail(`Unknown rematch mode: ${mode}`);
             }
-            this.game.addAlert(AlertType.Notification, alertMessage);
+
+            if (this.game) {
+                this.game.addAlert(AlertType.Notification, alertMessage);
+            } else {
+                this.gameChat.addAlert(AlertType.Notification, alertMessage);
+            }
         }
         this.sendLobbyState();
     }
