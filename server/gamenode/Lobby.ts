@@ -508,7 +508,7 @@ export class Lobby {
             this.matchingCountdownText = 'Waiting for opponent to connect...';
 
             if (this.users.length === 2 && this.users.every((u) => u.state === 'connected')) {
-                return this.onStartGameAsync();
+                return this.startGameAsync();
             }
 
             this.sendLobbyState(true);
@@ -525,7 +525,7 @@ export class Lobby {
         return Promise.resolve();
     }
 
-    private setReadyStatus(socket: Socket, ...args) {
+    private async setReadyStatus(socket: Socket, ...args) {
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'boolean', 'Ready status arguments aren\'t boolean or present');
         const currentUser = this.users.find((u) => u.id === socket.user.getId());
         if (!currentUser) {
@@ -535,6 +535,16 @@ export class Lobby {
         logger.info(`Lobby: user ${currentUser.username} set ready status: ${args[0]}`, { lobbyId: this.id, userName: currentUser.username, userId: currentUser.id });
         this.gameChat.addAlert(AlertType.ReadyStatus, `${currentUser.username} is ${args[0] ? 'ready to start' : 'not ready to start'}`);
         this.updateUserLastActivity(currentUser.id);
+
+        // For Bo3 games after game 1, automatically start when both players are ready
+        if (
+            this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree &&
+            this.winHistory.currentGameNumber > 1 &&
+            this.users.length === 2 &&
+            this.users.every((u) => u.ready)
+        ) {
+            await this.startGameAsync();
+        }
     }
 
     private sendChatMessage(socket: Socket, ...args) {
@@ -1028,7 +1038,7 @@ export class Lobby {
         this.game = game;
     }
 
-    private async onStartGameAsync() {
+    private async startGameAsync() {
         try {
             this.rematchRequest = null;
             this.statsUpdateStatus.clear();
