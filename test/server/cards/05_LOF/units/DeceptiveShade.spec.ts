@@ -222,6 +222,41 @@ describe('Deceptive Shade', function () {
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.battlefieldMarine.hasSomeKeyword('ambush')).toBeFalse();
             });
+
+            it('if defeated with NGOR, should give Ambush to the next unit played by the player who stole the Deceptive Shade', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['battlefield-marine'],
+                        groundArena: ['deceptive-shade'],
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results', 'wampa'],
+                        groundArena: ['pyke-sentinel'],
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.deceptiveShade);
+                expect(context.getChatLogs(1)).toContain('player2 uses Deceptive Shade to give Ambush to the next unit they play this phase');
+
+                // No Ambush for Battlefield Marine
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).not.toHavePassAbilityPrompt('Ambush');
+                expect(context.player2).toBeActivePlayer();
+
+                // Ambush
+                context.player2.clickCard(context.wampa);
+                expect(context.player2).toHavePassAbilityPrompt('Ambush');
+                context.player2.clickPrompt('Trigger');
+                context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.wampa.damage).toBe(3);
+            });
         });
     });
 });
