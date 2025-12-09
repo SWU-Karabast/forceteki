@@ -1023,6 +1023,7 @@ export class GameServer {
                         id,
                         name: lobby.name,
                         format: lobby.format,
+                        gamesToWinMode: lobby.gamesToWinMode,
                         host: lobbyOwnerUser?.deck ? {
                             leader: lobbyOwnerUser.deck.leader,
                             base: lobbyOwnerUser.deck.base
