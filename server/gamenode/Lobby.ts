@@ -39,6 +39,33 @@ enum LobbySettingKeys {
     RequestUndo = 'requestUndo',
 }
 
+enum Bo3SetEndedReason {
+    Concede = 'concede',
+    OnePlayerLobbyTimeout = 'onePlayerLobbyTimeout',
+    BothPlayersLobbyTimeout = 'bothPlayersLobbyTimeout',
+    WonTwoGames = 'wonTwoGames',
+}
+
+interface IBo3ConcedeResult {
+    endedReason: Bo3SetEndedReason.Concede;
+    concedingPlayerId: string;
+}
+
+interface IBo3OnePlayerTimeoutResult {
+    endedReason: Bo3SetEndedReason.OnePlayerLobbyTimeout;
+    timeoutPlayerId: string;
+}
+
+interface IBo3BothPlayersTimeoutResult {
+    endedReason: Bo3SetEndedReason.BothPlayersLobbyTimeout;
+}
+
+interface IBo3WonGamesResult {
+    endedReason: Bo3SetEndedReason.WonTwoGames;
+}
+
+type IBo3SetEndResult = IBo3ConcedeResult | IBo3OnePlayerTimeoutResult | IBo3BothPlayersTimeoutResult | IBo3WonGamesResult;
+
 interface IBestOfOneHistory {
     gamesToWinMode: GamesToWinMode.BestOfOne;
     lastWinnerId?: string;
@@ -56,8 +83,8 @@ interface IBestOfThreeHistory {
     /** Array of player IDs who won each game, or 'draw' for drawn games */
     winnerIdsInOrder: (string | 'draw')[];
 
-    /** If the set was conceded, the player ID who conceded */
-    setConcededByPlayerId?: string;
+    /** How the set ended (concede, timeout, or won games). Undefined if set is ongoing. */
+    setEndResult?: IBo3SetEndResult;
 }
 
 type IGameWinHistory = IBestOfOneHistory | IBestOfThreeHistory;
@@ -134,6 +161,8 @@ export class Lobby {
 
     private winHistory: IGameWinHistory;
     private bo3NextGameConfirmedBy?: Set<string>;
+    private bo3TransitionTimer?: NodeJS.Timeout;
+    private bo3LobbyReadyTimer?: NodeJS.Timeout;
 
     public constructor(
         lobbyName: string,
@@ -199,6 +228,13 @@ export class Lobby {
         return { swuFormat: this.format, gamesToWinMode: this.gamesToWinMode };
     }
 
+    private get useActionTimers(): boolean {
+        return (
+            (this.matchmakingType === MatchmakingType.Quick || this.matchmakingType === MatchmakingType.PublicLobby) &&
+            (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_ACTION_TIMER === 'true')
+        );
+    }
+
     private setBo1History(winnerId?: string): void {
         this.winHistory = {
             gamesToWinMode: GamesToWinMode.BestOfOne,
@@ -219,13 +255,7 @@ export class Lobby {
     /**
      * Get win history data formatted for the frontend client
      */
-    private getWinHistoryForClient(): {
-        gamesToWinMode: GamesToWinMode;
-        lastWinnerId?: string;
-        currentGameNumber?: number;
-        winsPerPlayer?: Record<string, number>;
-        setConcededByPlayerId?: string;
-    } {
+    private getWinHistoryForClient() {
         if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne) {
             return {
                 gamesToWinMode: this.winHistory.gamesToWinMode,
@@ -245,7 +275,7 @@ export class Lobby {
             gamesToWinMode: this.winHistory.gamesToWinMode,
             currentGameNumber: this.winHistory.currentGameNumber,
             winsPerPlayer,
-            setConcededByPlayerId: this.winHistory.setConcededByPlayerId
+            setEndResult: this.winHistory.setEndResult
         };
     }
 
@@ -682,26 +712,11 @@ export class Lobby {
 
         // Check if both players have confirmed
         if (this.bo3NextGameConfirmedBy.size >= 2) {
-            // Increment the game number for the next game
-            Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
-            this.winHistory.currentGameNumber++;
-
-            // Reset for next game (winner was already recorded in handleGameEnd)
-            this.game = null;
-            this.bo3NextGameConfirmedBy.clear();
-
-            // Clear the 'ready' state for all users
-            this.users.forEach((u) => {
-                u.ready = false;
-            });
-
-            this.gameChat.addAlert(AlertType.Notification, `Both players confirmed. Proceeding to game ${this.winHistory.currentGameNumber}.`);
-            logger.info(`Lobby: both players confirmed, proceeding to Bo3 game ${this.winHistory.currentGameNumber}`, { lobbyId: this.id });
+            this.transitionToNextBo3Game('Both players confirmed');
         } else {
             this.gameChat.addAlert(AlertType.Notification, `${user.username} is ready for the next game.`);
+            this.sendLobbyState();
         }
-
-        this.sendLobbyState();
     }
 
     /**
@@ -731,19 +746,13 @@ export class Lobby {
             this.game.concede(userId);
         }
 
-        // Only mark as conceded if the set isn't already decided by wins
-        // (i.e., no player has reached 2 wins yet)
-        const winsPerPlayer: Record<string, number> = {};
-        for (const winnerId of this.winHistory.winnerIdsInOrder) {
-            if (winnerId !== 'draw') {
-                winsPerPlayer[winnerId] = (winsPerPlayer[winnerId] || 0) + 1;
-            }
-        }
-        const setAlreadyDecided = Object.values(winsPerPlayer).some((wins) => wins >= 2);
-
-        if (!setAlreadyDecided) {
+        // Only mark as conceded if the set isn't already decided
+        if (!this.winHistory.setEndResult) {
             // Record that this player conceded the set
-            this.winHistory.setConcededByPlayerId = userId;
+            this.winHistory.setEndResult = {
+                endedReason: Bo3SetEndedReason.Concede,
+                concedingPlayerId: userId
+            };
         }
 
         // Add message to game chat if game exists
@@ -964,8 +973,10 @@ export class Lobby {
         }
 
         // If we're in a Bo3 set, concede the set for the leaving player (before removing them)
-        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && !this.winHistory.setConcededByPlayerId) {
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && !this.winHistory.setEndResult) {
             Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+            this.clearBo3TransitionTimer();
+            this.clearBo3LobbyReadyTimer();
             this.concedeBo3ByUserId(id);
         }
 
@@ -1010,6 +1021,8 @@ export class Lobby {
     }
 
     public cleanLobby(): void {
+        this.clearBo3TransitionTimer();
+        this.clearBo3LobbyReadyTimer();
         this.game = null;
         this.users = [];
         this.spectators = [];
@@ -1045,6 +1058,7 @@ export class Lobby {
 
     private async startGameAsync() {
         try {
+            this.clearBo3LobbyReadyTimer();
             this.rematchRequest = null;
             this.statsUpdateStatus.clear();
             const game = new Game(this.buildGameSettings(), { router: this });
@@ -1162,10 +1176,6 @@ export class Lobby {
             })
         );
 
-        const useActionTimer =
-            (this.matchmakingType === MatchmakingType.Quick || this.matchmakingType === MatchmakingType.PublicLobby) &&
-            (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_ACTION_TIMER === 'true');
-
         return {
             id: uuidv4(),
             allowSpectators: false,
@@ -1174,7 +1184,7 @@ export class Lobby {
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
-            useActionTimer,
+            useActionTimer: this.useActionTimers,
             preselectedFirstPlayerId: this.determineFirstPlayer(),
             pushUpdate: () => this.sendGameState(this.game),
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
@@ -1669,10 +1679,194 @@ export class Lobby {
             case GamesToWinMode.BestOfThree:
                 // Skip stats update for Bo3 (stats handled at set completion)
                 logger.info('Lobby: skipping stats update for Bo3 game (stats handled at set completion)', { lobbyId: this.id });
+
+                // Start a 30s timer to auto-transition if the set is not complete
+                if (this.useActionTimers && !this.isBo3SetComplete()) {
+                    this.startBo3TransitionTimer();
+                }
                 break;
             default:
                 Contract.fail(`Unknown games to win mode: ${this.gamesToWinMode}`);
         }
+    }
+
+    /**
+     * Checks if the Bo3 set is complete (a player has 2 wins).
+     * If a player has won 2 games and setEndResult hasn't been set yet, it sets the WonTwoGames result.
+     */
+    private isBo3SetComplete(): boolean {
+        Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+
+        const winsPerPlayer: Record<string, number> = {};
+        for (const winnerId of this.winHistory.winnerIdsInOrder) {
+            if (winnerId !== 'draw') {
+                winsPerPlayer[winnerId] = (winsPerPlayer[winnerId] || 0) + 1;
+            }
+        }
+
+        const hasWinner = Object.values(winsPerPlayer).some((wins) => wins >= 2);
+
+        // If someone has 2 wins and we haven't recorded the end result yet, record it now
+        if (hasWinner && !this.winHistory.setEndResult) {
+            this.winHistory.setEndResult = {
+                endedReason: Bo3SetEndedReason.WonTwoGames
+            };
+        }
+
+        return hasWinner;
+    }
+
+    /**
+     * Starts the 30-second timer for auto-transitioning to the next Bo3 game.
+     */
+    private startBo3TransitionTimer(): void {
+        this.clearBo3TransitionTimer();
+
+        this.bo3TransitionTimer = this.buildSafeTimeout(
+            () => this.onBo3TransitionTimerExpired(),
+            30 * 1000,
+            'Lobby: error in Bo3 transition timer'
+        );
+
+        this.gameChat.addAlert(AlertType.Notification, 'The game will be ended and moved to the next lobby in 30 seconds.');
+        logger.info('Lobby: started 30s Bo3 transition timer', { lobbyId: this.id });
+    }
+
+    /**
+     * Clears the Bo3 transition timer if it exists.
+     */
+    private clearBo3TransitionTimer(): void {
+        if (this.bo3TransitionTimer) {
+            clearTimeout(this.bo3TransitionTimer);
+            this.bo3TransitionTimer = undefined;
+            logger.info('Lobby: cleared Bo3 transition timer', { lobbyId: this.id });
+        }
+    }
+
+    /**
+     * Performs the transition to the next Bo3 game. This is the shared logic
+     * called when both players confirm or when the transition timer expires.
+     * @param alertPrefix The message prefix for the alert (e.g., "Both players confirmed" or "Time expired")
+     */
+    private transitionToNextBo3Game(alertPrefix: string): void {
+        this.clearBo3TransitionTimer();
+
+        Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+        this.winHistory.currentGameNumber++;
+
+        // Reset for next game (winner was already recorded in handleGameEnd)
+        this.game = null;
+        this.bo3NextGameConfirmedBy?.clear();
+
+        // Clear the 'ready' state for all users
+        this.users.forEach((u) => {
+            u.ready = false;
+        });
+
+        this.gameChat.addAlert(AlertType.Notification, `${alertPrefix}. Proceeding to game ${this.winHistory.currentGameNumber}.`);
+        logger.info(`Lobby: ${alertPrefix.toLowerCase()}, proceeding to Bo3 game ${this.winHistory.currentGameNumber}`, { lobbyId: this.id });
+
+        // Start the lobby ready timer if action timers are enabled
+        if (this.useActionTimers) {
+            this.startBo3LobbyReadyTimer();
+        }
+
+        this.sendLobbyState();
+    }
+
+    /**
+     * Starts the 60-second timer for players to sideboard and ready up.
+     * Called when players transition to the lobby for game 2+.
+     */
+    private startBo3LobbyReadyTimer(): void {
+        this.clearBo3LobbyReadyTimer();
+
+        this.bo3LobbyReadyTimer = this.buildSafeTimeout(
+            () => this.onBo3LobbyReadyTimerExpired(),
+            60 * 1000,
+            'Lobby: error in Bo3 lobby ready timer'
+        );
+
+        this.gameChat.addAlert(AlertType.Notification, 'Players have 60 seconds to sideboard and ready up.');
+    }
+
+    /**
+     * Clears the Bo3 lobby ready timer if it exists.
+     */
+    private clearBo3LobbyReadyTimer(): void {
+        if (this.bo3LobbyReadyTimer) {
+            clearTimeout(this.bo3LobbyReadyTimer);
+            this.bo3LobbyReadyTimer = undefined;
+        }
+    }
+
+    /**
+     * Called when the Bo3 lobby ready timer expires.
+     * Handles three cases: both ready, one ready, neither ready.
+     */
+    private onBo3LobbyReadyTimerExpired(): void {
+        Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+
+        const readyUsers = this.users.filter((u) => u.ready);
+        const notReadyUsers = this.users.filter((u) => !u.ready);
+
+        if (readyUsers.length >= 2) {
+            // Both players are ready - start the game
+            logger.info('Lobby: Bo3 lobby ready timer expired, both players ready - starting game', { lobbyId: this.id });
+            this.startGameAsync();
+        } else if (readyUsers.length === 1 && notReadyUsers.length === 1) {
+            // One player ready, one not - timeout the player who is not ready
+            const timeoutPlayer = notReadyUsers[0];
+            logger.info(`Lobby: Bo3 lobby ready timer expired, player ${timeoutPlayer.username} timed out`, { lobbyId: this.id, userName: timeoutPlayer.username, userId: timeoutPlayer.id });
+
+            this.winHistory.setEndResult = {
+                endedReason: Bo3SetEndedReason.OnePlayerLobbyTimeout,
+                timeoutPlayerId: timeoutPlayer.id
+            };
+
+            this.gameChat.addAlert(AlertType.Danger, `${timeoutPlayer.username} did not ready in time. The set has ended.`);
+            this.sendLobbyState();
+        } else {
+            // Neither player is ready - both timed out
+            logger.info('Lobby: Bo3 lobby ready timer expired, neither player ready - set ended', { lobbyId: this.id });
+
+            this.winHistory.setEndResult = {
+                endedReason: Bo3SetEndedReason.BothPlayersLobbyTimeout
+            };
+
+            this.gameChat.addAlert(AlertType.Danger, 'Neither player readied in time. The set has ended.');
+            this.sendLobbyState();
+        }
+    }
+
+    /**
+     * Called when the Bo3 transition timer expires. Auto-transitions both players to the next game.
+     */
+    private onBo3TransitionTimerExpired(): void {
+        // Safety checks: ensure we're still in a valid state for transition
+        if (!this.game || this.game.finishedAt == null) {
+            logger.warn('Lobby: Bo3 transition timer expired but game is not in finished state', { lobbyId: this.id });
+            return;
+        }
+
+        if (this.winHistory.gamesToWinMode !== GamesToWinMode.BestOfThree) {
+            logger.warn('Lobby: Bo3 transition timer expired but not in Bo3 mode', { lobbyId: this.id });
+            return;
+        }
+
+        if (this.bo3NextGameConfirmedBy && this.bo3NextGameConfirmedBy.size >= 2) {
+            logger.warn('Lobby: Bo3 transition timer expired but both players already confirmed', { lobbyId: this.id });
+            return;
+        }
+
+        if (this.isBo3SetComplete()) {
+            logger.warn('Lobby: Bo3 transition timer expired but set is already complete', { lobbyId: this.id });
+            return;
+        }
+
+        logger.info('Lobby: Bo3 transition timer expired, auto-transitioning to next game', { lobbyId: this.id });
+
+        this.transitionToNextBo3Game('Time expired');
     }
 
 
