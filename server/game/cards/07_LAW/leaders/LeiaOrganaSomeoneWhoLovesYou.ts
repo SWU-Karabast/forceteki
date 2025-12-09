@@ -5,7 +5,6 @@ import type {
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { WildcardCardType } from '../../../core/Constants';
-import * as ChatHelpers from '../../../core/chat/ChatHelpers';
 
 
 export default class LeiaOrganaSomeoneWhoLovesYou extends LeaderUnitCard {
@@ -46,9 +45,7 @@ export default class LeiaOrganaSomeoneWhoLovesYou extends LeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 activePromptTitle: (context) => {
                     const aspectCount = new Set(context.player.getArenaUnits().flatMap((u) => u.aspects)).size;
-                    const stringFormat = ChatHelpers.pluralize(aspectCount, 'an Experience token', 'Experience tokens');
-                    const tokensString = typeof stringFormat === 'string' ? stringFormat : `${stringFormat.args[0]} ${stringFormat.args[1]}`;
-                    return `Give ${tokensString} to a unit`;
+                    return `Give ${aspectCount === 1 ? 'an Experience token' : `${aspectCount} Experience tokens`} to a unit`;
                 },
                 immediateEffect: abilityHelper.immediateEffects.giveExperience((context) => ({
                     amount: new Set(context.player.getArenaUnits().flatMap((unit) => unit.aspects)).size
