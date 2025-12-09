@@ -1664,9 +1664,6 @@ export class Lobby {
         // Record winner based on game mode
         this.recordGameResult(this.gamesToWinMode);
 
-        // Send updated lobby state so clients see the new score immediately
-        this.sendLobbyState();
-
         // Handle stats and other end-game logic based on game mode
         switch (this.gamesToWinMode) {
             case GamesToWinMode.BestOfOne:
@@ -1692,6 +1689,9 @@ export class Lobby {
             default:
                 Contract.fail(`Unknown games to win mode: ${this.gamesToWinMode}`);
         }
+
+        // Send updated lobby state so clients see the new score immediately
+        this.sendLobbyState();
     }
 
     /**
