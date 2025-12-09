@@ -33,8 +33,16 @@ describe('Lando Calrissian, Eyes Open', function() {
                 context.player1.clickCard(context.landoCalrissianEyesOpen);
 
                 expect(context.landoCalrissianEyesOpen.damage).toBe(4);
+            });
 
-                // Attack from 0 power unit
+            it('attacks from a 0 power unit should not cause changes to damage on Lando', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.groundAssaultAtat);
+                context.player1.clickCard(context.landoCalrissianEyesOpen);
+
+                expect(context.landoCalrissianEyesOpen.damage).toBe(4);
+
                 context.player2.passAction();
 
                 context.player1.clickCard(context.moistureFarmer);
