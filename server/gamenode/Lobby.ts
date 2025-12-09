@@ -26,6 +26,8 @@ import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import type { Player } from '../game/core/Player';
 import type { IQueueFormatKey } from './QueueHandler';
+import { BaseActionTimer } from '../game/core/actionTimer/BaseActionTimer';
+import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -162,7 +164,7 @@ export class Lobby {
     private winHistory: IGameWinHistory;
     private bo3NextGameConfirmedBy?: Set<string>;
     private bo3TransitionTimer?: NodeJS.Timeout;
-    private bo3LobbyReadyTimer?: NodeJS.Timeout;
+    private bo3LobbyReadyTimer?: BaseActionTimer;
 
     public constructor(
         lobbyName: string,
@@ -250,6 +252,7 @@ export class Lobby {
         };
 
         this.bo3NextGameConfirmedBy = new Set<string>();
+        this.initializeBo3LobbyReadyTimer();
     }
 
     /**
@@ -302,6 +305,7 @@ export class Lobby {
             hasConfirmedNextGame: this.gamesToWinMode === GamesToWinMode.BestOfThree && user
                 ? this.bo3NextGameConfirmedBy?.has(user.id) ?? false
                 : undefined,
+            sideboardTimeoutStatus: this.bo3LobbyReadyTimer?.timeRemainingStatus,
             settings: {
                 requestUndo: this.undoMode === UndoMode.Request,
             },
@@ -976,7 +980,7 @@ export class Lobby {
         if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && !this.winHistory.setEndResult) {
             Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
             this.clearBo3TransitionTimer();
-            this.clearBo3LobbyReadyTimer();
+            this.bo3LobbyReadyTimer?.stop();
             this.concedeBo3ByUserId(id);
         }
 
@@ -1022,7 +1026,7 @@ export class Lobby {
 
     public cleanLobby(): void {
         this.clearBo3TransitionTimer();
-        this.clearBo3LobbyReadyTimer();
+        this.bo3LobbyReadyTimer?.stop();
         this.game = null;
         this.users = [];
         this.spectators = [];
@@ -1058,7 +1062,7 @@ export class Lobby {
 
     private async startGameAsync() {
         try {
-            this.clearBo3LobbyReadyTimer();
+            this.bo3LobbyReadyTimer?.stop();
             this.rematchRequest = null;
             this.statsUpdateStatus.clear();
             const game = new Game(this.buildGameSettings(), { router: this });
@@ -1767,37 +1771,46 @@ export class Lobby {
         logger.info(`Lobby: ${alertPrefix.toLowerCase()}, proceeding to Bo3 game ${this.winHistory.currentGameNumber}`, { lobbyId: this.id });
 
         // Start the lobby ready timer if action timers are enabled
-        if (this.useActionTimers) {
-            this.startBo3LobbyReadyTimer();
+        if (this.bo3LobbyReadyTimer) {
+            this.bo3LobbyReadyTimer.start();
+            this.gameChat.addAlert(AlertType.Notification, 'Players have 60 seconds to sideboard and ready up.');
         }
 
         this.sendLobbyState();
     }
 
     /**
-     * Starts the 60-second timer for players to sideboard and ready up.
-     * Called when players transition to the lobby for game 2+.
+     * Initializes the Bo3 lobby ready timer with handlers.
+     * Called once when Bo3 mode is initialized. Does nothing if action timers are disabled.
      */
-    private startBo3LobbyReadyTimer(): void {
-        this.clearBo3LobbyReadyTimer();
+    private initializeBo3LobbyReadyTimer(): void {
+        if (!this.useActionTimers) {
+            return;
+        }
 
-        this.bo3LobbyReadyTimer = this.buildSafeTimeout(
-            () => this.onBo3LobbyReadyTimerExpired(),
-            60 * 1000,
-            'Lobby: error in Bo3 lobby ready timer'
+        this.bo3LobbyReadyTimer = new BaseActionTimer(
+            60,
+            (callback, delayMs) => this.buildSafeTimeout(callback, delayMs, 'Lobby: error in Bo3 lobby ready timer')
         );
 
-        this.gameChat.addAlert(AlertType.Notification, 'Players have 60 seconds to sideboard and ready up.');
-    }
+        // Handler at 30 seconds remaining (warning)
+        this.bo3LobbyReadyTimer.addSpecificTimeHandler(30, (setStatus) => {
+            setStatus(PlayerTimeRemainingStatus.Warning);
+            this.gameChat.addAlert(AlertType.Warning, '30 seconds remaining to sideboard and ready up.');
+            this.sendLobbyState();
+        });
 
-    /**
-     * Clears the Bo3 lobby ready timer if it exists.
-     */
-    private clearBo3LobbyReadyTimer(): void {
-        if (this.bo3LobbyReadyTimer) {
-            clearTimeout(this.bo3LobbyReadyTimer);
-            this.bo3LobbyReadyTimer = undefined;
-        }
+        // Handler at 10 seconds remaining (danger)
+        this.bo3LobbyReadyTimer.addSpecificTimeHandler(10, (setStatus) => {
+            setStatus(PlayerTimeRemainingStatus.Danger);
+            this.gameChat.addAlert(AlertType.Danger, '10 seconds remaining to sideboard and ready up.');
+            this.sendLobbyState();
+        });
+
+        // Handler at 0 seconds (timer expired)
+        this.bo3LobbyReadyTimer.addSpecificTimeHandler(0, () => {
+            this.onBo3LobbyReadyTimerExpired();
+        });
     }
 
     /**
