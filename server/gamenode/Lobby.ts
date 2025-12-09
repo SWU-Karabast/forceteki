@@ -1477,8 +1477,9 @@ export class Lobby {
 
     /**
      * Private method to update a players SWU stats
+     * @param sequenceNumber - For Bo3 games, indicates which game in the set (1, 2, or 3). Omitted for Bo1.
      */
-    private async updatePlayerSWUStatsAsync(game: Game, player1: Player, player2: Player): Promise<{ player1SwuStatsStatus: IStatsMessageFormat | null; player2SwuStatsStatus: IStatsMessageFormat | null }> {
+    private async updatePlayerSWUStatsAsync(game: Game, player1: Player, player2: Player, sequenceNumber?: number): Promise<{ player1SwuStatsStatus: IStatsMessageFormat | null; player2SwuStatsStatus: IStatsMessageFormat | null }> {
         try {
             const swuStatsMessage = await this.server.swuStatsHandler.sendSWUStatsGameResultAsync(
                 game,
@@ -1486,6 +1487,7 @@ export class Lobby {
                 player2,
                 this.id,
                 this.server,
+                sequenceNumber,
             );
             // Success return message
             logger.info(`Lobby ${this.id}: Successfully updated deck SWUStats stats for game ${game.id}`, { lobbyId: this.id });
@@ -1514,8 +1516,9 @@ export class Lobby {
     /**
      * Updates deck statistics when a game ends
      * @param game The game that has ended
+     * @param sequenceNumber - For Bo3 games, indicates which game in the set (1, 2, or 3). Omitted for Bo1.
      */
-    private async endGameUpdateStatsAsync(game: Game): Promise<void> {
+    private async endGameUpdateStatsAsync(game: Game, sequenceNumber?: number): Promise<void> {
         logger.info(`Lobby ${this.id}: Updating deck stats for game ${game.id}`, { lobbyId: this.id });
         // pre-populate the status messages with an error that we will send by default in case something fails
         let player1KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'an error occurred while updating stats' };
@@ -1593,7 +1596,7 @@ export class Lobby {
 
             // Send to SWUstats if handler is available
             if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier && this.swuStatsEnabled) {
-                ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1, player2));
+                ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1, player2, sequenceNumber));
             }
             // Send warning that swustats are not updated when in non-premier format.
             if (this.format !== SwuGameFormat.Premier && this.swuStatsEnabled) {
@@ -1616,6 +1619,21 @@ export class Lobby {
             if (player2SwuStatsStatus && this.swuStatsEnabled) {
                 this.sendStatsMessageToUser(player2.id, player2SwuStatsStatus);
             }
+        }
+    }
+
+    /**
+     * Updates stats for the current game, handling both fresh updates and repeated end-game scenarios.
+     * @param sequenceNumber - For Bo3 games, indicates which game in the set (1, 2, or 3). Omitted for Bo1.
+     */
+    private updateEndGameStatsIfNeeded(sequenceNumber?: number): void {
+        if (this.game.statsUpdated) {
+            this.sendRepeatedEndGameUpdateStatsMessages(this.game);
+        } else {
+            this.game.statsUpdated = true;
+            this.endGameUpdateStatsAsync(this.game, sequenceNumber).catch((error) => {
+                logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+            });
         }
     }
 
@@ -1667,25 +1685,18 @@ export class Lobby {
         // Handle stats and other end-game logic based on game mode
         switch (this.gamesToWinMode) {
             case GamesToWinMode.BestOfOne:
-                // Update stats for Bo1
-                if (this.game.statsUpdated) {
-                    this.sendRepeatedEndGameUpdateStatsMessages(this.game);
-                } else {
-                    this.game.statsUpdated = true;
-                    this.endGameUpdateStatsAsync(this.game).catch((error) => {
-                        logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-                    });
-                }
+                this.updateEndGameStatsIfNeeded();
                 break;
-            case GamesToWinMode.BestOfThree:
-                // Skip stats update for Bo3 (stats handled at set completion)
-                logger.info('Lobby: skipping stats update for Bo3 game (stats handled at set completion)', { lobbyId: this.id });
+            case GamesToWinMode.BestOfThree: {
+                const bo3History = this.winHistory as IBestOfThreeHistory;
+                this.updateEndGameStatsIfNeeded(bo3History.currentGameNumber);
 
                 // Start a 30s timer to auto-transition if the set is not complete
                 if (this.useActionTimers && !this.isBo3SetComplete()) {
                     this.startBo3TransitionTimer();
                 }
                 break;
+            }
             default:
                 Contract.fail(`Unknown games to win mode: ${this.gamesToWinMode}`);
         }
