@@ -1,7 +1,7 @@
 describe('Credit token', function () {
     integration(function(contextRef) {
         describe('The basics of the Credit token', function () {
-            xit('Is intialiazed for each player based on the test setup', async function () {
+            it('Is intialiazed for each player based on the test setup', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -31,7 +31,7 @@ describe('Credit token', function () {
                 }
             });
 
-            xit('Can be adjusted through the player interaction wrapper', async function () {
+            it('Can be adjusted through the player interaction wrapper', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action'
                 });
@@ -65,6 +65,17 @@ describe('Credit token', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.captainRex);
+                expect(context.player1).toHavePrompt('Use Credit tokens for Captain Rex');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Select amount',
+                    'Cancel'
+                ]);
+
+                context.player1.clickPrompt('Select amount');
+
+                // Should be able to choose from 1 to 4 credits
+                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 4 }, (x, i) => `${i + 1}`));
+                context.player1.chooseListOption('4');
 
                 expect(context.player1.credits).toBe(0);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
