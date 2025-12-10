@@ -42,6 +42,7 @@ import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
+import type Game from '../game/core/Game';
 
 const BO3_TESTING_ENABLED = true;
 
@@ -175,6 +176,7 @@ export class GameServer {
     private lastCpuUsageTime: bigint;
     private loopDelayHistogram: IntervalHistogram;
     private lastLoopUtilization: EventLoopUtilization;
+    private matchmakingTimer?: NodeJS.Timeout;
     private gcStats = {
         totalDuration: 0,
         scavengeCount: 0,
@@ -348,6 +350,7 @@ export class GameServer {
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
+
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
@@ -1708,7 +1711,14 @@ export class GameServer {
     }
 
     private async matchmakeAllQueuesAsync(): Promise<void> {
+        // If there's a pending timer-based matchmaking task, clear it out
+        if (this.matchmakingTimer) {
+            clearTimeout(this.matchmakingTimer);
+            this.matchmakingTimer = undefined;
+        }
+
         const formatsWithMatches = this.queue.findReadyFormats();
+        let needsTimedRetry = false;
 
         for (const format of formatsWithMatches) {
             // track exceptions to avoid getting stuck in a loop
@@ -1720,7 +1730,10 @@ export class GameServer {
                 // try-catch here so that all matchmaking doesn't halt on a single failure
                 try {
                     matchedPlayers = this.queue.getNextMatchPair(format);
+
                     if (!matchedPlayers) {
+                        // If matchmaking failed to find a pair, flag that we need a timed retry
+                        needsTimedRetry = true;
                         break;
                     }
 
@@ -1740,6 +1753,19 @@ export class GameServer {
                     }
                 }
             }
+        }
+
+        if (needsTimedRetry) {
+            this.matchmakingTimer = setTimeout(() => {
+                try {
+                    this.matchmakeAllQueuesAsync();
+                } catch (error) {
+                    logger.error(
+                        'GameServer: Error in scheduled matchmaking retry:',
+                        { error: { message: error.message, stack: error.stack } }
+                    );
+                }
+            }, QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000);
         }
 
         return Promise.resolve();
@@ -1928,6 +1954,20 @@ export class GameServer {
             }, timeoutValue);
         } catch (err) {
             logger.error('GameServer: Error in onSocketDisconnected:', err);
+        }
+    }
+
+    /**
+     * Called near lobby end-of-life when users are disconnecting. Records matchmaking info
+     * (such as opponents and game end time) for future matchmaking before lobby tear-down.
+     */
+    public recordExpiringMatchmakingEntry(game: Game, lobby: Lobby): void {
+        Contract.assertNotNullLike(game.finishedAt, 'Finished game must have a finishedAt timestamp');
+
+        if (lobby.gameType === MatchType.Quick) {
+            // Update queue handler with finished game info
+            const [player1, player2] = game.getPlayers();
+            this.queue.setPreviousMatchEntry(player1.user.id, player2.user.id, game.finishedAt.getTime());
         }
     }
 

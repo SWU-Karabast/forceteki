@@ -1,6 +1,97 @@
-const { color } = require('console-log-colors');
-
-const mockCards = [];
+const mockCards = [
+    buildMockCard({
+        title: 'Han Solo',
+        subtitle: 'Hibernation Sick',
+        power: 1,
+        hp: 1,
+        cost: 1,
+        hasNonKeywordAbility: true,
+        keywords: ['shielded'],
+        aspects: ['vigilance', 'command'],
+        types: ['unit'],
+        traits: ['rebel'],
+        setId: {
+            set: 'LAW',
+            number: 37,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'han-solo#hibernation-sick',
+    }),
+    buildMockCard({
+        title: 'Zeb Orrelios',
+        subtitle: 'Spectre Four',
+        power: 4,
+        hp: 4,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        keywords: ['sentinel'],
+        aspects: ['vigilance', 'aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'spectre'],
+        setId: {
+            set: 'LAW',
+            number: 45,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'zeb-orrelios#spectre-four',
+    }),
+    buildMockCard({
+        title: 'Jaunty Light Freighter',
+        power: 1,
+        hp: 1,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['vehicle', 'transport'],
+        setId: {
+            set: 'LAW',
+            number: 147,
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'jaunty-light-freighter',
+    }),
+    buildMockCard({
+        title: 'Lando Calrissian',
+        subtitle: 'Eyes Open',
+        power: 4,
+        hp: 5,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        keywords: ['sentinel'],
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'underworld'],
+        setId: {
+            set: 'LAW',
+            number: 108,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'lando-calrissian#eyes-open',
+    }),
+    buildMockCard({
+        title: 'Leia\'s Disguise',
+        upgradePower: 2,
+        power: 2,
+        upgradeHp: 2,
+        hp: 2,
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['item', 'armor'],
+        types: ['upgrade'],
+        setId: {
+            set: 'LAW',
+            number: 111,
+        },
+        unique: true,
+        internalName: 'leias-disguise'
+    })
+];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
 function buildMockCard(cardData) {
