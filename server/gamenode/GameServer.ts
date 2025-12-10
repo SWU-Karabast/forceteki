@@ -1964,7 +1964,7 @@ export class GameServer {
     public recordExpiringMatchmakingEntry(game: Game, lobby: Lobby): void {
         Contract.assertNotNullLike(game.finishedAt, 'Finished game must have a finishedAt timestamp');
 
-        if (lobby.gameType === MatchType.Quick) {
+        if (lobby.matchmakingType === MatchmakingType.Quick) {
             // Update queue handler with finished game info
             const [player1, player2] = game.getPlayers();
             this.queue.setPreviousMatchEntry(player1.user.id, player2.user.id, game.finishedAt.getTime());
