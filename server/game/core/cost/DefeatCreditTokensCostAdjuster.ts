@@ -2,7 +2,6 @@ import { DefeatCardSystem } from '../../gameSystems/DefeatCardSystem';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
-import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import { EventName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type Game from '../Game';
@@ -18,9 +17,9 @@ import type { IDropdownListPromptProperties } from '../gameSteps/prompts/Dropdow
 export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
     public constructor(
         game: Game,
-        source: ICardWithCostProperty
+        sourcePlayer: Player
     ) {
-        super(game, source, CostAdjustStage.DefeatCredits_4, {
+        super(game, sourcePlayer, CostAdjustStage.DefeatCredits_4, {
             costAdjustType: CostAdjustType.DefeatCreditTokens,
             matchAbilityCosts: true
         });

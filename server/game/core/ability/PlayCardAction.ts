@@ -16,7 +16,6 @@ import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCost
 import type Game from '../Game';
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
-import { DefeatCreditTokensCostAdjuster } from '../cost/DefeatCreditTokensCostAdjuster';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -65,16 +64,13 @@ export abstract class PlayCardAction extends PlayerAction {
     public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
         Contract.assertTrue(card.hasCost());
 
-        const adjusters = Helpers.asArray(properties.costAdjusters)
-            .concat([new DefeatCreditTokensCostAdjuster(game, card)]);
-
         let propertiesWithDefaults = {
             title: `Play ${card.title}`,
             playType: PlayType.PlayFromHand,
             triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers,
             additionalCosts: [],
             ...properties,
-            costAdjusters: adjusters
+            costAdjusters: Helpers.asArray(properties.costAdjusters)
         };
 
         Contract.assertFalse(

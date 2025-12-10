@@ -52,6 +52,7 @@ import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
+import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -246,7 +247,9 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     protected override setupDefaultState() {
         super.setupDefaultState();
 
-        this.state.costAdjusters = [];
+        this.state.costAdjusters = [
+            new DefeatCreditTokensCostAdjuster(this.game, this).getRef()
+        ];
     }
 
     /**

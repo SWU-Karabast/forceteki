@@ -46,7 +46,7 @@ export interface ICostAdjusterPropertiesBase {
     limit?: AbilityLimit;
 
     /** Conditional card matching for things like aspects, traits, etc. */
-    match?: (card: Card, adjusterSource: Card) => boolean;
+    match?: (card: Card, adjusterSource: Card | null) => boolean;
 
     /** Whether the cost adjuster should adjust activation costs for abilities. Defaults to false. */
     matchAbilityCosts?: boolean;
@@ -145,27 +145,36 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     protected readonly limit?: AbilityLimit;
 
     private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
-    private readonly match?: (card: Card, adjusterSource: Card) => boolean;
+    private readonly match?: (card: Card, adjusterSource: Card | null) => boolean;
     private readonly cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     private readonly playType?: PlayType;
-    private readonly attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
+    private readonly attachTargetCondition?: (attachTarget: Card, adjusterSource: Card | null, context: AbilityContext<any>) => boolean;
     private readonly matchAbilityCosts: boolean;
 
     @undoObject()
-    protected accessor source: Card;
+    protected accessor source: Card | null;
+
+    @undoObject()
+    protected accessor sourcePlayer: Player;
 
     @undoState()
     protected accessor isCancelled: boolean;
 
     public constructor(
         game: Game,
-        source: Card,
+        sourcePlayerOrCard: Card | Player,
         costStage: CostAdjustStage,
         properties: ICostAdjusterProperties
     ) {
         super(game);
 
-        this.source = source;
+        if (sourcePlayerOrCard.isCard()) {
+            this.source = sourcePlayerOrCard;
+            this.sourcePlayer = sourcePlayerOrCard.controller;
+        } else {
+            this.source = null;
+            this.sourcePlayer = sourcePlayerOrCard;
+        }
 
         this.costAdjustStage = costStage;
         this.costAdjustType = properties.costAdjustType;
@@ -205,7 +214,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     }
 
     protected canAdjust(card: Card, context: AbilityContext, evaluationResult: ICostAdjustmentResolutionProperties): boolean {
-        if (this.limit && this.limit.isAtMax(this.source.controller)) {
+        if (this.limit && this.limit.isAtMax(this.sourcePlayer)) {
             return false;
         }
 
@@ -322,11 +331,11 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     }
 
     public markUsed(): void {
-        this.limit?.increment(this.source.controller);
+        this.limit?.increment(this.sourcePlayer);
     }
 
     public isExpired(): boolean {
-        return !!this.limit && this.limit.isAtMax(this.source.controller) && !this.limit.isRepeatable();
+        return !!this.limit && this.limit.isAtMax(this.sourcePlayer) && !this.limit.isRepeatable();
     }
 
     public cancel(): void {
