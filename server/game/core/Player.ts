@@ -303,6 +303,10 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return this.baseZone.hasForceToken();
     }
 
+    public get creditTokenCount(): number {
+        return this.baseZone.credits.length;
+    }
+
     public incrementRejectedOpponentUndoRequests() {
         this._rejectedOpponentUndoRequests++;
     }
@@ -1202,6 +1206,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             clock: undefined,
             aspects: this.getAspects(),
             hasForceToken: this.hasTheForce,
+            credits: this.creditTokenCount,
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
@@ -1317,6 +1322,11 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
             // Force Token
             state.hasForceToken = this.hasTheForce;
+
+            // Credits
+            if (this.creditTokenCount > 0) {
+                state.credits = this.creditTokenCount;
+            }
         } catch (error) {
             logger.error('Error capturing player state', {
                 error: { message: error.message, stack: error.stack },
