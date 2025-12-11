@@ -1006,6 +1006,13 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
+                // Check Bo3 access restrictions for anonymous users
+                const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, isPrivate, 'create a public best of three lobby');
+                if (bo3AccessError) {
+                    logger.info(`GameServer (create-lobby): Anonymous user ${user.getId()} blocked from creating public Bo3 lobby`);
+                    return res.status(400).json({ success: false, message: bo3AccessError });
+                }
+
                 await this.processDeckValidation(deck, true, { format, allow30CardsInMainBoard }, res, () => {
                     this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, allow30CardsInMainBoard);
                     res.status(200).json({ success: true });
@@ -1062,6 +1069,13 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: 'Lobby is full' });
                 }
 
+                // Check Bo3 access restrictions for anonymous users
+                const bo3AccessError = this.validateBo3Access(user, lobby.gamesToWinMode, lobby.isPrivate, 'join a public best of three lobby');
+                if (bo3AccessError) {
+                    logger.info(`GameServer (join-lobby): Anonymous user ${user.getId()} blocked from joining public Bo3 lobby ${lobbyId}`);
+                    return res.status(400).json({ success: false, message: bo3AccessError });
+                }
+
                 // Add the user to the lobby
                 this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
                 return res.status(200).json({ success: true });
@@ -1108,6 +1122,13 @@ export class GameServer {
                 if (!EnumHelpers.isEnumValue(format, SwuGameFormat)) {
                     logger.error(`GameServer (enter-queue): Invalid game format parameter ${format}`);
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
+                }
+
+                // Check Bo3 access restrictions for anonymous users (queue is always public)
+                const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, false, 'queue for a best of three match');
+                if (bo3AccessError) {
+                    logger.info(`GameServer (enter-queue): Anonymous user ${user.getId()} blocked from entering Bo3 queue`);
+                    return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
                 await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
@@ -1325,6 +1346,30 @@ export class GameServer {
         }
 
         return true;
+    }
+
+    /**
+     * Validates that the user is allowed to access a Bo3 game mode.
+     * Anonymous users are not allowed to create/join public Bo3 lobbies or queue for Bo3 matches.
+     * In development mode, this restriction is disabled unless FORCE_BLOCK_BO3_ANON_LOCAL is set to 'true'.
+     * @param user The user attempting the action
+     * @param gamesToWinMode The game mode being requested
+     * @param isPrivate Whether the lobby is private (always true for queue operations)
+     * @param operation Description of the operation for the error message
+     * @returns An error message if access is denied, or null if access is allowed
+     */
+    private validateBo3Access(user: User, gamesToWinMode: GamesToWinMode, isPrivate: boolean, operation: string): string | null {
+        if (gamesToWinMode !== GamesToWinMode.BestOfThree) {
+            return null; // Not Bo3, no restriction
+        }
+        if (isPrivate || user.isAuthenticatedUser()) {
+            return null; // Private lobby or authenticated user, allowed
+        }
+        // In development mode, allow anonymous Bo3 access unless explicitly blocked
+        if (process.env.ENVIRONMENT === 'development' && process.env.FORCE_BLOCK_BO3_ANON_LOCAL !== 'true') {
+            return null;
+        }
+        return `You must be logged in to ${operation}`;
     }
 
     public getUserLobbyId(userId: string): string | undefined {
@@ -1643,6 +1688,16 @@ export class GameServer {
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
+
+            // Check Bo3 access restrictions for anonymous users joining via link
+            const bo3AccessError = this.validateBo3Access(user, lobby.gamesToWinMode, lobby.isPrivate, 'join a public best of three lobby');
+            if (bo3AccessError) {
+                logger.info(`GameServer (onConnectionAsync): Anonymous user ${user.getId()} blocked from joining public Bo3 lobby ${lobby.id} via link`);
+                ioSocket.emit('connection_error', bo3AccessError);
+                ioSocket.disconnect();
+                return Promise.resolve();
+            }
+
             // anonymous user joining existing game
             /* if (!user.username) {
                 const newUser = { username: 'Player2', id: user.id };
