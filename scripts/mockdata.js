@@ -113,7 +113,7 @@ const mockCards = [
     buildMockCard({
         title: 'Great Pit of Carkoon',
         hp: 27,
-        text: 'Epic Action [discard a unit from your hand]: Search your deck for a card named The Sarlacc of Carkoon, reveal it and draw it,',
+        epicAction: '[Discard a unit from your hand]:  Search your deck for a card named The Sarlacc of Carkoon, reveal it and draw it.',
         aspects: ['command'],
         types: ['base'],
         setId: {

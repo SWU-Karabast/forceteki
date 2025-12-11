@@ -19,20 +19,16 @@ export default class TheSarlaccOfCarkoonHorrorOfTheDuneSea extends NonLeaderUnit
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Discard,
+                    immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck()
                 },
                 enemyUnit: {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
                     zoneFilter: ZoneName.GroundArena,
                     dependsOn: 'discardUnit',
-                    immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => [
-                        AbilityHelper.immediateEffects.moveToBottomOfDeck({
-                            target: context.targets.discardUnit
-                        }),
-                        AbilityHelper.immediateEffects.damage({
-                            amount: context.targets.discardUnit.printedPower
-                        })
-                    ])
+                    immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
+                        amount: context.targets.discardUnit.printedPower
+                    }))
                 }
             }
         });
