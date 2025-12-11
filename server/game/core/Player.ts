@@ -248,6 +248,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         super.setupDefaultState();
 
         this.state.costAdjusters = [
+            // All players get the Credit token cost adjuster by default
             new DefeatCreditTokensCostAdjuster(this.game, this).getRef()
         ];
     }

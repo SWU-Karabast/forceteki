@@ -50,7 +50,7 @@ describe('Credit token', function () {
                 expect(context.player1.credits).toBe(2);
             });
 
-            it('Can be defeated to pay costs', async function () {
+            it('Can be defeated to reduce the cost of playing a card', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -81,6 +81,41 @@ describe('Credit token', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(2);
 
                 expect(context.captainRex).toBeInZone('groundArena', context.player1);
+            });
+
+            it('Can be defeated to reduce the cost of an action ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        credits: 3,
+                        resources: 2,
+                        groundArena: ['disaffected-senator']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Use action ability (2R to deal 2 damage to a base)
+                context.player1.clickCard(context.disaffectedSenator);
+                context.player1.clickPrompt('Deal 2 damage to a base.');
+                context.player1.clickCard(context.p2Base);
+
+                // Prompt to use credit tokens for action ability cost
+                expect(context.player1).toHavePrompt('Use Credit tokens for Disaffected Senator');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Select amount',
+                    'Cancel'
+                ]);
+
+                context.player1.clickPrompt('Select amount');
+
+                // Should be able to choose from 1 to 2 credits
+                expect(context.player1).toHaveExactDropdownListOptions(['1', '2']);
+                context.player1.chooseListOption('2');
+
+                expect(context.player1.credits).toBe(1);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.p2Base.damage).toBe(2);
             });
         });
     });

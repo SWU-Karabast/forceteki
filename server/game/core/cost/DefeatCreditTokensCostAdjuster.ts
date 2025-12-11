@@ -156,9 +156,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         onSelect?: (chosenAmount: number) => void
     ): void {
         const props: IDropdownListPromptProperties = {
-            activePromptTitle: `Choose amount of Credit tokens to use for ${context.source.title}`,
             promptTitle: 'Select amount of Credit tokens',
-            waitingPromptTitle: `Waiting for opponent to choose Credit tokens to use for ${context.source.title}`,
             options: Array.from({ length: max - min + 1 }, (_, i) => (i + min).toString()),
             source: context.source,
             choiceHandler: (choice: string) => onSelect?.(parseInt(choice, 10))
