@@ -98,6 +98,7 @@ export abstract class CardDataGetter {
             [TokenUpgradeName.Experience]: await getCardAsync('experience'),
             [TokenUpgradeName.Shield]: await getCardAsync('shield'),
             [TokenCardName.Force]: await getCardAsync('the-force'),
+            [TokenCardName.Credit]: await getCardAsync('credit'),
         };
     }
 
@@ -111,6 +112,7 @@ export abstract class CardDataGetter {
             [TokenUpgradeName.Experience]: getCard('experience'),
             [TokenUpgradeName.Shield]: getCard('shield'),
             [TokenCardName.Force]: getCard('the-force'),
+            [TokenCardName.Credit]: getCard('credit'),
         };
     }
 
