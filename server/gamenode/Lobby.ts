@@ -1751,6 +1751,43 @@ export class Lobby {
     }
 
     /**
+     * Reverts the win history state when a game end is undone via the rollback mechanism.
+     * This is called when a player uses undo to revert past the game end.
+     * Note: Stats updates are not affected - this scenario is already handled by the stats logic.
+     */
+    public handleUndoGameEnd(): void {
+        switch (this.winHistory.gamesToWinMode) {
+            case GamesToWinMode.BestOfOne:
+                // Clear the recorded winner
+                this.winHistory.lastWinnerId = undefined;
+                logger.info('Lobby: Bo1 game end undone, cleared lastWinnerId', { lobbyId: this.id });
+                break;
+            case GamesToWinMode.BestOfThree: {
+                // Remove the last recorded game result
+                if (this.winHistory.winnerIdsInOrder.length > 0) {
+                    const removedWinnerId = this.winHistory.winnerIdsInOrder.pop();
+                    logger.info(`Lobby: Bo3 game end undone, removed winner ${removedWinnerId} from history`, { lobbyId: this.id });
+                }
+
+                // Clear set end result (the undone game may have been the deciding game)
+                this.winHistory.setEndResult = undefined;
+
+                // Clear the transition timer since we're back to an active game
+                this.clearBo3TransitionTimer();
+
+                // Clear confirmation tracking since we're back to an active game
+                this.bo3NextGameConfirmedBy?.clear();
+                break;
+            }
+            default:
+                Contract.fail(`Unknown games to win mode: ${(this.winHistory as any).gamesToWinMode}`);
+        }
+
+        // Send updated lobby state so clients see the reverted state
+        this.sendLobbyState();
+    }
+
+    /**
      * Checks if the Bo3 set is complete (a player has 2 wins).
      * If a player has won 2 games and setEndResult hasn't been set yet, it sets the WonTwoGames result.
      */

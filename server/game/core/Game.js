@@ -2199,6 +2199,10 @@ class Game extends EventEmitter {
 
             this.postRollbackOperations(rollbackResult.entryPoint);
 
+            if (rollbackResult.rolledPastGameEnd) {
+                this._router.handleUndoGameEnd();
+            }
+
             const postUndoState = this.captureGameState('any');
 
             const end = process.hrtime.bigint();
