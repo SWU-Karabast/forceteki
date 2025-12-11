@@ -74,7 +74,7 @@ export class BaseActionTimer {
      */
     public start(overrideTimeLimitSeconds?: number): void {
         Contract.assertTrue(
-            overrideTimeLimitSeconds == null || overrideTimeLimitSeconds * 1000 > this.timeLimitMs,
+            overrideTimeLimitSeconds == null || overrideTimeLimitSeconds * 1000 >= this.timeLimitMs,
             `Received invalid time limit, must be null or greater than ${this.timeLimitMs / 1000}: ${overrideTimeLimitSeconds}`
         );
 

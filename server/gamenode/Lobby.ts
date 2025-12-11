@@ -165,6 +165,7 @@ export class Lobby {
     private bo3NextGameConfirmedBy?: Set<string>;
     private bo3TransitionTimer?: NodeJS.Timeout;
     private bo3LobbyReadyTimer?: BaseActionTimer;
+    private bo3LobbyLoadedAt?: Date;
 
     public constructor(
         lobbyName: string,
@@ -570,6 +571,9 @@ export class Lobby {
         this.gameChat.addAlert(AlertType.ReadyStatus, `${currentUser.username} is ${args[0] ? 'ready to start' : 'not ready to start'}`);
         this.updateUserLastActivity(currentUser.id);
 
+        // For Bo3 games after game 1, manage the lobby ready timer based on ready state
+        this.manageBo3LobbyReadyTimer();
+
         // For Bo3 games after game 1, automatically start when both players are ready
         if (
             this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree &&
@@ -579,6 +583,46 @@ export class Lobby {
         ) {
             await this.startGameAsync();
         }
+    }
+
+    /**
+     * Manages the Bo3 lobby ready timer based on player ready state.
+     * - Starts the timer when the first player readies up
+     * - Stops the timer if both players become unready
+     * - Timer duration is dynamic: default 30s, but guarantees minimum 60s from lobby load
+     */
+    private manageBo3LobbyReadyTimer(): void {
+        if (
+            this.winHistory.gamesToWinMode !== GamesToWinMode.BestOfThree ||
+            this.winHistory.currentGameNumber <= 1 ||
+            !this.bo3LobbyReadyTimer
+        ) {
+            return;
+        }
+
+        const readyCount = this.users.filter((u) => u.ready).length;
+
+        if (readyCount === 0 && this.bo3LobbyReadyTimer.isRunning) {
+            // Both players unready - stop the timer
+            this.bo3LobbyReadyTimer.stop();
+            this.gameChat.addAlert(AlertType.Notification, 'Timer stopped. It will be reset when a player is ready.');
+            logger.info('Lobby: Bo3 lobby ready timer stopped - no players ready', { lobbyId: this.id });
+        } else if (readyCount === 1 && !this.bo3LobbyReadyTimer.isRunning) {
+            // First player ready - calculate dynamic timer duration
+            // Default: 30 seconds, but guarantee minimum 60 seconds from lobby load
+            const defaultDurationSeconds = 30;
+            const minimumTotalSeconds = 60;
+            const elapsedSeconds = this.bo3LobbyLoadedAt
+                ? Math.floor((Date.now() - this.bo3LobbyLoadedAt.getTime()) / 1000)
+                : 0;
+            const timerDurationSeconds = Math.max(defaultDurationSeconds, minimumTotalSeconds - elapsedSeconds);
+
+            this.bo3LobbyReadyTimer.start(timerDurationSeconds);
+            this.gameChat.addAlert(AlertType.Notification, `Timer started. Both players must be readied within ${timerDurationSeconds} seconds.`);
+            logger.info(`Lobby: Bo3 lobby ready timer started with ${timerDurationSeconds}s - first player ready`, { lobbyId: this.id, elapsedSeconds, timerDurationSeconds });
+        }
+
+        this.sendLobbyState();
     }
 
     private sendChatMessage(socket: Socket, ...args) {
@@ -1779,14 +1823,11 @@ export class Lobby {
             u.ready = false;
         });
 
+        // Track when lobby was loaded for timer calculation
+        this.bo3LobbyLoadedAt = new Date();
+
         this.gameChat.addAlert(AlertType.Notification, `${alertPrefix}. Proceeding to game ${this.winHistory.currentGameNumber}.`);
         logger.info(`Lobby: ${alertPrefix.toLowerCase()}, proceeding to Bo3 game ${this.winHistory.currentGameNumber}`, { lobbyId: this.id });
-
-        // Start the lobby ready timer if action timers are enabled
-        if (this.bo3LobbyReadyTimer) {
-            this.bo3LobbyReadyTimer.start();
-            this.gameChat.addAlert(AlertType.Notification, 'Players have 60 seconds to sideboard and ready up.');
-        }
 
         this.sendLobbyState();
     }
@@ -1801,14 +1842,14 @@ export class Lobby {
         }
 
         this.bo3LobbyReadyTimer = new BaseActionTimer(
-            60,
+            30,
             (callback, delayMs) => this.buildSafeTimeout(callback, delayMs, 'Lobby: error in Bo3 lobby ready timer')
         );
 
-        // Handler at 30 seconds remaining (warning)
-        this.bo3LobbyReadyTimer.addSpecificTimeHandler(30, (setStatus) => {
+        // Handler at 20 seconds remaining (warning)
+        this.bo3LobbyReadyTimer.addSpecificTimeHandler(20, (setStatus) => {
             setStatus(PlayerTimeRemainingStatus.Warning);
-            this.gameChat.addAlert(AlertType.Warning, '30 seconds remaining to sideboard and ready up.');
+            this.gameChat.addAlert(AlertType.Warning, '20 seconds remaining to sideboard and ready up.');
             this.sendLobbyState();
         });
 
