@@ -1,5 +1,49 @@
 describe('Cost adjuster combinations', function() {
     integration(function (contextRef) {
+        describe('Exploit + Credits:', function () {
+            it('triggers exploit first, and applies correct discount for credits', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        credits: 2,
+                        resources: 3,
+                        hand: ['battle-droid-legion'],
+                        groundArena: ['pyke-sentinel', 'imperial-dark-trooper'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // System should correctly determine that Battle Droid Legion is playable
+                // 9 cost unit with Exploit 2 (need 5 combined resources or Credits after Exploit)
+                expect(context.player1).toBeAbleToSelect(context.battleDroidLegion);
+                context.player1.clickCard(context.battleDroidLegion);
+
+                // Exploit is triggered first
+                expect(context.player1).toHaveExactPromptButtons(['Trigger Exploit', 'Cancel']);
+                context.player1.clickPrompt('Trigger Exploit');
+
+                // Must select both units to cover full cost
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialDarkTrooper]);
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                context.player1.clickCard(context.imperialDarkTrooper);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickPrompt('Done');
+
+                // Must use 2 credits to be able to cover full cost
+                expect(context.player1).toHaveExactPromptButtons(['Use 2 Credits']);
+                context.player1.clickPrompt('Use 2 Credits');
+
+                // Verify final state
+                expect(context.battleDroidLegion).toBeInZone('groundArena');
+                expect(context.player1.credits).toBe(0);
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.pykeSentinel).toBeInZone('discard');
+                expect(context.imperialDarkTrooper).toBeInZone('discard');
+            });
+        });
+
         describe('Exploit + Starhawk:', function () {
             it('Starhawk cost adjustment should not trigger at pay time if it is exploited away', async function () {
                 await contextRef.setupTestAsync({
@@ -504,6 +548,54 @@ describe('Cost adjuster combinations', function() {
             });
         });
 
+        describe('Vuutun Palaa + Credits:', function () {
+            it('triggers Vuutun Palaa first, and applies correct discount for credits', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        credits: 2,
+                        resources: 3,
+                        hand: ['the-father#maintaining-balance'],
+                        spaceArena: ['vuutun-palaa#droid-control-ship'],
+                        groundArena: ['oomseries-officer', 'b1-security-team', 'imperial-dark-trooper'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // System should correctly determine that The Father is playable
+                // 8 cost unit (3 droids, 3 resources, 2 credits)
+                expect(context.player1).toBeAbleToSelect(context.theFather);
+                context.player1.clickCard(context.theFather);
+
+                // Vuutun Palaa is triggered first
+                expect(context.player1).toHaveExactPromptButtons(['Pay cost by exhausting units', 'Cancel']);
+                context.player1.clickPrompt('Pay cost by exhausting units');
+
+                // Must select three droid units to cover full cost
+                expect(context.player1).toBeAbleToSelectExactly([context.oomseriesOfficer, context.b1SecurityTeam, context.imperialDarkTrooper]);
+                context.player1.clickCard(context.oomseriesOfficer);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                context.player1.clickCard(context.b1SecurityTeam);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                context.player1.clickCard(context.imperialDarkTrooper);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickPrompt('Done');
+
+                // Must use 2 credits to be able to cover full cost
+                expect(context.player1).toHaveExactPromptButtons(['Use 2 Credits']);
+                context.player1.clickPrompt('Use 2 Credits');
+
+                // Verify final state
+                expect(context.theFather).toBeInZone('groundArena');
+                expect(context.player1.credits).toBe(0);
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.oomseriesOfficer.exhausted).toBeTrue();
+                expect(context.b1SecurityTeam.exhausted).toBeTrue();
+                expect(context.imperialDarkTrooper.exhausted).toBeTrue();
+            });
+        });
+
         describe('Vuutun Palaa + Starhawk:', function () {
             it('reductions should be combined correctly at pay time', async function () {
                 await contextRef.setupTestAsync({
@@ -576,6 +668,36 @@ describe('Cost adjuster combinations', function() {
                 expect(context.player1.readyResourceCount).toBe(0);
                 expect(context.republicAttackPod).toBeInZone('groundArena');
                 expect(context.battleDroid.exhausted).toBeTrue();
+            });
+        });
+
+        describe('Starhawk + Credits:', function () {
+            it('evaluates Starhawk\'s halving effect first, and applies correct discount for credits', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        credits: 2,
+                        resources: 2,
+                        hand: ['the-father#maintaining-balance'],
+                        spaceArena: ['the-starhawk#prototype-battleship']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // System should correctly determine that The Father is playable
+                // 8 cost unit (halved to 4 by Starhawk, playable with 2 resources and 2 credits)
+                expect(context.player1).toBeAbleToSelect(context.theFather);
+                context.player1.clickCard(context.theFather);
+
+                // Pay part of cost with credits
+                expect(context.player1).toHaveExactPromptButtons(['Use 2 Credits', 'Cancel']);
+                context.player1.clickPrompt('Use 2 Credits');
+
+                // Verify final state
+                expect(context.theFather).toBeInZone('groundArena');
+                expect(context.player1.credits).toBe(0);
+                expect(context.player1.readyResourceCount).toBe(0);
             });
         });
 
@@ -842,6 +964,80 @@ describe('Cost adjuster combinations', function() {
                 expect(context.invincible).toBeInZone('spaceArena');
                 expect(context.cloneTrooper).toBeInZone('outsideTheGame');
                 expect(context.battleDroid.exhausted).toBeTrue();
+            });
+        });
+
+        describe('Exploit + Vuutun Palaa + Starhawk + Credits:', function () {
+            it('all cost adjustments should be correctly accounted for at each stage', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'dagobah-swamp',
+                        credits: 2,
+                        resources: 2,
+                        hand: ['the-invasion-of-christophsis'],
+                        spaceArena: ['vuutun-palaa#droid-control-ship', 'the-starhawk#prototype-battleship'],
+                        groundArena: [
+                            'imperial-dark-trooper',
+                            'death-star-stormtrooper',
+                            'separatist-commando',
+                            'oomseries-officer'
+                        ],
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force', 'battlefield-marine', 'wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // The Invasion of Christophsis should be playable with all cost adjustments
+                // 15 cost event with Exploit 4
+                expect(context.player1).toBeAbleToSelect(context.theInvasionOfChristophsis);
+                context.player1.clickCard(context.theInvasionOfChristophsis);
+
+                // Exploit is triggered first
+                expect(context.player1).toHaveExactPromptButtons(['Trigger Exploit', 'Cancel']);
+                context.player1.clickPrompt('Trigger Exploit');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    // Starhawk not selectable due to opportunity cost
+                    context.vuutunPalaa,
+                    context.imperialDarkTrooper,
+                    context.separatistCommando,
+                    context.deathStarStormtrooper,
+                    context.oomseriesOfficer
+                ]);
+
+                // Must select at least 2 targets, but we'll select 3 here
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                context.player1.clickCard(context.imperialDarkTrooper);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                context.player1.clickCard(context.deathStarStormtrooper);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickCard(context.separatistCommando);
+                context.player1.clickPrompt('Done');
+
+                // Vuutun Palaa trigger step
+                expect(context.player1).toHavePrompt('Select a unit to exhaust as if they were resources');
+                expect(context.player1).toBeAbleToSelectExactly([context.oomseriesOfficer]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                context.player1.clickCard(context.oomseriesOfficer);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickPrompt('Done');
+
+                // Use credits
+                expect(context.player1).toHaveExactPromptButtons(['Use 2 Credits']);
+                context.player1.clickPrompt('Use 2 Credits');
+
+                // Verify final state
+                expect(context.theInvasionOfChristophsis).toBeInZone('discard');
+                expect(context.player1.credits).toBe(0);
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.imperialDarkTrooper).toBeInZone('discard');      // Exploited
+                expect(context.deathStarStormtrooper).toBeInZone('discard');    // Exploited
+                expect(context.separatistCommando).toBeInZone('discard');       // Exploited
+                expect(context.oomseriesOfficer).toBeInZone('groundArena');
+                expect(context.oomseriesOfficer.exhausted).toBeTrue();
             });
         });
     });
