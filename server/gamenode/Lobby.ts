@@ -87,6 +87,9 @@ interface IBestOfThreeHistory {
 
     /** How the set ended (concede, timeout, or won games). Undefined if set is ongoing. */
     setEndResult?: IBo3SetEndResult;
+
+    /** Map of player IDs to usernames, initialized when game 1 starts */
+    playerNames?: Record<string, string>;
 }
 
 type IGameWinHistory = IBestOfOneHistory | IBestOfThreeHistory;
@@ -274,11 +277,21 @@ export class Lobby {
             }
         }
 
+        // Ensure all players are included in winsPerPlayer, even if they have 0 wins
+        if (this.winHistory.playerNames) {
+            for (const playerId of Object.keys(this.winHistory.playerNames)) {
+                if (!(playerId in winsPerPlayer)) {
+                    winsPerPlayer[playerId] = 0;
+                }
+            }
+        }
+
         return {
             gamesToWinMode: this.winHistory.gamesToWinMode,
             currentGameNumber: this.winHistory.currentGameNumber,
             winsPerPlayer,
-            setEndResult: this.winHistory.setEndResult
+            setEndResult: this.winHistory.setEndResult,
+            playerNames: this.winHistory.playerNames
         };
     }
 
@@ -1117,6 +1130,14 @@ export class Lobby {
             game.started = true;
 
             logger.info(`Lobby: starting game id: ${game.id}`, { lobbyId: this.id });
+
+            // Initialize playerNames for Bo3 when game 1 starts (captures players before anyone can leave)
+            if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber === 1) {
+                this.winHistory.playerNames = {};
+                for (const user of this.users) {
+                    this.winHistory.playerNames[user.id] = user.username;
+                }
+            }
 
             // Give each user the standard disconnect handler (longer timeout than during matchmaking)
             this.users.forEach((user) => {
