@@ -26,7 +26,7 @@ import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import type { Player } from '../game/core/Player';
 import type { IQueueFormatKey } from './QueueHandler';
-import { BaseActionTimer } from '../game/core/actionTimer/BaseActionTimer';
+import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 
 interface LobbySpectatorWrapper {
@@ -164,7 +164,7 @@ export class Lobby {
     private winHistory: IGameWinHistory;
     private bo3NextGameConfirmedBy?: Set<string>;
     private bo3TransitionTimer?: NodeJS.Timeout;
-    private bo3LobbyReadyTimer?: BaseActionTimer;
+    private bo3LobbyReadyTimer?: SimpleActionTimer;
     private bo3LobbyLoadedAt?: Date;
 
     public constructor(
@@ -1877,7 +1877,7 @@ export class Lobby {
             return;
         }
 
-        this.bo3LobbyReadyTimer = new BaseActionTimer(
+        this.bo3LobbyReadyTimer = new SimpleActionTimer(
             30,
             (callback, delayMs) => this.buildSafeTimeout(callback, delayMs, 'Lobby: error in Bo3 lobby ready timer')
         );

@@ -13,10 +13,10 @@ interface ISpecificTimeHandler {
 export type SafeTimeoutBuilder = (callback: () => void, delayMs: number) => NodeJS.Timeout;
 
 /**
- * Base class for action timers that can schedule handlers at specific time intervals.
+ * Simple action timer that can schedule handlers at specific time intervals.
  * Subclasses can extend this with context-specific logic (e.g., Game/Player checks).
  */
-export class BaseActionTimer {
+export class SimpleActionTimer {
     protected readonly timeLimitMs: number;
     protected readonly buildSafeTimeout: SafeTimeoutBuilder;
 

@@ -2,13 +2,13 @@ import { logger } from '../../../logger';
 import type Game from '../Game';
 import type { Player } from '../Player';
 import type { IActionTimer } from './IActionTimer';
-import { BaseActionTimer } from './BaseActionTimer';
+import { SimpleActionTimer } from './SimpleActionTimer';
 
 /**
- * Action timer for in-game player actions. Extends BaseActionTimer with
+ * Action timer for in-game player actions. Extends SimpleActionTimer with
  * Game/Player-specific safety checks to prevent accidentally kicking players.
  */
-export class StandardActionTimer extends BaseActionTimer implements IActionTimer {
+export class GameActionTimer extends SimpleActionTimer implements IActionTimer {
     private readonly game: Game;
     private readonly player: Player;
 

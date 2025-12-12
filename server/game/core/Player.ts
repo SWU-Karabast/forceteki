@@ -45,7 +45,7 @@ import type { GameObjectRef } from './GameObjectBase';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
 import { logger } from '../../logger';
-import { StandardActionTimer } from './actionTimer/StandardActionTimer';
+import { GameActionTimer } from './actionTimer/GameActionTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
 import type { IActionTimer } from './actionTimer/IActionTimer';
 import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
@@ -200,7 +200,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         this.left = false;
 
         if (useTimer) {
-            this.actionTimer = new StandardActionTimer(
+            this.actionTimer = new GameActionTimer(
                 60,
                 this,
                 this.game,
