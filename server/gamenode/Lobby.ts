@@ -1019,12 +1019,15 @@ export class Lobby {
             return;
         }
 
-        // If we're in a Bo3 set, concede the set for the leaving player (before removing them)
+        // If we're in a Bo3 set and game 1 has started, concede the set for the leaving player (before removing them)
+        // Players can freely leave before game 1 starts without forfeiting the set
         if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && !this.winHistory.setEndResult) {
-            Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
-            this.clearBo3TransitionTimer();
-            this.bo3LobbyReadyTimer?.stop();
-            this.concedeBo3ByUserId(id);
+            const bo3SetHasStarted = this.winHistory.currentGameNumber > 1 || this.game != null;
+            if (bo3SetHasStarted) {
+                this.clearBo3TransitionTimer();
+                this.bo3LobbyReadyTimer?.stop();
+                this.concedeBo3ByUserId(id);
+            }
         }
 
         if (this.lobbyOwnerId === id) {
