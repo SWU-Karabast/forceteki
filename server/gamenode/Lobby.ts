@@ -1053,6 +1053,9 @@ export class Lobby {
             }
         }
 
+        // Record matchmaking entry for quick match to prevent immediate rematches (before removing user)
+        this.tryRecordExpiringMatchmakingEntry(id);
+
         if (this.lobbyOwnerId === id) {
             const newOwner = this.users.find((u) => u.id !== id);
             this.lobbyOwnerId = newOwner?.id;
@@ -1065,7 +1068,6 @@ export class Lobby {
             const otherPlayer = this.users.find((u) => u.id !== id);
             if (otherPlayer) {
                 this.game.endGame(this.game.getPlayerById(otherPlayer.id), GameEndReason.PlayerLeft);
-                this.server.recordExpiringMatchmakingEntry(this.game, this);
             }
             this.sendGameState(this.game);
         }
@@ -1092,6 +1094,23 @@ export class Lobby {
 
     public isEmpty(): boolean {
         return this.users.length === 0;
+    }
+
+    /**
+     * Records a matchmaking entry if this is a quick match, to prevent immediate rematches.
+     * Uses the current time as the entry timestamp.
+     */
+    private tryRecordExpiringMatchmakingEntry(leavingPlayerId: string): void {
+        if (this.matchmakingType !== MatchmakingType.Quick) {
+            return;
+        }
+
+        const otherPlayer = this.users.find((u) => u.id !== leavingPlayerId);
+        if (!otherPlayer) {
+            return;
+        }
+
+        this.server.recordExpiringMatchmakingEntry(leavingPlayerId, otherPlayer.id, Date.now());
     }
 
     public cleanLobby(): void {

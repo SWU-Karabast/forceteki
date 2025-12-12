@@ -42,7 +42,6 @@ import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
-import type Game from '../game/core/Game';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -2003,17 +2002,11 @@ export class GameServer {
     }
 
     /**
-     * Called near lobby end-of-life when users are disconnecting. Records matchmaking info
-     * (such as opponents and game end time) for future matchmaking before lobby tear-down.
+     * Records matchmaking info (opponent and game end time) for future matchmaking.
+     * Called when a lobby ends or a player leaves, to prevent immediate rematches.
      */
-    public recordExpiringMatchmakingEntry(game: Game, lobby: Lobby): void {
-        Contract.assertNotNullLike(game.finishedAt, 'Finished game must have a finishedAt timestamp');
-
-        if (lobby.matchmakingType === MatchmakingType.Quick) {
-            // Update queue handler with finished game info
-            const [player1, player2] = game.getPlayers();
-            this.queue.setPreviousMatchEntry(player1.user.id, player2.user.id, game.finishedAt.getTime());
-        }
+    public recordExpiringMatchmakingEntry(player1Id: string, player2Id: string, endTimestamp: number): void {
+        this.queue.setPreviousMatchEntry(player1Id, player2Id, endTimestamp);
     }
 
     private logCpuUsage(): void {
