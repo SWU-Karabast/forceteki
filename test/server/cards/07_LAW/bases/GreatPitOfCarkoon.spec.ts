@@ -16,7 +16,7 @@ describe('GreatPitOfCarkoon', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.greatPitOfCarkoon);
-                expect(context.player1).toHavePrompt('Choose a card to discard for Great Pit of Carkoon\'s effect');
+                expect(context.player1).toHavePrompt('Choose a card to discard');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.darthVaderCommandingTheFirstLegion]);
                 context.player1.clickCard(context.wampa);
