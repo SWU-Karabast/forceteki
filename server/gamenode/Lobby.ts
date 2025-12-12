@@ -184,7 +184,7 @@ export class Lobby {
     ) {
         Contract.assertTrue(
             [MatchmakingType.PublicLobby, MatchmakingType.PrivateLobby, MatchmakingType.Quick].includes(matchmakingType),
-            `Lobby game type ${matchmakingType} doesn't match any MatchType values`
+            `Lobby game type ${matchmakingType} doesn't match any MatchmakingType values`
         );
         this._id = uuid();
         this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
@@ -259,6 +259,21 @@ export class Lobby {
     }
 
     /**
+     * Counts wins per player from an array of winner IDs.
+     * @param winnerIds Array of player IDs who won each game, or 'draw' for drawn games
+     * @returns Record mapping player IDs to their win counts
+     */
+    private countWinsPerPlayer(winnerIds: (string | 'draw')[]): Record<string, number> {
+        const winsPerPlayer: Record<string, number> = {};
+        for (const winnerId of winnerIds) {
+            if (winnerId !== 'draw') {
+                winsPerPlayer[winnerId] = (winsPerPlayer[winnerId] || 0) + 1;
+            }
+        }
+        return winsPerPlayer;
+    }
+
+    /**
      * Get win history data formatted for the frontend client
      */
     private getWinHistoryForClient() {
@@ -270,12 +285,7 @@ export class Lobby {
         }
 
         // Bo3 mode
-        const winsPerPlayer: Record<string, number> = {};
-        for (const winnerId of this.winHistory.winnerIdsInOrder) {
-            if (winnerId !== 'draw') {
-                winsPerPlayer[winnerId] = (winsPerPlayer[winnerId] || 0) + 1;
-            }
-        }
+        const winsPerPlayer = this.countWinsPerPlayer(this.winHistory.winnerIdsInOrder);
 
         // Ensure all players are included in winsPerPlayer, even if they have 0 wins
         if (this.winHistory.playerNames) {
@@ -880,7 +890,7 @@ export class Lobby {
     private changeDeck(socket: Socket, ...args) {
         // Changing decks is not allowed after game 1 in a Bo3 set
         Contract.assertFalse(
-            this.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2,
+            this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2,
             'Changing decks is not allowed after game 1 in a Bo3 set'
         );
 
@@ -912,7 +922,7 @@ export class Lobby {
     private updateDeck(socket: Socket, ...args) {
         // Sideboarding is only allowed after game 1 in a Bo3 set
         Contract.assertFalse(
-            this.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber <= 1,
+            this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber <= 1,
             'Sideboarding is not allowed before game 2 in a Bo3 set'
         );
 
@@ -1696,7 +1706,7 @@ export class Lobby {
      */
     private updateEndGameStatsIfNeeded(sequenceNumber?: number): void {
         if (this.game.statsUpdated) {
-            this.sendRepeatedEndGameUpdateStatsMessages(this.game);
+            this.sendRepeatedEndGameUpdateStatsMessages();
         } else {
             this.game.statsUpdated = true;
             this.endGameUpdateStatsAsync(this.game, sequenceNumber).catch((error) => {
@@ -1708,9 +1718,8 @@ export class Lobby {
     /**
      * If the game has already ended and stats were updated (i.e. there was an undo and we're ending again),
      * send a clear stats message to the user
-     * @param game
      */
-    private sendRepeatedEndGameUpdateStatsMessages(game: Game): void {
+    private sendRepeatedEndGameUpdateStatsMessages(): void {
         const cachedMessages: { userId: string; content: IStatsMessageFormat }[] = [];
 
         for (const [userId, messageTypes] of this.statsUpdateStatus) {
@@ -1817,12 +1826,7 @@ export class Lobby {
     private isBo3SetComplete(): boolean {
         Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
 
-        const winsPerPlayer: Record<string, number> = {};
-        for (const winnerId of this.winHistory.winnerIdsInOrder) {
-            if (winnerId !== 'draw') {
-                winsPerPlayer[winnerId] = (winsPerPlayer[winnerId] || 0) + 1;
-            }
-        }
+        const winsPerPlayer = this.countWinsPerPlayer(this.winHistory.winnerIdsInOrder);
 
         const hasWinner = Object.values(winsPerPlayer).some((wins) => wins >= 2);
 

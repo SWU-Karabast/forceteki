@@ -260,9 +260,13 @@ export class QueueHandler {
 
     // Check if any format has enough players for matchmaking
     public findReadyFormats(): IQueueFormatKey[] {
-        return Array.from(this.iterateQueues())
-            .filter(([_, queue]) => queue.length >= 2)
-            .map(([format]) => format);
+        const readyFormats: IQueueFormatKey[] = [];
+        for (const [format, queue] of this.iterateQueues()) {
+            if (queue.length >= 2) {
+                readyFormats.push(format);
+            }
+        }
+        return readyFormats;
     }
 
     private *iterateQueues(): IterableIterator<[IQueueFormatKey, QueuedPlayer[]]> {
