@@ -1,3 +1,5 @@
+const { color } = require('console-log-colors');
+
 const mockCards = [
     buildMockCard({
         title: 'Han Solo',
@@ -55,6 +57,25 @@ const mockCards = [
         internalName: 'jaunty-light-freighter',
     }),
     buildMockCard({
+        title: 'Lando Calrissian',
+        subtitle: 'Eyes Open',
+        power: 4,
+        hp: 5,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        keywords: ['sentinel'],
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'underworld'],
+        setId: {
+            set: 'LAW',
+            number: 108,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'lando-calrissian#eyes-open',
+    }),
+    buildMockCard({
         title: 'Leia\'s Disguise',
         upgradePower: 2,
         power: 2,
@@ -71,7 +92,34 @@ const mockCards = [
         },
         unique: true,
         internalName: 'leias-disguise'
-    })
+    }),
+    buildMockCard({
+        title: 'Credit',
+        cost: 0,
+        internalName: 'credit',
+        unique: false,
+        traits: ['supply'],
+        types: [
+            'token'
+        ],
+        setId: {
+            set: 'LAW'
+        },
+    }),
+    buildMockCard({
+        title: 'Unmarked Credits',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['supply'],
+        setId: {
+            set: 'LAW',
+            number: 244
+        },
+        cost: 1,
+        unique: false,
+        internalName: 'unmarked-credits',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
