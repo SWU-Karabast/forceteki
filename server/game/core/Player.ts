@@ -247,10 +247,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     protected override setupDefaultState() {
         super.setupDefaultState();
 
-        this.state.costAdjusters = [
-            // All players get the Credit token cost adjuster by default
-            new DefeatCreditTokensCostAdjuster(this.game, this).getRef()
-        ];
+        this.state.costAdjusters = [];
     }
 
     /**
@@ -791,6 +788,19 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         if (this.costAdjusters.includes(adjuster)) {
             adjuster.cancel();
             this.state.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster).map((x) => x.getRef());
+        }
+    }
+
+    public updateCreditTokenCostAdjuster() {
+        const creditTokenAdjuster = this.costAdjusters.find((adjuster) =>
+            adjuster.isCreditTokenAdjuster()
+        );
+
+        if (this.creditTokenCount === 0 && creditTokenAdjuster) {
+            this.removeCostAdjuster(creditTokenAdjuster);
+        } else if (this.creditTokenCount > 0 && !creditTokenAdjuster) {
+            const newAdjuster = new DefeatCreditTokensCostAdjuster(this.game, this);
+            this.addCostAdjuster(newAdjuster);
         }
     }
 

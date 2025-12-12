@@ -102,11 +102,19 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
         Contract.assertEqual(credit.controller, this.owner, `Attempting to add a credit token to ${this} but its controller is ${credit.controller}`);
 
         this._credits = [...this._credits, credit];
+
+        if (this.credits.length === 1) {
+            this.owner.updateCreditTokenCostAdjuster();
+        }
     }
 
     public removeCreditToken(credit: ITokenCard) {
         Contract.assertArrayIncludes(this._credits, credit, `Attempting to remove credit token ${credit} from ${this} but it is not present`);
 
         this._credits = this._credits.filter((c) => c !== credit);
+
+        if (this.credits.length === 0) {
+            this.owner.updateCreditTokenCostAdjuster();
+        }
     }
 }

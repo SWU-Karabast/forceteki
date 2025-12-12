@@ -25,6 +25,10 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         });
     }
 
+    public override isCreditTokenAdjuster(): this is DefeatCreditTokensCostAdjuster {
+        return true;
+    }
+
     protected override canAdjust(
         card: Card,
         context: AbilityContext,

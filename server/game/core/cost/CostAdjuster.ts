@@ -18,6 +18,7 @@ import * as CostHelpers from './CostHelpers';
 import type { TargetedCostAdjuster } from './TargetedCostAdjuster';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
+import type { DefeatCreditTokensCostAdjuster } from './DefeatCreditTokensCostAdjuster';
 
 // TODO: move all these enums + interfaces to CostInterfaces.ts
 
@@ -210,6 +211,10 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     }
 
     public requiresGameSteps(): this is CostAdjusterWithGameSteps {
+        return false;
+    }
+
+    public isCreditTokenAdjuster(): this is DefeatCreditTokensCostAdjuster {
         return false;
     }
 
