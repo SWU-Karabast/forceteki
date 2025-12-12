@@ -18,7 +18,7 @@ import { DeckSource } from '../utils/deck/DeckInterfaces';
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
-import { isBo3Enabled, type GameServer } from './GameServer';
+import type { GameServer } from './GameServer';
 import { GamesToWinMode, RematchMode } from '../game/core/Constants';
 import { AlertType, GameEndReason, GameErrorSeverity, SwuGameFormat } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
@@ -203,7 +203,6 @@ export class Lobby {
                 this.setBo1History();
                 break;
             case GamesToWinMode.BestOfThree:
-                Contract.assertTrue(isBo3Enabled(), 'Best of three mode only enabled for dev testing');
                 this.initializeBo3History();
                 break;
             default:

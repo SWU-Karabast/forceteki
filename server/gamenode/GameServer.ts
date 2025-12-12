@@ -44,12 +44,6 @@ import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
 import type Game from '../game/core/Game';
 
-const BO3_TESTING_ENABLED = true;
-
-export function isBo3Enabled(): boolean {
-    return BO3_TESTING_ENABLED && process.env.ENVIRONMENT === 'development';
-}
-
 /**
  * Represents additional Socket types we can leverage these later.
  */
@@ -1491,10 +1485,6 @@ export class GameServer {
         }
         if (!isPrivate && typeof user === 'string') {
             throw new Error('User must be provided for public lobbies');
-        }
-
-        if (!isBo3Enabled()) {
-            Contract.assertFalse(gamesToWinMode === GamesToWinMode.BestOfThree, 'Best of three mode only enabled for dev testing');
         }
 
         // set default user if anonymous user is supplied for private lobbies

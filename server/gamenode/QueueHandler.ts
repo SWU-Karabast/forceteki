@@ -5,7 +5,7 @@ import * as Contract from '../game/core/utils/Contract';
 import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
-import { isBo3Enabled } from './GameServer';
+
 import type { IMatchmakingPlayerEntry, IMatchmakingRule } from './MatchmakingRules';
 import { MatchmakingRule } from './MatchmakingRules';
 
@@ -56,10 +56,7 @@ export class QueueHandler {
             const formatMap = new Map<GamesToWinMode, QueuedPlayer[]>();
 
             formatMap.set(GamesToWinMode.BestOfOne, []);
-
-            if (isBo3Enabled()) {
-                formatMap.set(GamesToWinMode.BestOfThree, []);
-            }
+            formatMap.set(GamesToWinMode.BestOfThree, []);
 
             this.queues.set(format, formatMap);
 
