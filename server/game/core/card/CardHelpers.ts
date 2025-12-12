@@ -5,7 +5,7 @@ import { BaseCard } from './BaseCard';
 import { Card } from './Card';
 import { EventCard } from './EventCard';
 import { NonLeaderUnitCard } from './NonLeaderUnitCard';
-import { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
+import { TokenCard, TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import { UpgradeCard } from './UpgradeCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
@@ -34,6 +34,8 @@ export function createUnimplementedCard(owner: Player, cardData: ICardDataJson):
             return new TokenUnitCard(owner, cardData);
         case CardType.TokenUpgrade:
             return new TokenUpgradeCard(owner, cardData);
+        case CardType.TokenCard:
+            return new TokenCard(owner, cardData);
         default:
             throw new Error(`Unexpected card type: ${cardType}`);
     }

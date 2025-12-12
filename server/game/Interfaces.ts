@@ -400,6 +400,7 @@ export interface IPlayerSerializedState {
     deck?: ISafeSerializedType<number> | ISafeSerializedArrayType<string>;
     hasInitiative?: ISafeSerializedType<boolean>;
     hasForceToken?: ISafeSerializedType<boolean>;
+    credits?: ISafeSerializedType<number>;
 }
 
 export interface ISerializedGameState {
