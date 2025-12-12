@@ -60,6 +60,7 @@ type EnglishProfaneWord =
   | 'porn'
   | 'prick'
   | 'pussy'
+  | 'queer'
   | 'rape'
   | 'retard'
   | 'scat'
@@ -369,6 +370,7 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
     )
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'prick' }).addPattern(pattern`|prick[s]|`))
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'pussy' }).addPattern(pattern`p[u]ssy`))
+    .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'queer' }).addPattern(pattern`queer[s]`))
     .addPhrase((phrase) =>
         phrase
             .setMetadata({ originalWord: 'rape' })
