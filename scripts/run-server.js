@@ -20,6 +20,7 @@ function createEnvFile() {
         DISCORD_ERROR_REPORT_WEBHOOK_URL: '',
         SWUSTATS_API_KEY: '',
         FORCE_ENABLE_STATS_LOGGING: 'false',
+        FORCE_BLOCK_BO3_ANON_LOCAL: 'false',
     };
     return fs.writeFile(
         envPath,

@@ -24,6 +24,7 @@ export class Deck {
     public readonly id?: string;
     public readonly isPresentInDb: boolean;
     public readonly deckLink?: string;
+    public readonly name?: string;
     public readonly originalDeckList: ISwuDbFormatDecklist;
 
     private readonly cardDataGetter: CardDataGetter;
@@ -50,6 +51,7 @@ export class Deck {
 
         this.isPresentInDb = decklist.isPresentInDb;
         this.deckLink = decklist.deckLink;
+        this.name = decklist.metadata?.name;
         this.deckSource = this.determineDeckSource(decklist.deckLink);
     }
 
@@ -125,6 +127,7 @@ export class Deck {
 
     public getDecklist(): IDecklistInternal {
         return {
+            name: this.name,
             leader: this.leader,
             base: this.base,
             deck: this.convertMapToCardList(this.deckCards),

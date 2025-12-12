@@ -244,6 +244,8 @@ export class SnapshotManager {
     private rollbackToInternal(settings: IGetSnapshotSettings, overrideQuickRollbackPoint?: QuickRollbackPoint): IRollbackResult {
         Contract.assertFalse(settings.type !== SnapshotType.Quick && overrideQuickRollbackPoint != null, 'overrideQuickRollbackPoint can only be set when rolling back a Quick snapshot');
 
+        const gameWonBeforeRollback = this.game.winnerNames.length > 0;
+
         let rolledBackSnapshotIdx: number = null;
         switch (settings.type) {
             case SnapshotType.Action:
@@ -264,10 +266,16 @@ export class SnapshotManager {
         }
 
         if (rolledBackSnapshotIdx != null) {
+            const gameWonAfterRollback = this.game.winnerNames.length > 0;
+
             // Throw out all snapshots after the rollback snapshot.
             this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
             this._gameStepsSinceLastUndo = 0;
-            return { success: true, entryPoint: this.getEntryPointAfterRollback(settings) };
+            return {
+                success: true,
+                entryPoint: this.getEntryPointAfterRollback(settings),
+                rolledPastGameEnd: gameWonBeforeRollback && !gameWonAfterRollback
+            };
         }
 
         return { success: false };

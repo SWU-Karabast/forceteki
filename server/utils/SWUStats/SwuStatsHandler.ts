@@ -109,6 +109,7 @@ export class SwuStatsHandler {
      * @param player2User Details about player2
      * @param lobbyId the id of the lobby in string format
      * @param serverObject the server object from where we gain access to the user x accessToken
+     * @param sequenceNumber Optional game number within a Bo3 set (1, 2, or 3). Omitted for Bo1 games.
      * @returns Promise that resolves to true if successful, false otherwise
      */
     public async sendSWUStatsGameResultAsync(
@@ -117,6 +118,7 @@ export class SwuStatsHandler {
         player2: Player,
         lobbyId: string,
         serverObject: GameServer,
+        sequenceNumber?: number,
     ): Promise<IStatsMessageFormat> {
         try {
             // Determine winner
@@ -135,7 +137,8 @@ export class SwuStatsHandler {
                 player2,
                 winner,
                 lobbyId,
-                serverObject
+                serverObject,
+                sequenceNumber
             );
             // Log the payload for debugging (excluding API key and tokens)
             // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
@@ -297,7 +300,8 @@ export class SwuStatsHandler {
         player2: Player,
         winner: number,
         lobbyId: string,
-        serverObject: GameServer
+        serverObject: GameServer,
+        sequenceNumber?: number
     ): Promise<SWUstatsGameResult> {
         Contract.assertNotNullLike(player1.lobbyDeck, `Player1 ${player1.id} has no deck assigned at SWUStats payload build time`);
         Contract.assertNotNullLike(player2.lobbyDeck, `Player2 ${player2.id} has no deck assigned at SWUStats payload build time`);
@@ -335,6 +339,7 @@ export class SwuStatsHandler {
             gameName: String(game.id),
             winHero,
             loseHero,
+            sequenceNumber,
         };
     }
 

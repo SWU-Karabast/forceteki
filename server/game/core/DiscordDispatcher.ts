@@ -4,8 +4,8 @@ import { httpPostFormData } from '../../Util';
 import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState } from '../Interfaces';
 import { logger } from '../../logger';
 import * as Helpers from './utils/Helpers';
-import type { SwuGameFormat } from '../../SwuGameFormat';
-import type { MatchType } from '../../gamenode/Lobby';
+import type { MatchmakingType } from '../../gamenode/Lobby';
+import type { SwuGameFormat } from './Constants';
 
 interface IDiscordFormat {
     content: string;
@@ -46,7 +46,7 @@ export interface IDiscordDispatcher {
         player1Id: string,
         player2Id: string,
         gameFormat: SwuGameFormat,
-        matchType: MatchType,
+        matchType: MatchmakingType,
         gameStepsSinceLastUndo?: number,
     ): Promise<EitherPostResponseOrBoolean>;
 
@@ -62,7 +62,7 @@ export interface IDiscordDispatcher {
         error: Error,
         lobbyId: string,
         gameFormat: SwuGameFormat,
-        matchType: MatchType,
+        matchType: MatchmakingType,
     ): Promise<EitherPostResponseOrBoolean>;
 }
 
@@ -331,7 +331,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         player1Id: string,
         player2Id: string,
         gameFormat: SwuGameFormat,
-        matchType: MatchType,
+        matchType: MatchmakingType,
         gameStepsSinceLastUndo?: number
     ): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
@@ -418,7 +418,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         error: Error,
         lobbyId: string,
         gameFormat: SwuGameFormat,
-        matchType: MatchType,
+        matchType: MatchmakingType,
     ): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
