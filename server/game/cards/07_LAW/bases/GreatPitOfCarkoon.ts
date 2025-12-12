@@ -16,12 +16,15 @@ export default class GreatPitOfCarkoon extends BaseCard {
             cost: AbilityHelper.costs.discardCardFromOwnHand({
                 cardCondition: (card) => card.isUnit(),
             }),
-            immediateEffect: AbilityHelper.immediateEffects.entireDeckSearch({
-                cardCondition: (card) => card.name === 'The Sarlacc of Carkoon',
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard(),
-                revealSelected: true,
-                shuffleWhenDone: true,
-            }),
+            immediateEffect: AbilityHelper.immediateEffects.sequential([
+                AbilityHelper.immediateEffects.entireDeckSearch({
+                    cardCondition: (card) => card.name === 'The Sarlacc of Carkoon',
+                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard(),
+                    revealSelected: true,
+                    shuffleWhenDone: false,
+                }),
+                AbilityHelper.immediateEffects.shuffleDeck()
+            ]),
         });
     }
 }

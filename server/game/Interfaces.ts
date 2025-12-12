@@ -243,10 +243,7 @@ export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPr
 export type IEventAbilityProps<TSource extends Card = Card> = IAbilityPropsWithSystems<AbilityContext<TSource>>;
 
 /** Interface definition for setEpicActionAbility */
-export type IEpicActionProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'limit' | 'handler'> & {
-    cost?: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[] |
-      ((context: AbilityContext<TSource>) => ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[]);
-};
+export type IEpicActionProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'limit' | 'handler'> & Pick<IActionAbilityProps<TSource>, 'cost'>;
 
 export type IKeywordProperties =
   | IAmbushKeywordProperties
