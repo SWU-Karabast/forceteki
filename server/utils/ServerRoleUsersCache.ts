@@ -76,4 +76,22 @@ export class ServerRoleUsersCache {
         }
         return data.moderators.some((modUserId) => modUserId === userId);
     }
+
+    /**
+     * Checks if a user is a contributor.
+     * @param userId - The user ID to check
+     * @returns true if the user is a contributor, false otherwise
+     */
+    public isContributor(userId: string): boolean {
+        const data = this.cache.getValue();
+        if (!data) {
+            return false;
+        }
+        return (
+            data.contributors.includes(userId) ||
+            data.moderators.includes(userId) ||
+            data.developers.includes(userId) ||
+            data.admins.includes(userId)
+        );
+    }
 }

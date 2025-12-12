@@ -116,10 +116,12 @@ export enum ServerRole {
     Admin = 'admin',
     Developer = 'developer',
     Moderator = 'moderator',
+    Contributor = 'contributor'
 }
 
 export interface IServerRoleUsersListsEntity {
     admins: string[];
     developers: string[];
     moderators: string[];
+    contributors: string[];
 }
