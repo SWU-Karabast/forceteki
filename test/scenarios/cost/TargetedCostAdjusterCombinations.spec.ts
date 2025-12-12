@@ -1,5 +1,41 @@
 describe('Cost adjuster combinations', function() {
     integration(function (contextRef) {
+        describe('Ignore all aspects + Credits:', function () {
+            it('applies correct discount for credits when ignoring all aspects', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'nala-se#clone-engineer',
+                        base: 'kestro-city',
+                        credits: 4,
+                        resources: 3,
+                        hand: ['captain-rex#lead-by-example']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // System should correctly determine that Captain Rex is playable
+                expect(context.player1).toBeAbleToSelect(context.captainRex);
+                context.player1.clickCard(context.captainRex);
+
+                // Prompt to use credits
+                expect(context.player1).toHavePrompt('Use Credit tokens for Captain Rex');
+                expect(context.player1).toHaveExactPromptButtons(['Select amount', 'Cancel']);
+                context.player1.clickPrompt('Select amount');
+
+                // He costs 6 after ignoring all aspects, so must use 3 or 4 credits
+                expect(context.player1).toHavePrompt('Select amount of Credit tokens');
+                expect(context.player1).toHaveExactDropdownListOptions(['3', '4']);
+                context.player1.chooseListOption('4');
+
+                // Verify final state
+                expect(context.captainRex).toBeInZone('groundArena');
+                expect(context.player1.credits).toBe(0);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+            });
+        });
+
         describe('Exploit + Credits:', function () {
             it('triggers exploit first, and applies correct discount for credits', async function () {
                 await contextRef.setupTestAsync({
