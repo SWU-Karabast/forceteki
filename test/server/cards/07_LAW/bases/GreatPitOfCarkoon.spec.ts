@@ -27,14 +27,6 @@ describe('GreatPitOfCarkoon', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.theSarlaccOfCarkoonHorrorOfTheDuneSea);
-                expect(context.player1).toHavePrompt('Waiting for opponent to finish viewing cards for Great Pit of Carkoon ability');
-
-                expect(context.player2).toHaveExactViewableDisplayPromptCards([
-                    context.theSarlaccOfCarkoonHorrorOfTheDuneSea
-                ]);
-                expect(context.player2).toHaveEnabledPromptButton('Done');
-
-                context.player2.clickPrompt('Done');
 
                 expect(context.theSarlaccOfCarkoonHorrorOfTheDuneSea).toBeInZone('hand', context.player1);
                 expect(context.player2).toBeActivePlayer();
@@ -49,7 +41,7 @@ describe('GreatPitOfCarkoon', function() {
                 expect(context.greatPitOfCarkoon).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
 
-            it('can be used even if there is no valid target in hand', async function () {
+            it('cannot be used even if there is no valid target in hand', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -63,11 +55,11 @@ describe('GreatPitOfCarkoon', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.greatPitOfCarkoon);
-                expect(context.player2).toBeActivePlayer();
+                expect(context.greatPitOfCarkoon).not.toHaveAvailableActionWhenClickedBy(context.player1);
+                expect(context.player1).toBeActivePlayer();
             });
 
-            it('can be used even if the hand is empty', async function () {
+            it('cannot be used even if the hand is empty', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -80,16 +72,17 @@ describe('GreatPitOfCarkoon', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.greatPitOfCarkoon);
-                expect(context.player2).toBeActivePlayer();
+                expect(context.greatPitOfCarkoon).not.toHaveAvailableActionWhenClickedBy(context.player1);
+                expect(context.player1).toBeActivePlayer();
             });
 
             it('can be used even if no Sarlacc in deck', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        deck: ['wampa', 'atst', 'superlaser-blast', 'superlaser-technician', 'takedown', 'blizzard-assault-atat', 'wampa'],
+                        deck: ['atst', 'superlaser-blast', 'superlaser-technician', 'takedown', 'blizzard-assault-atat'],
                         base: 'great-pit-of-carkoon',
+                        hand: ['superlaser-blast', 'wampa', 'darth-vader#commanding-the-first-legion']
                     },
                     player2: {
                     }
@@ -98,17 +91,18 @@ describe('GreatPitOfCarkoon', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.greatPitOfCarkoon);
+                context.player1.clickCard(context.wampa);
 
-                // Don't beleive we can currently display a blank/take nothing prompt at this point, at least not with entireDeckSearch
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('can be used even if no cards in deck', async function () {
+            it('can be used even if no cards in deck, but cancelled', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        deck: ['wampa', 'atst', 'superlaser-blast', 'superlaser-technician', 'takedown', 'blizzard-assault-atat', 'wampa'],
+                        deck: [],
                         base: 'great-pit-of-carkoon',
+                        hand: ['superlaser-blast', 'wampa', 'darth-vader#commanding-the-first-legion']
                     },
                     player2: {
                     }
@@ -118,8 +112,41 @@ describe('GreatPitOfCarkoon', function() {
 
                 context.player1.clickCard(context.greatPitOfCarkoon);
 
-                // Don't beleive we can currently display a blank/take nothing prompt at this point, at least not with entireDeckSearch
+                expect(context.player1).toHavePrompt('The ability "[Discard a unit from your hand]: Search your deck for a card named The Sarlacc of Carkoon, reveal it, and draw it" will have no effect. Are you sure you want to use it?');
+                expect(context.player1).toHaveEnabledPromptButton('Use it anyway');
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
+
+                context.player1.clickPrompt('Cancel');
+
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('can be used even if no cards in deck, and continue', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        deck: [],
+                        base: 'great-pit-of-carkoon',
+                        hand: ['superlaser-blast', 'wampa', 'darth-vader#commanding-the-first-legion']
+                    },
+                    player2: {
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.greatPitOfCarkoon);
+
+                expect(context.player1).toHavePrompt('The ability "[Discard a unit from your hand]: Search your deck for a card named The Sarlacc of Carkoon, reveal it, and draw it" will have no effect. Are you sure you want to use it?');
+                expect(context.player1).toHaveEnabledPromptButton('Use it anyway');
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
+
+                context.player1.clickPrompt('Use it anyway');
+
+                context.player1.clickCard(context.wampa);
+
                 expect(context.player2).toBeActivePlayer();
+                expect(context.wampa).toBeInZone('discard', context.player1);
             });
         });
     });

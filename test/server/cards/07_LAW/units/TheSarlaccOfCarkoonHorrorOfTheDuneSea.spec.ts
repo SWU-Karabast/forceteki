@@ -1,3 +1,4 @@
+
 describe('The Sarlacc of Carkoon, Horror of the Dune Sea', function () {
     integration(function (contextRef) {
         it('should move a unit from discard to bottom of deck and deal damage equal to its power to an enemy ground unit', async function () {
@@ -102,12 +103,9 @@ describe('The Sarlacc of Carkoon, Horror of the Dune Sea', function () {
             expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer]);
             context.player1.clickCard(context.moistureFarmer);
 
-            expect(context.player1).toBeAbleToSelectExactly([context.atst]);
-            context.player1.clickCard(context.atst);
-
             expect(context.moistureFarmer).toBeInBottomOfDeck(context.player1, 1);
-
             expect(context.atst.damage).toBe(0);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });
