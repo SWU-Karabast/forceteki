@@ -74,7 +74,7 @@ export abstract class PlayCardAction extends PlayerAction {
         };
 
         Contract.assertFalse(
-            Helpers.asArray(propertiesWithDefaults.costAdjusters).some(((adjuster) => adjuster && adjuster.isExploit())),
+            propertiesWithDefaults.costAdjusters.some(((adjuster) => adjuster && adjuster.isExploit())),
             `PlayCardAction for ${card.internalName} has an exploit adjuster already included in properties`
         );
 

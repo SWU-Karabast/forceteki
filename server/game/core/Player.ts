@@ -52,6 +52,7 @@ import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
+import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -787,6 +788,19 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         if (this.costAdjusters.includes(adjuster)) {
             adjuster.cancel();
             this.state.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster).map((x) => x.getRef());
+        }
+    }
+
+    public updateCreditTokenCostAdjuster() {
+        const creditTokenAdjuster = this.costAdjusters.find((adjuster) =>
+            adjuster.isCreditTokenAdjuster()
+        );
+
+        if (this.creditTokenCount === 0 && creditTokenAdjuster) {
+            this.removeCostAdjuster(creditTokenAdjuster);
+        } else if (this.creditTokenCount > 0 && !creditTokenAdjuster) {
+            const newAdjuster = new DefeatCreditTokensCostAdjuster(this.game, this);
+            this.addCostAdjuster(newAdjuster);
         }
     }
 
