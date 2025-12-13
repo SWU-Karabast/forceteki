@@ -107,6 +107,34 @@ describe('Queen Amidala, Championing Her People', function() {
                 expect(context.queenAmidalaChampioningHerPeople.damage).toBe(0);
             });
 
+            it('should prevent event damage if the player chooses to defeat a friendly ground unit that shares a trait (Bombing Run)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['queen-amidala#championing-her-people'],
+                    },
+                    player2: {
+                        hand: ['bombing-run'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.queenAmidala);
+
+                const spies = context.player1.findCardsByName('spy');
+
+                context.player2.clickCard(context.bombingRun);
+                context.player2.clickPrompt('Ground');
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly(spies);
+                context.player1.clickCard(spies[0]);
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.queenAmidala).toBeInZone('groundArena');
+            });
+
             it('should not prevent indirect damage if the player chooses to defeat a friendly ground unit that shares a trait', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -210,6 +238,32 @@ describe('Queen Amidala, Championing Her People', function() {
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.queenAmidalaChampioningHerPeople).toBeInZone('discard');
+            });
+
+            it('can prevent damage from SHD Han Solo leader\'s ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['captain-typho#protecting-the-senator'],
+                        hand: ['queen-amidala#championing-her-people'],
+                        leader: 'han-solo#worth-the-risk',
+                        base: 'echo-base',
+                        resources: 4
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickCard(context.queenAmidala);
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.captainTypho]);
+                context.player1.clickCard(context.captainTypho);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.queenAmidala.damage).toBe(0);
+                expect(context.captainTypho).toBeInZone('discard');
             });
 
             it('should prevent damage from friendly source if the player chooses to defeat a friendly ground unit that shares a trait', async function () {
