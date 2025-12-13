@@ -333,6 +333,84 @@ describe('Cobb Vanth, The Marshal', function() {
                 expect(context.patrollingVwing).toBeInZone('spaceArena', context.player2);
                 expect(context.player2.exhaustedResourceCount).toBe(p2ExhaustedResourceCount);
             });
+
+            it('should not allow card to be played for free from hand', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['cobb-vanth#the-marshal'],
+                        deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay', 'protector', 'patrolling-vwing', 'devotion',
+                            'consular-security-force', 'echo-base-defender', 'swoop-racer', 'resupply', 'superlaser-technician'],
+                        resources: 5,
+                        hand: ['bright-hope#the-last-transport', 'alliance-dispatcher'],
+                        leader: 'bail-organa#doing-everything-he-can'
+
+                    },
+                    player2: {
+                        spaceArena: ['system-patrol-craft'],
+                        groundArena: ['wampa']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.cobbVanth);
+
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player2.passAction();
+
+                // Let's bounce the marine back to hand with Bright Hope
+                context.player1.clickCard(context.brightHopeTheLastTransport);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.readyResourceCount).toBe(1);
+                expect(context.battlefieldMarine).toBeInZone('hand');
+
+                context.player2.passAction();
+
+                expect(context.player1).not.toBeAbleToSelect(context.battlefieldMarine);
+                context.player1.clickCard(context.allianceDispatcher);
+                expect(context.allianceDispatcher).toBeInZone('groundArena');
+            });
+
+            it('should not allow the card played from discard to be playable again from discard if it is defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['cobb-vanth#the-marshal'],
+                        deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay', 'protector', 'patrolling-vwing', 'devotion',
+                            'consular-security-force', 'echo-base-defender', 'swoop-racer', 'resupply', 'superlaser-technician'],
+                        resources: 5,
+                        hand: ['bright-hope#the-last-transport', 'alliance-dispatcher'],
+                        leader: 'bail-organa#doing-everything-he-can'
+
+                    },
+                    player2: {
+                        spaceArena: ['system-patrol-craft'],
+                        groundArena: ['wampa']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.cobbVanth);
+
+                // Play the vWing using Cobb and have it defeated and not be playable again from discard
+                context.player1.clickCardInDisplayCardPrompt(context.patrollingVwing);
+
+                context.player1.clickCard(context.patrollingVwing);
+
+                context.player2.clickCard(context.systemPatrolCraft);
+                context.player2.clickCard(context.patrollingVwing);
+
+                expect(context.patrollingVwing).toBeInZone('discard');
+                expect(context.player1).not.toBeAbleToSelect(context.patrollingVwing);
+            });
         });
     });
 });
