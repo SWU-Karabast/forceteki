@@ -376,6 +376,49 @@ describe('Cobb Vanth, The Marshal', function() {
                 expect(context.allianceDispatcher).toBeInZone('groundArena');
             });
 
+            it('should still allow card to be played from hand if full cost can be paid', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['cobb-vanth#the-marshal'],
+                        deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay', 'protector', 'patrolling-vwing', 'devotion',
+                            'consular-security-force', 'echo-base-defender', 'swoop-racer', 'resupply', 'superlaser-technician'],
+                        resources: 6,
+                        hand: ['bright-hope#the-last-transport', 'alliance-dispatcher'],
+                        leader: 'bail-organa#doing-everything-he-can'
+
+                    },
+                    player2: {
+                        spaceArena: ['system-patrol-craft'],
+                        groundArena: ['wampa']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.cobbVanth);
+
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player2.passAction();
+
+                // Let's bounce the marine back to hand with Bright Hope
+                context.player1.clickCard(context.brightHopeTheLastTransport);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.readyResourceCount).toBe(2);
+                expect(context.battlefieldMarine).toBeInZone('hand');
+
+                context.player2.passAction();
+
+                // Verify we can play the card from hand by paying full cost
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+            });
+
             it('should not allow the card played from discard to be playable again from discard if it is defeated', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
