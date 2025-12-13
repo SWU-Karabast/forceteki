@@ -12,7 +12,7 @@ export default class GreatPitOfCarkoon extends BaseCard {
 
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEpicActionAbility({
-            title: '[Discard a unit from your hand]: Search your deck for a card named The Sarlacc of Carkoon, reveal it, and draw it',
+            title: 'Search your deck for a card named The Sarlacc of Carkoon, reveal it, and draw it',
             cost: AbilityHelper.costs.discardCardFromOwnHand({
                 cardCondition: (card) => card.isUnit(),
             }),

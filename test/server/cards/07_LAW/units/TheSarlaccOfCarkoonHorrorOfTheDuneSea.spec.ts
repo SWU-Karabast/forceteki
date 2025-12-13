@@ -11,6 +11,7 @@ describe('The Sarlacc of Carkoon, Horror of the Dune Sea', function () {
                 },
                 player2: {
                     groundArena: ['atst', 'consular-security-force'],
+                    discard: ['porg']
                 }
             });
 

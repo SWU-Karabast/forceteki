@@ -94,7 +94,6 @@ const mockCards = [
     buildMockCard({
         title: 'The Sarlacc of Carkoon',
         subtitle: 'Horror of the Dune Sea',
-        text: 'On Attack: Put a unit from your discard pile on the bottom of your deck. Deal damage equal to that unit\'s power to an enemy ground unit.',
         power: 8,
         hp: 9,
         cost: 8,
