@@ -1,5 +1,3 @@
-const { color } = require('console-log-colors');
-
 const mockCards = [
     buildMockCard({
         title: 'Han Solo',
@@ -92,6 +90,25 @@ const mockCards = [
         },
         unique: true,
         internalName: 'leias-disguise'
+    }),
+    buildMockCard({
+        title: 'Leia Organa',
+        subtitle: 'Someone Who Loves You',
+        power: 2,
+        hp: 2,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        keywords: ['overwhelm'],
+        aspects: ['command', 'heroism'],
+        traits: ['rebel'],
+        types: ['leader'],
+        setId: {
+            set: 'LAW',
+            number: 10,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'leia-organa#someone-who-loves-you',
     }),
     buildMockCard({
         title: 'Credit',
