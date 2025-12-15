@@ -243,7 +243,7 @@ export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPr
 export type IEventAbilityProps<TSource extends Card = Card> = IAbilityPropsWithSystems<AbilityContext<TSource>>;
 
 /** Interface definition for setEpicActionAbility */
-export type IEpicActionProps<TSource extends Card = Card> = Exclude<IActionAbilityProps<TSource>, 'limit' | 'handler'>;
+export type IEpicActionProps<TSource extends Card = Card> = Omit<IActionAbilityProps<TSource>, 'limit' | 'handler'>;
 
 export type IKeywordProperties =
   | IAmbushKeywordProperties
