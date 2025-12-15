@@ -15,6 +15,7 @@ export default class JabbasRancorSnackTime extends NonLeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'An opponent chooses a ground unit they control. You may deal 7 damage to that unit',
             targetResolver: {
+                activePromptTitle: 'Choose a ground unit. Your opponent may deal it 7 damage',
                 controller: RelativePlayer.Opponent,
                 choosingPlayer: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
