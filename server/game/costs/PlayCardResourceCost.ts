@@ -5,7 +5,7 @@ import * as Contract from '../core/utils/Contract.js';
 import { type CostAdjuster } from '../core/cost/CostAdjuster';
 import type { ICardWithCostProperty } from '../core/card/propertyMixins/Cost';
 import { ResourceCost } from './ResourceCost';
-import { CostAdjustStage } from '../core/cost/CostInterfaces';
+import { CostAdjustStage, ResourceCostType } from '../core/cost/CostInterfaces';
 import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
 import { AdjustedCostEvaluator } from '../core/cost/evaluation/AdjustedCostEvaluator';
 
@@ -14,7 +14,6 @@ import { AdjustedCostEvaluator } from '../core/cost/evaluation/AdjustedCostEvalu
  * any cost adjusters in play that increase or decrease the play cost for the relevant card.
  */
 export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
-    public readonly isPlayCost = true;
     public readonly playType: PlayType;
     public readonly aspects: Aspect[];
 
@@ -23,6 +22,10 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
 
         this.playType = playType;
         this.aspects = aspects;
+    }
+
+    public override get resourceCostType(): ResourceCostType {
+        return ResourceCostType.PlayCard;
     }
 
     public usesExploit(context: AbilityContext<ICardWithCostProperty>): boolean {

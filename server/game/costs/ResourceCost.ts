@@ -5,8 +5,8 @@ import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
 import { CostAdjustResolutionMode, type CostAdjuster } from '../core/cost/CostAdjuster';
 import type { Card } from '../core/card/Card';
-import type { IAbilityCostAdjustmentProperties, ICostAdjusterEvaluationTarget, ICostAdjustTriggerResult } from '../core/cost/CostInterfaces';
-import { CostAdjustStage, ResourceCostType, type ICostAdjustEvaluationIntermediateResult } from '../core/cost/CostInterfaces';
+import type { IAbilityCostAdjustmentProperties, ICostAdjusterEvaluationTarget, ICostAdjustTriggerResult, ResourceCostType } from '../core/cost/CostInterfaces';
+import { CostAdjustStage, type ICostAdjustEvaluationIntermediateResult } from '../core/cost/CostInterfaces';
 import * as CostHelpers from '../core/cost/CostHelpers';
 import type { MetaActionCost } from '../core/cost/MetaActionCost';
 import { AdjustedCostEvaluator } from '../core/cost/evaluation/AdjustedCostEvaluator';
@@ -19,11 +19,11 @@ import { SimpleAdjustedCost } from '../core/cost/evaluation/SimpleAdjustedCost';
 export abstract class ResourceCost<TCard extends Card = Card> implements ICost<AbilityContext<TCard>> {
     public readonly resourceCostAmount: number;
 
-    public abstract readonly isPlayCost: boolean;
-
     public constructor(resourceCostAmount: number) {
         this.resourceCostAmount = resourceCostAmount;
     }
+
+    public abstract get resourceCostType(): ResourceCostType;
 
     public isResourceCost(): this is ResourceCost {
         return true;
@@ -193,7 +193,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
             adjustedCost: costTracker,
             adjustStage: CostAdjustStage.Increase_5,
             matchingAdjusters: new Map<CostAdjustStage, CostAdjuster[]>(),
-            resourceCostType: this.isPlayCost ? ResourceCostType.PlayCard : ResourceCostType.Ability,
+            resourceCostType: this.resourceCostType,
             costAdjusterTargets,
         };
     }
