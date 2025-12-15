@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { ZoneName } from '../../../core/Constants';
 
 export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -23,7 +24,7 @@ export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
                     })),
                     AbilityHelper.immediateEffects.forThisPhasePlayerEffect((deckSearchContext) => ({
                         effect: AbilityHelper.ongoingEffects.forFree({
-                            match: (card) => deckSearchContext.selectedPromptCards.includes(card) // note cost adjusters are attached to player, so have to refilter
+                            match: (card) => deckSearchContext.selectedPromptCards.includes(card) && card.zoneName === ZoneName.Discard // note cost adjusters are attached to player, so have to refilter
                         }),
                         target: deckSearchContext.player
                     })),
