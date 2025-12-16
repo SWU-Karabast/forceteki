@@ -296,11 +296,19 @@ export class Lobby {
             }
         }
 
+        // Dynamically determine setEndResult based on current win counts (supports undo scenarios)
+        // If someone has 2 wins, the set is won - return WonTwoGames result
+        // Otherwise, use the stored setEndResult (which may indicate concede/timeout)
+        const hasWinner = Object.values(winsPerPlayer).some((wins) => wins >= 2);
+        const setEndResult = hasWinner
+            ? { endedReason: Bo3SetEndedReason.WonTwoGames }
+            : this.winHistory.setEndResult;
+
         return {
             gamesToWinMode: this.winHistory.gamesToWinMode,
             currentGameNumber: this.winHistory.currentGameNumber,
             winsPerPlayer,
-            setEndResult: this.winHistory.setEndResult,
+            setEndResult,
             playerNames: this.winHistory.playerNames
         };
     }
