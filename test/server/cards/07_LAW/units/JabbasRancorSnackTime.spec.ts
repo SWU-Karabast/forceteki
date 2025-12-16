@@ -18,7 +18,7 @@ describe('Jabba\'s Rancor, Snack Time', function() {
             context.player1.clickCard(context.jabbasRancor);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player2).toHavePrompt('Choose a ground unit. Your opponent may deal it 7 damage');
+            expect(context.player2).toHavePrompt('Choose a ground unit. Your opponent may deal 7 damage to it');
             expect(context.player2).toBeAbleToSelectExactly([context.jabbaTheHutt, context.wampa]);
 
             context.player2.clickCard(context.jabbaTheHutt);

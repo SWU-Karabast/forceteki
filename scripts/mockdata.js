@@ -92,6 +92,37 @@ const mockCards = [
         internalName: 'leias-disguise'
     }),
     buildMockCard({
+        title: 'The Sarlacc of Carkoon',
+        subtitle: 'Horror of the Dune Sea',
+        power: 8,
+        hp: 9,
+        cost: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['creature'],
+        setId: {
+            set: 'LAW',
+            number: 163,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-sarlacc-of-carkoon#horror-of-the-dune-sea',
+    }),
+    buildMockCard({
+        title: 'Great Pit of Carkoon',
+        hp: 27,
+        epicAction: '[Discard a unit from your hand]:  Search your deck for a card named The Sarlacc of Carkoon, reveal it and draw it.',
+        aspects: ['command'],
+        types: ['base'],
+        setId: {
+            set: 'LAW',
+            number: 23
+        },
+        unique: false,
+        internalName: 'great-pit-of-carkoon'
+    }),
+    buildMockCard({
         title: 'Leia Organa',
         subtitle: 'Someone Who Loves You',
         power: 2,
