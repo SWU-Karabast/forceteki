@@ -737,6 +737,7 @@ export class Lobby {
             case RematchMode.NewBo3:
                 // Start a fresh Bo3 set
                 this.initializeBo3History();
+                this.resetSideboards();
                 break;
             case RematchMode.Regular:
             case RematchMode.Reset:
@@ -836,6 +837,14 @@ export class Lobby {
         logger.info(`Lobby: user ${user.username} conceded the Bo3 set`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         this.sendLobbyState();
+    }
+
+    private resetSideboards() {
+        for (const user of this.users) {
+            if (user.deck) {
+                user.deck.resetSideboard();
+            }
+        }
     }
 
     /**

@@ -36,18 +36,12 @@ export class Deck {
         this.base = Deck.buildDecklistEntry(decklist.base.id, 1, cardDataGetter);
         this.leader = Deck.buildDecklistEntry(decklist.leader.id, 1, cardDataGetter);
         this.id = decklist.deckID;
-        const sideboard = decklist.sideboard ?? [];
 
-        const allCardIds = new Set(
-            decklist.deck.map((cardEntry) => cardEntry.id).concat(
-                sideboard.map((cardEntry) => cardEntry.id)
-            )
-        );
-
-        this.deckCards = this.convertCardListToMap(decklist.deck, allCardIds);
-        this.sideboard = this.convertCardListToMap(sideboard, allCardIds);
         this.cardDataGetter = cardDataGetter;
         this.originalDeckList = decklist;
+
+        // initialize the cards in deck and sideboard
+        this.resetSideboard();
 
         this.isPresentInDb = decklist.isPresentInDb;
         this.deckLink = decklist.deckLink;
@@ -103,6 +97,19 @@ export class Deck {
 
         // Default fallback
         return DeckSource.Unknown;
+    }
+
+    public resetSideboard() {
+        const sideboard = this.originalDeckList.sideboard ?? [];
+
+        const allCardIds = new Set(
+            this.originalDeckList.deck.map((cardEntry) => cardEntry.id).concat(
+                sideboard.map((cardEntry) => cardEntry.id)
+            )
+        );
+
+        this.deckCards = this.convertCardListToMap(this.originalDeckList.deck, allCardIds);
+        this.sideboard = this.convertCardListToMap(sideboard, allCardIds);
     }
 
     public moveToDeck(cardId: string) {
