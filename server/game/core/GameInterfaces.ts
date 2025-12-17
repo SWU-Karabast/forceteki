@@ -23,6 +23,9 @@ export interface GameConfiguration {
     buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     userTimeoutDisconnect: (userId: string) => void;
     undoMode?: UndoMode;
+
+    /** Player ID who gets to choose who starts with initiative, or undefined for random selection */
+    preselectedFirstPlayerId?: string;
 }
 
 export interface ICurrentlyResolving {

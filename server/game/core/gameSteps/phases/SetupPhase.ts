@@ -11,6 +11,7 @@ import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 import type { IStep } from '../IStep';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 import { DrawSystem } from '../../../gameSystems/DrawSystem';
+import type { Player } from '../../Player';
 
 export class SetupPhase extends Phase {
     public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
@@ -54,11 +55,22 @@ export class SetupPhase extends Phase {
     }
 
     private chooseFirstPlayer() {
-        const firstPlayer = randomItem(this.game.getPlayers(), this.game.randomGenerator);
+        let firstPlayer: Player;
+        let activePromptTitle;
+
+        if (this.game.preselectedFirstPlayerId) {
+            // Loser of previous game gets to choose
+            firstPlayer = this.game.getPlayerById(this.game.preselectedFirstPlayerId);
+            activePromptTitle = 'You lost the previous game. Choose the player to start with initiative:';
+        } else {
+            // Random selection (coin flip)
+            firstPlayer = randomItem(this.game.getPlayers(), this.game.randomGenerator);
+            activePromptTitle = 'You won the flip. Choose the player to start with initiative:';
+        }
 
         this.game.promptWithHandlerMenu(firstPlayer, {
             promptType: PromptType.Initiative,
-            activePromptTitle: 'You won the flip. Choose the player to start with initiative:',
+            activePromptTitle,
             source: 'choose initiative player',
             choices: ['Yourself', 'Opponent'],
             handlers: [
