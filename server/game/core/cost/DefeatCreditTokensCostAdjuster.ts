@@ -157,13 +157,13 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         min: number,
         max: number,
         context: AbilityContext<Card>,
-        onSelect?: (chosenAmount: number) => void
+        onSelect: (chosenAmount: number) => void
     ): void {
         const props: IDropdownListPromptProperties = {
             promptTitle: 'Select amount of Credit tokens',
             options: Array.from({ length: max - min + 1 }, (_, i) => (i + min).toString()),
             source: context.source,
-            choiceHandler: (choice: string) => onSelect?.(parseInt(choice, 10))
+            choiceHandler: (choice: string) => onSelect(parseInt(choice, 10))
         };
 
         context.game.promptWithDropdownListMenu(context.player, props);

@@ -47,7 +47,7 @@ export interface ICostAdjusterPropertiesBase {
     limit?: AbilityLimit;
 
     /** Conditional card matching for things like aspects, traits, etc. */
-    match?: (card: Card, adjusterSource: Card | null) => boolean;
+    match?: (card: Card, adjusterSource?: Card) => boolean;
 
     /** Whether the cost adjuster should adjust activation costs for abilities. Defaults to false. */
     matchAbilityCosts?: boolean;
@@ -56,7 +56,7 @@ export interface ICostAdjusterPropertiesBase {
     playType?: PlayType;
 
     /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
-    attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext) => boolean;
+    attachTargetCondition?: (attachTarget: Card, context: AbilityContext, adjusterSource?: Card) => boolean;
 }
 
 export interface IIncreaseOrDecreaseCostAdjusterProperties extends ICostAdjusterPropertiesBase {
@@ -146,14 +146,14 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     protected readonly limit?: AbilityLimit;
 
     private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
-    private readonly match?: (card: Card, adjusterSource: Card | null) => boolean;
+    private readonly match?: (card: Card, adjusterSource?: Card) => boolean;
     private readonly cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     private readonly playType?: PlayType;
-    private readonly attachTargetCondition?: (attachTarget: Card, adjusterSource: Card | null, context: AbilityContext<any>) => boolean;
+    private readonly attachTargetCondition?: (attachTarget: Card, context: AbilityContext<any>, adjusterSource?: Card,) => boolean;
     private readonly matchAbilityCosts: boolean;
 
     @undoObject()
-    protected accessor source: Card | null;
+    protected accessor sourceCard: Card | null;
 
     @undoObject()
     protected accessor sourcePlayer: Player;
@@ -170,10 +170,10 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         super(game);
 
         if (sourcePlayerOrCard.isCard()) {
-            this.source = sourcePlayerOrCard;
+            this.sourceCard = sourcePlayerOrCard;
             this.sourcePlayer = sourcePlayerOrCard.controller;
         } else {
-            this.source = null;
+            this.sourceCard = null;
             this.sourcePlayer = sourcePlayerOrCard;
         }
 
@@ -254,8 +254,6 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     }
 
     public checkApplyCostAdjustment(card: Card, context: AbilityContext, triggerResult: ICostAdjustTriggerResult) {
-        Contract.assertFalse(CostHelpers.isInteractiveCostAdjusterStage(this.costAdjustStage), `Interactive cost adjuster stages should not use checkApplyCostAdjustment: '${this.costAdjustStage}'`);
-
         if (
             this.isCancelled ||
             !this.canAdjust(card, context, triggerResult)
@@ -349,7 +347,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     }
 
     private checkMatch(card: Card) {
-        return !this.match || this.match(card, this.source);
+        return !this.match || this.match(card, this.sourceCard);
     }
 
     private checkAttachTargetCondition(context: AbilityContext) {
@@ -361,14 +359,14 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         Contract.assertTrue(upgrade.isUpgrade(), `attachTargetCondition can only be used with upgrade cards, attempting to use with '${upgrade.title}'`);
 
         if (context.stage === Stage.Cost && context.target != null) {
-            return this.attachTargetCondition(context.target, this.source, context);
+            return this.attachTargetCondition(context.target, context, this.sourceCard);
         }
 
         // if we're not yet at the "pay cost" stage, evaluate whether any unit on the field meets the attach condition
         for (const unit of context.game.getArenaUnits()) {
             if (
                 upgrade.canAttach(unit, context, context.player) &&
-                this.attachTargetCondition(unit, this.source, context)
+                this.attachTargetCondition(unit, context, this.sourceCard)
             ) {
                 return true;
             }

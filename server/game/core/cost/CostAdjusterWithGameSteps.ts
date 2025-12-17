@@ -3,6 +3,8 @@ import type { Card } from '../card/Card';
 import { CostAdjuster } from './CostAdjuster';
 import type { ICostAdjustTriggerResult } from './CostInterfaces';
 import type { ICostResult } from './ICost';
+import * as CostHelpers from './CostHelpers';
+import * as Contract from '../../core/utils/Contract';
 
 /**
  * ABC for cost adjusters that require game steps to execute during cost adjustment.
@@ -18,4 +20,8 @@ export abstract class CostAdjusterWithGameSteps extends CostAdjuster {
         costAdjustTriggerResult: ICostAdjustTriggerResult,
         abilityCostResult?: ICostResult
     );
+
+    public override checkApplyCostAdjustment(card: Card, context: AbilityContext, triggerResult: ICostAdjustTriggerResult): void {
+        Contract.assertFalse(CostHelpers.isInteractiveCostAdjusterStage(this.costAdjustStage), `Interactive cost adjuster stages should not use checkApplyCostAdjustment: '${this.costAdjustStage}'`);
+    }
 }
