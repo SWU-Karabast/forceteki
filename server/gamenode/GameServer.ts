@@ -6,7 +6,7 @@ import cors from 'cors';
 import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
-import { getHeapStatistics } from 'v8';
+import { getHeapStatistics, getHeapSpaceStatistics } from 'v8';
 import { freemem, cpus } from 'os';
 import { monitorEventLoopDelay, performance, PerformanceObserver, constants as NodePerfConstants, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
 
@@ -2034,14 +2034,18 @@ export class GameServer {
     private logHeapStats(): void {
         try {
             const heapStats = getHeapStatistics();
+            const heapSpaceStats = getHeapSpaceStatistics();
             const usedHeapSizeInMB = (heapStats.used_heap_size / 1024 / 1024).toFixed(1);
             const totalHeapSizeInMB = (heapStats.total_heap_size / 1024 / 1024).toFixed(1);
             const heapSizeLimitInMB = (heapStats.heap_size_limit / 1024 / 1024).toFixed(1);
             const heapUsagePercent = ((heapStats.used_heap_size / heapStats.heap_size_limit) * 100).toFixed(1);
             const rssSizeInMB = (process.memoryUsage().rss / 1024 / 1024).toFixed(1);
 
+            const newSpace = heapSpaceStats.find((s) => s.space_name === 'new_space');
+            const newSpaceSizeMB = newSpace ? (newSpace.space_size / 1024 / 1024).toFixed(1) : 'N/A';
+
             const freeSystemMemoryInGB = (freemem() / 1024 / 1024 / 1024).toFixed(2);
-            logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | Total physical usage: ${rssSizeInMB}MB | System free: ${freeSystemMemoryInGB}GB`);
+            logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | New space: ${newSpaceSizeMB}MB | Total physical usage: ${rssSizeInMB}MB | System free: ${freeSystemMemoryInGB}GB`);
         } catch (error) {
             logger.error(`Error logging heap stats: ${error}`);
         }
