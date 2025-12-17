@@ -17,7 +17,7 @@ describe('Willrow Hood On the Run', function () {
                 context.p2Bamboozle = context.player2.findCardByName('bamboozle');
             });
 
-            it('should prevent the upgrade from being defeated by an enemy ability', function () {
+            it('should prevent the upgrade from being defeated by an enemy ability (System Shock should not deal damage)', function () {
                 const { context } = contextRef;
 
                 context.player1.passAction();
