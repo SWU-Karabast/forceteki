@@ -605,3 +605,22 @@ export enum NamedAction {
     Top = 'Top',
     Bottom = 'Bottom',
 }
+
+export enum SwuGameFormat {
+    Premier = 'premier',
+    NextSetPreview = 'nextSetPreview',
+    Open = 'open'
+}
+
+export enum GamesToWinMode {
+    BestOfOne = 'bestOfOne',
+    BestOfThree = 'bestOfThree',
+}
+
+export enum RematchMode {
+    Regular = 'regular',
+    Reset = 'reset',
+    Bo1ConvertToBo3 = 'bo1ConvertToBo3',
+    NewBo3 = 'newBo3',
+}
+
