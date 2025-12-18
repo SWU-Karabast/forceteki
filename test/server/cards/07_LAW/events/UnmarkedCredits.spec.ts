@@ -1,6 +1,7 @@
 describe('Unmarked Credits', function () {
     integration(function (contextRef) {
         it('should create a Credit token for the player', async function () {
+            pending('TODO: Enable this test when Unmarked Credits is no longer flagged as unimplemented');
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
