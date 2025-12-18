@@ -186,6 +186,25 @@ const mockCards = [
         unique: false,
         internalName: 'unmarked-credits',
     }),
+    buildMockCard({
+        title: 'Jabba\'s Rancor',
+        subtitle: 'Snack Time!',
+        power: 7,
+        hp: 7,
+        cost: 7,
+        hasNonKeywordAbility: true,
+        keywords: ['hidden'],
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'creature'],
+        setId: {
+            set: 'LAW',
+            number: 216,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jabbas-rancor#snack-time',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */

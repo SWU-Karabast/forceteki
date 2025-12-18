@@ -7,7 +7,8 @@ describe('Yaddle, A Chance to Make Things Right', function () {
                     player1: {
                         groundArena: ['yaddle#a-chance-to-make-things-right', 'luke-skywalker#jedi-knight', 'battlefield-marine'],
                         spaceArena: ['jedi-light-cruiser'],
-                        base: { card: 'echo-base', damage: 15 }
+                        base: { card: 'echo-base', damage: 15 },
+                        leader: 'yoda#sensing-darkness'
                     },
                     player2: {
                         groundArena: ['yoda#old-master'],
@@ -30,7 +31,7 @@ describe('Yaddle, A Chance to Make Things Right', function () {
 
                 const p2BaseDamage = context.p2Base.damage;
                 // player 2 jedi units should not have Restore 1 from yaddle
-                context.player2.clickCard(context.yoda);
+                context.player2.clickCard(context.yodaOldMaster);
                 context.player2.clickCard(context.p1Base);
 
                 expect(context.p2Base.damage).toBe(p2BaseDamage - 2); // restore 2
@@ -108,6 +109,33 @@ describe('Yaddle, A Chance to Make Things Right', function () {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.p1Base.damage).toBe(p1BaseDamage - 3);
+            });
+
+            it('should not give Restore to a Jedi not deployed yet', function () {
+                const { context } = contextRef;
+
+                const p1BaseDamage = context.p1Base.damage;
+
+                // Attack with Yaddle to trigger her ability
+                context.player1.clickCard(context.yaddle);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickPrompt('Restore 1');
+
+                expect(context.p1Base.damage).toBe(p1BaseDamage - 1);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.yodaSensingDarkness);
+                expect(context.player1).toHaveEnabledPromptButtons(['Deploy Yoda', 'If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.']);
+                context.player1.clickPrompt('Deploy Yoda');
+                context.player1.clickPrompt('Pass');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.yodaSensingDarkness);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p1Base.damage).toBe(p1BaseDamage - 3); // Only the normal Restore 2 from Yoda
             });
         });
     });
