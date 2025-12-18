@@ -79,8 +79,45 @@ describe('Barrel Roll', function () {
                 expect(context.greenSquadronAwing.exhausted).toBe(true);
                 expect(context.player2).toBeActivePlayer();
             });
+        });
 
-            // TODO: Make sure Blue Leader when deployed as ground unit can't be selected by Barrel Roll for the attack/exhaust ability
+        it('Barrel Roll\'s ability cannot target a space unit which moves to ground arena', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['barrel-roll', 'blue-leader#scarif-air-support'],
+                    spaceArena: ['awing']
+                },
+                player2: {
+                    spaceArena: ['alliance-xwing'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.blueLeader);
+
+            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.blueLeader).toBeInZone('groundArena');
+
+            context.player2.passAction();
+            context.player1.clickCard(context.barrelRoll);
+
+            // blue leader not selectable
+            expect(context.player1).toBeAbleToSelectExactly([context.awing]);
+
+            context.player1.clickCard(context.awing);
+            context.player1.clickCard(context.p2Base);
+
+            // blue leader not selectable
+            expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.awing]);
+            context.player1.clickCard(context.allianceXwing);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.allianceXwing.exhausted).toBeTrue();
         });
     });
 });

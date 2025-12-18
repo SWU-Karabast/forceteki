@@ -40,7 +40,7 @@ describe('Contracted Hunter', function() {
             expect(context.p2Base.damage).toBe(5);
         });
 
-        it('Contracted Hunter\'s ability should be defeat on start of regroup phase (iden ability should trigger on regroup phase)', async function () {
+        it('Contracted Hunter\'s ability should be defeat on start of regroup phase (Iden ability should trigger on regroup phase)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -61,6 +61,46 @@ describe('Contracted Hunter', function() {
             expect(context.p2Base.damage).toBe(4);
         });
 
-        // todo nullify his ability
+        it('Contracted Hunter\'s ability should not defeated when his ability is nullify for the round', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                    groundArena: ['contracted-hunter'],
+                    resources: 3,
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.kazudaXiono);
+            context.player1.clickCard(context.contractedHunter);
+
+            context.moveToNextActionPhase();
+
+            expect(context.contractedHunter).toBeInZone('groundArena');
+        });
+
+        it('Contracted Hunter\'s ability should be defeated when his ability is nullify for the phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['contracted-hunter'],
+                },
+                player2: {
+                    hand: ['force-lightning'],
+                    hasInitiative: true,
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.forceLightning);
+            context.player2.clickCard(context.contractedHunter);
+
+            context.moveToNextActionPhase();
+
+            expect(context.contractedHunter).toBeInZone('discard');
+        });
     });
 });
