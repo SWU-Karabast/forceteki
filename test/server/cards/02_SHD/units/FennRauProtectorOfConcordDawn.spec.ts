@@ -78,5 +78,28 @@ describe('Fenn Rau Protector of Concord Dawn\'s ability', function () {
             context.player1.clickCard(context.fennRau);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('does not trigger when an opponent plays an upgrade on Fenn Rau', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['fenn-rau#protector-of-concord-dawn'],
+                },
+                player2: {
+                    hasInitiative: true,
+                    hand: ['bounty-hunters-quarry'],
+                    groundArena: ['karis-nemik#freedom-is-a-pure-idea']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.bountyHuntersQuarry);
+            context.player2.clickCard(context.fennRau);
+
+            // No trigger to resolve, it is P1's turn
+            expect(context.player1).toBeActivePlayer();
+            expect(context.karisNemik).toBeInZone('groundArena');
+        });
     });
 });
