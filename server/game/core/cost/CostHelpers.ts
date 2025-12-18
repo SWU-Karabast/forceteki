@@ -38,5 +38,9 @@ export function isTargetedCostAdjusterStage(stage: CostAdjustStage): boolean {
 }
 
 export function getExploitedUnits(playEvent: any): ILastKnownInformation[] {
+    if (!playEvent.costs) {
+        return [];
+    }
+
     return Helpers.asArray(playEvent.costs['exploit']?.selectedTargets ?? []);
 }

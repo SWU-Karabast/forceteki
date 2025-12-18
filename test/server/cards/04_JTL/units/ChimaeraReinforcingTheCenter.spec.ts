@@ -399,6 +399,28 @@ describe('Chimaera, Reinforcing the Center', function() {
 
             // TODO: Add a test that ensures Chimaera doesn't trigger Shadow Caster
             // TODO: Add a test that ensures Chimaera triggers JTL Thrawn
+
+            it('does not throw an error when evaluating When Defeated abilities on Count Dooku, Fallen Jedi', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['chimaera#reinforcing-the-center'],
+                        groundArena: [{ card: 'count-dooku#fallen-jedi', upgrades: ['creditors-claim'] }]
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chimaera);
+                context.player1.clickCard(context.countDooku); // Dooku has a gained When Defeated from Creditor's Claim
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
 
         describe('Chimaera\'s When Defeated ability', function() {
