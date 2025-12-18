@@ -47,7 +47,7 @@ export const checkServerRoleUserPrivileges = (
                 }
                 break;
             case ServerRole.Contributor:
-                if (!cache.isAdmin(userId) && !cache.isContributor(userId)) {
+                if (!cache.isAdmin(userId) && !cache.isContributor(userId) && !cache.isDeveloper(userId) && !cache.isModerator(userId)) {
                     return {
                         success: false,
                         message: 'Contributor privileges required'

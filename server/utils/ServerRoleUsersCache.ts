@@ -87,11 +87,6 @@ export class ServerRoleUsersCache {
         if (!data) {
             return false;
         }
-        return (
-            data.contributors.includes(userId) ||
-            data.moderators.includes(userId) ||
-            data.developers.includes(userId) ||
-            data.admins.includes(userId)
-        );
+        return data.contributors.some((conUserId) => conUserId === userId);
     }
 }

@@ -1159,7 +1159,6 @@ export class GameServer {
         // Cosmetics API endpoints
         app.get('/api/cosmetics', this.buildAuthMiddleware('get-cosmetics'), (req, res, next) => {
             try {
-                const user = req.user as User;
                 let cosmetics = CosmeticsService.defaultCosmetics;
                 if (this.cosmeticsService) {
                     const fetchedCosmetics = this.cosmeticsService.getCosmetics();
@@ -1169,7 +1168,7 @@ export class GameServer {
                     }
                 }
 
-                const isContributor = this.serverRoleUsersCache?.isContributor(user.getId()) ?? false;
+                const isContributor = checkServerRoleUserPrivileges(req.path, req.user.getId(), ServerRole.Contributor, this.serverRoleUsersCache).success;
                 return res.status(200).json({
                     success: true,
                     cosmetics,
