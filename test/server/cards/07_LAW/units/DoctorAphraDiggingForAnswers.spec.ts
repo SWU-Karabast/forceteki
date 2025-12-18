@@ -119,5 +119,27 @@ describe('Doctor Aphra, Digging for Answers', function () {
 
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('should move to next player\'s action without error if deck is empty at time of attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['doctor-aphra#digging-for-answers'],
+                    discard: ['wampa', 'battlefield-marine', 'force-throw', 'pirated-starfighter'],
+                    deck: [],
+                    resources: ['resupply']
+                },
+                player2: {
+                    groundArena: ['atst', 'consular-security-force'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.doctorAphraDiggingForAnswers);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
