@@ -1,5 +1,4 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { IPlayableOrDeployableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import { Card } from '../core/card/Card';
 import type { IUpgradeCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
@@ -71,7 +70,8 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         const card: Card = event.card;
 
         if (card.zoneName === ZoneName.Resource) {
-            this.leavesResourceZoneEventHandler(card as IPlayableOrDeployableCard, event.context);
+            Contract.assertTrue(card.canBeExhausted());
+            this.leavesResourceZoneEventHandler(card, event.context);
         } else if (card.isUpgrade()) {
             card.unattach(event);
         }

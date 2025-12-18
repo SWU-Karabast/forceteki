@@ -68,7 +68,7 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickPrompt('Done');
 
                 // Must use 2 credits to be able to cover full cost
-                expect(context.player1).toHaveExactPromptButtons(['Use 2 Credits']);
+                expect(context.player1).toHaveExactPromptButtons(['Use 2 Credits']); // No cancel button bc Exploit changed board state
                 context.player1.clickPrompt('Use 2 Credits');
 
                 // Verify final state
@@ -619,7 +619,7 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickPrompt('Done');
 
                 // Must use 2 credits to be able to cover full cost
-                expect(context.player1).toHaveExactPromptButtons(['Use 2 Credits']);
+                expect(context.player1).toHaveExactPromptButtons(['Use 2 Credits']); // No cancel button bc VP changed board state
                 context.player1.clickPrompt('Use 2 Credits');
 
                 // Verify final state
@@ -1062,7 +1062,7 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickPrompt('Done');
 
                 // Use credits
-                expect(context.player1).toHaveExactPromptButtons(['Use 2 Credits']);
+                expect(context.player1).toHaveExactPromptButtons(['Use 2 Credits']); // No cancel button bc Exploit/VP changed board state
                 context.player1.clickPrompt('Use 2 Credits');
 
                 // Verify final state

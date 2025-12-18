@@ -60,7 +60,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
 
         // if the source (Vuutun Palaa) was removed via Exploit, no adjustment available
         if (previousTargetSelections?.some(
-            (selection) => selection.stage === CostAdjustStage.Exploit_1 && selection.card === this.source
+            (selection) => selection.stage === CostAdjustStage.Exploit_1 && selection.card === this.sourceCard
         )) {
             return;
         }
@@ -95,10 +95,10 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         evaluationResult.adjustedCost.applyDynamicOffset(dynamicCost);
 
         const adjustSourceEntry = evaluationResult.costAdjusterTargets.find(
-            (t) => t.unit === this.source
+            (t) => t.unit === this.sourceCard
         );
 
-        Contract.assertNotNullLike(adjustSourceEntry, `Source card ${this.source.internalName} of ExhaustUnitsCostAdjuster not found in costAdjusterTargets`);
+        Contract.assertNotNullLike(adjustSourceEntry, `Source card ${this.sourceCard.internalName} of ExhaustUnitsCostAdjuster not found in costAdjusterTargets`);
 
         const maxTargetableUnits = context.player.getArenaUnits()
             .filter((unit) => this.isTargetableForExhaust(unit, context))
