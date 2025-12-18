@@ -9,7 +9,7 @@ describe('Willrow Hood On the Run', function () {
                         groundArena: [{ card: 'willrow-hood#on-the-run', upgrades: ['the-darksaber'] }],
                     },
                     player2: {
-                        hand: ['disabling-fang-fighter', 'bamboozle']
+                        hand: ['disabling-fang-fighter', 'bamboozle', 'system-shock']
                     }
                 });
                 const { context } = contextRef;
@@ -17,7 +17,7 @@ describe('Willrow Hood On the Run', function () {
                 context.p2Bamboozle = context.player2.findCardByName('bamboozle');
             });
 
-            it('should prevent the upgrade from being defeated by an enemy ability', function () {
+            it('should prevent the upgrade from being defeated by an enemy ability (System Shock should not deal damage)', function () {
                 const { context } = contextRef;
 
                 context.player1.passAction();
@@ -25,6 +25,18 @@ describe('Willrow Hood On the Run', function () {
                 context.player2.clickCard(context.theDarksaber);
 
                 expect(context.willrowHoodOnTheRun).toHaveExactUpgradeNames(['the-darksaber']);
+            });
+
+            it('should prevent the upgrade from being returned to hand by an enemy ability', function () {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.systemShock);
+                context.player2.clickCard(context.theDarksaber);
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.willrowHoodOnTheRun).toHaveExactUpgradeNames(['the-darksaber']);
+                expect(context.willrowHoodOnTheRun.damage).toBe(0);
             });
 
             it('should prevent the upgrade from being returned to hand by an enemy ability', function () {

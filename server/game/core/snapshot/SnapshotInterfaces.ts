@@ -80,6 +80,7 @@ export interface IRollbackRoundEntryPoint {
 interface IRollbackResultSuccess extends IRollbackResultBase {
     success: true;
     entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint;
+    rolledPastGameEnd: boolean;
 }
 
 interface IRollbackResultFailure extends IRollbackResultBase {

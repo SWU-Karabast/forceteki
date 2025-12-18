@@ -1,5 +1,3 @@
-const { color } = require('console-log-colors');
-
 const mockCards = [
     buildMockCard({
         title: 'Han Solo',
@@ -76,6 +74,24 @@ const mockCards = [
         internalName: 'lando-calrissian#eyes-open',
     }),
     buildMockCard({
+        title: 'Doctor Aphra',
+        subtitle: 'Digging For Answers',
+        power: 4,
+        hp: 5,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'LAW',
+            number: 194,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'doctor-aphra#digging-for-answers',
+    }),
+    buildMockCard({
         title: 'Leia\'s Disguise',
         upgradePower: 2,
         power: 2,
@@ -92,6 +108,56 @@ const mockCards = [
         },
         unique: true,
         internalName: 'leias-disguise'
+    }),
+    buildMockCard({
+        title: 'The Sarlacc of Carkoon',
+        subtitle: 'Horror of the Dune Sea',
+        power: 8,
+        hp: 9,
+        cost: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['creature'],
+        setId: {
+            set: 'LAW',
+            number: 163,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-sarlacc-of-carkoon#horror-of-the-dune-sea',
+    }),
+    buildMockCard({
+        title: 'Great Pit of Carkoon',
+        hp: 27,
+        epicAction: '[Discard a unit from your hand]:  Search your deck for a card named The Sarlacc of Carkoon, reveal it and draw it.',
+        aspects: ['command'],
+        types: ['base'],
+        setId: {
+            set: 'LAW',
+            number: 23
+        },
+        unique: false,
+        internalName: 'great-pit-of-carkoon'
+    }),
+    buildMockCard({
+        title: 'Leia Organa',
+        subtitle: 'Someone Who Loves You',
+        power: 2,
+        hp: 2,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        keywords: ['overwhelm'],
+        aspects: ['command', 'heroism'],
+        traits: ['rebel'],
+        types: ['leader'],
+        setId: {
+            set: 'LAW',
+            number: 10,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'leia-organa#someone-who-loves-you',
     }),
     buildMockCard({
         title: 'Credit',
@@ -119,6 +185,25 @@ const mockCards = [
         cost: 1,
         unique: false,
         internalName: 'unmarked-credits',
+    }),
+    buildMockCard({
+        title: 'Jabba\'s Rancor',
+        subtitle: 'Snack Time!',
+        power: 7,
+        hp: 7,
+        cost: 7,
+        hasNonKeywordAbility: true,
+        keywords: ['hidden'],
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'creature'],
+        setId: {
+            set: 'LAW',
+            number: 216,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jabbas-rancor#snack-time',
     }),
 ];
 
