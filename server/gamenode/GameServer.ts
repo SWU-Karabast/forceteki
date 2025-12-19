@@ -1167,10 +1167,13 @@ export class GameServer {
                         cosmetics = fetchedCosmetics;
                     }
                 }
+
+                const isContributor = checkServerRoleUserPrivileges(req.path, req.user.getId(), ServerRole.Contributor, this.serverRoleUsersCache).success;
                 return res.status(200).json({
                     success: true,
                     cosmetics,
-                    count: cosmetics.length
+                    count: cosmetics.length,
+                    isContributor
                 });
             } catch (error) {
                 logger.error('GameServer (cosmetics) Server error:', error);

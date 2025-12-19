@@ -2,7 +2,7 @@
 import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
 import '../server/env';
 
-const MY_USER_ID: string | null = null; // guid of generated user after logging in
+const MY_USER_ID: string | null = '6feff978-9aa7-4e27-a8c2-5df3bb21760a'; // guid of generated user after logging in
 
 
 // to run this script run on root folder ts-node scripts/seed-dynamo.ts
@@ -24,9 +24,10 @@ async function run() {
     await service.putItemAsync({
         pk: 'SERVER_ROLE_USERS',
         sk: 'ROLES',
-        admins: [MY_USER_ID],
+        admins: [],
         developers: [],
         moderators: [],
+        contributors: [],
         updatedAt: new Date().toISOString(),
     });
 
