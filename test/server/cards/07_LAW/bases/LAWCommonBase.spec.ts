@@ -205,6 +205,57 @@ describe('Common bases in A Lawless Time', function() {
                 expect(context.daimyosPalace.epicActionSpent).toBeTrue();
             });
 
+            it('does not give extra discount if another effect ignores all aspect penalties', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'hera-syndulla#spectre-two', // Command, Heroism
+                        base: 'yellow-common-law-base', // Cunning
+                        hand: ['zeb-orrelios#spectre-four'], // Aggression, Vigilance, Heroism
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Use the base's Epic Action to play Zeb Orrelios
+                context.player1.clickCard(context.yellowCommonLawBase);
+                expect(context.player1).toBeAbleToSelectExactly([context.zebOrrelios]);
+                context.player1.clickCard(context.zebOrrelios);
+                context.player1.clickPrompt('Pass'); // Pass Zeb's when played ability
+
+                // Verify Zeb Orrelios is now in play and resources were spent
+                expect(context.zebOrrelios).toBeInZone('groundArena', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(5); // Base cost 5, all aspect pentalties ignored, no extra discount
+                expect(context.yellowCommonLawBase.epicActionSpent).toBeTrue();
+            });
+
+            it('works correctly with multiple specific aspect ignoring effects', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kylo-ren#rash-and-deadly', // Aggression, Villainy
+                        base: 'red-common-law-base', // Aggression
+                        resources: 5,
+                        hand: ['rey#keeping-the-past'], // Vigilance, Heroism
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Rey should not be playable initially due to Vigilance aspect
+                expect(context.player1).not.toBeAbleToSelect(context.rey);
+
+                // Use the base's Epic Action to play Rey, ignoring Vigilance aspect penalty
+                context.player1.clickCard(context.redCommonLawBase);
+                expect(context.player1).toBeAbleToSelectExactly([context.rey]);
+                context.player1.clickCard(context.rey);
+
+                // Verify Rey is now in play and resources were spent
+                expect(context.rey).toBeInZone('groundArena', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(5); // Base cost 5, Heroism ignored from Kylo, Vigilance ignored from base
+                expect(context.redCommonLawBase.epicActionSpent).toBeTrue();
+            });
+
             it('can be used to soft pass if there are no legal targets in hand', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
