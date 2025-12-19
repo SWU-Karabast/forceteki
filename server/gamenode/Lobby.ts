@@ -639,16 +639,16 @@ export class Lobby {
             logger.info('Lobby: Bo3 lobby ready timer stopped - no players ready', { lobbyId: this.id });
         } else if (readyCount === 1 && !this.bo3LobbyReadyTimer.isRunning) {
             // First player ready - calculate dynamic timer duration
-            // Default: 30 seconds, but guarantee minimum 60 seconds from lobby load
+            // Default: 30 seconds, but guarantee minimum 120 seconds from lobby load
             const defaultDurationSeconds = 30;
-            const minimumTotalSeconds = 60;
+            const minimumTotalSeconds = 120;
             const elapsedSeconds = this.bo3LobbyLoadedAt
                 ? Math.floor((Date.now() - this.bo3LobbyLoadedAt.getTime()) / 1000)
                 : 0;
             const timerDurationSeconds = Math.max(defaultDurationSeconds, minimumTotalSeconds - elapsedSeconds);
 
             this.bo3LobbyReadyTimer.start(timerDurationSeconds);
-            this.gameChat.addAlert(AlertType.Notification, `Timer started. Both players must be readied within ${timerDurationSeconds} seconds.`);
+            this.gameChat.addAlert(AlertType.Warning, `Timer started because a player has readied. Both players must be readied within ${timerDurationSeconds} seconds.`);
             logger.info(`Lobby: Bo3 lobby ready timer started with ${timerDurationSeconds}s - first player ready`, { lobbyId: this.id, elapsedSeconds, timerDurationSeconds });
         }
 
