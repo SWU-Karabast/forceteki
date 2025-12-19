@@ -119,9 +119,13 @@ export enum ServerRole {
     Contributor = 'contributor'
 }
 
+export interface IServerRoleUserEntity {
+    id: string;
+}
+
 export interface IServerRoleUsersListsEntity {
-    admins: string[];
-    developers: string[];
-    moderators: string[];
-    contributors: string[];
+    admins: IServerRoleUserEntity[];
+    developers: IServerRoleUserEntity[];
+    moderators: IServerRoleUserEntity[];
+    contributors: IServerRoleUserEntity[];
 }
