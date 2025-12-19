@@ -48,7 +48,7 @@ export class ServerRoleUsersCache {
         if (!data) {
             return false;
         }
-        return data.admins.some((adminUserId) => adminUserId === userId);
+        return data.admins.some((adminUser) => adminUser.id === userId);
     }
 
     /**
@@ -61,7 +61,7 @@ export class ServerRoleUsersCache {
         if (!data) {
             return false;
         }
-        return data.developers.some((devUserId) => devUserId === userId);
+        return data.developers.some((devUser) => devUser.id === userId);
     }
 
     /**
@@ -74,7 +74,7 @@ export class ServerRoleUsersCache {
         if (!data) {
             return false;
         }
-        return data.moderators.some((modUserId) => modUserId === userId);
+        return data.moderators.some((modUser) => modUser.id === userId);
     }
 
     /**
@@ -87,6 +87,6 @@ export class ServerRoleUsersCache {
         if (!data) {
             return false;
         }
-        return data.contributors.some((conUserId) => conUserId === userId);
+        return data.contributors.some((conUser) => conUser.id === userId);
     }
 }
