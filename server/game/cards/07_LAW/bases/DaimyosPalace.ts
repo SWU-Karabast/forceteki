@@ -9,23 +9,3 @@ export default class DaimyosPalace extends LAWCommonBase {
         };
     }
 }
-
-// TODO: Move these to their own files when we know their real names
-
-export class RedCommonLAWBase extends LAWCommonBase {
-    protected override getImplementationId() {
-        return {
-            id: 'red-common-law-base-id',
-            internalName: 'red-common-law-base',
-        };
-    }
-}
-
-export class YellowCommonLAWBase extends LAWCommonBase {
-    protected override getImplementationId() {
-        return {
-            id: 'yellow-common-law-base-id',
-            internalName: 'yellow-common-law-base',
-        };
-    }
-}
