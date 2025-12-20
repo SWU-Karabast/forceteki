@@ -33,12 +33,12 @@ export class SearchEntireDeckSystem<TContext extends AbilityContext = AbilityCon
         selectAmount: number,
         event: any,
         additionalProperties: Partial<ISearchDeckProperties<TContext>>
-    ): IDisplayCardsSelectProperties | null {
-        const selectableCards = cards.filter((card) => properties.cardCondition(card, context));
-
-        if (selectableCards.length === 0) {
+    ): IDisplayCardsSelectProperties {
+        if (context.player.deckZone.count === 0) {
             return null;
         }
+
+        const selectableCards = cards.filter((card) => properties.cardCondition(card, context));
 
         return {
             activePromptTitle: title,

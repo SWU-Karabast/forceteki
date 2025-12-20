@@ -95,6 +95,9 @@ describe('GreatPitOfCarkoon', function() {
                 context.player1.clickCard(context.wampa);
 
                 expect(context.wampa).toBeInZone('discard', context.player1);
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+                context.player1.clickPrompt('Take nothing');
+
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -113,6 +116,11 @@ describe('GreatPitOfCarkoon', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.greatPitOfCarkoon);
+
+                expect(context.player1).toHaveEnabledPromptButton('Use it anyway');
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
+                context.player1.clickPrompt('Use it anyway');
+
                 context.player1.clickCard(context.wampa);
 
                 expect(context.wampa).toBeInZone('discard', context.player1);
