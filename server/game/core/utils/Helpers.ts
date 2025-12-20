@@ -340,16 +340,11 @@ function convertNullToUndefinedRecursiveInPlaceInternal(obj, visited) {
 
     visited.add(obj);
 
-    const keys = Object.keys(obj);
-    // eslint-disable-next-line @typescript-eslint/prefer-for-of -- for loop is ~15% faster than for...of in hot paths
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
+    for (const key in obj) {
         const value = obj[key];
-
         if (value === null) {
             obj[key] = undefined;
         } else if (typeof value === 'object') {
-            // value is guaranteed non-null here due to the if above
             convertNullToUndefinedRecursiveInPlaceInternal(value, visited);
         }
     }
