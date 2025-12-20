@@ -345,6 +345,7 @@ function convertNullToUndefinedRecursiveInPlaceInternal(obj, visited) {
         if (value === null) {
             obj[key] = undefined;
         } else if (typeof value === 'object') {
+            // value is guaranteed non-null here due to the if above
             convertNullToUndefinedRecursiveInPlaceInternal(value, visited);
         }
     }
