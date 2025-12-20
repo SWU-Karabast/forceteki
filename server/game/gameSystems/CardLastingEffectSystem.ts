@@ -29,30 +29,41 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     };
 
     public eventHandler(event): void {
-        let effects = Helpers.asArray(event.effectProperties).flatMap((props: IOngoingCardEffectProps) =>
-            (event.effectFactories as IOngoingCardEffectGenerator[]).map((factory) =>
-                factory(event.context.game, event.context.source, props)
-            )
-        );
+        /* eslint-disable @typescript-eslint/prefer-for-of */
+        const propsArray = Helpers.asArray(event.effectProperties) as IOngoingCardEffectProps[];
+        const factories = event.effectFactories as IOngoingCardEffectGenerator[];
+        const effects: OngoingCardEffect[] = [];
 
-        effects = this.filterApplicableEffects(event.card, effects, event.context);
-
-        for (const effect of effects) {
-            event.context.game.ongoingEffectEngine.add(effect);
+        for (let i = 0; i < propsArray.length; i++) {
+            for (let j = 0; j < factories.length; j++) {
+                effects.push(factories[j](event.context.game, event.context.source, propsArray[i]));
+            }
         }
+
+        const applicableEffects = this.filterApplicableEffects(event.card, effects, event.context);
+
+        for (let i = 0; i < applicableEffects.length; i++) {
+            event.context.game.ongoingEffectEngine.add(applicableEffects[i]);
+        }
+        /* eslint-enable @typescript-eslint/prefer-for-of */
     }
 
     /** Returns the effects that would be applied to {@link card} by this system's configured lasting effects */
     public getApplicableEffects(card: Card, context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>) {
+        /* eslint-disable @typescript-eslint/prefer-for-of */
         const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context, additionalProperties);
 
-        const effects = Helpers.asArray(effectProperties).flatMap((props) =>
-            effectFactories.map((factory) =>
-                factory(context.game, context.source, props)
-            )
-        );
+        const propsArray = Helpers.asArray(effectProperties);
+        const effects: OngoingCardEffect[] = [];
+
+        for (let i = 0; i < propsArray.length; i++) {
+            for (let j = 0; j < effectFactories.length; j++) {
+                effects.push(effectFactories[j](context.game, context.source, propsArray[i]));
+            }
+        }
 
         return this.filterApplicableEffects(card, effects, context);
+        /* eslint-enable @typescript-eslint/prefer-for-of */
     }
 
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): [string, any[]] {
