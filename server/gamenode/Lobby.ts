@@ -154,6 +154,8 @@ export class Lobby {
     public users: LobbyUserWrapper[] = [];
     public spectators: LobbySpectatorWrapper[] = [];
     private lobbyOwnerId: string;
+    public isMutedChat = false;
+    public userWhoMutedChat: string;
     public matchmakingType: MatchmakingType;
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
@@ -328,6 +330,8 @@ export class Lobby {
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
             gameType: this.matchmakingType,
+            isMutedChat: this.isMutedChat,
+            userWhoMutedChat: this.userWhoMutedChat,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
@@ -664,6 +668,12 @@ export class Lobby {
         }
 
         this.gameChat.addChatMessage(existingUser, args[0]);
+        this.sendLobbyState();
+    }
+
+    private muteChat(socket: Socket): void {
+        this.isMutedChat = true;
+        this.userWhoMutedChat = socket.user.getId();
         this.sendLobbyState();
     }
 
