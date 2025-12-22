@@ -205,6 +205,25 @@ const mockCards = [
         arena: 'ground',
         internalName: 'jabbas-rancor#snack-time',
     }),
+    buildMockCard({
+        title: 'Qui-Gon Jinn',
+        subtitle: 'Influence Chance',
+        power: 3,
+        hp: 5,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        keywords: ['sentinel'],
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LAW',
+            number: 237,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'qui-gon-jinn#influence-chance',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
