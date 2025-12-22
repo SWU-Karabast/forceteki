@@ -28,6 +28,7 @@ import type { Player } from '../game/core/Player';
 import type { IQueueFormatKey } from './QueueHandler';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
+import { ModerationType } from '../services/DynamoDBInterfaces';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -154,7 +155,6 @@ export class Lobby {
     public users: LobbyUserWrapper[] = [];
     public spectators: LobbySpectatorWrapper[] = [];
     private lobbyOwnerId: string;
-    public isMutedChat = false;
     public userWhoMutedChat: string;
     public matchmakingType: MatchmakingType;
     public gameFormat: SwuGameFormat;
@@ -330,7 +330,6 @@ export class Lobby {
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
             gameType: this.matchmakingType,
-            isMutedChat: this.isMutedChat,
             userWhoMutedChat: this.userWhoMutedChat,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
@@ -366,7 +365,7 @@ export class Lobby {
             state: user.state,
             ready: user.ready,
             authenticated: authenticatedStatus,
-            chatDisabled: !!user.socket?.user.getModeration(),
+            chatDisabled: user.socket?.user.getModeration()?.moderationType === ModerationType.Mute || user.id === this.userWhoMutedChat,
         };
 
         const extendedData = fullData ? {
@@ -672,7 +671,6 @@ export class Lobby {
     }
 
     private muteChat(socket: Socket): void {
-        this.isMutedChat = true;
         this.userWhoMutedChat = socket.user.getId();
         this.sendLobbyState();
     }
