@@ -205,6 +205,25 @@ const mockCards = [
         arena: 'ground',
         internalName: 'jabbas-rancor#snack-time',
     }),
+    buildMockCard({
+        title: 'Salacious Crumb',
+        subtitle: 'Cackling Companion',
+        power: 0,
+        hp: 2,
+        cost: 1,
+        hasNonKeywordAbility: true,
+        keywords: ['raid 2'],
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'creature'],
+        setId: {
+            set: 'LAW',
+            number: 210,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'salacious-crumb#cackling-companion',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
