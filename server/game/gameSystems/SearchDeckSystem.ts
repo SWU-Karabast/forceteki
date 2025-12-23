@@ -36,12 +36,13 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     shuffleWhenDone?: boolean | ((context: TContext) => boolean);
     title?: string;
 
-    /** This determines what to do with the selected cards (if a custom selectedCardsHandler is not provided). */
-    selectedCardsImmediateEffect?: GameSystem<TContext>;
     message?: string;
     player?: Player;
     choosingPlayer?: Player;
     messageArgs?: (context: TContext, cards: Card[]) => any | any[];
+
+    /** This determines what to do with the selected cards (if a custom selectedCardsHandler is not provided). */
+    selectedCardsImmediateEffect?: GameSystem<TContext>;
 
     /** Used to override default logic for handling the selected cards. The default utilizes the selectedCardsImmediateEffect */
     selectedCardsHandler?: (context: TContext, event: any, cards: Card[]) => void;
@@ -49,7 +50,7 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     /** This determines what to do with the remaining cards (if a custom remainingCardsHandler is not provided). */
     remainingCardsImmediateEffect?: GameSystem<TContext>;
 
-    /** Used to override default logic for handling the remaining cards. The default places them on the bottom of the deck. */
+    /** Used to override default logic for handling the remaining cards. Otherwise it will fall back to a specified remainingCardsImmediateEffect.  If neither is set, cards are placed on the bottom of the deck. */
     remainingCardsHandler?: (context: TContext, event: any, cards: Card[]) => void;
 
     /** Used for filtering selection based on things like trait, type, etc. */
