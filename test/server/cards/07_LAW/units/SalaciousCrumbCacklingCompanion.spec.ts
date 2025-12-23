@@ -13,7 +13,6 @@ describe('Salacious Crumb, Cackling Companion', function() {
 
             it('should be ready when controlling LAW Jabba the Hutt leader', function() {
                 const { context } = contextRef;
-                
                 context.player1.clickCard(context.salaciousCrumbCacklingCompanion);
                 expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
@@ -28,7 +27,7 @@ describe('Salacious Crumb, Cackling Companion', function() {
             });
         });
 
-        describe('Salacious Crumb, Cackling Companion\'s ability', function() { 
+        describe('Salacious Crumb, Cackling Companion\'s ability', function() {
             beforeEach(function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -41,7 +40,6 @@ describe('Salacious Crumb, Cackling Companion', function() {
 
             it('should be ready when controlling SEC Jabba the Hutt leader', function() {
                 const { context } = contextRef;
-                
                 context.player1.clickCard(context.salaciousCrumbCacklingCompanion);
                 expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
@@ -56,7 +54,7 @@ describe('Salacious Crumb, Cackling Companion', function() {
             });
         });
 
-        describe('Salacious Crumb, Cackling Companion\'s ability', function() { 
+        describe('Salacious Crumb, Cackling Companion\'s ability', function() {
             beforeEach(function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -69,7 +67,6 @@ describe('Salacious Crumb, Cackling Companion', function() {
 
             it('should be ready when controlling SHD Jabba the Hutt leader', function() {
                 const { context } = contextRef;
-                
                 context.player1.clickCard(context.salaciousCrumbCacklingCompanion);
                 expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
