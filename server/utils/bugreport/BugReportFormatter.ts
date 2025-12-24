@@ -3,8 +3,8 @@ import type {
     ISerializedGameState,
     ISerializedReportState, MessageText
 } from '../../game/Interfaces';
-import type { SwuGameFormat } from '../../SwuGameFormat';
-import type { MatchType } from '../../gamenode/Lobby';
+import type { MatchmakingType } from '../../gamenode/Lobby';
+import type { SwuGameFormat } from '../../game/core/Constants';
 
 // Helper function to sanitize strings for JSON
 function sanitizeForJson(str: string): string {
@@ -42,7 +42,7 @@ export function formatBugReport(
     messages: { date: Date; message: MessageText | { alert: { type: string; message: string | string[] } } }[],
     lobbyId: string,
     gameFormat: SwuGameFormat,
-    matchType: MatchType,
+    matchType: MatchmakingType,
     gameStepsSinceLastUndo?: number,
     gameId?: string,
     screenResolution?: { width: number; height: number } | null,

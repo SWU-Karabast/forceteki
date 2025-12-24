@@ -30,7 +30,10 @@ export default class FennRauProtectorOfConcordDawn extends NonLeaderUnitCard {
         registrar.addTriggeredAbility({
             title: 'Give an enemy unit -2/-2 for this phase.',
             when: {
-                onCardPlayed: (event, context) => event.attachTarget === context.source && event.card.isUpgrade()
+                onCardPlayed: (event, context) =>
+                    event.player === context.player &&
+                    event.attachTarget === context.source &&
+                    event.card.isUpgrade()
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

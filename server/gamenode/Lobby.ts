@@ -2,6 +2,7 @@ import Game from '../game/core/Game';
 import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
 import * as Contract from '../game/core/utils/Contract';
+import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger';
@@ -12,18 +13,21 @@ import { getUserWithDefaultsSet } from '../Settings';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import { SwuGameFormat } from '../SwuGameFormat';
 import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
 import { DeckSource } from '../utils/deck/DeckInterfaces';
 import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
-import { AlertType, GameEndReason, GameErrorSeverity } from '../game/core/Constants';
+import { GamesToWinMode, RematchMode } from '../game/core/Constants';
+import { AlertType, GameEndReason, GameErrorSeverity, SwuGameFormat } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import type { Player } from '../game/core/Player';
+import type { IQueueFormatKey } from './QueueHandler';
+import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
+import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -37,6 +41,59 @@ enum LobbySettingKeys {
     RequestUndo = 'requestUndo',
 }
 
+enum Bo3SetEndedReason {
+    Concede = 'concede',
+    OnePlayerLobbyTimeout = 'onePlayerLobbyTimeout',
+    BothPlayersLobbyTimeout = 'bothPlayersLobbyTimeout',
+    WonTwoGames = 'wonTwoGames',
+}
+
+interface IBo3ConcedeResult {
+    endedReason: Bo3SetEndedReason.Concede;
+    concedingPlayerId: string;
+}
+
+interface IBo3OnePlayerTimeoutResult {
+    endedReason: Bo3SetEndedReason.OnePlayerLobbyTimeout;
+    timeoutPlayerId: string;
+}
+
+interface IBo3BothPlayersTimeoutResult {
+    endedReason: Bo3SetEndedReason.BothPlayersLobbyTimeout;
+}
+
+interface IBo3WonGamesResult {
+    endedReason: Bo3SetEndedReason.WonTwoGames;
+}
+
+type IBo3SetEndResult = IBo3ConcedeResult | IBo3OnePlayerTimeoutResult | IBo3BothPlayersTimeoutResult | IBo3WonGamesResult;
+
+interface IBestOfOneHistory {
+    gamesToWinMode: GamesToWinMode.BestOfOne;
+    lastWinnerId?: string;
+
+    /** Tracks if either player changed their deck since the last game (for first player selection) */
+    deckChangedSinceLastGame?: boolean;
+}
+
+interface IBestOfThreeHistory {
+    gamesToWinMode: GamesToWinMode.BestOfThree;
+
+    /** The current game number (1, 2, or 3) */
+    currentGameNumber: number;
+
+    /** Array of player IDs who won each game, or 'draw' for drawn games */
+    winnerIdsInOrder: (string | 'draw')[];
+
+    /** How the set ended (concede, timeout, or won games). Undefined if set is ongoing. */
+    setEndResult?: IBo3SetEndResult;
+
+    /** Map of player IDs to usernames, initialized when game 1 starts */
+    playerNames?: Record<string, string>;
+}
+
+type IGameWinHistory = IBestOfOneHistory | IBestOfThreeHistory;
+
 export interface LobbyUserWrapper extends LobbySpectatorWrapper {
     ready: boolean;
     deck?: Deck;
@@ -45,10 +102,10 @@ export interface LobbyUserWrapper extends LobbySpectatorWrapper {
     reportedBugs: number;
 }
 
-export enum MatchType {
-    Custom = 'Custom',
-    Private = 'Private',
-    Quick = 'Quick',
+export enum MatchmakingType {
+    PublicLobby = 'publicLobby',
+    PrivateLobby = 'privateLobby',
+    Quick = 'quick',
 }
 
 export enum StatsSource {
@@ -69,7 +126,7 @@ export interface IStatsMessageFormat {
 
 export interface RematchRequest {
     initiator?: string;
-    mode: 'reset' | 'regular';
+    mode: RematchMode;
 }
 
 export class Lobby {
@@ -97,7 +154,7 @@ export class Lobby {
     public users: LobbyUserWrapper[] = [];
     public spectators: LobbySpectatorWrapper[] = [];
     private lobbyOwnerId: string;
-    public gameType: MatchType;
+    public matchmakingType: MatchmakingType;
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
     private userLastActivity = new Map<string, Date>();
@@ -107,10 +164,17 @@ export class Lobby {
     private gameMessageErrorCount = 0;
     private statsUpdateStatus = new Map<string, Map<StatsSource, IStatsMessageFormat>>();
 
+    private winHistory: IGameWinHistory;
+    private bo3NextGameConfirmedBy?: Set<string>;
+    private bo3TransitionTimer?: NodeJS.Timeout;
+    private bo3LobbyReadyTimer?: SimpleActionTimer;
+    private bo3LobbyLoadedAt?: Date;
+
     public constructor(
         lobbyName: string,
-        lobbyGameType: MatchType,
-        lobbyGameFormat: SwuGameFormat,
+        matchmakingType: MatchmakingType,
+        gameFormat: SwuGameFormat,
+        gamesToWinMode: GamesToWinMode,
         allow30CardsInMainBoard: boolean,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
@@ -119,23 +183,34 @@ export class Lobby {
         testGameBuilder?: any
     ) {
         Contract.assertTrue(
-            [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
-            `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
+            [MatchmakingType.PublicLobby, MatchmakingType.PrivateLobby, MatchmakingType.Quick].includes(matchmakingType),
+            `Lobby game type ${matchmakingType} doesn't match any MatchmakingType values`
         );
         this._id = uuid();
         this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat(() => this.sendLobbyState());
-        this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
-        this.isPrivate = lobbyGameType === MatchType.Private;
-        this.gameType = lobbyGameType;
+        this.connectionLink = matchmakingType !== MatchmakingType.Quick ? this.createLobbyLink() : null;
+        this.isPrivate = matchmakingType === MatchmakingType.PrivateLobby;
+        this.matchmakingType = matchmakingType;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
-        this.gameFormat = lobbyGameFormat;
+        this.gameFormat = gameFormat;
         this.server = gameServer;
         this.discordDispatcher = discordDispatcher;
-        this.undoMode = lobbyGameType === MatchType.Private ? UndoMode.Free : UndoMode.Request;
+        this.undoMode = matchmakingType === MatchmakingType.PrivateLobby ? UndoMode.Free : UndoMode.Request;
         this.allow30CardsInMainBoard = allow30CardsInMainBoard;
+
+        switch (gamesToWinMode) {
+            case GamesToWinMode.BestOfOne:
+                this.setBo1History();
+                break;
+            case GamesToWinMode.BestOfThree:
+                this.initializeBo3History();
+                break;
+            default:
+                Contract.fail(`Invalid games to win mode: ${gamesToWinMode}`);
+        }
     }
 
     public get id(): string {
@@ -148,6 +223,94 @@ export class Lobby {
 
     public get format(): SwuGameFormat {
         return this.gameFormat;
+    }
+
+    public get gamesToWinMode(): GamesToWinMode {
+        return this.winHistory.gamesToWinMode;
+    }
+
+    public get queueFormatKey(): IQueueFormatKey {
+        return { swuFormat: this.format, gamesToWinMode: this.gamesToWinMode };
+    }
+
+    private get useActionTimers(): boolean {
+        return (
+            (this.matchmakingType === MatchmakingType.Quick || this.matchmakingType === MatchmakingType.PublicLobby) &&
+            (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_ACTION_TIMER === 'true')
+        );
+    }
+
+    private setBo1History(winnerId?: string): void {
+        this.winHistory = {
+            gamesToWinMode: GamesToWinMode.BestOfOne,
+            lastWinnerId: winnerId
+        };
+    }
+
+    private initializeBo3History(bo1WinnerId?: string): void {
+        this.winHistory = {
+            gamesToWinMode: GamesToWinMode.BestOfThree,
+            currentGameNumber: bo1WinnerId ? 2 : 1,
+            winnerIdsInOrder: bo1WinnerId ? [bo1WinnerId] : []
+        };
+
+        this.bo3NextGameConfirmedBy = new Set<string>();
+        this.initializeBo3LobbyReadyTimer();
+    }
+
+    /**
+     * Counts wins per player from an array of winner IDs.
+     * @param winnerIds Array of player IDs who won each game, or 'draw' for drawn games
+     * @returns Record mapping player IDs to their win counts
+     */
+    private countWinsPerPlayer(winnerIds: (string | 'draw')[]): Record<string, number> {
+        const winsPerPlayer: Record<string, number> = {};
+        for (const winnerId of winnerIds) {
+            if (winnerId !== 'draw') {
+                winsPerPlayer[winnerId] = (winsPerPlayer[winnerId] || 0) + 1;
+            }
+        }
+        return winsPerPlayer;
+    }
+
+    /**
+     * Get win history data formatted for the frontend client
+     */
+    private getWinHistoryForClient() {
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne) {
+            return {
+                gamesToWinMode: this.winHistory.gamesToWinMode,
+                lastWinnerId: this.winHistory.lastWinnerId
+            };
+        }
+
+        // Bo3 mode
+        const winsPerPlayer = this.countWinsPerPlayer(this.winHistory.winnerIdsInOrder);
+
+        // Ensure all players are included in winsPerPlayer, even if they have 0 wins
+        if (this.winHistory.playerNames) {
+            for (const playerId of Object.keys(this.winHistory.playerNames)) {
+                if (!(playerId in winsPerPlayer)) {
+                    winsPerPlayer[playerId] = 0;
+                }
+            }
+        }
+
+        // Dynamically determine setEndResult based on current win counts (supports undo scenarios)
+        // If someone has 2 wins, the set is won - return WonTwoGames result
+        // Otherwise, use the stored setEndResult (which may indicate concede/timeout)
+        const hasWinner = Object.values(winsPerPlayer).some((wins) => wins >= 2);
+        const setEndResult = hasWinner
+            ? { endedReason: Bo3SetEndedReason.WonTwoGames }
+            : this.winHistory.setEndResult;
+
+        return {
+            gamesToWinMode: this.winHistory.gamesToWinMode,
+            currentGameNumber: this.winHistory.currentGameNumber,
+            winsPerPlayer,
+            setEndResult,
+            playerNames: this.winHistory.playerNames
+        };
     }
 
     public getLobbyState(user?: LobbyUserWrapper): any {
@@ -164,11 +327,16 @@ export class Lobby {
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
-            gameType: this.gameType,
+            gameType: this.matchmakingType,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
             allow30CardsInMainBoard: this.allow30CardsInMainBoard,
+            winHistory: this.getWinHistoryForClient(),
+            hasConfirmedNextGame: this.gamesToWinMode === GamesToWinMode.BestOfThree && user
+                ? this.bo3NextGameConfirmedBy?.has(user.id) ?? false
+                : undefined,
+            sideboardTimeoutStatus: this.bo3LobbyReadyTimer?.timeRemainingStatus,
             settings: {
                 requestUndo: this.undoMode === UndoMode.Request,
             },
@@ -362,7 +530,7 @@ export class Lobby {
             return Promise.resolve();
         }
 
-        if (this.gameType === MatchType.Quick) {
+        if (this.matchmakingType === MatchmakingType.Quick) {
             if (!socket.eventContainsListener('requeue')) {
                 socket.registerEvent(
                     'requeue',
@@ -372,7 +540,7 @@ export class Lobby {
                             socket.send('connection_error', 'Unable to requeue: deck not found');
                             return;
                         }
-                        this.server.requeueUser(socket, this.format, user, existingUser.deck.originalDeckList);
+                        this.server.requeueUser(socket, this.queueFormatKey, user, existingUser.deck.originalDeckList);
                     }
                 );
             }
@@ -404,11 +572,11 @@ export class Lobby {
         } else if (remainingSeconds > -4) {
             this.matchingCountdownText = 'Waiting for opponent to connect...';
 
-            this.sendLobbyState(true);
-
             if (this.users.length === 2 && this.users.every((u) => u.state === 'connected')) {
-                return this.onStartGameAsync();
+                return this.startGameAsync();
             }
+
+            this.sendLobbyState(true);
         } else {
             logger.warn('Lobby: both users failed to connect within 3s, removing lobby and requeuing users', { lobbyId: this.id });
             this.server.removeLobby(this);
@@ -422,7 +590,7 @@ export class Lobby {
         return Promise.resolve();
     }
 
-    private setReadyStatus(socket: Socket, ...args) {
+    private async setReadyStatus(socket: Socket, ...args) {
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'boolean', 'Ready status arguments aren\'t boolean or present');
         const currentUser = this.users.find((u) => u.id === socket.user.getId());
         if (!currentUser) {
@@ -432,6 +600,59 @@ export class Lobby {
         logger.info(`Lobby: user ${currentUser.username} set ready status: ${args[0]}`, { lobbyId: this.id, userName: currentUser.username, userId: currentUser.id });
         this.gameChat.addAlert(AlertType.ReadyStatus, `${currentUser.username} is ${args[0] ? 'ready to start' : 'not ready to start'}`);
         this.updateUserLastActivity(currentUser.id);
+
+        // For Bo3 games after game 1, manage the lobby ready timer based on ready state
+        this.manageBo3LobbyReadyTimer();
+
+        // For Bo3 games after game 1, automatically start when both players are ready
+        if (
+            this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree &&
+            this.winHistory.currentGameNumber > 1 &&
+            this.users.length === 2 &&
+            this.users.every((u) => u.ready)
+        ) {
+            await this.startGameAsync();
+        }
+    }
+
+    /**
+     * Manages the Bo3 lobby ready timer based on player ready state.
+     * - Starts the timer when the first player readies up
+     * - Stops the timer if both players become unready
+     * - Timer duration is dynamic: default 30s, but guarantees minimum 60s from lobby load
+     */
+    private manageBo3LobbyReadyTimer(): void {
+        if (
+            this.winHistory.gamesToWinMode !== GamesToWinMode.BestOfThree ||
+            this.winHistory.currentGameNumber <= 1 ||
+            !this.bo3LobbyReadyTimer
+        ) {
+            return;
+        }
+
+        const readyCount = this.users.filter((u) => u.ready).length;
+
+        if (readyCount === 0 && this.bo3LobbyReadyTimer.isRunning) {
+            // Both players unready - stop the timer
+            this.bo3LobbyReadyTimer.stop();
+            this.gameChat.addAlert(AlertType.Notification, 'Timer stopped. It will be reset when a player is ready.');
+            logger.info('Lobby: Bo3 lobby ready timer stopped - no players ready', { lobbyId: this.id });
+        } else if (readyCount === 1 && !this.bo3LobbyReadyTimer.isRunning) {
+            // First player ready - calculate dynamic timer duration
+            // Default: 30 seconds, but guarantee minimum 120 seconds from lobby load
+            const defaultDurationSeconds = 30;
+            const minimumTotalSeconds = 120;
+            const elapsedSeconds = this.bo3LobbyLoadedAt
+                ? Math.floor((Date.now() - this.bo3LobbyLoadedAt.getTime()) / 1000)
+                : 0;
+            const timerDurationSeconds = Math.max(defaultDurationSeconds, minimumTotalSeconds - elapsedSeconds);
+
+            this.bo3LobbyReadyTimer.start(timerDurationSeconds);
+            this.gameChat.addAlert(AlertType.Warning, `Timer started because a player has readied. Both players must be readied within ${timerDurationSeconds} seconds.`);
+            logger.info(`Lobby: Bo3 lobby ready timer started with ${timerDurationSeconds}s - first player ready`, { lobbyId: this.id, elapsedSeconds, timerDurationSeconds });
+        }
+
+        this.sendLobbyState();
     }
 
     private sendChatMessage(socket: Socket, ...args) {
@@ -447,10 +668,23 @@ export class Lobby {
     }
 
     private requestRematch(socket: Socket, ...args: any[]): void {
-        // Expect the rematch mode to be passed as the first argument: 'reset' or 'regular'
         Contract.assertTrue(args.length === 1, 'Expected rematch mode argument but argument length is: ' + args.length);
-        const mode = args[0];
-        Contract.assertTrue(mode === 'reset' || mode === 'regular', 'Invalid rematch mode, expected reset or regular but receieved: ' + mode);
+
+        // Convert and validate the mode is a valid RematchMode value (throws if invalid)
+        const mode = EnumHelpers.checkConvertToEnum(args[0], RematchMode)[0];
+
+        // Validate mode transitions based on current game mode
+        switch (this.gamesToWinMode) {
+            case GamesToWinMode.BestOfOne:
+                Contract.assertTrue(mode === RematchMode.Regular || mode === RematchMode.Reset || mode === RematchMode.Bo1ConvertToBo3);
+                break;
+            case GamesToWinMode.BestOfThree:
+                // Bo3 mode - only NewBo3 is allowed for rematch (regular/reset should use proceedToNextBo3Game)
+                Contract.assertTrue(mode === RematchMode.NewBo3);
+                break;
+            default:
+                Contract.fail(`Unknown games to win mode: ${this.gamesToWinMode}`);
+        }
 
         const user = this.getUser(socket.user.getId());
 
@@ -461,18 +695,72 @@ export class Lobby {
                 mode,
             };
             logger.info(`Lobby: user ${socket.user.getId()} requested a rematch (${mode})`, { lobbyId: this.id, userName: user.username, userId: user.id });
-            this.game.addAlert(AlertType.Notification, `${user.username} has requested a ${mode === 'reset' ? 'quick' : ''} rematch!`);
+
+            let alertMessage: string;
+            switch (mode) {
+                case RematchMode.Reset:
+                    alertMessage = `${user.username} has requested a quick rematch!`;
+                    break;
+                case RematchMode.Bo1ConvertToBo3:
+                    alertMessage = `${user.username} has requested to convert to a best-of-three match!`;
+                    break;
+                case RematchMode.NewBo3:
+                    alertMessage = `${user.username} has requested a new best-of-three match!`;
+                    break;
+                case RematchMode.Regular:
+                    alertMessage = `${user.username} has requested a rematch!`;
+                    break;
+                default:
+                    Contract.fail(`Unknown rematch mode: ${mode}`);
+            }
+
+            if (this.game) {
+                this.game.addAlert(AlertType.Notification, alertMessage);
+            } else {
+                this.gameChat.addAlert(AlertType.Notification, alertMessage);
+            }
         }
         this.sendLobbyState();
     }
 
     private rematch() {
+        const mode = this.rematchRequest?.mode;
+
         // Clear the rematch request and reset the game.
         this.rematchRequest = null;
         this.game = null;
-        if (this.gameType === MatchType.Quick) {
-            this.gameType = MatchType.Custom;
+        if (this.matchmakingType === MatchmakingType.Quick) {
+            this.matchmakingType = MatchmakingType.PublicLobby;
         }
+
+        // Handle win history based on rematch mode
+        switch (mode) {
+            case RematchMode.Bo1ConvertToBo3: {
+                // Convert Bo1 to Bo3, using previous winner as first game result
+                Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne, 'Cannot convert to Bo3 from non-Bo1 mode');
+                const previousWinnerId = this.winHistory.lastWinnerId;
+                this.initializeBo3History(previousWinnerId);
+                break;
+            }
+            case RematchMode.NewBo3:
+                // Start a fresh Bo3 set
+                this.initializeBo3History();
+                this.resetSideboards();
+                break;
+            case RematchMode.Regular:
+            case RematchMode.Reset:
+                // Keep existing win history mode (Bo1 stays Bo1)
+                // For Bo1, lastWinnerId is already set by handleGameEnd
+                // Clear Bo3 confirmation tracking since we're staying in Bo1
+                this.bo3NextGameConfirmedBy = undefined;
+                break;
+            case undefined:
+                // No mode specified (shouldn't happen, but handle gracefully)
+                break;
+            default:
+                Contract.fail(`Unknown rematch mode: ${mode}`);
+        }
+
         // Clear the 'ready' state for all users.
         this.users.forEach((user) => {
             user.ready = false;
@@ -480,7 +768,149 @@ export class Lobby {
         this.sendLobbyState();
     }
 
+    /**
+     * RPC method for proceeding to the next game in a Bo3 set.
+     * Both players must call this method to confirm they are ready to proceed.
+     * The winner is determined server-side from the game state.
+     */
+    private proceedToNextBo3Game(socket: Socket): void {
+        Contract.assertTrue(this.gamesToWinMode === GamesToWinMode.BestOfThree);
+        Contract.assertNotNullLike(this.game, 'Cannot proceed to next game when no game exists');
+        Contract.assertTrue(this.game.finishedAt != null, 'Cannot proceed to next game when current game has not finished');
+        Contract.assertNotNullLike(this.bo3NextGameConfirmedBy, 'Bo3 confirmation tracking not initialized');
+
+        const userId = socket.user.getId();
+        const user = this.getUser(userId);
+
+        // Add this user to the confirmed set
+        this.bo3NextGameConfirmedBy.add(userId);
+        logger.info(`Lobby: user ${user.username} confirmed proceeding to next Bo3 game`, { lobbyId: this.id, userName: user.username, userId: user.id });
+
+        // Send game message so opponent can see this player confirmed
+        this.game.addMessage('{0} is ready to proceed to the next game.', this.game.getPlayerById(userId));
+
+        // Check if both players have confirmed
+        if (this.bo3NextGameConfirmedBy.size >= 2) {
+            this.transitionToNextBo3Game('Both players confirmed');
+        } else {
+            this.gameChat.addAlert(AlertType.Notification, `${user.username} is ready for the next game.`);
+            this.sendLobbyState();
+        }
+    }
+
+    /**
+     * Concedes the entire Bo3 set. If there's an active game, it will be conceded first.
+     * This records the set as conceded by the player.
+     */
+    private concedeBo3(socket: Socket): void {
+        const userId = socket.user.getId();
+        this.concedeBo3ByUserId(userId);
+    }
+
+    /**
+     * Core implementation for conceding a Bo3 set by user ID.
+     * Can be called from RPC (via concedeBo3) or internally (e.g., from removeUser).
+     */
+    private concedeBo3ByUserId(userId: string): void {
+        Contract.assertFalse(
+            this.gamesToWinMode === GamesToWinMode.BestOfOne,
+            'Cannot concede Bo3 set when in Bo1 mode'
+        );
+        Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+
+        const user = this.getUser(userId);
+
+        // If there's an active game that hasn't finished, concede it first
+        if (this.game && this.game.finishedAt == null) {
+            this.game.concede(userId);
+        }
+
+        // Only mark as conceded if the set isn't already decided
+        if (!this.winHistory.setEndResult) {
+            // Record that this player conceded the set
+            this.winHistory.setEndResult = {
+                endedReason: Bo3SetEndedReason.Concede,
+                concedingPlayerId: userId
+            };
+        }
+
+        // Add message to game chat if game exists
+        if (this.game) {
+            this.game.gameChat.addMessage('{0} concedes the best-of-three set', this.game.getPlayerById(userId));
+            this.sendGameState(this.game);
+        } else {
+            this.gameChat.addMessage(`${user.username} has conceded the set.`);
+        }
+
+        logger.info(`Lobby: user ${user.username} conceded the Bo3 set`, { lobbyId: this.id, userName: user.username, userId: user.id });
+
+        this.sendLobbyState();
+    }
+
+    private resetSideboards() {
+        for (const user of this.users) {
+            if (user.deck) {
+                user.deck.resetSideboard();
+            }
+        }
+    }
+
+    /**
+     * Records the result of the current game into win history.
+     * Reads winner from game.winnerNames (server-authoritative).
+     * @param gamesToWinMode The game mode to record the result for
+     */
+    private recordGameResult(gamesToWinMode: GamesToWinMode): void {
+        Contract.assertNotNullLike(this.game, 'Cannot record game result when no game exists');
+        Contract.assertTrue(this.winHistory.gamesToWinMode === gamesToWinMode, `recordGameResult called with ${gamesToWinMode} but winHistory is ${this.winHistory.gamesToWinMode}`);
+
+        const winnerNames = this.game.winnerNames;
+        let winnerId: string | 'draw' | null = null;
+
+        if (winnerNames.length > 1) {
+            // Draw - both players' names are in winnerNames
+            winnerId = 'draw';
+        } else if (winnerNames.length === 1) {
+            // Single winner - find the player ID by name
+            const winnerName = winnerNames[0];
+            const winner = this.game.getPlayers().find((p) => p.name === winnerName);
+            Contract.assertNotNullLike(winner, `Could not find player with name ${winnerName}`);
+            winnerId = winner.id;
+        }
+
+        switch (gamesToWinMode) {
+            case GamesToWinMode.BestOfOne: {
+                Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne);
+                if (winnerId) {
+                    this.winHistory.lastWinnerId = winnerId;
+                    logger.info(`Lobby: Bo1 game ${winnerId === 'draw' ? 'ended in a draw' : `won by ${winnerId}`}`, { lobbyId: this.id });
+                } else {
+                    logger.warn('Lobby: Game finished but no winner names recorded', { lobbyId: this.id });
+                }
+                break;
+            }
+            case GamesToWinMode.BestOfThree: {
+                Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+                if (winnerId) {
+                    this.winHistory.winnerIdsInOrder.push(winnerId);
+                    logger.info(`Lobby: Bo3 game ${this.winHistory.winnerIdsInOrder.length} ${winnerId === 'draw' ? 'ended in a draw' : `won by ${winnerId}`}`, { lobbyId: this.id });
+                } else {
+                    Contract.fail('Game finished but no winner names recorded');
+                }
+                break;
+            }
+            default:
+                Contract.fail(`Unknown games to win mode: ${gamesToWinMode}`);
+        }
+    }
+
     private changeDeck(socket: Socket, ...args) {
+        // Changing decks is not allowed after game 1 in a Bo3 set
+        Contract.assertFalse(
+            this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2,
+            'Changing decks is not allowed after game 1 in a Bo3 set'
+        );
+
         const activeUser = this.users.find((u) => u.id === socket.user.getId());
 
         // we check if the deck is valid.
@@ -495,6 +925,11 @@ export class Lobby {
                 activeUser.deck.getDecklist(),
                 validationProperties
             );
+
+            // Track deck change for Bo1 first player selection
+            if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne) {
+                this.winHistory.deckChangedSinceLastGame = true;
+            }
         }
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
@@ -502,6 +937,12 @@ export class Lobby {
     }
 
     private updateDeck(socket: Socket, ...args) {
+        // Sideboarding is only allowed after game 1 in a Bo3 set
+        Contract.assertFalse(
+            this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber <= 1,
+            'Sideboarding is not allowed before game 2 in a Bo3 set'
+        );
+
         const source = args[0]; // [<'Deck'|'Sideboard>'<cardID>]
         const cardId = args[1];
 
@@ -618,6 +1059,20 @@ export class Lobby {
             return;
         }
 
+        // If we're in a Bo3 set and game 1 has started, concede the set for the leaving player (before removing them)
+        // Players can freely leave before game 1 starts without forfeiting the set
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && !this.winHistory.setEndResult) {
+            const bo3SetHasStarted = this.winHistory.currentGameNumber > 1 || this.game != null;
+            if (bo3SetHasStarted) {
+                this.clearBo3TransitionTimer();
+                this.bo3LobbyReadyTimer?.stop();
+                this.concedeBo3ByUserId(id);
+            }
+        }
+
+        // Record matchmaking entry for quick match to prevent immediate rematches (before removing user)
+        this.tryRecordExpiringMatchmakingEntry(id);
+
         if (this.lobbyOwnerId === id) {
             const newOwner = this.users.find((u) => u.id !== id);
             this.lobbyOwnerId = newOwner?.id;
@@ -630,7 +1085,6 @@ export class Lobby {
             const otherPlayer = this.users.find((u) => u.id !== id);
             if (otherPlayer) {
                 this.game.endGame(this.game.getPlayerById(otherPlayer.id), GameEndReason.PlayerLeft);
-                this.server.recordExpiringMatchmakingEntry(this.game, this);
             }
             this.sendGameState(this.game);
         }
@@ -659,7 +1113,26 @@ export class Lobby {
         return this.users.length === 0;
     }
 
+    /**
+     * Records a matchmaking entry if this is a quick match, to prevent immediate rematches.
+     * Uses the current time as the entry timestamp.
+     */
+    private tryRecordExpiringMatchmakingEntry(leavingPlayerId: string): void {
+        if (this.matchmakingType !== MatchmakingType.Quick) {
+            return;
+        }
+
+        const otherPlayer = this.users.find((u) => u.id !== leavingPlayerId);
+        if (!otherPlayer) {
+            return;
+        }
+
+        this.server.recordExpiringMatchmakingEntry(leavingPlayerId, otherPlayer.id, Date.now());
+    }
+
     public cleanLobby(): void {
+        this.clearBo3TransitionTimer();
+        this.bo3LobbyReadyTimer?.stop();
         this.game = null;
         this.users = [];
         this.spectators = [];
@@ -693,8 +1166,9 @@ export class Lobby {
         this.game = game;
     }
 
-    private async onStartGameAsync() {
+    private async startGameAsync() {
         try {
+            this.bo3LobbyReadyTimer?.stop();
             this.rematchRequest = null;
             this.statsUpdateStatus.clear();
             const game = new Game(this.buildGameSettings(), { router: this });
@@ -702,6 +1176,14 @@ export class Lobby {
             game.started = true;
 
             logger.info(`Lobby: starting game id: ${game.id}`, { lobbyId: this.id });
+
+            // Initialize playerNames for Bo3 when game 1 starts (captures players before anyone can leave)
+            if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber === 1) {
+                this.winHistory.playerNames = {};
+                for (const user of this.users) {
+                    this.winHistory.playerNames[user.id] = user.username;
+                }
+            }
 
             // Give each user the standard disconnect handler (longer timeout than during matchmaking)
             this.users.forEach((user) => {
@@ -715,9 +1197,10 @@ export class Lobby {
                 game.attachLobbyUser(user.id, user.socket.user);
             });
             await game.initialiseAsync();
+            this.sendLobbyState(true);
             this.sendGameState(game);
         } catch (error) {
-            if (this.gameType === MatchType.Quick) {
+            if (this.matchmakingType === MatchmakingType.Quick) {
                 logger.error(
                     'Lobby: error attempting to start matchmaking lobby, cancelling and requeueing users',
                     { error: { message: error.message, stack: error.stack }, lobbyId: this.id }
@@ -729,7 +1212,7 @@ export class Lobby {
                     error,
                     this.id,
                     this.gameFormat,
-                    this.gameType
+                    this.matchmakingType
                 ).catch((e) => {
                     logger.error('Lobby: error sending game start error to discord', { error: { message: e.message, stack: e.stack }, lobbyId: this.id });
                 });
@@ -743,6 +1226,57 @@ export class Lobby {
         for (const user of this.users) {
             // this will end up resolving to a call to GameServer.requeueUser, putting them back in the queue
             user.socket.send('matchmakingFailed', error.message);
+        }
+    }
+
+    /**
+     * Determines which player should get to choose who starts with initiative.
+     * Returns the player ID of the loser of the previous game, or null for random selection.
+     */
+    private determineFirstPlayer(): string | null {
+        switch (this.winHistory.gamesToWinMode) {
+            case GamesToWinMode.BestOfThree: {
+                Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+
+                // Game 1 of Bo3: random
+                if (this.winHistory.currentGameNumber <= 1) {
+                    return null;
+                }
+
+                // Game 2+: find the most recent non-draw game's loser
+                for (let i = this.winHistory.winnerIdsInOrder.length - 1; i >= 0; i--) {
+                    const winnerId = this.winHistory.winnerIdsInOrder[i];
+                    if (winnerId !== 'draw') {
+                        // Return the loser (the other player)
+                        const loser = this.users.find((u) => u.id !== winnerId);
+                        return loser?.id ?? null;
+                    }
+                }
+
+                // All prior games were draws: random
+                return null;
+            }
+            case GamesToWinMode.BestOfOne: {
+                Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne);
+                const bo1History = this.winHistory;
+
+                // No previous game: random
+                if (!bo1History.lastWinnerId) {
+                    return null;
+                }
+
+                // Deck changed since last game: random (and reset the flag)
+                if (bo1History.deckChangedSinceLastGame) {
+                    bo1History.deckChangedSinceLastGame = false;
+                    return null;
+                }
+
+                // Rematch with no deck change: loser of previous game
+                const loser = this.users.find((u) => u.id !== bo1History.lastWinnerId);
+                return loser?.id ?? null;
+            }
+            default:
+                Contract.fail(`Unknown games to win mode: ${(this.winHistory as IGameWinHistory).gamesToWinMode}`);
         }
     }
 
@@ -760,10 +1294,6 @@ export class Lobby {
             })
         );
 
-        const useActionTimer =
-            (this.gameType === MatchType.Quick || this.gameType === MatchType.Custom) &&
-            (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_ACTION_TIMER === 'true');
-
         return {
             id: uuidv4(),
             allowSpectators: false,
@@ -772,7 +1302,8 @@ export class Lobby {
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
-            useActionTimer,
+            useActionTimer: this.useActionTimers,
+            preselectedFirstPlayerId: this.determineFirstPlayer(),
             pushUpdate: () => this.sendGameState(this.game),
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
                 this.buildSafeTimeout(callback, delayMs, errorMessage),
@@ -873,7 +1404,7 @@ export class Lobby {
     }
 
     public handleMatchmakingDisconnect() {
-        if (this.gameType !== MatchType.Quick) {
+        if (this.matchmakingType !== MatchmakingType.Quick) {
             logger.error('Lobby: attempting to use quick lobby disconnect on non-quick lobby', { lobbyId: this.id });
             return;
         }
@@ -897,7 +1428,7 @@ export class Lobby {
                     user.socket.send('connection_error', 'Unable to requeue: deck not found');
                     continue;
                 }
-                this.server.requeueUser(user.socket, this.format, user.socket.user, user.deck.originalDeckList);
+                this.server.requeueUser(user.socket, this.queueFormatKey, user.socket.user, user.deck.originalDeckList);
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
 
@@ -947,7 +1478,7 @@ export class Lobby {
                 player1Id,
                 player2Id,
                 this.gameFormat,
-                this.gameType,
+                this.matchmakingType,
                 this.game.gameStepsSinceLastUndo
             )
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
@@ -982,7 +1513,7 @@ export class Lobby {
             player1Id,
             player2Id,
             this.gameFormat,
-            this.gameType,
+            this.matchmakingType,
             this.game.gameStepsSinceLastUndo
         )
             .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
@@ -1060,8 +1591,9 @@ export class Lobby {
 
     /**
      * Private method to update a players SWU stats
+     * @param sequenceNumber - For Bo3 games, indicates which game in the set (1, 2, or 3). Omitted for Bo1.
      */
-    private async updatePlayerSWUStatsAsync(game: Game, player1: Player, player2: Player): Promise<{ player1SwuStatsStatus: IStatsMessageFormat | null; player2SwuStatsStatus: IStatsMessageFormat | null }> {
+    private async updatePlayerSWUStatsAsync(game: Game, player1: Player, player2: Player, sequenceNumber?: number): Promise<{ player1SwuStatsStatus: IStatsMessageFormat | null; player2SwuStatsStatus: IStatsMessageFormat | null }> {
         try {
             const swuStatsMessage = await this.server.swuStatsHandler.sendSWUStatsGameResultAsync(
                 game,
@@ -1069,6 +1601,7 @@ export class Lobby {
                 player2,
                 this.id,
                 this.server,
+                sequenceNumber,
             );
             // Success return message
             logger.info(`Lobby ${this.id}: Successfully updated deck SWUStats stats for game ${game.id}`, { lobbyId: this.id });
@@ -1097,8 +1630,9 @@ export class Lobby {
     /**
      * Updates deck statistics when a game ends
      * @param game The game that has ended
+     * @param sequenceNumber - For Bo3 games, indicates which game in the set (1, 2, or 3). Omitted for Bo1.
      */
-    private async endGameUpdateStatsAsync(game: Game): Promise<void> {
+    private async endGameUpdateStatsAsync(game: Game, sequenceNumber?: number): Promise<void> {
         logger.info(`Lobby ${this.id}: Updating deck stats for game ${game.id}`, { lobbyId: this.id });
         // pre-populate the status messages with an error that we will send by default in case something fails
         let player1KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'an error occurred while updating stats' };
@@ -1176,7 +1710,7 @@ export class Lobby {
 
             // Send to SWUstats if handler is available
             if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier && this.swuStatsEnabled) {
-                ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1, player2));
+                ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1, player2, sequenceNumber));
             }
             // Send warning that swustats are not updated when in non-premier format.
             if (this.format !== SwuGameFormat.Premier && this.swuStatsEnabled) {
@@ -1203,11 +1737,25 @@ export class Lobby {
     }
 
     /**
+     * Updates stats for the current game, handling both fresh updates and repeated end-game scenarios.
+     * @param sequenceNumber - For Bo3 games, indicates which game in the set (1, 2, or 3). Omitted for Bo1.
+     */
+    private updateEndGameStatsIfNeeded(sequenceNumber?: number): void {
+        if (this.game.statsUpdated) {
+            this.sendRepeatedEndGameUpdateStatsMessages();
+        } else {
+            this.game.statsUpdated = true;
+            this.endGameUpdateStatsAsync(this.game, sequenceNumber).catch((error) => {
+                logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+            });
+        }
+    }
+
+    /**
      * If the game has already ended and stats were updated (i.e. there was an undo and we're ending again),
      * send a clear stats message to the user
-     * @param game
      */
-    private sendRepeatedEndGameUpdateStatsMessages(game: Game): void {
+    private sendRepeatedEndGameUpdateStatsMessages(): void {
         const cachedMessages: { userId: string; content: IStatsMessageFormat }[] = [];
 
         for (const [userId, messageTypes] of this.statsUpdateStatus) {
@@ -1244,15 +1792,247 @@ export class Lobby {
     }
 
     public handleGameEnd(): void {
-        if (this.game.statsUpdated) {
-            this.sendRepeatedEndGameUpdateStatsMessages(this.game);
-        } else {
-            // Update deck stats asynchronously
-            this.game.statsUpdated = true;
-            this.endGameUpdateStatsAsync(this.game).catch((error) => {
-                logger.error(`Lobby ${this.id}: Failed to update deck stats:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-            });
+        // Record winner based on game mode
+        this.recordGameResult(this.gamesToWinMode);
+
+        // Handle stats and other end-game logic based on game mode
+        switch (this.gamesToWinMode) {
+            case GamesToWinMode.BestOfOne:
+                this.updateEndGameStatsIfNeeded();
+                break;
+            case GamesToWinMode.BestOfThree: {
+                const bo3History = this.winHistory as IBestOfThreeHistory;
+                this.updateEndGameStatsIfNeeded(bo3History.currentGameNumber);
+
+                // Start a 30s timer to auto-transition if the set is not complete
+                if (this.useActionTimers && !this.isBo3SetComplete()) {
+                    this.startBo3TransitionTimer();
+                }
+                break;
+            }
+            default:
+                Contract.fail(`Unknown games to win mode: ${this.gamesToWinMode}`);
         }
+
+        // Send updated lobby state so clients see the new score immediately
+        this.sendLobbyState();
+    }
+
+    /**
+     * Reverts the win history state when a game end is undone via the rollback mechanism.
+     * This is called when a player uses undo to revert past the game end.
+     * Note: Stats updates are not affected - this scenario is already handled by the stats logic.
+     */
+    public handleUndoGameEnd(): void {
+        switch (this.winHistory.gamesToWinMode) {
+            case GamesToWinMode.BestOfOne:
+                // Clear the recorded winner
+                this.winHistory.lastWinnerId = undefined;
+                logger.info('Lobby: Bo1 game end undone, cleared lastWinnerId', { lobbyId: this.id });
+                break;
+            case GamesToWinMode.BestOfThree: {
+                // Remove the last recorded game result
+                if (this.winHistory.winnerIdsInOrder.length > 0) {
+                    const removedWinnerId = this.winHistory.winnerIdsInOrder.pop();
+                    logger.info(`Lobby: Bo3 game end undone, removed winner ${removedWinnerId} from history`, { lobbyId: this.id });
+                }
+
+                // Clear set end result (the undone game may have been the deciding game)
+                this.winHistory.setEndResult = undefined;
+
+                // Clear the transition timer since we're back to an active game
+                this.clearBo3TransitionTimer();
+
+                // Clear confirmation tracking since we're back to an active game
+                this.bo3NextGameConfirmedBy?.clear();
+                break;
+            }
+            default:
+                Contract.fail(`Unknown games to win mode: ${(this.winHistory as any).gamesToWinMode}`);
+        }
+
+        // Send updated lobby state so clients see the reverted state
+        this.sendLobbyState();
+    }
+
+    /**
+     * Checks if the Bo3 set is complete (a player has 2 wins).
+     * If a player has won 2 games and setEndResult hasn't been set yet, it sets the WonTwoGames result.
+     */
+    private isBo3SetComplete(): boolean {
+        Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+
+        const winsPerPlayer = this.countWinsPerPlayer(this.winHistory.winnerIdsInOrder);
+
+        const hasWinner = Object.values(winsPerPlayer).some((wins) => wins >= 2);
+
+        // If someone has 2 wins and we haven't recorded the end result yet, record it now
+        if (hasWinner && !this.winHistory.setEndResult) {
+            this.winHistory.setEndResult = {
+                endedReason: Bo3SetEndedReason.WonTwoGames
+            };
+        }
+
+        return hasWinner;
+    }
+
+    /**
+     * Starts the 30-second timer for auto-transitioning to the next Bo3 game.
+     */
+    private startBo3TransitionTimer(): void {
+        this.clearBo3TransitionTimer();
+
+        this.bo3TransitionTimer = this.buildSafeTimeout(
+            () => this.onBo3TransitionTimerExpired(),
+            30 * 1000,
+            'Lobby: error in Bo3 transition timer'
+        );
+
+        this.gameChat.addAlert(AlertType.Notification, 'The game will be ended and moved to the next lobby in 30 seconds.');
+        logger.info('Lobby: started 30s Bo3 transition timer', { lobbyId: this.id });
+    }
+
+    /**
+     * Clears the Bo3 transition timer if it exists.
+     */
+    private clearBo3TransitionTimer(): void {
+        if (this.bo3TransitionTimer) {
+            clearTimeout(this.bo3TransitionTimer);
+            this.bo3TransitionTimer = undefined;
+            logger.info('Lobby: cleared Bo3 transition timer', { lobbyId: this.id });
+        }
+    }
+
+    /**
+     * Performs the transition to the next Bo3 game. This is the shared logic
+     * called when both players confirm or when the transition timer expires.
+     * @param alertPrefix The message prefix for the alert (e.g., "Both players confirmed" or "Time expired")
+     */
+    private transitionToNextBo3Game(alertPrefix: string): void {
+        this.clearBo3TransitionTimer();
+
+        Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+        this.winHistory.currentGameNumber++;
+
+        // Reset for next game (winner was already recorded in handleGameEnd)
+        this.game = null;
+        this.bo3NextGameConfirmedBy?.clear();
+
+        // Clear the 'ready' state for all users
+        this.users.forEach((u) => {
+            u.ready = false;
+        });
+
+        // Track when lobby was loaded for timer calculation
+        this.bo3LobbyLoadedAt = new Date();
+
+        this.gameChat.addAlert(AlertType.Notification, `${alertPrefix}. Proceeding to game ${this.winHistory.currentGameNumber}.`);
+        logger.info(`Lobby: ${alertPrefix.toLowerCase()}, proceeding to Bo3 game ${this.winHistory.currentGameNumber}`, { lobbyId: this.id });
+
+        this.sendLobbyState();
+    }
+
+    /**
+     * Initializes the Bo3 lobby ready timer with handlers.
+     * Called once when Bo3 mode is initialized. Does nothing if action timers are disabled.
+     */
+    private initializeBo3LobbyReadyTimer(): void {
+        if (!this.useActionTimers) {
+            return;
+        }
+
+        this.bo3LobbyReadyTimer = new SimpleActionTimer(
+            30,
+            (callback, delayMs) => this.buildSafeTimeout(callback, delayMs, 'Lobby: error in Bo3 lobby ready timer')
+        );
+
+        // Handler at 20 seconds remaining (warning)
+        this.bo3LobbyReadyTimer.addSpecificTimeHandler(20, (setStatus) => {
+            setStatus(PlayerTimeRemainingStatus.Warning);
+            this.gameChat.addAlert(AlertType.Warning, '20 seconds remaining to sideboard and ready up.');
+            this.sendLobbyState();
+        });
+
+        // Handler at 10 seconds remaining (danger)
+        this.bo3LobbyReadyTimer.addSpecificTimeHandler(10, (setStatus) => {
+            setStatus(PlayerTimeRemainingStatus.Danger);
+            this.gameChat.addAlert(AlertType.Danger, '10 seconds remaining to sideboard and ready up.');
+            this.sendLobbyState();
+        });
+
+        // Handler at 0 seconds (timer expired)
+        this.bo3LobbyReadyTimer.addSpecificTimeHandler(0, () => {
+            this.onBo3LobbyReadyTimerExpired();
+        });
+    }
+
+    /**
+     * Called when the Bo3 lobby ready timer expires.
+     * Handles three cases: both ready, one ready, neither ready.
+     */
+    private onBo3LobbyReadyTimerExpired(): void {
+        Contract.assertTrue(this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree);
+
+        const readyUsers = this.users.filter((u) => u.ready);
+        const notReadyUsers = this.users.filter((u) => !u.ready);
+
+        if (readyUsers.length >= 2) {
+            // Both players are ready - start the game
+            logger.info('Lobby: Bo3 lobby ready timer expired, both players ready - starting game', { lobbyId: this.id });
+            this.startGameAsync();
+        } else if (readyUsers.length === 1 && notReadyUsers.length === 1) {
+            // One player ready, one not - timeout the player who is not ready
+            const timeoutPlayer = notReadyUsers[0];
+            logger.info(`Lobby: Bo3 lobby ready timer expired, player ${timeoutPlayer.username} timed out`, { lobbyId: this.id, userName: timeoutPlayer.username, userId: timeoutPlayer.id });
+
+            this.winHistory.setEndResult = {
+                endedReason: Bo3SetEndedReason.OnePlayerLobbyTimeout,
+                timeoutPlayerId: timeoutPlayer.id
+            };
+
+            this.gameChat.addAlert(AlertType.Danger, `${timeoutPlayer.username} did not ready in time. The set has ended.`);
+            this.sendLobbyState();
+        } else {
+            // Neither player is ready - both timed out
+            logger.info('Lobby: Bo3 lobby ready timer expired, neither player ready - set ended', { lobbyId: this.id });
+
+            this.winHistory.setEndResult = {
+                endedReason: Bo3SetEndedReason.BothPlayersLobbyTimeout
+            };
+
+            this.gameChat.addAlert(AlertType.Danger, 'Neither player readied in time. The set has ended.');
+            this.sendLobbyState();
+        }
+    }
+
+    /**
+     * Called when the Bo3 transition timer expires. Auto-transitions both players to the next game.
+     */
+    private onBo3TransitionTimerExpired(): void {
+        // Safety checks: ensure we're still in a valid state for transition
+        if (!this.game || this.game.finishedAt == null) {
+            logger.warn('Lobby: Bo3 transition timer expired but game is not in finished state', { lobbyId: this.id });
+            return;
+        }
+
+        if (this.winHistory.gamesToWinMode !== GamesToWinMode.BestOfThree) {
+            logger.warn('Lobby: Bo3 transition timer expired but not in Bo3 mode', { lobbyId: this.id });
+            return;
+        }
+
+        if (this.bo3NextGameConfirmedBy && this.bo3NextGameConfirmedBy.size >= 2) {
+            logger.warn('Lobby: Bo3 transition timer expired but both players already confirmed', { lobbyId: this.id });
+            return;
+        }
+
+        if (this.isBo3SetComplete()) {
+            logger.warn('Lobby: Bo3 transition timer expired but set is already complete', { lobbyId: this.id });
+            return;
+        }
+
+        logger.info('Lobby: Bo3 transition timer expired, auto-transitioning to next game', { lobbyId: this.id });
+
+        this.transitionToNextBo3Game('Time expired');
     }
 
 
@@ -1352,7 +2132,7 @@ export class Lobby {
                 gameMessages,
                 this.id,
                 this.gameFormat,
-                this.gameType,
+                this.matchmakingType,
                 this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
