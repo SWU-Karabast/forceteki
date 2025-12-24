@@ -728,14 +728,16 @@ class DynamoDBService {
                 return {
                     admins: [],
                     developers: [],
-                    moderators: []
+                    moderators: [],
+                    contributors: []
                 };
             }
 
             return {
                 admins: result.Item.admins || [],
                 developers: result.Item.developers || [],
-                moderators: result.Item.moderators || []
+                moderators: result.Item.moderators || [],
+                contributors: result.Item.contributors || []
             };
         }, 'Error getting admin users');
     }

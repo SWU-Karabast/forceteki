@@ -62,13 +62,31 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     }
 
     public getOngoingEffectValues<V = any>(type: EffectName): V[] {
-        const filteredEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === type);
-        return filteredEffects.map((ongoingEffect) => ongoingEffect.getValue(this));
+        const effects = this.state.ongoingEffects;
+        const result: V[] = [];
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < effects.length; i++) {
+            // This call will want to be swapped out when the decorator is in place
+            const effect = this.game.getFromRef(effects[i]);
+            if (effect.type === type) {
+                result.push(effect.getValue(this));
+            }
+        }
+        return result;
     }
 
     public getOngoingEffectSources(type: EffectName): Card[] {
-        const filteredEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === type);
-        return filteredEffects.map((ongoingEffect) => ongoingEffect.context.source);
+        const effects = this.state.ongoingEffects;
+        const result: Card[] = [];
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < effects.length; i++) {
+            // This call will want to be swapped out when the decorator is in place
+            const effect = this.game.getFromRef(effects[i]);
+            if (effect.type === type) {
+                result.push(effect.context.source);
+            }
+        }
+        return result;
     }
 
     public hasOngoingEffect(type: EffectName): boolean {
