@@ -86,6 +86,9 @@ export interface IIgnoreSpecificAspectsCostAdjusterProperties extends ICostAdjus
 
     /** The aspect to ignore the cost of */
     ignoredAspect: Aspect;
+
+    /** Whether to match and ignore multiple instances of the aspect */
+    matchMultiple?: boolean;
 }
 
 export interface IModifyPayStageCostAdjusterProperties extends ICostAdjusterPropertiesBase {
