@@ -223,6 +223,23 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'salacious-crumb#cackling-companion',
+        title: 'Qui-Gon Jinn',
+        subtitle: 'Influencing Chance',
+        power: 3,
+        hp: 5,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        keywords: ['sentinel'],
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LAW',
+            number: 237,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'qui-gon-jinn#influencing-chance',
     }),
 ];
 
