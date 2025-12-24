@@ -60,11 +60,13 @@ export abstract class ZoneAbstract<TCard extends Card = Card, TState extends IGa
     }
 
     /** Get the cards from this zone with an optional filter */
-    public abstract getCards(filter?: IZoneCardFilterProperties): TCard[];
+    public getCards(filter?: IZoneCardFilterProperties): TCard[] {
+        return this.cards.filter(this.buildFilterFn(filter)) as TCard[];
+    }
 
     /** Returns true if the zone has any cards that match the provided filter */
     public hasSomeCard(filter: IZoneCardFilterProperties): boolean {
-        return this.getCards(filter).length > 0;
+        return this.cards.some(this.buildFilterFn(filter));
     }
 
     /** Returns true if the zone includes the specific card provided */

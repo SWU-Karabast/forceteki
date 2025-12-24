@@ -31,4 +31,17 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implemen
 
         return cards.filter(filterFn);
     }
+
+    public override hasSomeCard(filter: IArenaZoneCardFilterProperties): boolean {
+        const filterFn = this.buildFilterFn(filter);
+        for (const card of this.cards) {
+            if (filter?.controller && card.controller !== filter.controller) {
+                continue;
+            }
+            if (filterFn(card)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

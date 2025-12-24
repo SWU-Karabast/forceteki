@@ -6,7 +6,6 @@ import type Game from '../Game';
 import { registerState, undoArray, undoObject } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
-import type { IZoneCardFilterProperties } from './ZoneAbstract';
 import { ZoneAbstract } from './ZoneAbstract';
 
 type IBaseZoneCard = ILeaderCard | IBaseCard | ITokenCard;
@@ -66,10 +65,6 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
 
         base.initializeZone(this);
         leader.initializeZone(this);
-    }
-
-    public override getCards(filter?: IZoneCardFilterProperties): (IBaseZoneCard)[] {
-        return this.cards.filter(this.buildFilterFn(filter));
     }
 
     public setLeader(leader: ILeaderCard) {
