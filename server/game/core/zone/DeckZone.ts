@@ -4,7 +4,7 @@ import { ZoneName, DeckZoneDestination, WildcardRelativePlayer } from '../Consta
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
-import type { IAddRemoveZone, IZoneCardFilterProperties } from './ZoneAbstract';
+import type { IAddRemoveZone } from './ZoneAbstract';
 import { ZoneAbstract } from './ZoneAbstract';
 import type { GameEvent } from '../event/GameEvent';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
@@ -51,14 +51,6 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
         this._deck = cards;
 
         cards.forEach((card) => card.initializeZone(this));
-    }
-
-    public override getCards(filter?: IZoneCardFilterProperties): IPlayableCard[] {
-        return this.cards.filter(this.buildFilterFn(filter));
-    }
-
-    public override hasSomeCard(filter: IZoneCardFilterProperties): boolean {
-        return this.getCards(filter).length > 0;
     }
 
     public override hasCard(card: Card): boolean {
