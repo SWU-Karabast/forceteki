@@ -792,13 +792,15 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     }
 
     public updateCreditTokenCostAdjuster() {
-        const creditTokenAdjuster = this.costAdjusters.find((adjuster) =>
+        const creditTokenAdjusters = this.costAdjusters.filter((adjuster) =>
             adjuster.isCreditTokenAdjuster()
         );
 
-        if (this.creditTokenCount === 0 && creditTokenAdjuster) {
-            this.removeCostAdjuster(creditTokenAdjuster);
-        } else if (this.creditTokenCount > 0 && !creditTokenAdjuster) {
+        Contract.assertFalse(creditTokenAdjusters.length > 1, `Multiple credit token cost adjusters found on player ${this.id}`);
+
+        if (this.creditTokenCount === 0 && creditTokenAdjusters.length > 0) {
+            this.removeCostAdjuster(creditTokenAdjusters[0]);
+        } else if (this.creditTokenCount > 0 && creditTokenAdjusters.length === 0) {
             const newAdjuster = new DefeatCreditTokensCostAdjuster(this.game, this);
             this.addCostAdjuster(newAdjuster);
         }
