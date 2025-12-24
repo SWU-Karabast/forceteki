@@ -6,33 +6,6 @@ describe('Salacious Crumb, Cackling Companion', function() {
                     phase: 'action',
                     player1: {
                         hand: ['salacious-crumb#cackling-companion'],
-                        leader: 'jabba-the-hutt#crime-boss',
-                    },
-                });
-            });
-
-            it('should be ready when controlling LAW Jabba the Hutt leader', function() {
-                const { context } = contextRef;
-                context.player1.clickCard(context.salaciousCrumbCacklingCompanion);
-                expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeFalse();
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            it('should be ready when controlling a LAW Jabba the Hutt leader unit', function() {
-                const { context } = contextRef;
-                context.jabbaTheHuttCrimeBoss.deployed = true;
-                context.player1.clickCard(context.salaciousCrumbCacklingCompanion);
-                expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeFalse();
-                expect(context.player2).toBeActivePlayer();
-            });
-        });
-
-        describe('Salacious Crumb, Cackling Companion\'s ability', function() {
-            beforeEach(function() {
-                return contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['salacious-crumb#cackling-companion'],
                         leader: 'jabba-the-hutt#wonderful-human-being'
                     }
                 });
@@ -101,9 +74,48 @@ describe('Salacious Crumb, Cackling Companion', function() {
                 player1: {
                     hand: ['salacious-crumb#cackling-companion'],
                     leader: 'the-mandalorian#sworn-to-the-creed'
+                },
+                player2: {
+                    leader: 'jabba-the-hutt#his-high-exaltedness'
                 }
             });
             const { context } = contextRef;
+            context.player1.clickCard(context.salaciousCrumbCacklingCompanion);
+            expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should NOT be ready when not controlling and Jabba leaders or units ', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['salacious-crumb#cackling-companion'],
+                    leader: 'the-mandalorian#sworn-to-the-creed'
+                },
+                player2: {
+                    leader: 'jabba-the-hutt#his-high-exaltedness'
+                }
+            });
+            const { context } = contextRef;
+            context.player1.clickCard(context.salaciousCrumbCacklingCompanion);
+            expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should NOT be ready when not controlling and Jabba leaders or units ', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['salacious-crumb#cackling-companion'],
+                    leader: 'the-mandalorian#sworn-to-the-creed'
+                },
+                player2: {
+                    leader: 'jabba-the-hutt#his-high-exaltedness'
+                }
+            });
+
+            const { context } = contextRef;
+            context.jabbaTheHuttHisHighExaltedness.deployed = true;
             context.player1.clickCard(context.salaciousCrumbCacklingCompanion);
             expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeTrue();
             expect(context.player2).toBeActivePlayer();

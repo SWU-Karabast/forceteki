@@ -223,6 +223,8 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'salacious-crumb#cackling-companion',
+    }),
+    buildMockCard({
         title: 'Qui-Gon Jinn',
         subtitle: 'Influencing Chance',
         power: 3,
