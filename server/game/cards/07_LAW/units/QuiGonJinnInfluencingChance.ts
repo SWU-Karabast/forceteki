@@ -2,11 +2,11 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 
-export default class QuiGonJinnInfluenceChance extends NonLeaderUnitCard {
+export default class QuiGonJinnInfluencingChance extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'qui-gon-jinn#influence-chance-id',
-            internalName: 'qui-gon-jinn#influence-chance',
+            id: 'qui-gon-jinn#influencing-chance-id',
+            internalName: 'qui-gon-jinn#influencing-chance',
         };
     }
 

@@ -207,7 +207,7 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Qui-Gon Jinn',
-        subtitle: 'Influence Chance',
+        subtitle: 'Influencing Chance',
         power: 3,
         hp: 5,
         cost: 4,
@@ -222,7 +222,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'qui-gon-jinn#influence-chance',
+        internalName: 'qui-gon-jinn#influencing-chance',
     }),
 ];
 
