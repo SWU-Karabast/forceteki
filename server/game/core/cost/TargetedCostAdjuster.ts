@@ -11,7 +11,7 @@ import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import type { ITargetedCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
-import { CostAdjuster } from './CostAdjuster';
+import { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
 import type { CostAdjustStage, IAbilityCostAdjustmentProperties, ICostAdjustEvaluationIntermediateResult, ICostAdjustEvaluationResult, ICostAdjustResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 
@@ -52,7 +52,7 @@ interface IOpportunityCostTarget {
  * building the target resolver and evaluating which selection are legal based on downstream adjusters,
  * and evaluating whether there is sufficient available adjustment to pay.
  */
-export abstract class TargetedCostAdjuster extends CostAdjuster {
+export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
     protected readonly adjustAmountPerTarget: number;
     protected readonly costPropertyName: string;
     protected readonly doNotUseAdjusterButtonText: string;
@@ -124,7 +124,7 @@ export abstract class TargetedCostAdjuster extends CostAdjuster {
      * If opportunity costs are relevant for this adjustment, they will be factored in since downstream discounts
      * can change on the based on player selections.
      */
-    public queueGenerateEventGameSteps(
+    public override queueGenerateEventGameSteps(
         events: any[],
         context: AbilityContext<Card>,
         costAdjustTriggerResult: ICostAdjustTriggerResult,
