@@ -20,12 +20,6 @@ export abstract class ConcreteOrMetaArenaZone extends SimpleZone<IInPlayCard> {
     public override readonly hiddenForPlayers: null;
     public declare readonly owner: Game;
 
-    public abstract override getCards(filter?: IArenaZoneCardFilterProperties): IInPlayCard[];
-
-    public override hasSomeCard(filter: IArenaZoneCardFilterProperties): boolean {
-        return super.hasSomeCard(filter);
-    }
-
     public getUnitCards(filter?: Omit<IArenaZoneCardFilterProperties, 'type'>): IUnitCard[] {
         return this.getCards({ ...filter, type: WildcardCardType.Unit }) as IUnitCard[];
     }
