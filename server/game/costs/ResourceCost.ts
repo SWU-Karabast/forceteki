@@ -142,9 +142,9 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
             triggerResult.adjustStage = currentStage;
             const adjustersForStage = triggerResult.matchingAdjusters.get(currentStage);
 
-            // if there are targeted adjusters, stop and queue the steps for the player to choose targets
-            if (CostHelpers.isTargetedCostAdjusterStage(currentStage) && adjustersForStage.length > 0) {
-                this.queueStepsForTargetedAdjusterStage(context, triggerResult, abilityCostResult, currentStage);
+            // if there are adjusters that require game steps, stop and queue them
+            if (CostHelpers.isInteractiveCostAdjusterStage(currentStage) && adjustersForStage.length > 0) {
+                this.queueStepsForInteractiveAdjusterStage(context, triggerResult, abilityCostResult, currentStage);
                 context.game.queueSimpleStep(() => this.triggerNextAdjustmentStages(context, triggerResult, abilityCostResult, remainingStagesCopy), 'continue cost adjustment stages');
                 return;
             }
@@ -159,7 +159,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     }
 
     /** Queues the steps for resolving a targeted cost adjuster such as Exploit */
-    private queueStepsForTargetedAdjusterStage(
+    private queueStepsForInteractiveAdjusterStage(
         context: AbilityContext<TCard>,
         triggerResult: ICostAdjustTriggerResult,
         abilityCostResult: ICostResult,
@@ -171,9 +171,11 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         const adjuster = adjustersForStage[0];
         const adjustEvents = [];
 
-        Contract.assertTrue(adjuster.isTargeted(), `Expected cost adjuster at stage ${CostAdjustStage[currentStage]} to be targeted but it is of type '${adjuster.constructor.name}'`);
+        Contract.assertTrue(adjuster.requiresGameSteps(), `Expected cost adjuster at stage ${CostAdjustStage[currentStage]} to require game steps but it is of type '${adjuster.constructor.name}'`);
         adjuster.queueGenerateEventGameSteps(adjustEvents, context, triggerResult, abilityCostResult);
-        context.game.queueSimpleStep(() => context.game.openEventWindow(adjustEvents), 'resolve events for cost adjsuter');
+        context.game.queueSimpleStep(() => {
+            context.game.openEventWindow(adjustEvents);
+        }, 'resolve events for cost adjsuter');
     }
 
     /** Builds a new {@link ICostAdjustEvaluationIntermediateResult} for starting a resolve pass */
@@ -189,7 +191,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
             getTotalResourceCost: (includeAspectPenalties) => costTracker.getTotalResourceCost(includeAspectPenalties),
             getPenaltyAspects: () => costTracker.penaltyAspects,
             adjustedCost: costTracker,
-            adjustStage: CostAdjustStage.Increase_4,
+            adjustStage: CostAdjustStage.Increase_5,
             matchingAdjusters: new Map<CostAdjustStage, CostAdjuster[]>(),
             resourceCostType: this.isPlayCost ? ResourceCostType.PlayCard : ResourceCostType.Ability,
             costAdjusterTargets,

@@ -26,7 +26,7 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
         Contract.assertTrue(result.resolutionMode === CostAdjustResolutionMode.Trigger, `Must only be called at Trigger stage, instead got ${result.resolutionMode}`);
 
         // if the source (Starhawk) was removed via Exploit, no adjustment available
-        if (previousTargetSelections?.some((selection) => selection.card === this.source)) {
+        if (previousTargetSelections?.some((selection) => selection.card === this.sourceCard)) {
             return;
         }
 
@@ -44,10 +44,10 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
         evaluationResult.adjustedCost.applyDynamicOffset(dynamicCost);
 
         const adjustSourceEntry = evaluationResult.costAdjusterTargets.find(
-            (t) => t.unit === this.source
+            (t) => t.unit === this.sourceCard
         );
 
-        Contract.assertNotNullLike(adjustSourceEntry, `Source card ${this.source.internalName} of ModifyPayStageCostAdjuster not found in costAdjusterTargets`);
+        Contract.assertNotNullLike(adjustSourceEntry, `Source card ${this.sourceCard.internalName} of ModifyPayStageCostAdjuster not found in costAdjusterTargets`);
 
         const opportunityCost: IEvaluationOpportunityCost = {
             max: this.payStageAmountAfterDiscount(evaluationResult.getTotalResourceCost()),

@@ -17,6 +17,8 @@ import type { CostAdjustStage } from './CostInterfaces';
 import * as CostHelpers from './CostHelpers';
 import type { TargetedCostAdjuster } from './TargetedCostAdjuster';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
+import type { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
+import type { DefeatCreditTokensCostAdjuster } from './DefeatCreditTokensCostAdjuster';
 
 // TODO: move all these enums + interfaces to CostInterfaces.ts
 
@@ -28,7 +30,8 @@ export enum CostAdjustType {
     IgnoreSpecificAspects = 'ignoreSpecificAspect',
     ModifyPayStage = 'modifyPayStage',
     Exploit = 'exploit',
-    ExhaustUnits = 'exhaustUnits'
+    ExhaustUnits = 'exhaustUnits',
+    DefeatCreditTokens = 'defeatCreditTokens'
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
@@ -44,7 +47,7 @@ export interface ICostAdjusterPropertiesBase {
     limit?: AbilityLimit;
 
     /** Conditional card matching for things like aspects, traits, etc. */
-    match?: (card: Card, adjusterSource: Card) => boolean;
+    match?: (card: Card, adjusterSource?: Card) => boolean;
 
     /** Whether the cost adjuster should adjust activation costs for abilities. Defaults to false. */
     matchAbilityCosts?: boolean;
@@ -53,7 +56,7 @@ export interface ICostAdjusterPropertiesBase {
     playType?: PlayType;
 
     /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
-    attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext) => boolean;
+    attachTargetCondition?: (attachTarget: Card, context: AbilityContext, adjusterSource?: Card) => boolean;
 }
 
 export interface IIncreaseOrDecreaseCostAdjusterProperties extends ICostAdjusterPropertiesBase {
@@ -95,6 +98,10 @@ export interface IModifyPayStageCostAdjusterProperties extends ICostAdjusterProp
     payStageAmount: (currentAmount: number) => number;
 }
 
+export interface IDefeatCreditTokensCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.DefeatCreditTokens;
+}
+
 export type ICostAdjusterProperties =
   | IIgnoreAllAspectsCostAdjusterProperties
   | IIncreaseOrDecreaseCostAdjusterProperties
@@ -102,7 +109,8 @@ export type ICostAdjusterProperties =
   | IIgnoreSpecificAspectsCostAdjusterProperties
   | IModifyPayStageCostAdjusterProperties
   | IExploitCostAdjusterProperties
-  | IExhaustUnitsCostAdjusterProperties;
+  | IExhaustUnitsCostAdjusterProperties
+  | IDefeatCreditTokensCostAdjusterProperties;
 
 export type ITargetedCostAdjusterProperties =
   | IExploitCostAdjusterProperties
@@ -138,27 +146,36 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     protected readonly limit?: AbilityLimit;
 
     private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
-    private readonly match?: (card: Card, adjusterSource: Card) => boolean;
+    private readonly match?: (card: Card, adjusterSource?: Card) => boolean;
     private readonly cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     private readonly playType?: PlayType;
-    private readonly attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
+    private readonly attachTargetCondition?: (attachTarget: Card, context: AbilityContext<any>, adjusterSource?: Card,) => boolean;
     private readonly matchAbilityCosts: boolean;
 
     @undoObject()
-    protected accessor source: Card;
+    protected accessor sourceCard: Card | null;
+
+    @undoObject()
+    protected accessor sourcePlayer: Player;
 
     @undoState()
     protected accessor isCancelled: boolean;
 
     public constructor(
         game: Game,
-        source: Card,
+        sourcePlayerOrCard: Card | Player,
         costStage: CostAdjustStage,
         properties: ICostAdjusterProperties
     ) {
         super(game);
 
-        this.source = source;
+        if (sourcePlayerOrCard.isCard()) {
+            this.sourceCard = sourcePlayerOrCard;
+            this.sourcePlayer = sourcePlayerOrCard.controller;
+        } else {
+            this.sourceCard = null;
+            this.sourcePlayer = sourcePlayerOrCard;
+        }
 
         this.costAdjustStage = costStage;
         this.costAdjustType = properties.costAdjustType;
@@ -193,8 +210,16 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         return false;
     }
 
+    public requiresGameSteps(): this is CostAdjusterWithGameSteps {
+        return false;
+    }
+
+    public isCreditTokenAdjuster(): this is DefeatCreditTokensCostAdjuster {
+        return false;
+    }
+
     protected canAdjust(card: Card, context: AbilityContext, evaluationResult: ICostAdjustmentResolutionProperties): boolean {
-        if (this.limit && this.limit.isAtMax(this.source.controller)) {
+        if (this.limit && this.limit.isAtMax(this.sourcePlayer)) {
             return false;
         }
 
@@ -229,8 +254,6 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     }
 
     public checkApplyCostAdjustment(card: Card, context: AbilityContext, triggerResult: ICostAdjustTriggerResult) {
-        Contract.assertFalse(CostHelpers.isTargetedCostAdjusterStage(this.costAdjustStage), `Targeted cost adjuster stages should not use checkApplyCostAdjustment: '${this.costAdjustStage}'`);
-
         if (
             this.isCancelled ||
             !this.canAdjust(card, context, triggerResult)
@@ -311,11 +334,11 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     }
 
     public markUsed(): void {
-        this.limit?.increment(this.source.controller);
+        this.limit?.increment(this.sourcePlayer);
     }
 
     public isExpired(): boolean {
-        return !!this.limit && this.limit.isAtMax(this.source.controller) && !this.limit.isRepeatable();
+        return !!this.limit && this.limit.isAtMax(this.sourcePlayer) && !this.limit.isRepeatable();
     }
 
     public cancel(): void {
@@ -324,7 +347,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     }
 
     private checkMatch(card: Card) {
-        return !this.match || this.match(card, this.source);
+        return !this.match || this.match(card, this.sourceCard);
     }
 
     private checkAttachTargetCondition(context: AbilityContext) {
@@ -336,14 +359,14 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         Contract.assertTrue(upgrade.isUpgrade(), `attachTargetCondition can only be used with upgrade cards, attempting to use with '${upgrade.title}'`);
 
         if (context.stage === Stage.Cost && context.target != null) {
-            return this.attachTargetCondition(context.target, this.source, context);
+            return this.attachTargetCondition(context.target, context, this.sourceCard);
         }
 
         // if we're not yet at the "pay cost" stage, evaluate whether any unit on the field meets the attach condition
         for (const unit of context.game.getArenaUnits()) {
             if (
                 upgrade.canAttach(unit, context, context.player) &&
-                this.attachTargetCondition(unit, this.source, context)
+                this.attachTargetCondition(unit, context, this.sourceCard)
             ) {
                 return true;
             }
