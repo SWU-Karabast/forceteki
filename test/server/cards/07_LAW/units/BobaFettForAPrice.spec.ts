@@ -207,7 +207,7 @@ describe('Boba Fett, For a Price', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should be able to be passed', async function () {
+        it('should be able to be passed on attack', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -234,6 +234,38 @@ describe('Boba Fett, For a Price', function () {
             expect(context.consularSecurityForce.damage).toBe(0);
             expect(context.ruthlessRaider.damage).toBe(0);
             expect(context.player1.readyResourceCount).toBe(5);
+
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should be able to be passed when played', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['boba-fett#for-a-price'],
+                    groundArena: ['snowspeeder'],
+                    spaceArena: ['strafing-gunship'],
+                    leader: 'sly-moore#cipher-in-the-dark',
+                    resources: 7,
+                },
+                player2: {
+                    groundArena: ['consular-security-force'],
+                    spaceArena: ['ruthless-raider']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.bobaFettForAPrice);
+
+            context.player1.clickPrompt('Pass');
+
+            expect(context.snowspeeder.damage).toBe(0);
+            expect(context.bobaFettForAPrice.damage).toBe(0);
+            expect(context.strafingGunship.damage).toBe(0);
+            expect(context.consularSecurityForce.damage).toBe(0);
+            expect(context.ruthlessRaider.damage).toBe(0);
+            expect(context.player1.readyResourceCount).toBe(2);
 
             expect(context.player2).toBeActivePlayer();
         });
