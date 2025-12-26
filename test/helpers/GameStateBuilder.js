@@ -1,5 +1,5 @@
 const Contract = require('../../server/game/core/utils/Contract');
-const { SwuGameFormat } = require('../../server/SwuGameFormat.js');
+const { SwuGameFormat } = require('../../server/game/core/Constants.js');
 const Util = require('./Util.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
@@ -198,6 +198,15 @@ class GameStateBuilder {
             context.player2.setHasTheForce(true);
         }
 
+        // Credit Tokens
+        if (options.player1.credits && options.player1.credits > 0) {
+            context.player1.setCreditTokenCount(options.player1.credits);
+        }
+
+        if (options.player2.credits && options.player2.credits > 0) {
+            context.player2.setCreditTokenCount(options.player2.credits);
+        }
+
         // add named cards to context for easy reference (allows us to do "context.<cardName>")
         // note that if cards map to the same property name (i.e., same title), then they won't be added
         const cardNamesAsProperties = this.convertNonDuplicateCardNamesToProperties(
@@ -286,7 +295,8 @@ class GameStateBuilder {
             'base',
             'deck',
             'resource',
-            'hasForceToken'
+            'hasForceToken',
+            'credits'
         ];
         // list of approved property names for setup phase
         const setupPhase = [

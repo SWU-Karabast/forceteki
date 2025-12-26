@@ -24,6 +24,7 @@ export class Deck {
     public readonly id?: string;
     public readonly isPresentInDb: boolean;
     public readonly deckLink?: string;
+    public readonly name?: string;
     public readonly originalDeckList: ISwuDbFormatDecklist;
 
     private readonly cardDataGetter: CardDataGetter;
@@ -35,21 +36,16 @@ export class Deck {
         this.base = Deck.buildDecklistEntry(decklist.base.id, 1, cardDataGetter);
         this.leader = Deck.buildDecklistEntry(decklist.leader.id, 1, cardDataGetter);
         this.id = decklist.deckID;
-        const sideboard = decklist.sideboard ?? [];
 
-        const allCardIds = new Set(
-            decklist.deck.map((cardEntry) => cardEntry.id).concat(
-                sideboard.map((cardEntry) => cardEntry.id)
-            )
-        );
-
-        this.deckCards = this.convertCardListToMap(decklist.deck, allCardIds);
-        this.sideboard = this.convertCardListToMap(sideboard, allCardIds);
         this.cardDataGetter = cardDataGetter;
         this.originalDeckList = decklist;
 
+        // initialize the cards in deck and sideboard
+        this.resetSideboard();
+
         this.isPresentInDb = decklist.isPresentInDb;
         this.deckLink = decklist.deckLink;
+        this.name = decklist.metadata?.name;
         this.deckSource = this.determineDeckSource(decklist.deckLink);
     }
 
@@ -103,6 +99,19 @@ export class Deck {
         return DeckSource.Unknown;
     }
 
+    public resetSideboard() {
+        const sideboard = this.originalDeckList.sideboard ?? [];
+
+        const allCardIds = new Set(
+            this.originalDeckList.deck.map((cardEntry) => cardEntry.id).concat(
+                sideboard.map((cardEntry) => cardEntry.id)
+            )
+        );
+
+        this.deckCards = this.convertCardListToMap(this.originalDeckList.deck, allCardIds);
+        this.sideboard = this.convertCardListToMap(sideboard, allCardIds);
+    }
+
     public moveToDeck(cardId: string) {
         const sideboardCount = this.sideboard.get(cardId);
 
@@ -125,6 +134,7 @@ export class Deck {
 
     public getDecklist(): IDecklistInternal {
         return {
+            name: this.name,
             leader: this.leader,
             base: this.base,
             deck: this.convertMapToCardList(this.deckCards),

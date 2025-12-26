@@ -1,37 +1,18 @@
 import { logger } from '../logger';
 import { ServerRole } from '../services/DynamoDBInterfaces';
-import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
-
-async function isAdminAsync(userId: string): Promise<boolean> {
-    const db = await getDynamoDbServiceAsync();
-    const serverRoleUsers = await db.getServerRoleUsersAsync();
-
-    return serverRoleUsers.admins.some((adminUserId) => adminUserId === userId);
-}
-
-async function isDeveloperAsync(userId: string): Promise<boolean> {
-    const db = await getDynamoDbServiceAsync();
-    const serverRoleUsers = await db.getServerRoleUsersAsync();
-
-    return serverRoleUsers.developers.some((devUserId) => devUserId === userId);
-}
-
-async function isModeratorAsync(userId: string): Promise<boolean> {
-    const db = await getDynamoDbServiceAsync();
-    const serverRoleUsers = await db.getServerRoleUsersAsync();
-    return serverRoleUsers.moderators.some((modUserId) => modUserId === userId);
-}
+import type { ServerRoleUsersCache } from './ServerRoleUsersCache';
 
 interface IAuthResponse {
     success: boolean;
     message: string;
 }
 
-export const checkServerRoleUserPrivilegesAsync = async (
+export const checkServerRoleUserPrivileges = (
     apiPath: string,
     userId: string,
-    role: ServerRole
-): Promise<IAuthResponse> => {
+    role: ServerRole,
+    cache: ServerRoleUsersCache
+): IAuthResponse => {
     if (!userId) {
         return {
             success: false,
@@ -42,7 +23,7 @@ export const checkServerRoleUserPrivilegesAsync = async (
     try {
         switch (role) {
             case ServerRole.Admin:
-                if (!await isAdminAsync(userId)) {
+                if (!cache.isAdmin(userId)) {
                     return {
                         success: false,
                         message: 'Admin privileges required'
@@ -50,7 +31,7 @@ export const checkServerRoleUserPrivilegesAsync = async (
                 }
                 break;
             case ServerRole.Developer:
-                if (!await isAdminAsync(userId) && !await isDeveloperAsync(userId)) {
+                if (!cache.isAdmin(userId) && !cache.isDeveloper(userId)) {
                     return {
                         success: false,
                         message: 'Developer privileges required'
@@ -58,13 +39,20 @@ export const checkServerRoleUserPrivilegesAsync = async (
                 }
                 break;
             case ServerRole.Moderator:
-                if (!await isAdminAsync(userId) && !await isModeratorAsync(userId)) {
+                if (!cache.isAdmin(userId) && !cache.isModerator(userId)) {
                     return {
                         success: false,
                         message: 'Moderator privileges required'
                     };
                 }
                 break;
+            case ServerRole.Contributor:
+                if (!cache.isAdmin(userId) && !cache.isContributor(userId) && !cache.isDeveloper(userId) && !cache.isModerator(userId)) {
+                    return {
+                        success: false,
+                        message: 'Contributor privileges required'
+                    };
+                }
         }
 
         return {
@@ -72,7 +60,7 @@ export const checkServerRoleUserPrivilegesAsync = async (
             message: 'User has required privileges'
         };
     } catch (error) {
-        logger.error(`authUtils (checkServerRoleUserPrivilegesAsync) error for userId: ${userId} requesting path: ${apiPath}`, error);
+        logger.error(`authUtils (checkServerRoleUserPrivileges) error for userId: ${userId} requesting path: ${apiPath}`, error);
         return {
             success: false,
             message: 'Error checking user privileges'

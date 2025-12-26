@@ -86,6 +86,9 @@ export class UserFactory {
                 queryUser = query.user;
             }
             if (queryUser) {
+                if (queryUser.username && !queryUser.username.toLowerCase().startsWith('anonymous')) {
+                    logger.info(`Auth Anon-creation: creating user with id ${queryUser.id} with non-anonymous name ${queryUser.username}`, { userId: queryUser.id });
+                }
                 return new AnonymousUser(queryUser.id, queryUser.username);
             }
         }

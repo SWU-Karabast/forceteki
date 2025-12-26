@@ -327,21 +327,26 @@ export function setUnion<T>(setA: Set<T>, setB: Set<T>): Set<T> {
  * When serialized to JSON, undefined properties are omitted, reducing message size.
  */
 export function convertNullToUndefinedRecursiveInPlace(obj) {
+    if (obj == null) {
+        return;
+    }
     convertNullToUndefinedRecursiveInPlaceInternal(obj, new Set());
 }
 
 function convertNullToUndefinedRecursiveInPlaceInternal(obj, visited) {
-    if (obj == null || visited.has(obj)) {
+    if (visited.has(obj)) {
         return;
     }
 
     visited.add(obj);
 
     for (const key in obj) {
-        if (obj[key] === null) { // explicit null check here (== matches both undefined and null)
+        const value = obj[key];
+        if (value === null) {
             obj[key] = undefined;
-        } else if (obj[key] instanceof Object) {
-            convertNullToUndefinedRecursiveInPlaceInternal(obj[key], visited);
+        } else if (typeof value === 'object') {
+            // value is guaranteed non-null here due to the if above
+            convertNullToUndefinedRecursiveInPlaceInternal(value, visited);
         }
     }
 }
