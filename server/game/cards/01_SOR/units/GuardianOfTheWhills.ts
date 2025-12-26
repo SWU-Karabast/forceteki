@@ -37,7 +37,7 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 amount: 1,
                 match: (card, adjusterSource) => card.isUpgrade() && this.isFirstUpgradePlayedOnThisCopy(card, adjusterSource),
-                attachTargetCondition: (attachTarget, adjusterSource) => attachTarget === adjusterSource,
+                attachTargetCondition: (attachTarget, _, adjusterSource) => attachTarget === adjusterSource,
                 limit: AbilityHelper.limit.perRound(1),
             }),
         });

@@ -67,6 +67,13 @@ export class AllArenasZone extends ConcreteOrMetaArenaZone {
     }
 
     public override hasSomeCard(filter: IAllArenasZoneCardFilterProperties): boolean {
-        return super.hasSomeCard(filter);
+        for (const arena of this.arenas) {
+            if (!filter?.arena || filter.arena === WildcardZoneName.AnyArena || filter.arena === arena.name) {
+                if (arena.hasSomeCard(filter)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

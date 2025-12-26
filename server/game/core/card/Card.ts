@@ -64,6 +64,7 @@ export interface ICardState extends IOngoingEffectSourceState {
     hiddenForOpponent: boolean;
 
     controllerRef: GameObjectRef<Player>;
+    ownerRef: GameObjectRef<Player>;
 
     zone: GameObjectRef<Zone> | null;
     movedFromZone: ZoneName | null;
@@ -221,6 +222,14 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.controllerRef = value.getRef();
     }
 
+    public get owner(): Player {
+        return this.game.gameObjectManager.get(this.state.ownerRef);
+    }
+
+    protected set owner(value: Player) {
+        this.state.ownerRef = value.getRef();
+    }
+
     public get facedown(): boolean {
         return this.state.facedown;
     }
@@ -320,7 +329,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
-        public readonly owner: Player,
+        owner: Player,
         private readonly cardData: ICardDataJson
     ) {
         super(owner.game, cardData.title);
@@ -344,6 +353,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this._unique = cardData.unique;
         this._printedType = Card.buildTypeFromPrinted(cardData.types);
 
+        this.owner = owner;
         this.controller = owner;
         this.id = cardData.id;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
@@ -612,6 +622,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public isForceToken(): this is ITokenCard {
+        return false;
+    }
+
+    public isCreditToken(): this is ITokenCard {
         return false;
     }
 
@@ -947,6 +961,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                 this.zone.removeLeader();
             } else if (this.isForceToken()) {
                 this.zone.removeForceToken();
+            } else if (this.isCreditToken()) {
+                this.zone.removeCreditToken(this);
             } else {
                 Contract.fail(`Attempting to move card ${this.internalName} from ${this.zone}`);
             }
@@ -996,8 +1012,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                     this.zone.setLeader(this);
                 } else if (this.isForceToken()) {
                     this.zone.setForceToken(this);
+                } else if (this.isCreditToken()) {
+                    this.zone.addCreditToken(this);
                 } else {
-                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader or force token`);
+                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader, force token, or credit token`);
                 }
 
                 break;

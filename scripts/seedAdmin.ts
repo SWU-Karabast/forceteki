@@ -24,9 +24,10 @@ async function run() {
     await service.putItemAsync({
         pk: 'SERVER_ROLE_USERS',
         sk: 'ROLES',
-        admins: [MY_USER_ID],
+        admins: [{ id: MY_USER_ID, note: 'This is a test admin user' }],
         developers: [],
         moderators: [],
+        contributors: [],
         updatedAt: new Date().toISOString(),
     });
 

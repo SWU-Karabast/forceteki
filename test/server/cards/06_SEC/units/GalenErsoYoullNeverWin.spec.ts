@@ -1320,6 +1320,44 @@ describe('Galen Erso - You\'ll Never Win', function() {
                 expect(context.wampa.damage).toBe(0);
                 expect(context.wampa.isUpgraded()).toBeFalse();
             });
+
+            it('stolen shield by opponent should be blanked (CR6 token upgrade ownership update)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        groundArena: [{ card: 'wampa', upgrades: ['shield'] }]
+                    },
+                    player2: {
+                        hand: ['shuttle-st149#under-krennics-authority'],
+                        groundArena: ['echo-base-defender'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const wampaShield = context.shield;
+
+                context.player2.clickCard(context.shuttleSt149);
+                context.player2.clickPrompt('Shielded');
+                context.player2.clickCard(wampaShield);
+                context.player2.clickCard(context.echoBaseDefender);
+
+                expect(context.wampa).toHaveExactUpgradeNames([]);
+                expect(context.echoBaseDefender).toHaveExactUpgradeNames(['shield']);
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Shield');
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.echoBaseDefender);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.echoBaseDefender).toBeInZone('discard', context.player2);
+            });
         });
     });
 });

@@ -5,7 +5,8 @@ import { CostAdjustStage } from './CostInterfaces';
 
 export function getCostAdjustStagesInEvaluationOrder(): CostAdjustStage[] {
     return [
-        CostAdjustStage.Increase_4,
+        CostAdjustStage.Increase_5,
+        CostAdjustStage.DefeatCredits_4,
         CostAdjustStage.ExhaustUnits_3,
         CostAdjustStage.PayStage_2,
         CostAdjustStage.Exploit_1,
@@ -19,18 +20,20 @@ export function getCostAdjustStagesInTriggerOrder(): CostAdjustStage[] {
         CostAdjustStage.Exploit_1,
         CostAdjustStage.PayStage_2,
         CostAdjustStage.ExhaustUnits_3,
+        CostAdjustStage.DefeatCredits_4
         // we do not run the increase step during triggering / payment, it was added on during the evaluation pass
     ];
 }
 
-export function isTargetedCostAdjusterStage(stage: CostAdjustStage): boolean {
+export function isInteractiveCostAdjusterStage(stage: CostAdjustStage): boolean {
     switch (stage) {
         case CostAdjustStage.Exploit_1:
         case CostAdjustStage.ExhaustUnits_3:
+        case CostAdjustStage.DefeatCredits_4:
             return true;
         case CostAdjustStage.Standard_0:
         case CostAdjustStage.PayStage_2:
-        case CostAdjustStage.Increase_4:
+        case CostAdjustStage.Increase_5:
             return false;
         default:
             Contract.fail(`Unknown CostAdjustStage value: ${stage}`);
@@ -38,5 +41,5 @@ export function isTargetedCostAdjusterStage(stage: CostAdjustStage): boolean {
 }
 
 export function getExploitedUnits(playEvent: any): ILastKnownInformation[] {
-    return Helpers.asArray(playEvent.costs['exploit']?.selectedTargets ?? []);
+    return Helpers.asArray(playEvent.costs?.['exploit']?.selectedTargets ?? []);
 }

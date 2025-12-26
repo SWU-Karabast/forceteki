@@ -25,7 +25,6 @@ export function isEnumValue<T>(value: string, enumObj: T): boolean {
     return Object.values(enumObj).indexOf(value) >= 0;
 }
 
-// TODO: Use type predicates in similar functions in this file to enable type narrowing
 export const isArena = (zone: ZoneFilter): zone is ZoneName.GroundArena | ZoneName.SpaceArena | WildcardZoneName.AnyArena => {
     switch (zone) {
         case ZoneName.GroundArena:
@@ -37,7 +36,7 @@ export const isArena = (zone: ZoneFilter): zone is ZoneName.GroundArena | ZoneNa
     }
 };
 
-export const isAttackableZone = (zone: ZoneFilter) => {
+export const isAttackableZone = (zone: ZoneFilter): zone is ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Base | WildcardZoneName.AnyArena => {
     switch (zone) {
         case ZoneName.GroundArena:
         case ZoneName.SpaceArena:
@@ -89,7 +88,7 @@ export const asConcreteZone = (zoneName: ZoneName | MoveZoneDestination): ZoneNa
         : zoneName;
 };
 
-export const isDeckMoveZone = (zoneName: MoveZoneDestination): boolean => {
+export const isDeckMoveZone = (zoneName: MoveZoneDestination): zoneName is DeckZoneDestination.DeckBottom | DeckZoneDestination.DeckTop => {
     return zoneName === DeckZoneDestination.DeckBottom || zoneName === DeckZoneDestination.DeckTop;
 };
 
@@ -98,7 +97,7 @@ export const zoneMoveRequiresControllerReset = (prevZone: ZoneName, nextZone: Mo
     return (isArena(prevZone) || prevZone === ZoneName.Resource) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
 };
 
-export const isUnit = (cardType: CardTypeFilter) => {
+export const isUnit = (cardType: CardTypeFilter): cardType is WildcardCardType.Unit | WildcardCardType.NonLeaderUnit | CardType.BasicUnit | CardType.LeaderUnit | CardType.TokenUnit => {
     switch (cardType) {
         case WildcardCardType.Unit:
         case WildcardCardType.NonLeaderUnit:
@@ -111,7 +110,7 @@ export const isUnit = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isNonLeaderUnit = (cardType: CardTypeFilter) => {
+export const isNonLeaderUnit = (cardType: CardTypeFilter): cardType is WildcardCardType.NonLeaderUnit | CardType.BasicUnit | CardType.TokenUnit => {
     switch (cardType) {
         case WildcardCardType.NonLeaderUnit:
         case CardType.BasicUnit:
@@ -122,7 +121,7 @@ export const isNonLeaderUnit = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isNonLeaderUpgrade = (cardType: CardTypeFilter) => {
+export const isNonLeaderUpgrade = (cardType: CardTypeFilter): cardType is WildcardCardType.NonLeaderUpgrade | CardType.BasicUpgrade | CardType.TokenUpgrade | CardType.NonLeaderUnitUpgrade => {
     switch (cardType) {
         case WildcardCardType.NonLeaderUpgrade:
         case CardType.BasicUpgrade:
@@ -134,7 +133,7 @@ export const isNonLeaderUpgrade = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isUnitUpgrade = (cardType: CardTypeFilter) => {
+export const isUnitUpgrade = (cardType: CardTypeFilter): cardType is WildcardCardType.UnitUpgrade | CardType.NonLeaderUnitUpgrade | CardType.LeaderUpgrade => {
     switch (cardType) {
         case WildcardCardType.UnitUpgrade:
         case CardType.NonLeaderUnitUpgrade:
@@ -145,7 +144,7 @@ export const isUnitUpgrade = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isUpgrade = (cardType: CardTypeFilter) => {
+export const isUpgrade = (cardType: CardTypeFilter): cardType is WildcardCardType.Upgrade | WildcardCardType.UnitUpgrade | CardType.BasicUpgrade | CardType.LeaderUpgrade | CardType.TokenUpgrade | CardType.NonLeaderUnitUpgrade => {
     switch (cardType) {
         case WildcardCardType.Upgrade:
         case WildcardCardType.UnitUpgrade:
@@ -159,7 +158,7 @@ export const isUpgrade = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isToken = (cardType: CardTypeFilter) => {
+export const isToken = (cardType: CardTypeFilter): cardType is WildcardCardType.Token | CardType.TokenUpgrade | CardType.TokenUnit | CardType.TokenCard => {
     switch (cardType) {
         case WildcardCardType.Token:
         case CardType.TokenUpgrade:
@@ -171,7 +170,7 @@ export const isToken = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isPlayable = (cardType: CardTypeFilter) => {
+export const isPlayable = (cardType: CardTypeFilter): cardType is WildcardCardType.Playable | CardType.Event | CardType.BasicUnit | CardType.BasicUpgrade | CardType.NonLeaderUnitUpgrade => {
     switch (cardType) {
         case WildcardCardType.Playable:
         case CardType.Event:

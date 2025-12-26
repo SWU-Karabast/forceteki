@@ -3,10 +3,9 @@ import type { ILeaderCard } from '../card/propertyMixins/LeaderProperties';
 import type { ITokenCard } from '../card/propertyMixins/Token';
 import { ZoneName } from '../Constants';
 import type Game from '../Game';
-import { registerState, undoObject } from '../GameObjectUtils';
+import { registerState, undoArray, undoObject } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
-import type { IZoneCardFilterProperties } from './ZoneAbstract';
 import { ZoneAbstract } from './ZoneAbstract';
 
 type IBaseZoneCard = ILeaderCard | IBaseCard | ITokenCard;
@@ -27,8 +26,11 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
     @undoObject()
     private accessor _forceToken: ITokenCard | null = null;
 
+    @undoArray()
+    private accessor _credits: readonly ITokenCard[] = [];
+
     public override get cards(): (IBaseZoneCard)[] {
-        return [this.base, this.forceToken, this.leader]
+        return [this.base, this.forceToken, this.leader, ...this.credits]
             .filter((card) => card !== null);
     }
 
@@ -48,6 +50,10 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
         return this.forceToken != null;
     }
 
+    public get credits(): ITokenCard[] {
+        return this._credits as ITokenCard[];
+    }
+
     public constructor(game: Game, owner: Player, base: IBaseCard, leader: ILeaderCard) {
         super(game, owner);
 
@@ -59,10 +65,6 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
 
         base.initializeZone(this);
         leader.initializeZone(this);
-    }
-
-    public override getCards(filter?: IZoneCardFilterProperties): (IBaseZoneCard)[] {
-        return this.cards.filter(this.buildFilterFn(filter));
     }
 
     public setLeader(leader: ILeaderCard) {
@@ -89,5 +91,25 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
         Contract.assertNotNullLike(this.forceToken, `Attempting to remove force token from ${this} but none exists`);
 
         this._forceToken = null;
+    }
+
+    public addCreditToken(credit: ITokenCard) {
+        Contract.assertEqual(credit.controller, this.owner, `Attempting to add a credit token to ${this} but its controller is ${credit.controller}`);
+
+        this._credits = [...this._credits, credit];
+
+        if (this.credits.length === 1) {
+            this.owner.updateCreditTokenCostAdjuster();
+        }
+    }
+
+    public removeCreditToken(credit: ITokenCard) {
+        Contract.assertArrayIncludes(this._credits, credit, `Attempting to remove credit token ${credit} from ${this} but it is not present`);
+
+        this._credits = this._credits.filter((c) => c !== credit);
+
+        if (this.credits.length === 0) {
+            this.owner.updateCreditTokenCostAdjuster();
+        }
     }
 }

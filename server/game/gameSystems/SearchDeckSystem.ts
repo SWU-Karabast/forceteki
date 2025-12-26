@@ -36,17 +36,21 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     shuffleWhenDone?: boolean | ((context: TContext) => boolean);
     title?: string;
 
-    /** This determines what to do with the selected cards (if a custom selectedCardsHandler is not provided). */
-    selectedCardsImmediateEffect?: GameSystem<TContext>;
     message?: string;
     player?: Player;
     choosingPlayer?: Player;
     messageArgs?: (context: TContext, cards: Card[]) => any | any[];
 
+    /** This determines what to do with the selected cards (if a custom selectedCardsHandler is not provided). */
+    selectedCardsImmediateEffect?: GameSystem<TContext>;
+
     /** Used to override default logic for handling the selected cards. The default utilizes the selectedCardsImmediateEffect */
     selectedCardsHandler?: (context: TContext, event: any, cards: Card[]) => void;
 
-    /** Used to override default logic for handling the remaining cards. The default places them on the bottom of the deck. */
+    /** This determines what to do with the remaining cards (if a custom remainingCardsHandler is not provided). */
+    remainingCardsImmediateEffect?: GameSystem<TContext>;
+
+    /** Used to override default logic for handling the remaining cards. Otherwise it will fall back to a specified remainingCardsImmediateEffect.  If neither is set, cards are placed on the bottom of the deck. */
     remainingCardsHandler?: (context: TContext, event: any, cards: Card[]) => void;
 
     /** Used for filtering selection based on things like trait, type, etc. */
@@ -69,7 +73,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         revealSelected: true,
         cardCondition: () => true,
         multiSelectCondition: () => true,
-        remainingCardsHandler: this.remainingCardsDefaultHandler
+        remainingCardsHandler: null,
+        remainingCardsImmediateEffect: null
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -221,7 +226,15 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         const selectedCardsSet = new Set(selectedCards);
 
         const cardsToMove = allCards.filter((card) => !selectedCardsSet.has(card));
-        properties.remainingCardsHandler(context, event, cardsToMove);
+
+        // Handle remaining cards
+        if (properties.remainingCardsHandler !== null) {
+            properties.remainingCardsHandler(context, event, cardsToMove);
+        } else if (properties.remainingCardsImmediateEffect !== null) {
+            this.remainingCardsImmediateEffectHandler(properties, context, event, cardsToMove);
+        } else {
+            this.remainingCardsDefaultHandler(context, event, cardsToMove);
+        }
 
         this.searchCompleteHandler(properties, context, event, selectedCardsSet);
         if (properties.selectedCardsHandler === null) {
@@ -249,6 +262,19 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
                 cardsToMove.length,
                 cardsToMove.length > 1 ? 's' : ''
             );
+        }
+    }
+
+    private remainingCardsImmediateEffectHandler(properties: ISearchDeckProperties, context: TContext, event: any, remainingCards: Card[]): void {
+        const gameSystem = properties.remainingCardsImmediateEffect;
+        if (gameSystem && remainingCards.length > 0) {
+            const events = [];
+            gameSystem.setDefaultTargetFn(() => remainingCards);
+            gameSystem.queueGenerateEventGameSteps(events, context);
+
+            context.game.queueSimpleStep(() => {
+                context.game.openEventWindow(events);
+            }, 'resolve effect on remaining cards');
         }
     }
 

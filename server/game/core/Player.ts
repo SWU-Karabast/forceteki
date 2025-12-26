@@ -45,13 +45,14 @@ import type { GameObjectRef } from './GameObjectBase';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
 import { logger } from '../../logger';
-import { StandardActionTimer } from './actionTimer/StandardActionTimer';
+import { GameActionTimer } from './actionTimer/GameActionTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
 import type { IActionTimer } from './actionTimer/IActionTimer';
 import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
+import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -200,7 +201,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         this.left = false;
 
         if (useTimer) {
-            this.actionTimer = new StandardActionTimer(
+            this.actionTimer = new GameActionTimer(
                 60,
                 this,
                 this.game,
@@ -301,6 +302,10 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
     public get hasTheForce(): boolean {
         return this.baseZone.hasForceToken();
+    }
+
+    public get creditTokenCount(): number {
+        return this.baseZone.credits.length;
     }
 
     public incrementRejectedOpponentUndoRequests() {
@@ -786,6 +791,21 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         }
     }
 
+    public updateCreditTokenCostAdjuster() {
+        const creditTokenAdjusters = this.costAdjusters.filter((adjuster) =>
+            adjuster.isCreditTokenAdjuster()
+        );
+
+        Contract.assertFalse(creditTokenAdjusters.length > 1, `Multiple credit token cost adjusters found on player ${this.id}`);
+
+        if (this.creditTokenCount === 0 && creditTokenAdjusters.length > 0) {
+            this.removeCostAdjuster(creditTokenAdjusters[0]);
+        } else if (this.creditTokenCount > 0 && creditTokenAdjusters.length === 0) {
+            const newAdjuster = new DefeatCreditTokensCostAdjuster(this.game, this);
+            this.addCostAdjuster(newAdjuster);
+        }
+    }
+
     public addPlayableZone(type: PlayType, zone: Zone) {
         const playableZone = new PlayableZone(type, zone);
         this.playableZones.push(playableZone);
@@ -1202,6 +1222,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             clock: undefined,
             aspects: this.getAspects(),
             hasForceToken: this.hasTheForce,
+            credits: this.creditTokenCount,
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
@@ -1317,6 +1338,11 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
             // Force Token
             state.hasForceToken = this.hasTheForce;
+
+            // Credits
+            if (this.creditTokenCount > 0) {
+                state.credits = this.creditTokenCount;
+            }
         } catch (error) {
             logger.error('Error capturing player state', {
                 error: { message: error.message, stack: error.stack },

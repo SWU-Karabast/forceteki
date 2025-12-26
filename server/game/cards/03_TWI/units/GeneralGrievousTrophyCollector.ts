@@ -16,7 +16,7 @@ export default class GeneralGrievousTrophyCollector extends NonLeaderUnitCard {
             title: 'Ignore the aspect penalty on each Lightsaber upgrade you play on this unit',
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: WildcardCardType.Playable,
-                attachTargetCondition: (target, source) => target === source,
+                attachTargetCondition: (target, _, source) => target === source,
                 match: (card) => card.hasSomeTrait(Trait.Lightsaber)
             })
         });

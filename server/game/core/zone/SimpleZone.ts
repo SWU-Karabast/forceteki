@@ -44,11 +44,6 @@ export abstract class SimpleZone<TCard extends Card = Card> extends ZoneAbstract
         return this._cards as TCard[];
     }
 
-    /** Get the cards from this zone with an optional filter */
-    public getCards(filter?: IZoneCardFilterProperties): TCard[] {
-        return this.cards.filter(this.buildFilterFn(filter));
-    }
-
     public addCard(card: TCard) {
         Contract.assertFalse(this.cards.includes(card), `Attempting to add card ${card.internalName} to ${this} twice`);
 
