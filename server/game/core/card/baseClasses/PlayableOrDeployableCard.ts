@@ -2,18 +2,20 @@ import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterface
 import { PlotAbility } from '../../../abilities/keyword/PlotAbility';
 import type { IAbilityPropsWithSystems, IConstantAbilityProps, IOngoingEffectGenerator, NumericKeywordName } from '../../../Interfaces';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
-import type { AbilityContext } from '../../ability/AbilityContext';
+import { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import type { IAlternatePlayActionProperties, IPlayCardActionProperties, IPlayCardActionPropertiesBase, PlayCardAction } from '../../ability/PlayCardAction';
 import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 import PreEnterPlayAbility from '../../ability/PreEnterPlayAbility';
 import type { Aspect } from '../../Constants';
-import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
+import { AbilityRestriction, CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
+import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
+import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as Helpers from '../../utils/Helpers';
 import type { ICardState } from '../Card';
 import { Card } from '../Card';
@@ -232,6 +234,97 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
     public override canBeExhausted(): this is IPlayableOrDeployableCard {
         return true;
+    }
+
+    /**
+     * Checks if this card is restricted from being played by an opponent's effect.
+     * Subclasses should override this to call the appropriate static method from their PlayAction class.
+     * @param player The player attempting to play the card
+     * @param context Optional context for more detailed restriction checks
+     * @returns true if the play is restricted, false otherwise
+     */
+    protected isPlayRestricted(player: Player, context?: AbilityContext): boolean {
+        // Base implementation - should be overridden by subclasses
+        return false;
+    }
+
+    /**
+     * Checks if this card is blocked from being played by an opponent's effect
+     * (e.g., Regional Governor naming this card, or Trade Route Taxation blocking events).
+     * This is used to display the lock icon on cards that could be played but are blocked.
+     * @returns A string describing why the card is blocked (with source card name), or null if not blocked
+     */
+    public override getBlockedFromPlayReason(): string | null {
+        // Only check if the card is not already in play
+        if (EnumHelpers.isArena(this.zoneName)) {
+            return null;
+        }
+
+        // Create a minimal context to check which specific restriction is blocking
+        // The mock ability with card and isPlayCardAbility is needed for restrictedActionCondition checks (e.g., Regional Governor)
+        const context = new AbilityContext({
+            game: this.game,
+            source: this,
+            player: this.controller,
+            ability: { card: this, isPlayCardAbility: () => false } as any,
+        });
+
+        // Use the subclass implementation to check restrictions, passing context to avoid creating it twice
+        if (!this.isPlayRestricted(this.controller, context)) {
+            return null;
+        }
+
+        // Find which effect is blocking the play
+        const restrictions = this.controller.getOngoingEffectValues<Restriction>(EffectName.AbilityRestrictions);
+        const sources = this.controller.getOngoingEffectSources(EffectName.AbilityRestrictions);
+
+        const playRestriction = this.isEvent()
+            ? AbilityRestriction.PlayEvent
+            : this.isUnit()
+                ? AbilityRestriction.PlayUnit
+                : this.isUpgrade()
+                    ? AbilityRestriction.PlayUpgrade
+                    : null;
+
+        // Check if player has a restriction on playing this specific card type
+        if (playRestriction) {
+            for (let i = 0; i < restrictions.length; i++) {
+                if (restrictions[i].isMatch(playRestriction, context)) {
+                    const sourceName = sources[i]?.title || 'an effect';
+                    return `Blocked by ${sourceName}`;
+                }
+            }
+        }
+
+        // Check if player has a general Play restriction (used by Regional Governor)
+        for (let i = 0; i < restrictions.length; i++) {
+            if (restrictions[i].isMatch(AbilityRestriction.Play, context)) {
+                const sourceName = sources[i]?.title || 'an effect';
+                return `Blocked by ${sourceName}`;
+            }
+        }
+
+        // Check for PutIntoPlay restriction (affects units and upgrades)
+        if (this.isUnit() || this.isUpgrade()) {
+            for (let i = 0; i < restrictions.length; i++) {
+                if (restrictions[i].isMatch(AbilityRestriction.PutIntoPlay, context)) {
+                    const sourceName = sources[i]?.title || 'an effect';
+                    return `Blocked by ${sourceName}`;
+                }
+            }
+        }
+
+        // Check for EnterPlay restriction (affects units)
+        if (this.isUnit()) {
+            for (let i = 0; i < restrictions.length; i++) {
+                if (restrictions[i].isMatch(AbilityRestriction.EnterPlay, context)) {
+                    const sourceName = sources[i]?.title || 'an effect';
+                    return `Blocked by ${sourceName}`;
+                }
+            }
+        }
+
+        return null;
     }
 
     public override getSummary(activePlayer: Player) {

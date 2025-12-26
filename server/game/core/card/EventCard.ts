@@ -3,6 +3,7 @@ import type { ICardWithCostProperty } from './propertyMixins/Cost';
 import { WithCost } from './propertyMixins/Cost';
 import type { MoveZoneDestination } from '../Constants';
 import { AbilityRestriction, CardType, EffectName, WildcardZoneName, ZoneName } from '../Constants';
+import type { AbilityContext } from '../ability/AbilityContext';
 import * as Contract from '../utils/Contract';
 import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
@@ -56,6 +57,10 @@ export class EventCard extends EventCardParent implements IEventCard {
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
         return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayEventAction(this.game, this, properties));
+    }
+
+    protected override isPlayRestricted(player: Player, context?: AbilityContext): boolean {
+        return PlayEventAction.isPlayRestricted(player, this, context);
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
