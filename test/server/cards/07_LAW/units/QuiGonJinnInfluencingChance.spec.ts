@@ -19,7 +19,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
             it('on attack, should look at the top 3 cards of your deck, discard 1, put the rest on top in any order', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.quiGonJinnInfluencingChance);
+                context.player1.clickCard(context.quigonJinnInfluencingChance);
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePrompt('Select a card to discard');
@@ -46,7 +46,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
             it('should allow the user to not discard a card, but still make them put all 3 on top of the deck in any order', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.quiGonJinnInfluencingChance);
+                context.player1.clickCard(context.quigonJinnInfluencingChance);
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePrompt('Select a card to discard');
@@ -85,7 +85,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.quiGonJinnInfluencingChance);
+            context.player1.clickCard(context.quigonJinnInfluencingChance);
 
             expect(context.player1).toHavePrompt('Select a card to discard');
             expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -124,7 +124,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.quiGonJinnInfluencingChance);
+            context.player1.clickCard(context.quigonJinnInfluencingChance);
             context.player1.clickCard(context.p2Base);
 
             expect(context.player1).toHavePrompt('Select a card to discard');
@@ -162,7 +162,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.quiGonJinnInfluencingChance);
+            context.player1.clickCard(context.quigonJinnInfluencingChance);
             context.player1.clickCard(context.p2Base);
 
             expect(context.player2).toBeActivePlayer();
