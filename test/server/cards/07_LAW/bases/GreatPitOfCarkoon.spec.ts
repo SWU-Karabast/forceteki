@@ -31,6 +31,7 @@ describe('GreatPitOfCarkoon', function() {
                 expect(context.theSarlaccOfCarkoonHorrorOfTheDuneSea).toBeInZone('hand', context.player1);
                 expect(context.wampa).toBeInZone('discard', context.player1);
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(1)).toContain('player1 is shuffling their deck');
 
                 // confirm that the ability cannot be used again
                 context.player2.passAction();
@@ -99,6 +100,7 @@ describe('GreatPitOfCarkoon', function() {
                 context.player1.clickPrompt('Take nothing');
 
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(1)).toContain('player1 is shuffling their deck');
             });
 
             it('can be used even if no cards in deck', async function () {
