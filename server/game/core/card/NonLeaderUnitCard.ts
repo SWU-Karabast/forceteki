@@ -2,6 +2,7 @@ import type { Player } from '../Player';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
 import { CardType, PlayType, Trait, ZoneName } from '../Constants';
+import type { AbilityContext } from '../ability/AbilityContext';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
@@ -39,6 +40,10 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
             return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUpgradeAction(this.game, this, properties));
         }
         return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUnitAction(this.game, this, properties));
+    }
+
+    protected override isPlayRestricted(player: Player, context?: AbilityContext): boolean {
+        return PlayUnitAction.isPlayRestricted(player, this, context);
     }
 
     public override isPlayable(): this is IPlayableCard {

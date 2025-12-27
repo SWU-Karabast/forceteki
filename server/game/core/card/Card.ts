@@ -1234,6 +1234,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.zoneName === ZoneName.Resource;
     }
 
+    /**
+     * Checks if this card is blocked from being played by an opponent's effect.
+     * Base implementation returns null; overridden in PlayableOrDeployableCard for cards that can be played.
+     * @returns A string describing why the card is blocked (with source card name), or null if not blocked
+     */
+    public getBlockedFromPlayReason(): string | null {
+        return null;
+    }
+
     // TODO: should we break this out into variants for event (Play) vs other (EnterPlay)?
     public canPlay(context, type) {
         return (
@@ -1364,6 +1373,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             return { ...state, ...selectionState };
         }
 
+        // Check if card is blocked from play by opponent effect (for lock icon display)
+        const blockedFromPlayReason = this.getBlockedFromPlayReason() || undefined;
+
         const state = {
             id: this.cardData.id,
             setId: this.setId,
@@ -1379,6 +1391,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             uuid: this.uuid,
             printedType: this.printedType,
             isBlanked: this.isBlank(),
+            blockedFromPlayReason,
             ...selectionState
         };
 
