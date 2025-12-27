@@ -1,23 +1,23 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import type { FormatMessage } from '../../chat/GameChat';
+import type { EffectName } from '../../Constants';
 import { AbilityRestriction } from '../../Constants';
 import type { Card } from '../../card/Card';
 import type Game from '../../Game';
 import * as Contract from '../../utils/Contract';
-
-const leavePlayTypes = new Set(['discardFromPlay', 'returnToHand', 'returnToDeck', 'removeFromGame']);
+import * as Helpers from '../../utils/Helpers';
 
 export interface RestrictionProperties {
-    type: string;
+    type: AbilityRestriction | EffectName;
     restrictedActionCondition?: (context: AbilityContext, source: Card) => boolean;
 }
 
 export class Restriction extends OngoingEffectValueWrapper<Restriction> {
-    public readonly type: string;
+    public readonly type: AbilityRestriction | EffectName;
     public restrictedActionCondition?: (context: AbilityContext, source: Card) => boolean;
 
-    private static restrictionDescription?(type: string): FormatMessage {
+    private static restrictionDescription?(type: AbilityRestriction | EffectName): FormatMessage {
         if (type === AbilityRestriction.Attack) {
             return { format: 'attacking', args: [] };
         } else if (type === AbilityRestriction.Ready) {
@@ -31,7 +31,7 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
         return undefined;
     }
 
-    public constructor(game: Game, properties: string | RestrictionProperties) {
+    public constructor(game: Game, properties: (AbilityRestriction | EffectName) | RestrictionProperties) {
         const effectDescription = Restriction.restrictionDescription(typeof properties === 'string' ? properties : properties.type);
 
         super(game, null, effectDescription);
@@ -48,12 +48,9 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
         return this;
     }
 
-    public isMatch(type: string, context: AbilityContext) {
-        if (this.type === 'leavePlay') {
-            return leavePlayTypes.has(type) && this.checkCondition(context);
-        }
-
-        return (!this.type || this.type === type) && this.checkCondition(context);
+    public isMatch(type: (AbilityRestriction | EffectName) | (AbilityRestriction | EffectName)[], context: AbilityContext) {
+        const types = Helpers.asArray(type);
+        return (!this.type || types.includes(this.type)) && this.checkCondition(context);
     }
 
     public checkCondition(context: AbilityContext) {
