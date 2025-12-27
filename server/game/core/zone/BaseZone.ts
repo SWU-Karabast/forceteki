@@ -6,7 +6,6 @@ import type Game from '../Game';
 import { registerState, undoArray, undoObject } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
-import type { IZoneCardFilterProperties } from './ZoneAbstract';
 import { ZoneAbstract } from './ZoneAbstract';
 
 type IBaseZoneCard = ILeaderCard | IBaseCard | ITokenCard;
@@ -68,10 +67,6 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
         leader.initializeZone(this);
     }
 
-    public override getCards(filter?: IZoneCardFilterProperties): (IBaseZoneCard)[] {
-        return this.cards.filter(this.buildFilterFn(filter));
-    }
-
     public setLeader(leader: ILeaderCard) {
         Contract.assertEqual(leader.controller, this.owner, `Attempting to add card ${leader.internalName} to ${this} as leader but its controller is ${leader.controller}`);
         Contract.assertIsNullLike(this._leader, `Attempting to add leader ${leader.internalName} to ${this} but a leader is already there`);
@@ -102,11 +97,19 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
         Contract.assertEqual(credit.controller, this.owner, `Attempting to add a credit token to ${this} but its controller is ${credit.controller}`);
 
         this._credits = [...this._credits, credit];
+
+        if (this.credits.length === 1) {
+            this.owner.updateCreditTokenCostAdjuster();
+        }
     }
 
     public removeCreditToken(credit: ITokenCard) {
         Contract.assertArrayIncludes(this._credits, credit, `Attempting to remove credit token ${credit} from ${this} but it is not present`);
 
         this._credits = this._credits.filter((c) => c !== credit);
+
+        if (this.credits.length === 0) {
+            this.owner.updateCreditTokenCostAdjuster();
+        }
     }
 }
