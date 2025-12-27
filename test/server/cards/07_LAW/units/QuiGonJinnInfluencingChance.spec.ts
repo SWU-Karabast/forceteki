@@ -5,7 +5,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['doctor-aphra#digging-for-answers', 'qui-gon-jinn#influencing-chance'],
+                        groundArena: ['doctor-aphra#digging-for-answers', 'quigon-jinn#influencing-chance'],
                         discard: ['wampa', 'battlefield-marine', 'pirated-starfighter', 'force-throw'],
                         deck: ['ma-klounkee', 'porg', 'underworld-thug', 'moisture-farmer', 'tieln-fighter'],
                         resources: ['resupply']
@@ -76,7 +76,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
                     discard: ['wampa', 'battlefield-marine', 'pirated-starfighter'],
                     deck: ['ma-klounkee', 'porg', 'force-throw', 'moisture-farmer', 'tieln-fighter'],
                     resources: 10,
-                    hand: ['qui-gon-jinn#influencing-chance']
+                    hand: ['quigon-jinn#influencing-chance']
                 },
                 player2: {
                     groundArena: ['atst', 'consular-security-force'],
@@ -112,7 +112,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['doctor-aphra#digging-for-answers', 'qui-gon-jinn#influencing-chance'],
+                    groundArena: ['doctor-aphra#digging-for-answers', 'quigon-jinn#influencing-chance'],
                     discard: ['wampa', 'battlefield-marine', 'pirated-starfighter', 'force-throw'],
                     deck: ['ma-klounkee', 'porg'],
                     resources: ['resupply']
@@ -150,7 +150,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['doctor-aphra#digging-for-answers', 'qui-gon-jinn#influencing-chance'],
+                    groundArena: ['doctor-aphra#digging-for-answers', 'quigon-jinn#influencing-chance'],
                     discard: ['wampa', 'battlefield-marine', 'pirated-starfighter', 'force-throw'],
                     deck: [],
                     resources: ['resupply']
