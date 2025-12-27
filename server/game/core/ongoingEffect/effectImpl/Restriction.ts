@@ -4,6 +4,7 @@ import type { FormatMessage } from '../../chat/GameChat';
 import { AbilityRestriction } from '../../Constants';
 import type { Card } from '../../card/Card';
 import type Game from '../../Game';
+import * as Contract from '../../utils/Contract';
 
 const leavePlayTypes = new Set(['discardFromPlay', 'returnToHand', 'returnToDeck', 'removeFromGame']);
 
@@ -59,12 +60,15 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
         return this.checkRestriction(this.restrictedActionCondition, context);
     }
 
-    public checkRestriction(restriction: ((context: AbilityContext, source: Card) => boolean) | undefined, context: AbilityContext) {
-        if (!restriction) {
+    public checkRestriction(restrictedActionCondition: ((context: AbilityContext, source: Card) => boolean) | undefined, context: AbilityContext) {
+        if (!restrictedActionCondition) {
             return true;
-        } else if (!context) {
-            throw new Error('checkRestriction called without a context');
         }
-        return restriction(context, this.context.source);
+
+        // TODO: there are some flows that get us here which pass in a null context through GameObject.hasRestriction(),
+        // so we need better typing to enforce that we can't hit this in cases where this is a restrictedActionCondition
+        Contract.assertNotNullLike(context, `Attempted checking a restrictedActionCondition on a restriction of type '${this.type}' without an AbilityContext.`);
+
+        return restrictedActionCondition(context, this.context.source);
     }
 }
