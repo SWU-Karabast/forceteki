@@ -1753,7 +1753,9 @@ class Game extends EventEmitter {
             // if the state has changed, check for:
 
             // - any defeated units
-            this.findAnyCardsInPlay((card) => card.isUnit()).forEach((card) => card.checkDefeatedByOngoingEffect());
+            for (const card of this.getArenaUnits()) {
+                card.checkDefeatedByOngoingEffect();
+            }
         }
     }
 
