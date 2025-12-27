@@ -488,7 +488,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    public isTraitInPlay(trait: Trait, ignoreUnit: any = null): boolean {
+    public isTraitInPlay(trait: Trait | Trait[], ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ trait, otherThan: ignoreUnit });
     }
 
@@ -498,7 +498,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    public isAspectInPlay(aspect: Aspect, ignoreUnit: any = null): boolean {
+    public isAspectInPlay(aspect: Aspect | Aspect[], ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ aspect, otherThan: ignoreUnit });
     }
 
@@ -508,7 +508,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    public isKeywordInPlay(keyword: KeywordName, ignoreUnit: any = null): boolean {
+    public isKeywordInPlay(keyword: KeywordName | KeywordName[], ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ keyword, otherThan: ignoreUnit });
     }
 
