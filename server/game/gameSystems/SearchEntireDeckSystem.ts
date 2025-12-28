@@ -25,14 +25,6 @@ export class SearchEntireDeckSystem<TContext extends AbilityContext = AbilityCon
         super(propertyWithSearchCount);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<ISearchDeckProperties<TContext>> = {}): boolean {
-        if (this.properties.shuffleWhenDone === true) {
-            return true;
-        }
-
-        return super.hasLegalTarget(context, additionalProperties);
-    }
-
     protected override buildPromptProperties(
         cards: Card[],
         properties: ISearchDeckProperties<TContext>,
