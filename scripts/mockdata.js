@@ -278,7 +278,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'qui-gon-jinn#influencing-chance',
+        internalName: 'quigon-jinn#influencing-chance',
     }),
 ];
 
