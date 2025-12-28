@@ -15,7 +15,7 @@ export default class ChopperSpectreThree extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'Give an experience token to this unit. If you control a Cunning or Vigilance unit, give two experience tokens to him instead',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.isAspectInPlay(Aspect.Cunning, context.source) || context.player.isAspectInPlay(Aspect.Vigilance, context.source),
+                condition: (context) => context.player.isAspectInPlay([Aspect.Cunning, Aspect.Vigilance], context.source),
                 onTrue: AbilityHelper.immediateEffects.giveExperience({ amount: 2 }),
                 onFalse: AbilityHelper.immediateEffects.giveExperience()
             }),
