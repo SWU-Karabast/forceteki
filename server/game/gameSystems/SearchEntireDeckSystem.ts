@@ -25,6 +25,14 @@ export class SearchEntireDeckSystem<TContext extends AbilityContext = AbilityCon
         super(propertyWithSearchCount);
     }
 
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<ISearchDeckProperties<TContext>> = {}): boolean {
+        if (this.properties.shuffleWhenDone === true) {
+            return true;
+        }
+
+        return super.hasLegalTarget(context, additionalProperties);
+    }
+
     protected override buildPromptProperties(
         cards: Card[],
         properties: ISearchDeckProperties<TContext>,
@@ -33,12 +41,12 @@ export class SearchEntireDeckSystem<TContext extends AbilityContext = AbilityCon
         selectAmount: number,
         event: any,
         additionalProperties: Partial<ISearchDeckProperties<TContext>>
-    ): IDisplayCardsSelectProperties {
-        if (context.player.deckZone.count === 0) {
+    ): IDisplayCardsSelectProperties | null {
+        const selectableCards = cards.filter((card) => properties.cardCondition(card, context));
+
+        if (selectableCards.length === 0) {
             return null;
         }
-
-        const selectableCards = cards.filter((card) => properties.cardCondition(card, context));
 
         return {
             activePromptTitle: title,
