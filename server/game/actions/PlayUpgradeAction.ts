@@ -3,9 +3,10 @@ import type { IPlayCardActionProperties, PlayCardContext } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
-import { AbilityRestriction, CardType, KeywordName, PlayType, RelativePlayer } from '../core/Constants';
+import { AbilityRestriction, CardType, KeywordName, PlayType, RelativePlayer, ZoneName } from '../core/Constants';
 import type Game from '../core/Game';
 import * as Contract from '../core/utils/Contract';
+import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 
@@ -82,6 +83,7 @@ export class PlayUpgradeAction extends PlayCardAction {
         if (context.playType === PlayType.Smuggle) {
             playTypeDescription = ' using Smuggle';
         }
-        context.game.addMessage('{0} plays {1}{2}, attaching it to {3}', context.player, context.source, playTypeDescription, context.target);
+        const locationDescription = ChatHelpers.getTargetLocationMessage(context.source, context, new Set([ZoneName.Hand]));
+        context.game.addMessage('{0} plays {1}{2}{3}, attaching it to {4}', context.player, context.source, locationDescription, playTypeDescription, context.target);
     }
 }

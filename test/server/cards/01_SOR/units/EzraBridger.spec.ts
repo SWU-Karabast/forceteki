@@ -89,6 +89,8 @@ describe('Ezra Bridger', function() {
                 expect(context.wampa).toBeInZone('groundArena');
                 expect(context.wampa.exhausted).toBe(true);
                 expect(context.player1.deck.length).toEqual(5);
+                expect(context.getChatLogs(2)).toContain('player1 uses Ezra Bridger to play Wampa from the top of their deck');
+
 
                 // reset
                 reset();
