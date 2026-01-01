@@ -165,7 +165,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             return false; // cannot attack yourself or your controller's cards
         }
         if ( // sentinel keyword overrides "can't be attacked" abilities (SWU Comp Rules 2.0 7.5.11.D)
-            ((targetCard.hasRestriction(AbilityRestriction.BeAttacked, context) && !targetCard.hasSomeKeyword(KeywordName.Sentinel)) ||
+            ((targetCard.hasRestriction(AbilityRestriction.BeAttacked, context) && !targetCard.hasKeyword(KeywordName.Sentinel)) ||
               properties.attacker.effectsPreventAttack(targetCard))
         ) {
             return false; // cannot attack cards with a BeAttacked restriction
@@ -185,11 +185,11 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
         // If not Saboteur, do a Sentinel check
         const attackerHasSaboteur =
-            properties.attacker.hasSomeKeyword(KeywordName.Saboteur) ||
+            properties.attacker.hasKeyword(KeywordName.Saboteur) ||
             this.attackerGainsSaboteur(targetCard, context, additionalProperties);
         if (!attackerHasSaboteur) {
             if (targetCard.controller.hasSomeArenaUnit({ arena: attackerZone, keyword: KeywordName.Sentinel })) {
-                return targetCard.hasSomeKeyword(KeywordName.Sentinel);
+                return targetCard.hasKeyword(KeywordName.Sentinel);
             }
         }
 

@@ -269,7 +269,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public hasSentinel(): boolean {
-            return this.hasSomeKeyword(KeywordName.Sentinel);
+            return this.hasKeyword(KeywordName.Sentinel);
         }
 
         public override isLeader(): this is ILeaderCard {
@@ -308,7 +308,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
             }
 
-            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+            if (this.hasKeyword(KeywordName.Piloting)) {
                 Contract.assertNotNullLike(cardData.upgradeHp, `Card ${this.internalName} is missing upgradeHp`);
                 Contract.assertNotNullLike(cardData.upgradePower, `Card ${this.internalName} is missing upgradePower`);
 
@@ -697,7 +697,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 this.state.whileInPlayKeywordAbilities.push(coordinateKeywordAbility.getRef());
             }
 
-            if (this.hasSomeKeyword(KeywordName.Hidden)) {
+            if (this.hasKeyword(KeywordName.Hidden)) {
                 const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
                     title: 'Hidden',
                     condition: (context) => context.source.isInPlay() && this.wasPlayedThisPhase(context.source),
@@ -726,8 +726,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
          * Also adds a listener to remove the registered abilities after the effect resolves.
          */
         public checkRegisterWhenPlayedKeywordAbilities(event: GameEvent) {
-            const hasAmbush = this.hasSomeKeyword(KeywordName.Ambush);
-            const hasShielded = this.hasSomeKeyword(KeywordName.Shielded);
+            const hasAmbush = this.hasKeyword(KeywordName.Ambush);
+            const hasShielded = this.hasKeyword(KeywordName.Shielded);
 
             if (!hasAmbush && !hasShielded) {
                 return;
@@ -766,8 +766,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
          *      and the defeat all shields portion of Saboteur.
          */
         public checkRegisterOnAttackKeywordAbilities(event: GameEvent) {
-            const hasRestore = this.hasSomeKeyword(KeywordName.Restore);
-            const hasSaboteur = this.hasSomeKeyword(KeywordName.Saboteur);
+            const hasRestore = this.hasKeyword(KeywordName.Restore);
+            const hasSaboteur = this.hasKeyword(KeywordName.Saboteur);
 
             if (!hasRestore && !hasSaboteur) {
                 return;
@@ -1002,7 +1002,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 // add stat bonuses from attached upgrades
                 this.upgrades.forEach((upgrade) => wrappedStatsModifiers.push(StatsModifierWrapper.fromPrintedValues(upgrade)));
 
-                if (this.hasSomeKeyword(KeywordName.Grit)) {
+                if (this.hasKeyword(KeywordName.Grit)) {
                     const gritModifier = { power: this.damage, hp: 0 };
                     wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
                 }
@@ -1032,7 +1032,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         public override canAttach(targetCard: Card, context: AbilityContext, controller: Player = this.controller): boolean {
             Contract.assertTrue(this.canBeUpgrade);
             if (targetCard.isUnit()) {
-                if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
+                if (context.playType === PlayType.Piloting && this.hasKeyword(KeywordName.Piloting)) {
                     // This is needed for abilities that let you play Pilots from the opponent's discard
                     const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
                     return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
@@ -1119,10 +1119,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         public override getSummary(activePlayer: Player) {
             if (this.isInPlay()) {
-                const hasSentinel = this.hasSomeKeyword(KeywordName.Sentinel);
+                const hasSentinel = this.hasKeyword(KeywordName.Sentinel);
                 const cannotBeAttacked = (this.hasRestriction(AbilityRestriction.BeAttacked) && !hasSentinel);
-                const clonedCardSetId = this.hasOngoingEffect(EffectName.CloneUnit) ? this.getOngoingEffectValues<Card>(EffectName.CloneUnit)[0].setId : null;
-                const clonedCardTitle = this.hasOngoingEffect(EffectName.CloneUnit) ? this.getOngoingEffectValues<Card>(EffectName.CloneUnit)[0].title : null;
+
+                // Get cloned card info in a single lookup instead of checking twice
+                const clonedCards = this.getOngoingEffectValues<Card>(EffectName.CloneUnit);
+                const clonedCard = clonedCards.length > 0 ? clonedCards[0] : null;
 
                 return {
                     ...super.getSummary(activePlayer),
@@ -1130,10 +1132,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     hp: this.getHp(),
                     sentinel: hasSentinel,
                     cannotBeAttacked: cannotBeAttacked,
-                    isAttacker: this.isInPlay() && this.isUnit() && (this.isAttacking() || this.controller.getAttackerHighlightingState(this)),
-                    isDefender: this.isInPlay() && this.isUnit() && this.isDefending(),
-                    clonedCardId: clonedCardSetId,
-                    clonedCardName: clonedCardTitle
+                    isAttacker: this.isUnit() && (this.isAttacking() || this.controller.getAttackerHighlightingState(this)),
+                    isDefender: this.isUnit() && this.isDefending(),
+                    clonedCardId: clonedCard?.setId ?? null,
+                    clonedCardName: clonedCard?.title ?? null
                 };
             }
 

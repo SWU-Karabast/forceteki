@@ -17,7 +17,7 @@ export default class KyloRensCommandShuttleIconOfAuthority extends NonLeaderUnit
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             targetZoneFilter: ZoneName.GroundArena,
-            matchTarget: (card) => card.hasSomeKeyword(KeywordName.Sentinel),
+            matchTarget: (card) => card.hasKeyword(KeywordName.Sentinel),
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.modifyStats({ power: 0, hp: 2 })
             ]

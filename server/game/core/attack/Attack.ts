@@ -110,7 +110,7 @@ export class Attack {
     }
 
     public hasOverwhelm(): boolean {
-        return this.attacker.hasSomeKeyword(KeywordName.Overwhelm);
+        return this.attacker.hasKeyword(KeywordName.Overwhelm);
     }
 
     public attackerDealsDamageBeforeDefender(): boolean {
