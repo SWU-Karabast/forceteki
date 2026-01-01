@@ -87,7 +87,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         Contract.assertFalse(this.printedType === CardType.Base);
 
         // Register Plot keyword
-        if (this.hasSomeKeyword(KeywordName.Plot)) {
+        if (this.hasKeyword(KeywordName.Plot)) {
             const plotProps = Object.assign(this.buildGeneralAbilityProps('keyword_plot'), PlotAbility.buildPlotAbilityProperties(this.title));
             const plotAbility = this.createTriggeredAbility(plotProps);
             this.state.triggeredAbilities.push(plotAbility.getRef());
@@ -110,19 +110,19 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
         if (this.zoneName === ZoneName.Hand) {
             playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides));
-            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+            if (this.hasKeyword(KeywordName.Piloting)) {
                 playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
             }
         }
 
-        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+        if (this.zoneName === ZoneName.Resource && this.hasKeyword(KeywordName.Smuggle)) {
             playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides));
         }
 
         if (this.zoneName === ZoneName.Discard) {
             if (this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
                 playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
-                if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                if (this.hasKeyword(KeywordName.Piloting)) {
                     playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
                 }
             }
@@ -145,7 +145,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
         let playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
 
-        if (this.hasSomeKeyword(KeywordName.Piloting)) {
+        if (this.hasKeyword(KeywordName.Piloting)) {
             playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
         }
 
@@ -172,11 +172,11 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
         let defaultPlayAction: PlayCardAction = null;
         if (playType === PlayType.Piloting) {
-            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+            if (this.hasKeyword(KeywordName.Piloting)) {
                 defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Piloting, playType);
             }
         } else if (playType === PlayType.Smuggle) {
-            if (this.hasSomeKeyword(KeywordName.Smuggle)) {
+            if (this.hasKeyword(KeywordName.Smuggle)) {
                 defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Smuggle, playType);
             }
         } else {
@@ -195,7 +195,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
     /** This will calculate the cheapest possible play action for alternate play costs such as Smuggle or Piloting */
     protected buildCheapestAlternatePlayAction(propertyOverrides: IPlayCardActionOverrides = null, keyword: KeywordName, playType: PlayType) {
-        Contract.assertTrue(this.hasSomeKeyword(keyword));
+        Contract.assertTrue(this.hasKeyword(keyword));
 
         // find all keywords, filtering out any with additional ability costs as those will be implemented manually (e.g. First Light)
         const keywords = this.getKeywordsWithCostValues(keyword)

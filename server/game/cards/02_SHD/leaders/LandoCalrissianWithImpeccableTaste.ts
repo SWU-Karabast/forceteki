@@ -20,7 +20,7 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
         return {
             controller: RelativePlayer.Self,
             zoneFilter: ZoneName.Resource,
-            cardCondition: (card) => card.hasSomeKeyword(KeywordName.Smuggle), // This helps prevent a prompt error
+            cardCondition: (card) => card.hasKeyword(KeywordName.Smuggle), // This helps prevent a prompt error
             immediateEffect: AbilityHelper.immediateEffects.playCard({
                 playType: PlayType.Smuggle,
                 playAsType: WildcardCardType.Any,

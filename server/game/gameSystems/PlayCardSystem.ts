@@ -109,7 +109,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         if (properties.playAsType != null) {
             if ((properties.playAsType === WildcardCardType.Upgrade || properties.playAsType === WildcardCardType.NonUnit) && card.isUnit()) {
-                if (!card.hasSomeKeyword(KeywordName.Piloting)) {
+                if (!card.hasKeyword(KeywordName.Piloting)) {
                     return false;
                 }
             } else {
