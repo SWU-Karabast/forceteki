@@ -1122,7 +1122,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 const hasSentinel = this.hasKeyword(KeywordName.Sentinel);
                 const cannotBeAttacked = (this.hasRestriction(AbilityRestriction.BeAttacked) && !hasSentinel);
 
-                // Get cloned card info in a single lookup instead of checking twice
                 const clonedCards = this.getOngoingEffectValues<Card>(EffectName.CloneUnit);
                 const clonedCard = clonedCards.length > 0 ? clonedCards[0] : null;
 
