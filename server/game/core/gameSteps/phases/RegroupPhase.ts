@@ -42,14 +42,19 @@ export class RegroupPhase extends Phase {
             this.takeActionSnapshotsForPromptedPlayers();
         }
 
-        for (const player of this.game.getPlayers()) {
-            // create a single event for drawing cards step
-            new DrawSystem({ amount: 2 }).resolve(
-                player,
-                this.game.getFrameworkContext(player),
-                TriggerHandlingMode.ResolvesTriggers
+        // Let's put both draws in the same event window, which should cause any resulting draw damage to be applied simultaneously
+        const players = this.game.getPlayers();
+        const drawEvents: GameEvent[] = [];
+
+        for (const player of players) {
+            const drawSystem = new DrawSystem({ amount: 2 });
+            drawSystem.queueGenerateEventGameSteps(
+                drawEvents,
+                this.game.getFrameworkContext(player)
             );
         }
+
+        this.game.openEventWindow(drawEvents, TriggerHandlingMode.ResolvesTriggers);
     }
 
     private resourcePrompt() {
