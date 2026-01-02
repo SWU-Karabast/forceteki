@@ -3,15 +3,31 @@ import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardTy
 import type { Player } from '../Player';
 import * as Helpers from './Helpers';
 
-// convert a set of strings to map to an enum type, throw if any of them is not a legal value
-export function checkConvertToEnum<T>(values: string | string[], enumObj: T): T[keyof T][] {
-    const result: T[keyof T][] = [];
+// Cache for enum lookup maps (lowercase string -> enum value)
+const enumLookupCache = new Map<object, Map<string, unknown>>();
 
-    const enumValues = Object.values(enumObj);
+// Get or create a cached lookup map for an enum
+function getEnumLookupMap<T extends object>(enumObj: T): Map<string, T[keyof T]> {
+    let lookupMap = enumLookupCache.get(enumObj) as Map<string, T[keyof T]> | undefined;
+    if (!lookupMap) {
+        lookupMap = new Map<string, T[keyof T]>();
+        for (const enumValue of Object.values(enumObj)) {
+            lookupMap.set((enumValue as string).toLowerCase(), enumValue as T[keyof T]);
+        }
+        enumLookupCache.set(enumObj, lookupMap);
+    }
+    return lookupMap;
+}
+
+// convert a set of strings to map to an enum type, throw if any of them is not a legal value
+export function checkConvertToEnum<T extends object>(values: string | string[], enumObj: T): T[keyof T][] {
+    const result: T[keyof T][] = [];
+    const lookupMap = getEnumLookupMap(enumObj);
+
     for (const value of Helpers.asArray(values)) {
-        const matchingValue = enumValues.find((enumValue) => enumValue.toLowerCase() === value.toLowerCase());
-        if (matchingValue) {
-            result.push(matchingValue as T[keyof T]);
+        const matchingValue = lookupMap.get(value.toLowerCase());
+        if (matchingValue !== undefined) {
+            result.push(matchingValue);
         } else {
             throw new Error(`Invalid value for enum: ${value}`);
         }
