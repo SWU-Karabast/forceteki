@@ -443,7 +443,7 @@ export class Lobby {
                 ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard })
                 : {},
             deck,
-            reportedBugs: 0,
+            reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
         this.gameChat.addMessage(`${user.getUsername()} has created and joined the lobby`);
