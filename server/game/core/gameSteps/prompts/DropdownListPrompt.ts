@@ -44,11 +44,6 @@ export class DropdownListPrompt extends UiPrompt {
         };
     }
 
-    protected override startActionTimer(player: Player): void {
-        // give players a little extra time during dropdown list prompts
-        player.actionTimer.start(90);
-    }
-
     public override activeCondition(player) {
         return player === this.player;
     }

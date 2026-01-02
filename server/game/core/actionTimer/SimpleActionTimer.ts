@@ -22,21 +22,23 @@ export class SimpleActionTimer {
 
     protected timers: NodeJS.Timeout[] = [];
     protected endTime: Date | null = null;
-    protected pauseTime: Date | null = null;
     protected _timeRemainingStatus: PlayerTimeRemainingStatus = PlayerTimeRemainingStatus.NoAlert;
     protected onSpecificTimeHandlers: ISpecificTimeHandler[] = [];
     protected timerOverrideValueSeconds: number | null = null;
 
-    public get isPaused(): boolean {
-        return this.endTime !== null && this.pauseTime !== null;
-    }
-
     public get isRunning(): boolean {
         return (
             this.endTime !== null &&
-            this.pauseTime === null &&
             Date.now() < this.endTime.getTime()
         );
+    }
+
+    public get timeRemainingSeconds(): number | null {
+        if (!this.isRunning || this.endTime === null) {
+            return null;
+        }
+        const remainingMs = this.endTime.getTime() - Date.now();
+        return Math.max(0, Math.ceil(remainingMs / 1000));
     }
 
     public get timeRemainingStatus(): PlayerTimeRemainingStatus {
@@ -99,32 +101,8 @@ export class SimpleActionTimer {
 
         this.timers = [];
         this.endTime = null;
-        this.pauseTime = null;
 
         this.onStop();
-    }
-
-    /**
-     * Pauses the timer if it's running.
-     * @deprecated Not fully tested
-     */
-    public pause(): void {
-        Contract.assertNotNullLike(this.endTime, 'Attempting to pause timer when it is not running');
-
-        this.pauseTime = new Date();
-        this.clearTimers();
-    }
-
-    /**
-     * Resumes the timer if it was paused.
-     * @deprecated Not fully tested
-     */
-    public resume(): void {
-        Contract.assertNotNullLike(this.endTime, 'Attempting to resume timer when it is not started');
-        Contract.assertNotNullLike(this.pauseTime, 'Attempting to resume timer when it is not paused');
-
-        const timeRemainingMs = this.endTime.getTime() - this.pauseTime.getTime();
-        this.initializeTimersForTimeRemaining(timeRemainingMs);
     }
 
     /**
@@ -166,7 +144,6 @@ export class SimpleActionTimer {
         Contract.assertTrue(this.timers.length === 0, 'Timers must be cleared before initializing new timers');
 
         this.endTime = new Date(Date.now() + timeRemainingMs);
-        this.pauseTime = null;
 
         const safeCallHandler = (handler: IActionTimerHandler) => {
             if (!this.shouldFireHandler()) {
