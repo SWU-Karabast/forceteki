@@ -69,6 +69,18 @@ export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements
         return cardData;
     }
 
+    protected override getCardInternalAsync(relativePath: string): Promise<ICardDataJson> {
+        // Check cache first to avoid repeated file I/O
+        const cached = this.cardDataCache.get(relativePath);
+        if (cached) {
+            return Promise.resolve(cached);
+        }
+
+        const cardData = this.readFileSync(relativePath) as ICardDataJson;
+        this.cardDataCache.set(relativePath, cardData);
+        return Promise.resolve(cardData);
+    }
+
     public getSetCodeMapSync(): Map<string, string> {
         return this.readFileSync(CardDataGetter.setCodeMapFileName) as Map<string, string>;
     }
