@@ -34,12 +34,27 @@ class PlayerInteractionWrapper {
      * be moved into their proper starting zones for the test.
      */
     moveAllNonBaseZonesToRemoved() {
-        // Use moveCardQuiet to avoid calling game.continue() for each card
-        this.player.getArenaCards().forEach((card) => this.moveCardQuiet(card, 'outsideTheGame'));
-        this.player.resources.forEach((card) => this.moveCardQuiet(card, 'outsideTheGame'));
-        this.player.discard.forEach((card) => this.moveCardQuiet(card, 'outsideTheGame'));
-        this.player.handZone.cards.forEach((card) => this.moveCardQuiet(card, 'outsideTheGame'));
-        this.player.deckZone.cards.forEach((card) => this.moveCardQuiet(card, 'outsideTheGame'));
+        // Collect all cards from all zones
+        const arenaCards = this.player.getArenaCards();
+        const resourceCards = this.player.resourceZone.clearCards();
+        const discardCards = this.player.discardZone.clearCards();
+        const handCards = this.player.handZone.clearCards();
+        const deckCards = this.player.deckZone.clearDeck();
+
+        // Remove arena cards from their zones
+        for (let i = 0; i < arenaCards.length; i++) {
+            arenaCards[i].zone.removeCard(arenaCards[i]);
+        }
+
+        // Combine all cards into one list
+        const allCards = [...arenaCards, ...resourceCards, ...discardCards, ...handCards, ...deckCards];
+
+        // Update zone references and add to outsideTheGame in batch
+        const outsideZone = this.player.outsideTheGameZone;
+        for (let i = 0; i < allCards.length; i++) {
+            allCards[i].zone = outsideZone;
+        }
+        outsideZone.addCards(allCards);
 
         Util.refreshGameState(this.game);
     }
