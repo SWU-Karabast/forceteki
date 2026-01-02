@@ -415,19 +415,24 @@ export interface ISerializedMessage {
     message: MessageText | { alert: { type: string; message: string | string[] } };
 }
 
+export enum PlayerReportType {
+    OffensiveUsername = 'offensive username',
+    ChatHarrasment = 'chat harrasment',
+    AbusingMechanics = 'abusing mechanics',
+}
+
+export interface IReportPlayer {
+    id: string;
+    username: string;
+    playerInGameState: string;
+}
+
 export interface ISerializedReportState {
     description: string;
     gameState: ISerializedGameState;
-    reporter: {
-        id: string;
-        username: string;
-        playerInGameState: string;
-    };
-    opponent: {
-        id: string;
-        username: string;
-        playerInGameState: string;
-    };
+    playerReportType: PlayerReportType;
+    reporter: IReportPlayer;
+    opponent: IReportPlayer;
     lobbyId: string;
     timestamp: string;
     messages: ISerializedMessage[];
