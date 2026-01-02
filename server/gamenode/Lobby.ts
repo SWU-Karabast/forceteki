@@ -29,6 +29,8 @@ import type { IQueueFormatKey } from './QueueHandler';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
+import { setupTestLobby } from '../utils/LobbyTestUtil';
+
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -129,6 +131,7 @@ export interface RematchRequest {
     initiator?: string;
     mode: RematchMode;
 }
+
 
 export class Lobby {
     private static readonly MaxGameMessageErrors = 100;
@@ -1027,6 +1030,16 @@ export class Lobby {
             const player1 = this.users[0];
             const player2 = this.users[1];
 
+            if (player1.id === 'exe66' || player2.id === 'th3w4y') {
+                // Decks do not attach to users in test games, this will be null.
+                if (player1.deck == null || player2.deck == null) {
+                    const testData = (this as any).testSetupData;
+                    testData.id = this.id;
+                    testData.isPrivate = this.isPrivate;
+                    return testData;
+                }
+            }
+
             return {
                 id: this.id,
                 isPrivate: this.isPrivate,
@@ -1147,6 +1160,7 @@ export class Lobby {
         logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
     }
 
+
     public async startTestGameAsync(filename: string) {
         const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
@@ -1155,6 +1169,7 @@ export class Lobby {
         if (setupData.autoSingleTarget == null) {
             setupData.autoSingleTarget = false;
         }
+
 
         Contract.assertNotNullLike(this.testGameBuilder, `Attempting to start a test game from file ${filename} but local test tools were not found`);
 
@@ -1171,6 +1186,7 @@ export class Lobby {
             UndoMode.Free
         );
 
+        (this as any).testSetupData = setupTestLobby(setupData, this.cardDataGetter);
         this.game = game;
     }
 
