@@ -534,7 +534,7 @@ export class Lobby {
                 ready: false,
                 socket,
                 user: socket.user,
-                reportedBugs: 0,
+                reportedBugs: 0
             });
             logger.info(`Lobby: adding username: ${user.getUsername()}, id: ${user.getId()}, socket id: ${socket.id} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
             this.gameChat.addMessage(`${user.getUsername()} has joined the lobby`);
