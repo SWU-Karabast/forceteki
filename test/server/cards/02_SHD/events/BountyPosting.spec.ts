@@ -93,8 +93,8 @@ describe('Bounty Posting', function() {
                 // expect(context.player1).toHaveExactDisplayPromptCards({
                 //     invalid: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
                 // });
-                // expect(context.player1).toHaveEnabledPromptButton('Take nothing');
-                // context.player1.clickPrompt('Take nothing');
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+                context.player1.clickPrompt('Take nothing');
 
                 expect(context.player2).toBeActivePlayer();
             });
