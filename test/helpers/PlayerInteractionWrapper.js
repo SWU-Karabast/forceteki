@@ -34,11 +34,12 @@ class PlayerInteractionWrapper {
      * be moved into their proper starting zones for the test.
      */
     moveAllNonBaseZonesToRemoved() {
-        this.player.getArenaCards().forEach((card) => this.moveCard(card, 'outsideTheGame'));
-        this.player.resourceZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
-        this.player.discardZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
-        this.player.handZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
-        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        // Use moveCardQuiet to avoid calling game.continue() for each card
+        this.player.getArenaCards().forEach((card) => this.moveCardQuiet(card, 'outsideTheGame'));
+        this.player.resources.forEach((card) => this.moveCardQuiet(card, 'outsideTheGame'));
+        this.player.discard.forEach((card) => this.moveCardQuiet(card, 'outsideTheGame'));
+        this.player.handZone.cards.forEach((card) => this.moveCardQuiet(card, 'outsideTheGame'));
+        this.player.deckZone.cards.forEach((card) => this.moveCardQuiet(card, 'outsideTheGame'));
 
         Util.refreshGameState(this.game);
     }
@@ -53,11 +54,12 @@ class PlayerInteractionWrapper {
      * @param {String|DrawCard[]} [newContents] - a list of card names or objects
      */
     setHand(newContents = [], prevZones = ['deck']) {
-        this.hand.forEach((card) => this.moveCard(card, 'deck'));
+        // Use moveCardQuiet to avoid calling game.continue() for each card
+        this.hand.forEach((card) => this.moveCardQuiet(card, 'deck'));
 
         newContents.forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
-            this.moveCard(card, 'hand');
+            this.moveCardQuiet(card, 'hand');
         });
     }
 
@@ -225,9 +227,10 @@ class PlayerInteractionWrapper {
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */
     setArenaUnits(arenaName, currentUnitsInArena, newState = [], prevZones = ['deck', 'hand']) {
+        // Use moveCardQuiet to avoid calling game.continue() for each card
         // First, move all cards in play back to the deck
         currentUnitsInArena.forEach((card) => {
-            this.moveCard(card, 'deck');
+            this.moveCardQuiet(card, 'deck');
         });
         // Set up each of the cards
         newState.forEach((options) => {
@@ -256,7 +259,7 @@ class PlayerInteractionWrapper {
             }
 
             // Move card to play
-            this.moveCard(card, arenaName);
+            this.moveCardQuiet(card, arenaName);
 
             if (opponentControlled) {
                 card.takeControl(card.owner.opponent);
@@ -351,12 +354,13 @@ class PlayerInteractionWrapper {
     }
 
     setDeck(newContents = [], prevZones = ['any']) {
+        // Use moveCardQuiet to avoid calling game.continue() for each card
         this.player.deckZone.cards.forEach(
-            (card) => this.moveCard(card, 'outsideTheGame')
+            (card) => this.moveCardQuiet(card, 'outsideTheGame')
         );
         newContents.reverse().forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
-            this.moveCard(card, 'deck');
+            this.moveCardQuiet(card, 'deck');
         });
     }
 
@@ -383,16 +387,17 @@ class PlayerInteractionWrapper {
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */
     setResourceCards(newContents = [], prevZones = ['deck', 'hand']) {
+        // Use moveCardQuiet to avoid calling game.continue() for each card
         //  Move cards to the deck
         this.resources.forEach((card) => {
-            this.moveCard(card, 'deck');
+            this.moveCardQuiet(card, 'deck');
         });
         // Move cards to the resource area in reverse order
         // (helps with referring to cards by index)
         newContents.reverse().forEach((resource) => {
             const name = typeof resource === 'string' ? resource : resource.card;
             var card = this.findCardByName(name, prevZones);
-            this.moveCard(card, 'resource');
+            this.moveCardQuiet(card, 'resource');
             card.exhausted = typeof resource === 'string' ? false : resource.exhausted;
         });
         Util.refreshGameState(this.game);
@@ -432,13 +437,14 @@ class PlayerInteractionWrapper {
      * @param {String[]} newContents - list of names of cards to be put in conflict discard
      */
     setDiscard(newContents = [], prevZones = ['deck']) {
+        // Use moveCardQuiet to avoid calling game.continue() for each card
         //  Move cards to the deck
-        this.discard.forEach((card) => this.moveCard(card, 'deck'));
+        this.discard.forEach((card) => this.moveCardQuiet(card, 'deck'));
         // Move cards to the discard in reverse order
         // (helps with referring to cards by index)
         newContents.reverse().forEach((name) => {
             const card = typeof name === 'string' ? this.findCardByName(name, prevZones) : name;
-            this.moveCard(card, 'discard');
+            this.moveCardQuiet(card, 'discard');
         });
     }
 
@@ -841,6 +847,23 @@ class PlayerInteractionWrapper {
         }
         card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
         this.game.continue();
+        return card;
+    }
+
+    /**
+     * Moves cards between zones WITHOUT calling game.continue().
+     * Use this for batch operations during test setup to avoid pipeline overhead.
+     * Call Util.refreshGameState() once after all moves are complete.
+     * @param {String|DrawCard} card - card to be moved
+     * @param {String} targetZone - zone where the card should be moved
+     * @param {String | String[]} searchZones - zones where to find the card object
+     */
+    moveCardQuiet(card, targetZone, searchZones = 'any') {
+        if (!(card instanceof Card)) {
+            const cardName = typeof card === 'string' ? card : card.card;
+            card = this.mixedListToCardList([cardName], searchZones)[0];
+        }
+        card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
         return card;
     }
 
