@@ -1,4 +1,4 @@
-import type { AbilityContext } from '../core/ability/AbilityContext';
+import { AbilityContext } from '../core/ability/AbilityContext';
 import type { IPlayCardActionProperties, PlayCardContext } from '../core/ability/PlayCardAction';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
@@ -62,11 +62,32 @@ export class PlayUpgradeAction extends PlayCardAction {
         return new PlayUpgradeAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
+    /**
+     * Check if playing an upgrade card is restricted for the given player and card.
+     * @param player The player attempting to play the upgrade
+     * @param card The upgrade card being played
+     * @param context Optional context for more detailed restriction checks
+     * @returns true if the play is restricted, false otherwise
+     */
+    public static isPlayRestricted(player: any, card: any, context?: AbilityContext): boolean {
+        // If no context provided, create a minimal one for restriction checks
+        // The mock ability with card property is needed for restrictedActionCondition checks (e.g., Regional Governor)
+        const checkContext = context ?? new AbilityContext({
+            game: player.game,
+            player: player,
+            source: card,
+            ability: { card, isPlayCardAbility: () => false } as any
+        });
+
+        return (
+            player.hasRestriction(AbilityRestriction.Play, checkContext) ||
+            player.hasRestriction(AbilityRestriction.PlayUpgrade, checkContext) ||
+            player.hasRestriction(AbilityRestriction.PutIntoPlay, checkContext)
+        );
+    }
+
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
-        if (
-            context.player.hasRestriction(AbilityRestriction.PlayUpgrade, context) ||
-            context.player.hasRestriction(AbilityRestriction.PutIntoPlay, context)
-        ) {
+        if (PlayUpgradeAction.isPlayRestricted(context.player, context.source, context)) {
             return 'restriction';
         }
 
