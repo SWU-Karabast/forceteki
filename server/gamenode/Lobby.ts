@@ -31,7 +31,6 @@ import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer
 import { ModerationType } from '../services/DynamoDBInterfaces';
 import { prepareTestLobbyPreview } from '../utils/LobbyTestUtil';
 
-
 interface LobbySpectatorWrapper {
     id: string;
     username: string;
@@ -131,7 +130,6 @@ export interface RematchRequest {
     initiator?: string;
     mode: RematchMode;
 }
-
 
 export class Lobby {
     private static readonly MaxGameMessageErrors = 100;
@@ -1159,7 +1157,6 @@ export class Lobby {
         this.spectators = [];
         logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
     }
-
 
     public async startTestGameAsync(filename: string) {
         const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
