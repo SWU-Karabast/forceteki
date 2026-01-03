@@ -122,7 +122,7 @@ export function prepareTestLobbyPreview(setupData: any, cardDataGetter: any): IL
 
         return lobbyPreviewData;
     } catch (error) {
-        console.error('Error preparing test lobby preview - setting defauly leader and base combo', error);
+        console.error('Error preparing test lobby preview - setting default leader and base combo', error);
 
         /** testGameTemplate is checked for format error's prior to this function being called but
          * in case of unexpected errors a default preview is provided to prevent null leader / base error
