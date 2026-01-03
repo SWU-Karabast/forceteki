@@ -29,7 +29,7 @@ import type { IQueueFormatKey } from './QueueHandler';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
-import { setupTestLobby } from '../utils/LobbyTestUtil';
+import { prepareTestLobbyPreview } from '../utils/LobbyTestUtil';
 
 
 interface LobbySpectatorWrapper {
@@ -1186,7 +1186,7 @@ export class Lobby {
             UndoMode.Free
         );
 
-        (this as any).testSetupData = setupTestLobby(setupData, this.cardDataGetter);
+        (this as any).testSetupData = prepareTestLobbyPreview(setupData, this.cardDataGetter);
         this.game = game;
     }
 
