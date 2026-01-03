@@ -69,12 +69,11 @@ class PlayerInteractionWrapper {
      * @param {String|DrawCard[]} [newContents] - a list of card names or objects
      */
     setHand(newContents = [], prevZones = ['deck']) {
-        // Use moveCardQuiet to avoid calling game.continue() for each card
-        this.hand.forEach((card) => this.moveCardQuiet(card, 'deck'));
+        this.hand.forEach((card) => this.setupMoveCard(card, 'deck'));
 
         newContents.forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
-            this.moveCardQuiet(card, 'hand');
+            this.setupMoveCard(card, 'hand');
         });
     }
 
@@ -242,10 +241,9 @@ class PlayerInteractionWrapper {
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */
     setArenaUnits(arenaName, currentUnitsInArena, newState = [], prevZones = ['deck', 'hand']) {
-        // Use moveCardQuiet to avoid calling game.continue() for each card
         // First, move all cards in play back to the deck
         currentUnitsInArena.forEach((card) => {
-            this.moveCardQuiet(card, 'deck');
+            this.setupMoveCard(card, 'deck');
         });
         // Set up each of the cards
         newState.forEach((options) => {
@@ -274,7 +272,7 @@ class PlayerInteractionWrapper {
             }
 
             // Move card to play
-            this.moveCardQuiet(card, arenaName);
+            this.setupMoveCard(card, arenaName);
 
             if (opponentControlled) {
                 card.takeControl(card.owner.opponent);
@@ -369,13 +367,12 @@ class PlayerInteractionWrapper {
     }
 
     setDeck(newContents = [], prevZones = ['any']) {
-        // Use moveCardQuiet to avoid calling game.continue() for each card
         this.player.deckZone.cards.forEach(
-            (card) => this.moveCardQuiet(card, 'outsideTheGame')
+            (card) => this.setupMoveCard(card, 'outsideTheGame')
         );
         newContents.reverse().forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
-            this.moveCardQuiet(card, 'deck');
+            this.setupMoveCard(card, 'deck');
         });
     }
 
@@ -402,17 +399,16 @@ class PlayerInteractionWrapper {
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */
     setResourceCards(newContents = [], prevZones = ['deck', 'hand']) {
-        // Use moveCardQuiet to avoid calling game.continue() for each card
         //  Move cards to the deck
         this.resources.forEach((card) => {
-            this.moveCardQuiet(card, 'deck');
+            this.setupMoveCard(card, 'deck');
         });
         // Move cards to the resource area in reverse order
         // (helps with referring to cards by index)
         newContents.reverse().forEach((resource) => {
             const name = typeof resource === 'string' ? resource : resource.card;
             var card = this.findCardByName(name, prevZones);
-            this.moveCardQuiet(card, 'resource');
+            this.setupMoveCard(card, 'resource');
             card.exhausted = typeof resource === 'string' ? false : resource.exhausted;
         });
         Util.refreshGameState(this.game);
@@ -452,14 +448,13 @@ class PlayerInteractionWrapper {
      * @param {String[]} newContents - list of names of cards to be put in conflict discard
      */
     setDiscard(newContents = [], prevZones = ['deck']) {
-        // Use moveCardQuiet to avoid calling game.continue() for each card
         //  Move cards to the deck
-        this.discard.forEach((card) => this.moveCardQuiet(card, 'deck'));
+        this.discard.forEach((card) => this.setupMoveCard(card, 'deck'));
         // Move cards to the discard in reverse order
         // (helps with referring to cards by index)
         newContents.reverse().forEach((name) => {
             const card = typeof name === 'string' ? this.findCardByName(name, prevZones) : name;
-            this.moveCardQuiet(card, 'discard');
+            this.setupMoveCard(card, 'discard');
         });
     }
 
@@ -873,7 +868,7 @@ class PlayerInteractionWrapper {
      * @param {String} targetZone - zone where the card should be moved
      * @param {String | String[]} searchZones - zones where to find the card object
      */
-    moveCardQuiet(card, targetZone, searchZones = 'any') {
+    setupMoveCard(card, targetZone, searchZones = 'any') {
         if (!(card instanceof Card)) {
             const cardName = typeof card === 'string' ? card : card.card;
             card = this.mixedListToCardList([cardName], searchZones)[0];
