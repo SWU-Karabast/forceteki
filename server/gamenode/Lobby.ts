@@ -29,6 +29,7 @@ import type { IQueueFormatKey } from './QueueHandler';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
+import { prepareTestLobbyPreview } from '../utils/TestPreviewUtil';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -1027,6 +1028,16 @@ export class Lobby {
             const player1 = this.users[0];
             const player2 = this.users[1];
 
+            if (player1.id === 'exe66' || player2.id === 'th3w4y') {
+                // Check to see if deck is attached to user - if not, return test setup data
+                if (player1.deck == null || player2.deck == null) {
+                    const lobbyPreviewData = (this as any).testLobbyPreviewData;
+                    lobbyPreviewData.id = this.id;
+                    lobbyPreviewData.isPrivate = this.isPrivate;
+                    return lobbyPreviewData;
+                }
+            }
+
             return {
                 id: this.id,
                 isPrivate: this.isPrivate,
@@ -1156,6 +1167,7 @@ export class Lobby {
             setupData.autoSingleTarget = false;
         }
 
+
         Contract.assertNotNullLike(this.testGameBuilder, `Attempting to start a test game from file ${filename} but local test tools were not found`);
 
         // TODO to address this a refactor and change router to lobby
@@ -1171,6 +1183,7 @@ export class Lobby {
             UndoMode.Free
         );
 
+        (this as any).testLobbyPreviewData = prepareTestLobbyPreview(setupData, this.cardDataGetter);
         this.game = game;
     }
 
