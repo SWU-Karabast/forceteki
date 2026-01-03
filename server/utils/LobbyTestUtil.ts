@@ -5,31 +5,17 @@ export interface IPlayerSummary {
     leader: string;
 }
 
-export interface IExtractedSetup {
-    player1: IPlayerSummary;
-    player2: IPlayerSummary;
-}
-
-export interface ISetCodePreview {
-    set: string;
-}
-
 export interface ILobbyPreviewData {
-    id: string;
+    id: string | null;
     isPrivate: boolean;
-    player1Leader: { id: ISetCodePreview };
-    player1Base: { id: ISetCodePreview };
-    player2Leader: { id: ISetCodePreview };
-    player2Base: { id: ISetCodePreview };
+    player1Leader: { id: string };
+    player1Base: { id: string };
+    player2Leader: { id: string };
+    player2Base: { id: string };
 }
-
 
 // Parse setup data to extract base and leader information for each player
-/**
-     * @param { any } testData - The raw JSON setup object containing test configurations
-     * @returns { IExtractedSetup } A structured object containing the internal names for each player's base and leader.
-     */
-export function parseBaseAndLeaderFromSetup(testData) {
+export function parseBaseAndLeaderFromSetup(testData: any) {
     if (!testData) {
         return {};
     }
@@ -53,105 +39,86 @@ export function parseBaseAndLeaderFromSetup(testData) {
 
 /**
  * Searches the card database for one or more cards using their internal name identifiers.
- * @param { ICardMap } cardMap
- * @param { string[] } internalNames
+ * @param { ICardMap } cardMap - The complete map of card data.
+ * @param { string[] } internalNames - An array of internal card names.
  * @returns { ICardMapEntry[] }
  */
 export function findCardByInternalName(cardMap: ICardMap, internalNames: string[]): ICardMapEntry[] {
-    const foundCards: ICardMapEntry[] = [];
-
     if (!cardMap || !internalNames) {
         return null;
     }
 
     const namesToFind = Array.isArray(internalNames) ? internalNames : [internalNames];
 
-    for (const card of cardMap.values()) {
-        if (card && namesToFind.includes(card.internalName)) {
-            foundCards.push(card);
+    const foundCards = namesToFind.map((targetName) => {
+        for (const card of cardMap.values()) {
+            if (card && card.internalName === targetName) {
+                return card;
+            }
         }
-    }
+        return null;
+    }).filter((card) => card !== null) as ICardMapEntry[];
 
     return foundCards;
 }
 
 // Obtain the set key from the set code map based on provided target values, in this case internal names of the card
 export function findKeysInMap<K, V>(map: Map<K, V>, targetValues: V[]): K[] {
-    const foundKeys: K[] = [];
-
-    if (!map || targetValues === undefined || targetValues === null) {
-        return foundKeys;
+    if (!map || !targetValues) {
+        return [];
     }
 
     const targets = Array.isArray(targetValues) ? targetValues : [targetValues];
 
-
-    for (const target of targets) {
-        for (const [key, value] of map.entries()) {
-            if (value === target) {
-                foundKeys.push(key);
-                // break to prevent duplicate keys
-                break;
+    return targets.map((targetValue) => {
+        for (const [mapKey, mapValue] of map.entries()) {
+            if (mapValue === targetValue) {
+                return mapKey;
             }
         }
-    }
-
-    return foundKeys;
+        return null;
+    }).filter((key) => key !== null) as K[];
 }
 
 
 /**
  * Orchestrates the conversion of test setup data into a formatted lobby preview.
- * * This function handles the full pipeline:
- * 1. Parses JSON into internal card names.
- * 2. Looks up the card objects in cardDataGetter map.
- * 3. Maps those cards to their specific Set Codes.
- * 4. Assigns the codes to the structured lobby preview object.
  * @param { any } setupData - The raw JSON test data containing player configurations.
- * @param { any } cardDataGetter - The service or object containing `cardMap` and `setCodeMap`.
  * @returns { ILobbyPreviewData } Cards populated in preview object for the lobby UI,
  * or a default fallback preview if an error occurs.
  */
 
 export function prepareTestLobbyPreview(setupData: any, cardDataGetter: any): ILobbyPreviewData {
-    // Standard lobby preview structure, id and isPrivate will be set in lobby itself
     try {
-        const lobbyPreviewData = {
-            id: null,
-            isPrivate: true,
-            player1Leader: null,
-            player1Base: null,
-            player2Leader: null,
-            player2Base: null,
-        };
-
         const cleanData = parseBaseAndLeaderFromSetup(setupData);
 
-        // Assign internal names to an array for lookup and store the found cards
-        const setupArray = [
+        const internalNames = [
             cleanData['player1']['leader'],
             cleanData['player1']['base'],
             cleanData['player2']['leader'],
             cleanData['player2']['base']
         ];
 
-        const cards = findCardByInternalName(cardDataGetter.cardMap, setupArray);
+        const cards = findCardByInternalName(cardDataGetter.cardMap, internalNames);
+        if (!cards || cards.length < 4) {
+            throw new Error('Could not find all required cards');
+        }
 
-        // Assign card id's and extract the set codes from the set code map
-        const setupArrayId = [
-            cards[0]['id'],
-            cards[1]['id'],
-            cards[2]['id'],
-            cards[3]['id']
-        ];
+        // Extract the id's from cards
+        const cardIds = cards.map((card) => card.id);
 
-        const cardKeys = findKeysInMap(cardDataGetter.setCodeMap, setupArrayId);
+        // Setcode lookup, get the set keys for each card id value
+        const cardKeys = findKeysInMap<string, string>(cardDataGetter.setCodeMap, cardIds);
 
-        // assign to lobby preview data structure
-        lobbyPreviewData.player1Leader = { id: cardKeys[0] };
-        lobbyPreviewData.player1Base = { id: cardKeys[2] };
-        lobbyPreviewData.player2Leader = { id: cardKeys[1] };
-        lobbyPreviewData.player2Base = { id: cardKeys[3] };
+        // Standard lobby preview structure, id and isPrivate will be set in lobby itself
+        const lobbyPreviewData = {
+            id: null,
+            isPrivate: true,
+            player1Leader: { id: cardKeys[0] },
+            player1Base: { id: cardKeys[1] },
+            player2Leader: { id: cardKeys[2] },
+            player2Base: { id: cardKeys[3] },
+        };
 
         return lobbyPreviewData;
     } catch (error) {
@@ -164,16 +131,11 @@ export function prepareTestLobbyPreview(setupData: any, cardDataGetter: any): IL
         const lobbyPreviewData = {
             id: null,
             isPrivate: true,
-            player1Leader: null,
-            player1Base: null,
-            player2Leader: null,
-            player2Base: null,
+            player1Leader: { id: 'SOR_005' },
+            player1Base: { id: 'SOR_024' },
+            player2Leader: { id: 'SOR_014' },
+            player2Base: { id: 'SOR_030' },
         };
-
-        lobbyPreviewData.player1Leader = { id: 'SOR_005' };
-        lobbyPreviewData.player1Base = { id: 'SOR_024' };
-        lobbyPreviewData.player2Leader = { id: 'SOR_014' };
-        lobbyPreviewData.player2Base = { id: 'SOR_030' };
 
         return lobbyPreviewData;
     }

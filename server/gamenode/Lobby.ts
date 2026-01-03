@@ -1031,12 +1031,12 @@ export class Lobby {
             const player2 = this.users[1];
 
             if (player1.id === 'exe66' || player2.id === 'th3w4y') {
-                // Decks do not attach to users in test games, this will be null.
+                // Check to see if deck is attached to user - if not, return test setup data
                 if (player1.deck == null || player2.deck == null) {
-                    const testData = (this as any).testSetupData;
-                    testData.id = this.id;
-                    testData.isPrivate = this.isPrivate;
-                    return testData;
+                    const lobbyPreviewData = (this as any).testLobbyPreviewData;
+                    lobbyPreviewData.id = this.id;
+                    lobbyPreviewData.isPrivate = this.isPrivate;
+                    return lobbyPreviewData;
                 }
             }
 
@@ -1186,7 +1186,7 @@ export class Lobby {
             UndoMode.Free
         );
 
-        (this as any).testSetupData = prepareTestLobbyPreview(setupData, this.cardDataGetter);
+        (this as any).testLobbyPreviewData = prepareTestLobbyPreview(setupData, this.cardDataGetter);
         this.game = game;
     }
 
