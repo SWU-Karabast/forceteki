@@ -48,9 +48,11 @@ export type IActionTargetsResolver<TContext extends AbilityContext = AbilityCont
 export type ITriggeredAbilityTargetsResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> = Record<string, ITriggeredAbilityTargetsResolverInner<TContext>>;
 
 export interface ISelectTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
-    mode: TargetMode.Select;
+    mode: TargetMode.Select | TargetMode.SelectUnless;
     choices: IChoicesInterface | ((context: TContext) => IChoicesInterface);
     condition?: (context: TContext) => boolean;
+    unlessCondition?: (context: TContext) => boolean;
+    defaultEffect?: GameSystem<TContext>;
     checkTarget?: boolean;
     showUnresolvable?: boolean;
     highlightCards?: Card | Card[] | ((context: TContext) => (Card | Card[]));

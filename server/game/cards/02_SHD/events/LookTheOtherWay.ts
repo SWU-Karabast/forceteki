@@ -20,8 +20,10 @@ export default class LookTheOtherWay extends EventCard {
                     cardTypeFilter: WildcardCardType.Unit
                 },
                 opponentsChoice: {
-                    mode: TargetMode.Select,
+                    mode: TargetMode.SelectUnless,
                     dependsOn: 'targetUnit',
+                    unlessCondition: (context) => context.targets.targetUnit.controller.readyResourceCount >= 2,
+                    defaultEffect: AbilityHelper.immediateEffects.exhaust(),
                     choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
                     activePromptTitle: (context) => `[Exhaust] ${context.targets.targetUnit.title} or [Pay] 2 resources`,
                     choices: (context) => ({
