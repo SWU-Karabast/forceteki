@@ -1,9 +1,10 @@
 import { AbilityRestriction, EffectName, PlayType, RelativePlayer, ZoneName } from '../core/Constants.js';
+import type { PlayRestriction } from '../core/Constants.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import { AbilityResolver } from '../core/gameSteps/AbilityResolver.js';
-import { AbilityContext } from '../core/ability/AbilityContext.js';
+import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { IEventCard } from '../core/card/EventCard.js';
 import type { ITargetResult } from '../core/ability/abilityTargets/TargetResolver.js';
 import type { EventAbility } from '../core/ability/EventAbility';
@@ -45,27 +46,21 @@ export class PlayEventAction extends PlayCardAction {
      * Check if playing an event card is restricted for the given player and card.
      * @param player The player attempting to play the event
      * @param card The event card being played
-     * @param context Optional context for more detailed restriction checks
-     * @returns true if the play is restricted, false otherwise
+     * @param context The context for restriction checks
+     * @returns The AbilityRestriction blocking play, or null if not restricted
      */
-    public static isPlayRestricted(player: Player, card: IEventCard, context?: AbilityContext): boolean {
-        // If no context provided, create a minimal one for restriction checks
-        // The mock ability with card property is needed for restrictedActionCondition checks (e.g., Regional Governor)
-        const checkContext = context ?? new AbilityContext({
-            game: player.game,
-            player: player,
-            source: card,
-            ability: { card, isPlayCardAbility: () => false } as any
-        });
-
-        return (
-            player.hasRestriction(AbilityRestriction.PlayEvent, checkContext) ||
-            card.hasRestriction(AbilityRestriction.Play, checkContext)
-        );
+    public static getPlayRestriction(player: Player, card: IEventCard, context: AbilityContext): PlayRestriction | null {
+        if (player.hasRestriction(AbilityRestriction.PlayEvent, context)) {
+            return AbilityRestriction.PlayEvent;
+        }
+        if (card.hasRestriction(AbilityRestriction.Play, context)) {
+            return AbilityRestriction.Play;
+        }
+        return null;
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
-        if (PlayEventAction.isPlayRestricted(context.player, context.source as IEventCard, context)) {
+        if (PlayEventAction.getPlayRestriction(context.player, context.source as IEventCard, context) !== null) {
             return 'restriction';
         }
         return super.meetsRequirements(context, ignoredRequirements);

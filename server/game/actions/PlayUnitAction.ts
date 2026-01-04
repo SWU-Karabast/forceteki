@@ -1,4 +1,5 @@
 import { AbilityRestriction, PlayType } from '../core/Constants.js';
+import type { PlayRestriction } from '../core/Constants.js';
 import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
@@ -7,7 +8,8 @@ import type { Card } from '../core/card/Card.js';
 import type Game from '../core/Game.js';
 import type { FormatMessage } from '../core/chat/GameChat.js';
 import * as ChatHelpers from '../core/chat/ChatHelpers.js';
-import { AbilityContext } from '../core/ability/AbilityContext.js';
+import type { AbilityContext } from '../core/ability/AbilityContext.js';
+import type { Player } from '../core/Player.js';
 
 export type IPlayUnitActionProperties = IPlayCardActionProperties & {
     entersReady?: boolean;
@@ -66,29 +68,27 @@ export class PlayUnitAction extends PlayCardAction {
      * Check if playing a unit card is restricted for the given player and card.
      * @param player The player attempting to play the unit
      * @param card The unit card being played
-     * @param context Optional context for more detailed restriction checks
-     * @returns true if the play is restricted, false otherwise
+     * @param context The context for restriction checks
+     * @returns The AbilityRestriction blocking play, or null if not restricted
      */
-    public static isPlayRestricted(player: any, card: any, context?: AbilityContext): boolean {
-        // If no context provided, create a minimal one for restriction checks
-        // The mock ability with card property is needed for restrictedActionCondition checks (e.g., Regional Governor)
-        const checkContext = context ?? new AbilityContext({
-            game: player.game,
-            player: player,
-            source: card,
-            ability: { card, isPlayCardAbility: () => false } as any
-        });
-
-        return (
-            player.hasRestriction(AbilityRestriction.Play, checkContext) ||
-            player.hasRestriction(AbilityRestriction.PlayUnit, checkContext) ||
-            player.hasRestriction(AbilityRestriction.PutIntoPlay, checkContext) ||
-            card.hasRestriction(AbilityRestriction.EnterPlay, checkContext)
-        );
+    public static getPlayRestriction(player: Player, card: Card, context: AbilityContext): PlayRestriction | null {
+        if (player.hasRestriction(AbilityRestriction.Play, context)) {
+            return AbilityRestriction.Play;
+        }
+        if (player.hasRestriction(AbilityRestriction.PlayUnit, context)) {
+            return AbilityRestriction.PlayUnit;
+        }
+        if (player.hasRestriction(AbilityRestriction.PutIntoPlay, context)) {
+            return AbilityRestriction.PutIntoPlay;
+        }
+        if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
+            return AbilityRestriction.EnterPlay;
+        }
+        return null;
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
-        if (PlayUnitAction.isPlayRestricted(context.player, context.source, context)) {
+        if (PlayUnitAction.getPlayRestriction(context.player, context.source, context) !== null) {
             return 'restriction';
         }
         return super.meetsRequirements(context, ignoredRequirements);

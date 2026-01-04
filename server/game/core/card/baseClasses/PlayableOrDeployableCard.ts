@@ -10,6 +10,7 @@ import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 import PreEnterPlayAbility from '../../ability/PreEnterPlayAbility';
 import type { Aspect } from '../../Constants';
 import { AbilityRestriction, CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
+import type { PlayRestriction } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
@@ -240,87 +241,42 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
      * Checks if this card is restricted from being played by an opponent's effect.
      * Subclasses should override this to call the appropriate static method from their PlayAction class.
      * @param player The player attempting to play the card
-     * @param context Optional context for more detailed restriction checks
-     * @returns true if the play is restricted, false otherwise
+     * @param context The context for restriction checks
+     * @returns The AbilityRestriction blocking play, or null if not restricted
      */
-    protected isPlayRestricted(player: Player, context?: AbilityContext): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected getPlayRestriction(player: Player, context: AbilityContext): PlayRestriction | null {
         // Base implementation - should be overridden by subclasses
-        return false;
+        return null;
     }
 
     /**
      * Checks if this card is blocked from being played by an opponent's effect
      * (e.g., Regional Governor naming this card, or Trade Route Taxation blocking events).
      * This is used to display the lock icon on cards that could be played but are blocked.
+     * @param context The ability context to use for checking restrictions
      * @returns A string describing why the card is blocked (with source card name), or null if not blocked
      */
-    public override getBlockedFromPlayReason(): string | null {
+    public override getBlockedFromPlayReason(context: AbilityContext): string | null {
         // Only check if the card is not already in play
         if (EnumHelpers.isArena(this.zoneName)) {
             return null;
         }
 
-        // Create a minimal context to check which specific restriction is blocking
-        // The mock ability with card and isPlayCardAbility is needed for restrictedActionCondition checks (e.g., Regional Governor)
-        const context = new AbilityContext({
-            game: this.game,
-            source: this,
-            player: this.controller,
-            ability: { card: this, isPlayCardAbility: () => false } as any,
-        });
-
-        // Use the subclass implementation to check restrictions, passing context to avoid creating it twice
-        if (!this.isPlayRestricted(this.controller, context)) {
+        // Use the subclass implementation to check which restriction is blocking play
+        const playRestriction = this.getPlayRestriction(this.controller, context);
+        if (playRestriction === null) {
             return null;
         }
 
-        // Find which effect is blocking the play
+        // Find the source of the blocking restriction
         const restrictions = this.controller.getOngoingEffectValues<Restriction>(EffectName.AbilityRestrictions);
         const sources = this.controller.getOngoingEffectSources(EffectName.AbilityRestrictions);
 
-        const playRestriction = this.isEvent()
-            ? AbilityRestriction.PlayEvent
-            : this.isUnit()
-                ? AbilityRestriction.PlayUnit
-                : this.isUpgrade()
-                    ? AbilityRestriction.PlayUpgrade
-                    : null;
-
-        // Check if player has a restriction on playing this specific card type
-        if (playRestriction) {
-            for (let i = 0; i < restrictions.length; i++) {
-                if (restrictions[i].isMatch(playRestriction, context)) {
-                    const sourceName = sources[i]?.title || 'an effect';
-                    return `Blocked by ${sourceName}`;
-                }
-            }
-        }
-
-        // Check if player has a general Play restriction (used by Regional Governor)
         for (let i = 0; i < restrictions.length; i++) {
-            if (restrictions[i].isMatch(AbilityRestriction.Play, context)) {
+            if (restrictions[i].isMatch(playRestriction, context)) {
                 const sourceName = sources[i]?.title || 'an effect';
                 return `Blocked by ${sourceName}`;
-            }
-        }
-
-        // Check for PutIntoPlay restriction (affects units and upgrades)
-        if (this.isUnit() || this.isUpgrade()) {
-            for (let i = 0; i < restrictions.length; i++) {
-                if (restrictions[i].isMatch(AbilityRestriction.PutIntoPlay, context)) {
-                    const sourceName = sources[i]?.title || 'an effect';
-                    return `Blocked by ${sourceName}`;
-                }
-            }
-        }
-
-        // Check for EnterPlay restriction (affects units)
-        if (this.isUnit()) {
-            for (let i = 0; i < restrictions.length; i++) {
-                if (restrictions[i].isMatch(AbilityRestriction.EnterPlay, context)) {
-                    const sourceName = sources[i]?.title || 'an effect';
-                    return `Blocked by ${sourceName}`;
-                }
             }
         }
 
