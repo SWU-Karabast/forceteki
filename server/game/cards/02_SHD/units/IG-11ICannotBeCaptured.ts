@@ -19,16 +19,15 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
                 onCardCaptured: (event, context) => event.card === context.source
             },
             replaceWith: {
-                target: this,
                 replacementImmediateEffect: AbilityHelper.immediateEffects.simultaneous({
                     gameSystems: [
-                        AbilityHelper.immediateEffects.defeat(),
-                        AbilityHelper.immediateEffects.damage((context) => {
-                            return {
-                                amount: 3,
-                                target: context.game.getOtherPlayer(context.player).getArenaUnits({ arena: ZoneName.GroundArena })
-                            };
-                        })
+                        AbilityHelper.immediateEffects.defeat((context) => ({
+                            target: context.source
+                        })),
+                        AbilityHelper.immediateEffects.damage((context) => ({
+                            amount: 3,
+                            target: context.game.getOtherPlayer(context.player).getArenaUnits({ arena: ZoneName.GroundArena })
+                        }))
                     ],
                     resolutionMode: ResolutionMode.AlwaysResolve,
                 })
