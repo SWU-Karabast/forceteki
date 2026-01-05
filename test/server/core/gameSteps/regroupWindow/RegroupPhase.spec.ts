@@ -166,6 +166,42 @@ describe('Regroup phase', function() {
                     expect(context.getChatLogs(4)).toContain('player1\'s Ardent Sympathizer is defeated due to having no remaining HP');
                 }
             );
+
+            it('should result in a draw if both players would be defeated by draw damage',
+                async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['patrolling-vwing', 'mission-briefing'],
+                            deck: ['wampa']
+                        },
+                        player2: {
+                            hand: ['cartel-spacer'],
+                            deck: []
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // Setup base damage to be close to defeat
+                    context.player1.setBaseStatus({ card: context.p1Base.internalName, damage: 27 });
+                    context.player2.setBaseStatus({ card: context.p2Base.internalName, damage: 28 });
+
+                    // Players move to regroup phase
+                    context.player1.claimInitiative();
+                    context.player2.passAction();
+
+                    expect(context.getChatLogs(3)).toContain('player1 attempts to draw 1 cards from their empty deck and takes 3 damage instead');
+                    expect(context.getChatLogs(3)).toContain('player2 attempts to draw 2 cards from their empty deck and takes 6 damage instead');
+                    expect(context.getChatLogs(1)).toContain('The game ends in a draw');
+
+                    // Validate both players have lost
+                    expect(context.player1).toBeGameWinner();
+                    expect(context.player2).toBeGameWinner();
+
+                    context.ignoreUnresolvedActionPhasePrompts = true;
+                }
+            );
         });
 
         describe('trigger windows in the regroup phase should select the initiative player as choosing player for resolution of player order', function() {
