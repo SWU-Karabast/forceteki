@@ -37,9 +37,7 @@ export default class Shield extends TokenUpgradeCard {
             shouldCardHaveDamageModification: (card, context) =>
                 context.source.isUpgrade() &&
                 card === context.source.parentCard,
-            replaceWithEffect: AbilityHelper.immediateEffects.defeat((context) => ({
-                target: context.source
-            })),
+            replaceWithEffect: AbilityHelper.immediateEffects.defeat(),
         });
     }
 }
