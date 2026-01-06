@@ -19,15 +19,21 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
     public override readonly eventName: EventName = EventName.OnEffectApplied;
 
     public eventHandler(event): void {
-        const effects = Helpers.asArray(event.effectProperties).flatMap((props: IOngoingPlayerEffectProps) =>
-            (event.effectFactories as IOngoingPlayerEffectGenerator[]).map((factory) =>
-                factory(event.context.game, event.context.source, props)
-            )
-        );
+        /* eslint-disable @typescript-eslint/prefer-for-of */
+        const propsArray = Helpers.asArray(event.effectProperties) as IOngoingPlayerEffectProps[];
+        const factories = event.effectFactories as IOngoingPlayerEffectGenerator[];
+        const effects: ReturnType<IOngoingPlayerEffectGenerator>[] = [];
 
-        for (const effect of effects) {
-            event.context.game.ongoingEffectEngine.add(effect);
+        for (let i = 0; i < propsArray.length; i++) {
+            for (let j = 0; j < factories.length; j++) {
+                effects.push(factories[j](event.context.game, event.context.source, propsArray[i]));
+            }
         }
+
+        for (let i = 0; i < effects.length; i++) {
+            event.context.game.ongoingEffectEngine.add(effects[i]);
+        }
+        /* eslint-enable @typescript-eslint/prefer-for-of */
     }
 
     public override addPropertiesToEvent(event: any, target: Player, context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): void {

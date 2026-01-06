@@ -68,6 +68,7 @@ type EnglishProfaneWord =
   | 'sex'
   | 'shit'
   | 'slut'
+  | 'tedbundy'
   | 'tit'
   | 'tranny'
   | 'turd'
@@ -450,4 +451,9 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
             .addPattern(pattern`col[o][u]red[ ]girl`)
             .addPattern(pattern`col[o][u]red[ ]woman`)
             .addPattern(pattern`col[o][u]red[ ]person`)
+    )
+    .addPhrase((phrase) =>
+        phrase
+            .setMetadata({ originalWord: 'tedbundy' })
+            .addPattern(pattern`ted[ ]bundy`)
     );

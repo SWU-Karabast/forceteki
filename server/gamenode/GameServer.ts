@@ -19,7 +19,6 @@ import * as env from '../env';
 import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import * as Contract from '../game/core/utils/Contract';
-import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { ISwuDbFormatDecklist, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
@@ -91,10 +90,7 @@ export class GameServer {
         console.log('SETUP: Retrieving card data.');
         if (process.env.ENVIRONMENT === 'development') {
             testGameBuilder = this.getTestGameBuilder();
-
-            cardDataGetter = process.env.FORCE_REMOTE_CARD_DATA === 'true'
-                ? await GameServer.buildRemoteCardDataGetter()
-                : testGameBuilder.cardDataGetter;
+            cardDataGetter = testGameBuilder.cardDataGetter;
         } else {
             try {
                 cardDataGetter = await LocalFolderCardDataGetter.createAsync(
@@ -137,11 +133,6 @@ export class GameServer {
             cosmeticsService,
             testGameBuilder
         );
-    }
-
-    private static buildRemoteCardDataGetter(): Promise<RemoteCardDataGetter> {
-        // TODO: move this url to a config
-        return RemoteCardDataGetter.createAsync('https://karabast-data.s3.amazonaws.com/data/');
     }
 
     private static getTestGameBuilder() {
@@ -1167,10 +1158,13 @@ export class GameServer {
                         cosmetics = fetchedCosmetics;
                     }
                 }
+
+                const isContributor = checkServerRoleUserPrivileges(req.path, req.user.getId(), ServerRole.Contributor, this.serverRoleUsersCache).success;
                 return res.status(200).json({
                     success: true,
                     cosmetics,
-                    count: cosmetics.length
+                    count: cosmetics.length,
+                    isContributor
                 });
             } catch (error) {
                 logger.error('GameServer (cosmetics) Server error:', error);

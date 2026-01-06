@@ -28,6 +28,7 @@ import type { Player } from '../game/core/Player';
 import type { IQueueFormatKey } from './QueueHandler';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
+import { ModerationType } from '../services/DynamoDBInterfaces';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -154,6 +155,7 @@ export class Lobby {
     public users: LobbyUserWrapper[] = [];
     public spectators: LobbySpectatorWrapper[] = [];
     private lobbyOwnerId: string;
+    public userWhoMutedChat: string;
     public matchmakingType: MatchmakingType;
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
@@ -328,6 +330,7 @@ export class Lobby {
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
             gameType: this.matchmakingType,
+            userWhoMutedChat: this.userWhoMutedChat,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
@@ -362,7 +365,7 @@ export class Lobby {
             state: user.state,
             ready: user.ready,
             authenticated: authenticatedStatus,
-            chatDisabled: !!user.socket?.user.getModeration(),
+            chatDisabled: user.socket?.user.getModeration()?.moderationType === ModerationType.Mute || user.id === this.userWhoMutedChat,
         };
 
         const extendedData = fullData ? {
@@ -639,16 +642,16 @@ export class Lobby {
             logger.info('Lobby: Bo3 lobby ready timer stopped - no players ready', { lobbyId: this.id });
         } else if (readyCount === 1 && !this.bo3LobbyReadyTimer.isRunning) {
             // First player ready - calculate dynamic timer duration
-            // Default: 30 seconds, but guarantee minimum 60 seconds from lobby load
+            // Default: 30 seconds, but guarantee minimum 120 seconds from lobby load
             const defaultDurationSeconds = 30;
-            const minimumTotalSeconds = 60;
+            const minimumTotalSeconds = 120;
             const elapsedSeconds = this.bo3LobbyLoadedAt
                 ? Math.floor((Date.now() - this.bo3LobbyLoadedAt.getTime()) / 1000)
                 : 0;
             const timerDurationSeconds = Math.max(defaultDurationSeconds, minimumTotalSeconds - elapsedSeconds);
 
             this.bo3LobbyReadyTimer.start(timerDurationSeconds);
-            this.gameChat.addAlert(AlertType.Notification, `Timer started. Both players must be readied within ${timerDurationSeconds} seconds.`);
+            this.gameChat.addAlert(AlertType.Warning, `Timer started because a player has readied. Both players must be readied within ${timerDurationSeconds} seconds.`);
             logger.info(`Lobby: Bo3 lobby ready timer started with ${timerDurationSeconds}s - first player ready`, { lobbyId: this.id, elapsedSeconds, timerDurationSeconds });
         }
 
@@ -664,6 +667,11 @@ export class Lobby {
         }
 
         this.gameChat.addChatMessage(existingUser, args[0]);
+        this.sendLobbyState();
+    }
+
+    private muteChat(socket: Socket): void {
+        this.userWhoMutedChat = socket.user.getId();
         this.sendLobbyState();
     }
 

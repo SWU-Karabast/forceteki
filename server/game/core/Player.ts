@@ -52,6 +52,7 @@ import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
+import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -487,7 +488,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    public isTraitInPlay(trait: Trait, ignoreUnit: any = null): boolean {
+    public isTraitInPlay(trait: Trait | Trait[], ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ trait, otherThan: ignoreUnit });
     }
 
@@ -497,7 +498,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    public isAspectInPlay(aspect: Aspect, ignoreUnit: any = null): boolean {
+    public isAspectInPlay(aspect: Aspect | Aspect[], ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ aspect, otherThan: ignoreUnit });
     }
 
@@ -507,7 +508,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    public isKeywordInPlay(keyword: KeywordName, ignoreUnit: any = null): boolean {
+    public isKeywordInPlay(keyword: KeywordName | KeywordName[], ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ keyword, otherThan: ignoreUnit });
     }
 
@@ -787,6 +788,21 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         if (this.costAdjusters.includes(adjuster)) {
             adjuster.cancel();
             this.state.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster).map((x) => x.getRef());
+        }
+    }
+
+    public updateCreditTokenCostAdjuster() {
+        const creditTokenAdjusters = this.costAdjusters.filter((adjuster) =>
+            adjuster.isCreditTokenAdjuster()
+        );
+
+        Contract.assertFalse(creditTokenAdjusters.length > 1, `Multiple credit token cost adjusters found on player ${this.id}`);
+
+        if (this.creditTokenCount === 0 && creditTokenAdjusters.length > 0) {
+            this.removeCostAdjuster(creditTokenAdjusters[0]);
+        } else if (this.creditTokenCount > 0 && creditTokenAdjusters.length === 0) {
+            const newAdjuster = new DefeatCreditTokensCostAdjuster(this.game, this);
+            this.addCostAdjuster(newAdjuster);
         }
     }
 

@@ -666,7 +666,7 @@ class Game extends EventEmitter {
 
     /**
      * Returns if a card is in play (units, upgrades, base, leader) that has the passed trait
-     * @param {Trait} trait
+     * @param {Trait | Trait[]} trait
      * @returns {boolean} true/false if the trait is in pay
      */
     isTraitInPlay(trait) {
@@ -1753,7 +1753,9 @@ class Game extends EventEmitter {
             // if the state has changed, check for:
 
             // - any defeated units
-            this.findAnyCardsInPlay((card) => card.isUnit()).forEach((card) => card.checkDefeatedByOngoingEffect());
+            for (const card of this.getArenaUnits()) {
+                card.checkDefeatedByOngoingEffect();
+            }
         }
     }
 

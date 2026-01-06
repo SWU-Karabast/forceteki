@@ -60,7 +60,50 @@ describe('Saboteur keyword', function() {
                 expect(context.wampa).toHaveExactUpgradeNames(['resilient']);
             });
         });
-    });
 
-    // TODO test how Saboteur interacts with cross-arena targeting and Sentinel
+        describe('When a unit with Saboteur keyword attacks on another arena', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['breaking-in'],
+                        spaceArena: ['strafing-gunship'],
+                        groundArena: ['retrofitted-airspeeder']
+                    },
+                    player2: {
+                        groundArena: ['echo-base-defender', 'battlefield-marine'],
+                        spaceArena: ['awing', 'bright-hope#narrow-escape'],
+                    },
+                });
+            });
+
+            it('it may bypass all sentinel (attack from space)', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.breakingIn);
+                context.player1.clickCard(context.strafingGunship);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.echoBaseDefender, context.battlefieldMarine, context.awing, context.brightHope]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.strafingGunship.damage).toBe(1);
+            });
+
+            it('it may bypass all sentinel (attack from ground)', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.breakingIn);
+                context.player1.clickCard(context.retrofittedAirspeeder);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.echoBaseDefender, context.battlefieldMarine, context.awing, context.brightHope]);
+                context.player1.clickCard(context.awing);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.awing).toBeInZone('discard');
+                expect(context.retrofittedAirspeeder.damage).toBe(1);
+            });
+        });
+    });
 });
