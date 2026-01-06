@@ -82,6 +82,8 @@ export class PlayUpgradeAction extends PlayCardAction {
         let playTypeDescription = '';
         if (context.playType === PlayType.Smuggle) {
             playTypeDescription = ' using Smuggle';
+        } else if (context.playType === PlayType.Piloting) {
+            playTypeDescription = ' with Piloting';
         }
         const locationDescription = ChatHelpers.getTargetLocationMessage(context.source, context, new Set([ZoneName.Hand]));
         context.game.addMessage('{0} plays {1}{2}{3}, attaching it to {4}', context.player, context.source, locationDescription, playTypeDescription, context.target);
