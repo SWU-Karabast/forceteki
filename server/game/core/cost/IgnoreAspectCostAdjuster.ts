@@ -10,7 +10,6 @@ import { CostAdjustStage } from './CostInterfaces';
 
 export class IgnoreAspectCostAdjuster extends CostAdjuster {
     public readonly ignoredAspect?: Aspect;
-    public readonly matchMultiple?: boolean;
 
     public constructor(
         game: Game,
@@ -24,7 +23,6 @@ export class IgnoreAspectCostAdjuster extends CostAdjuster {
                 Contract.assertTrue(properties.ignoredAspect.length > 0, 'Ignored Aspect array is empty');
             }
             this.ignoredAspect = properties.ignoredAspect;
-            this.matchMultiple = properties.matchMultiple ?? false;
         }
     }
 
@@ -43,8 +41,7 @@ export class IgnoreAspectCostAdjuster extends CostAdjuster {
                 break;
             case CostAdjustType.IgnoreSpecificAspects:
                 Contract.assertNotNullLike(this.ignoredAspect, 'Ignored Aspect must be defined for IgnoreSpecificAspects cost adjuster');
-                Contract.assertNotNullLike(this.matchMultiple, 'matchMultiple flag must be defined for IgnoreSpecificAspects cost adjuster');
-                result.adjustedCost.disableAspectPenalty(this.ignoredAspect, this.matchMultiple);
+                result.adjustedCost.disableAspectPenalty(this.ignoredAspect, true);
                 break;
             default:
                 throw new Error(`Unsupported cost adjust type for IgnoreAspectCostAdjuster: ${this.costAdjustType}`);
