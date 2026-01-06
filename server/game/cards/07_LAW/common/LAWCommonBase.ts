@@ -1,5 +1,4 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { BaseCard } from '../../../core/card/BaseCard';
 import { Aspect, Conjunction, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
@@ -14,33 +13,15 @@ export abstract class LAWCommonBase extends BaseCard {
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand((context) => ({
+                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                     adjustCost: {
-                        costAdjustType: CostAdjustType.IgnoreSpecificAspects,
-                        ignoredAspect: this.determineIgnoredAspect(context, aspects)
+                        costAdjustType: CostAdjustType.IgnoreWildcardAspects,
+                        wildcardAspects: new Set(aspects),
+                        ignoreCount: 1
                     },
                     playAsType: WildcardCardType.Any
-                }))
+                })
             }
         });
-    }
-
-    private determineIgnoredAspect(context: AbilityContext, options: Aspect[]): Aspect {
-        if (!context.target) {
-            return options[0];
-        }
-
-        // Make it a set for easier lookup, since duplicates don't matter here
-        const penaltyAspects = new Set(context.player.getPenaltyAspects(context.target.aspects));
-
-        for (const aspect of options) {
-            if (penaltyAspects.has(aspect)) {
-                // Arbitrarily return the first aspect found that has a penalty
-                return aspect;
-            }
-        }
-
-        // If no penalty aspects found, default to the first option
-        return options[0];
     }
 }

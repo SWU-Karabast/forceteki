@@ -28,6 +28,7 @@ export enum CostAdjustType {
     Free = 'free',
     IgnoreAllAspects = 'ignoreAllAspects',
     IgnoreSpecificAspects = 'ignoreSpecificAspect',
+    IgnoreWildcardAspects = 'ignoreWildcardAspects',
     ModifyPayStage = 'modifyPayStage',
     Exploit = 'exploit',
     ExhaustUnits = 'exhaustUnits',
@@ -57,6 +58,13 @@ export interface ICostAdjusterPropertiesBase {
 
     /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
     attachTargetCondition?: (attachTarget: Card, context: AbilityContext, adjusterSource?: Card) => boolean;
+
+    /**
+     * The relative priority of the cost adjuster, compared to other adjusters within the same stage.
+     *
+     * Higher priority adjusters are applied first, lower priority adjusters are applied later.
+     * */
+    relativePriority?: CostAdjusterRelativePriority;
 }
 
 export interface IIncreaseOrDecreaseCostAdjusterProperties extends ICostAdjusterPropertiesBase {
@@ -94,6 +102,16 @@ export interface IIgnoreSpecificAspectsCostAdjusterProperties extends ICostAdjus
     matchMultiple?: boolean;
 }
 
+export interface IIgnoreWildcardAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.IgnoreWildcardAspects;
+
+    /** The aspects to ignore the cost of */
+    wildcardAspects: Set<Aspect>;
+
+    /** How many aspects can be ignored from the wildcards */
+    ignoreCount: number;
+}
+
 export interface IModifyPayStageCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.ModifyPayStage;
 
@@ -110,6 +128,7 @@ export type ICostAdjusterProperties =
   | IIncreaseOrDecreaseCostAdjusterProperties
   | IForFreeCostAdjusterProperties
   | IIgnoreSpecificAspectsCostAdjusterProperties
+  | IIgnoreWildcardAspectsCostAdjusterProperties
   | IModifyPayStageCostAdjusterProperties
   | IExploitCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties
@@ -141,10 +160,17 @@ export enum CostAdjustResolutionMode {
     Trigger = 'trigger'
 }
 
+export enum CostAdjusterRelativePriority {
+    Low = 0,
+    Normal = 100,
+    High = 200
+}
+
 @registerState()
 export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     public readonly costAdjustStage: CostAdjustStage;
     public readonly costAdjustType: CostAdjustType;
+    public readonly relativePriority: CostAdjusterRelativePriority;
 
     protected readonly limit?: AbilityLimit;
 
@@ -201,6 +227,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         }
 
         this.matchAbilityCosts = !!properties.matchAbilityCosts;
+        this.relativePriority = properties.relativePriority ?? CostAdjusterRelativePriority.Normal;
     }
 
     protected abstract applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]): void;
