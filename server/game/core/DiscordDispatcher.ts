@@ -1,10 +1,9 @@
 import FormData from 'form-data';
 import type { User } from '../../utils/user/User';
 import { httpPostFormData } from '../../Util';
-import type {
-    ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState,
-    MessageText, PlayerReportType
-} from '../Interfaces';
+import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState,
+    MessageText, PlayerReportType } from '../Interfaces';
+import { ReportType } from '../Interfaces';
 import { logger } from '../../logger';
 import * as Helpers from './utils/Helpers';
 import type { MatchmakingType } from '../../gamenode/Lobby';
@@ -22,10 +21,10 @@ export interface IDiscordDispatcher {
     /**
      * Format the bug report as a Discord message and dispatch it
      * @param report The report data
-     * @param isBugReport Boolean field that seperates between a bug report and a player report
+     * @param reportType the type of report
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
-    formatAndSendReportAsync(report: ISerializedReportState, isBugReport: boolean): Promise<EitherPostResponseOrBoolean>;
+    formatAndSendReportAsync(report: ISerializedReportState, reportType: ReportType): Promise<EitherPostResponseOrBoolean>;
 
     /**
      * Format the undo failure report as a Discord message and dispatch it
@@ -59,6 +58,8 @@ export interface IDiscordDispatcher {
      * @param description A brief description of the error context
      * @param error The error object to report
      * @param lobbyId The lobby ID associated with the error
+     * @param gameFormat Format of the game
+     * @param matchType type of matchmaking
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
     formatAndSendGameStartErrorAsync(
@@ -96,13 +97,13 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         }
     }
 
-    public async formatAndSendReportAsync(report: ISerializedReportState, isBugReport: boolean): Promise<EitherPostResponseOrBoolean> {
+    public async formatAndSendReportAsync(report: ISerializedReportState, reportType: ReportType): Promise<EitherPostResponseOrBoolean> {
         // Always log the report
         const logData = {
             lobbyId: report.lobbyId,
             reporterId: report.reporter.id,
             reportedPlayerId: report.opponent.id,
-            reportType: isBugReport ? 'Bug report' : 'Player report',
+            reportType: reportType === ReportType.BugReport ? 'Bug report' : 'Player report',
             description: report.description,
             gameStateJson: JSON.stringify(report.gameState, null, 0)
         };
@@ -118,14 +119,14 @@ export class DiscordDispatcher implements IDiscordDispatcher {
 
         logger.info(`Report received from user ${report.reporter.username}`, logData);
 
-        if (!this._bugReportWebhookUrl && isBugReport) {
+        if (!this._bugReportWebhookUrl && reportType === ReportType.BugReport) {
             // If no webhook URL is configured, just log it
             if (process.env.NODE_ENV !== 'test') {
                 logger.warn('Bug report could not be sent to Discord: No webhook URL configured for bug reports');
             }
 
             return false;
-        } else if (!this._playerReportWebhookUrl && !isBugReport) {
+        } else if (!this._playerReportWebhookUrl && reportType === ReportType.PlayerReport) {
             // If no webhook URL is configured, just log it
             if (process.env.NODE_ENV !== 'test') {
                 logger.warn('Player report could not be sent to Discord: No webhook URL configured for player reports');
@@ -145,17 +146,6 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 value: `${report.reporter.username} (${report.reporter.id})`,
                 inline: true,
             },
-            ...(!isBugReport ? [{
-                name: 'Offending player',
-                value: `${report.opponent.username} (${report.opponent.id})`,
-                inline: true,
-            },
-            {
-                name: 'Offense',
-                value: `${report.playerReportType}`,
-                inline: true,
-            }
-            ] : []),
             {
                 name: 'Lobby ID',
                 value: report.lobbyId,
@@ -188,6 +178,20 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             }
         ];
 
+        if (reportType === ReportType.PlayerReport) {
+            fields.splice(1, 0,
+                {
+                    name: 'Reported Player',
+                    value: `${report.opponent.username} (${report.opponent.id})`,
+                    inline: true,
+                },
+                {
+                    name: 'Offense',
+                    value: `${report.playerReportType}`,
+                    inline: true,
+                }
+            );
+        }
         // Add screen resolution if available
         if (report.screenResolution) {
             fields.push({
@@ -207,7 +211,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         }
 
         // Add game state field
-        if (isBugReport) {
+        if (reportType === ReportType.BugReport) {
             fields.push({
                 name: 'Game State',
                 value: 'See attached JSON file for complete game state',
@@ -219,10 +223,10 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         const formData = new FormData();
 
         const data: IDiscordFormat = {
-            content: `New ${isBugReport ? 'bug' : 'player'} report from **${report.reporter.username}**!`,
+            content: `New ${reportType === ReportType.BugReport ? 'bug' : 'player'} report from **${report.reporter.username}**!`,
             embeds: [
                 {
-                    title: `${isBugReport ? 'Bug' : 'Player'} Report`,
+                    title: `${reportType === ReportType.BugReport ? 'Bug' : 'Player'} Report`,
                     color: 0xFF0000, // Red color
                     description: embedDescription,
                     fields,
@@ -235,7 +239,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         formData.append('payload_json', JSON.stringify(data));
 
         const timestamp = new Date().getTime();
-        if (isBugReport) {
+        if (reportType === ReportType.BugReport) {
             this.addGameStateToForm(formData, report.gameState, report.lobbyId, timestamp);
             this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp);
         } else {
@@ -245,15 +249,15 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         // Send to Discord webhook with file attachment using our custom function
         try {
             // Create Discord message content
-            await httpPostFormData(isBugReport ? this._bugReportWebhookUrl : this._playerReportWebhookUrl, formData);
+            await httpPostFormData(reportType === ReportType.BugReport ? this._bugReportWebhookUrl : this._playerReportWebhookUrl, formData);
 
-            logger.info(`${isBugReport ? 'Bug' : 'Player'} report successfully sent to Discord from user ${report.reporter.username}`, {
+            logger.info(`${reportType === ReportType.BugReport ? 'Bug' : 'Player'} report successfully sent to Discord from user ${report.reporter.username}`, {
                 lobbyId: report.lobbyId
             });
 
             return true;
         } catch (error) {
-            logger.error(`Failed to send ${isBugReport ? 'Bug' : 'Player'} report to Discord`, {
+            logger.error(`Failed to send ${reportType === ReportType.BugReport ? 'Bug' : 'Player'} report to Discord`, {
                 error: { message: error.message, stack: error.stack },
                 lobbyId: report.lobbyId
             });

@@ -34,6 +34,7 @@ import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
 import type { MessageText } from '../game/Interfaces';
+import { ReportType } from '../game/Interfaces';
 import { PlayerReportType } from '../game/Interfaces';
 
 interface LobbySpectatorWrapper {
@@ -2120,14 +2121,14 @@ export class Lobby {
 
     private async submitReport(socket: Socket, ...args: any[]): Promise<void> {
         Contract.assertTrue(
-            args[0] === 'bug' || args[0] === 'player',
+            args[0] === 'bugReport' || args[0] === 'playerReport',
             `Invalid report type: expected 'bug' or 'player' but received '${args[0]}'`
         );
-        const isBugReport = args[0] === 'bug';
+        const reportType = args[0] as ReportType;
         const reportMessage = args[1];
         const playerReportType = Object.values(PlayerReportType).includes(args[2]) ? args[2] as PlayerReportType : null;
-        const resultEvent = isBugReport ? 'bugReportResult' : 'playerReportResult';
-        const reportLabel = isBugReport ? 'bug report' : 'player report';
+        const resultEvent = reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
+        const reportLabel = reportType === ReportType.BugReport ? 'bug report' : 'player report';
 
         try {
             let parsedDescription = '';
@@ -2151,7 +2152,7 @@ export class Lobby {
             if (this.game) {
                 const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());
                 opponent = { id: opponentObject.id, username: opponentObject.user.username };
-                gameMessages = isBugReport ? this.game.getLogMessages() : this.game.gameChat.messages;
+                gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.messages;
             } else {
                 // this is for lobby player reports
                 const opponentObject = this.users.find((u) => u.id !== socket.user.getId());
@@ -2179,12 +2180,12 @@ export class Lobby {
                 viewport
             );
 
-            const success = await this.discordDispatcher.formatAndSendReportAsync(report, isBugReport);
+            const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);
             if (!success) {
                 throw new Error(`${reportLabel} failed to send to discord. See logs for details.`);
             }
             const existingUser = this.users.find((u) => u.id === socket.user.getId());
-            if (isBugReport) {
+            if (reportType === ReportType.BugReport) {
                 existingUser.reportedBugs += 1;
             }
 
@@ -2195,7 +2196,7 @@ export class Lobby {
             });
 
             // we report the alert only if its a bug report
-            if (isBugReport) {
+            if (reportType === ReportType.BugReport) {
                 this.game.addAlert(
                     AlertType.Notification,
                     `{0} has submitted a ${reportLabel}`,

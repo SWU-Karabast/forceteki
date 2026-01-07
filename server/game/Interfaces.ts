@@ -416,9 +416,15 @@ export interface ISerializedMessage {
 }
 
 export enum PlayerReportType {
-    OffensiveUsername = 'offensive username',
-    ChatHarrasment = 'chat harrasment',
-    AbusingMechanics = 'abusing mechanics',
+    OffensiveUsername = 'offensiveUsername',
+    ChatHarrasment = 'chatHarrasment',
+    AbusingMechanics = 'abusingMechanics',
+    Other = 'other'
+}
+
+export enum ReportType {
+    BugReport = 'bugReport',
+    PlayerReport = 'playerReport'
 }
 
 export interface IReportPlayer {
