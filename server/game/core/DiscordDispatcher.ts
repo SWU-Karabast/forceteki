@@ -155,6 +155,24 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 value: `${report.reporter.username} (${report.reporter.id})`,
                 inline: true,
             },
+        ];
+
+        if (reportType === ReportType.PlayerReport) {
+            fields.push(
+                {
+                    name: 'Reported Player',
+                    value: `${report.opponent.username} (${report.opponent.id})`,
+                    inline: true,
+                },
+                {
+                    name: 'Offense',
+                    value: `${report.playerReportType}`,
+                    inline: true,
+                }
+            );
+        }
+
+        fields.push(
             {
                 name: 'Lobby ID',
                 value: report.lobbyId,
@@ -184,23 +202,8 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 name: 'Match Type',
                 value: report.matchType.toString(),
                 inline: true
-            }
-        ];
+            });
 
-        if (reportType === ReportType.PlayerReport) {
-            fields.splice(1, 0,
-                {
-                    name: 'Reported Player',
-                    value: `${report.opponent.username} (${report.opponent.id})`,
-                    inline: true,
-                },
-                {
-                    name: 'Offense',
-                    value: `${report.playerReportType}`,
-                    inline: true,
-                }
-            );
-        }
         // Add screen resolution if available
         if (report.screenResolution) {
             fields.push({
