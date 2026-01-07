@@ -16,6 +16,7 @@ type EnglishProfaneWord =
   | 'bestiality'
   | 'bitch'
   | 'blowjob'
+  | 'blowme'
   | 'bollocks'
   | 'boob'
   | 'boonga'
@@ -212,6 +213,7 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
             .addPattern(pattern`bich|`),
     )
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'blowjob' }).addPattern(pattern`b[b]l[l][o]wj[o]b`))
+    .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'blowme' }).addPattern(pattern`b[b]l[l]o[w][ ]me`))
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'bollocks' }).addPattern(pattern`bol[l]ock`))
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'boob' }).addPattern(pattern`boob`))
     .addPhrase((phrase) =>
