@@ -1173,15 +1173,11 @@ export class Lobby {
 
         this.game = game;
 
-        if (this.game) {
-            for (const players of this.game.getPlayers()) {
-                const userWrapper = this.users.find((u) => u.id === players.user.id);
-                if (userWrapper && players.lobbyDeck) {
-                    userWrapper.deck = players.lobbyDeck;
+        for (const player of this.game.getPlayers()) {
+            const userWrapper = this.getUser(player.user.id);
+            userWrapper.deck = player.lobbyDeck;
 
-                    logger.info(`Synced test deck for ${userWrapper.username} from game engine.`);
-                }
-            }
+            logger.info(`Test deck synchronized for user: ${userWrapper.username}`);
         }
     }
 
