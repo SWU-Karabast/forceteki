@@ -482,6 +482,15 @@ export enum AbilityRestriction {
     ReturnToHand = 'returnToHand',
 }
 
+/** Union type of AbilityRestriction values that can block a card from being played */
+export type PlayRestriction =
+  | AbilityRestriction.Play
+  | AbilityRestriction.PlayEvent
+  | AbilityRestriction.PlayUnit
+  | AbilityRestriction.PlayUpgrade
+  | AbilityRestriction.PutIntoPlay
+  | AbilityRestriction.EnterPlay;
+
 export enum DamageModificationType {
     PreventAll = 'all',
     Increase = 'increase',

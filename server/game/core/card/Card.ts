@@ -18,7 +18,7 @@ import { ChatObjectType, KeywordName } from '../Constants';
 import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Helpers from '../utils/Helpers';
-import type { AbilityContext } from '../ability/AbilityContext';
+import { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
 import type { KeywordInstance, KeywordWithCostValues, KeywordWithNumericValue } from '../ability/KeywordInstance';
@@ -1234,6 +1234,17 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.zoneName === ZoneName.Resource;
     }
 
+    /**
+     * Checks if this card is blocked from being played by an opponent's effect.
+     * Base implementation returns null; overridden in PlayableOrDeployableCard for cards that can be played.
+     * @param context The ability context to use for checking restrictions
+     * @returns A string describing why the card is blocked (with source card name), or null if not blocked
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public getBlockedFromPlayReason(context: AbilityContext): string | null {
+        return null;
+    }
+
     // TODO: should we break this out into variants for event (Play) vs other (EnterPlay)?
     public canPlay(context, type) {
         return (
@@ -1364,6 +1375,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             return { ...state, ...selectionState };
         }
 
+        // Check if card is blocked from play by opponent effect (for lock icon display)
+        const context = new AbilityContext({
+            game: this.game,
+            source: this,
+            player: this.controller,
+            ability: { card: this, isPlayCardAbility: () => false } as any,
+        });
+        const blockedFromPlayReason = this.getBlockedFromPlayReason(context);
+
         const state = {
             id: this.cardData.id,
             setId: this.setId,
@@ -1379,6 +1399,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             uuid: this.uuid,
             printedType: this.printedType,
             isBlanked: this.isBlank(),
+            blockedFromPlayReason,
             ...selectionState
         };
 
