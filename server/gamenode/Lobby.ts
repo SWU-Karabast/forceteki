@@ -1156,7 +1156,6 @@ export class Lobby {
             setupData.autoSingleTarget = false;
         }
 
-
         Contract.assertNotNullLike(this.testGameBuilder, `Attempting to start a test game from file ${filename} but local test tools were not found`);
 
         // TODO to address this a refactor and change router to lobby
