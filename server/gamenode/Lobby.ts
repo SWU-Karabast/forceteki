@@ -1027,16 +1027,16 @@ export class Lobby {
             }
             const player1 = this.users[0];
             const player2 = this.users[1];
-
-            if (player1.id === 'exe66' || player2.id === 'th3w4y') {
-                // Check to see if deck is attached to user - if not, return test setup data
-                if (player1.deck == null || player2.deck == null) {
+            if (player1.deck == null || player2.deck == null) {
+                if (process.env.ENVIRONMENT === 'development') {
                     const lobbyPreviewData = (this as any).testLobbyPreviewData;
+                    // Check to see if deck is attached to user - if not, return test setup data
                     lobbyPreviewData.id = this.id;
                     lobbyPreviewData.isPrivate = this.isPrivate;
                     return lobbyPreviewData;
                 }
             }
+
 
             return {
                 id: this.id,
