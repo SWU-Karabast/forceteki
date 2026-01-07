@@ -1172,6 +1172,13 @@ export class Lobby {
         );
 
         this.game = game;
+
+        for (const player of this.game.getPlayers()) {
+            const userWrapper = this.getUser(player.user.id);
+            userWrapper.deck = player.lobbyDeck;
+
+            logger.info(`Test deck synchronized for user: ${userWrapper.username}`);
+        }
     }
 
     private async startGameAsync() {
