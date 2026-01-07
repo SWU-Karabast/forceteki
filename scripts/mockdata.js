@@ -121,6 +121,7 @@ function buildMockCard(cardData) {
         keywords,
         types: cardData.types,
         setId: cardData.setId,
+        setCodes: [cardData.setId],
         internalName: cardData.internalName,
         arena: cardData.arena || null,
     };

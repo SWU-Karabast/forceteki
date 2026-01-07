@@ -38,5 +38,6 @@ export interface ICardDataJson {
     keywords?: string[];
     types: string[];
     setId: ISetCode;
+    setCodes: ISetCode[];
     internalName: string;
 }
