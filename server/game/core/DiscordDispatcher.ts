@@ -100,6 +100,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     public async formatAndSendReportAsync(report: ISerializedReportState, reportType: ReportType): Promise<EitherPostResponseOrBoolean> {
         let reportTypeLabel: string;
         let webhookLink: string;
+
         switch (reportType) {
             case ReportType.BugReport:
                 reportTypeLabel = 'Bug report';
