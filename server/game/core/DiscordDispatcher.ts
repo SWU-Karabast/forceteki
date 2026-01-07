@@ -98,12 +98,27 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     }
 
     public async formatAndSendReportAsync(report: ISerializedReportState, reportType: ReportType): Promise<EitherPostResponseOrBoolean> {
+        let reportTypeLabel: string;
+        let webhookLink: string;
+        switch (reportType) {
+            case ReportType.BugReport:
+                reportTypeLabel = 'Bug report';
+                webhookLink = this._bugReportWebhookUrl;
+                break;
+            case ReportType.PlayerReport:
+                reportTypeLabel = 'Player report';
+                webhookLink = this._playerReportWebhookUrl;
+                break;
+            default:
+                throw new Error('Unsupported reportType');
+        }
+
         // Always log the report
         const logData = {
             lobbyId: report.lobbyId,
             reporterId: report.reporter.id,
             reportedPlayerId: report.opponent.id,
-            reportType: reportType === ReportType.BugReport ? 'Bug report' : 'Player report',
+            reportType: reportTypeLabel,
             description: report.description,
             gameStateJson: JSON.stringify(report.gameState, null, 0)
         };
@@ -119,17 +134,10 @@ export class DiscordDispatcher implements IDiscordDispatcher {
 
         logger.info(`Report received from user ${report.reporter.username}`, logData);
 
-        if (!this._bugReportWebhookUrl && reportType === ReportType.BugReport) {
+        if (!webhookLink) {
             // If no webhook URL is configured, just log it
             if (process.env.NODE_ENV !== 'test') {
-                logger.warn('Bug report could not be sent to Discord: No webhook URL configured for bug reports');
-            }
-
-            return false;
-        } else if (!this._playerReportWebhookUrl && reportType === ReportType.PlayerReport) {
-            // If no webhook URL is configured, just log it
-            if (process.env.NODE_ENV !== 'test') {
-                logger.warn('Player report could not be sent to Discord: No webhook URL configured for player reports');
+                logger.warn(`${reportTypeLabel} could not be sent to Discord: No webhook URL configured for ${reportTypeLabel}s`);
             }
             return false;
         }
@@ -223,10 +231,10 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         const formData = new FormData();
 
         const data: IDiscordFormat = {
-            content: `New ${reportType === ReportType.BugReport ? 'bug' : 'player'} report from **${report.reporter.username}**!`,
+            content: `New ${reportTypeLabel} from **${report.reporter.username}**!`,
             embeds: [
                 {
-                    title: `${reportType === ReportType.BugReport ? 'Bug' : 'Player'} Report`,
+                    title: reportTypeLabel,
                     color: 0xFF0000, // Red color
                     description: embedDescription,
                     fields,
@@ -249,15 +257,15 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         // Send to Discord webhook with file attachment using our custom function
         try {
             // Create Discord message content
-            await httpPostFormData(reportType === ReportType.BugReport ? this._bugReportWebhookUrl : this._playerReportWebhookUrl, formData);
+            await httpPostFormData(webhookLink, formData);
 
-            logger.info(`${reportType === ReportType.BugReport ? 'Bug' : 'Player'} report successfully sent to Discord from user ${report.reporter.username}`, {
+            logger.info(`${reportTypeLabel} successfully sent to Discord from user ${report.reporter.username}`, {
                 lobbyId: report.lobbyId
             });
 
             return true;
         } catch (error) {
-            logger.error(`Failed to send ${reportType === ReportType.BugReport ? 'Bug' : 'Player'} report to Discord`, {
+            logger.error(`Failed to send ${reportTypeLabel} to Discord`, {
                 error: { message: error.message, stack: error.stack },
                 lobbyId: report.lobbyId
             });
