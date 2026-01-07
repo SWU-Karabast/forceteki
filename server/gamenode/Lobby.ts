@@ -29,7 +29,6 @@ import type { IQueueFormatKey } from './QueueHandler';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
-import { prepareTestLobbyPreview } from '../utils/TestPreviewUtil';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -1027,16 +1026,6 @@ export class Lobby {
             }
             const player1 = this.users[0];
             const player2 = this.users[1];
-            if (player1.deck == null || player2.deck == null) {
-                if (process.env.ENVIRONMENT === 'development') {
-                    const lobbyPreviewData = (this as any).testLobbyPreviewData;
-                    // Check to see if deck is attached to user - if not, return test setup data
-                    lobbyPreviewData.id = this.id;
-                    lobbyPreviewData.isPrivate = this.isPrivate;
-                    return lobbyPreviewData;
-                }
-            }
-
 
             return {
                 id: this.id,
@@ -1183,8 +1172,18 @@ export class Lobby {
             UndoMode.Free
         );
 
-        (this as any).testLobbyPreviewData = prepareTestLobbyPreview(setupData, this.cardDataGetter);
         this.game = game;
+
+        if (this.game) {
+            for (const players of this.game.getPlayers()) {
+                const userWrapper = this.users.find((u) => u.id === players.user.id);
+                if (userWrapper && players.lobbyDeck) {
+                    userWrapper.deck = players.lobbyDeck;
+
+                    logger.info(`Synced test deck for ${userWrapper.username} from game engine.`);
+                }
+            }
+        }
     }
 
     private async startGameAsync() {
