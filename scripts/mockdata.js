@@ -243,6 +243,58 @@ const mockCards = [
         internalName: 'jabbas-rancor#snack-time',
     }),
     buildMockCard({
+        title: 'Daimyo\'s Palace',
+        hp: 27,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['base'],
+        setId: {
+            set: 'LAW',
+            number: 20
+        },
+        unique: false,
+        internalName: 'daimyos-palace'
+    }),
+    buildMockCard({
+        title: 'Green Common LAW Base',
+        hp: 27,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['base'],
+        setId: {
+            set: 'LAW',
+            number: 22
+        },
+        unique: false,
+        internalName: 'green-common-law-base'
+    }),
+    buildMockCard({
+        title: 'Red Common LAW Base',
+        hp: 27,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['base'],
+        setId: {
+            set: 'LAW',
+            number: 24
+        },
+        unique: false,
+        internalName: 'red-common-law-base'
+    }),
+    buildMockCard({
+        title: 'Yellow Common LAW Base',
+        hp: 27,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['base'],
+        setId: {
+            set: 'LAW',
+            number: 26
+        },
+        unique: false,
+        internalName: 'yellow-common-law-base'
+    }),
+    buildMockCard({
         title: 'Salacious Crumb',
         subtitle: 'Cackling Companion',
         power: 0,

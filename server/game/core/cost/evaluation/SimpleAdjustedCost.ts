@@ -54,7 +54,14 @@ export class SimpleAdjustedCost {
         this._value = value;
     }
 
-    public disableAspectPenalty(aspect: Aspect) {
+    /**
+     * Disables the penalty for the specified aspect, optionally matching multiple instances.
+     *
+     * @param aspect The aspect whose penalty is to be disabled
+     * @param matchMultiple Whether to disable all instances of the aspect, or only
+     * the first instance found
+     */
+    public disableAspectPenalty(aspect: Aspect, matchMultiple: boolean) {
         const matchingEnabledPenalties = this._penaltyAspects.filter(
             (entry) => entry.aspect === aspect && !entry.penaltyDisabled
         );
@@ -62,6 +69,10 @@ export class SimpleAdjustedCost {
         for (const penaltyEntry of matchingEnabledPenalties) {
             penaltyEntry.penaltyDisabled = true;
             this.applyStaticDecrease(2);
+
+            if (!matchMultiple) {
+                break;
+            }
         }
     }
 
