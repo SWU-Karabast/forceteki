@@ -247,7 +247,8 @@ export class GameServer {
 
         // check if NEXTAUTH variable is set
         requireEnvVars(
-            ['INTRASERVICE_SECRET', 'PROFILE_CAPTURE_SECRET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+            ['INTRASERVICE_SECRET', 'PROFILE_CAPTURE_SECRET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY',
+                'DISCORD_BUG_REPORT_WEBHOOK_URL', 'DISCORD_ERROR_REPORT_WEBHOOK_URL', 'DISCORD_PLAYER_REPORT_WEBHOOK_URL'],
             'GameServer',
             ['NEXTAUTH_SECRET']
         );
