@@ -111,7 +111,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 webhookLink = this._playerReportWebhookUrl;
                 break;
             default:
-                throw new Error('Unsupported reportType');
+                throw new Error(`Unsupported reportType: ${(reportType as any)}`);
         }
 
         // Always log the report
