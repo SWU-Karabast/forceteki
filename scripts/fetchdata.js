@@ -38,6 +38,7 @@ function populateMissingData(attributes, id) {
             attributes.upgradeHp = 0;
             attributes.upgradePower = 0;
             break;
+        case '8015500527': // Credit token
         case '4571900905': // The Force
             attributes.cost = 0;
             attributes.type = {
@@ -132,6 +133,8 @@ function populateMissingData(attributes, id) {
                 ]
             };
             break;
+        case '6658095148': // Zeb Orrelios - Spectre Four
+            attributes.title = 'Zeb Orrelios'; // Fix spelling
     }
 
     // Plot cards from Secrets of Power

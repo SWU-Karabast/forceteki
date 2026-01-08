@@ -5,7 +5,7 @@ import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrati
 export default class GreatPitOfCarkoon extends BaseCard {
     protected override getImplementationId() {
         return {
-            id: 'great-pit-of-carkoon-id',
+            id: '7897278827',
             internalName: 'great-pit-of-carkoon',
         };
     }

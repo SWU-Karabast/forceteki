@@ -7,7 +7,7 @@ import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectB
 export default class SalaciousCrumbCacklingCompanion extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'salacious-crumb#cackling-companion-id',
+            id: '2443700984',
             internalName: 'salacious-crumb#cackling-companion',
         };
     }
