@@ -3,7 +3,7 @@ import { TokenCard } from '../../../core/card/TokenCards';
 export default class CreditToken extends TokenCard {
     protected override getImplementationId() {
         return {
-            id: 'credit-id',
+            id: '8015500527',
             internalName: 'credit',
         };
     }
