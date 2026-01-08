@@ -350,7 +350,16 @@ function buildCardLists(cards) {
     const seenNames = [];
     const leaderNames = [];
     const uniqueCardsMap = new Map();
-    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3], ['JTL', 4], ['LOF', 5], ['IBH', 6], ['SEC', 6], ['LAW', 7]]);
+    const setNumber = new Map([
+        ['SOR', 1],
+        ['SHD', 2],
+        ['TWI', 3],
+        ['JTL', 4],
+        ['LOF', 5],
+        ['IBH', 5.9],
+        ['SEC', 6],
+        ['LAW', 7]
+    ]);
 
     for (const card of cards) {
         if (seenNames.includes(card.internalName)) {
@@ -486,6 +495,5 @@ async function main() {
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }
-
 
 main();

@@ -37,7 +37,12 @@ export interface ICardDataJson {
     arena?: string;
     keywords?: string[];
     types: string[];
+
+    /** The default set code for this card. For cards with multiple set codes, this is the most recent set code. */
     setId: ISetCode;
+
+    /** All valid set codes for this card, excluding Promo sets. */
     setCodes: ISetCode[];
+
     internalName: string;
 }
