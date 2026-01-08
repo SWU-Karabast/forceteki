@@ -1,7 +1,9 @@
 import FormData from 'form-data';
-
+import type { User } from '../../utils/user/User';
 import { httpPostFormData } from '../../Util';
-import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState } from '../Interfaces';
+import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState,
+    MessageText, PlayerReportType } from '../Interfaces';
+import { ReportType } from '../Interfaces';
 import { logger } from '../../logger';
 import * as Helpers from './utils/Helpers';
 import type { MatchmakingType } from '../../gamenode/Lobby';
@@ -18,10 +20,11 @@ export interface IDiscordDispatcher {
 
     /**
      * Format the bug report as a Discord message and dispatch it
-     * @param bugReport The bug report data
+     * @param report The report data
+     * @param reportType the type of report
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
-    formatAndSendBugReportAsync(bugReport: ISerializedReportState): Promise<EitherPostResponseOrBoolean>;
+    formatAndSendReportAsync(report: ISerializedReportState, reportType: ReportType): Promise<EitherPostResponseOrBoolean>;
 
     /**
      * Format the undo failure report as a Discord message and dispatch it
@@ -55,6 +58,8 @@ export interface IDiscordDispatcher {
      * @param description A brief description of the error context
      * @param error The error object to report
      * @param lobbyId The lobby ID associated with the error
+     * @param gameFormat Format of the game
+     * @param matchType type of matchmaking
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
     formatAndSendGameStartErrorAsync(
@@ -71,12 +76,14 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     private static readonly MaxUndoErrorCount = 3;
     private readonly _bugReportWebhookUrl: string;
     private readonly _serverErrorWebhookUrl: string;
+    private readonly _playerReportWebhookUrl: string;
     private _serverErrorCount = 0;
     private _undoErrorCount = 0;
 
     public constructor() {
         this._bugReportWebhookUrl = process.env.DISCORD_BUG_REPORT_WEBHOOK_URL || '';
         this._serverErrorWebhookUrl = process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL || '';
+        this._playerReportWebhookUrl = process.env.DISCORD_PLAYER_REPORT_WEBHOOK_URL || '';
         if (process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test') {
             if (!this._bugReportWebhookUrl) {
                 throw new Error('No Discord webhook URL configured for bug reports. Bug reports cannot be sent to Discord.');
@@ -84,115 +91,154 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             if (!this._serverErrorWebhookUrl) {
                 throw new Error('No Discord webhook URL configured for server error reports. Server error reports cannot be sent to Discord.');
             }
+            if (!this._playerReportWebhookUrl) {
+                throw new Error('No Discord webhook URL configured for player reports. Player reports cannot be sent to Discord.');
+            }
         }
     }
 
-    public async formatAndSendBugReportAsync(bugReport: ISerializedReportState): Promise<EitherPostResponseOrBoolean> {
-        // Always log the bug report
+    public async formatAndSendReportAsync(report: ISerializedReportState, reportType: ReportType): Promise<EitherPostResponseOrBoolean> {
+        let reportTypeLabel: string;
+        let webhookLink: string;
+
+        switch (reportType) {
+            case ReportType.BugReport:
+                reportTypeLabel = 'Bug report';
+                webhookLink = this._bugReportWebhookUrl;
+                break;
+            case ReportType.PlayerReport:
+                reportTypeLabel = 'Player report';
+                webhookLink = this._playerReportWebhookUrl;
+                break;
+            default:
+                throw new Error(`Unsupported reportType: ${(reportType as any)}`);
+        }
+
+        // Always log the report
         const logData = {
-            lobbyId: bugReport.lobbyId,
-            reporterId: bugReport.reporter.id,
-            description: bugReport.description,
-            gameStateJson: JSON.stringify(bugReport.gameState, null, 0)
+            lobbyId: report.lobbyId,
+            reporterId: report.reporter.id,
+            reportedPlayerId: report.opponent.id,
+            reportType: reportTypeLabel,
+            description: report.description,
+            gameStateJson: JSON.stringify(report.gameState, null, 0)
         };
 
         // Only add screen resolution and viewport to log if they exist
-        if (bugReport.screenResolution) {
-            Object.assign(logData, { screenResolution: bugReport.screenResolution });
+        if (report.screenResolution) {
+            Object.assign(logData, { screenResolution: report.screenResolution });
         }
 
-        if (bugReport.viewport) {
-            Object.assign(logData, { viewport: bugReport.viewport });
+        if (report.viewport) {
+            Object.assign(logData, { viewport: report.viewport });
         }
 
-        logger.info(`Bug report received from user ${bugReport.reporter.username}`, logData);
+        logger.info(`Report received from user ${report.reporter.username}`, logData);
 
-        if (!this._bugReportWebhookUrl) {
+        if (!webhookLink) {
             // If no webhook URL is configured, just log it
             if (process.env.NODE_ENV !== 'test') {
-                logger.warn('Bug report could not be sent to Discord: No webhook URL configured for bug reports');
+                logger.warn(`${reportTypeLabel} could not be sent to Discord: No webhook URL configured for ${reportTypeLabel}s`);
             }
-
             return false;
         }
 
         // Truncate description if it's too long for Discord embeds
-        const embedDescription = bugReport.description.length > 1024
-            ? bugReport.description.substring(0, 1021) + '...'
-            : bugReport.description;
+        const embedDescription = report.description.length > 1024
+            ? report.description.substring(0, 1021) + '...'
+            : report.description;
 
         // Prepare fields for embed
         const fields = [
             {
                 name: 'Reporter',
-                value: `${bugReport.reporter.username} (player1)`,
+                value: `${report.reporter.username} (${report.reporter.id})`,
                 inline: true,
             },
+        ];
+
+        if (reportType === ReportType.PlayerReport) {
+            fields.push(
+                {
+                    name: 'Reported Player',
+                    value: `${report.opponent.username} (${report.opponent.id})`,
+                    inline: true,
+                },
+                {
+                    name: 'Offense',
+                    value: `${report.playerReportType}`,
+                    inline: true,
+                }
+            );
+        }
+
+        fields.push(
             {
                 name: 'Lobby ID',
-                value: bugReport.lobbyId,
+                value: report.lobbyId,
                 inline: true,
             },
             {
                 name: 'Game ID',
-                value: bugReport.gameId || 'N/A',
+                value: report.gameId || 'N/A',
                 inline: true,
             },
             {
                 name: 'Timestamp',
-                value: bugReport.timestamp,
+                value: report.timestamp,
                 inline: true,
             },
             {
                 name: 'Game Steps Since Last Undo',
-                value: bugReport.gameStepsSinceLastUndo,
+                value: report.gameStepsSinceLastUndo,
                 inline: true,
             },
             {
                 name: 'Game Format',
-                value: bugReport.gameFormat.toString(),
+                value: report.gameFormat.toString(),
                 inline: true
             },
             {
                 name: 'Match Type',
-                value: bugReport.matchType.toString(),
+                value: report.matchType.toString(),
                 inline: true
-            }
-        ];
+            });
 
         // Add screen resolution if available
-        if (bugReport.screenResolution) {
+        if (report.screenResolution) {
             fields.push({
                 name: 'Screen Resolution',
-                value: `${bugReport.screenResolution.width}x${bugReport.screenResolution.height}`,
+                value: `${report.screenResolution.width}x${report.screenResolution.height}`,
                 inline: true
             });
         }
 
         // Add viewport information if available
-        if (bugReport.viewport) {
+        if (report.viewport) {
             fields.push({
                 name: 'Viewport',
-                value: `${bugReport.viewport.width}x${bugReport.viewport.height}`,
+                value: `${report.viewport.width}x${report.viewport.height}`,
                 inline: true
             });
         }
 
         // Add game state field
-        fields.push({
-            name: 'Game State',
-            value: 'See attached JSON file for complete game state',
-            inline: false
-        });
+        if (reportType === ReportType.BugReport) {
+            fields.push({
+                name: 'Game State',
+                value: 'See attached JSON file for complete game state',
+                inline: false
+            });
+        }
 
         // Create FormData for sending file attachment
         const formData = new FormData();
 
         const data: IDiscordFormat = {
-            content: `New bug report from **${bugReport.reporter.username}**!`,
+            content: `New ${reportTypeLabel} from **${report.reporter.username}**!`,
             embeds: [
                 {
-                    title: 'Bug Report',
+                    title: reportTypeLabel,
                     color: 0xFF0000, // Red color
                     description: embedDescription,
                     fields,
@@ -205,23 +251,27 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         formData.append('payload_json', JSON.stringify(data));
 
         const timestamp = new Date().getTime();
-        this.addGameStateToForm(formData, bugReport.gameState, bugReport.lobbyId, timestamp);
-        this.addGameMessagesToForm(formData, bugReport.messages, bugReport.lobbyId, bugReport.reporter.id, bugReport.opponent.id, timestamp);
+        if (reportType === ReportType.BugReport) {
+            this.addGameStateToForm(formData, report.gameState, report.lobbyId, timestamp);
+            this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp);
+        } else {
+            this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp, report.reporter.username, report.opponent.username);
+        }
 
         // Send to Discord webhook with file attachment using our custom function
         try {
             // Create Discord message content
-            await httpPostFormData(this._bugReportWebhookUrl, formData);
+            await httpPostFormData(webhookLink, formData);
 
-            logger.info(`Bug report successfully sent to Discord from user ${bugReport.reporter.username}`, {
-                lobbyId: bugReport.lobbyId
+            logger.info(`${reportTypeLabel} successfully sent to Discord from user ${report.reporter.username}`, {
+                lobbyId: report.lobbyId
             });
 
             return true;
         } catch (error) {
-            logger.error('Failed to send bug report to Discord', {
+            logger.error(`Failed to send ${reportTypeLabel} to Discord`, {
                 error: { message: error.message, stack: error.stack },
-                lobbyId: bugReport.lobbyId
+                lobbyId: report.lobbyId
             });
             throw error;
         }
@@ -236,9 +286,9 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         });
     }
 
-    private addGameMessagesToForm(formData: FormData, messages: ISerializedMessage[], lobbyId: string, reporterId: string, opponentId: string, timestamp: number): void {
-        const messagesText = DiscordDispatcher.formatMessagesToText(messages, reporterId, opponentId);
-        const fileName = `bug-report-messages-${lobbyId}-${timestamp}.txt`;
+    private addGameMessagesToForm(formData: FormData, messages: ISerializedMessage[], lobbyId: string, reporterId: string, opponentId: string, timestamp: number, reporterUsername = 'Player1', opponentUsername = 'Player2'): void {
+        const messagesText = DiscordDispatcher.formatMessagesToText(messages, reporterId, opponentId, reporterUsername, opponentUsername);
+        const fileName = `report-messages-${lobbyId}-${timestamp}.txt`;
         formData.append('files[1]', Buffer.from(messagesText), {
             filename: fileName,
             contentType: 'text/plain',
@@ -490,7 +540,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
      * @param reporter Reporting player
      * @returns Formatted text string
      */
-    private static formatMessagesToText(messages: ISerializedMessage[], reporter: string, opponent: string): string {
+    private static formatMessagesToText(messages: ISerializedMessage[], reporter: string, opponent: string, reporterUsername: string, opponentUsername: string): string {
         return messages.map((messageEntry) => {
             let message = messageEntry.message;
 
@@ -506,7 +556,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                     if (typeof part === 'string' || typeof part === 'number') {
                         return part;
                     } else if (part && typeof part === 'object' && 'name' in part) {
-                        return part['id'] === reporter ? 'Player1' : part['id'] === opponent ? 'Player2' : part['name'];
+                        return part['id'] === reporter ? reporterUsername : part['id'] === opponent ? opponentUsername : part['name'];
                     }
                     return '';
                 }).join('');
@@ -522,4 +572,79 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             return '[Unknown message format]';
         }).join('\n');
     }
+
+    /**
+     * Create a bug report object from provided data
+     * @param description User description of the bug
+     * @param gameState Current game state snapshot
+     * @param playerReportType
+     * @param user User reporting the bug
+     * @param opponent
+     * @param messages
+     * @param lobbyId ID of the lobby where the bug occurred
+     * @param gameFormat
+     * @param matchType
+     * @param gameStepsSinceLastUndo
+     * @param gameId Optional ID of the game where the bug occurred
+     * @param screenResolution Optional screen resolution information
+     * @param viewport Optional viewport information
+     * @returns Formatted bug report object
+     */
+    public formatReport(
+        description: string,
+        gameState: ISerializedGameState,
+        playerReportType: PlayerReportType | null,
+        user: User,
+        opponent: { id: string; username: string },
+        messages: { date: Date; message: MessageText | { alert: { type: string; message: string | string[] } } }[],
+        lobbyId: string,
+        gameFormat: SwuGameFormat,
+        matchType: MatchmakingType,
+        gameStepsSinceLastUndo?: number,
+        gameId?: string,
+        screenResolution?: { width: number; height: number } | null,
+        viewport?: { width: number; height: number } | null
+    ): ISerializedReportState {
+        return {
+            description: sanitizeForJson(description),
+            gameState,
+            playerReportType,
+            reporter: {
+                id: user.getId(),
+                username: user.getUsername(),
+                playerInGameState: 'player1'
+            },
+            opponent: {
+                id: opponent.id,
+                username: opponent.username,
+                playerInGameState: 'player2'
+            },
+            lobbyId,
+            gameId,
+            messages,
+            timestamp: new Date().toISOString(),
+            screenResolution,
+            viewport,
+            gameStepsSinceLastUndo: gameStepsSinceLastUndo == null ? 'N/A' : gameStepsSinceLastUndo.toString(),
+            gameFormat,
+            matchType
+        };
+    }
 }
+
+
+// Helper function to sanitize strings for JSON
+function sanitizeForJson(str: string): string {
+    if (!str) {
+        return '';
+    }
+    return str
+        .replace(/\\/g, '\\\\')     // Backslashes
+        .replace(/"/g, '\\"')       // Double quotes
+        .replace(/\n/g, '\\n')      // New lines
+        .replace(/\r/g, '\\r')      // Carriage returns
+        .replace(/\t/g, '\\t')      // Tabs
+        .replace(/\f/g, '\\f')      // Form feeds
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, ''); // Control characters
+}
+
