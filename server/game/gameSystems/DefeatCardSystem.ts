@@ -8,6 +8,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import type { PlayerOrCard } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
 import { DefeatSourceType } from '../IDamageOrDefeatSource';
 
@@ -84,6 +85,11 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         } else {
             card.moveTo(ZoneName.Discard);
         }
+    }
+
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<TProperties>): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        return ['defeat {0}{1}', [this.getTargetMessage(properties.target, context), ChatHelpers.getTargetLocationMessage(properties.target, context)]];
     }
 
     public override getTargetMessage(targets: PlayerOrCard | PlayerOrCard[], context: TContext): MsgArg[] {

@@ -72,8 +72,8 @@ describe('Guerilla Insurgency', function() {
 
                 expect(context.getChatLogs(5)).toEqual([
                     'player1 plays Guerilla Insurgency to make player1 defeat a resource, to make player2 defeat a resource, to make themself discard 2 cards and to make player2 discard 2 cards, and to deal 4 damage to Wampa and Seventh Sister',
-                    'player1 uses Guerilla Insurgency to defeat a ready Cunning',
-                    'player1 uses Guerilla Insurgency to defeat a ready Confiscate',
+                    'player1 uses Guerilla Insurgency to defeat a ready Cunning from their resource row',
+                    'player1 uses Guerilla Insurgency to defeat a ready Confiscate from player2\'s resource row',
                     'player1 discards Grim Resolve and In Pursuit from their hand due to Guerilla Insurgency',
                     'player2 discards Force Choke and Pillage from their hand due to Guerilla Insurgency',
                 ]);
