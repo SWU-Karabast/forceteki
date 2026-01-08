@@ -13,6 +13,15 @@ export default class LookTheOtherWay extends EventCard {
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        const payResourceEffect = (context) => AbilityHelper.immediateEffects.payResourceCost({
+            target: context.targets.targetUnit.controller,
+            amount: 2
+        });
+
+        const exhaustEffect = (context) => AbilityHelper.immediateEffects.exhaust({
+            target: context.targets.targetUnit,
+        });
+
         registrar.setEventAbility({
             title: 'Exhaust a unit unless its controller pays 2 resources.',
             targetResolvers: {
@@ -22,18 +31,13 @@ export default class LookTheOtherWay extends EventCard {
                 opponentsChoice: {
                     mode: TargetMode.SelectUnless,
                     dependsOn: 'targetUnit',
-                    unlessCondition: (context) => context.targets.targetUnit.controller.readyResourceCount >= 2,
-                    defaultEffect: AbilityHelper.immediateEffects.exhaust(),
+                    unlessEffect: payResourceEffect,
+                    defaultEffect: exhaustEffect,
                     choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
                     activePromptTitle: (context) => `[Exhaust] ${context.targets.targetUnit.title} or [Pay] 2 resources`,
                     choices: (context) => ({
-                        [NamedAction.Exhaust]: AbilityHelper.immediateEffects.exhaust({
-                            target: context.targets.targetUnit,
-                        }),
-                        [NamedAction.Pay]: AbilityHelper.immediateEffects.payResourceCost({
-                            target: context.targets.targetUnit.controller,
-                            amount: 2
-                        })
+                        [NamedAction.Exhaust]: exhaustEffect(context),
+                        [NamedAction.Pay]: payResourceEffect(context)
                     }),
                     highlightCards: (context) => context.targets.targetUnit,
                 }

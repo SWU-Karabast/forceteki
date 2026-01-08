@@ -51,8 +51,9 @@ export interface ISelectTargetResolver<TContext extends AbilityContext> extends 
     mode: TargetMode.Select | TargetMode.SelectUnless;
     choices: IChoicesInterface | ((context: TContext) => IChoicesInterface);
     condition?: (context: TContext) => boolean;
-    unlessCondition?: (context: TContext) => boolean;
-    defaultEffect?: GameSystem<TContext>;
+    unlessEffect?: GameSystem<TContext> | ((context: TContext) => GameSystem<TContext>);
+    /** The effect to resolve automatically if unlessEffect cannot be resolved */
+    defaultEffect?: GameSystem<TContext> | ((context: TContext) => GameSystem<TContext>);
     checkTarget?: boolean;
     showUnresolvable?: boolean;
     highlightCards?: Card | Card[] | ((context: TContext) => (Card | Card[]));

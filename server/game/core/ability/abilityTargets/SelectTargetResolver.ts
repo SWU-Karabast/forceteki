@@ -5,7 +5,7 @@ import type { ITargetResult } from './TargetResolver';
 import { TargetResolver } from './TargetResolver';
 import type { GameSystem } from '../../gameSystem/GameSystem';
 import { SelectChoice } from './SelectChoice';
-import { Stage } from '../../Constants';
+import { Stage, TargetMode } from '../../Constants';
 import type { Player } from '../../Player';
 import type { IPassAbilityHandler } from '../../gameSteps/AbilityResolver';
 import * as Helpers from '../../utils/Helpers';
@@ -52,6 +52,13 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         if (!context.selects[this.name]) {
             return [];
         }
+
+        // Handle the default effect case
+        if (context.selects[this.name].choice === '__default__') {
+            const defaultEffect = this.getDefaultEffect(context);
+            return defaultEffect ? defaultEffect : [];
+        }
+
         const choice = this.getChoices(context)[context.selects[this.name].choice];
         if (typeof choice !== 'function') {
             return choice;
@@ -60,6 +67,20 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
     }
 
     protected override resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult, passPrompt?: IPassAbilityHandler) {
+        // For SelectUnless mode, check if unlessEffect can be resolved
+        // If not, automatically resolve defaultEffect without prompting
+        if (this.properties.mode === TargetMode.SelectUnless && this.properties.defaultEffect) {
+            const unlessEffect = this.getUnlessEffect(context);
+            if (unlessEffect && !unlessEffect.hasLegalTarget(context)) {
+                // unlessEffect cannot be resolved, automatically apply defaultEffect
+                const defaultEffect = this.getDefaultEffect(context);
+                if (defaultEffect) {
+                    context.selects[this.name] = new SelectChoice('__default__');
+                    return;
+                }
+            }
+        }
+
         const choices = Object.keys(this.getChoices(context));
         let legalChoices = choices.filter((key) => this.isChoiceLegal(key, context));
 
@@ -112,6 +133,24 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
             });
             context.game.promptWithHandlerMenu(player, promptProperties);
         }
+    }
+
+    private getUnlessEffect(context: AbilityContext): GameSystem | null {
+        if (!this.properties.unlessEffect) {
+            return null;
+        }
+        return typeof this.properties.unlessEffect === 'function'
+            ? this.properties.unlessEffect(context)
+            : this.properties.unlessEffect;
+    }
+
+    private getDefaultEffect(context: AbilityContext): GameSystem | null {
+        if (!this.properties.defaultEffect) {
+            return null;
+        }
+        return typeof this.properties.defaultEffect === 'function'
+            ? this.properties.defaultEffect(context)
+            : this.properties.defaultEffect;
     }
 
     public override checkTarget(context: AbilityContext): boolean {
