@@ -6,7 +6,7 @@ import { Aspect } from '../../../core/Constants';
 export default class ChopperSpectreThree extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'chopper#spectre-three-id',
+            id: '8351458392',
             internalName: 'chopper#spectre-three',
         };
     }
