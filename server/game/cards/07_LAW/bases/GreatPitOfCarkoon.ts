@@ -16,15 +16,13 @@ export default class GreatPitOfCarkoon extends BaseCard {
             cost: AbilityHelper.costs.discardCardFromOwnHand({
                 cardCondition: (card) => card.isUnit(),
             }),
-            // TODO:  Modify DeckSearch system to always shuffle after search even if no card is found (https://github.com/SWU-Karabast/forceteki/issues/1993)
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.entireDeckSearch({
                     cardCondition: (card) => card.name === 'The Sarlacc of Carkoon',
                     selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard(),
                     revealSelected: true,
-                    shuffleWhenDone: false,
+                    shuffleWhenDone: true
                 }),
-                AbilityHelper.immediateEffects.shuffleDeck()
             ]),
         });
     }
