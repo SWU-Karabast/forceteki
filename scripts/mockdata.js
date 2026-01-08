@@ -280,6 +280,25 @@ const mockCards = [
         arena: 'ground',
         internalName: 'quigon-jinn#influencing-chance',
     }),
+    buildMockCard({
+        title: 'Rio Durant',
+        subtitle: 'Beckett\'s Right Hand',
+        power: 2,
+        hp: 5,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        keywords: ['sentinel'],
+        aspects: ['cunning', 'vigilance'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'LAW',
+            number: 93,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rio-durant#becketts-right-hand',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
