@@ -19,14 +19,30 @@ enum SwuSet {
     LAW = 'law'
 }
 
-const legalSets = [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI, SwuSet.JTL, SwuSet.LOF, SwuSet.IBH, SwuSet.SEC];
+const rotationBlocks = new Map<string, SwuSet[]>([
+    ['0', [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI]],
+    ['A', [SwuSet.JTL, SwuSet.LOF, SwuSet.IBH, SwuSet.SEC]],
+    ['B', [SwuSet.LAW]]
+]);
 
-const bannedCards = new Map([
+const legalBlocksForFormat = new Map<SwuGameFormat, string[]>([
+    [SwuGameFormat.Premier, ['0', 'A']],
+    [SwuGameFormat.Open, Array.from(rotationBlocks.keys())],
+    [SwuGameFormat.NextSetPreview, ['A', 'B']]
+]);
+
+const bannedPremierCards = new Map([
     ['4626028465', 'boba-fett#collecting-the-bounty'],
     ['4002861992', 'dj#blatant-thief'],
     ['5696041568', 'triple-dark-raid'],
     ['9155536481', 'jango-fett#concealing-the-conspiracy'],
     ['1705806419', 'force-throw']
+]);
+
+const bannedCardsPerFormat = new Map<SwuGameFormat, Map<string, string>>([
+    [SwuGameFormat.Premier, bannedPremierCards],
+    [SwuGameFormat.Open, new Map<string, string>()],
+    [SwuGameFormat.NextSetPreview, bannedPremierCards]
 ]);
 
 const maxCopiesOfCards = new Map([
@@ -42,8 +58,7 @@ interface ICardCheckData {
     setId: ISetCode;
     titleAndSubtitle: string;
     type: CardType;
-    set: SwuSet;
-    banned: boolean;
+    sets: SwuSet[];
     implemented: boolean;
     minDeckSizeModifier?: number;
     maxCopiesOfCardOverride?: number;
@@ -85,25 +100,21 @@ export class DeckValidator {
         this.setCodeToId = setCodeToId;
 
         for (const cardData of allCardsData) {
+            const sets = cardData.setCodes
+                ? cardData.setCodes.map((code) => EnumHelpers.checkConvertToEnum(code.set, SwuSet)[0])
+                : [EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0]];
+
             const cardCheckData: ICardCheckData = {
                 setId: cardData.setId,
                 titleAndSubtitle: `${cardData.title}${cardData.subtitle ? `, ${cardData.subtitle}` : ''}`,
                 type: Card.buildTypeFromPrinted(cardData.types),
-                set: EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0],
-                banned: bannedCards.has(cardData.id),
+                sets: sets,
                 implemented: !overrideNotImplementedCardIds.has(cardData.id) && (!Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id)),
                 minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
                 maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
             };
 
             this.cardData.set(cardData.id, cardCheckData);
-
-            // TODO: logic to populate the set id map directly from card data. blocked until we add support for reprints in the card data directly.
-            // // add leading zeros to set id number
-            // let setId = '000' + cardData.setId.number;
-            // setId = setId.substring(setId.length - 3);
-
-            // this.setCodeToId.set(`${cardData.setId.set.toUpperCase()}_${setId}`, cardData.id);
         }
     }
 
@@ -295,11 +306,29 @@ export class DeckValidator {
     }
 
     protected checkFormatLegality(cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
-        if (
-            (cardData.banned && format !== SwuGameFormat.Open) ||
-            (!legalSets.includes(cardData.set) && format === SwuGameFormat.Premier)
-        ) {
-            failures[DeckValidationFailureReason.IllegalInFormat].push({ id: cardData.set, name: cardData.titleAndSubtitle });
+        // Check that the card has at least one set code from a legal block for the format
+        const hasSetCodeFromLegalBlock = legalBlocksForFormat
+            .get(format)
+            .some((block) => {
+                const legalSets = rotationBlocks.get(block);
+                return cardData.sets.some((cardSet) => legalSets.includes(cardSet));
+            });
+
+        if (!hasSetCodeFromLegalBlock) {
+            failures[DeckValidationFailureReason.IllegalInFormat].push({
+                id: cardData.setId.set,
+                name: cardData.titleAndSubtitle
+            });
+            return;
+        }
+
+        const bannedCards = bannedCardsPerFormat.get(format);
+
+        if (bannedCards.has(this.setCodeToId.get(cardData.setId.set))) {
+            failures[DeckValidationFailureReason.IllegalInFormat].push({
+                id: cardData.setId.set,
+                name: cardData.titleAndSubtitle
+            });
         }
     }
 

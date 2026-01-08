@@ -110,9 +110,6 @@ function buildMockCard(cardData) {
         epicAction: '',
         unique: cardData.unique,
         rules: null,
-        reprints: {
-            data: []
-        },
         upgradePower: cardData.upgradePower ?? null,
         upgradeHp: cardData.upgradeHp ?? null,
         id: cardData.internalName + '-id',

@@ -354,7 +354,25 @@ function buildCardLists(cards) {
 
     for (const card of cards) {
         if (seenNames.includes(card.internalName)) {
-            // We already have this card, skip it
+            // We already have this card, add its set code to the existing entry (if needed) then skip it
+            const existingCard = uniqueCardsMap.get(card.internalName);
+            const thisSetCode = card.setId;
+
+            if (existingCard.setCodes) { // Should always be true except for tokens
+                if (
+                    setNumber.has(thisSetCode.set) && // Skip if this is not in a core set
+                    !existingCard.setCodes.find((sc) => // Only add it if we don't already have this set code
+                        sc.set === thisSetCode.set &&
+                        sc.number === thisSetCode.number
+                    )
+                ) {
+                    // This currently only picks up the duplicate cards within IBH
+                    // (e.g. rogue-squadron-speeder is IBH_004, IBH_017, and IBH_034)
+                    existingCard.setCodes.push(thisSetCode);
+                    setCodeMap[makeSetCodeString(thisSetCode)] = existingCard.id;
+                }
+            }
+
             continue;
         }
 
