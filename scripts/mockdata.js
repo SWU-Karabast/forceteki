@@ -75,12 +75,11 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Rio Durant',
-        subtitle: 'Beckett\'s Right Hand',
+        subtitle: 'Beckett\'s Right Hands',
         power: 2,
         hp: 5,
         cost: 4,
         hasNonKeywordAbility: true,
-        keywords: ['sentinel'],
         aspects: ['cunning', 'vigilance'],
         types: ['unit'],
         traits: ['underworld'],
@@ -90,7 +89,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'rio-durant#becketts-right-hand',
+        internalName: 'rio-durant#becketts-right-hands',
     }),
 ];
 

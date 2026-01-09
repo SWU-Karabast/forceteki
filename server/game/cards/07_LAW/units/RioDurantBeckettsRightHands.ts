@@ -5,11 +5,11 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import { KeywordName, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
-export default class RioDurantBeckettsRightHand extends NonLeaderUnitCard {
+export default class RioDurantBeckettsRightHands extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'rio-durant#becketts-right-hand-id',
-            internalName: 'rio-durant#becketts-right-hand',
+            id: 'rio-durant#becketts-right-hands-id',
+            internalName: 'rio-durant#becketts-right-hands',
         };
     }
 
@@ -26,7 +26,7 @@ export default class RioDurantBeckettsRightHand extends NonLeaderUnitCard {
                 title: `Play ${thenContext.target?.title} for free. It gains Shielded for this phase`,
                 optional: true,
                 // TODO: Update this to use a GameSystem that lets the opponent play a card
-                canBeTriggeredBy: EnumHelpers.asRelativePlayer(thenContext.player, thenContext.target?.controller),
+                canBeTriggeredBy: EnumHelpers.asRelativePlayer(thenContext.player, thenContext.target?.owner),
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Shielded),

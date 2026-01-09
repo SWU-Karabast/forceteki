@@ -1,11 +1,11 @@
-describe('Rio Durant, Beckett\'s Right Hand', function() {
+describe('Rio Durant, Beckett\'s Right Hands', function() {
     integration(function(contextRef) {
         describe('Rio Durant\'s ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['rio-durant#becketts-right-hand'],
+                        hand: ['rio-durant#becketts-right-hands'],
                         groundArena: ['battlefield-marine', 'yoda#old-master', 'wampa', 'doctor-evazan#wanted-on-twelve-systems'],
                         leader: 'chewbacca#walking-carpet',
                         base: 'mount-tantiss'
@@ -124,7 +124,7 @@ describe('Rio Durant, Beckett\'s Right Hand', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['rio-durant#becketts-right-hand'],
+                    hand: ['rio-durant#becketts-right-hands'],
                     groundArena: ['battlefield-marine'],
                     leader: 'chewbacca#walking-carpet',
                     base: 'mount-tantiss'
