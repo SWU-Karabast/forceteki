@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { TargetMode } from '../../../core/Constants';
+import { NamedAction, TargetMode } from '../../../core/Constants';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class InDebtToCrimsonDawn extends UpgradeCard {
@@ -19,17 +19,22 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
                 onCardReadied: (event, context) => context.source.parentCard === event.card
             },
             targetResolver: {
-                mode: TargetMode.Select,
+                mode: TargetMode.SelectUnless,
                 choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.source.parentCard.controller),
-                choices: (context) => ({
-                    ['Pay 2 resources']: AbilityHelper.immediateEffects.payResourceCost({
+                activePromptTitle: (context) => `[Exhaust] ${context.source.parentCard.title} or [Pay] 2 resources`,
+                unlessEffect: {
+                    effect: (context) => AbilityHelper.immediateEffects.payResourceCost({
                         target: context.source.parentCard.controller,
                         amount: 2
                     }),
-                    [`Exhaust ${context.source.parentCard.title}`]: AbilityHelper.immediateEffects.exhaust({
+                    promptButtonText: NamedAction.Pay
+                },
+                defaultEffect: {
+                    effect: (context) => AbilityHelper.immediateEffects.exhaust({
                         target: context.source.parentCard
-                    })
-                })
+                    }),
+                    promptButtonText: NamedAction.Exhaust
+                }
             }
         });
     }

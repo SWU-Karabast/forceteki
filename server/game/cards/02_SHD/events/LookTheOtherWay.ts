@@ -20,19 +20,23 @@ export default class LookTheOtherWay extends EventCard {
                     cardTypeFilter: WildcardCardType.Unit
                 },
                 opponentsChoice: {
-                    mode: TargetMode.Select,
+                    mode: TargetMode.SelectUnless,
                     dependsOn: 'targetUnit',
-                    choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
-                    activePromptTitle: (context) => `[Exhaust] ${context.targets.targetUnit.title} or [Pay] 2 resources`,
-                    choices: (context) => ({
-                        [NamedAction.Exhaust]: AbilityHelper.immediateEffects.exhaust({
-                            target: context.targets.targetUnit,
-                        }),
-                        [NamedAction.Pay]: AbilityHelper.immediateEffects.payResourceCost({
+                    unlessEffect: {
+                        effect: (context) => AbilityHelper.immediateEffects.payResourceCost({
                             target: context.targets.targetUnit.controller,
                             amount: 2
-                        })
-                    }),
+                        }),
+                        promptButtonText: NamedAction.Pay
+                    },
+                    defaultEffect: {
+                        effect: (context) => AbilityHelper.immediateEffects.exhaust({
+                            target: context.targets.targetUnit,
+                        }),
+                        promptButtonText: NamedAction.Exhaust
+                    },
+                    choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
+                    activePromptTitle: (context) => `[Exhaust] ${context.targets.targetUnit.title} or [Pay] 2 resources`,
                     highlightCards: (context) => context.targets.targetUnit,
                 }
             }
