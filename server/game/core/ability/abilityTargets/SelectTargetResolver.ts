@@ -33,7 +33,6 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
     }
 
     private buildSelectUnlessChoices(context: AbilityContext): IChoicesInterface {
-        // Type assertion is safe - this method is only called from the SelectUnless case in getChoices
         const { defaultEffect, unlessEffect } = this.properties as ISelectUnlessTargetResolver<AbilityContext>;
 
         return {
