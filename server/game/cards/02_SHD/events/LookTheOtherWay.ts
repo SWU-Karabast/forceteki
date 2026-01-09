@@ -27,13 +27,13 @@ export default class LookTheOtherWay extends EventCard {
                             target: context.targets.targetUnit.controller,
                             amount: 2
                         }),
-                        promptButton: NamedAction.Pay
+                        promptButtonText: NamedAction.Pay
                     },
                     defaultEffect: {
                         effect: (context) => AbilityHelper.immediateEffects.exhaust({
                             target: context.targets.targetUnit,
                         }),
-                        promptButton: NamedAction.Exhaust
+                        promptButtonText: NamedAction.Exhaust
                     },
                     choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
                     activePromptTitle: (context) => `[Exhaust] ${context.targets.targetUnit.title} or [Pay] 2 resources`,

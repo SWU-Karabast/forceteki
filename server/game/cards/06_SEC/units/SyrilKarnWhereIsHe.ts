@@ -23,28 +23,26 @@ export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
                 targetResolvers: {
                     targetUnit: {
                         cardTypeFilter: WildcardCardType.Unit,
-                        immediateEffect: abilityHelper.immediateEffects.conditional({
-                            condition: (context) => context.targets.targetUnit.controller.hand.length === 0,
-                            onTrue: abilityHelper.immediateEffects.damage({ amount: 2 }),
-                            onFalse: abilityHelper.immediateEffects.noAction({ hasLegalTarget: true }),
-                        })
                     },
                     controllerChoice: {
-                        mode: TargetMode.Select,
+                        mode: TargetMode.SelectUnless,
                         dependsOn: 'targetUnit',
-                        condition: (context) => context.targets.targetUnit.controller.hand.length > 0,
                         choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
                         activePromptTitle: (context) => `${this.buildCardName(context.targets.targetUnit)} takes 2 [Damage] or [Discard] a card`,
-                        choices: (context) => ({
-                            [NamedAction.Damage]: abilityHelper.immediateEffects.damage({
+                        unlessEffect: {
+                            effect: (context) => abilityHelper.immediateEffects.discardCardsFromOwnHand({
+                                target: context.targets.targetUnit.controller,
+                                amount: 1
+                            }),
+                            promptButtonText: NamedAction.Discard
+                        },
+                        defaultEffect: {
+                            effect: (context) => abilityHelper.immediateEffects.damage({
                                 target: context.targets.targetUnit,
                                 amount: 2
                             }),
-                            [NamedAction.Discard]: abilityHelper.immediateEffects.discardCardsFromOwnHand({
-                                target: context.targets.targetUnit.controller,
-                                amount: 1
-                            })
-                        }),
+                            promptButtonText: NamedAction.Damage
+                        },
                         highlightCards: (context) => context.targets.targetUnit,
                     }
                 }

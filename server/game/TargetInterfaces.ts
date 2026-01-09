@@ -20,12 +20,14 @@ export type ICardTargetResolver<TContext extends AbilityContext> =
 export type IActionTargetResolver<TContext extends AbilityContext = AbilityContext> =
   | ICardTargetResolver<TContext>
   | ISelectTargetResolver<TContext>
+  | ISelectUnlessTargetResolver<TContext>
   | IDropdownListTargetResolver<TContext>
   | IPlayerTargetResolver<TContext>;
 
 export type ITriggeredAbilityTargetResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> =
   | ICardTargetResolver<TContext>
   | ISelectTargetResolver<TContext>
+  | ISelectUnlessTargetResolver<TContext>
   | IDropdownListTargetResolver<TContext>
   | IPlayerTargetResolver<TContext>;
 
@@ -34,12 +36,14 @@ export type ICardTargetsResolver<TContext extends AbilityContext> = ICardTargetR
 export type IActionTargetsResolverInner<TContext extends AbilityContext = AbilityContext> =
   | ICardTargetsResolver<TContext>
   | ISelectTargetResolver<TContext>
+  | ISelectUnlessTargetResolver<TContext>
   | IDropdownListTargetResolver<TContext>
   | IPlayerTargetResolver<TContext>;
 
 export type ITriggeredAbilityTargetsResolverInner<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> =
   | ICardTargetsResolver<TContext>
   | ISelectTargetResolver<TContext>
+  | ISelectUnlessTargetResolver<TContext>
   | IDropdownListTargetResolver<TContext>
   | IPlayerTargetResolver<TContext>;
 
@@ -47,18 +51,18 @@ export type IActionTargetsResolver<TContext extends AbilityContext = AbilityCont
 
 export type ITriggeredAbilityTargetsResolver<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> = Record<string, ITriggeredAbilityTargetsResolverInner<TContext>>;
 
-export interface ISelectTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
-    mode: TargetMode.Select | TargetMode.SelectUnless;
-    /** Required for TargetMode.Select, not used for TargetMode.SelectUnless */
-    choices?: IChoicesInterface | ((context: TContext) => IChoicesInterface);
-    condition?: (context: TContext) => boolean;
+export interface ISelectTargetResolver<TContext extends AbilityContext> extends ISelectTargetResolverBase<TContext> {
+    mode: TargetMode.Select;
+    choices: IChoicesInterface | ((context: TContext) => IChoicesInterface);
     /** The effect the choosing player can pay to avoid the default effect (SelectUnless mode only) */
-    unlessEffect?: ISelectUnlessEffect<TContext>;
+}
+
+export interface ISelectUnlessTargetResolver<TContext extends AbilityContext> extends ISelectTargetResolverBase<TContext> {
+    mode: TargetMode.SelectUnless;
+    /** The effect the choosing player can pay to avoid the default effect (SelectUnless mode only) */
+    unlessEffect: ISelectUnlessEffect<TContext>;
     /** The effect to resolve if the choosing player declines or cannot pay the unless effect (SelectUnless mode only) */
-    defaultEffect?: ISelectUnlessEffect<TContext>;
-    checkTarget?: boolean;
-    showUnresolvable?: boolean;
-    highlightCards?: Card | Card[] | ((context: TContext) => (Card | Card[]));
+    defaultEffect: ISelectUnlessEffect<TContext>;
 }
 
 export interface IDropdownListTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
@@ -94,7 +98,7 @@ export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> 
 /** Represents an effect paired with its prompt button for SelectUnless mode */
 export interface ISelectUnlessEffect<TContext extends AbilityContext> {
     effect: GameSystem<TContext> | ((context: TContext) => GameSystem<TContext>);
-    promptButton: NamedAction;
+    promptButtonText: NamedAction;
 }
 
 // ********************************************** INTERNAL TYPES **********************************************
@@ -149,4 +153,10 @@ interface ICardSingleUnlimitedTargetResolver<TContext extends AbilityContext> ex
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 
-
+interface ISelectTargetResolverBase<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
+    mode: TargetMode.Select | TargetMode.SelectUnless;
+    condition?: (context: TContext) => boolean;
+    checkTarget?: boolean;
+    showUnresolvable?: boolean;
+    highlightCards?: Card | Card[] | ((context: TContext) => (Card | Card[]));
+}
