@@ -91,6 +91,24 @@ const mockCards = [
         arena: 'ground',
         internalName: 'rio-durant#becketts-right-hands',
     }),
+    buildMockCard({
+        title: 'Han\'s Golden Dice',
+        cost: 1,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['upgrade'],
+        traits: ['item'],
+        setId: {
+            set: 'LAW',
+            number: 225,
+        },
+        unique: true,
+        internalName: 'hans-golden-dice',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
