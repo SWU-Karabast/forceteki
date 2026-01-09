@@ -73,6 +73,24 @@ const mockCards = [
         arena: 'ground',
         internalName: 'quigon-jinn#influencing-chance',
     }),
+    buildMockCard({
+        title: 'Rio Durant',
+        subtitle: 'Beckett\'s Right Hands',
+        power: 2,
+        hp: 5,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'vigilance'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'LAW',
+            number: 93,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rio-durant#becketts-right-hands',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
@@ -110,9 +128,6 @@ function buildMockCard(cardData) {
         epicAction: '',
         unique: cardData.unique,
         rules: null,
-        reprints: {
-            data: []
-        },
         upgradePower: cardData.upgradePower ?? null,
         upgradeHp: cardData.upgradeHp ?? null,
         id: cardData.internalName + '-id',
@@ -121,6 +136,7 @@ function buildMockCard(cardData) {
         keywords,
         types: cardData.types,
         setId: cardData.setId,
+        setCodes: [cardData.setId],
         internalName: cardData.internalName,
         arena: cardData.arena || null,
     };
