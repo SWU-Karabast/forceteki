@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { CardTypeFilter, GameStateChangeRequired, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from './core/Constants';
+import type { CardTypeFilter, GameStateChangeRequired, NamedAction, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from './core/Constants';
 import type { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 import type { AggregateSystem } from './core/gameSystem/AggregateSystem';
 
@@ -49,11 +49,13 @@ export type ITriggeredAbilityTargetsResolver<TContext extends TriggeredAbilityCo
 
 export interface ISelectTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
     mode: TargetMode.Select | TargetMode.SelectUnless;
-    choices: IChoicesInterface | ((context: TContext) => IChoicesInterface);
+    /** Required for TargetMode.Select, not used for TargetMode.SelectUnless */
+    choices?: IChoicesInterface | ((context: TContext) => IChoicesInterface);
     condition?: (context: TContext) => boolean;
-    unlessEffect?: GameSystem<TContext> | ((context: TContext) => GameSystem<TContext>);
-    /** The effect to resolve automatically if unlessEffect cannot be resolved */
-    defaultEffect?: GameSystem<TContext> | ((context: TContext) => GameSystem<TContext>);
+    /** The effect the choosing player can pay to avoid the default effect (SelectUnless mode only) */
+    unlessEffect?: ISelectUnlessEffect<TContext>;
+    /** The effect to resolve if the choosing player declines or cannot pay the unless effect (SelectUnless mode only) */
+    defaultEffect?: ISelectUnlessEffect<TContext>;
     checkTarget?: boolean;
     showUnresolvable?: boolean;
     highlightCards?: Card | Card[] | ((context: TContext) => (Card | Card[]));
@@ -88,6 +90,12 @@ export interface IPlayerTargetResolver<TContext extends AbilityContext> extends 
 }
 
 export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> = Record<string, GameSystem<TContext>>;
+
+/** Represents an effect paired with its prompt button for SelectUnless mode */
+export interface ISelectUnlessEffect<TContext extends AbilityContext> {
+    effect: GameSystem<TContext> | ((context: TContext) => GameSystem<TContext>);
+    promptButton: NamedAction;
+}
 
 // ********************************************** INTERNAL TYPES **********************************************
 interface ICardTargetResolverBase<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {

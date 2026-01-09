@@ -13,15 +13,6 @@ export default class LookTheOtherWay extends EventCard {
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        const payResourceEffect = (context) => AbilityHelper.immediateEffects.payResourceCost({
-            target: context.targets.targetUnit.controller,
-            amount: 2
-        });
-
-        const exhaustEffect = (context) => AbilityHelper.immediateEffects.exhaust({
-            target: context.targets.targetUnit,
-        });
-
         registrar.setEventAbility({
             title: 'Exhaust a unit unless its controller pays 2 resources.',
             targetResolvers: {
@@ -31,14 +22,21 @@ export default class LookTheOtherWay extends EventCard {
                 opponentsChoice: {
                     mode: TargetMode.SelectUnless,
                     dependsOn: 'targetUnit',
-                    unlessEffect: payResourceEffect,
-                    defaultEffect: exhaustEffect,
+                    unlessEffect: {
+                        effect: (context) => AbilityHelper.immediateEffects.payResourceCost({
+                            target: context.targets.targetUnit.controller,
+                            amount: 2
+                        }),
+                        promptButton: NamedAction.Pay
+                    },
+                    defaultEffect: {
+                        effect: (context) => AbilityHelper.immediateEffects.exhaust({
+                            target: context.targets.targetUnit,
+                        }),
+                        promptButton: NamedAction.Exhaust
+                    },
                     choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
                     activePromptTitle: (context) => `[Exhaust] ${context.targets.targetUnit.title} or [Pay] 2 resources`,
-                    choices: (context) => ({
-                        [NamedAction.Exhaust]: exhaustEffect(context),
-                        [NamedAction.Pay]: payResourceEffect(context)
-                    }),
                     highlightCards: (context) => context.targets.targetUnit,
                 }
             }
