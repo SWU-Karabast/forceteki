@@ -225,6 +225,49 @@ export function filterMap<T extends Record<any, any>, U = any>(obj: T, mapCallba
     return results;
 }
 
+/** Transform the values of a Map, based on the provided `transform` function */
+export function mapValues<TKey, TValue, TResult>(
+    inputMap: Map<TKey, TValue>,
+    transform: (value: TValue) => TResult
+): Map<TKey, TResult> {
+    const resultMap = new Map<TKey, TResult>();
+
+    inputMap.forEach((value, key) => {
+        resultMap.set(key, transform(value));
+    });
+
+    return resultMap;
+}
+
+/** Transforms the values of a Set, based on the provided `transform` function */
+export function mapSet<TValue, TResult>(
+    inputSet: Set<TValue>,
+    transform: (value: TValue) => TResult
+): Set<TResult> {
+    const resultSet = new Set<TResult>();
+
+    inputSet.forEach((value) => {
+        resultSet.add(transform(value));
+    });
+
+    return resultSet;
+}
+
+/** Reduces the values of a set into an accumulating value, based on the provided `accumulator` function */
+export function reduceSet<TValue, TResult>(
+    inputSet: Set<TValue>,
+    initialValue: TResult,
+    accumulator: (accumulated: TResult, value: TValue) => TResult
+): TResult {
+    let result = initialValue;
+
+    inputSet.forEach((value) => {
+        result = accumulator(result, value);
+    });
+
+    return result;
+}
+
 export function mergeNumericProperty<TPropertySet extends { [key in TPropName]?: number }, TPropName extends string>(
     propertySet: TPropertySet,
     newPropName: TPropName,
@@ -319,6 +362,17 @@ export function setUnion<T>(setA: Set<T>, setB: Set<T>): Set<T> {
     const union = new Set<T>(setA);
     for (const item of setB) {
         union.add(item);
+    }
+    return union;
+}
+
+/** Perform a set union for an arbitrary number of sets with the same element type */
+export function setUnionMultiple<T>(...sets: Set<T>[]): Set<T> {
+    const union = new Set<T>();
+    for (const set of sets) {
+        for (const item of set) {
+            union.add(item);
+        }
     }
     return union;
 }
