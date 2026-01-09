@@ -153,5 +153,38 @@ describe('Rio Durant, Beckett\'s Right Hands', function() {
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
             expect(context.player1.exhaustedResourceCount).toBe(4); // cost of Rio Durant
         });
+
+        it('Rio Durant\'s ability and DJ leader\'s ability should play Rio for 1 resource less and replay the captor freely with Shielded', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['rio-durant#becketts-right-hands'],
+                    groundArena: ['battlefield-marine'],
+                    leader: 'dj#need-a-lift',
+                    base: 'colossus',
+                    resources: 3
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.dj);
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.rioDurant);
+
+            expect(context.rioDurant).toBeCapturedBy(context.battlefieldMarine);
+            expect(context.player1.exhaustedResourceCount).toBe(3);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.player1).toHavePassAbilityPrompt('Play Battlefield Marine for free. It gains Shielded for this phase');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+            expect(context.rioDurant).toBeInZone('groundArena', context.player1);
+        });
     });
 });
