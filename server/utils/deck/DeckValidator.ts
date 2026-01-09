@@ -2,11 +2,12 @@ import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
 import { CardType, SwuGameFormat } from '../../game/core/Constants';
-import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
 import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties } from './DeckInterfaces';
 import { DecklistLocation, DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 import * as Contract from '../../game/core/utils/Contract';
+import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
+import * as Helpers from '../../game/core/utils/Helpers';
 
 enum SwuSet {
     SOR = 'sor',
@@ -19,16 +20,22 @@ enum SwuSet {
     LAW = 'law'
 }
 
-const rotationBlocks = new Map<string, SwuSet[]>([
-    ['0', [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI]],
-    ['A', [SwuSet.JTL, SwuSet.LOF, SwuSet.IBH, SwuSet.SEC]],
-    ['B', [SwuSet.LAW]]
+enum SwuRotationBlock {
+    Block0,
+    BlockA,
+    BlockB
+}
+
+const rotationBlocks = new Map<SwuRotationBlock, Set<SwuSet>>([
+    [SwuRotationBlock.Block0, new Set([SwuSet.SOR, SwuSet.SHD, SwuSet.TWI])],
+    [SwuRotationBlock.BlockA, new Set([SwuSet.JTL, SwuSet.LOF, SwuSet.IBH, SwuSet.SEC])],
+    [SwuRotationBlock.BlockB, new Set([SwuSet.LAW])]
 ]);
 
-const legalBlocksForFormat = new Map<SwuGameFormat, string[]>([
-    [SwuGameFormat.Premier, ['0', 'A']],
-    [SwuGameFormat.Open, Array.from(rotationBlocks.keys())],
-    [SwuGameFormat.NextSetPreview, ['A', 'B']]
+const legalBlocksForFormat = new Map<SwuGameFormat, Set<SwuRotationBlock>>([
+    [SwuGameFormat.Premier, new Set([SwuRotationBlock.Block0, SwuRotationBlock.BlockA])],
+    [SwuGameFormat.Open, new Set(rotationBlocks.keys())],
+    [SwuGameFormat.NextSetPreview, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])]
 ]);
 
 const bannedPremierCards = new Map([
@@ -58,7 +65,7 @@ interface ICardCheckData {
     setId: ISetCode;
     titleAndSubtitle: string;
     type: CardType;
-    sets: SwuSet[];
+    legalFormats: Set<SwuGameFormat>;
     implemented: boolean;
     minDeckSizeModifier?: number;
     maxCopiesOfCardOverride?: number;
@@ -92,23 +99,44 @@ export class DeckValidator {
         return new DeckValidator(allCardsData, cardDataGetter.setCodeMap);
     }
 
+    private static legalFormatsForCard(
+        cardData: ICardDataJson,
+        formatToSetMap: Map<SwuGameFormat, Set<SwuSet>>
+    ): Set<SwuGameFormat> {
+        const legalFormats = new Set<SwuGameFormat>();
+        const sets = cardData.setCodes
+            ? cardData.setCodes.map((code) => EnumHelpers.checkConvertToEnum(code.set, SwuSet)[0])
+            : [EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0]];
+
+        for (const [format, legalSets] of formatToSetMap) {
+            const hasSetCodeFromLegalSet = sets.some((set) => legalSets.has(set));
+
+            if (hasSetCodeFromLegalSet) {
+                legalFormats.add(format);
+            }
+        }
+
+        return legalFormats;
+    }
+
     private constructor(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>) {
         const implementedCardIds = new Set(cards.keys());
         const overrideNotImplementedCardIds = new Set(overrideNotImplementedCards.keys());
+        const formatToSetsMap = Helpers.mapValues(legalBlocksForFormat, (blocks) =>
+            Helpers.reduceSet(blocks, new Set<SwuSet>(), (acc, block) =>
+                Helpers.setUnion(acc, rotationBlocks.get(block))
+            )
+        );
 
         this.cardData = new Map<string, ICardCheckData>();
         this.setCodeToId = setCodeToId;
 
         for (const cardData of allCardsData) {
-            const sets = cardData.setCodes
-                ? cardData.setCodes.map((code) => EnumHelpers.checkConvertToEnum(code.set, SwuSet)[0])
-                : [EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0]];
-
             const cardCheckData: ICardCheckData = {
                 setId: cardData.setId,
                 titleAndSubtitle: `${cardData.title}${cardData.subtitle ? `, ${cardData.subtitle}` : ''}`,
                 type: Card.buildTypeFromPrinted(cardData.types),
-                sets: sets,
+                legalFormats: DeckValidator.legalFormatsForCard(cardData, formatToSetsMap),
                 implemented: !overrideNotImplementedCardIds.has(cardData.id) && (!Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id)),
                 minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
                 maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
@@ -306,27 +334,20 @@ export class DeckValidator {
     }
 
     protected checkFormatLegality(cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
-        // Check that the card has at least one set code from a legal block for the format
-        const hasSetCodeFromLegalBlock = legalBlocksForFormat
-            .get(format)
-            .some((block) => {
-                const legalSets = rotationBlocks.get(block);
-                return cardData.sets.some((cardSet) => legalSets.includes(cardSet));
-            });
+        const setCode = `${cardData.setId.set}_${String(cardData.setId.number).padStart(3, '0')}`;
 
-        if (!hasSetCodeFromLegalBlock) {
+        if (!cardData.legalFormats.has(format)) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
-                id: cardData.setId.set,
+                id: setCode,
                 name: cardData.titleAndSubtitle
             });
             return;
         }
 
         const bannedCards = bannedCardsPerFormat.get(format);
-
-        if (bannedCards.has(this.setCodeToId.get(cardData.setId.set))) {
+        if (bannedCards.has(this.setCodeToId.get(setCode))) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
-                id: cardData.setId.set,
+                id: setCode,
                 name: cardData.titleAndSubtitle
             });
         }
