@@ -112,7 +112,9 @@ export function asArray<T>(val: T | T[]): T[] {
     return Array.isArray(val) ? val : [val];
 }
 
-export const isDevelopment = () => process.env.ENVIRONMENT === 'development';
+// Memoize the development check since process.env.ENVIRONMENT doesn't change at runtime
+const _isDevelopment = process.env.ENVIRONMENT === 'development';
+export const isDevelopment = () => _isDevelopment;
 
 export function getSingleOrThrow<T>(val: T | T[]): T {
     Contract.assertNotNullLike(val);

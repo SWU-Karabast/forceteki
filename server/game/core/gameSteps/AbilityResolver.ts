@@ -32,7 +32,14 @@ export class AbilityResolver extends BaseStepWithPipeline {
     private passButtonText: string;
     private passAbilityHandler?: IPassAbilityHandler;
 
-    public constructor(game: Game, context: AbilityContext, optional = false, canCancel?: boolean, earlyTargetingOverride?: ITargetResult, ignoredRequirements: string[] = []) {
+    public constructor(
+        game: Game,
+        context: AbilityContext,
+        optional = false,
+        canCancel?: boolean,
+        earlyTargetingOverride?: ITargetResult,
+        ignoredRequirements: string[] = []
+    ) {
         super(game);
 
         this.context = context;

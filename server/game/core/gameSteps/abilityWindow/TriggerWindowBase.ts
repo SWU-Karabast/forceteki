@@ -134,18 +134,25 @@ export abstract class TriggerWindowBase extends BaseStep {
         let abilitiesToResolve = this.unresolved.get(this.currentlyResolvingPlayer);
 
         // if none of the player's remaining abilities can resolve, skip to the next player
-        if (!this.canAnyAbilitiesResolve(abilitiesToResolve)) {
+        if (!abilitiesToResolve || !this.canAnyAbilitiesResolve(abilitiesToResolve)) {
             this.unresolved.set(this.currentlyResolvingPlayer, []);
             abilitiesToResolve = [];
         }
 
         if (abilitiesToResolve.length === 0) {
-            // if the last resolving player is out of abilities to resolve, we're done
-            if (this.resolvePlayerOrder.length === 1) {
-                return true;
+            this.resolvePlayerOrder.shift();
+
+            if (this.resolvePlayerOrder.length === 0) {
+                if (this.triggeredAbilities.length === 0) {
+                    // if the last resolving player is out of abilities to resolve, we're done
+                    return true;
+                }
+
+                // If there are still unresolved abilities, reset the player order and continue
+                // (this should only happen if new replacement abilities were added during resolution)
+                this.resolvePlayerOrder = Array.from(this.unresolved.keys());
             }
 
-            this.resolvePlayerOrder.shift();
             abilitiesToResolve = this.unresolved.get(this.currentlyResolvingPlayer);
         }
 

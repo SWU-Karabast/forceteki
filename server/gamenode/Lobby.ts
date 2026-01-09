@@ -14,21 +14,28 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
-import { DeckSource } from '../utils/deck/DeckInterfaces';
-import { ScoreType } from '../utils/deck/DeckInterfaces';
+import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
-import { GamesToWinMode, RematchMode } from '../game/core/Constants';
-import { AlertType, GameEndReason, GameErrorSeverity, SwuGameFormat } from '../game/core/Constants';
+import {
+    AlertType,
+    GameEndReason,
+    GameErrorSeverity,
+    GamesToWinMode,
+    RematchMode,
+    SwuGameFormat
+} from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
-import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import type { Player } from '../game/core/Player';
 import type { IQueueFormatKey } from './QueueHandler';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
+import type { MessageText } from '../game/Interfaces';
+import { ReportType } from '../game/Interfaces';
+import { PlayerReportType } from '../game/Interfaces';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -36,6 +43,16 @@ interface LobbySpectatorWrapper {
     state: 'connected' | 'disconnected';
     socket?: Socket;
     user?: User;
+}
+
+interface IChatMessageEntry {
+    date: Date;
+    message: MessageText | {
+        alert: {
+            type: string;
+            message: string | string[];
+        };
+    };
 }
 
 enum LobbySettingKeys {
@@ -1172,6 +1189,13 @@ export class Lobby {
         );
 
         this.game = game;
+
+        for (const player of this.game.getPlayers()) {
+            const userWrapper = this.getUser(player.user.id);
+            userWrapper.deck = player.lobbyDeck;
+
+            logger.info(`Test deck synchronized for user: ${userWrapper.username}`);
+        }
     }
 
     private async startGameAsync() {
@@ -1354,7 +1378,7 @@ export class Lobby {
                     lobbyId: this.id,
                     durationMs: Number(durationMs.toFixed(2)),
                     timestamp: new Date().toISOString(),
-                    promptType: this.game.getPlayerById(socket.user.getId())?.promptState.promptType ?? 'null',
+                    promptType: this.game?.getPlayerById(socket.user.getId())?.promptState.promptType ?? 'null',
                 });
             }
         } catch (error) {
@@ -1476,7 +1500,6 @@ export class Lobby {
             const [player1Id, player2Id] = game.getPlayers().map((p) => p.id);
 
             const gameState = this.game.captureGameState(player1Id);
-
             this.discordDispatcher.formatAndSendServerErrorAsync(
                 discordMessage,
                 error,
@@ -2103,40 +2126,57 @@ export class Lobby {
         Contract.assertTrue(typeof settingValue === expectedType, `Invalid setting value for ${settingName}, expected ${expectedType} but received: ` + settingValue);
     }
 
-    // Report bug method; front-end RPC from sendLobbyMessage()
-    private async reportBug(socket: Socket, ...args: any): Promise<void> {
+    private async submitReport(socket: Socket, ...args: any[]): Promise<void> {
+        Contract.assertTrue(
+            args[0] === 'bugReport' || args[0] === 'playerReport',
+            `Invalid report type: expected 'bug' or 'player' but received '${args[0]}'`
+        );
+        const reportType = args[0] as ReportType;
+        const reportMessage = args[1];
+        const playerReportType = Object.values(PlayerReportType).includes(args[2]) ? args[2] as PlayerReportType : null;
+        const resultEvent = reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
+        const reportLabel = reportType === ReportType.BugReport ? 'bug report' : 'player report';
+
         try {
-            // Parse description as JSON if it's in JSON format
-            const bugReportMessage = args[0];
             let parsedDescription = '';
             let screenResolution = null;
             let viewport = null;
-            if (bugReportMessage && typeof bugReportMessage === 'object') {
-                parsedDescription = bugReportMessage.description || '';
-                screenResolution = bugReportMessage.screenResolution || null;
-                viewport = bugReportMessage.viewport || null;
+
+            if (reportMessage && typeof reportMessage === 'object') {
+                parsedDescription = reportMessage.description || '';
+                screenResolution = reportMessage.screenResolution || null;
+                viewport = reportMessage.viewport || null;
             } else {
-                // Take this as a string (backward compatibility)
-                parsedDescription = bugReportMessage;
+                parsedDescription = reportMessage;
             }
 
-            if (!parsedDescription || parsedDescription.trim().length === 0) {
-                throw new Error('description is invalid');
-            }
-
-            // Create game state snapshot
             const gameState = this.game
                 ? this.game.captureGameState(socket.user.getId())
                 : { phase: 'action', player1: {}, player2: {} };
 
-            const gameMessages = this.game.getLogMessages();
-            const opponent = this.users.find((u) => u.id !== socket.user.id);
-            // Create bug report
-            const bugReport = formatBugReport(
+            let gameMessages: IChatMessageEntry[];
+            let opponent: { id: string; username: string };
+            if (this.game) {
+                const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());
+                opponent = { id: opponentObject.id, username: opponentObject.user.username };
+                gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.messages;
+            } else {
+                // this is for lobby player reports
+                const opponentObject = this.users.find((u) => u.id !== socket.user.getId());
+                if (opponentObject) {
+                    opponent = { id: opponentObject.id, username: opponentObject.username };
+                } else {
+                    throw new Error(`${reportLabel} failed since opponent wasn't found`);
+                }
+                gameMessages = this.gameChat.messages;
+            }
+
+            const report = this.discordDispatcher.formatReport(
                 parsedDescription,
                 gameState,
+                playerReportType,
                 socket.user,
-                opponent.socket.user,
+                opponent,
                 gameMessages,
                 this.id,
                 this.gameFormat,
@@ -2147,37 +2187,42 @@ export class Lobby {
                 viewport
             );
 
-            // Send to Discord
-            const success = await this.discordDispatcher.formatAndSendBugReportAsync(bugReport);
+            const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);
             if (!success) {
-                throw new Error('Bug report failed to send to discord. See logs for details.');
+                throw new Error(`${reportLabel} failed to send to discord. See logs for details.`);
+            }
+            const existingUser = this.users.find((u) => u.id === socket.user.getId());
+            if (reportType === ReportType.BugReport) {
+                existingUser.reportedBugs += 1;
             }
 
-            // we find the user
-            const existingUser = this.users.find((u) => u.id === socket.user.getId());
-            existingUser.reportedBugs += success ? 1 : 0;
-
-            // Send success message to client
-            socket.send('bugReportResult', {
+            socket.send(resultEvent, {
                 id: uuid(),
-                success: success,
-                message: 'Successfully sent bug report'
+                success: true,
+                message: `Successfully sent ${reportLabel}`
             });
 
-            this.game.addAlert(AlertType.Notification, '{0} has submitted a bug report', existingUser.username);
+            // we report the alert only if its a bug report
+            if (reportType === ReportType.BugReport) {
+                this.game.addAlert(
+                    AlertType.Notification,
+                    `{0} has submitted a ${reportLabel}`,
+                    existingUser.username
+                );
+            }
 
             this.sendLobbyState();
         } catch (error) {
-            logger.error('Error processing bug report', {
+            logger.error(`Error processing ${reportLabel}`, {
                 error: { message: error.message, stack: error.stack },
                 lobbyId: this.id,
                 userId: socket.user.id
             });
-            // Send error message to client
-            socket.send('bugReportResult', {
+
+            socket.send(resultEvent, {
                 id: uuid(),
                 success: false,
-                message: 'An error occurred while processing your bug report.'
+                message: `An error occurred while processing your ${reportLabel}.`
             });
         }
     }

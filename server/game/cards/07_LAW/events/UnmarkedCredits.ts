@@ -10,7 +10,7 @@ export default class UnmarkedCredits extends EventCard {
 
     protected override getImplementationId() {
         return {
-            id: 'unmarked-credits-id',
+            id: '7477598198',
             internalName: 'unmarked-credits',
         };
     }

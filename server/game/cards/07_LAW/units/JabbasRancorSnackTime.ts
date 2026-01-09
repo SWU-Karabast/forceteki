@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Consta
 export default class JabbasRancorSnackTime extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'jabbas-rancor#snack-time-id',
+            id: '4308878136',
             internalName: 'jabbas-rancor#snack-time',
         };
     }
