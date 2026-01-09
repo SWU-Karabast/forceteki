@@ -29,7 +29,7 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                cardCondition: (card) => card.hasSomeKeyword(KeywordName.Piloting), // This helps prevent a prompt error
+                cardCondition: (card) => card.hasKeyword(KeywordName.Piloting), // This helps prevent a prompt error
                 immediateEffect: AbilityHelper.immediateEffects.playCard({
                     playType: PlayType.Piloting,
                     playAsType: WildcardCardType.Upgrade,

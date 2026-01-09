@@ -15,7 +15,7 @@ export default class DookuItIsTooLate extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'Each friendly unit with Hidden can\'t be attacked this phase',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
-                target: context.player.getArenaUnits({ condition: (card) => card.hasSomeKeyword(KeywordName.Hidden) }),
+                target: context.player.getArenaUnits({ condition: (card) => card.hasKeyword(KeywordName.Hidden) }),
                 effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
             }))
         });

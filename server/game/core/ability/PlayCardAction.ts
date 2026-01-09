@@ -165,13 +165,13 @@ export abstract class PlayCardAction extends PlayerAction {
         ) {
             return 'cannotTrigger';
         }
-        if (PlayType.Piloting === this.playType && !context.source.hasSomeKeyword(KeywordName.Piloting)) {
+        if (PlayType.Piloting === this.playType && !context.source.hasKeyword(KeywordName.Piloting)) {
             return 'pilotingKeyword';
         }
-        if (PlayType.Plot === this.playType && !context.source.hasSomeKeyword(KeywordName.Plot)) {
+        if (PlayType.Plot === this.playType && !context.source.hasKeyword(KeywordName.Plot)) {
             return 'plotKeyword';
         }
-        if (PlayType.Smuggle === this.playType && !context.source.hasSomeKeyword(KeywordName.Smuggle)) {
+        if (PlayType.Smuggle === this.playType && !context.source.hasKeyword(KeywordName.Smuggle)) {
             return 'smuggleKeyword';
         }
         return super.meetsRequirements(context, ignoredRequirements);
