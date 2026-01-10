@@ -160,6 +160,7 @@ import type { IWinGameProperties } from './WinGameSystem';
 import { WinGameSystem } from './WinGameSystem';
 import type { ICreateCreditTokenProperties } from './CreateCreditTokenSystem';
 import { CreateCreditTokenSystem } from './CreateCreditTokenSystem';
+import { GameEffectResourcePaymentSystem } from './GameEffectResourcePaymentSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -397,13 +398,8 @@ export function exhaustResources<TContext extends AbilityContext = AbilityContex
     return new ExhaustResourcesSystem<TContext>(propertyFactory);
 }
 
-export function payResourceCost<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustResourcesProperties, TContext>) {
-    return new ExhaustResourcesSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IExhaustResourcesProperties, 'isCost'>(
-            propertyFactory,
-            { isCost: true }
-        )
-    );
+export function payResources<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustResourcesProperties, TContext>) {
+    return new GameEffectResourcePaymentSystem<TContext>(propertyFactory);
 }
 
 /**

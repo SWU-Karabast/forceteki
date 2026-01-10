@@ -210,6 +210,43 @@ describe('Blue Leader, Scarif Air Support', function() {
             expect(context.blueLeader).toBeInZone('discard');
         });
 
+        it('can be paid for with Credit tokens', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'wedge-antilles#leader-of-red-squadron',
+                    hand: ['blue-leader#scarif-air-support'],
+                    resources: 3,
+                    credits: 2
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Blue Leader (without using Credit tokens)
+            context.player1.clickCard(context.blueLeader);
+            context.player1.clickPrompt('Pay costs without Credit tokens');
+
+            // Confirm ability prompt
+            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
+            context.player1.clickPrompt('Trigger');
+
+            // No resources are available, but we should be able to use Credit tokens
+            expect(context.player1.readyResourceCount).toBe(0);
+            expect(context.player1).toHavePrompt('Use Credit tokens for Blue Leader');
+            expect(context.player1).toHaveExactPromptButtons([
+                'Use 2 Credits',
+                'Cancel'
+            ]);
+
+            // Use Credit tokens to pay for the ability
+            context.player1.clickPrompt('Use 2 Credits');
+            expect(context.player1.credits).toBe(0);
+            expect(context.blueLeader).toBeInZone('groundArena');
+            expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
+            expect(context.blueLeader.exhausted).toBeTrue();
+        });
+
         describe('After Blue Leader has moved to the ground arena', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({

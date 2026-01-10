@@ -15,7 +15,7 @@ export default class PantoranStarshipThief extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'Pay 3 resources to attach this unit as an upgrade to a Fighter or Transport unit without a Pilot on it. Take control of that unit',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 amount: 3,
                 target: context.player
             })),
