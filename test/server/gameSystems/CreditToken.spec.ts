@@ -68,8 +68,8 @@ describe('Credit token', function () {
                 // Play Consular Security Force (4R)
                 context.player1.clickCard(context.consularSecurityForce);
 
-                // Prompt to use credit tokens for playing the card
-                expect(context.player1).toHavePrompt('Use Credit tokens for Consular Security Force');
+                // Prompt to use credit tokens to pay for playing the card
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Consular Security Force');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Use 1 Credit',
                     'Pay costs without Credit tokens',
@@ -103,8 +103,8 @@ describe('Credit token', function () {
                 context.player1.clickPrompt('Deal 2 damage to a base.');
                 context.player1.clickCard(context.p2Base);
 
-                // Prompt to use credit tokens for action ability cost
-                expect(context.player1).toHavePrompt('Use Credit tokens for Disaffected Senator');
+                // Prompt to use credit tokens to pay for action ability cost
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Disaffected Senator\'s ability');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Use 2 Credits',
                     'Cancel'
@@ -133,8 +133,8 @@ describe('Credit token', function () {
                 // Play Consular Security Force (4R)
                 context.player1.clickCard(context.consularSecurityForce);
 
-                // Prompt to use credit tokens for playing the card
-                expect(context.player1).toHavePrompt('Use Credit tokens for Consular Security Force');
+                // Prompt to use credit tokens to pay for playing the card
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Consular Security Force');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Use 1 Credit',
                     'Pay costs without Credit tokens',
@@ -165,8 +165,8 @@ describe('Credit token', function () {
                 // Play Consular Security Force (4R)
                 context.player1.clickCard(context.consularSecurityForce);
 
-                // Prompt to use credit tokens for playing the card
-                expect(context.player1).toHavePrompt('Use Credit tokens for Consular Security Force');
+                // Prompt to use credit tokens to pay for playing the card
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Consular Security Force');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Use 1 Credit',
                     'Pay costs without Credit tokens',
@@ -196,8 +196,8 @@ describe('Credit token', function () {
                 // Play Consular Security Force (4R)
                 context.player1.clickCard(context.consularSecurityForce);
 
-                // Prompt to use credit tokens for playing the card
-                expect(context.player1).toHavePrompt('Use Credit tokens for Consular Security Force');
+                // Prompt to use credit tokens to pay for playing the card
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Consular Security Force');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Use 1 Credit',
                     'Cancel'
@@ -226,8 +226,8 @@ describe('Credit token', function () {
                 // Play Consular Security Force (4R)
                 context.player1.clickCard(context.consularSecurityForce);
 
-                // Prompt to use credit tokens for playing the card
-                expect(context.player1).toHavePrompt('Use Credit tokens for Consular Security Force');
+                // Prompt to use credit tokens to pay for playing the card
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Consular Security Force');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Select amount',
                     'Cancel'
@@ -260,8 +260,8 @@ describe('Credit token', function () {
                 // Play Consular Security Force (4R)
                 context.player1.clickCard(context.consularSecurityForce);
 
-                // Prompt to use credit tokens for playing the card
-                expect(context.player1).toHavePrompt('Use Credit tokens for Consular Security Force');
+                // Prompt to use credit tokens to pay for playing the card
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Consular Security Force');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Use 2 Credits',
                     'Cancel'

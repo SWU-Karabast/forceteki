@@ -20,7 +20,7 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickCard(context.captainRex);
 
                 // Prompt to use credits
-                expect(context.player1).toHavePrompt('Use Credit tokens for Captain Rex');
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Captain Rex');
                 expect(context.player1).toHaveExactPromptButtons(['Select amount', 'Cancel']);
                 context.player1.clickPrompt('Select amount');
 

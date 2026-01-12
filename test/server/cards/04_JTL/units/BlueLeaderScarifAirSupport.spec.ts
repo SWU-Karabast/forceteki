@@ -231,21 +231,24 @@ describe('Blue Leader, Scarif Air Support', function() {
             context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             context.player1.clickPrompt('Trigger');
 
-            // No resources are available, but we should be able to use Credit tokens
-            expect(context.player1.readyResourceCount).toBe(0);
-            expect(context.player1).toHavePrompt('Use Credit tokens for Blue Leader');
-            // expect(context.player1).toHaveExactPromptButtons([
-            //     'Use 2 Credits',
-            //     'Cancel'
-            // ]);
+            // Insufficient resources available, but we should be able to use a Credit token to supplement
+            expect(context.player1.readyResourceCount).toBe(1);
+            expect(context.player1).toHavePrompt('Use Credit tokens to pay for Blue Leader\'s effect');
+            expect(context.player1).toHaveExactPromptButtons([
+                'Use 1 Credit',
+                'Cancel'
+            ]);
 
             // Use Credit tokens to pay for the ability
-            // context.player1.clickPrompt('Use 2 Credits');
             context.player1.clickPrompt('Use 1 Credit');
             expect(context.player1.credits).toBe(0);
+            expect(context.player1.readyResourceCount).toBe(0);
+
+            // Verify Blue Leader is in ground arena with 2 experience and exhausted
             expect(context.blueLeader).toBeInZone('groundArena');
             expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
             expect(context.blueLeader.exhausted).toBeTrue();
+            expect(context.getChatLogs(2)).toContain('player1 pays 1 resource and 1 Credit token');
         });
 
         describe('After Blue Leader has moved to the ground arena', function() {

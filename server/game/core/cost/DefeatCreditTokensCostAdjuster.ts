@@ -9,7 +9,7 @@ import type { Player } from '../Player';
 import { CostAdjustType, type ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
 import type { ICostAdjustmentResolutionProperties, ICostAdjustResult, ICostAdjustTriggerResult } from './CostInterfaces';
-import { CostAdjustStage } from './CostInterfaces';
+import { CostAdjustStage, ResourceCostType } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 import * as Contract from '../utils/Contract';
 import type { IDropdownListPromptProperties } from '../gameSteps/prompts/DropdownListPrompt';
@@ -109,8 +109,16 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
             });
         }
 
+        let promptTitle = `Use Credit tokens to pay for ${context.source.title}`;
+
+        if (costAdjustTriggerResult.resourceCostType === ResourceCostType.Ability) {
+            promptTitle += '\'s ability';
+        } else if (costAdjustTriggerResult.resourceCostType === ResourceCostType.GameEffectPayment) {
+            promptTitle += '\'s effect';
+        }
+
         context.game.promptWithHandlerMenu(this.sourcePlayer, {
-            activePromptTitle: `Use Credit tokens for ${context.source.title}`,
+            activePromptTitle: promptTitle,
             choices,
             handlers
         });
