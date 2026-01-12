@@ -248,7 +248,7 @@ describe('Blue Leader, Scarif Air Support', function() {
             expect(context.blueLeader).toBeInZone('groundArena');
             expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
             expect(context.blueLeader.exhausted).toBeTrue();
-            expect(context.getChatLogs(2)).toContain('player1 pays 1 resource and 1 Credit token');
+            expect(context.getChatLogs(2)).toContain('player1 defeats 1 Credit token to pay 1 resource less for Blue Leader\'s effect');
         });
 
         describe('After Blue Leader has moved to the ground arena', function() {

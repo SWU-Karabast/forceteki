@@ -12,7 +12,9 @@ import type { ICostAdjustmentResolutionProperties, ICostAdjustResult, ICostAdjus
 import { CostAdjustStage, ResourceCostType } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 import * as Contract from '../utils/Contract';
+import * as ChatHelpers from '../chat/ChatHelpers';
 import type { IDropdownListPromptProperties } from '../gameSteps/prompts/DropdownListPrompt';
+import type { FormatMessage } from '../chat/GameChat';
 
 export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
     private readonly costName = 'creditTokens';
@@ -139,6 +141,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
                 abilityCostResult.canCancel = false;
                 costAdjustTriggerResult.adjustedCost.applyStaticDecrease(creditTokenCount);
                 events.push(this.buildEvent(context, creditTokenCount));
+                this.addMessageToGameLog(context, creditTokenCount, costAdjustTriggerResult.resourceCostType);
             }
         }, `generate defeatCreditTokens event for ${context.source.internalName}`);
     }
@@ -183,5 +186,30 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
 
     private creditString(count: number): string {
         return `${count} ${count === 1 ? 'Credit' : 'Credits'}`;
+    }
+
+    private addMessageToGameLog(
+        context: AbilityContext,
+        creditTokenCount: number,
+        resourceCostType: ResourceCostType
+    ): void {
+        const sourceDescription: FormatMessage = {
+            format: '{0}',
+            args: [context.source]
+        };
+
+        if (resourceCostType === ResourceCostType.Ability) {
+            sourceDescription.format = '{0}\'s ability';
+        } else if (resourceCostType === ResourceCostType.GameEffectPayment) {
+            sourceDescription.format = '{0}\'s effect';
+        }
+
+        context.game.addMessage(
+            '{0} defeats {1} to pay {2} less for {3}',
+            this.sourcePlayer,
+            ChatHelpers.pluralize(creditTokenCount, '1 Credit token', 'Credit tokens'),
+            ChatHelpers.pluralize(creditTokenCount, '1 resource', 'resources'),
+            sourceDescription
+        );
     }
 }
