@@ -15,6 +15,8 @@ import * as Contract from '../utils/Contract';
 import type { IDropdownListPromptProperties } from '../gameSteps/prompts/DropdownListPrompt';
 
 export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
+    private readonly costName = 'creditTokens';
+
     public constructor(
         game: Game,
         sourcePlayer: Player
@@ -35,7 +37,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         context: AbilityContext,
         evaluationResult: ICostAdjustmentResolutionProperties
     ): boolean {
-        if (context.player.creditTokenCount === 0) {
+        if (this.sourcePlayer.creditTokenCount === 0) {
             return false;
         }
 
@@ -43,11 +45,11 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
     }
 
     protected override getAmount(card: Card, player: Player, context: AbilityContext): number {
-        return player.creditTokenCount;
+        return this.sourcePlayer.creditTokenCount;
     }
 
     protected override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]): void {
-        const credits = context.player.creditTokenCount;
+        const credits = this.sourcePlayer.creditTokenCount;
         result.adjustedCost.applyStaticDecrease(credits);
     }
 
@@ -57,8 +59,8 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         costAdjustTriggerResult: ICostAdjustTriggerResult,
         abilityCostResult?: ICostResult
     ) {
-        const credits = context.player.creditTokenCount;
-        const availableResources = context.player.readyResourceCount;
+        const credits = this.sourcePlayer.creditTokenCount;
+        const availableResources = this.sourcePlayer.readyResourceCount;
         const minimumCreditsRequiredToPay = Math.max(0, costAdjustTriggerResult.adjustedCost.value - availableResources);
         const maximumCreditsThatCanBeUsed = Math.min(credits, costAdjustTriggerResult.adjustedCost.value);
 
@@ -107,7 +109,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
             });
         }
 
-        context.game.promptWithHandlerMenu(context.player, {
+        context.game.promptWithHandlerMenu(this.sourcePlayer, {
             activePromptTitle: `Use Credit tokens for ${context.source.title}`,
             choices,
             handlers
@@ -122,6 +124,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         abilityCostResult?: ICostResult
     ): void {
         Contract.assertTrue(creditTokenCount > 0, 'creditTokenCount must be greater than zero to trigger payment event');
+        context.costs[this.costName] = creditTokenCount;
 
         context.game.queueSimpleStep(() => {
             if (!abilityCostResult.cancelled) {
@@ -134,7 +137,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
 
     private buildEvent(context, creditTokenCount: number): GameEvent {
         const individualEvents = [];
-        const player = context.player;
+        const player = this.sourcePlayer;
         const creditTokens = player.baseZone.credits.slice(0, creditTokenCount);
         const defeatSystem = new DefeatCardSystem({ defeatSource: DefeatSourceType.Ability });
 
@@ -167,7 +170,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
             choiceHandler: (choice: string) => onSelect(parseInt(choice, 10))
         };
 
-        context.game.promptWithDropdownListMenu(context.player, props);
+        context.game.promptWithDropdownListMenu(this.sourcePlayer, props);
     }
 
     private creditString(count: number): string {
