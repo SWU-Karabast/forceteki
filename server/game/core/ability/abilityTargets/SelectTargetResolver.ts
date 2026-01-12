@@ -9,6 +9,7 @@ import { GameStateChangeRequired, Stage, TargetMode } from '../../Constants';
 import type { Player } from '../../Player';
 import type { IPassAbilityHandler } from '../../gameSteps/AbilityResolver';
 import * as Helpers from '../../utils/Helpers';
+import * as Contract from '../../utils/Contract';
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
 export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<AbilityContext> | ISelectUnlessTargetResolver<AbilityContext>> {
@@ -29,6 +30,8 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
                     : this.properties.choices;
             case TargetMode.SelectUnless:
                 return this.buildSelectUnlessChoices(context);
+            default:
+                Contract.fail(`Unknown TargetMode value '${(this.properties as any).mode}'`);
         }
     }
 
