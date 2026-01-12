@@ -178,6 +178,7 @@ export enum TargetMode {
     MultiplePlayers = 'multiplePlayers',
     Player = 'player',
     Select = 'select',
+    SelectUnless = 'selectUnless',
     Single = 'single',
     Unlimited = 'unlimited',
     UpTo = 'upTo',
