@@ -20,12 +20,13 @@ export class ExhaustResourcesSystem<TContext extends AbilityContext = AbilityCon
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
+        const verb = properties.isCost ? 'pay' : 'exhaust';
 
         if (Helpers.asArray(properties.target).length === 1 && Helpers.asArray(properties.target)[0] === context.player) {
-            return ['exhaust {0}', [ChatHelpers.pluralize(properties.amount, '1 resource', 'resources')]];
+            return [`${verb} {0}`, [ChatHelpers.pluralize(properties.amount, '1 resource', 'resources')]];
         }
 
-        return ['make {0} exhaust {1}', [this.getTargetMessage(properties.target, context), ChatHelpers.pluralize(properties.amount, '1 resource', 'resources')]];
+        return [`make {0} ${verb} {1}`, [this.getTargetMessage(properties.target, context), ChatHelpers.pluralize(properties.amount, '1 resource', 'resources')]];
     }
 
     public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IExhaustResourcesProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

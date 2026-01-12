@@ -25,9 +25,10 @@ export default class EmergencyPowers extends EventCard {
                     mode: TargetMode.DropdownList,
                     options: (context) => Array.from({ length: context.player.readyResourceCount + 1 }, (_x, i) => `${i}`),
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                        AbilityHelper.immediateEffects.payResources((context) => ({
+                        AbilityHelper.immediateEffects.exhaustResources((context) => ({
                             amount: parseInt(context.select),
                             target: context.player,
+                            isCost: true
                         })),
                         AbilityHelper.immediateEffects.giveExperience((context) => ({
                             amount: parseInt(context.select),
