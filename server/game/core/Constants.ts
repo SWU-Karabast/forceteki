@@ -432,6 +432,7 @@ export enum Trait {
     Transport = 'transport',
     Trick = 'trick',
     Trooper = 'trooper',
+    Tusken = 'tusken',
     Twilek = 'twi\'lek',
     Undead = 'undead',
     Underworld = 'underworld',
