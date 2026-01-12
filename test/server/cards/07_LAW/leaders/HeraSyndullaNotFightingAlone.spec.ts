@@ -5,8 +5,9 @@ describe('Hera Syndulla, Not Fighting Alone', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['sabine-wren#explosives-artist', 'wampa', 'yoda#old-master', 'atst'],
+                        hand: ['sabine-wren#explosives-artist', 'wampa', 'yoda#old-master', 'atst', 'spark-of-rebellion', 'jedi-lightsaber', 'dagger-squadron-pilot'],
                         groundArena: ['rebel-pathfinder', 'fleet-lieutenant'],
+                        spaceArena: ['heroic-arc170'],
                         leader: 'hera-syndulla#not-fighting-alone',
                         base: 'echo-base'
                     },
@@ -29,6 +30,32 @@ describe('Hera Syndulla, Not Fighting Alone', function() {
 
                 context.player1.clickCard(context.yoda);
                 expect(context.player1.exhaustedResourceCount).toBe(5);
+            });
+
+            it('should not ignore aspect penalties for Heroism events', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sparkOfRebellion);
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+            });
+
+            it('should not ignore aspect penalties for Heroism upgrades', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.jediLightsaber);
+                context.player1.clickCard(context.rebelPathfinder);
+                expect(context.player1.exhaustedResourceCount).toBe(5);
+            });
+
+            it('should not ignore aspect penalties for Heroism units played with Piloting', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.daggerSquadronPilot);
+                context.player1.clickPrompt('Play Dagger Squadron Pilot with Piloting');
+                context.player1.clickCard(context.heroicArc170);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
             });
 
             it('should not ignore aspect penalties for non-Heroism cards even when there are 2 or more arena units', function() {

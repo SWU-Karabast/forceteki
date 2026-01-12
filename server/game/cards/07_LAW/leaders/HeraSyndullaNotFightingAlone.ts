@@ -22,7 +22,7 @@ export default class HeraSyndullaNotFightingAlone extends LeaderUnitCard {
             targetController: RelativePlayer.Self,
             condition: (context) => context.player.getArenaUnits().length >= 2,
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
-                cardTypeFilter: WildcardCardType.Playable,
+                cardTypeFilter: WildcardCardType.Unit,
                 match: (card) => card.hasSomeAspect(Aspect.Heroism)
             })
         };
