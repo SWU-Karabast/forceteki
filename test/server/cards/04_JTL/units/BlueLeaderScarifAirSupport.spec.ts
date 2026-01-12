@@ -210,86 +210,44 @@ describe('Blue Leader, Scarif Air Support', function() {
             expect(context.blueLeader).toBeInZone('discard');
         });
 
-        describe('When Played ability and Credit tokens', function() {
-            it('can be paid for with Credit tokens', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'wedge-antilles#leader-of-red-squadron',
-                        hand: ['blue-leader#scarif-air-support'],
-                        resources: 4,
-                        credits: 1
-                    }
-                });
-
-                const { context } = contextRef;
-
-                // Play Blue Leader (without using Credit tokens)
-                context.player1.clickCard(context.blueLeader);
-                context.player1.clickPrompt('Pay costs without Credit tokens');
-
-                // Confirm ability prompt
-                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-                context.player1.clickPrompt('Trigger');
-
-                // Insufficient resources available, but we should be able to use a Credit token to supplement
-                expect(context.player1.readyResourceCount).toBe(1);
-                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Blue Leader\'s effect');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Use 1 Credit',
-                    'Cancel'
-                ]);
-
-                // Use Credit tokens to pay for the ability
-                context.player1.clickPrompt('Use 1 Credit');
-                expect(context.player1.credits).toBe(0);
-                expect(context.player1.readyResourceCount).toBe(0);
-
-                // Verify Blue Leader is in ground arena with 2 experience and exhausted
-                expect(context.blueLeader).toBeInZone('groundArena');
-                expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
-                expect(context.blueLeader.exhausted).toBeTrue();
-                expect(context.getChatLogs(2)).toContain('player1 defeats 1 Credit token to pay 1 resource less for Blue Leader\'s effect');
+        it('the When Played ability can be paid for with Credit tokens', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'wedge-antilles#leader-of-red-squadron',
+                    hand: ['blue-leader#scarif-air-support'],
+                    resources: 4,
+                    credits: 1
+                }
             });
 
-            it('can be cancelled after initially choosing to use Credit tokens', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'wedge-antilles#leader-of-red-squadron',
-                        hand: ['blue-leader#scarif-air-support'],
-                        resources: 4,
-                        credits: 1
-                    }
-                });
+            const { context } = contextRef;
 
-                const { context } = contextRef;
+            // Play Blue Leader (without using Credit tokens)
+            context.player1.clickCard(context.blueLeader);
+            context.player1.clickPrompt('Pay costs without Credit tokens');
 
-                // Play Blue Leader (without using Credit tokens)
-                context.player1.clickCard(context.blueLeader);
-                context.player1.clickPrompt('Pay costs without Credit tokens');
+            // Confirm ability prompt
+            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
+            context.player1.clickPrompt('Trigger');
 
-                // Confirm ability prompt
-                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-                context.player1.clickPrompt('Trigger');
+            // Insufficient resources available, but we should be able to use a Credit token to supplement
+            expect(context.player1.readyResourceCount).toBe(1);
+            expect(context.player1).toHavePrompt('Use Credit tokens to pay for Blue Leader\'s effect');
+            expect(context.player1).toHaveExactPromptButtons([
+                'Use 1 Credit'
+            ]);
 
-                // Insufficient resources available, but we should be able to use a Credit token to supplement
-                expect(context.player1.readyResourceCount).toBe(1);
-                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Blue Leader\'s effect');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Use 1 Credit',
-                    'Cancel'
-                ]);
+            // Use Credit tokens to pay for the ability
+            context.player1.clickPrompt('Use 1 Credit');
+            expect(context.player1.credits).toBe(0);
+            expect(context.player1.readyResourceCount).toBe(0);
 
-                // Cancel using Credit tokens, which cancels the entire ability
-                context.player1.clickPrompt('Cancel');
-
-                expect(context.player1.credits).toBe(1);
-                expect(context.player1.readyResourceCount).toBe(1);
-                expect(context.blueLeader).toBeInZone('spaceArena');
-                expect(context.blueLeader).toHaveExactUpgradeNames([]);
-                expect(context.blueLeader.exhausted).toBeTrue();
-            });
+            // Verify Blue Leader is in ground arena with 2 experience and exhausted
+            expect(context.blueLeader).toBeInZone('groundArena');
+            expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
+            expect(context.blueLeader.exhausted).toBeTrue();
+            expect(context.getChatLogs(2)).toContain('player1 defeats 1 Credit token to pay 1 resource less for Blue Leader\'s effect');
         });
 
         describe('After Blue Leader has moved to the ground arena', function() {

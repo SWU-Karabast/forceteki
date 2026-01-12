@@ -68,8 +68,10 @@ export class GameEffectResourcePaymentSystem<TContext extends AbilityContext = A
                 (_) => target
             );
 
+            // TODO: In the future we may be able to handle cancellation gracefully
+            // For now though, we don't let the player back out at this point
             const costResult: ICostResult = {
-                canCancel: context.ability?.optional ?? false,
+                canCancel: false,
                 cancelled: false
             };
 
