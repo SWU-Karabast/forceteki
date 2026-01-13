@@ -272,6 +272,161 @@ describe('Dengar, Take Your Shot', function () {
                 // No further action to resolve for the second trigger since the limit is once per round
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('does not trigger if multiple units are defeated but none have the highest cost', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['turbolaser-salvo'],
+                        groundArena: ['dengar#take-your-shot'],
+                        spaceArena: ['ruthless-raider']
+                    },
+                    player2: {
+                        groundArena: [
+                            'maul#shadow-collective-visionary'
+                        ],
+                        spaceArena: [
+                            'swarming-vulture-droid',
+                            'droid-starfighter',
+                            'confederate-trifighter'
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Turbolaser Salvo to deal 4 damage to all enemy space units
+                context.player1.clickCard(context.turbolaserSalvo);
+                context.player1.clickPrompt('Space');
+                context.player1.clickCard(context.ruthlessRaider);
+
+                // All enemy space units should be defeated
+                expect(context.swarmingVultureDroid).toBeInZone('discard');
+                expect(context.droidStarfighter).toBeInZone('discard');
+                expect(context.confederateTrifighter).toBeInZone('discard');
+
+                // Dengar should NOT get a Credit token since none of the defeated units had the highest cost
+                expect(context.player1.credits).toBe(0);
+            });
+
+            it('does not trigger if an opponent takes control of Dengar and defeats him when he is the highest cost unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['dengar#take-your-shot']
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['no-glory-only-results'],
+                        groundArena: ['death-star-stormtrooper']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 2 plays No Glory, Only Results to take control of Dengar and defeat him
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.dengar);
+
+                // Neither player should since no enemy unit (with respect to Dengar) was defeated
+                expect(context.dengar).toBeInZone('discard');
+                expect(context.player2.credits).toBe(0);
+                expect(context.player1.credits).toBe(0);
+            });
+
+            it('does trigger when an opponent takes control of a unit and defeats it when it is the highest cost unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            'maul#shadow-collective-visionary',
+                            'dengar#take-your-shot'
+                        ]
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['no-glory-only-results'],
+                        groundArena: ['death-star-stormtrooper']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 2 plays No Glory, Only Results to take control of Maul and defeat him
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.maulShadowCollectiveVisionary);
+
+                // Player 1 should get a Credit token since Maul was the highest cost enemy unit when he was defeated
+                expect(context.maulShadowCollectiveVisionary).toBeInZone('discard', context.player1);
+                expect(context.player1.credits).toBe(1);
+            });
+
+            it('does not trigger when an upgrade with the highest cost among enemy cards is destroyed', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['vanquish'],
+                        groundArena: ['dengar#take-your-shot']
+                    },
+                    player2: {
+                        groundArena: [
+                            'ezra-bridger#attuned-with-life',
+                            {
+                                card: 'sabine-wren#explosives-artist',
+                                upgrades: ['the-darksaber']
+                            }
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Vanquish to defeat Sabine Wren and The Darksaber
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.sabineWren);
+
+                // Dengar should NOT get a Credit token since an upgrade was the highest cost enemy card
+                expect(context.sabineWren).toBeInZone('discard');
+                expect(context.theDarksaber).toBeInZone('discard');
+                expect(context.player1.credits).toBe(0);
+            });
+
+            it('does not trigger when a unit card in the resource row is defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            'dengar#take-your-shot',
+                            'army-of-the-dead'
+                        ]
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        base: 'kestro-city',
+                        hand: ['wrecker#boom'],
+                        resources: [
+                            'devastator#inescapable',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 2 plays Wrecker to defeat a resource and deal 5 damage to Army of the Dead
+                context.player2.clickCard(context.wreckerBoom);
+                context.player2.clickCard(context.devastatorInescapable);
+                context.player2.clickCard(context.armyOfTheDead);
+
+                // Dengar should NOT get a Credit token since no enemy unit (with respect to Dengar) was defeated
+                expect(context.devastatorInescapable).toBeInZone('discard', context.player2);
+                expect(context.armyOfTheDead.damage).toBe(5);
+                expect(context.player1.credits).toBe(0);
+            });
         });
     });
 });
