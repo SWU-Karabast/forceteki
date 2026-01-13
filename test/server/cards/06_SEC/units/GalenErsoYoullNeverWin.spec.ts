@@ -1419,6 +1419,72 @@ describe('Galen Erso - You\'ll Never Win', function() {
                     expect(context.player1).toBeActivePlayer();
                     expect(context.player2.credits).toBe(1); // Credit token was not used
                 });
+
+                it('friendly credit tokens already in play can be used to reduce resource payments', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            leader: 'luke-skywalker#faithful-friend',
+                            base: 'echo-base',
+                            credits: 3,
+                            resources: 4,
+                            hand: ['galen-erso#youll-never-win', 'resupply']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // P1 plays Galen and names Credit
+                    context.player1.clickCard(context.galenErso);
+                    context.player1.clickPrompt('Pay costs without Credit tokens');
+                    context.player1.chooseListOption('Credit');
+                    expect(context.player1.readyResourceCount).toBe(0);
+
+                    context.player2.passAction();
+
+                    // P1 plays Resupply, paying for it with Credit tokens
+                    context.player1.clickCard(context.resupply);
+                    context.player1.clickPrompt('Use 3 Credits');
+
+                    // Credits were spent to reduce the cost
+                    expect(context.player1.credits).toBe(0);
+                });
+
+                it('friendly credit tokens created afterwards can be used to reduce resource payments', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            leader: 'luke-skywalker#faithful-friend',
+                            base: 'chopper-base',
+                            resources: 5,
+                            hand: ['galen-erso#youll-never-win', 'unmarked-credits', 'jawa-scavenger']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // P1 plays Galen and names Credit
+                    context.player1.clickCard(context.galenErso);
+                    context.player1.chooseListOption('Credit');
+
+                    context.player2.passAction();
+
+                    // P1 plays Unmarked Credits to create a credit token
+                    context.player1.clickCard(context.unmarkedCredits);
+                    context.player1.clickPrompt('Play anyway'); // TODO: Remove this when it can be marked as implemented
+                    expect(context.player1.credits).toBe(1);
+                    expect(context.player1.readyResourceCount).toBe(0);
+
+                    context.player2.passAction();
+
+                    // P1 plays Jawa Scavenger, paying for it with Credit token
+                    context.player1.clickCard(context.jawaScavenger);
+                    context.player1.clickPrompt('Use 1 Credit');
+
+                    // Credit token was spent to reduce the cost
+                    expect(context.player1.credits).toBe(0);
+                    expect(context.jawaScavenger).toBeInZone('groundArena');
+                });
             });
         });
     });
