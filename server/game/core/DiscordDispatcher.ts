@@ -556,6 +556,9 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                     if (typeof part === 'string' || typeof part === 'number') {
                         return part;
                     } else if (part && typeof part === 'object' && 'name' in part) {
+                        if ('type' in part && part['type'] === 'playerChat') {
+                            return `<${part['id'] === reporter ? reporterUsername : part['id'] === opponent ? opponentUsername : part['name']}>`;
+                        }
                         return part['id'] === reporter ? reporterUsername : part['id'] === opponent ? opponentUsername : part['name'];
                     }
                     return '';
