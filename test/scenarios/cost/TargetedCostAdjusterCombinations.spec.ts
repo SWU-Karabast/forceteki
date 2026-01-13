@@ -737,6 +737,58 @@ describe('Cost adjuster combinations', function() {
             });
         });
 
+        describe('Vuutun Palaa + Starhawk + Credits:', function () {
+            it('when all adjusters are active, only the credit token should be triggered for game effect payments', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'chopper-base', // For cunning aspect
+                        credits: 2,
+                        resources: 5,
+                        hand: ['freelance-assassin'],
+                        spaceArena: [
+                            'vuutun-palaa#droid-control-ship',
+                            'the-starhawk#prototype-battleship'
+                        ],
+                        groundArena: [
+                            'imperial-dark-trooper',
+                            'oomseries-officer'
+                        ],
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Freelance Assassin
+                context.player1.clickCard(context.freelanceAssassin);
+
+                // Should trigger adjusters, but we'll pay costs normally for playing the unit
+                expect(context.player1).toHavePrompt('Choose pay mode for Freelance Assassin'); // Vuutun Palaa prompt
+                context.player1.clickPrompt('Pay cost normally');
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Freelance Assassin');
+                context.player1.clickPrompt('Pay costs without Credit tokens');
+                expect(context.player1.exhaustedResourceCount).toBe(2); // 1 resource discount from Starhawk
+
+                // When Played ability triggers
+                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to deal 2 damage to a unit');
+                context.player1.clickPrompt('Trigger');
+
+                // Credit token payment should be the only cost adjustment option
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Freelance Assassin\'s effect');
+                context.player1.clickPrompt('Pay costs without Credit tokens');
+
+                expect(context.player1).toHavePrompt('Deal 2 damage to a unit');
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // Verify damage was done and Starhawk did not discount resource payment
+                expect(context.consularSecurityForce.damage).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(4); // 2 resources to play, 2 resources for effect
+            });
+        });
+
         describe('Exploit + Vuutun Palaa + Starhawk:', function () {
             it('Vuutun Palaa and Starhawk cost adjustments should not trigger at pay time if they are exploited away', async function () {
                 await contextRef.setupTestAsync({
