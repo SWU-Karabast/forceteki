@@ -38,6 +38,17 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
             return false;
         }
 
+        // TODO: If there is ever an effect that can selectively blank Credit tokens,
+        // this class will need to account for which Credits can actually be used to
+        // adjust costs. For now, it's all or nothing.
+        const creditsAreBlanked = this.sourcePlayer.baseZone.credits.every((credit) =>
+            credit.isBlank()
+        );
+
+        if (creditsAreBlanked) {
+            return false;
+        }
+
         return super.canAdjust(card, context, evaluationResult);
     }
 
