@@ -129,6 +129,42 @@ const mockCards = [
         arena: 'ground',
         internalName: 'hera-syndulla#not-fighting-alone',
     }),
+    buildMockCard({
+        title: 'Fulcrum',
+        power: 2,
+        hp: 2,
+        upgradePower: 2,
+        upgradeHp: 2,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['upgrade'],
+        traits: ['rebel'],
+        setId: {
+            set: 'LAW',
+            number: 150,
+        },
+        unique: true,
+        internalName: 'fulcrum',
+    }),
+    buildMockCard({
+        title: 'Phantom',
+        subtitle: 'Spectre Shuttle',
+        power: 2,
+        hp: 2,
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'vehicle', 'transport', 'spectre'],
+        setId: {
+            set: 'LAW',
+            number: 144,
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'phantom#spectre-shuttle',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
