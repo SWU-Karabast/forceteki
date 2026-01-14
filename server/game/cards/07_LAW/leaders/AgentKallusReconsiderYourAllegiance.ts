@@ -4,7 +4,7 @@ import type {
     ILeaderUnitLeaderSideAbilityRegistrar
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { Aspect, WildcardCardType } from '../../../core/Constants';
+import { Aspect, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class AgentKallusReconsiderYourAllegiance extends LeaderUnitCard {
@@ -15,25 +15,33 @@ export default class AgentKallusReconsiderYourAllegiance extends LeaderUnitCard 
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Play a card from your hand, ignoring its aspect penalties',
-            cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
-            immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                playAsType: WildcardCardType.Any,
-                adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
-            })
+            cost: [abilityHelper.costs.abilityActivationResourceCost(1), abilityHelper.costs.exhaustSelf()],
+            targetResolver: {
+                zoneFilter: ZoneName.Hand,
+                controller: RelativePlayer.Self,
+                immediateEffect: abilityHelper.immediateEffects.playCardFromHand({
+                    playAsType: WildcardCardType.Any,
+                    adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
+                })
+            }
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Play a card from your hand, ignoring its aspect penalties',
-            cost: [AbilityHelper.costs.abilityActivationResourceCost(1)],
-            immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                playAsType: WildcardCardType.Any,
-                adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
-            })
+            cost: [abilityHelper.costs.abilityActivationResourceCost(1)],
+            targetResolver: {
+                zoneFilter: ZoneName.Hand,
+                controller: RelativePlayer.Self,
+                immediateEffect: abilityHelper.immediateEffects.playCardFromHand({
+                    playAsType: WildcardCardType.Any,
+                    adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
+                })
+            }
         });
 
         registrar.addTriggeredAbility({
@@ -41,7 +49,7 @@ export default class AgentKallusReconsiderYourAllegiance extends LeaderUnitCard 
             when: {
                 onCardPlayed: (event, context) => event.card.hasSomeAspect(Aspect.Heroism) && event.player === context.player,
             },
-            immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
+            immediateEffect: abilityHelper.immediateEffects.heal((context) => ({
                 amount: 2,
                 target: context.player.base,
             }))
