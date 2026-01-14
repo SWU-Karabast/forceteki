@@ -303,12 +303,12 @@ class Game extends EventEmitter {
             winnerNames: [],
             lastGameEventId: 0,
             currentPhase: null,
-            prevActionPhasePlayerPassed: null
+            prevActionPhasePlayerPassed: null,
+            movedCards: []
         };
 
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
-        this.movedCards = [];
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
         this.allNonLeaderCardTitles = this.cardDataGetter.allNonLeaderCardTitles;
@@ -1716,7 +1716,7 @@ class Game extends EventEmitter {
     checkUniqueRule() {
         const checkedCards = new Array();
 
-        for (const movedCard of this.movedCards) {
+        for (const movedCard of this.state.movedCards.map((ref) => this.getFromRef(ref))) {
             if (EnumHelpers.isArena(movedCard.zoneName) && movedCard.unique) {
                 const existingCard = checkedCards.find((otherCard) =>
                     otherCard.title === movedCard.title &&
@@ -1724,7 +1724,7 @@ class Game extends EventEmitter {
                     otherCard.controller === movedCard.controller
                 );
 
-                if (!existingCard) {
+                if (!existingCard && movedCard.canBeInPlay()) {
                     checkedCards.push(movedCard);
                     movedCard.checkUnique();
                 }
@@ -1734,10 +1734,10 @@ class Game extends EventEmitter {
 
     resolveGameState(hasChanged = false, events = []) {
         // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
-        for (const movedCard of this.movedCards) {
+        for (const movedCard of this.state.movedCards.map((ref) => this.getFromRef(ref))) {
             movedCard.resolveAbilitiesForNewZone();
         }
-        this.movedCards = [];
+        this.state.movedCards = [];
 
         if (events.length > 0) {
             // check for any delayed effects which need to fire
@@ -1836,7 +1836,7 @@ class Game extends EventEmitter {
      * @param {Card} card
      */
     registerMovedCard(card) {
-        this.movedCards.push(card);
+        this.state.movedCards.push(card.getRef());
     }
 
     /**
