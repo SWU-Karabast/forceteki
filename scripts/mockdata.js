@@ -216,6 +216,24 @@ const mockCards = [
         unique: false,
         internalName: 'putting-a-team-together',
     }),
+    buildMockCard({
+        title: 'Baze Malbus',
+        subtitle: 'Good Luck',
+        power: 6,
+        hp: 8,
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel'],
+        setId: {
+            set: 'LAW',
+            number: 47,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'baze-malbus#good-luck',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
