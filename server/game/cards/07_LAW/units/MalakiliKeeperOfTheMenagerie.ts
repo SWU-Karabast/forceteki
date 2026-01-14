@@ -18,8 +18,11 @@ export default class MalakiliKeeperOfTheMenagerie extends NonLeaderUnitCard {
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             matchTarget: (card, context) =>
-                card.owner === context.player &&
-                card.hasSomeTrait(Trait.Creature),
+                card.canBeInPlay() && card.hasSomeTrait(Trait.Creature) &&
+                (
+                    (card.isInPlay() && card.controller === context.player) ||
+                    (!card.isInPlay() && card.owner === context.player)
+                ),
             ongoingEffect: AbilityHelper.ongoingEffects.gainTrait(Trait.Underworld),
         });
     }
