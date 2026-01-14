@@ -5,7 +5,7 @@ describe('C-3PO, Translation Protocol', function () {
                 phase: 'action',
                 player1: {
                     leader: 'leia-organa#alliance-general',
-                    groundArena: ['c3po#translation-protocol', 'wampa', 'populist-advisor', 'mythosaur#folklore-awakened'],
+                    groundArena: ['c3po#translation-protocol', { card: 'wampa', upgrades: ['fulcrum'] }, 'populist-advisor', 'mythosaur#folklore-awakened', 'atst'],
                     spaceArena: ['green-squadron-awing']
                 },
                 player2: {
@@ -19,7 +19,7 @@ describe('C-3PO, Translation Protocol', function () {
             context.player1.clickCard(context.c3po);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player1).toBeAbleToSelectExactly([context.populistAdvisor, context.greenSquadronAwing, context.mythosaur, context.battlefieldMarine]);
+            expect(context.player1).toBeAbleToSelectExactly([context.populistAdvisor, context.greenSquadronAwing, context.mythosaur, context.wampa, context.battlefieldMarine]);
             expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.greenSquadronAwing);
 
