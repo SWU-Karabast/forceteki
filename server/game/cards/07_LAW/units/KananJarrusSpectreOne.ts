@@ -17,12 +17,12 @@ export default class KananJarrusSpectreOne extends NonLeaderUnitCard {
             title: `Return a non-leader unit that costs 2 or less to it's owner's hand. If you control a ${aspectString([Aspect.Command, Aspect.Aggression], Conjunction.Or)} unit, return a non-leader unit that costs 4 or less instead`,
             optional: true,
             targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
+                cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 cardCondition: (card, context) => {
                     const cost = context.player.isAspectInPlay([Aspect.Command, Aspect.Aggression]) ? 4 : 2;
                     return card.isUnit() && card.cost <= cost;
                 },
-                activePromptTitle: (context) => `Heal ${context.player.isAspectInPlay([Aspect.Command, Aspect.Aggression]) ? 4 : 2} damage to a unit`,
+                activePromptTitle: 'Return a non-leader unit to its owner\'s hand',
                 immediateEffect: abilityHelper.immediateEffects.returnToHand(),
             }
         });
