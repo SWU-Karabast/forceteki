@@ -43,18 +43,16 @@ describe('Baze Malbus, Good Luck', function () {
 
             context.player1.clickCard(context.grogu);
             context.player1.clickPrompt('Heal up to 2 damage from a unit. If you do, deal that much damage to a unit');
-            context.player1.clickCard(context.bazeMalbus);
 
-            expect(context.player1).toBeAbleToSelectExactly([context.bazeMalbus, context.greenSquadronAwing, context.wampa]);
-            expect(context.player1).toHavePassAbilityButton();
+            context.player1.setDistributeHealingPromptState(new Map([[context.bazeMalbus, 2]]));
             context.player1.clickCard(context.wampa);
 
-            expect(context.player1).toBeAbleToSelectExactly([context.bazeMalbus, context.greenSquadronAwing, context.wampa]);
+            expect(context.player1).toBeAbleToSelectExactly([context.bazeMalbus, context.greenSquadronAwing, context.wampa, context.grogu]);
             expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.bazeMalbus.damage).toBe(1);
+            expect(context.bazeMalbus.damage).toBe(3);
             expect(context.wampa.damage).toBe(4);
         });
 
