@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class BazeMalbusGoodLuck extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'baze-malbus#good-luck-id',
+            id: '9992505137',
             internalName: 'baze-malbus#good-luck'
         };
     }
