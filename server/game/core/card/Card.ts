@@ -14,8 +14,8 @@ import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
-import { ChatObjectType, KeywordName } from '../Constants';
-import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
+import { ChatObjectType, KeywordName, WildcardRelativePlayer } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Helpers from '../utils/Helpers';
 import type { AbilityContext } from '../ability/AbilityContext';
@@ -1246,6 +1246,27 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         );
     }
 
+    /**
+     * Returns true if this card is the top card of the controller's deck and should be shown to the active player
+     * @param {Player} activePlayer - The player to check visibility for
+     * @returns {boolean} true if this card is the top card and is shown to the active player
+     */
+    public isThisTopCardAndShown(activePlayer: Player): boolean {
+        if (!this.isPlayable()) {
+            return false;
+        }
+
+        // Check if this card is the top card of the controller's deck
+        const topCard = this.controller.getTopCardOfDeck();
+
+        if (topCard !== this) {
+            return false;
+        }
+
+        // Check if the top card is shown to the active player
+        return this.controller.isTopCardShown(activePlayer);
+    }
+
     /** @deprecated Copied from L5R, not yet updated for SWU rules */
     public anotherUniqueInPlay(player) {
         return (
@@ -1352,37 +1373,39 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     public getSummary(activePlayer: Player): any {
         const isActivePlayer = activePlayer === this.controller;
         const selectionState = activePlayer.getCardSelectionState(this);
+        const shouldBeHidden = this.zone.hiddenForPlayers === WildcardRelativePlayer.Any ||
+          (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent);
+        const overrideHidden = this.isThisTopCardAndShown(activePlayer);
 
-        // If it is not the active player and in opposing hand or deck - return facedown card
-        if (this.zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent)) {
+        if (overrideHidden || !shouldBeHidden) {
             const state = {
+                id: this.cardData.id,
+                setId: this.setId,
                 controllerId: this.controller.id,
                 ownerId: this.owner.id,
+                aspects: this.aspects,
                 zone: this.zoneName,
-                uuid: isActivePlayer ? this.uuid : undefined
+                name: this.cardData.title,
+                power: this.cardData.power,
+                hp: this.cardData.hp,
+                unimplemented: !this.isImplemented || undefined,    // don't bother sending "unimplemented: false" to the client
+                type: this.type,
+                uuid: this.uuid,
+                printedType: this.printedType,
+                isBlanked: this.isBlank(),
+                ...selectionState
             };
-            return { ...state, ...selectionState };
+
+            return state;
         }
 
         const state = {
-            id: this.cardData.id,
-            setId: this.setId,
             controllerId: this.controller.id,
             ownerId: this.owner.id,
-            aspects: this.aspects,
             zone: this.zoneName,
-            name: this.cardData.title,
-            power: this.cardData.power,
-            hp: this.cardData.hp,
-            unimplemented: !this.isImplemented || undefined,    // don't bother sending "unimplemented: false" to the client
-            type: this.type,
-            uuid: this.uuid,
-            printedType: this.printedType,
-            isBlanked: this.isBlank(),
-            ...selectionState
+            uuid: isActivePlayer ? this.uuid : undefined
         };
-
-        return state;
+        return { ...state, ...selectionState };
     }
 
     public getCardState(): any {

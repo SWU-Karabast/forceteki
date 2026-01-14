@@ -609,7 +609,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard | null} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard | null} the Card, or null if the deck is empty
      */
     public getTopCardOfDeck(): IPlayableCard | null {
         if (this.drawDeck.length > 0) {
@@ -622,7 +622,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     /**
      * Returns ths top cards of the player's deck
      * @param {number} numCard
-     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard[]} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard[]} the Card, or null if the deck is empty
      */
     public getTopCardsOfDeck(numCard: number): IPlayableCard[] {
         Contract.assertPositiveNonZero(numCard);
@@ -1156,21 +1156,6 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         );
     }
 
-    // eventsCannotBeCancelled() {
-    //     return this.hasOngoingEffect(EffectName.EventsCannotBeCancelled);
-    // }
-
-    // // TODO STATE SAVE: what stats are we interested in?
-    // getStats() {
-    //     return {
-    //         fate: this.fate,
-    //         honor: this.getTotalHonor(),
-    //         conflictsRemaining: this.getConflictOpportunities(),
-    //         militaryRemaining: this.getRemainingConflictOpportunitiesForType(ConflictTypes.Military),
-    //         politicalRemaining: this.getRemainingConflictOpportunitiesForType(ConflictTypes.Political)
-    //     };
-    // }
-
     public override getShortSummary() {
         return {
             ...super.getShortSummary(),
@@ -1226,16 +1211,13 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
+            topCardOfDeck: undefined
         };
 
-        // if (this.showDeck) {
-        //     state.showDeck = true;
-        //     state.cardPiles.deck = this.getSummaryForZone(this.deck, activePlayer);
-        // }
-
-        // if (this.role) {
-        //     state.role = this.role.getSummary(activePlayer);
-        // }
+        if (this.isTopCardShown(activePlayer)) {
+            const topCard = activePlayer.getTopCardOfDeck();
+            summary.topCardOfDeck = topCard.getSummary(activePlayer);
+        }
 
         return summary;
     }
