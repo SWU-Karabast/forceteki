@@ -127,7 +127,7 @@ describe('Agent Kallus, Reconsider Your Allegiance', function() {
                 expect(context.p1Base.damage).toBe(6);
             });
 
-            it('must heal 2 damage from our base when we do not play a Heroism unit', function () {
+            it('should not heal 2 damage from our base when we do not play a Heroism unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.awing);
