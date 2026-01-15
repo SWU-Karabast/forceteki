@@ -19,6 +19,7 @@ describe('Phantom, Spectre Shuttle', function() {
                 // cannot select wampa
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wingLeader]);
                 expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
@@ -28,6 +29,34 @@ describe('Phantom, Spectre Shuttle', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(4);
             });
 
+            it('should not give experience token if we choose to pass ability (with pass button)', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.phantom);
+                // cannot select wampa
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wingLeader]);
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
+
+                context.player1.clickPrompt('Pass');
+                expect(context.player2).toBeActivePlayer();
+                expect(context.phantom).toHaveExactUpgradeNames([]);
+            });
+
+            it('should not give experience token if we choose to pass ability (with choose nothing button)', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.phantom);
+                // cannot select wampa
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wingLeader]);
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
+
+                context.player1.clickPrompt('Choose nothing');
+                expect(context.player2).toBeActivePlayer();
+                expect(context.phantom).toHaveExactUpgradeNames([]);
+            });
+
             it('should allow playing a Heroism unit from hand and give it an Experience token (when played should occur after the experience token)', function () {
                 const { context } = contextRef;
 
@@ -35,6 +64,7 @@ describe('Phantom, Spectre Shuttle', function() {
                 // cannot select wampa
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wingLeader]);
                 expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.wingLeader);
                 expect(context.wingLeader).toBeInZone('spaceArena');
@@ -59,6 +89,7 @@ describe('Phantom, Spectre Shuttle', function() {
 
             context.player1.clickCard(context.phantom);
             expect(context.player2).toBeActivePlayer();
+            expect(context.phantom).toHaveExactUpgradeNames([]);
         });
 
         it('should not trigger if no cards in hand', async function () {
@@ -72,6 +103,7 @@ describe('Phantom, Spectre Shuttle', function() {
 
             context.player1.clickCard(context.phantom);
             expect(context.player2).toBeActivePlayer();
+            expect(context.phantom).toHaveExactUpgradeNames([]);
         });
     });
 });
