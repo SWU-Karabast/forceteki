@@ -22,23 +22,31 @@ export class SimpleActionTimer {
 
     protected timers: NodeJS.Timeout[] = [];
     protected endTime: Date | null = null;
+    protected pauseTime: Date | null = null;
     protected _timeRemainingStatus: PlayerTimeRemainingStatus = PlayerTimeRemainingStatus.NoAlert;
     protected onSpecificTimeHandlers: ISpecificTimeHandler[] = [];
     protected timerOverrideValueSeconds: number | null = null;
 
+    public get isPaused(): boolean {
+        return this.endTime !== null && this.pauseTime !== null;
+    }
+
     public get isRunning(): boolean {
         return (
             this.endTime !== null &&
+            this.pauseTime === null &&
             Date.now() < this.endTime.getTime()
         );
     }
 
     public get timeRemainingSeconds(): number | null {
-        if (!this.isRunning || this.endTime === null) {
+        if (this.endTime === null) {
             return null;
         }
-        const remainingMs = this.endTime.getTime() - Date.now();
-        return Math.max(0, Math.ceil(remainingMs / 1000));
+        // If paused, calculate remaining time from when we paused
+        const referenceTime = this.pauseTime ?? new Date();
+        const remainingMs = this.endTime.getTime() - referenceTime.getTime();
+        return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : null;
     }
 
     public get timeRemainingStatus(): PlayerTimeRemainingStatus {
@@ -101,8 +109,41 @@ export class SimpleActionTimer {
 
         this.timers = [];
         this.endTime = null;
+        this.pauseTime = null;
 
         this.onStop();
+    }
+
+    /**
+     * Pauses the timer, preserving remaining time.
+     */
+    public pause(): void {
+        if (!this.isRunning) {
+            return;
+        }
+
+        this.pauseTime = new Date();
+        this.clearTimers();
+    }
+
+    /**
+     * Resumes the timer from where it was paused.
+     */
+    public resume(): void {
+        if (!this.isPaused || this.endTime === null || this.pauseTime === null) {
+            return;
+        }
+
+        const timeRemainingMs = this.endTime.getTime() - this.pauseTime.getTime();
+        if (timeRemainingMs <= 0) {
+            this.stop();
+            return;
+        }
+
+        // Clear pause state and reinitialize with remaining time
+        this.endTime = null;
+        this.pauseTime = null;
+        this.initializeTimersForTimeRemaining(timeRemainingMs);
     }
 
     /**
@@ -144,6 +185,7 @@ export class SimpleActionTimer {
         Contract.assertTrue(this.timers.length === 0, 'Timers must be cleared before initializing new timers');
 
         this.endTime = new Date(Date.now() + timeRemainingMs);
+        this.pauseTime = null;
 
         const safeCallHandler = (handler: IActionTimerHandler) => {
             if (!this.shouldFireHandler()) {

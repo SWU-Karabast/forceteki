@@ -16,7 +16,7 @@ export interface IByoyomiTimer extends IActionTimer {
     get turnTimeRemainingSeconds(): number | null;
 
     /**
-     * Seconds remaining on the main timer.
+     * Seconds remaining on the main timer. Always has a value.
      */
-    get mainTimeRemainingSeconds(): number | null;
+    get mainTimeRemainingSeconds(): number;
 }

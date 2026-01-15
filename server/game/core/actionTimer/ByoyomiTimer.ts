@@ -9,7 +9,7 @@ import type { IByoyomiTimer } from './IByoyomiTimer';
  * - Turn timer: Short timer (default 20s) that resets on each new prompt
  * - Main timer: Buffer time (default 150s) that starts ticking when turn timer expires
  *
- * When the turn timer expires, the main timer becomes active.
+ * When the turn timer expires, the main timer becomes active (starts or resumes).
  * When the main timer expires, the onTimeout callback is invoked.
  */
 export class ByoyomiTimer implements IByoyomiTimer {
@@ -24,7 +24,10 @@ export class ByoyomiTimer implements IByoyomiTimer {
     private readonly onTimeout: () => void;
     private readonly sendUpdatedGameState: () => void;
 
-    /** Tracks whether we've transitioned from turn timer to main timer */
+    /** Tracks whether the main timer has ever been started */
+    private mainTimerHasStarted = false;
+
+    /** Tracks whether we're currently on the main timer (vs turn timer) */
     private isOnMainTimer = false;
 
     public get isRunning(): boolean {
@@ -41,8 +44,9 @@ export class ByoyomiTimer implements IByoyomiTimer {
         return this.isOnMainTimer ? null : this.turnTimer.timeRemainingSeconds;
     }
 
-    public get mainTimeRemainingSeconds(): number | null {
-        return this.mainTimer.timeRemainingSeconds;
+    public get mainTimeRemainingSeconds(): number {
+        // Main timer always has a value - either running/paused time or full time if not yet started
+        return this.mainTimer.timeRemainingSeconds ?? ByoyomiTimer.MainTimeLimitSeconds;
     }
 
     public constructor(
@@ -72,62 +76,69 @@ export class ByoyomiTimer implements IByoyomiTimer {
             () => this.onMainTimerExpired(),
             checkLiveStatus
         );
+
+        // Initialize main timer at full time but paused
+        // so mainTimeRemainingSeconds always has a value
+        this.mainTimer.start();
+        this.mainTimer.pause();
     }
 
     /**
      * Starts the timer. Always starts with the turn timer.
-     * Main timer state is preserved - if the player has used up main time,
-     * the turn timer will transition back to the main timer when it expires.
+     * If main timer was previously running, it will be paused and resumed
+     * when the turn timer expires again.
      */
     public start(): void {
-        // Always start with the turn timer
-        this.mainTimer.stop();
+        // Pause main timer if it's running (preserve remaining time)
+        if (this.mainTimer.isRunning) {
+            this.mainTimer.pause();
+        }
         this.isOnMainTimer = false;
         this.turnTimer.start();
     }
 
     /**
      * Restarts the timer if it's currently running.
-     * Resets back to turn timer, preserving main timer's elapsed time.
+     * Resets back to turn timer, pausing main timer to preserve its elapsed time.
      */
     public restartIfRunning(): void {
         if (!this.isRunning) {
             return;
         }
 
-        // Always restart with turn timer, preserving main timer state
-        this.mainTimer.stop();
+        // Pause main timer if it's running (preserve remaining time)
+        if (this.mainTimer.isRunning) {
+            this.mainTimer.pause();
+        }
         this.isOnMainTimer = false;
         this.turnTimer.start();
     }
 
     /**
-     * Stops both timers.
+     * Stops the turn timer and pauses the main timer (preserving its remaining time).
      */
     public stop(): void {
         this.turnTimer.stop();
-        this.mainTimer.stop();
-        // Note: We intentionally don't reset isOnMainTimer here
-        // so that the main timer state is preserved across prompts
-    }
-
-    /**
-     * Resets both timers to initial state.
-     * Call this at the start of a new game or when player state should fully reset.
-     */
-    public reset(): void {
-        this.turnTimer.stop();
-        this.mainTimer.stop();
-        this.isOnMainTimer = false;
+        // Pause main timer instead of stopping to preserve remaining time
+        if (this.mainTimer.isRunning) {
+            this.mainTimer.pause();
+        }
     }
 
     /**
      * Called when the turn timer expires.
-     * Transitions to the main timer.
+     * Transitions to the main timer (starts or resumes it).
      */
     private onTurnTimerExpired(): void {
         this.isOnMainTimer = true;
-        this.mainTimer.start();
+
+        // Resume main timer if it was paused, otherwise start it fresh
+        if (this.mainTimer.isPaused) {
+            this.mainTimer.resume();
+        } else if (!this.mainTimerHasStarted) {
+            this.mainTimerHasStarted = true;
+            this.mainTimer.start();
+        }
 
         // Notify the game to push updated state to players
         // so the FE knows we've transitioned to main timer

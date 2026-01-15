@@ -781,11 +781,14 @@ class Game extends EventEmitter {
         this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
     }
 
-    onPlayerAction(playerId) {
+    onPlayerAction(playerId, resetTimer = true) {
         const player = this.getPlayerById(playerId);
 
         player.incrementActionId();
-        player.actionTimer.restartIfRunning();
+
+        if (resetTimer) {
+            player.actionTimer.restartIfRunning();
+        }
     }
 
     /** @param {Player} player */

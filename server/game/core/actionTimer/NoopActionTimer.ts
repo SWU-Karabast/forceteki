@@ -21,7 +21,7 @@ export class NoopActionTimer implements IByoyomiTimer {
     }
 
 
-    public get mainTimeRemainingSeconds(): number | null {
+    public get mainTimeRemainingSeconds(): number {
         // Return full main timer when disabled (no pressure on player)
         return ByoyomiTimer.MainTimeLimitSeconds;
     }
