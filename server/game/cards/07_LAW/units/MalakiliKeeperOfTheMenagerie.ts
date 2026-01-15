@@ -13,7 +13,7 @@ export default class MalakiliKeeperOfTheMenagerie extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each friendly creature unit and each creature unit you own that isn\'t in play gains the Underworld trait',
+            title: 'Each friendly Creature unit and each Creature unit you own that isn\'t in play gains the Underworld trait',
             targetZoneFilter: WildcardZoneName.Any,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,

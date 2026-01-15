@@ -58,10 +58,23 @@ describe('Malakili, Keeper of the Menagerie\'s constant ability', function () {
                 expect(context.battlefieldMarine.damage).toBe(1);
             });
 
-            // TODO: Implement this test when LAW Jabba the Hutt leader is implemented
-            // it('have the Underworld trait when targeted for play card effects', async function () {
-            //     // Jabba's unit side action ability should be able to target Creature units when Malakili is in play
-            // });
+            it('have the Underworld trait when targeted for play card effects (Now There Are Two of Them)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['now-there-are-two-of-them', 'krayt-dragon'],
+                        groundArena: ['malakili#keeper-of-the-menagerie']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 plays Now There Are Two of Them, targeting Krayt Dragon in hand because it shares the Underworld trait with Malakili
+                context.player1.clickCard(context.nowThereAreTwoOfThem);
+                context.player1.clickCard(context.kraytDragon);
+
+                expect(context.kraytDragon).toBeInZone('groundArena', context.player1);
+            });
         });
 
         describe('Friendly Creature units in the discard pile', function () {
@@ -142,8 +155,36 @@ describe('Malakili, Keeper of the Menagerie\'s constant ability', function () {
                 context.player1.clickCard(context.p2Base);
             });
 
-            // TODO: If we ever have a deck search effect that searches for Underworld cards, implement a test for that here
+            it('has the Underworld trait for the purposes of deck search effects (Psychometry)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['psychometry'],
+                        groundArena: ['malakili#keeper-of-the-menagerie'],
+                        deck: ['atst', 'nightsister-warrior', 'krayt-dragon'],
+                        discard: ['ma-klounkee']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 plays Psychometry, choosing Ma Klounkee from discard
+                context.player1.clickCard(context.psychometry);
+                context.player1.clickCard(context.maKlounkee);
+
+                // Now we search the deck for an Underworld card
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.kraytDragon],
+                    invalid: [context.atst, context.nightsisterWarrior]
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.kraytDragon);
+
+                expect(context.getChatLogs(2)).toContain('player1 takes Krayt Dragon');
+                expect(context.kraytDragon).toBeInZone('hand', context.player1);
+            });
         });
+
+        // TODO: If there are ever any effects that care about traits in the resource zone, add tests for that too
 
         describe('Enemy Creature units', function () {
             it('do not have the Underworld trait unless they change control and become friendly', async function () {
