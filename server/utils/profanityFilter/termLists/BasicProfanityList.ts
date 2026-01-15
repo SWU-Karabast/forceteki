@@ -40,6 +40,7 @@ type EnglishProfaneWord =
   | 'fellatio'
   | 'finger bang'
   | 'fisting'
+  | 'foreskin'
   | 'fuck'
   | 'gangbang'
   | 'handjob'
@@ -458,4 +459,11 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
         phrase
             .setMetadata({ originalWord: 'tedbundy' })
             .addPattern(pattern`ted[ ]bundy`)
+    )
+    .addPhrase((phrase) =>
+        phrase
+            .setMetadata({ originalWord: 'foreskin' })
+            .addPattern(pattern`for[e]skin`)
+            .addPattern(pattern`|for[e][ ]skin|`)
+            .addPattern(pattern`4skin`)
     );
