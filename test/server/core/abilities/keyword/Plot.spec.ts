@@ -45,6 +45,7 @@ describe('Plot keyword', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.pykeSentinel).toBeInZone('resource');
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(2)).toContain('player1 plays Sneaking Suspicion from their resource row, attaching it to Cal Kestis');
             });
 
             it('a Plot unit may be played from resources', async function () {

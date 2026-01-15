@@ -15,6 +15,7 @@ function createEnvFile() {
         // set this to "true" to enable the use of local DynamoDB for account testing
         USE_LOCAL_DYNAMODB: 'false',
         DISCORD_BUG_REPORT_WEBHOOK_URL: '',
+        DISCORD_PLAYER_REPORT_WEBHOOK_URL: '',
         DISCORD_ERROR_REPORT_WEBHOOK_URL: '',
         SWUSTATS_API_KEY: '',
         FORCE_ENABLE_STATS_LOGGING: 'false',

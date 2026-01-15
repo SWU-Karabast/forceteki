@@ -70,6 +70,7 @@ describe('A Fine Addition', function () {
 
             expect(context.battlefieldMarine).toHaveExactUpgradeNames([context.jediLightsaber.internalName]);
             expect(context.player1.exhaustedResourceCount).toBe(3); // no aspect penalty applied
+            expect(context.getChatLog()).toEqual('player1 plays Jedi Lightsaber from player2\'s discard pile, attaching it to Battlefield Marine');
 
             context.player2.clickCard(context.finnThisIsARescue);
             context.player2.clickCard(context.p1Base);
@@ -95,6 +96,7 @@ describe('A Fine Addition', function () {
 
             expect(context.battlefieldMarine).toHaveExactUpgradeNames([context.jediLightsaber.internalName, context.lukesLightsaber.internalName]);
             expect(context.player1.exhaustedResourceCount).toBe(5); // +2 for lukes lightsaber
+            expect(context.getChatLog()).toEqual('player1 plays Luke\'s Lightsaber from their discard pile, attaching it to Battlefield Marine');
 
             context.player2.passAction();
 
@@ -145,6 +147,7 @@ describe('A Fine Addition', function () {
 
             expect(context.player1.exhaustedResourceCount).toBe(6);
             expect(context.player2).toBeActivePlayer();
+            expect(context.getChatLog()).toEqual('player1 plays Dagger Squadron Pilot with Piloting, attaching it to Cartel Turncoat');
         });
 
         it('A Fine Addition\'s ability should play a pilot as an upgrade from your discard, ignoring aspect penalty, if an enemy was defeated this phase', async function () {
