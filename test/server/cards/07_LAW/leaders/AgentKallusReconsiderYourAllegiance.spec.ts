@@ -17,7 +17,7 @@ describe('Agent Kallus, Reconsider Your Allegiance', function() {
 
                 context.player1.clickCard(context.agentKallus);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.awing, context.resupply, context.suddenFerocity]);
-                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.battlefieldMarine);
 
                 expect(context.player2).toBeActivePlayer();
@@ -44,7 +44,7 @@ describe('Agent Kallus, Reconsider Your Allegiance', function() {
                 context.player1.clickCard(context.agentKallus);
                 context.player1.clickPrompt('Play a card from your hand, ignoring its aspect penalties');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.awing, context.resupply, context.suddenFerocity]);
-                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.awing);
 
                 expect(context.player2).toBeActivePlayer();
