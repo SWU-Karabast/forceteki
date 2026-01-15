@@ -11,13 +11,9 @@ export enum PlayerTimeRemainingStatus {
 export type IActionTimerHandler = (updateTimerStatus?: (newStatus: PlayerTimeRemainingStatus) => void) => void;
 
 export interface IActionTimer {
-    get isPaused(): boolean;
     get isRunning(): boolean;
-    get timeRemainingStatus(): PlayerTimeRemainingStatus;
-    addSpecificTimeHandler(timeSeconds: number, handler: IActionTimerHandler): void;
+    get timeRemainingSeconds(): number | null;
     start(overrideTimeLimitSeconds?: number): void;
     restartIfRunning(): void;
-    pause(): void;
-    resume(): void;
     stop(): void;
 }

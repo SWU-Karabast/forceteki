@@ -941,6 +941,16 @@ class Game extends EventEmitter {
     }
 
     /**
+     * Sends updated game state to all players.
+     * Used by action timers to push state updates when timer state changes.
+     */
+    sendUpdatedGameStateToPlayers() {
+        if (typeof this._router?.sendGameState === 'function') {
+            this._router.sendGameState(this);
+        }
+    }
+
+    /**
      * Changes a Player variable and displays a message in chat
      * @param {String} playerId
      * @param {String} stat

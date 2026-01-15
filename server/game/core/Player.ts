@@ -8,7 +8,6 @@ import { PlayerPromptState } from './PlayerPromptState.js';
 import * as Contract from './utils/Contract';
 import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
 import {
-    AlertType,
     ChatObjectType,
     EffectName,
     GameEndReason,
@@ -45,10 +44,9 @@ import type { GameObjectRef } from './GameObjectBase';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
 import { logger } from '../../logger';
-import { GameActionTimer } from './actionTimer/GameActionTimer';
+import { ByoyomiTimer } from './actionTimer/ByoyomiTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
-import type { IActionTimer } from './actionTimer/IActionTimer';
-import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
+import type { IByoyomiTimer } from './actionTimer/IByoyomiTimer';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
@@ -81,7 +79,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     private canTakeActionsThisPhase: null;
     // STATE TODO: Does Deck need to be a GameObject?
     private decklistNames: Deck | null;
-    public readonly actionTimer: IActionTimer;
+    public readonly actionTimer: IByoyomiTimer;
 
     public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
     public hasResolvedAbilityThisTimepoint = false;
@@ -201,23 +199,13 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         this.left = false;
 
         if (useTimer) {
-            this.actionTimer = new GameActionTimer(
-                60,
+            this.actionTimer = new ByoyomiTimer(
                 this,
                 this.game,
                 () => this.game.onActionTimerExpired(this),
-                (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId)
+                (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId),
+                () => this.game.sendUpdatedGameStateToPlayers()
             );
-            this.actionTimer.addSpecificTimeHandler(20,
-                (updateTimerStatusHandler) => {
-                    updateTimerStatusHandler(PlayerTimeRemainingStatus.Warning);
-                    this.game.addAlert(AlertType.Warning, '{0} has 20 seconds remaining to take an action before being kicked for inactivity', this);
-                });
-            this.actionTimer.addSpecificTimeHandler(10,
-                (updateTimerStatusHandler) => {
-                    updateTimerStatusHandler(PlayerTimeRemainingStatus.Danger);
-                    this.game.addAlert(AlertType.Danger, '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this);
-                });
         } else {
             this.actionTimer = new NoopActionTimer();
         }
@@ -1223,7 +1211,8 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             aspects: this.getAspects(),
             hasForceToken: this.hasTheForce,
             credits: this.creditTokenCount,
-            timeRemainingStatus: this.actionTimer.timeRemainingStatus,
+            turnTimeRemainingSeconds: this.actionTimer.turnTimeRemainingSeconds,
+            mainTimeRemainingSeconds: this.actionTimer.mainTimeRemainingSeconds,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
         };

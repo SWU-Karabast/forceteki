@@ -1,24 +1,29 @@
-import type { IActionTimer } from './IActionTimer';
-import { PlayerTimeRemainingStatus } from './IActionTimer';
+import { ByoyomiTimer } from './ByoyomiTimer';
+import type { IByoyomiTimer } from './IByoyomiTimer';
 
-export class NoopActionTimer implements IActionTimer {
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public get isPaused(): boolean {
-        return false;
-    }
-
+/**
+ * No-op implementation of IByoyomiTimer for when timers are disabled.
+ */
+export class NoopActionTimer implements IByoyomiTimer {
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public get isRunning(): boolean {
         return false;
     }
 
-
-    public get timeRemainingStatus(): PlayerTimeRemainingStatus {
-        return PlayerTimeRemainingStatus.NoAlert;
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public get timeRemainingSeconds(): number | null {
+        return null;
     }
 
-    public addSpecificTimeHandler(_timeSeconds: number, _handler: () => void) {
-        return;
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public get turnTimeRemainingSeconds(): number | null {
+        return null;
+    }
+
+
+    public get mainTimeRemainingSeconds(): number | null {
+        // Return full main timer when disabled (no pressure on player)
+        return ByoyomiTimer.MainTimeLimitSeconds;
     }
 
     public start() {
@@ -26,14 +31,6 @@ export class NoopActionTimer implements IActionTimer {
     }
 
     public restartIfRunning() {
-        return;
-    }
-
-    public pause() {
-        return;
-    }
-
-    public resume() {
         return;
     }
 
