@@ -234,6 +234,42 @@ const mockCards = [
         unique: false,
         internalName: 'putting-a-team-together',
     }),
+    buildMockCard({
+        title: 'Bib Fortuna',
+        subtitle: 'Die Wanna Wanga?',
+        power: 3,
+        hp: 2,
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'twi\'lek'],
+        setId: {
+            set: 'LAW',
+            number: 134,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bib-fortuna#die-wanna-wanga',
+    }),
+    buildMockCard({
+        title: '4-LOM',
+        subtitle: 'Devious',
+        power: 4,
+        hp: 5,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'droid', 'bounty hunter'],
+        setId: {
+            set: 'LAW',
+            number: 65,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: '4lom#devious',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
