@@ -463,7 +463,6 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
     .addPhrase((phrase) =>
         phrase
             .setMetadata({ originalWord: 'foreskin' })
-            .addPattern(pattern`for[e]skin`)
-            .addPattern(pattern`|for[e][ ]skin|`)
+            .addPattern(pattern`for[e][ ]skin`)
             .addPattern(pattern`4skin`)
     );
