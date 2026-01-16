@@ -26,7 +26,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         super(game, sourcePlayer, CostAdjustStage.DefeatCredits_4, {
             costAdjustType: CostAdjustType.DefeatCreditTokens,
             matchAbilityCosts: true,
-            matchGameEffectResourcePayments: true
+            matchCardEffectResourcePayments: true
         });
     }
 
@@ -115,7 +115,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
 
         if (costAdjustTriggerResult.resourceCostType === ResourceCostType.Ability) {
             promptTitle += '\'s ability';
-        } else if (costAdjustTriggerResult.resourceCostType === ResourceCostType.GameEffectPayment) {
+        } else if (costAdjustTriggerResult.resourceCostType === ResourceCostType.CardEffectPayment) {
             promptTitle += '\'s effect';
         }
 
@@ -200,7 +200,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
 
         if (resourceCostType === ResourceCostType.Ability) {
             sourceDescription.format = '{0}\'s ability';
-        } else if (resourceCostType === ResourceCostType.GameEffectPayment) {
+        } else if (resourceCostType === ResourceCostType.CardEffectPayment) {
             sourceDescription.format = '{0}\'s effect';
         }
 

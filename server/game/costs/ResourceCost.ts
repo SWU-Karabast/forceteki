@@ -19,14 +19,14 @@ import type { Player } from '../core/Player';
  */
 export abstract class ResourceCost<TCard extends Card = Card> implements ICost<AbilityContext<TCard>> {
     public readonly resourceCostAmount: number;
-    protected readonly payer: (context: AbilityContext) => Player;
+    protected readonly payingPlayer: (context: AbilityContext) => Player;
 
     public constructor(
         resourceCostAmount: number,
-        payer: (context: AbilityContext) => Player = (context) => context.player
+        payingPlayer: (context: AbilityContext) => Player = (context) => context.player
     ) {
         this.resourceCostAmount = resourceCostAmount;
-        this.payer = payer;
+        this.payingPlayer = payingPlayer;
     }
 
     public abstract get resourceCostType(): ResourceCostType;
@@ -46,7 +46,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     /** Returns true if this.payer(context) has enough ready resources to pay the cost, accounting for adjustments */
     public canPay(context: AbilityContext<TCard>): boolean {
         const minCost = this.getAdjustedCost(context);
-        return this.payer(context).readyResourceCount >= minCost;
+        return this.payingPlayer(context).readyResourceCount >= minCost;
     }
 
     /**
@@ -63,7 +63,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
 
         const costAdjustmentEvaluation = this.resolveCostAdjustments(context);
 
-        const availableResources = this.payer(context).readyResourceCount;
+        const availableResources = this.payingPlayer(context).readyResourceCount;
         if (costAdjustmentEvaluation.adjustedCost.value > availableResources) {
             abilityCostResult.cancelled = true;
         } else {
@@ -189,7 +189,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         context: AbilityContext<TCard>,
         _costAdjustersByStage: Map<CostAdjustStage, CostAdjuster[]>
     ): ICostAdjustEvaluationIntermediateResult {
-        const costAdjusterTargets: ICostAdjusterEvaluationTarget[] = this.payer(context).getArenaUnits()
+        const costAdjusterTargets: ICostAdjusterEvaluationTarget[] = this.payingPlayer(context).getArenaUnits()
             .map((unit) => ({ unit }));
         const costTracker = this.buildEvaluationCostTracker(context);
 
@@ -227,7 +227,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
 
     /** Constructs a map of all cost adjusters for a player + ability grouped by their stage */
     protected getCostAdjustersByStage(context: AbilityContext, additionalCostAdjusters: CostAdjuster[] = null): Map<CostAdjustStage, CostAdjuster[]> {
-        const allAdjusters = this.payer(context).getCostAdjusters()
+        const allAdjusters = this.payingPlayer(context).getCostAdjusters()
             .concat(additionalCostAdjusters ?? []);
 
         const adjustersByStage: Map<CostAdjustStage, CostAdjuster[]> = new Map<CostAdjustStage, CostAdjuster[]>(
@@ -251,7 +251,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
             for (const adjuster of usedAdjusters) {
                 adjuster.markUsed();
                 if (adjuster.isExpired()) {
-                    this.payer(context).removeCostAdjuster(adjuster);
+                    this.payingPlayer(context).removeCostAdjuster(adjuster);
                 }
             }
 
@@ -264,7 +264,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
                 }
             }
 
-            this.payer(context).exhaustResources(amount, priorityExhaustList);
+            this.payingPlayer(context).exhaustResources(amount, priorityExhaustList);
         });
     }
 }

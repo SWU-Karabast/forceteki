@@ -160,7 +160,8 @@ import type { IWinGameProperties } from './WinGameSystem';
 import { WinGameSystem } from './WinGameSystem';
 import type { ICreateCreditTokenProperties } from './CreateCreditTokenSystem';
 import { CreateCreditTokenSystem } from './CreateCreditTokenSystem';
-import { GameEffectResourcePaymentSystem } from './GameEffectResourcePaymentSystem';
+import type { ICardEffectResourcePaymentProperties } from './CardEffectResourcePaymentSystem';
+import { CardEffectResourcePaymentSystem } from './CardEffectResourcePaymentSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -398,8 +399,20 @@ export function exhaustResources<TContext extends AbilityContext = AbilityContex
     return new ExhaustResourcesSystem<TContext>(propertyFactory);
 }
 
-export function payResources<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustResourcesProperties, TContext>) {
-    return new GameEffectResourcePaymentSystem<TContext>(propertyFactory);
+export function payResources<TContext extends AbilityContext = AbilityContext>(
+    propertyFactory: PropsFactory<ICardEffectResourcePaymentProperties & { doNotAllowCredits?: boolean }, TContext>
+) {
+    // TODO: This is an awkward workaround for the fact that some cards provide no benefit to the player if they pay with credits.
+    //  For example, Emergency Powers cannot grant experience tokens if the player pays with credits, only with resources. So
+    //  we want to avoid getting the cost adjuster logic involved at all for those cases.
+    return conditional<TContext>((context: TContext) => {
+        const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
+        return {
+            condition: properties.doNotAllowCredits,
+            onTrue: new ExhaustResourcesSystem({ amount: properties.amount, isCost: true }),
+            onFalse: new CardEffectResourcePaymentSystem(properties)
+        };
+    });
 }
 
 /**

@@ -6,7 +6,7 @@ import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetS
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { Player } from '../core/Player';
 import type { GameEvent } from '../core/event/GameEvent';
-import { GameEffectResourcePaymentSystem } from './GameEffectResourcePaymentSystem';
+import { CardEffectResourcePaymentSystem } from './CardEffectResourcePaymentSystem';
 
 export interface IPayCardPrintedCostProperties extends ICardTargetSystemProperties {
     player: Player;
@@ -26,7 +26,7 @@ export class PayCardPrintedCostSystem<TContext extends AbilityContext = AbilityC
             return false;
         }
 
-        const canPayCost = card.cost === 0 || new GameEffectResourcePaymentSystem({
+        const canPayCost = card.cost === 0 || new CardEffectResourcePaymentSystem({
             amount: card.cost
         }).canAffect(properties.player, context, {}, mustChangeGameState);
 
@@ -39,7 +39,7 @@ export class PayCardPrintedCostSystem<TContext extends AbilityContext = AbilityC
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.target[0].cost > 0) {
-            new GameEffectResourcePaymentSystem({
+            new CardEffectResourcePaymentSystem({
                 amount: properties.target[0].cost,
                 target: properties.player,
             }).queueGenerateEventGameSteps(events, context);

@@ -52,8 +52,8 @@ export interface ICostAdjusterPropertiesBase {
     /** Whether the cost adjuster should adjust activation costs for abilities. Defaults to false. */
     matchAbilityCosts?: boolean;
 
-    /** Whether the cost adjuster should adjust game effect resource payments (e.g. Blue Leader). Defaults to false. */
-    matchGameEffectResourcePayments?: boolean;
+    /** Whether the cost adjuster should adjust card effect resource payments (e.g. Blue Leader). Defaults to false. */
+    matchCardEffectResourcePayments?: boolean;
 
     /** If the cost adjustment is related to a specific PlayType, this will ensure it only applies to that playType */
     playType?: PlayType;
@@ -154,7 +154,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     private readonly playType?: PlayType;
     private readonly attachTargetCondition?: (attachTarget: Card, context: AbilityContext<any>, adjusterSource?: Card,) => boolean;
     private readonly matchAbilityCosts: boolean;
-    private readonly matchGameEffectResourcePayments: boolean;
+    private readonly matchCardEffectResourcePayments: boolean;
 
     @undoObject()
     protected accessor sourceCard: Card | null;
@@ -202,7 +202,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         }
 
         this.matchAbilityCosts = !!properties.matchAbilityCosts;
-        this.matchGameEffectResourcePayments = !!properties.matchGameEffectResourcePayments;
+        this.matchCardEffectResourcePayments = !!properties.matchCardEffectResourcePayments;
     }
 
     protected abstract applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]): void;
@@ -232,7 +232,7 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
             return false;
         }
 
-        if (evaluationResult.resourceCostType === ResourceCostType.GameEffectPayment && !this.matchGameEffectResourcePayments) {
+        if (evaluationResult.resourceCostType === ResourceCostType.CardEffectPayment && !this.matchCardEffectResourcePayments) {
             return false;
         }
 
