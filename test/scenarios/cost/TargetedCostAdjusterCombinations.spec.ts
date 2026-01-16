@@ -184,6 +184,85 @@ describe('Cost adjuster combinations', function() {
                 expect(context.pykeSentinel).toBeInZone('discard');
                 expect(context.imperialDarkTrooper).toBeInZone('discard');
             });
+
+            it('if Exploit can reduce to 0 but does not, credits are still prompted', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        credits: 2,
+                        resources: 3,
+                        hand: ['asajj-ventress#count-dookus-assassin'],
+                        groundArena: ['battle-droid', 'separatist-commando'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // System should correctly determine that Asajj Ventress is playable
+                expect(context.player1).toBeAbleToSelect(context.asajjVentress);
+                context.player1.clickCard(context.asajjVentress);
+
+                // Exploit is triggered first
+                expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
+                context.player1.clickPrompt('Trigger Exploit');
+
+                // Can select a single unit to reduce cost to 2
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.separatistCommando]);
+                context.player1.clickCard(context.battleDroid);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickPrompt('Done');
+
+                // Prompt for credits should appear
+                expect(context.player1).toHavePrompt('Use Credit tokens for Asajj Ventress');
+                expect(context.player1).toHaveExactPromptButtons(['Select amount', 'Pay costs without Credit tokens']);
+                context.player1.clickPrompt('Select amount');
+
+                // Should be able to choose 1 or 2 credits
+                expect(context.player1).toHaveExactDropdownListOptions(['1', '2']);
+                context.player1.chooseListOption('2');
+
+                // Verify final state
+                expect(context.asajjVentress).toBeInZone('groundArena');
+                expect(context.player1.credits).toBe(0); // 2 credits used
+                expect(context.player1.readyResourceCount).toBe(3); // No resources used
+                expect(context.battleDroid).toBeInZone('outsideTheGame');
+            });
+
+            it('if Exploit can reduce to 0 and does, credits are not prompted', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        credits: 2,
+                        resources: 3,
+                        hand: ['asajj-ventress#count-dookus-assassin'],
+                        groundArena: ['battle-droid', 'separatist-commando'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // System should correctly determine that Asajj Ventress is playable
+                expect(context.player1).toBeAbleToSelect(context.asajjVentress);
+                context.player1.clickCard(context.asajjVentress);
+
+                // Exploit is triggered first
+                expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
+                context.player1.clickPrompt('Trigger Exploit');
+
+                // Can select both units to reduce cost to 0
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.separatistCommando]);
+                context.player1.clickCard(context.battleDroid);
+                context.player1.clickCard(context.separatistCommando);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickPrompt('Done');
+
+                // No prompt for credits should appear
+                expect(context.asajjVentress).toBeInZone('groundArena');
+                expect(context.player1.credits).toBe(2); // No credits used
+                expect(context.player1.readyResourceCount).toBe(3); // No resources used
+                expect(context.battleDroid).toBeInZone('outsideTheGame');
+                expect(context.separatistCommando).toBeInZone('discard');
+            });
         });
 
         describe('Exploit + Starhawk:', function () {

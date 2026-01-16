@@ -34,7 +34,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         context: AbilityContext,
         evaluationResult: ICostAdjustmentResolutionProperties
     ): boolean {
-        if (context.player.creditTokenCount === 0 || evaluationResult.adjustedCost.value <= 0) {
+        if (context.player.creditTokenCount === 0) {
             return false;
         }
 
@@ -65,7 +65,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         costAdjustTriggerResult: ICostAdjustTriggerResult,
         abilityCostResult?: ICostResult
     ) {
-        if (this.isCancelled || !this.canAdjust(context.source, context, costAdjustTriggerResult)) {
+        if (this.isCancelled || costAdjustTriggerResult.adjustedCost.value <= 0) {
             return;
         }
 
