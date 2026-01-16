@@ -43,6 +43,15 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
             return false;
         }
 
+        Contract.assertNonEmpty(context.player.baseZone.credits, 'Player has no Credit tokens in base zone but creditTokenCount is greater than zero');
+
+        // TODO: If there is ever an effect that can selectively blank Credit tokens,
+        // this class will need to account for which Credits can actually be used to
+        // adjust costs. For now, it's all or nothing (Galen Erso's effect).
+        if (this.sourcePlayer.baseZone.credits[0].isBlank()) {
+            return false;
+        }
+
         return super.canAdjust(card, context, evaluationResult);
     }
 

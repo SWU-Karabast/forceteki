@@ -33,7 +33,7 @@ describe('I\'ve Found Them', function() {
                 expect(context.yoda).toBeInZone('deck', context.player1); // Yoda remains in deck
                 expect(context.getChatLogs(2)).toEqual([
                     'player1 plays I\'ve Found Them to reveal Pyke Sentinel, Wampa, and Battlefield Marine',
-                    'player1 uses I\'ve Found Them to draw a card and then to discard Pyke Sentinel and Wampa',
+                    'player1 uses I\'ve Found Them to draw a card and then to discard Pyke Sentinel and Battlefield Marine',
                 ]);
             });
 

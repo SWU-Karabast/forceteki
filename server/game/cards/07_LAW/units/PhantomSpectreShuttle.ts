@@ -19,10 +19,10 @@ export default class PhantomSpectreShuttle extends NonLeaderUnitCard {
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Heroism),
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: abilityHelper.immediateEffects.sequential([
-                    abilityHelper.immediateEffects.playCardFromHand((context) => ({
+                    abilityHelper.immediateEffects.playCardFromHand({
                         playAsType: WildcardCardType.Unit,
-                    })),
-                    abilityHelper.immediateEffects.giveExperience()
+                    }),
+                    abilityHelper.immediateEffects.giveExperience((context) => ({ target: context.target }))
                 ]),
             }
         });

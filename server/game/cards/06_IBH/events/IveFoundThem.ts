@@ -35,11 +35,11 @@ export default class IveFoundThem extends EventCard {
                             target: topCards,
                             cardCondition: (card) => card.isUnit(),
                             canChooseFewer: false,
-                            immediateEffect: AbilityHelper.immediateEffects.sequential([
+                            immediateEffect: AbilityHelper.immediateEffects.sequential((context) => [
                                 AbilityHelper.immediateEffects.drawSpecificCard(),
-                                AbilityHelper.immediateEffects.discardSpecificCard((context) => ({
-                                    target: this.getTopCardsOfDeckSafely(context.player, 2)
-                                })),
+                                AbilityHelper.immediateEffects.discardSpecificCard({
+                                    target: topCards.filter((card) => !context.selectedPromptCards.includes(card)),
+                                }),
                             ]),
                             useDisplayPrompt: true
                         })),
