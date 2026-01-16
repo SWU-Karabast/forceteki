@@ -701,6 +701,28 @@ var customMatchers = {
             }
         };
     },
+    toSeeTopCardOfDeck: function () {
+        return {
+            compare: function (player, targetPlayer) {
+                let result = {};
+                targetPlayer = targetPlayer || player;
+
+                result.pass = player.player.isTopCardShown(targetPlayer.player);
+
+                if (result.pass) {
+                    result.message = player.player === targetPlayer.player
+                        ? `Expected ${player.name} not to see the top card of their deck but they did.`
+                        : `Expected ${player.name} not to see the top card of ${targetPlayer.name}'s deck but they did.`;
+                } else {
+                    result.message = player.player === targetPlayer.player
+                        ? `Expected ${player.name} to see the top card of their deck but they did not.`
+                        : `Expected ${player.name} to see the top card of ${targetPlayer.name}'s deck but they did not.`;
+                }
+
+                return result;
+            }
+        };
+    },
     toBeInZone: function () {
         return {
             compare: function (card, zone, player = null) {

@@ -306,8 +306,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
             : (context: AbilityContext<this>) => this.isInPlay() && gainCondition(context);
     }
 
-    public override getSummary(activePlayer: Player) {
-        return { ...super.getSummary(activePlayer),
+    public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
+        return { ...super.getSummary(activePlayer, overrideHidden),
             parentCardId: this.state.parentCard ? this.state.parentCard.uuid : null };
     }
 
