@@ -43,7 +43,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
             return false;
         }
 
-        Contract.assertNonEmpty(context.player.baseZone.credits, 'Player has no Credit tokens in base zone but creditTokenCount is greater than zero');
+        Contract.assertNonEmpty(this.sourcePlayer.baseZone.credits, 'Player has no Credit tokens in base zone but creditTokenCount is greater than zero');
 
         // TODO: If there is ever an effect that can selectively blank Credit tokens,
         // this class will need to account for which Credits can actually be used to
