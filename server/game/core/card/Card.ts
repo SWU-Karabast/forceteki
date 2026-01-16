@@ -17,7 +17,6 @@ import type { MoveZoneDestination } from '../Constants';
 import { ChatObjectType, KeywordName } from '../Constants';
 import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import * as Helpers from '../utils/Helpers';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
@@ -752,6 +751,46 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return keywords as KeywordWithNumericValue[];
     }
 
+    /** Optimized check for a single keyword - avoids array allocation from getKeywords() */
+    public hasKeyword(keyword: KeywordName): boolean {
+        // Check printed keywords first (fast path)
+        const printedKeywords = this.printedKeywords;
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < printedKeywords.length; i++) {
+            const kw = printedKeywords[i];
+            if (kw.name === keyword && !kw.isBlank) {
+                return true;
+            }
+        }
+
+        // Check gained keywords from effects
+        const gainedKeywordEffects = this.getOngoingEffectValues(EffectName.GainKeyword);
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < gainedKeywordEffects.length; i++) {
+            const props = gainedKeywordEffects[i];
+            if (Array.isArray(props)) {
+                // eslint-disable-next-line @typescript-eslint/prefer-for-of
+                for (let j = 0; j < props.length; j++) {
+                    const p = props[j];
+                    // Check keyword name first (cheap), only create instance if match to check isBlank
+                    if (p.keyword === keyword) {
+                        const kwInstance = KeywordHelpers.keywordFromProperties(p, this);
+                        if (!kwInstance.isBlank) {
+                            return true;
+                        }
+                    }
+                }
+            } else if (props.keyword === keyword) {
+                const kwInstance = KeywordHelpers.keywordFromProperties(props, this);
+                if (!kwInstance.isBlank) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public hasSomeKeyword(keywords: Set<KeywordName> | KeywordName | KeywordName[]): boolean {
         return this.hasSome(keywords, this.keywords.map((keyword) => keyword.name));
     }
@@ -877,12 +916,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         }
 
         const keywordExcludedFromBlankEffect = this.getOngoingEffectValues(EffectName.BlankExceptKeyword)
-            .map((value) => value.exceptKeyword)
-            .includes(keyword);
+            .some((value) => value.exceptKeyword === keyword);
 
         const isSpecificallyRemoved = this.getOngoingEffectValues(EffectName.LoseKeyword)
-            .flatMap((x) => Helpers.asArray(x))
-            .includes(keyword);
+            .some((value) => (Array.isArray(value) ? value.includes(keyword) : value === keyword));
 
         return isSpecificallyRemoved || (this.isBlank() && !keywordExcludedFromBlankEffect);
     }

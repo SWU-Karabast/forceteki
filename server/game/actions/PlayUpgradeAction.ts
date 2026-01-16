@@ -31,7 +31,7 @@ export class PlayUpgradeAction extends PlayCardAction {
 
     public override executeHandler(context: PlayCardContext) {
         const isUpgrade = context.source.isUpgrade();
-        const isPilot = !isUpgrade && (context.source.isUnit() && context.source.hasSomeKeyword(KeywordName.Piloting));
+        const isPilot = !isUpgrade && (context.source.isUnit() && context.source.hasKeyword(KeywordName.Piloting));
 
         Contract.assertTrue(isUpgrade || isPilot);
         Contract.assertTrue(context.source.canBeInPlay());
