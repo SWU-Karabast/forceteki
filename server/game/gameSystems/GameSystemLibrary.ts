@@ -399,12 +399,25 @@ export function exhaustResources<TContext extends AbilityContext = AbilityContex
     return new ExhaustResourcesSystem<TContext>(propertyFactory);
 }
 
+/**
+ * Pays resources, levering all the benefits of resource cost logic, including cost adjustment.
+ *
+ * Most abilities that say "pay X resources" should use this function because it allows the player
+ * to use Credit tokens while paying resources.
+ */
 export function payResources<TContext extends AbilityContext = AbilityContext>(
     propertyFactory: PropsFactory<ICardEffectResourcePaymentProperties, TContext>
 ) {
     return new CardEffectResourcePaymentSystem<TContext>(propertyFactory);
 }
 
+/**
+ * Pays resources without tapping into cost adjustment logic.
+ *
+ * Only use this function for cases that have a "for each resource paid this way" clause.
+ * Credit tokens provide no benefit to the player in those cases because they don't count
+ * as a resource paid.
+ */
 export function payResourcesWithoutAdjustment<TContext extends AbilityContext = AbilityContext>(
     propertyFactory: PropsFactory<Omit<IExhaustResourcesProperties, 'isCost'>, TContext>
 ) {
