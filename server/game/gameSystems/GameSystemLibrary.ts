@@ -408,9 +408,9 @@ export function payResources<TContext extends AbilityContext = AbilityContext>(
     return conditional<TContext>((context: TContext) => {
         const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
         return {
-            condition: properties.doNotAllowCredits,
-            onTrue: new ExhaustResourcesSystem({ amount: properties.amount, isCost: true }),
-            onFalse: new CardEffectResourcePaymentSystem(properties)
+            condition: properties.doNotAllowCredits ?? false,
+            onTrue: new ExhaustResourcesSystem<TContext>({ amount: properties.amount, target: properties.target, isCost: true }),
+            onFalse: new CardEffectResourcePaymentSystem<TContext>(properties)
         };
     });
 }
