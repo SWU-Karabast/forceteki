@@ -1222,7 +1222,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             clock: undefined,
             aspects: this.getAspects(),
             hasForceToken: this.hasTheForce,
-            credits: this.creditTokenCount,
+            credits: this.getCreditsSummary(),
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
@@ -1238,6 +1238,18 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         // }
 
         return summary;
+    }
+
+    private getCreditsSummary() {
+        // TODO: If there is ever an effect that can selectively blank Credit tokens,
+        // this class will need to account for which Credits can actually be used to
+        // adjust costs. For now, it's all or nothing (Galen Erso's effect).
+        const creditsAreBlanked = this.baseZone.credits.length > 0 && this.baseZone.credits[0].isBlank();
+
+        return {
+            count: this.creditTokenCount,
+            blanked: creditsAreBlanked ? true : undefined // Don't include in summary if false
+        };
     }
 
     private buildAvailableSnapshotsState(isActionPhaseActivePlayer = false) {
