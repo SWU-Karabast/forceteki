@@ -1,5 +1,111 @@
 describe('Cost adjuster combinations', function() {
     integration(function (contextRef) {
+        describe('Decrease costs + Credits:', function () {
+            it('does not trigger credits when the decrease results in zero cost', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'obiwan-kenobi#courage-makes-heroes',
+                        base: 'chopper-base',
+                        credits: 3,
+                        resources: 7,
+                        hand: ['kelleran-beq#the-sabered-hand'],
+                        deck: ['r2d2#full-of-solutions']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Kelleran Beq (without using Credits)
+                context.player1.clickCard(context.kelleranBeq);
+                context.player1.clickPrompt('Pay costs without Credit tokens');
+
+                // Kelleran's ability triggers, allowing us to play R2-D2 for 3 less
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.r2d2],
+                    invalid: []
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.r2d2);
+
+                // No prompt for credits should appear, as R2-D2 costs 0 after the discount
+                expect(context.r2d2).toBeInZone('groundArena', context.player1);
+                expect(context.player1.credits).toBe(3);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('does trigger when the decrease does not reduce cost to zero', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'obiwan-kenobi#courage-makes-heroes',
+                        credits: 3,
+                        resources: 7,
+                        hand: ['kelleran-beq#the-sabered-hand'],
+                        deck: ['captain-typho#all-necessary-precautions']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Kelleran Beq (without using Credits)
+                context.player1.clickCard(context.kelleranBeq);
+                context.player1.clickPrompt('Pay costs without Credit tokens');
+
+                // Kelleran's ability triggers, allowing us to play Captain Typho for 3 less
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.captainTypho],
+                    invalid: []
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.captainTypho);
+
+                // Prompt for credits should appear, as Captain Typho costs 1 after the discount
+                expect(context.player1).toHavePrompt('Use Credit tokens for Captain Typho');
+                expect(context.player1).toHaveExactPromptButtons(['Use 1 Credit']);
+                context.player1.clickPrompt('Use 1 Credit');
+
+                // Verify final state
+                expect(context.captainTypho).toBeInZone('groundArena', context.player1);
+                expect(context.player1.credits).toBe(2); // 1 credit used
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('Free + Credits:', function () {
+            it('does not trigger credits when the cost free', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'luke-skywalker#faithful-friend',
+                        base: { card: 'chopper-base', damage: 28 },
+                        credits: 3,
+                        resources: 5,
+                        hand: ['youre-my-only-hope'],
+                        deck: ['krayt-dragon']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play You're My Only Hope (without using Credits)
+                context.player1.clickCard(context.youreMyOnlyHope);
+                context.player1.clickPrompt('Pay costs without Credit tokens');
+
+                // Play Krayt Dragon for free
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.kraytDragon]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for free', 'Leave on top']);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.kraytDragon.title);
+                context.player1.clickDisplayCardPromptButton(context.kraytDragon.uuid, 'play-free');
+
+                // No prompt for credits, verify final state
+                expect(context.kraytDragon).toBeInZone('groundArena', context.player1);
+                expect(context.player1.credits).toBe(3);
+                expect(context.player1.exhaustedResourceCount).toBe(3); // YMOH cost
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('Ignore all aspects + Credits:', function () {
             it('applies correct discount for credits when ignoring all aspects', async function () {
                 await contextRef.setupTestAsync({
