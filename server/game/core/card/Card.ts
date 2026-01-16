@@ -1246,27 +1246,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         );
     }
 
-    /**
-     * Returns true if this card is the top card of the controller's deck and should be shown to the active player
-     * @param {Player} activePlayer - The player to check visibility for
-     * @returns {boolean} true if this card is the top card and is shown to the active player
-     */
-    public isThisTopCardAndShown(activePlayer: Player): boolean {
-        if (!this.isPlayable()) {
-            return false;
-        }
-
-        // Check if this card is the top card of the controller's deck
-        const topCard = this.controller.getTopCardOfDeck();
-
-        if (topCard !== this) {
-            return false;
-        }
-
-        // Check if the top card is shown to the active player
-        return this.controller.isTopCardShown(activePlayer);
-    }
-
     /** @deprecated Copied from L5R, not yet updated for SWU rules */
     public anotherUniqueInPlay(player) {
         return (
@@ -1369,13 +1348,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     /*
     * This is the infomation for each card that is sent to the client.
     */
-
-    public getSummary(activePlayer: Player): any {
+    public getSummary(activePlayer: Player, overrideHidden: boolean = false): any {
         const isActivePlayer = activePlayer === this.controller;
         const selectionState = activePlayer.getCardSelectionState(this);
         const shouldBeHidden = this.zone.hiddenForPlayers === WildcardRelativePlayer.Any ||
           (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent);
-        const overrideHidden = this.isThisTopCardAndShown(activePlayer);
 
         if (overrideHidden || !shouldBeHidden) {
             const state = {

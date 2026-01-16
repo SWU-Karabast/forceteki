@@ -1216,7 +1216,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
         if (this.isTopCardShown(activePlayer)) {
             const topCard = activePlayer.getTopCardOfDeck();
-            summary.topCardOfDeck = topCard.getSummary(activePlayer);
+            summary.topCardOfDeck = topCard.getSummary(activePlayer, true);
         }
 
         return summary;

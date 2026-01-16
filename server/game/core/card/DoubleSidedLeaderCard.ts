@@ -88,8 +88,8 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         this.resolveAbilitiesForNewZone();
     }
 
-    public override getSummary(activePlayer: Player): string {
-        return { ...super.getSummary(activePlayer), onStartingSide: this.state.onStartingSide };
+    public override getSummary(activePlayer: Player, overrideHidden: boolean = false): string {
+        return { ...super.getSummary(activePlayer, overrideHidden), onStartingSide: this.state.onStartingSide };
     }
 
     public override createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
