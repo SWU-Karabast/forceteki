@@ -49,6 +49,26 @@ describe('Credit token', function () {
                 context.player1.setCreditTokenCount(2);
                 expect(context.player1.credits).toBe(2);
             });
+
+            it('it does not trigger adjustment for cards with cost 0', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        credits: 2,
+                        hand: ['porg']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Porg (0R)
+                context.player1.clickCard(context.porg);
+
+                // Should not prompt to use credit tokens
+                expect(context.porg).toBeInZone('groundArena', context.player1);
+                expect(context.player1.credits).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
 
         describe('Using Credit tokens to pay costs: ', function () {
