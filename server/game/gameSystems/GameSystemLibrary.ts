@@ -400,19 +400,23 @@ export function exhaustResources<TContext extends AbilityContext = AbilityContex
 }
 
 export function payResources<TContext extends AbilityContext = AbilityContext>(
-    propertyFactory: PropsFactory<ICardEffectResourcePaymentProperties & { doNotAllowCredits?: boolean }, TContext>
+    propertyFactory: PropsFactory<ICardEffectResourcePaymentProperties, TContext>
 ) {
-    // TODO: This is an awkward workaround for the fact that some cards provide no benefit to the player if they pay with credits.
-    //  For example, Emergency Powers cannot grant experience tokens if the player pays with credits, only with resources. So
-    //  we want to avoid getting the cost adjuster logic involved at all for those cases.
-    return conditional<TContext>((context: TContext) => {
-        const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
-        return {
-            condition: properties.doNotAllowCredits ?? false,
-            onTrue: new ExhaustResourcesSystem<TContext>({ amount: properties.amount, target: properties.target, isCost: true }),
-            onFalse: new CardEffectResourcePaymentSystem<TContext>(properties)
-        };
-    });
+    return new CardEffectResourcePaymentSystem<TContext>(propertyFactory);
+}
+
+export function payResourcesWithoutAdjustment<TContext extends AbilityContext = AbilityContext>(
+    propertyFactory: PropsFactory<Omit<IExhaustResourcesProperties, 'isCost'>, TContext>
+) {
+    // This is an awkward workaround for the fact that some card effects provide no benefit to the player if they pay
+    // for the effect with credits. For example, Emergency Powers cannot grant experience tokens if the player pays with
+    // credits, only with resources. So we want to avoid getting the cost adjuster logic involved at all for those cases.
+    return new ExhaustResourcesSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IExhaustResourcesProperties, 'isCost'>(
+            propertyFactory,
+            { isCost: true }
+        )
+    );
 }
 
 /**
