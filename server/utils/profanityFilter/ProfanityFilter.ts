@@ -1,5 +1,5 @@
 import words from 'profane-words';
-import { hateGroupsMatcher, karabastProfanityMatcher } from './KarabastProfanityMatcher';
+import { hateGroupsMatcher, karabastProfanityMatcher, karabastProfanityMatcherNoLeet } from './KarabastProfanityMatcher';
 
 /**
  * Checks if a string contains any profanity from our filter list
@@ -24,7 +24,11 @@ export function usernameContainsProfanity(text: string): boolean {
 
     const consolidatedWords = consolidateDividedWords(text);
     const separatedText = separateWordsWithWhitespace(consolidatedWords);
-    return karabastProfanityMatcher.hasMatch(separatedText);
+
+    // Check both matchers: one with leet speak transformation, one without
+    // This ensures we catch both leet speak variations (e.g., "f0reskin") and
+    // literal leet characters in words (e.g., "4skin")
+    return karabastProfanityMatcher.hasMatch(separatedText) || karabastProfanityMatcherNoLeet.hasMatch(separatedText);
 }
 
 /**
