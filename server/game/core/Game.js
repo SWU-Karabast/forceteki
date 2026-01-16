@@ -781,11 +781,14 @@ class Game extends EventEmitter {
         this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
     }
 
-    onPlayerAction(playerId) {
+    onPlayerAction(playerId, resetTimer = true) {
         const player = this.getPlayerById(playerId);
 
         player.incrementActionId();
-        player.actionTimer.restartIfRunning();
+
+        if (resetTimer) {
+            player.actionTimer.restartIfRunning();
+        }
     }
 
     /** @param {Player} player */
@@ -937,6 +940,16 @@ class Game extends EventEmitter {
             this._router.sendGameState(this); // call the function if it exists
         } else {
             this.queueStep(new GameOverPrompt(this));
+        }
+    }
+
+    /**
+     * Sends updated game state to all players.
+     * Used by action timers to push state updates when timer state changes.
+     */
+    sendUpdatedGameStateToPlayers() {
+        if (typeof this._router?.sendGameState === 'function') {
+            this._router.sendGameState(this);
         }
     }
 
