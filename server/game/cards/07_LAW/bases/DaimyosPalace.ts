@@ -4,7 +4,7 @@ import { LAWCommonBase } from '../common/LAWCommonBase';
 export default class DaimyosPalace extends LAWCommonBase {
     protected override getImplementationId() {
         return {
-            id: 'daimyos-palace-id',
+            id: '5043366366',
             internalName: 'daimyos-palace',
         };
     }

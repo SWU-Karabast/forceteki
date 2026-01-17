@@ -55,19 +55,6 @@ const mockCards = [
         internalName: 'doctor-aphra#digging-for-answers',
     }),
     buildMockCard({
-        title: 'Daimyo\'s Palace',
-        hp: 27,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance'],
-        types: ['base'],
-        setId: {
-            set: 'LAW',
-            number: 20
-        },
-        unique: false,
-        internalName: 'daimyos-palace'
-    }),
-    buildMockCard({
         title: 'Green Common LAW Base',
         hp: 27,
         hasNonKeywordAbility: true,
