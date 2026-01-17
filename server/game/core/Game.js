@@ -1949,13 +1949,19 @@ class Game extends EventEmitter {
     // /*
     //  * This information is sent to the client
     //  */
-    getState(notInactivePlayerId) {
+    /**
+     * @param {string} notInactivePlayerId - The player/spectator ID to get state for
+     * @param {number} [lastMessageOffset=0] - The index to start sending messages from (for incremental sync)
+     */
+    getState(notInactivePlayerId, lastMessageOffset = 0) {
         try {
             const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
 
             if (this._serializationFailure) {
                 return {
-                    messages: [`A severe server error has occurred and made this game unplayable. This incident has been reported to the dev team. Please feel free to reach out in the Karabast discord to provide additional details so we can resolve this faster (game id ${this.id}).`],
+                    newMessages: [`A severe server error has occurred and made this game unplayable. This incident has been reported to the dev team. Please feel free to reach out in the Karabast discord to provide additional details so we can resolve this faster (game id ${this.id}).`],
+                    messageOffset: 0,
+                    totalMessages: 1,
                     playerUpdate: activePlayer.name,
                     id: this.id,
                     owner: this.owner,
@@ -1974,6 +1980,10 @@ class Game extends EventEmitter {
                     playerState[player.id] = player.getStateSummary(activePlayer);
                 }
 
+                const allMessages = this.gameChat.messages;
+                const totalMessages = allMessages.length;
+                const newMessages = allMessages.slice(lastMessageOffset);
+
                 const gameState = {
                     playerUpdate: activePlayer.name,
                     id: this.id,
@@ -1981,7 +1991,9 @@ class Game extends EventEmitter {
                     owner: this.owner,
                     players: playerState,
                     phase: this.currentPhase,
-                    messages: this.gameChat.messages,
+                    newMessages: newMessages,
+                    messageOffset: lastMessageOffset,
+                    totalMessages: totalMessages,
                     initiativeClaimed: this.isInitiativeClaimed,
                     clientUIProperties: this.clientUIProperties,
                     spectators: this.getSpectators().map((spectator) => {
