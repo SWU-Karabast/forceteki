@@ -60,7 +60,7 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickCardInDisplayCardPrompt(context.captainTypho);
 
                 // Prompt for credits should appear, as Captain Typho costs 1 after the discount
-                expect(context.player1).toHavePrompt('Use Credit tokens for Captain Typho');
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Captain Typho');
                 expect(context.player1).toHaveExactPromptButtons(['Use 1 Credit']);
                 context.player1.clickPrompt('Use 1 Credit');
 
@@ -213,7 +213,7 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickPrompt('Done');
 
                 // Prompt for credits should appear
-                expect(context.player1).toHavePrompt('Use Credit tokens for Asajj Ventress');
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Asajj Ventress');
                 expect(context.player1).toHaveExactPromptButtons(['Select amount', 'Pay costs without Credit tokens']);
                 context.player1.clickPrompt('Select amount');
 
